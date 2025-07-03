@@ -12,14 +12,35 @@ Integrates multiple DDoS protection systems with:
 import time
 import asyncio
 import logging
+import hmac
+import secrets
+import hashlib
+import json
+import numpy as np
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 from enum import Enum
 import psutil
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
 
 logger = logging.getLogger(__name__)
+
+# Import advanced behavioral analyzer
+try:
+    from app.security.advanced_behavioral_analyzer import (
+        advanced_behavioral_analyzer,
+        BehavioralThreatType,
+        BehavioralAssessment
+    )
+    BEHAVIORAL_ANALYZER_AVAILABLE = True
+except ImportError:
+    BEHAVIORAL_ANALYZER_AVAILABLE = False
+    logger.warning("Advanced behavioral analyzer not available")
 
 class ThreatLevel(Enum):
     """DDoS threat levels."""
@@ -185,15 +206,48 @@ class EnhancedDDoSProtectionService:
         
         # Check for suspicious patterns
         suspicion_score = self._calculate_suspicion_score(profile, user_agent, endpoint)
-        
+
+        # Advanced behavioral analysis
+        behavioral_assessment = None
+        if BEHAVIORAL_ANALYZER_AVAILABLE:
+            try:
+                request_data = {
+                    'endpoint': endpoint,
+                    'method': method,
+                    'user_agent': user_agent,
+                    'headers': {},  # Would need to be passed from middleware
+                    'client_ip': ip
+                }
+                behavioral_assessment = await advanced_behavioral_analyzer.analyze_request_behavior(
+                    ip, 'ip', request_data
+                )
+
+                # Integrate behavioral analysis with suspicion score
+                if behavioral_assessment.risk_level > 6:
+                    suspicion_score = max(suspicion_score, behavioral_assessment.confidence)
+
+            except Exception as e:
+                logger.warning(f"Behavioral analysis failed: {e}")
+
         if suspicion_score > 0.8:  # High suspicion threshold
-            self._handle_suspicious_activity(profile, current_time, suspicion_score)
-            
-            return False, "suspicious_activity", {
+            self._handle_suspicious_activity(profile, current_time, suspicion_score, behavioral_assessment)
+
+            response_data = {
                 "suspicion_score": suspicion_score,
                 "threat_level": profile.threat_level.value,
                 "patterns_detected": self._get_detected_patterns(user_agent, endpoint)
             }
+
+            # Add behavioral analysis data if available
+            if behavioral_assessment:
+                response_data.update({
+                    "behavioral_threat_type": behavioral_assessment.threat_type.value,
+                    "behavioral_confidence": behavioral_assessment.confidence,
+                    "behavioral_risk_level": behavioral_assessment.risk_level,
+                    "behavioral_patterns": behavioral_assessment.patterns_detected
+                })
+
+            return False, "suspicious_activity", response_data
         
         # Request allowed
         self._record_successful_request(profile, current_time)
@@ -345,24 +399,49 @@ class EnhancedDDoSProtectionService:
                       f"duration={block_duration}s, "
                       f"threat_level={profile.threat_level.value}")
     
-    def _handle_suspicious_activity(self, profile: IPThreatProfile, 
-                                  current_time: datetime, suspicion_score: float):
-        """Handle suspicious activity detection."""
+    def _handle_suspicious_activity(self, profile: IPThreatProfile,
+                                  current_time: datetime, suspicion_score: float,
+                                  behavioral_assessment: Optional['BehavioralAssessment'] = None):
+        """Handle suspicious activity detection with behavioral analysis integration."""
         profile.violation_count += 1
         profile.blocked_requests += 1
-        
-        # Temporary block for suspicious activity
-        block_duration = int(300 * suspicion_score)  # 0-5 minutes based on suspicion
+
+        # Calculate block duration based on suspicion score and behavioral analysis
+        base_duration = int(300 * suspicion_score)  # 0-5 minutes based on suspicion
+
+        # Enhance duration based on behavioral assessment
+        if behavioral_assessment:
+            if behavioral_assessment.threat_type == BehavioralThreatType.COORDINATED_ATTACK:
+                base_duration *= 3  # Longer blocks for coordinated attacks
+            elif behavioral_assessment.threat_type == BehavioralThreatType.BRUTE_FORCE:
+                base_duration *= 2  # Longer blocks for brute force
+            elif behavioral_assessment.risk_level > 8:
+                base_duration = int(base_duration * 1.5)
+
         profile.block_type = BlockType.TEMPORARILY_BLOCKED
-        profile.block_expires = current_time + timedelta(seconds=block_duration)
-        
-        # Update threat level
-        if suspicion_score > 0.9:
-            profile.threat_level = ThreatLevel.CRITICAL
-        elif suspicion_score > 0.7:
-            profile.threat_level = ThreatLevel.HIGH
+        profile.block_expires = current_time + timedelta(seconds=base_duration)
+
+        # Update threat level with behavioral input
+        final_threat_level = ThreatLevel.MODERATE
+
+        if behavioral_assessment and behavioral_assessment.risk_level > 8:
+            final_threat_level = ThreatLevel.CRITICAL
+        elif suspicion_score > 0.9 or (behavioral_assessment and behavioral_assessment.risk_level > 6):
+            final_threat_level = ThreatLevel.CRITICAL
+        elif suspicion_score > 0.7 or (behavioral_assessment and behavioral_assessment.risk_level > 4):
+            final_threat_level = ThreatLevel.HIGH
         else:
-            profile.threat_level = ThreatLevel.MODERATE
+            final_threat_level = ThreatLevel.MODERATE
+
+        profile.threat_level = final_threat_level
+
+        # Log enhanced threat information
+        if behavioral_assessment:
+            logger.warning(f"Enhanced threat detection for {profile.ip}: "
+                         f"suspicion={suspicion_score:.2f}, "
+                         f"behavioral_type={behavioral_assessment.threat_type.value}, "
+                         f"risk_level={behavioral_assessment.risk_level}, "
+                         f"block_duration={base_duration}s")
         
         logger.warning(f"Suspicious activity block applied to {profile.ip}: "
                       f"suspicion_score={suspicion_score:.2f}, "
