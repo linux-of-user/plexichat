@@ -18,6 +18,7 @@ from .core.recovery_manager import AdvancedRecoveryManager
 from .core.proxy_manager import DatabaseProxyManager
 from .core.backup_node_auth import BackupNodeAuthManager, NodePermissionLevel, APIKeyStatus
 from .core.user_message_backup import UniversalBackupManager, BackupOptStatus, BackupDataType
+from .plugins.archive_system import ArchiveSystemPlugin, ArchiveType, ArchiveStatus
 
 __version__ = "2.0.0"
 __all__ = [

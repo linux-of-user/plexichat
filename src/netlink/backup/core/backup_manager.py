@@ -11,7 +11,7 @@ import hashlib
 import secrets
 import json
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Dict, List, Optional, Any, Tuple, Union, Set
 from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
