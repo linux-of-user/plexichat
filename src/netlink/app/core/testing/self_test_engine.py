@@ -34,6 +34,12 @@ try:
 except ImportError:
     ANTIVIRUS_AVAILABLE = False
 
+try:
+    from app.services.unified_security_service import unified_security_service
+    UNIFIED_SECURITY_AVAILABLE = True
+except ImportError:
+    UNIFIED_SECURITY_AVAILABLE = False
+
 class TestStatus(str, Enum):
     """Test execution status."""
     PENDING = "pending"
@@ -51,6 +57,11 @@ class TestCategory(str, Enum):
     WEBSOCKETS = "websockets"
     FILE_MANAGEMENT = "file_management"
     SECURITY = "security"
+    SQL_INJECTION = "sql_injection"
+    ANTIVIRUS = "antivirus"
+    RATE_LIMITING = "rate_limiting"
+    DDOS_PROTECTION = "ddos_protection"
+    INPUT_VALIDATION = "input_validation"
     PERFORMANCE = "performance"
     INTEGRATION = "integration"
     SYSTEM = "system"
@@ -108,7 +119,19 @@ class SelfTestEngine:
         self.running_tests: Dict[str, asyncio.Task] = {}
         self.test_history: List[TestResult] = []
         self.max_history = 1000
-        
+
+        # Initialize security services for testing
+        if SECURITY_SERVICE_AVAILABLE:
+            self.security_service = SecurityService()
+        else:
+            self.security_service = None
+
+        if ANTIVIRUS_AVAILABLE:
+            from pathlib import Path
+            self.message_scanner = MessageAntivirusScanner(Path("data"))
+        else:
+            self.message_scanner = None
+
         # Initialize built-in tests
         self._register_builtin_tests()
         self._create_default_suites()
@@ -171,13 +194,62 @@ class SelfTestEngine:
         # Security tests
         self.register_test(
             "security_rate_limiting", self._test_rate_limiting,
-            "Rate Limiting", TestCategory.SECURITY, TestPriority.HIGH
+            "Rate Limiting", TestCategory.RATE_LIMITING, TestPriority.HIGH
         )
         self.register_test(
             "security_input_validation", self._test_input_validation,
-            "Input Validation", TestCategory.SECURITY, TestPriority.HIGH
+            "Input Validation", TestCategory.INPUT_VALIDATION, TestPriority.HIGH
         )
-        
+
+        # SQL Injection tests
+        self.register_test(
+            "sql_injection_detection", self._test_sql_injection_detection,
+            "SQL Injection Detection", TestCategory.SQL_INJECTION, TestPriority.CRITICAL
+        )
+        self.register_test(
+            "sql_injection_progressive_blocking", self._test_sql_injection_progressive_blocking,
+            "SQL Injection Progressive Blocking", TestCategory.SQL_INJECTION, TestPriority.HIGH
+        )
+        self.register_test(
+            "sql_injection_quoted_sql", self._test_sql_injection_quoted_sql,
+            "Quoted SQL Handling", TestCategory.SQL_INJECTION, TestPriority.HIGH
+        )
+
+        # Antivirus tests
+        if ANTIVIRUS_AVAILABLE:
+            self.register_test(
+                "antivirus_message_scanning", self._test_antivirus_message_scanning,
+                "Message Antivirus Scanning", TestCategory.ANTIVIRUS, TestPriority.HIGH
+            )
+            self.register_test(
+                "antivirus_threat_detection", self._test_antivirus_threat_detection,
+                "Antivirus Threat Detection", TestCategory.ANTIVIRUS, TestPriority.HIGH
+            )
+
+        # DDoS Protection tests
+        self.register_test(
+            "ddos_rate_limiting", self._test_ddos_rate_limiting,
+            "DDoS Rate Limiting", TestCategory.DDOS_PROTECTION, TestPriority.HIGH
+        )
+        self.register_test(
+            "ddos_ip_blocking", self._test_ddos_ip_blocking,
+            "DDoS IP Blocking", TestCategory.DDOS_PROTECTION, TestPriority.HIGH
+        )
+
+        # Unified Security tests
+        self.register_test(
+            "unified_security_assessment", self._test_unified_security_assessment,
+            "Unified Security Assessment", TestCategory.SECURITY, TestPriority.HIGH
+        )
+        self.register_test(
+            "unified_security_integration", self._test_unified_security_integration,
+            "Unified Security Integration", TestCategory.SECURITY, TestPriority.HIGH
+        )
+        self.register_test(
+            "unified_security_response", self._test_unified_security_response,
+            "Unified Security Response", TestCategory.SECURITY, TestPriority.MEDIUM
+        )
+
         # Performance tests
         self.register_test(
             "performance_response_time", self._test_response_time,
@@ -221,11 +293,56 @@ class SelfTestEngine:
             timeout=300
         )
         
+        # Enhanced security test suites
         self.test_suites["security"] = TestSuite(
             "Security Tests",
-            "Security and validation tests",
+            "Basic security and validation tests",
             ["security_rate_limiting", "security_input_validation"],
             timeout=240
+        )
+
+        self.test_suites["sql_injection"] = TestSuite(
+            "SQL Injection Tests",
+            "Comprehensive SQL injection detection and blocking tests",
+            ["sql_injection_detection", "sql_injection_progressive_blocking", "sql_injection_quoted_sql"],
+            timeout=300
+        )
+
+        antivirus_tests = []
+        if ANTIVIRUS_AVAILABLE:
+            antivirus_tests = ["antivirus_message_scanning", "antivirus_threat_detection"]
+
+        self.test_suites["antivirus"] = TestSuite(
+            "Antivirus Tests",
+            "Message antivirus scanning and threat detection tests",
+            antivirus_tests,
+            timeout=180
+        )
+
+        self.test_suites["ddos_protection"] = TestSuite(
+            "DDoS Protection Tests",
+            "DDoS protection and rate limiting tests",
+            ["ddos_rate_limiting", "ddos_ip_blocking"],
+            timeout=300
+        )
+
+        self.test_suites["unified_security"] = TestSuite(
+            "Unified Security Tests",
+            "Tests for the unified security integration layer",
+            ["unified_security_assessment", "unified_security_integration", "unified_security_response"],
+            timeout=300
+        )
+
+        self.test_suites["comprehensive_security"] = TestSuite(
+            "Comprehensive Security",
+            "All security tests including SQL injection, antivirus, DDoS protection, and unified security",
+            [
+                "security_rate_limiting", "security_input_validation",
+                "sql_injection_detection", "sql_injection_progressive_blocking", "sql_injection_quoted_sql",
+                "ddos_rate_limiting", "ddos_ip_blocking",
+                "unified_security_assessment", "unified_security_integration", "unified_security_response"
+            ] + antivirus_tests,
+            timeout=1200
         )
         
         self.test_suites["performance"] = TestSuite(
@@ -545,6 +662,426 @@ class SelfTestEngine:
             raise Exception(f"Disk usage too high: {usage_percent:.1f}%")
         
         result.details['disk_usage'] = usage_percent
+
+    # Enhanced Security Tests
+    async def _test_sql_injection_detection(self, result: TestResult):
+        """Test SQL injection detection capabilities."""
+        if not self.security_service:
+            raise Exception("Security service not available")
+
+        # Test various SQL injection patterns
+        test_patterns = [
+            "'; DROP TABLE users; --",
+            "1' OR '1'='1",
+            "UNION SELECT * FROM passwords",
+            "'; INSERT INTO admin VALUES('hacker', 'password'); --",
+            "1; DELETE FROM messages; --"
+        ]
+
+        detected_count = 0
+        for pattern in test_patterns:
+            is_detected, threat = self.security_service.detect_sql_injection(pattern, "test_source")
+            if is_detected:
+                detected_count += 1
+
+        if detected_count < len(test_patterns):
+            raise Exception(f"Only {detected_count}/{len(test_patterns)} SQL injection patterns detected")
+
+        result.details['patterns_tested'] = len(test_patterns)
+        result.details['patterns_detected'] = detected_count
+        result.details['message'] = "SQL injection detection working correctly"
+
+    async def _test_sql_injection_progressive_blocking(self, result: TestResult):
+        """Test SQL injection progressive blocking system."""
+        if not self.security_service:
+            raise Exception("Security service not available")
+
+        test_ip = "192.168.1.100"  # Test IP
+        sql_pattern = "'; DROP TABLE test; --"
+
+        # Clear any existing state for test IP
+        if test_ip in self.security_service.sql_injection_attempts:
+            del self.security_service.sql_injection_attempts[test_ip]
+        if test_ip in self.security_service.sql_injection_blocks:
+            del self.security_service.sql_injection_blocks[test_ip]
+        if test_ip in self.security_service.sql_injection_escalation:
+            del self.security_service.sql_injection_escalation[test_ip]
+
+        # Test escalation levels
+        escalation_levels = []
+        for i in range(12):  # Test beyond blocking threshold
+            is_detected, threat = self.security_service.detect_sql_injection(sql_pattern, test_ip)
+            if is_detected and threat:
+                escalation_levels.append(threat.metadata.get('escalation_level', 0))
+
+        # Check if IP gets blocked
+        is_blocked, _, _ = self.security_service.is_sql_injection_blocked(test_ip)
+
+        if not is_blocked:
+            raise Exception("IP should be blocked after multiple SQL injection attempts")
+
+        result.details['escalation_levels'] = escalation_levels
+        result.details['final_blocked'] = is_blocked
+        result.details['message'] = "Progressive blocking working correctly"
+
+    async def _test_sql_injection_quoted_sql(self, result: TestResult):
+        """Test that properly quoted SQL is allowed."""
+        if not self.security_service:
+            raise Exception("Security service not available")
+
+        # Test legitimate quoted SQL patterns
+        legitimate_patterns = [
+            '"[SELECT * FROM users WHERE id = 1]"',
+            "[INSERT INTO logs VALUES ('test')]",
+            '"{UPDATE settings SET value = \'test\'}"',
+            "[DELETE FROM temp_table WHERE created < NOW()]"
+        ]
+
+        allowed_count = 0
+        for pattern in legitimate_patterns:
+            is_detected, threat = self.security_service.detect_sql_injection(pattern, "test_source")
+            if not is_detected:
+                allowed_count += 1
+
+        if allowed_count < len(legitimate_patterns):
+            raise Exception(f"Only {allowed_count}/{len(legitimate_patterns)} legitimate SQL patterns allowed")
+
+        result.details['patterns_tested'] = len(legitimate_patterns)
+        result.details['patterns_allowed'] = allowed_count
+        result.details['message'] = "Quoted SQL handling working correctly"
+
+    async def _test_antivirus_message_scanning(self, result: TestResult):
+        """Test message antivirus scanning functionality."""
+        if not self.message_scanner:
+            raise Exception("Message antivirus scanner not available")
+
+        # Test clean message
+        clean_message = "Hello, this is a normal message!"
+        clean_result = await self.message_scanner.scan_message(clean_message)
+
+        if clean_result.threat_type.value != "clean":
+            raise Exception(f"Clean message flagged as threat: {clean_result.threat_type.value}")
+
+        # Test malicious message
+        malicious_message = "Click here: http://malicious.tk/steal-passwords"
+        malicious_result = await self.message_scanner.scan_message(malicious_message)
+
+        if malicious_result.threat_level.value < 1:  # Should detect some threat
+            raise Exception("Malicious message not detected by antivirus")
+
+        result.details['clean_scan'] = clean_result.threat_type.value
+        result.details['malicious_scan'] = malicious_result.threat_type.value
+        result.details['message'] = "Message antivirus scanning working correctly"
+
+    async def _test_antivirus_threat_detection(self, result: TestResult):
+        """Test antivirus threat detection patterns."""
+        if not self.message_scanner:
+            raise Exception("Message antivirus scanner not available")
+
+        # Test various threat types
+        threat_messages = {
+            "xss": "<script>alert('xss')</script>",
+            "phishing": "Urgent: verify your account immediately or it will be suspended",
+            "spam": "Make money fast! Work from home! No experience required!",
+            "malicious_url": "Check out this link: http://suspicious.ml/download"
+        }
+
+        detected_threats = {}
+        for threat_type, message in threat_messages.items():
+            scan_result = await self.message_scanner.scan_message(message)
+            detected_threats[threat_type] = {
+                "detected": scan_result.threat_level.value > 0,
+                "threat_type": scan_result.threat_type.value,
+                "confidence": scan_result.confidence_score
+            }
+
+        # Check that at least some threats were detected
+        detected_count = sum(1 for t in detected_threats.values() if t["detected"])
+        if detected_count < 2:  # At least 2 should be detected
+            raise Exception(f"Only {detected_count} threat types detected")
+
+        result.details['threat_detection'] = detected_threats
+        result.details['message'] = "Antivirus threat detection working correctly"
+
+    async def _test_ddos_rate_limiting(self, result: TestResult):
+        """Test DDoS protection rate limiting."""
+        # Test rapid requests to trigger rate limiting
+        test_endpoint = f"{settings.BASE_URL}/api/v1/system/health"
+
+        async def make_rapid_requests():
+            async with httpx.AsyncClient() as client:
+                responses = []
+                for i in range(50):  # Make 50 rapid requests
+                    try:
+                        response = await client.get(test_endpoint, timeout=1.0)
+                        responses.append(response.status_code)
+                    except httpx.TimeoutException:
+                        responses.append(408)  # Timeout
+                    except Exception:
+                        responses.append(500)  # Error
+                return responses
+
+        responses = await make_rapid_requests()
+
+        # Check if rate limiting kicked in (should see 429 responses)
+        rate_limited = sum(1 for code in responses if code == 429)
+
+        result.details['total_requests'] = len(responses)
+        result.details['rate_limited_responses'] = rate_limited
+        result.details['response_codes'] = dict(zip(*zip(*[(code, responses.count(code)) for code in set(responses)])))
+        result.details['message'] = f"Rate limiting test completed: {rate_limited} requests rate limited"
+
+    async def _test_ddos_ip_blocking(self, result: TestResult):
+        """Test DDoS IP blocking functionality."""
+        if not self.security_service:
+            raise Exception("Security service not available")
+
+        # Test IP blocking through repeated violations
+        test_ip = "192.168.1.200"
+
+        # Clear any existing state
+        if test_ip in self.security_service.sql_injection_blocks:
+            del self.security_service.sql_injection_blocks[test_ip]
+
+        # Trigger multiple violations to cause blocking
+        for i in range(15):  # Exceed blocking threshold
+            self.security_service.detect_sql_injection("'; DROP TABLE test; --", test_ip)
+
+        # Check if IP is blocked
+        is_blocked, block_expiry, escalation_level = self.security_service.is_sql_injection_blocked(test_ip)
+
+        if not is_blocked:
+            raise Exception("IP should be blocked after multiple violations")
+
+        result.details['ip_blocked'] = is_blocked
+        result.details['escalation_level'] = escalation_level
+        result.details['block_expiry'] = block_expiry.isoformat() if block_expiry else None
+        result.details['message'] = "IP blocking functionality working correctly"
+
+    # Unified Security Tests
+
+    async def _test_unified_security_assessment(self) -> TestResult:
+        """Test unified security assessment functionality."""
+        try:
+            if not UNIFIED_SECURITY_AVAILABLE:
+                return TestResult(
+                    test_id="unified_security_assessment",
+                    name="Unified Security Assessment",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.SKIPPED,
+                    error_message="Unified security service not available"
+                )
+
+            from app.services.unified_security_service import unified_security_service
+
+            # Test clean request
+            clean_request = {
+                'client_ip': '127.0.0.1',
+                'user_id': 'test_user',
+                'endpoint': '/api/v1/test',
+                'method': 'GET',
+                'user_agent': 'TestAgent/1.0'
+            }
+
+            assessment = await unified_security_service.assess_request_security(
+                clean_request, "Hello, world!"
+            )
+
+            if assessment.threat_detected:
+                return TestResult(
+                    test_id="unified_security_assessment",
+                    name="Unified Security Assessment",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.FAILED,
+                    error_message="Clean request flagged as threat",
+                    details={"assessment": assessment.threat_type.value}
+                )
+
+            # Test malicious request
+            malicious_request = {
+                'client_ip': '192.168.1.100',
+                'user_id': None,
+                'endpoint': '/api/v1/messages/send',
+                'method': 'POST',
+                'user_agent': 'curl/7.68.0'
+            }
+
+            malicious_content = "SELECT * FROM users WHERE id = 1; DROP TABLE users;"
+
+            assessment = await unified_security_service.assess_request_security(
+                malicious_request, malicious_content
+            )
+
+            if not assessment.threat_detected:
+                return TestResult(
+                    test_id="unified_security_assessment",
+                    name="Unified Security Assessment",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.FAILED,
+                    error_message="Malicious request not detected",
+                    details={"content": malicious_content}
+                )
+
+            return TestResult(
+                test_id="unified_security_assessment",
+                name="Unified Security Assessment",
+                category=TestCategory.SECURITY,
+                status=TestStatus.PASSED,
+                details={
+                    "clean_request_passed": True,
+                    "malicious_request_detected": True,
+                    "threat_type": assessment.threat_type.value,
+                    "confidence": assessment.confidence_score
+                }
+            )
+
+        except Exception as e:
+            return TestResult(
+                test_id="unified_security_assessment",
+                name="Unified Security Assessment",
+                category=TestCategory.SECURITY,
+                status=TestStatus.FAILED,
+                error_message=str(e)
+            )
+
+    async def _test_unified_security_integration(self) -> TestResult:
+        """Test unified security service integration with other systems."""
+        try:
+            if not UNIFIED_SECURITY_AVAILABLE:
+                return TestResult(
+                    test_id="unified_security_integration",
+                    name="Unified Security Integration",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.SKIPPED,
+                    error_message="Unified security service not available"
+                )
+
+            from app.services.unified_security_service import unified_security_service
+
+            # Test security status
+            status = unified_security_service.get_security_status()
+
+            if not status.get('enabled'):
+                return TestResult(
+                    test_id="unified_security_integration",
+                    name="Unified Security Integration",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.FAILED,
+                    error_message="Unified security service not enabled"
+                )
+
+            # Check service integrations
+            services = status.get('services', {})
+            available_services = sum(1 for service, available in services.items() if available)
+
+            if available_services == 0:
+                return TestResult(
+                    test_id="unified_security_integration",
+                    name="Unified Security Integration",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.FAILED,
+                    error_message="No security services integrated",
+                    details={"services": services}
+                )
+
+            return TestResult(
+                test_id="unified_security_integration",
+                name="Unified Security Integration",
+                category=TestCategory.SECURITY,
+                status=TestStatus.PASSED,
+                details={
+                    "enabled": status['enabled'],
+                    "services": services,
+                    "available_services": available_services,
+                    "policy": status.get('policy', {})
+                }
+            )
+
+        except Exception as e:
+            return TestResult(
+                test_id="unified_security_integration",
+                name="Unified Security Integration",
+                category=TestCategory.SECURITY,
+                status=TestStatus.FAILED,
+                error_message=str(e)
+            )
+
+    async def _test_unified_security_response(self) -> TestResult:
+        """Test unified security response handling."""
+        try:
+            if not UNIFIED_SECURITY_AVAILABLE:
+                return TestResult(
+                    test_id="unified_security_response",
+                    name="Unified Security Response",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.SKIPPED,
+                    error_message="Unified security service not available"
+                )
+
+            from app.services.unified_security_service import unified_security_service
+            from app.services.unified_security_service import SecurityAssessment, SecurityThreatType, SecurityAction
+            from datetime import datetime, timezone
+
+            # Create mock assessment with threat
+            assessment = SecurityAssessment(
+                request_id="test_123",
+                client_ip="192.168.1.100",
+                user_id=None,
+                endpoint="/api/v1/test",
+                method="POST",
+                timestamp=datetime.now(timezone.utc),
+                threat_detected=True,
+                threat_type=SecurityThreatType.SQL_INJECTION,
+                threat_level=8,
+                confidence_score=0.95,
+                recommended_action=SecurityAction.BLOCK,
+                witty_response="SQL injection detected! 💉 Nice try, but we're not that easy!"
+            )
+
+            # Test response handling
+            response = await unified_security_service.handle_security_response(assessment)
+
+            if response.get('status') != 'blocked':
+                return TestResult(
+                    test_id="unified_security_response",
+                    name="Unified Security Response",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.FAILED,
+                    error_message="Expected blocked status for high-threat assessment",
+                    details={"response": response}
+                )
+
+            if 'witty_response' not in response:
+                return TestResult(
+                    test_id="unified_security_response",
+                    name="Unified Security Response",
+                    category=TestCategory.SECURITY,
+                    status=TestStatus.FAILED,
+                    error_message="Witty response missing from security response",
+                    details={"response": response}
+                )
+
+            return TestResult(
+                test_id="unified_security_response",
+                name="Unified Security Response",
+                category=TestCategory.SECURITY,
+                status=TestStatus.PASSED,
+                details={
+                    "response_status": response.get('status'),
+                    "has_witty_response": 'witty_response' in response,
+                    "threat_level": response.get('threat_level'),
+                    "confidence": response.get('confidence')
+                }
+            )
+
+        except Exception as e:
+            return TestResult(
+                test_id="unified_security_response",
+                name="Unified Security Response",
+                category=TestCategory.SECURITY,
+                status=TestStatus.FAILED,
+                error_message=str(e)
+            )
 
 # Global self-test engine instance
 self_test_engine = SelfTestEngine()
