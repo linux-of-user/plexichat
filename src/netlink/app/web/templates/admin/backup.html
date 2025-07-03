@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Management - Chat API Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/modern-ui.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .backup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .backup-card {
+            position: relative;
+            border-left: 4px solid var(--primary);
+        }
+
+        .backup-card.healthy {
+            border-left-color: var(--success);
+        }
+
+        .backup-card.degraded {
+            border-left-color: var(--warning);
+        }
+
+        .backup-card.critical {
+            border-left-color: var(--error);
+        }
+
+        .health-indicator {
+            position: absolute;
+            top: var(--space-4);
+            right: var(--space-4);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .health-indicator.healthy { background-color: var(--success); }
+        .health-indicator.degraded { background-color: var(--warning); }
+        .health-indicator.critical { background-color: var(--error); }
+
+        .backup-progress {
+            margin: var(--space-4) 0;
+        }
+
+        .backup-progress-bar {
+            height: 8px;
+            background-color: var(--bg-accent);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .backup-progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .backup-progress-fill.healthy { background-color: var(--success); }
+        .backup-progress-fill.degraded { background-color: var(--warning); }
+        .backup-progress-fill.critical { background-color: var(--error); }
+
+        .stats-overview {
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            color: white;
+            padding: var(--space-8);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-8);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-6);
+            margin-top: var(--space-6);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: var(--space-4);
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .action-panel {
+            position: sticky;
+            top: var(--space-4);
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .backup-log {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: var(--space-4);
+        }
+
+        .storage-visualization {
+            margin: var(--space-6) 0;
+        }
+
+        .storage-bar {
+            height: 20px;
+            background-color: var(--bg-accent);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .storage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--warning));
+            transition: width 0.3s ease;
+        }
+
+        .storage-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: var(--space-6);
+        }
+
+        .modal-footer {
+            padding: var(--space-6);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: var(--space-3);
+            justify-content: flex-end;
+        }
+
+        .alert {
+            padding: var(--space-4);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+        }
+
+        .alert-success {
+            background-color: var(--success-light);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .alert-warning {
+            background-color: var(--warning-light);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .alert-error {
+            background-color: var(--error-light);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .loading .spinner {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="flex justify-between items-center py-6">
+            <div>
+                <h1 class="m-0">Backup Management</h1>
+                <p class="m-0 text-sm">Distributed backup system with intelligent redundancy</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="theme-toggle" id="themeToggle"></div>
+                <button class="btn btn-primary" id="createBackupBtn">
+                    <i class="fas fa-plus"></i>
+                    Create Backup
+                </button>
+            </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="stats-overview">
+            <h2 class="m-0 mb-4">System Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalBackups">0</div>
+                    <div class="stat-label">Total Backups</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="healthyBackups">0</div>
+                    <div class="stat-label">Healthy Backups</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalShards">0</div>
+                    <div class="stat-label">Total Shards</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="storageUsers">0</div>
+                    <div class="stat-label">Storage Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="redundancyFactor">3</div>
+                    <div class="stat-label">Redundancy Factor</div>
+                </div>
+            </div>
+
+            <!-- Storage Usage -->
+            <div class="storage-visualization">
+                <h3 class="mb-3">Storage Usage</h3>
+                <div class="storage-bar">
+                    <div class="storage-fill" id="storageFill" style="width: 0%"></div>
+                    <div class="storage-label" id="storageLabel">0% Used</div>
+                </div>
+                <div class="flex justify-between text-sm mt-2">
+                    <span id="usedStorage">0 MB used</span>
+                    <span id="totalStorage">0 MB total</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-8">
+            <!-- Main Content -->
+            <div class="grid-cols-3">
+                <!-- Backup List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="m-0">Distributed Backups</h3>
+                        <button class="btn btn-sm btn-ghost" id="refreshBackups">
+                            <i class="fas fa-refresh"></i>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="backupsList" class="backup-grid">
+                            <!-- Backups will be loaded here -->
+                        </div>
+
+                        <div id="noBackups" class="text-center py-8" style="display: none;">
+                            <i class="fas fa-database text-4xl text-muted mb-4"></i>
+                            <h4>No Backups Found</h4>
+                            <p class="text-muted">Create your first distributed backup to get started.</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('createBackupBtn').click()">
+                                Create First Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel">
+                <h3>Quick Actions</h3>
+
+                <!-- Backup Actions -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-semibold mb-3">Backup Operations</h4>
+                    <div class="flex flex-col gap-2">
+                        <button class="btn btn-sm btn-primary" id="createBackupBtn2">
+                            <i class="fas fa-plus"></i>
+                            Create Backup
+                        </button>
+                        <button class="btn btn-sm btn-secondary" id="recoverBackupBtn">
+                            <i class="fas fa-download"></i>
+                            Recover Backup
+                        </button>
+                        <button class="btn btn-sm btn-warning" id="maintenanceBtn">
+                            <i class="fas fa-tools"></i>
+                            Run Maintenance
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Health -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-semibold mb-3">System Health</h4>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Overall Health</span>
+                            <span class="status-indicator status-success" id="overallHealth">Healthy</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Last Backup</span>
+                            <span class="text-xs text-muted" id="lastBackup">Never</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Next Maintenance</span>
+                            <span class="text-xs text-muted" id="nextMaintenance">In 1 hour</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Log -->
+                <div>
+                    <h4 class="text-sm font-semibold mb-3">Activity Log</h4>
+                    <div class="backup-log" id="activityLog">
+                        System initialized...
+                        Backup system ready
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Backup Modal -->
+    <div id="createBackupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Distributed Backup</h3>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal('createBackupModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    This will create an encrypted backup of critical database data and distribute it across users for redundancy.
+                </div>
+
+                <form id="createBackupForm">
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-input" id="backupDescription"
+                               placeholder="e.g., Weekly backup, Pre-update backup">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Encryption Password</label>
+                        <input type="password" class="form-input" id="backupPassword"
+                               placeholder="Leave empty for auto-generated password">
+                        <small class="text-muted">
+                            Strong password recommended. Auto-generated if left empty.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="confirmBackup">
+                            <span>I understand this will create encrypted shards distributed across users</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createBackupModal')">Cancel</button>
+                <button class="btn btn-primary" id="confirmCreateBackup" disabled>
+                    <i class="fas fa-plus"></i>
+                    Create Backup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recover Backup Modal -->
+    <div id="recoverBackupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Recover Backup</h3>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal('recoverBackupModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This will attempt to recover data from distributed backup shards. Ensure you have the correct password.
+                </div>
+
+                <form id="recoverBackupForm">
+                    <div class="form-group">
+                        <label class="form-label">Backup ID</label>
+                        <select class="form-input form-select" id="recoverBackupId">
+                            <option value="">Select a backup to recover...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Decryption Password</label>
+                        <input type="password" class="form-input" id="recoverPassword"
+                               placeholder="Enter backup password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('recoverBackupModal')">Cancel</button>
+                <button class="btn btn-warning" id="confirmRecoverBackup">
+                    <i class="fas fa-download"></i>
+                    Recover Backup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Details Modal -->
+    <div id="backupDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="detailsModalTitle">Backup Details</h3>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal('backupDetailsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="backupDetailsModalContent">
+                    <!-- Content will be populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('backupDetailsModal')">Close</button>
+                <button class="btn btn-error" id="deleteBackupBtn">
+                    <i class="fas fa-trash"></i>
+                    Delete Backup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class BackupManager {
+            constructor() {
+                this.backups = [];
+                this.systemStatus = {};
+                this.refreshInterval = null;
+
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.setupThemeToggle();
+                this.loadSystemStatus();
+                this.loadBackups();
+                this.startAutoRefresh();
+            }
+
+            setupEventListeners() {
+                // Create backup buttons
+                document.getElementById('createBackupBtn').addEventListener('click', () => {
+                    this.showCreateBackupModal();
+                });
+                document.getElementById('createBackupBtn2').addEventListener('click', () => {
+                    this.showCreateBackupModal();
+                });
+
+                // Other event listeners
+                document.getElementById('recoverBackupBtn').addEventListener('click', () => {
+                    this.showRecoverBackupModal();
+                });
+
+                document.getElementById('maintenanceBtn').addEventListener('click', () => {
+                    this.runMaintenance();
+                });
+
+                document.getElementById('refreshBackups').addEventListener('click', () => {
+                    this.loadBackups();
+                });
+
+                // Form submissions
+                document.getElementById('confirmCreateBackup').addEventListener('click', () => {
+                    this.createBackup();
+                });
+
+                document.getElementById('confirmRecoverBackup').addEventListener('click', () => {
+                    this.recoverBackup();
+                });
+
+                // Form validation
+                document.getElementById('confirmBackup').addEventListener('change', (e) => {
+                    document.getElementById('confirmCreateBackup').disabled = !e.target.checked;
+                });
+
+                // Backup selection for recovery
+                document.getElementById('recoverBackupId').addEventListener('change', (e) => {
+                    this.showBackupDetails(e.target.value);
+                });
+            }
+
+            setupThemeToggle() {
+                const toggle = document.getElementById('themeToggle');
+                const html = document.documentElement;
+
+                toggle.addEventListener('click', () => {
+                    const currentTheme = html.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    html.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                });
+
+                // Load saved theme
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                html.setAttribute('data-theme', savedTheme);
+            }
+
+            async loadSystemStatus() {
+                try {
+                    const response = await fetch('/api/v1/backup/status', {
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.systemStatus = result.data;
+                        this.updateSystemOverview();
+                    }
+                } catch (error) {
+                    console.error('Failed to load system status:', error);
+                    this.logActivity('Failed to load system status');
+                }
+            }
+
+            async loadBackups() {
+                try {
+                    const response = await fetch('/api/v1/backup/list', {
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.backups = result.data.backups;
+                        this.renderBackups();
+                        this.updateRecoverOptions();
+                    }
+                } catch (error) {
+                    console.error('Failed to load backups:', error);
+                    this.logActivity('Failed to load backups');
+                }
+            }
+
+            updateSystemOverview() {
+                const status = this.systemStatus;
+
+                document.getElementById('totalBackups').textContent = status.total_backups || 0;
+                document.getElementById('healthyBackups').textContent = status.healthy_backups || 0;
+                document.getElementById('totalShards').textContent = status.total_shards || 0;
+                document.getElementById('storageUsers').textContent = status.total_users || 0;
+                document.getElementById('redundancyFactor').textContent = status.redundancy_factor || 3;
+
+                // Update storage visualization
+                if (status.storage) {
+                    const usagePercent = status.storage.usage_percentage || 0;
+                    const usedMB = Math.round((status.storage.total_used || 0) / 1024 / 1024);
+                    const totalMB = Math.round((status.storage.total_allocated || 0) / 1024 / 1024);
+
+                    document.getElementById('storageFill').style.width = `${usagePercent}%`;
+                    document.getElementById('storageLabel').textContent = `${usagePercent.toFixed(1)}% Used`;
+                    document.getElementById('usedStorage').textContent = `${usedMB} MB used`;
+                    document.getElementById('totalStorage').textContent = `${totalMB} MB total`;
+                }
+
+                // Update health indicator
+                const healthPercent = status.total_backups > 0 ?
+                    (status.healthy_backups / status.total_backups * 100) : 100;
+
+                const healthEl = document.getElementById('overallHealth');
+                if (healthPercent >= 80) {
+                    healthEl.textContent = 'Healthy';
+                    healthEl.className = 'status-indicator status-success';
+                } else if (healthPercent >= 50) {
+                    healthEl.textContent = 'Degraded';
+                    healthEl.className = 'status-indicator status-warning';
+                } else {
+                    healthEl.textContent = 'Critical';
+                    healthEl.className = 'status-indicator status-error';
+                }
+            }
+
+            renderBackups() {
+                const container = document.getElementById('backupsList');
+                const noBackups = document.getElementById('noBackups');
+
+                if (this.backups.length === 0) {
+                    container.style.display = 'none';
+                    noBackups.style.display = 'block';
+                    return;
+                }
+
+                container.style.display = 'grid';
+                noBackups.style.display = 'none';
+                container.innerHTML = '';
+
+                this.backups.forEach(backup => {
+                    const card = this.createBackupCard(backup);
+                    container.appendChild(card);
+                });
+            }
+
+            createBackupCard(backup) {
+                const healthClass = backup.health_percentage >= 80 ? 'healthy' :
+                                  backup.health_percentage >= 50 ? 'degraded' : 'critical';
+
+                const card = document.createElement('div');
+                card.className = `card backup-card ${healthClass}`;
+                card.innerHTML = `
+                    <div class="health-indicator ${healthClass}"></div>
+                    <div class="card-body">
+                        <h4 class="mb-2">${backup.description || 'Untitled Backup'}</h4>
+                        <p class="text-sm text-muted mb-3">
+                            Created: ${new Date(backup.created_at).toLocaleString()}
+                        </p>
+
+                        <div class="backup-progress">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>Shard Health</span>
+                                <span>${backup.health_percentage.toFixed(1)}%</span>
+                            </div>
+                            <div class="backup-progress-bar">
+                                <div class="backup-progress-fill ${healthClass}"
+                                     style="width: ${backup.health_percentage}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4 text-xs">
+                            <div>
+                                <span class="text-muted">Size:</span>
+                                <span class="font-medium">${this.formatBytes(backup.total_size)}</span>
+                            </div>
+                            <div>
+                                <span class="text-muted">Shards:</span>
+                                <span class="font-medium">${backup.available_shards}/${backup.shard_count}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button class="btn btn-sm btn-primary"
+                                    onclick="backupManager.showBackupDetailsModal('${backup.backup_id}')">
+                                <i class="fas fa-info"></i>
+                                Details
+                            </button>
+                            <button class="btn btn-sm btn-secondary ${backup.recoverable ? '' : 'opacity-50 cursor-not-allowed'}"
+                                    onclick="backupManager.quickRecover('${backup.backup_id}')"
+                                    ${backup.recoverable ? '' : 'disabled'}>
+                                <i class="fas fa-download"></i>
+                                Recover
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                return card;
+            }
+
+            showCreateBackupModal() {
+                document.getElementById('createBackupModal').classList.add('active');
+            }
+
+            showRecoverBackupModal() {
+                this.updateRecoverOptions();
+                document.getElementById('recoverBackupModal').classList.add('active');
+            }
+
+            updateRecoverOptions() {
+                const select = document.getElementById('recoverBackupId');
+                select.innerHTML = '<option value="">Select a backup to recover...</option>';
+
+                this.backups.filter(b => b.recoverable).forEach(backup => {
+                    const option = document.createElement('option');
+                    option.value = backup.backup_id;
+                    option.textContent = `${backup.description || 'Untitled'} - ${new Date(backup.created_at).toLocaleDateString()}`;
+                    select.appendChild(option);
+                });
+            }
+
+            async createBackup() {
+                const description = document.getElementById('backupDescription').value;
+                const password = document.getElementById('backupPassword').value;
+
+                const button = document.getElementById('confirmCreateBackup');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<div class="loading"><div class="spinner"></div>Creating...</div>';
+                button.disabled = true;
+
+                try {
+                    const response = await fetch('/api/v1/backup/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        },
+                        body: JSON.stringify({
+                            description: description,
+                            password: password || undefined
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.logActivity(`Backup created: ${result.data.backup_id}`);
+                        this.closeModal('createBackupModal');
+                        this.loadBackups();
+                        this.loadSystemStatus();
+                        this.showAlert('Backup created successfully!', 'success');
+                    } else {
+                        throw new Error(result.detail || 'Failed to create backup');
+                    }
+                } catch (error) {
+                    console.error('Failed to create backup:', error);
+                    this.logActivity(`Failed to create backup: ${error.message}`);
+                    this.showAlert(`Failed to create backup: ${error.message}`, 'error');
+                } finally {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            }
+
+            async recoverBackup() {
+                const backupId = document.getElementById('recoverBackupId').value;
+                const password = document.getElementById('recoverPassword').value;
+
+                if (!backupId || !password) {
+                    this.showAlert('Please select a backup and enter the password', 'warning');
+                    return;
+                }
+
+                const button = document.getElementById('confirmRecoverBackup');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<div class="loading"><div class="spinner"></div>Recovering...</div>';
+                button.disabled = true;
+
+                try {
+                    const response = await fetch('/api/v1/backup/recover', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        },
+                        body: JSON.stringify({
+                            backup_id: backupId,
+                            password: password
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.logActivity(`Backup recovered: ${backupId}`);
+                        this.closeModal('recoverBackupModal');
+                        this.showAlert('Backup recovered successfully!', 'success');
+                    } else {
+                        throw new Error(result.detail || 'Failed to recover backup');
+                    }
+                } catch (error) {
+                    console.error('Failed to recover backup:', error);
+                    this.logActivity(`Failed to recover backup: ${error.message}`);
+                    this.showAlert(`Failed to recover backup: ${error.message}`, 'error');
+                } finally {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            }
+
+            async runMaintenance() {
+                const button = document.getElementById('maintenanceBtn');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<div class="loading"><div class="spinner"></div>Running...</div>';
+                button.disabled = true;
+
+                try {
+                    const response = await fetch('/api/v1/backup/maintenance/cleanup', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.logActivity('Maintenance cleanup completed');
+                        this.loadBackups();
+                        this.loadSystemStatus();
+                        this.showAlert('Maintenance completed successfully!', 'success');
+                    } else {
+                        throw new Error(result.detail || 'Maintenance failed');
+                    }
+                } catch (error) {
+                    console.error('Maintenance failed:', error);
+                    this.logActivity(`Maintenance failed: ${error.message}`);
+                    this.showAlert(`Maintenance failed: ${error.message}`, 'error');
+                } finally {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            }
+
+            showBackupDetailsModal(backupId) {
+                const backup = this.backups.find(b => b.backup_id === backupId);
+                if (!backup) return;
+
+                document.getElementById('detailsModalTitle').textContent =
+                    `Backup Details - ${backup.description || 'Untitled'}`;
+
+                const content = document.getElementById('backupDetailsModalContent');
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <h4>Basic Information</h4>
+                            <div class="space-y-2 text-sm">
+                                <div><strong>ID:</strong> ${backup.backup_id}</div>
+                                <div><strong>Created:</strong> ${new Date(backup.created_at).toLocaleString()}</div>
+                                <div><strong>Size:</strong> ${this.formatBytes(backup.total_size)}</div>
+                                <div><strong>Description:</strong> ${backup.description || 'No description'}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4>Shard Information</h4>
+                            <div class="space-y-2 text-sm">
+                                <div><strong>Total Shards:</strong> ${backup.shard_count}</div>
+                                <div><strong>Available:</strong> ${backup.available_shards}</div>
+                                <div><strong>Required:</strong> ${backup.recovery_threshold}</div>
+                                <div><strong>Health:</strong> ${backup.health_percentage.toFixed(1)}%</div>
+                                <div><strong>Recoverable:</strong> ${backup.recoverable ? 'Yes' : 'No'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Set up delete button
+                document.getElementById('deleteBackupBtn').onclick = () => {
+                    this.deleteBackup(backupId);
+                };
+
+                document.getElementById('backupDetailsModal').classList.add('active');
+            }
+
+            async deleteBackup(backupId) {
+                if (!confirm('Are you sure you want to delete this backup? This action cannot be undone.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/v1/backup/${backupId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.logActivity(`Backup deleted: ${backupId}`);
+                        this.closeModal('backupDetailsModal');
+                        this.loadBackups();
+                        this.loadSystemStatus();
+                        this.showAlert('Backup deleted successfully!', 'success');
+                    } else {
+                        throw new Error(result.detail || 'Failed to delete backup');
+                    }
+                } catch (error) {
+                    console.error('Failed to delete backup:', error);
+                    this.logActivity(`Failed to delete backup: ${error.message}`);
+                    this.showAlert(`Failed to delete backup: ${error.message}`, 'error');
+                }
+            }
+
+            closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+
+                // Reset forms
+                if (modalId === 'createBackupModal') {
+                    document.getElementById('createBackupForm').reset();
+                    document.getElementById('confirmCreateBackup').disabled = true;
+                } else if (modalId === 'recoverBackupModal') {
+                    document.getElementById('recoverBackupForm').reset();
+                }
+            }
+
+            showAlert(message, type) {
+                // Create alert element
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type}`;
+                alert.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle'}"></i>
+                    ${message}
+                `;
+
+                // Insert at top of page
+                document.body.insertBefore(alert, document.body.firstChild);
+
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 5000);
+            }
+
+            logActivity(message) {
+                const log = document.getElementById('activityLog');
+                const timestamp = new Date().toLocaleTimeString();
+                log.textContent += `\n[${timestamp}] ${message}`;
+                log.scrollTop = log.scrollHeight;
+            }
+
+            formatBytes(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            getAuthToken() {
+                // In a real implementation, this would get the JWT token from storage
+                return localStorage.getItem('auth_token') || 'demo_token';
+            }
+
+            startAutoRefresh() {
+                this.refreshInterval = setInterval(() => {
+                    this.loadSystemStatus();
+                    this.loadBackups();
+                }, 30000); // Refresh every 30 seconds
+            }
+
+            stopAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                    this.refreshInterval = null;
+                }
+            }
+        }
+
+        // Global functions for modal management
+        function closeModal(modalId) {
+            backupManager.closeModal(modalId);
+        }
+
+        // Initialize backup manager
+        const backupManager = new BackupManager();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            backupManager.stopAutoRefresh();
+        });
+    </script>
+</body>
+</html>

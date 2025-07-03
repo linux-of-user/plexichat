@@ -1,0 +1,496 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-terminal"></i>
+                    NetLink Web Console
+                </h6>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearConsole()">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleAutoScroll()">
+                        <i class="fas fa-arrow-down"></i> Auto-scroll
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Console Output -->
+                <div id="console-output" class="console-output p-3">
+                    <div class="console-line">
+                        <span class="console-prompt">netlink@admin:~$</span>
+                        <span class="console-text">Welcome to NetLink Web Console</span>
+                    </div>
+                    <div class="console-line">
+                        <span class="console-prompt">netlink@admin:~$</span>
+                        <span class="console-text">Type 'help' for available commands</span>
+                    </div>
+                    <div class="console-line">
+                        <span class="console-prompt">netlink@admin:~$</span>
+                        <span class="console-text">System initialized successfully</span>
+                    </div>
+                </div>
+                
+                <!-- Console Input -->
+                <div class="console-input-area border-top p-3">
+                    <div class="input-group">
+                        <span class="input-group-text console-prompt-input">netlink@admin:~$</span>
+                        <input type="text" id="console-input" class="form-control console-input" 
+                               placeholder="Enter command..." autocomplete="off">
+                        <button class="btn btn-primary" type="button" onclick="executeCommand()">
+                            <i class="fas fa-play"></i> Execute
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        Available commands: help, status, logs, users, config, system, clear, exit
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Command History -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history"></i>
+                    Command History
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="command-history" class="console-history">
+                    <div class="history-item">help</div>
+                    <div class="history-item">status</div>
+                    <div class="history-item">logs --count 10</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle"></i>
+                    Quick Commands
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="quickCommand('status')">
+                        <i class="fas fa-info"></i> System Status
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="quickCommand('logs --count 20')">
+                        <i class="fas fa-file-alt"></i> Recent Logs
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="quickCommand('performance')">
+                        <i class="fas fa-chart-line"></i> Performance Stats
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="quickCommand('users list')">
+                        <i class="fas fa-users"></i> List Users
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="quickCommand('system restart')">
+                        <i class="fas fa-redo"></i> Restart System
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let commandHistory = [];
+    let historyIndex = -1;
+    let autoScroll = true;
+    
+    // Initialize console
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('console-input');
+        
+        // Focus on input
+        input.focus();
+        
+        // Handle Enter key
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                executeCommand();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                navigateHistory(-1);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                navigateHistory(1);
+            }
+        });
+        
+        // Auto-focus when clicking on console
+        document.getElementById('console-output').addEventListener('click', function() {
+            input.focus();
+        });
+    });
+    
+    function executeCommand() {
+        const input = document.getElementById('console-input');
+        const command = input.value.trim();
+        
+        if (!command) return;
+        
+        // Add to history
+        commandHistory.push(command);
+        historyIndex = commandHistory.length;
+        updateCommandHistory();
+        
+        // Display command in console
+        addConsoleOutput(`netlink@admin:~$ ${command}`, 'command');
+        
+        // Clear input
+        input.value = '';
+        
+        // Execute command
+        processCommand(command);
+    }
+    
+    function processCommand(command) {
+        const parts = command.toLowerCase().split(' ');
+        const cmd = parts[0];
+        
+        switch (cmd) {
+            case 'help':
+                showHelp();
+                break;
+            case 'status':
+                showStatus();
+                break;
+            case 'logs':
+                showLogs(parts);
+                break;
+            case 'users':
+                showUsers(parts);
+                break;
+            case 'config':
+                showConfig();
+                break;
+            case 'system':
+                handleSystemCommand(parts);
+                break;
+            case 'performance':
+                showPerformance();
+                break;
+            case 'clear':
+                clearConsole();
+                break;
+            case 'exit':
+                addConsoleOutput('Goodbye!', 'info');
+                break;
+            default:
+                addConsoleOutput(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
+        }
+    }
+    
+    function showHelp() {
+        const helpText = `
+Available Commands:
+  help                    - Show this help message
+  status                  - Show system status
+  logs [--count N]        - Show recent logs
+  users [list|create]     - User management
+  config [show|set]       - Configuration management
+  system [restart|info]   - System operations
+  performance             - Show performance metrics
+  clear                   - Clear console output
+  exit                    - Exit console session
+
+Examples:
+  logs --count 50         - Show last 50 log entries
+  users list              - List all users
+  system restart          - Restart the system
+        `;
+        addConsoleOutput(helpText, 'info');
+    }
+    
+    function showStatus() {
+        addConsoleOutput('Fetching system status...', 'info');
+        
+        fetch('/admin/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                const statusText = `
+System Status:
+  CPU Usage: ${data.cpu_usage.toFixed(1)}%
+  Memory Usage: ${data.memory_usage.toFixed(1)}%
+  Disk Usage: ${data.disk_usage.toFixed(1)}%
+  Active Connections: ${data.active_connections}
+  Total Requests: ${data.total_requests}
+  Uptime: ${data.uptime}
+                `;
+                addConsoleOutput(statusText, 'success');
+            })
+            .catch(error => {
+                addConsoleOutput(`Error fetching status: ${error}`, 'error');
+            });
+    }
+    
+    function showLogs(parts) {
+        let count = 10;
+        
+        // Parse --count parameter
+        const countIndex = parts.indexOf('--count');
+        if (countIndex !== -1 && countIndex + 1 < parts.length) {
+            count = parseInt(parts[countIndex + 1]) || 10;
+        }
+        
+        addConsoleOutput(`Fetching last ${count} log entries...`, 'info');
+        
+        // Simulate log fetching
+        setTimeout(() => {
+            const sampleLogs = [
+                '[2025-06-29 14:30:15] INFO [web_server] Request processed successfully',
+                '[2025-06-29 14:30:10] DEBUG [database] Query executed in 5ms',
+                '[2025-06-29 14:30:05] WARNING [auth] Failed login attempt from 192.168.1.100',
+                '[2025-06-29 14:30:00] INFO [system] System health check completed',
+                '[2025-06-29 14:29:55] ERROR [api] Rate limit exceeded for user 123'
+            ];
+            
+            addConsoleOutput(`Recent logs (${Math.min(count, sampleLogs.length)} entries):`, 'info');
+            sampleLogs.slice(0, count).forEach(log => {
+                addConsoleOutput(log, 'log');
+            });
+        }, 500);
+    }
+    
+    function showUsers(parts) {
+        const subCmd = parts[1] || 'list';
+        
+        if (subCmd === 'list') {
+            addConsoleOutput('Fetching user list...', 'info');
+            setTimeout(() => {
+                const userList = `
+Users:
+  admin       - Super Administrator (Active)
+  manager     - Administrator (Active)
+  user1       - Regular User (Active)
+  guest       - Guest User (Inactive)
+                `;
+                addConsoleOutput(userList, 'success');
+            }, 300);
+        } else {
+            addConsoleOutput(`Unknown users subcommand: ${subCmd}`, 'error');
+        }
+    }
+    
+    function showConfig() {
+        addConsoleOutput('Current Configuration:', 'info');
+        const configText = `
+Server Configuration:
+  Host: 0.0.0.0
+  Port: 8000
+  Debug Mode: False
+  Log Level: INFO
+  
+Database Configuration:
+  URL: sqlite:///./netlink.db
+  Pool Size: 10
+  Timeout: 30s
+        `;
+        addConsoleOutput(configText, 'success');
+    }
+    
+    function handleSystemCommand(parts) {
+        const subCmd = parts[1] || 'info';
+        
+        switch (subCmd) {
+            case 'restart':
+                if (confirm('Are you sure you want to restart the system?')) {
+                    addConsoleOutput('Initiating system restart...', 'warning');
+                    setTimeout(() => {
+                        addConsoleOutput('System restart completed successfully', 'success');
+                    }, 2000);
+                } else {
+                    addConsoleOutput('System restart cancelled', 'info');
+                }
+                break;
+            case 'info':
+                const sysInfo = `
+System Information:
+  OS: Windows 10
+  Python: 3.11.0
+  NetLink Version: 1.0.0
+  Process ID: 12345
+  Working Directory: ${window.location.origin}
+                `;
+                addConsoleOutput(sysInfo, 'info');
+                break;
+            default:
+                addConsoleOutput(`Unknown system subcommand: ${subCmd}`, 'error');
+        }
+    }
+    
+    function showPerformance() {
+        addConsoleOutput('Performance Metrics:', 'info');
+        const perfText = `
+Performance Statistics:
+  Average Response Time: 45ms
+  Peak Response Time: 234ms
+  Requests per Second: 12.5
+  Error Rate: 0.8%
+  Memory Peak: 256MB
+  CPU Peak: 78%
+        `;
+        addConsoleOutput(perfText, 'success');
+    }
+    
+    function addConsoleOutput(text, type = 'output') {
+        const output = document.getElementById('console-output');
+        const line = document.createElement('div');
+        line.className = `console-line console-${type}`;
+        
+        if (type === 'command') {
+            line.innerHTML = `<span class="console-text">${text}</span>`;
+        } else {
+            line.innerHTML = `<span class="console-text">${text}</span>`;
+        }
+        
+        output.appendChild(line);
+        
+        if (autoScroll) {
+            output.scrollTop = output.scrollHeight;
+        }
+    }
+    
+    function clearConsole() {
+        const output = document.getElementById('console-output');
+        output.innerHTML = `
+            <div class="console-line">
+                <span class="console-prompt">netlink@admin:~$</span>
+                <span class="console-text">Console cleared</span>
+            </div>
+        `;
+    }
+    
+    function toggleAutoScroll() {
+        autoScroll = !autoScroll;
+        const btn = event.target.closest('button');
+        btn.innerHTML = autoScroll ? 
+            '<i class="fas fa-arrow-down"></i> Auto-scroll' : 
+            '<i class="fas fa-pause"></i> Manual';
+    }
+    
+    function navigateHistory(direction) {
+        if (commandHistory.length === 0) return;
+        
+        historyIndex += direction;
+        
+        if (historyIndex < 0) {
+            historyIndex = 0;
+        } else if (historyIndex >= commandHistory.length) {
+            historyIndex = commandHistory.length;
+            document.getElementById('console-input').value = '';
+            return;
+        }
+        
+        document.getElementById('console-input').value = commandHistory[historyIndex];
+    }
+    
+    function updateCommandHistory() {
+        const historyDiv = document.getElementById('command-history');
+        historyDiv.innerHTML = '';
+        
+        commandHistory.slice(-10).reverse().forEach(cmd => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.textContent = cmd;
+            item.onclick = () => {
+                document.getElementById('console-input').value = cmd;
+                document.getElementById('console-input').focus();
+            };
+            historyDiv.appendChild(item);
+        });
+    }
+    
+    function quickCommand(command) {
+        document.getElementById('console-input').value = command;
+        executeCommand();
+    }
+</script>
+
+<style>
+    .console-output {
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        height: 400px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+    }
+    
+    .console-line {
+        margin-bottom: 2px;
+        line-height: 1.4;
+    }
+    
+    .console-prompt {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .console-prompt-input {
+        background-color: #2d2d2d;
+        color: #4CAF50;
+        border-color: #444;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .console-input {
+        background-color: #2d2d2d;
+        color: #d4d4d4;
+        border-color: #444;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .console-input:focus {
+        background-color: #2d2d2d;
+        color: #d4d4d4;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+    
+    .console-success { color: #4CAF50; }
+    .console-error { color: #f44336; }
+    .console-warning { color: #ff9800; }
+    .console-info { color: #2196F3; }
+    .console-log { color: #9E9E9E; }
+    
+    .console-history {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .history-item {
+        padding: 4px 8px;
+        margin: 2px 0;
+        background-color: #f8f9fa;
+        border-radius: 3px;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+    }
+    
+    .history-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .console-input-area {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}

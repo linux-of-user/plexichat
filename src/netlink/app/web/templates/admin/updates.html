@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}System Updates - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-download me-2"></i>
+                    System Updates
+                </h1>
+                <button class="btn btn-primary" onclick="checkForUpdates()">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    Check for Updates
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Version Info -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Current Version
+                    </h5>
+                    <p class="card-text">
+                        <strong>{{ app_name }}</strong> v{{ current_version }}
+                    </p>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        Last checked: <span id="lastCheck">Never</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card" id="updateCard">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cloud-download-alt me-2"></i>
+                        Update Status
+                    </h5>
+                    <div id="updateStatus">
+                        <p class="card-text">
+                            <span class="badge bg-secondary">Checking...</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Progress -->
+    <div class="row mb-4" id="updateProgress" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cog fa-spin me-2"></i>
+                        Update in Progress
+                    </h5>
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: 0%" 
+                             id="progressBar">
+                        </div>
+                    </div>
+                    <p id="progressMessage">Preparing update...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Details -->
+    <div class="row" id="updateDetails" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Update Details
+                    </h5>
+                    <div id="releaseNotes">
+                        <!-- Release notes will be populated here -->
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-success me-2" onclick="startUpdate(false)">
+                            <i class="fas fa-rocket me-2"></i>
+                            Start Hot Update
+                        </button>
+                        <button class="btn btn-warning" onclick="startUpdate(true)">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Force Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Types Info -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Update Types
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-bolt text-success me-2"></i>Hot Update</h6>
+                            <p class="small text-muted">
+                                Updates web interface, templates, and non-core components without restarting the server.
+                                Zero downtime for most changes.
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-power-off text-warning me-2"></i>Restart Required</h6>
+                            <p class="small text-muted">
+                                Some updates require a server restart to take effect.
+                                These are staged and applied on next restart.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let updateCheckInterval;
+
+// Check for updates on page load
+document.addEventListener('DOMContentLoaded', function() {
+    checkForUpdates();
+    
+    // Auto-check every 5 minutes
+    updateCheckInterval = setInterval(checkForUpdates, 5 * 60 * 1000);
+});
+
+async function checkForUpdates() {
+    try {
+        const response = await fetch('/web/admin/updates/check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            showUpdateStatus('error', result.error);
+            return;
+        }
+        
+        document.getElementById('lastCheck').textContent = new Date().toLocaleString();
+        
+        if (result.update_available) {
+            showUpdateAvailable(result);
+        } else {
+            showUpdateStatus('success', 'You are running the latest version');
+        }
+        
+    } catch (error) {
+        console.error('Update check failed:', error);
+        showUpdateStatus('error', 'Failed to check for updates');
+    }
+}
+
+function showUpdateStatus(type, message) {
+    const statusDiv = document.getElementById('updateStatus');
+    const badgeClass = type === 'success' ? 'bg-success' : 
+                      type === 'error' ? 'bg-danger' : 'bg-warning';
+    
+    statusDiv.innerHTML = `
+        <p class="card-text">
+            <span class="badge ${badgeClass}">${message}</span>
+        </p>
+    `;
+    
+    document.getElementById('updateDetails').style.display = 'none';
+}
+
+function showUpdateAvailable(updateInfo) {
+    const statusDiv = document.getElementById('updateStatus');
+    statusDiv.innerHTML = `
+        <p class="card-text">
+            <span class="badge bg-warning">Update Available</span>
+        </p>
+        <p class="small mb-0">
+            <strong>Latest:</strong> v${updateInfo.latest_version}
+        </p>
+    `;
+    
+    // Show update details
+    const detailsDiv = document.getElementById('updateDetails');
+    const releaseNotesDiv = document.getElementById('releaseNotes');
+    
+    releaseNotesDiv.innerHTML = `
+        <h6>Version ${updateInfo.latest_version}</h6>
+        <p class="small text-muted">Released: ${new Date(updateInfo.release_date).toLocaleDateString()}</p>
+        <div class="release-notes">
+            ${updateInfo.release_notes ? 
+              updateInfo.release_notes.replace(/\n/g, '<br>') : 
+              'No release notes available.'}
+        </div>
+    `;
+    
+    detailsDiv.style.display = 'block';
+}
+
+async function startUpdate(force = false) {
+    try {
+        // Show progress
+        document.getElementById('updateProgress').style.display = 'block';
+        updateProgress(10, 'Starting update...');
+        
+        const response = await fetch('/web/admin/updates/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ force: force })
+        });
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            hideProgress();
+            alert('Update failed: ' + result.error);
+            return;
+        }
+        
+        if (result.success) {
+            updateProgress(50, 'Update in progress...');
+            
+            // Monitor update progress
+            monitorUpdateProgress();
+        } else {
+            hideProgress();
+            alert(result.message || 'Update failed');
+        }
+        
+    } catch (error) {
+        console.error('Update start failed:', error);
+        hideProgress();
+        alert('Failed to start update');
+    }
+}
+
+function updateProgress(percent, message) {
+    document.getElementById('progressBar').style.width = percent + '%';
+    document.getElementById('progressMessage').textContent = message;
+}
+
+function hideProgress() {
+    document.getElementById('updateProgress').style.display = 'none';
+}
+
+async function monitorUpdateProgress() {
+    let attempts = 0;
+    const maxAttempts = 30; // 30 seconds
+    
+    const checkProgress = async () => {
+        try {
+            const response = await fetch('/web/admin/updates/status');
+            const status = await response.json();
+            
+            attempts++;
+            
+            if (status.error) {
+                hideProgress();
+                alert('Update monitoring failed: ' + status.error);
+                return;
+            }
+            
+            // Simulate progress
+            const progress = Math.min(50 + (attempts * 2), 90);
+            updateProgress(progress, 'Applying updates...');
+            
+            if (attempts >= maxAttempts) {
+                updateProgress(100, 'Update completed! Refreshing...');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+                return;
+            }
+            
+            // Continue monitoring
+            setTimeout(checkProgress, 1000);
+            
+        } catch (error) {
+            console.error('Progress monitoring error:', error);
+            hideProgress();
+        }
+    };
+    
+    setTimeout(checkProgress, 1000);
+}
+
+// Cleanup interval on page unload
+window.addEventListener('beforeunload', function() {
+    if (updateCheckInterval) {
+        clearInterval(updateCheckInterval);
+    }
+});
+</script>
+{% endblock %}

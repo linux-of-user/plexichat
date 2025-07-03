@@ -1,0 +1,23 @@
+# NetLink Backup Node Requirements
+
+# Core web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# HTTP client for node communication
+httpx>=0.25.0
+
+# Async file operations
+aiofiles>=23.2.0
+
+# Data validation and serialization
+pydantic>=2.4.0
+
+# Process management (optional, for stop functionality)
+psutil>=5.9.0
+
+# Development dependencies (optional)
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# black>=23.9.0
+# flake8>=6.1.0
