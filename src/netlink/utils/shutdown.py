@@ -50,27 +50,27 @@ def print_header(text: str):
     print_colored(f"{'='*50}", Colors.CYAN)
 
 class CleanShutdown:
-    """Clean shutdown manager for Enhanced Chat API."""
-    
+    """Clean shutdown manager for NetLink."""
+
     def __init__(self):
         self.processes_found = []
         self.ports_to_check = [8000, 8001, 8080, 3000]  # Common ports
-        
+
     def find_api_processes(self):
-        """Find all Enhanced Chat API related processes."""
-        print_info("Scanning for Enhanced Chat API processes...")
-        
+        """Find all NetLink related processes."""
+        print_info("Scanning for NetLink processes...")
+
         processes = []
-        
+
         # Look for processes by name patterns
         name_patterns = [
             'uvicorn',
             'python.*run.py',
-            'python.*enhanced_launch.py',
+            'python.*netlink_launch.py',
             'python.*cli.py',
             'python.*app.main',
-            'chatapi',
-            'enhanced-chat-api'
+            'netlink',
+            'netlink-api'
         ]
         
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):

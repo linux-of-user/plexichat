@@ -15,6 +15,7 @@ from .core.node_manager import IntelligentNodeManager
 from .core.load_balancer import SmartLoadBalancer
 from .core.performance_monitor import RealTimePerformanceMonitor
 from .core.failover_manager import AutomaticFailoverManager
+from .core.task_manager import AdvancedTaskManager, TaskStatus, TaskPriority, TaskType, ClusterTask
 
 __version__ = "2.0.0"
 __all__ = [
@@ -22,7 +23,12 @@ __all__ = [
     "IntelligentNodeManager",
     "SmartLoadBalancer",
     "RealTimePerformanceMonitor",
-    "AutomaticFailoverManager"
+    "AutomaticFailoverManager",
+    "AdvancedTaskManager",
+    "TaskStatus",
+    "TaskPriority",
+    "TaskType",
+    "ClusterTask"
 ]
 
 # Clustering system capabilities and performance targets
@@ -40,6 +46,7 @@ CLUSTERING_FEATURES = {
         "node_manager": "Intelligent node optimization and distribution",
         "load_balancer": "AI-optimized traffic distribution",
         "performance_monitor": "Real-time metrics and analysis",
-        "failover_manager": "Automatic failure detection and recovery"
+        "failover_manager": "Automatic failure detection and recovery",
+        "task_manager": "Intelligent task scheduling and distribution"
     }
 }

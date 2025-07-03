@@ -8,16 +8,22 @@ import asyncio
 import json
 import sys
 import argparse
+import logging
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+import tabulate
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from netlink.ai.core.ai_abstraction_layer import (
-    AIAbstractionLayer, AIRequest, AIModel, AIProvider, 
+    AIAbstractionLayer, AIRequest, AIModel, AIProvider,
     ModelCapability, ModelStatus
 )
+from netlink.ai.providers import ProviderStatus
+
+logger = logging.getLogger(__name__)
 
 class AICommandLineInterface:
     """Command-line interface for AI management."""
@@ -45,16 +51,157 @@ class AICommandLineInterface:
             print(f"{model.id:<20} {model.name:<25} {model.provider:<15} {model.status.value:<12} {model.priority:<8}")
             
     async def list_providers(self):
-        """List AI providers."""
-        print(f"\n{'Provider':<15} {'Enabled':<8} {'Has API Key':<12} {'Base URL':<30}")
-        print("-" * 70)
-        
-        for provider, config in self.ai_layer.providers.items():
-            enabled = "Yes" if config.get("enabled", False) else "No"
-            has_key = "Yes" if config.get("api_key_encrypted") else "No"
-            base_url = config.get("base_url", "")[:28] + "..." if len(config.get("base_url", "")) > 30 else config.get("base_url", "")
-            
-            print(f"{provider:<15} {enabled:<8} {has_key:<12} {base_url:<30}")
+        """List AI providers with enhanced status information."""
+        try:
+            provider_status = await self.ai_layer.get_provider_status()
+            provider_configs = self.ai_layer.providers
+
+            headers = ["Provider", "Enabled", "Status", "Models", "Health", "Base URL"]
+            rows = []
+
+            for provider_type in AIProvider:
+                config = provider_configs.get(provider_type, {})
+                status = provider_status.get(provider_type, {})
+
+                health_info = status.get("health", {})
+                health_str = "Unknown"
+                if health_info:
+                    if "error" in health_info:
+                        health_str = f"Error: {health_info['error'][:20]}..."
+                    else:
+                        health_str = "Healthy"
+
+                base_url = config.get("base_url", "")
+                if len(base_url) > 25:
+                    base_url = base_url[:22] + "..."
+
+                rows.append([
+                    provider_type.value,
+                    "Yes" if config.get("enabled", False) else "No",
+                    status.get("status", ProviderStatus.UNAVAILABLE).value,
+                    len(status.get("models", [])),
+                    health_str,
+                    base_url
+                ])
+
+            print("\nAI Providers:")
+            print(tabulate.tabulate(rows, headers=headers, tablefmt="grid"))
+
+        except Exception as e:
+            print(f"Error listing providers: {e}")
+            return 1
+
+        return 0
+
+    async def configure_provider(self, provider_name: str, **kwargs):
+        """Configure an AI provider."""
+        try:
+            provider = AIProvider(provider_name)
+
+            # Get current config
+            current_config = self.ai_layer.providers.get(provider, {})
+
+            # Build new config
+            config = current_config.copy()
+
+            for key, value in kwargs.items():
+                if value is not None:
+                    config[key.replace('_', '-')] = value
+
+            success = await self.ai_layer.configure_provider(provider, config)
+
+            if success:
+                print(f"✓ Provider {provider.value} configured successfully")
+
+                # Refresh provider instance
+                await self.ai_layer.refresh_provider(provider)
+                print(f"✓ Provider {provider.value} refreshed")
+
+                return 0
+            else:
+                print(f"✗ Failed to configure provider {provider.value}")
+                return 1
+
+        except ValueError as e:
+            print(f"Error: Invalid provider '{provider_name}'. Valid providers: {[p.value for p in AIProvider]}")
+            return 1
+        except Exception as e:
+            print(f"Error configuring provider: {e}")
+            return 1
+
+    async def ollama_models(self, action: str, model_id: Optional[str] = None):
+        """Manage Ollama models."""
+        try:
+            if action == "list":
+                models = await self.ai_layer.discover_ollama_models()
+                print(f"\nAvailable Ollama Models ({len(models)} total):")
+                for model in models:
+                    print(f"  • {model}")
+
+            elif action == "pull":
+                if not model_id:
+                    print("Error: model_id required for pull action")
+                    return 1
+
+                print(f"Pulling Ollama model: {model_id}")
+                success = await self.ai_layer.pull_ollama_model(model_id)
+
+                if success:
+                    print(f"✓ Successfully pulled model: {model_id}")
+                    return 0
+                else:
+                    print(f"✗ Failed to pull model: {model_id}")
+                    return 1
+
+            elif action == "delete":
+                if not model_id:
+                    print("Error: model_id required for delete action")
+                    return 1
+
+                success = await self.ai_layer.delete_ollama_model(model_id)
+
+                if success:
+                    print(f"✓ Successfully deleted model: {model_id}")
+                    return 0
+                else:
+                    print(f"✗ Failed to delete model: {model_id}")
+                    return 1
+
+            return 0
+
+        except Exception as e:
+            print(f"Error managing Ollama models: {e}")
+            return 1
+
+    async def show_stats(self, verbose: bool = False):
+        """Show AI system statistics."""
+        try:
+            usage_stats = self.ai_layer.get_usage_stats()
+
+            print(f"\nAI System Statistics")
+            print(f"Total Models: {len(self.ai_layer.models)}")
+            print(f"Total Providers: {len(self.ai_layer.providers)}")
+            print(f"Active Providers: {len(self.ai_layer.provider_instances)}")
+            print(f"Request Cache Size: {len(self.ai_layer.request_cache)}")
+            print(f"Request History: {len(self.ai_layer.request_history)}")
+            print(f"Response History: {len(self.ai_layer.response_history)}")
+
+            if verbose and usage_stats:
+                print(f"\nUser Usage Statistics:")
+                for user_id, user_stats in usage_stats.items():
+                    print(f"  User: {user_id}")
+                    total_tokens = sum(model_stats.get('total_tokens', 0) for model_stats in user_stats.values())
+                    total_cost = sum(model_stats.get('total_cost', 0) for model_stats in user_stats.values())
+                    total_requests = sum(model_stats.get('request_count', 0) for model_stats in user_stats.values())
+                    print(f"    Total Requests: {total_requests}")
+                    print(f"    Total Tokens: {total_tokens:,}")
+                    print(f"    Total Cost: ${total_cost:.4f}")
+
+            return 0
+
+        except Exception as e:
+            print(f"Error showing statistics: {e}")
+            return 1
             
     async def health_check(self):
         """Perform health check."""

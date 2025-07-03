@@ -509,13 +509,23 @@
                             </div>
                         </a>
 
-                        <a href="/web/backup" class="action-btn">
+                        <a href="/web/admin/backup-management" class="action-btn">
                             <div class="action-icon">
                                 <i class="fas fa-database"></i>
                             </div>
                             <div>
-                                <div class="fw-bold">Backup System</div>
-                                <div class="text-muted">Data protection</div>
+                                <div class="fw-bold">Backup Management</div>
+                                <div class="text-muted">Government-level backup system</div>
+                            </div>
+                        </a>
+
+                        <a href="/web/admin/clustering-management" class="action-btn">
+                            <div class="action-icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">Clustering Management</div>
+                                <div class="text-muted">Multi-node cluster control</div>
                             </div>
                         </a>
 
@@ -746,6 +756,36 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="admin-card">
+                            <div class="card-body">
+                                <h5><i class="fas fa-database"></i> Backup Management</h5>
+                                <p class="text-muted">Government-level backup system with shard distribution</p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-primary" onclick="openBackupManagement()">
+                                        <i class="fas fa-database"></i> Manage
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="createBackup()">
+                                        <i class="fas fa-plus"></i> Create
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-card">
+                            <div class="card-body">
+                                <h5><i class="fas fa-server"></i> Clustering System</h5>
+                                <p class="text-muted">Multi-node cluster management and load balancing</p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-primary" onclick="openClusteringManagement()">
+                                        <i class="fas fa-server"></i> Manage
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="addClusterNode()">
+                                        <i class="fas fa-plus"></i> Add Node
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -908,6 +948,79 @@
 
         function exportAnalytics() {
             window.open('/api/v1/admin/export-analytics', '_blank');
+        }
+
+        function openBackupManagement() {
+            window.open('/web/admin/backup-management', '_blank');
+        }
+
+        function createBackup() {
+            // Show create backup modal or redirect
+            if (confirm('Create a new backup operation?')) {
+                fetch('/api/v1/backup/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: 'Quick Backup ' + new Date().toISOString(),
+                        backup_type: 'full',
+                        description: 'Quick backup created from dashboard',
+                        encryption_enabled: true,
+                        compression_enabled: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.backup_id) {
+                        showNotification('Backup operation created successfully', 'success');
+                    } else {
+                        showNotification('Failed to create backup', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error creating backup:', error);
+                    showNotification('Error creating backup', 'error');
+                });
+            }
+        }
+
+        function openClusteringManagement() {
+            window.open('/web/admin/clustering-management', '_blank');
+        }
+
+        function addClusterNode() {
+            // Show add cluster node modal or redirect
+            const nodeName = prompt('Enter node name:');
+            const nodeAddress = prompt('Enter node address (host:port):');
+
+            if (nodeName && nodeAddress) {
+                fetch('/api/v1/clustering/nodes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: nodeName,
+                        address: nodeAddress,
+                        node_type: 'main',
+                        encryption_enabled: true,
+                        max_connections: 1000
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.node_id) {
+                        showNotification('Cluster node added successfully', 'success');
+                    } else {
+                        showNotification('Failed to add cluster node', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding cluster node:', error);
+                    showNotification('Error adding cluster node', 'error');
+                });
+            }
         }
 
         function openQuickActions() {

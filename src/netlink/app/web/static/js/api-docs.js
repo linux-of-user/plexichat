@@ -141,9 +141,9 @@ class InteractiveAPIDocs {
         main.innerHTML = `
             <div class="main-content">
                 <div class="welcome-section" id="welcome-section">
-                    <h2>Welcome to Enhanced Chat API</h2>
+                    <h2>Welcome to NetLink API</h2>
                     <p>Select an endpoint from the sidebar to view documentation and test it live.</p>
-                    
+
                     <div class="quick-start">
                         <h3>Quick Start</h3>
                         <ol>

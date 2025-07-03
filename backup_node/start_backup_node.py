@@ -54,15 +54,18 @@ def create_directories():
 
 def setup_config(args):
     """Setup configuration based on arguments."""
-    config_file = Path("backup_node/config.json")
-    
+    config_file = Path("config/backup_node.json")
+
     if config_file.exists() and not args.force_config:
         print(f"⚙️ Using existing config: {config_file}")
         return
-    
+
+    # Ensure config directory exists
+    config_file.parent.mkdir(exist_ok=True)
+
     config = {
         "node_id": args.node_id or f"backup_node_{os.urandom(4).hex()}",
-        "storage_path": args.storage_path or "backup_node/storage",
+        "storage_path": args.storage_path or "backups/node_storage",
         "max_storage_gb": args.max_storage or 100,
         "port": args.port or 8001,
         "main_node_address": args.main_address,
@@ -103,17 +106,17 @@ def start_backup_node(args):
             # Development mode with auto-reload
             cmd = [
                 sys.executable, "-m", "uvicorn",
-                "backup_node.backup_node_main:app",
+                "src.netlink.backup.core.backup_node_server:app",
                 "--host", "0.0.0.0",
                 "--port", str(args.port or 8001),
                 "--reload",
                 "--log-level", "debug"
             ]
         else:
-            # Production mode
+            # Production mode - use consolidated backup system
             cmd = [
-                sys.executable,
-                "backup_node/backup_node_main.py"
+                sys.executable, "-c",
+                "from src.netlink.backup.core.backup_node_server import BackupNodeServer; import asyncio; asyncio.run(BackupNodeServer().start())"
             ]
         
         print(f"🔧 Running command: {' '.join(cmd)}")

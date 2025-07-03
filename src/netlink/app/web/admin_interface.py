@@ -361,6 +361,30 @@ async def stream_logs(username: str = Depends(verify_admin_credentials)):
     
     return StreamingResponse(log_generator(), media_type="text/plain")
 
+# Backup Management Interface
+@admin_router.get("/backup-management", response_class=HTMLResponse)
+async def backup_management_interface(request: Request, username: str = Depends(verify_admin_credentials)):
+    """Backup management interface."""
+    check_permission(username, "view")
+
+    return templates.TemplateResponse("admin/backup_management.html", {
+        "request": request,
+        "username": username,
+        "page_title": "Backup Management"
+    })
+
+# Clustering Management Interface
+@admin_router.get("/clustering-management", response_class=HTMLResponse)
+async def clustering_management_interface(request: Request, username: str = Depends(verify_admin_credentials)):
+    """Clustering management interface."""
+    check_permission(username, "view")
+
+    return templates.TemplateResponse("admin/clustering_management.html", {
+        "request": request,
+        "username": username,
+        "page_title": "Clustering Management"
+    })
+
 # Helper functions
 async def get_system_statistics() -> SystemStats:
     """Get current system statistics."""

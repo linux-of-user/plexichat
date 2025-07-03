@@ -21,6 +21,19 @@ from app.logger_config import logger
 from app.core.database.engines import db_cluster
 from app.services.analytics_service import analytics_service
 
+# Import security services
+try:
+    from app.services.security_service import SecurityService
+    SECURITY_SERVICE_AVAILABLE = True
+except ImportError:
+    SECURITY_SERVICE_AVAILABLE = False
+
+try:
+    from netlink.antivirus.core.message_scanner import MessageAntivirusScanner
+    ANTIVIRUS_AVAILABLE = True
+except ImportError:
+    ANTIVIRUS_AVAILABLE = False
+
 class TestStatus(str, Enum):
     """Test execution status."""
     PENDING = "pending"

@@ -389,7 +389,7 @@ async def export_metrics():
         
         # Health status as numeric
         health_numeric = 1 if health["overall_status"] == "HEALTHY" else 0
-        prometheus_metrics.append(f"chatapi_health_status {health_numeric}")
+        prometheus_metrics.append(f"netlink_health_status {health_numeric}")
         
         return Response(
             content="\n".join(prometheus_metrics),

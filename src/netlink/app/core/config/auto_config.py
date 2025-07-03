@@ -371,14 +371,14 @@ class AutoConfigurationSystem:
         """Generate database-related recommendations."""
         recommendations = []
         
-        current_db = self.current_config.get('DATABASE_URL', 'sqlite:///./data/chatapi.db')
-        
+        current_db = self.current_config.get('DATABASE_URL', 'sqlite:///./data/netlink.db')
+
         # Recommend PostgreSQL if available and using SQLite
         if 'sqlite' in current_db.lower() and 'postgresql' in self.capabilities.database_engines:
             recommendations.append(ConfigurationRecommendation(
                 setting='DATABASE_URL',
                 current_value=current_db,
-                recommended_value='postgresql://user:pass@localhost/chatapi',
+                recommended_value='postgresql://user:pass@localhost/netlink',
                 reason='PostgreSQL offers better performance and features than SQLite',
                 priority='medium',
                 category='database'

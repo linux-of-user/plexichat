@@ -162,18 +162,20 @@ class AdvancedClusterManager:
         from .load_balancer import SmartLoadBalancer
         from .performance_monitor import RealTimePerformanceMonitor
         from .failover_manager import AutomaticFailoverManager
+        from .task_manager import AdvancedTaskManager
 
         self.node_manager = IntelligentNodeManager(self)
         self.load_balancer = SmartLoadBalancer(self)
         self.performance_monitor = RealTimePerformanceMonitor(self)
         self.failover_manager = AutomaticFailoverManager(self)
+        self.task_manager = AdvancedTaskManager(self)
 
         # Initialize all components
         await self.node_manager.initialize()
         await self.load_balancer.initialize()
         await self.performance_monitor.initialize()
         await self.failover_manager.initialize()
-        from .node_manager import IntelligentNodeManager
+        await self.task_manager.initialize()nager import IntelligentNodeManager
         from .load_balancer import SmartLoadBalancer
         from .performance_monitor import RealTimePerformanceMonitor
         from .failover_manager import AutomaticFailoverManager

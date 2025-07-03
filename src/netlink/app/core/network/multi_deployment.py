@@ -319,7 +319,7 @@ class MultiNetworkDeployment:
         
         try:
             container_config = {
-                "image": image or "chatapi:latest",
+                "image": image or "netlink:latest",
                 "ports": {"8000/tcp": target.config.get("port", 8000)},
                 "environment": {
                     "HOST": "0.0.0.0",
@@ -327,25 +327,25 @@ class MultiNetworkDeployment:
                     **config
                 },
                 "labels": {
-                    "app": "chatapi",
+                    "app": "netlink",
                     "deployment": target.name
                 },
                 "restart_policy": {"Name": "unless-stopped"}
             }
-            
+
             # Stop existing container if it exists
             try:
-                existing = self.docker_client.containers.get(f"chatapi-{target.name}")
+                existing = self.docker_client.containers.get(f"netlink-{target.name}")
                 existing.stop()
                 existing.remove()
                 logger.info(f"Stopped existing container for {target.name}")
             except docker.errors.NotFound:
                 pass
-            
+
             # Start new container
             container = self.docker_client.containers.run(
                 detach=True,
-                name=f"chatapi-{target.name}",
+                name=f"netlink-{target.name}",
                 **container_config
             )
             
@@ -384,8 +384,8 @@ class MultiNetworkDeployment:
                         spec=client.V1PodSpec(
                             containers=[
                                 client.V1Container(
-                                    name="chatapi",
-                                    image=image or "chatapi:latest",
+                                    name="netlink",
+                                    image=image or "netlink:latest",
                                     ports=[client.V1ContainerPort(container_port=8000)],
                                     env=[
                                         client.V1EnvVar(name=k, value=str(v))

@@ -472,7 +472,7 @@ For support: https://github.com/your-org/netlink
                 "verification_interval_hours": 6,
                 "cleanup_interval_hours": 24,
                 "storage": {
-                    "local_path": "secure_backups",
+                    "local_path": "backups/shards",
                     "user_quota_gb": 1.0,
                     "max_user_shards": 1000
                 },

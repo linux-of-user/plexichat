@@ -45,6 +45,15 @@ except ImportError as e:
     ai_api_router = None
     ai_webui_router = None
 
+# Clustering System
+try:
+    from netlink.clustering import AdvancedClusterManager
+    cluster_manager = AdvancedClusterManager()
+    logger.info("✅ Advanced Clustering System loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ Advanced Clustering System not available: {e}")
+    cluster_manager = None
+
 # Import routers
 try:
     from netlink.app.routers.server_management import router as server_management_router

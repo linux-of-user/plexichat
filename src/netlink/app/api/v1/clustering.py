@@ -8,10 +8,14 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from datetime import datetime
 
-from netlink.app.services.clustering_service import (
-    clustering_service, ClusterNode, ClusterTask, NodeRole, TaskStatus, NodeStatus
+from netlink.clustering import (
+    AdvancedClusterManager, AdvancedTaskManager, TaskStatus, TaskPriority, TaskType, ClusterTask
 )
+from netlink.clustering.core.node_manager import NodeStatus
 from netlink.app.logger_config import logger
+
+# Import global cluster manager
+from netlink.app.main import cluster_manager
 
 
 # Pydantic models for API
@@ -60,11 +64,14 @@ router = APIRouter(prefix="/api/v1/cluster", tags=["Clustering"])
 @router.get("/status")
 async def get_cluster_status():
     """Get current cluster status."""
-    if not clustering_service:
+    if not cluster_manager:
         raise HTTPException(status_code=503, detail="Clustering service not initialized")
-    
+
     try:
-        status = clustering_service.get_cluster_status()
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        status = await cluster_manager.get_cluster_status()
         return {
             "success": True,
             "cluster_status": status

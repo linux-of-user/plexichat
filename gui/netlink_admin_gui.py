@@ -21,6 +21,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from netlink.core.security.government_auth import government_auth
 from netlink.app.logger_config import logger
 
+# Import GUI components
+try:
+    from netlink.gui.components.backup_management_widget import BackupManagementWidget
+    from netlink.gui.components.clustering_management_widget import ClusteringManagementWidget
+    GUI_COMPONENTS_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"GUI components not available: {e}")
+    GUI_COMPONENTS_AVAILABLE = False
+
 
 # Configure CustomTkinter
 ctk.set_appearance_mode("system")
@@ -398,7 +407,8 @@ class NetLinkAdminGUI:
             ("👥 Users", "users"),
             ("🔒 Security", "security"),
             ("⚖️ Moderation", "moderation"),
-            ("💾 Backup", "backup"),
+            ("💾 Backup Management", "backup_management"),
+            ("🖥️ Clustering", "clustering_management"),
             ("⚙️ System", "system"),
             ("📈 Monitoring", "monitoring"),
             ("🧩 Plugins", "plugins"),
@@ -492,7 +502,8 @@ class NetLinkAdminGUI:
             'users': 'User Management',
             'security': 'Security Center',
             'moderation': 'Moderation Tools',
-            'backup': 'Backup & Clustering',
+            'backup_management': 'Backup Management',
+            'clustering_management': 'Clustering Management',
             'system': 'System Settings',
             'monitoring': 'System Monitoring',
             'plugins': 'Plugin Management',
@@ -512,8 +523,10 @@ class NetLinkAdminGUI:
             self.show_users()
         elif module_name == "security":
             self.show_security()
-        elif module_name == "backup":
-            self.show_backup()
+        elif module_name == "backup_management":
+            self.show_backup_management()
+        elif module_name == "clustering_management":
+            self.show_clustering_management()
         else:
             self.show_placeholder(module_name)
     
@@ -727,7 +740,43 @@ class NetLinkAdminGUI:
             command=self.start_backup
         )
         backup_btn.pack(pady=20)
-    
+
+    def show_backup_management(self):
+        """Show comprehensive backup management interface."""
+        if not GUI_COMPONENTS_AVAILABLE:
+            self.show_placeholder("backup_management")
+            return
+
+        try:
+            # Create backup management widget
+            backup_widget = BackupManagementWidget(self.content_area)
+            if backup_widget and backup_widget.main_frame:
+                backup_widget.main_frame.pack(fill="both", expand=True)
+                logger.info("Backup management widget loaded successfully")
+            else:
+                self.show_placeholder("backup_management")
+        except Exception as e:
+            logger.error(f"Failed to load backup management widget: {e}")
+            self.show_placeholder("backup_management")
+
+    def show_clustering_management(self):
+        """Show comprehensive clustering management interface."""
+        if not GUI_COMPONENTS_AVAILABLE:
+            self.show_placeholder("clustering_management")
+            return
+
+        try:
+            # Create clustering management widget
+            clustering_widget = ClusteringManagementWidget(self.content_area)
+            if clustering_widget and clustering_widget.main_frame:
+                clustering_widget.main_frame.pack(fill="both", expand=True)
+                logger.info("Clustering management widget loaded successfully")
+            else:
+                self.show_placeholder("clustering_management")
+        except Exception as e:
+            logger.error(f"Failed to load clustering management widget: {e}")
+            self.show_placeholder("clustering_management")
+
     def show_placeholder(self, module_name: str):
         """Show placeholder for unimplemented modules."""
         placeholder_frame = ctk.CTkFrame(self.content_area)

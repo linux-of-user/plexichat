@@ -340,7 +340,7 @@ async def get_notifications(current_user: User = Depends(get_current_user)):
             {
                 "id": 1,
                 "type": "info",
-                "title": "Welcome to Enhanced Chat API",
+                "title": "Welcome to NetLink",
                 "message": "Your account has been successfully created.",
                 "timestamp": "2024-01-15T10:30:00Z",
                 "read": False

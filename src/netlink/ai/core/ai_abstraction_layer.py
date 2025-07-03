@@ -17,6 +17,17 @@ import aiohttp
 import aiofiles
 from cryptography.fernet import Fernet
 
+# Import new provider system
+from ..providers import (
+    BaseAIProvider,
+    OllamaProvider,
+    OllamaConfig,
+    ProviderConfig,
+    ProviderStatus
+)
+from ..providers.base_provider import AIRequest as ProviderAIRequest, AIResponse as ProviderAIResponse
+from ..monitoring.analytics_engine import analytics_engine, UsageMetric, PerformanceMetric
+
 logger = logging.getLogger(__name__)
 
 class AIProvider(str, Enum):
@@ -29,6 +40,9 @@ class AIProvider(str, Enum):
     OLLAMA = "ollama"
     AZURE_OPENAI = "azure_openai"
     AWS_BEDROCK = "aws_bedrock"
+    GROQ = "groq"
+    TOGETHER = "together"
+    REPLICATE = "replicate"
     CUSTOM = "custom"
     LOCAL = "local"
 
@@ -193,27 +207,40 @@ class AIAccessControl:
 
 class AIAbstractionLayer:
     """Main AI abstraction layer managing all providers and models."""
-    
+
     def __init__(self, config_path: str = "config/ai_config.json"):
         self.config_path = Path(config_path)
         self.models: Dict[str, AIModel] = {}
         self.providers: Dict[AIProvider, Dict[str, Any]] = {}
         self.access_control = AIAccessControl()
         self.encryption_key = self._get_or_create_encryption_key()
-        
+
+        # New provider instances
+        self.provider_instances: Dict[AIProvider, BaseAIProvider] = {}
+
         # Request tracking and caching
         self.request_cache: Dict[str, AIResponse] = {}
         self.request_history: List[AIRequest] = []
         self.response_history: List[AIResponse] = []
-        
+
         # Model health monitoring
         self.model_health: Dict[str, Dict[str, Any]] = {}
-        
+
         # Background tasks
         self.background_tasks: List[asyncio.Task] = []
-        
+
         # Load configuration
         self.load_config()
+
+        # Initialize provider instances
+        self._initialize_providers()
+
+        # Start monitoring system
+        try:
+            analytics_engine.start_monitoring()
+            logger.info("AI monitoring system started")
+        except Exception as e:
+            logger.warning(f"Failed to start AI monitoring: {e}")
         
     def _get_or_create_encryption_key(self) -> Fernet:
         """Get or create encryption key for API keys."""
@@ -229,7 +256,29 @@ class AIAbstractionLayer:
                 f.write(key)
                 
         return Fernet(key)
-        
+
+    def _initialize_providers(self):
+        """Initialize provider instances based on configuration."""
+        for provider_type, config in self.providers.items():
+            if not config.get("enabled", False):
+                continue
+
+            try:
+                if provider_type == AIProvider.OLLAMA:
+                    ollama_config = OllamaConfig(
+                        base_url=config.get("base_url", "http://localhost:11434"),
+                        timeout=config.get("timeout", 60),
+                        max_retries=config.get("max_retries", 2),
+                        concurrent_requests=config.get("concurrent_requests", 5)
+                    )
+                    self.provider_instances[provider_type] = OllamaProvider(ollama_config)
+
+                # Add other provider initializations here as they're implemented
+                logger.info(f"Initialized provider: {provider_type}")
+
+            except Exception as e:
+                logger.error(f"Failed to initialize provider {provider_type}: {e}")
+
     def load_config(self):
         """Load AI configuration from file."""
         if not self.config_path.exists():
@@ -346,11 +395,63 @@ class AIAbstractionLayer:
                 "timeout": 30,
                 "max_retries": 3
             },
+            AIProvider.GOOGLE: {
+                "api_key_encrypted": "",
+                "base_url": "https://generativelanguage.googleapis.com/v1",
+                "enabled": False,
+                "timeout": 30,
+                "max_retries": 3
+            },
+            AIProvider.COHERE: {
+                "api_key_encrypted": "",
+                "base_url": "https://api.cohere.ai/v1",
+                "enabled": False,
+                "timeout": 30,
+                "max_retries": 3
+            },
+            AIProvider.GROQ: {
+                "api_key_encrypted": "",
+                "base_url": "https://api.groq.com/openai/v1",
+                "enabled": False,
+                "timeout": 30,
+                "max_retries": 3
+            },
+            AIProvider.TOGETHER: {
+                "api_key_encrypted": "",
+                "base_url": "https://api.together.xyz/v1",
+                "enabled": False,
+                "timeout": 30,
+                "max_retries": 3
+            },
+            AIProvider.REPLICATE: {
+                "api_key_encrypted": "",
+                "base_url": "https://api.replicate.com/v1",
+                "enabled": False,
+                "timeout": 60,
+                "max_retries": 3
+            },
             AIProvider.OLLAMA: {
                 "base_url": "http://localhost:11434",
                 "enabled": False,
                 "timeout": 60,
-                "max_retries": 2
+                "max_retries": 2,
+                "concurrent_requests": 5
+            },
+            AIProvider.AZURE_OPENAI: {
+                "api_key_encrypted": "",
+                "base_url": "",  # Set by user: https://{resource}.openai.azure.com
+                "enabled": False,
+                "api_version": "2023-12-01-preview",
+                "timeout": 30,
+                "max_retries": 3
+            },
+            AIProvider.AWS_BEDROCK: {
+                "access_key_encrypted": "",
+                "secret_key_encrypted": "",
+                "region": "us-east-1",
+                "enabled": False,
+                "timeout": 30,
+                "max_retries": 3
             }
         }
 
@@ -575,36 +676,103 @@ class AIAbstractionLayer:
         start_time = time.time()
 
         try:
-            if model.provider == AIProvider.OPENAI:
-                response_data = await self._make_openai_request(request, model)
-            elif model.provider == AIProvider.ANTHROPIC:
-                response_data = await self._make_anthropic_request(request, model)
-            elif model.provider == AIProvider.OLLAMA:
-                response_data = await self._make_ollama_request(request, model)
+            # Try to use new provider system first
+            if model.provider in self.provider_instances:
+                provider_instance = self.provider_instances[model.provider]
+
+                # Convert to provider request format
+                provider_request = ProviderAIRequest(
+                    model_id=model.id,
+                    prompt=request.prompt,
+                    max_tokens=request.max_tokens,
+                    temperature=request.temperature,
+                    stream=request.stream,
+                    system_prompt=request.system_prompt,
+                    context=request.context,
+                    metadata=request.metadata
+                )
+
+                provider_response = await provider_instance.generate(provider_request)
+
+                # Convert back to abstraction layer response format
+                response = AIResponse(
+                    request_id=request.request_id,
+                    model_id=model.id,
+                    content=provider_response.content,
+                    usage=provider_response.usage,
+                    cost=self._calculate_cost(model, provider_response.usage),
+                    latency_ms=provider_response.latency_ms,
+                    provider=model.provider,
+                    timestamp=provider_response.timestamp,
+                    success=provider_response.success,
+                    error=provider_response.error,
+                    metadata=provider_response.metadata
+                )
+
             else:
-                raise NotImplementedError(f"Provider {model.provider} not implemented")
+                # Fall back to legacy provider methods
+                if model.provider == AIProvider.OPENAI:
+                    response_data = await self._make_openai_request(request, model)
+                elif model.provider == AIProvider.ANTHROPIC:
+                    response_data = await self._make_anthropic_request(request, model)
+                elif model.provider == AIProvider.OLLAMA:
+                    response_data = await self._make_ollama_request(request, model)
+                else:
+                    raise NotImplementedError(f"Provider {model.provider} not implemented")
 
-            latency_ms = int((time.time() - start_time) * 1000)
+                latency_ms = int((time.time() - start_time) * 1000)
 
-            response = AIResponse(
-                request_id=request.request_id,
-                model_id=model.id,
-                content=response_data['content'],
-                usage=response_data.get('usage', {}),
-                cost=self._calculate_cost(model, response_data.get('usage', {})),
-                latency_ms=latency_ms,
-                provider=model.provider,
-                timestamp=datetime.now(),
-                success=True,
-                metadata=response_data.get('metadata')
-            )
+                response = AIResponse(
+                    request_id=request.request_id,
+                    model_id=model.id,
+                    content=response_data['content'],
+                    usage=response_data.get('usage', {}),
+                    cost=self._calculate_cost(model, response_data.get('usage', {})),
+                    latency_ms=latency_ms,
+                    provider=model.provider,
+                    timestamp=datetime.now(),
+                    success=True,
+                    metadata=response_data.get('metadata')
+                )
 
             # Update model health
-            self._update_model_health(model.id, True, latency_ms)
+            self._update_model_health(model.id, response.success, response.latency_ms)
 
             # Record request and response
             self.request_history.append(request)
             self.response_history.append(response)
+
+            # Record metrics for monitoring
+            try:
+                # Usage metric
+                usage_metric = UsageMetric(
+                    timestamp=datetime.now(timezone.utc),
+                    user_id=request.user_id or "anonymous",
+                    model_id=model.id,
+                    provider=model.provider.value,
+                    tokens_used=response.usage.get("total_tokens", 0),
+                    cost=response.cost,
+                    latency_ms=response.latency_ms,
+                    success=response.success,
+                    capability=request.capability.value,
+                    request_size=len(str(request.messages)),
+                    response_size=len(response.content)
+                )
+                analytics_engine.record_usage(usage_metric)
+
+                # Performance metric
+                performance_metric = PerformanceMetric(
+                    timestamp=datetime.now(timezone.utc),
+                    model_id=model.id,
+                    provider=model.provider.value,
+                    latency_ms=response.latency_ms,
+                    success=response.success,
+                    tokens_per_second=response.usage.get("total_tokens", 0) / (response.latency_ms / 1000) if response.latency_ms > 0 else None
+                )
+                analytics_engine.record_performance(performance_metric)
+
+            except Exception as e:
+                logger.warning(f"Failed to record metrics: {e}")
 
             return response
 
@@ -612,7 +780,7 @@ class AIAbstractionLayer:
             latency_ms = int((time.time() - start_time) * 1000)
             self._update_model_health(model.id, False, latency_ms)
 
-            return AIResponse(
+            error_response = AIResponse(
                 request_id=request.request_id,
                 model_id=model.id,
                 content="",
@@ -624,6 +792,24 @@ class AIAbstractionLayer:
                 success=False,
                 error=str(e)
             )
+
+            # Record failed metrics for monitoring
+            try:
+                # Performance metric for failed request
+                performance_metric = PerformanceMetric(
+                    timestamp=datetime.now(timezone.utc),
+                    model_id=model.id,
+                    provider=model.provider.value,
+                    latency_ms=latency_ms,
+                    success=False,
+                    error_type=type(e).__name__
+                )
+                analytics_engine.record_performance(performance_metric)
+
+            except Exception as metric_error:
+                logger.warning(f"Failed to record error metrics: {metric_error}")
+
+            return error_response
 
     async def _make_openai_request(self, request: AIRequest, model: AIModel) -> Dict[str, Any]:
         """Make request to OpenAI API."""
@@ -940,3 +1126,100 @@ class AIAbstractionLayer:
             health_status["overall_status"] = "degraded"
 
         return health_status
+
+    # Enhanced provider management methods
+    async def get_provider_status(self, provider: Optional[AIProvider] = None) -> Dict[str, Any]:
+        """Get status of AI providers."""
+        if provider:
+            if provider in self.provider_instances:
+                instance = self.provider_instances[provider]
+                return {
+                    "provider": provider,
+                    "status": await instance.get_status(),
+                    "health": await instance.health_check(),
+                    "models": await instance.list_models() if hasattr(instance, 'list_models') else []
+                }
+            else:
+                return {
+                    "provider": provider,
+                    "status": ProviderStatus.UNAVAILABLE,
+                    "error": "Provider not initialized"
+                }
+
+        # Get status for all providers
+        status = {}
+        for provider_type, instance in self.provider_instances.items():
+            try:
+                status[provider_type] = {
+                    "status": await instance.get_status(),
+                    "health": await instance.health_check(),
+                    "models": await instance.list_models() if hasattr(instance, 'list_models') else []
+                }
+            except Exception as e:
+                status[provider_type] = {
+                    "status": ProviderStatus.ERROR,
+                    "error": str(e)
+                }
+
+        return status
+
+    async def refresh_provider(self, provider: AIProvider) -> bool:
+        """Refresh/reinitialize a provider."""
+        try:
+            if provider in self.provider_instances:
+                # Close existing instance
+                instance = self.provider_instances[provider]
+                if hasattr(instance, 'close'):
+                    await instance.close()
+                del self.provider_instances[provider]
+
+            # Reinitialize
+            config = self.providers.get(provider, {})
+            if config.get("enabled", False):
+                if provider == AIProvider.OLLAMA:
+                    ollama_config = OllamaConfig(
+                        base_url=config.get("base_url", "http://localhost:11434"),
+                        timeout=config.get("timeout", 60),
+                        max_retries=config.get("max_retries", 2),
+                        concurrent_requests=config.get("concurrent_requests", 5)
+                    )
+                    self.provider_instances[provider] = OllamaProvider(ollama_config)
+
+                logger.info(f"Refreshed provider: {provider}")
+                return True
+
+            return False
+
+        except Exception as e:
+            logger.error(f"Failed to refresh provider {provider}: {e}")
+            return False
+
+    async def discover_ollama_models(self) -> List[str]:
+        """Discover available Ollama models."""
+        if AIProvider.OLLAMA in self.provider_instances:
+            ollama_provider = self.provider_instances[AIProvider.OLLAMA]
+            try:
+                return await ollama_provider.list_models()
+            except Exception as e:
+                logger.error(f"Failed to discover Ollama models: {e}")
+        return []
+
+    async def pull_ollama_model(self, model_id: str) -> bool:
+        """Pull an Ollama model."""
+        if AIProvider.OLLAMA in self.provider_instances:
+            ollama_provider = self.provider_instances[AIProvider.OLLAMA]
+            try:
+                return await ollama_provider.pull_model(model_id)
+            except Exception as e:
+                logger.error(f"Failed to pull Ollama model {model_id}: {e}")
+        return False
+
+    async def delete_ollama_model(self, model_id: str) -> bool:
+        """Delete an Ollama model."""
+        if AIProvider.OLLAMA in self.provider_instances:
+            ollama_provider = self.provider_instances[AIProvider.OLLAMA]
+            try:
+                return await ollama_provider.delete_model(model_id)
+            except Exception as e:
+                logger.error(f"Failed to delete Ollama model {model_id}: {e}")
+        return False
