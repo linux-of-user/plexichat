@@ -78,6 +78,26 @@ async def admin_dashboard(request: Request):
         "update_available": UPDATE_AVAILABLE
     })
 
+@router.get("/admin/file-editor", response_class=HTMLResponse)
+async def file_editor(request: Request):
+    """File editor interface."""
+    return templates.TemplateResponse("admin/file_editor.html", {
+        "request": request,
+        "title": "File Editor - NetLink Admin",
+        "app_name": settings.APP_NAME,
+        "version": settings.APP_VERSION
+    })
+
+@router.get("/admin/setup-tutorials", response_class=HTMLResponse)
+async def setup_tutorials(request: Request):
+    """Setup tutorials interface."""
+    return templates.TemplateResponse("admin/setup_tutorials.html", {
+        "request": request,
+        "title": "Setup Tutorials - NetLink Admin",
+        "app_name": settings.APP_NAME,
+        "version": settings.APP_VERSION
+    })
+
 @router.get("/docs/interactive", response_class=HTMLResponse)
 async def interactive_api_docs(request: Request):
     """Interactive API documentation with live testing capabilities."""

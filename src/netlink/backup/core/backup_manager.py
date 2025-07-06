@@ -132,6 +132,11 @@ class GovernmentBackupManager:
         self.auth_manager: Optional[BackupNodeAuthManager] = None
         self.universal_backup_manager: Optional[UniversalBackupManager] = None
         self.archive_system: Optional[ArchiveSystemPlugin] = None
+
+        # New integrated managers
+        self.user_preferences_manager = None
+        self.profile_backup_manager = None
+        self.status_monitor = None
         
         # Operation tracking
         self.active_operations: Dict[str, BackupOperation] = {}
@@ -209,6 +214,20 @@ class GovernmentBackupManager:
         # Initialize archive system plugin
         self.archive_system = ArchiveSystemPlugin(self)
         await self.archive_system.initialize()
+
+        # Initialize new integrated managers
+        from .user_preferences import UserPreferencesManager
+        from .profile_backup import ProfileBackupManager
+        from ..services.status_monitor import BackupStatusMonitor
+
+        self.user_preferences_manager = UserPreferencesManager(self)
+        await self.user_preferences_manager.initialize()
+
+        self.profile_backup_manager = ProfileBackupManager(self, self.user_preferences_manager)
+        await self.profile_backup_manager.initialize()
+
+        self.status_monitor = BackupStatusMonitor(self)
+        await self.status_monitor.initialize()
 
         # Start background tasks
         asyncio.create_task(self._health_monitoring_task())

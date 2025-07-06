@@ -20,7 +20,24 @@ from .core.backup_node_auth import BackupNodeAuthManager, NodePermissionLevel, A
 from .core.user_message_backup import UniversalBackupManager, BackupOptStatus, BackupDataType
 from .core.backup_node_client import BackupNodeClient, BackupNodeManager, BackupNodeInfo, ShardInfo, NodeStatus, ShardStatus
 from .core.backup_node_server import BackupNodeServer, BackupNodeConfig, create_backup_node_server
+from .core.user_preferences import UserPreferencesManager, UserBackupPreferences, BackupOptOutLevel, user_preferences_manager
+from .core.profile_backup import ProfileBackupManager, ProfileBackupMetadata, ProfileRestoreRequest, profile_backup_manager
 from .plugins.archive_system import ArchiveSystemPlugin, ArchiveType, ArchiveStatus
+from .services import (
+    BackupStatusMonitor, BackupCoverageReport, DeviceStatus, ShardStatus,
+    PerformanceMetrics, BackupHealthStatus, RedundancyLevel, backup_status_monitor
+)
+
+# Import new quantum backup system
+from .quantum_backup_system import (
+    QuantumBackupSystem,
+    quantum_backup_system,
+    BackupSecurity,
+    ShardDistribution,
+    BackupStatus,
+    QuantumShard,
+    QuantumBackup
+)
 
 __version__ = "2.0.0"
 __all__ = [
@@ -56,5 +73,34 @@ __all__ = [
     # Archive system plugin
     "ArchiveSystemPlugin",
     "ArchiveType",
-    "ArchiveStatus"
+    "ArchiveStatus",
+
+    # User preferences and profile backup
+    "UserPreferencesManager",
+    "UserBackupPreferences",
+    "BackupOptOutLevel",
+    "user_preferences_manager",
+    "ProfileBackupManager",
+    "ProfileBackupMetadata",
+    "ProfileRestoreRequest",
+    "profile_backup_manager",
+
+    # Services layer
+    "BackupStatusMonitor",
+    "BackupCoverageReport",
+    "DeviceStatus",
+    "ShardStatus",
+    "PerformanceMetrics",
+    "BackupHealthStatus",
+    "RedundancyLevel",
+    "backup_status_monitor",
+
+    # Quantum backup system
+    "QuantumBackupSystem",
+    "quantum_backup_system",
+    "BackupSecurity",
+    "ShardDistribution",
+    "BackupStatus",
+    "QuantumShard",
+    "QuantumBackup"
 ]

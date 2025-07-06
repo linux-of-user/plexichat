@@ -230,6 +230,14 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️ Admin API router not available: {e}")
 
+# File Management router
+try:
+    from netlink.app.routers.file_management import router as file_management_router
+    app.include_router(file_management_router)
+    logger.info("✅ File management API router loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ File management API router not available: {e}")
+
 # Enhanced Plugin Management routers
 try:
     from netlink.app.api.v1.enhanced_plugins import router as enhanced_plugins_router

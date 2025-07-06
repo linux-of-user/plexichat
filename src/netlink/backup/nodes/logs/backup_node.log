@@ -1,0 +1,1 @@
+2025-07-03 21:16:08,765 - backup_node - ERROR - Failed to load config: BackupNodeConfig.__init__() got an unexpected keyword argument 'security'
