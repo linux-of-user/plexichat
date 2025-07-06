@@ -28,7 +28,7 @@ from app.utils.self_tests.endpoints import run_endpoint_tests
 from app.utils.scheduling import run_comprehensive_self_tests, get_scheduler_status
 from app.config import config_manager
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/netlink-control", tags=["netlink-control"])
 security = HTTPBearer()
 
 # Static file serving

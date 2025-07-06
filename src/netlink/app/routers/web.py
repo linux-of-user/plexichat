@@ -292,31 +292,32 @@ async def docs_redirect():
 
 @router.get("/admin/backup")
 async def backup_redirect():
-    """Redirect to backup management."""
+    """Redirect to NetLink backup management."""
     return RedirectResponse(url="/web/backup")
 
 @router.get("/admin/analytics")
 async def analytics_redirect():
-    """Redirect to analytics dashboard."""
+    """Redirect to NetLink analytics dashboard."""
     return RedirectResponse(url="/web/analytics")
 
-# API for web interface data
+# API for NetLink web interface data
 @router.get("/api/dashboard/stats")
-async def dashboard_stats(current_user: User = Depends(get_current_user)):
-    """Get dashboard statistics."""
-    # This would return real statistics
+async def netlink_dashboard_stats(current_user: User = Depends(get_current_user)):
+    """Get NetLink dashboard statistics."""
+    # This would return real NetLink statistics
     return {
         "users_online": 42,
         "messages_today": 1337,
         "files_uploaded": 89,
-        "system_uptime": "5 days, 12 hours",
+        "netlink_uptime": "5 days, 12 hours",
         "api_requests": 15420,
-        "backup_health": "healthy"
+        "backup_health": "healthy",
+        "node_status": "running"
     }
 
-@router.get("/api/system/health")
-async def web_system_health():
-    """Get system health for web interface."""
+@router.get("/api/netlink-core/health")
+async def web_netlink_core_health():
+    """Get NetLink core health for web interface."""
     return {
         "status": "healthy",
         "services": {

@@ -43,8 +43,8 @@ router = APIRouter(prefix="/api/v1/individual-testing", tags=["Individual Testin
 TEST_SUITES = {
     "auth": {
         "class": AuthEndpointTests,
-        "name": "Authentication Endpoints",
-        "description": "Tests all authentication-related endpoints including registration, login, token validation, and security features.",
+        "name": "NetLink Authentication Endpoints",
+        "description": "Tests all NetLink authentication-related endpoints including registration, login, token validation, and security features.",
         "category": "authentication",
         "estimated_duration_minutes": 5,
         "endpoints_tested": [
@@ -55,8 +55,8 @@ TEST_SUITES = {
     },
     "users": {
         "class": UserEndpointTests,
-        "name": "User Management Endpoints",
-        "description": "Tests user profile management, account operations, and user-related functionality.",
+        "name": "NetLink User Management Endpoints",
+        "description": "Tests NetLink user profile management, account operations, and user-related functionality.",
         "category": "users",
         "estimated_duration_minutes": 8,
         "endpoints_tested": [

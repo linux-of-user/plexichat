@@ -52,22 +52,22 @@ class CommandRegistry:
     def _register_all_commands(self):
         """Register all available commands."""
         
-        # Server Management Commands
+        # NetLink Node Management Commands
         self.register_command(CommandInfo(
-            name="server",
+            name="node",
             category=CommandCategory.SERVER,
-            description="Server management operations",
-            usage="server <start|stop|restart|status>",
-            examples=["server start", "server status", "server restart"],
+            description="NetLink node management operations",
+            usage="node <start|stop|restart|status>",
+            examples=["node start", "node status", "node restart"],
             available_in=["main", "advanced"]
         ))
-        
+
         self.register_command(CommandInfo(
             name="status",
             category=CommandCategory.SERVER,
-            description="Show system status",
+            description="Show NetLink core status",
             usage="status [component]",
-            examples=["status", "status server", "status database"],
+            examples=["status", "status node", "status database"],
             available_in=["main", "advanced"]
         ))
         

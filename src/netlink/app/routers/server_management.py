@@ -1,6 +1,6 @@
 """
-NetLink Server Management API
-Comprehensive server management endpoints for hot reload, updates, and monitoring.
+NetLink Node Management API
+Comprehensive NetLink node management endpoints for hot reload, updates, and monitoring.
 """
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
@@ -14,7 +14,7 @@ from netlink.core.server_manager import server_manager, ServerState, UpdateType,
 from app.utils.auth import verify_admin_token
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1/server", tags=["server-management"])
+router = APIRouter(prefix="/api/v1/netlink-node", tags=["netlink-node-management"])
 security = HTTPBearer()
 
 class ServerActionRequest(BaseModel):
@@ -53,61 +53,61 @@ async def get_server_status():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/start")
-async def start_server(
+async def start_netlink_node(
     background_tasks: BackgroundTasks,
     token: str = Depends(security)
 ):
-    """Start the NetLink server."""
+    """Start the NetLink node."""
     verify_admin_token(token.credentials)
-    
+
     try:
         if server_manager.server_info.state == ServerState.RUNNING:
             return {
                 "success": True,
-                "message": "Server is already running",
+                "message": "NetLink node is already running",
                 "status": server_manager.server_info.state.value
             }
-        
-        # Start server in background
+
+        # Start NetLink node in background
         background_tasks.add_task(server_manager.start_server)
-        
+
         return {
             "success": True,
-            "message": "Server start initiated",
+            "message": "NetLink node start initiated",
             "status": ServerState.STARTING.value
         }
-        
+
     except Exception as e:
-        logger.error(f"Failed to start server: {e}")
+        logger.error(f"Failed to start NetLink node: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/stop")
-async def stop_server(
+async def stop_netlink_node(
     request: ServerActionRequest,
     background_tasks: BackgroundTasks,
     token: str = Depends(security)
 ):
-    """Stop the NetLink server."""
+    """Stop the NetLink node."""
     verify_admin_token(token.credentials)
-    
+
     try:
         if server_manager.server_info.state == ServerState.STOPPED:
             return {
                 "success": True,
-                "message": "Server is already stopped",
+                "message": "NetLink node is already stopped",
                 "status": server_manager.server_info.state.value
             }
-        
-        # Stop server in background
+
+        # Stop NetLink node in background
         background_tasks.add_task(
             server_manager.stop_server,
             graceful=request.graceful,
             timeout=request.timeout
         )
-        
+
         return {
             "success": True,
-            "message": f"Server {'graceful' if request.graceful else 'force'} stop initiated",
+            "message": f"NetLink node {'graceful' if request.graceful else 'force'} stop initiated",
             "status": ServerState.STOPPING.value
         }
         

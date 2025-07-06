@@ -178,10 +178,10 @@ def run_endpoint_tests() -> Dict[str, Any]:
     out["user_crud"] = test_user_crud()
     out["messages"] = test_messages_flow(token, test_user2_id)
 
-    # status endpoints
+    # NetLink core status endpoints
     for ep in ("health", "uptime", "metrics"):
-        r = requests.get(f"{settings.BASE_URL}/v1/status/{ep}", timeout=2)
-        out[f"status_{ep}"] = {"code": r.status_code, "ok": r.status_code == 200}
+        r = requests.get(f"{settings.BASE_URL}/api/v1/netlink-core/{ep}", timeout=2)
+        out[f"netlink_core_{ep}"] = {"code": r.status_code, "ok": r.status_code == 200}
 
     dur = (datetime.utcnow() - start).total_seconds()
     logger.info("[ET-Run-Done] Completed in %.2fs", dur)

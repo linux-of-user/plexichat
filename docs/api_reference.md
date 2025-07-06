@@ -1,12 +1,30 @@
 # NetLink Complete API Reference
 
-Comprehensive API documentation with all endpoints, examples, and interactive testing.
+Comprehensive API documentation with all NetLink endpoints, examples, and interactive testing.
 
 ## Base Configuration
 
 **Default Base URL**: `http://localhost:8000`
 **API Version**: v1
 **Authentication**: JWT Bearer tokens or session cookies
+**NetLink Branding**: All endpoints use NetLink-specific terminology
+
+## NetLink Endpoint Structure
+
+### Core NetLink Endpoints
+- **NetLink Node Management**: `/api/v1/netlink-node/*` - Node operations (start, stop, status)
+- **NetLink Core System**: `/api/v1/netlink-core/*` - System health, resources, configuration
+- **NetLink Control Panel**: `/netlink-control/*` - Administrative control interface
+- **NetLink AI Management**: `/api/v1/netlink-ai/*` - AI model management and chat
+- **NetLink Testing**: `/api/v1/netlink-testing/*` - Comprehensive testing suites
+
+### Standard API Endpoints
+- **Authentication**: `/api/v1/auth/*` - User authentication and authorization
+- **Users**: `/api/v1/users/*` - User management and profiles
+- **Messages**: `/api/v1/messages/*` - Messaging functionality
+- **Files**: `/api/v1/files/*` - File upload and management
+- **Backup**: `/api/v1/backup/*` - Backup system management
+- **Cluster**: `/api/v1/cluster/*` - Clustering and load balancing
 
 ## Quick Test Setup
 
@@ -1389,14 +1407,20 @@ curl -X POST "$NETLINK_URL/api/v1/messages" -H "Authorization: Bearer $TOKEN" -H
 # Upload file
 curl -X POST "$NETLINK_URL/api/v1/files/upload" -H "Authorization: Bearer $TOKEN" -F "file=@filename.txt"
 
-# Cluster status
-curl "$NETLINK_URL/api/cluster/status"
+# NetLink cluster status
+curl "$NETLINK_URL/api/v1/cluster/status"
+
+# NetLink node status
+curl "$NETLINK_URL/api/v1/netlink-node/status"
+
+# NetLink core health
+curl "$NETLINK_URL/api/v1/netlink-core/health"
 ```
 
 ### Interactive Tools
 - **API Explorer**: http://localhost:8000/docs/explorer
 - **API Documentation**: http://localhost:8000/docs
-- **Admin Panel**: http://localhost:8000/admin
+- **NetLink Control Panel**: http://localhost:8000/netlink-control
 - **Web Interface**: http://localhost:8000
 
 ---

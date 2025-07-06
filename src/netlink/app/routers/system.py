@@ -1,6 +1,6 @@
 """
-System monitoring and management endpoints.
-Provides comprehensive system health, performance metrics, and administrative controls.
+NetLink Core monitoring and management endpoints.
+Provides comprehensive NetLink Core health, performance metrics, and administrative controls.
 """
 
 import os

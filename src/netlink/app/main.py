@@ -49,8 +49,14 @@ except ImportError as e:
 try:
     from netlink.app.routers.server_management import router as server_management_router
 except ImportError:
-    logger.warning("Server management router not available")
+    logger.warning("NetLink node management router not available")
     server_management_router = None
+
+try:
+    from netlink.app.routers.system import router as system_router
+except ImportError:
+    logger.warning("NetLink core system router not available")
+    system_router = None
 
 # Enhanced messaging routers
 try:
@@ -187,6 +193,12 @@ async def https_redirect_middleware(request: Request, call_next):
 # Include routers
 if server_management_router:
     app.include_router(server_management_router)
+    logger.info("✅ NetLink node management router loaded")
+
+# NetLink Core system router
+if system_router:
+    app.include_router(system_router, prefix="/api/v1/netlink-core")
+    logger.info("✅ NetLink core system router loaded")
 
 # Enhanced messaging routers
 if enhanced_messaging_router:
@@ -292,13 +304,15 @@ async def root():
     }
 
 @app.get("/health")
-async def health_check():
-    """Health check endpoint."""
+async def netlink_health_check():
+    """NetLink health check endpoint."""
     return {
         "status": "healthy",
+        "service": "NetLink v3.0",
         "timestamp": datetime.now().isoformat(),
         "uptime": "running",
-        "version": "3.0.0"
+        "version": "3.0.0",
+        "node_status": "operational"
     }
 
 # Message endpoints
@@ -681,11 +695,11 @@ async def not_found_page():
 
             const pages = [
                 { name: '🏠 Home', url: '/', description: 'Main landing page' },
-                { name: '🎛️ Admin Dashboard', url: '/ui', description: 'Administrative interface' },
+                { name: '🎛️ NetLink Control Panel', url: '/ui', description: 'NetLink administrative interface' },
                 { name: '📚 Documentation', url: '/docs', description: 'API documentation and guides' },
-                { name: '❤️ Health Check', url: '/health', description: 'System health status' },
-                { name: '📊 System Status', url: '/api/v1/admin/status', description: 'Detailed system information' },
-                { name: '🧪 Testing', url: '/api/v1/testing/status', description: 'Testing endpoints' },
+                { name: '❤️ Health Check', url: '/health', description: 'NetLink health status' },
+                { name: '📊 NetLink Core Status', url: '/api/v1/netlink-core/health', description: 'NetLink core system information' },
+                { name: '🧪 NetLink Testing', url: '/api/v1/netlink-testing/suites', description: 'NetLink testing endpoints' },
                 { name: '🔌 API Root', url: '/api', description: 'API entry point' },
                 { name: '📡 API v1', url: '/api/v1', description: 'Version 1 API endpoints' },
                 { name: '📋 OpenAPI Spec', url: '/openapi.json', description: 'OpenAPI specification' },
@@ -693,8 +707,11 @@ async def not_found_page():
                 { name: '📝 Register', url: '/auth/register', description: 'User registration' },
                 { name: '💬 Chat', url: '/api/v1/chats', description: 'Messaging interface' },
                 { name: '👥 Users', url: '/api/v1/users', description: 'User management' },
-                { name: '💾 Backup Status', url: '/api/v1/backup/status', description: 'Backup system status' },
-                { name: '🔗 Cluster Status', url: '/api/v1/cluster/status', description: 'Clustering information' }
+                { name: '💾 Backup Status', url: '/api/v1/backup/status', description: 'NetLink backup system status' },
+                { name: '🔗 Cluster Status', url: '/api/v1/cluster/status', description: 'NetLink clustering information' },
+                { name: '🖥️ NetLink Node', url: '/api/v1/netlink-node/status', description: 'NetLink node management' },
+                { name: '⚙️ NetLink Control', url: '/netlink-control', description: 'NetLink control panel' },
+                { name: '🤖 NetLink AI', url: '/api/v1/netlink-ai/models', description: 'NetLink AI management' }
             ];
 
             searchInput.addEventListener('input', function() {

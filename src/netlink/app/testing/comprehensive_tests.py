@@ -922,16 +922,16 @@ class ComprehensiveTestManager:
             suite.start_time = None
             suite.end_time = None
 
-# Testing API Router
-testing_router = APIRouter(prefix="/api/v1/testing", tags=["Testing"])
+# NetLink Testing API Router
+testing_router = APIRouter(prefix="/api/v1/netlink-testing", tags=["NetLink-Testing"])
 
 # Templates
 template_dir = os.path.join(os.path.dirname(__file__), "..", "web", "templates")
 templates = Jinja2Templates(directory=template_dir)
 
 @testing_router.get("/suites")
-async def list_test_suites():
-    """List all available test suites."""
+async def list_netlink_test_suites():
+    """List all available NetLink test suites."""
     suites = {}
     for suite_id, suite in test_manager.test_suites.items():
         suites[suite_id] = {
@@ -946,8 +946,8 @@ async def list_test_suites():
     return JSONResponse({"suites": suites})
 
 @testing_router.post("/suites/{suite_id}/run")
-async def run_test_suite(suite_id: str, background: bool = True):
-    """Run a specific test suite."""
+async def run_netlink_test_suite(suite_id: str, background: bool = True):
+    """Run a specific NetLink test suite."""
     try:
         result = await test_manager.run_test_suite(suite_id, background=background)
         return JSONResponse(result)

@@ -132,7 +132,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \\
   http://localhost:8000/api/v1/messages
 ```
 
-## Endpoints
+## NetLink API Endpoints
 
 ### Messages API
 - `GET /api/v1/messages` - List messages
@@ -149,6 +149,29 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \\
 - `GET /api/v1/users/me` - Get current user
 - `PUT /api/v1/users/me` - Update profile
 - `GET /api/v1/users/{id}` - Get user info
+
+### NetLink Node Management
+- `POST /api/v1/netlink-node/start` - Start NetLink node
+- `POST /api/v1/netlink-node/stop` - Stop NetLink node
+- `GET /api/v1/netlink-node/status` - Get node status
+
+### NetLink Core System
+- `GET /api/v1/netlink-core/health` - System health check
+- `GET /api/v1/netlink-core/info` - System information
+- `GET /api/v1/netlink-core/resources` - Resource usage
+
+### NetLink Control Panel
+- `GET /netlink-control/status` - Control panel status
+- `POST /netlink-control/tests/run` - Run system tests
+
+### NetLink AI Management
+- `POST /api/v1/netlink-ai/chat` - AI chat completion
+- `GET /api/v1/netlink-ai/models` - List AI models
+- `POST /api/v1/netlink-ai/models` - Add AI model
+
+### NetLink Testing
+- `GET /api/v1/netlink-testing/suites` - List test suites
+- `POST /api/v1/netlink-testing/suites/{id}/run` - Run test suite
 
 ### Social API
 - `POST /api/v1/social/friends/request` - Send friend request

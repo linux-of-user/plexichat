@@ -95,13 +95,13 @@ class HealthCheckResponse(BaseModel):
     providers: Dict[str, Dict[str, int]]
     models: Dict[str, Dict[str, Any]]
 
-# Create API router
-router = APIRouter(prefix="/api/v1/ai", tags=["AI Management"])
+# Create NetLink AI API router
+router = APIRouter(prefix="/api/v1/netlink-ai", tags=["NetLink-AI-Management"])
 
-# AI Request Endpoints
+# NetLink AI Request Endpoints
 @router.post("/chat", response_model=AIResponseModel)
-async def chat_completion(request: AIRequestModel):
-    """Process AI chat completion request."""
+async def netlink_ai_chat_completion(request: AIRequestModel):
+    """Process NetLink AI chat completion request."""
     try:
         ai_request = AIRequest(
             user_id=request.user_id,

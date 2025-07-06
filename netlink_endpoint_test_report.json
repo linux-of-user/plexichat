@@ -1,0 +1,136 @@
+{
+  "timestamp": "2025-07-06T18:05:43.088541",
+  "test_name": "NetLink Endpoint Rebranding Validation",
+  "version": "3.0.0",
+  "total_tests": 21,
+  "passed_tests": 20,
+  "failed_tests": 1,
+  "test_results": [
+    {
+      "category": "Router Prefixes",
+      "test_name": "NetLink Node Management",
+      "status": "PASS",
+      "details": "Prefix: /api/v1/netlink-node"
+    },
+    {
+      "category": "Router Prefixes",
+      "test_name": "NetLink Control Panel",
+      "status": "PASS",
+      "details": "Prefix: /netlink-control"
+    },
+    {
+      "category": "Router Prefixes",
+      "test_name": "NetLink AI Management",
+      "status": "PASS",
+      "details": "Prefix: /api/v1/netlink-ai"
+    },
+    {
+      "category": "Router Prefixes",
+      "test_name": "NetLink Testing",
+      "status": "PASS",
+      "details": "Prefix: /api/v1/netlink-testing"
+    },
+    {
+      "category": "Function Names",
+      "test_name": "NetLink Node Start Function",
+      "status": "PASS",
+      "details": "Function: start_netlink_node"
+    },
+    {
+      "category": "Function Names",
+      "test_name": "NetLink Node Stop Function",
+      "status": "PASS",
+      "details": "Function: stop_netlink_node"
+    },
+    {
+      "category": "Function Names",
+      "test_name": "NetLink Health Check Function",
+      "status": "PASS",
+      "details": "Function: netlink_health_check"
+    },
+    {
+      "category": "Function Names",
+      "test_name": "NetLink Dashboard Stats Function",
+      "status": "PASS",
+      "details": "Function: netlink_dashboard_stats"
+    },
+    {
+      "category": "Function Names",
+      "test_name": "NetLink AI Chat Function",
+      "status": "PASS",
+      "details": "Function: netlink_ai_chat_completion"
+    },
+    {
+      "category": "Documentation",
+      "test_name": "API Reference NetLink Branding",
+      "status": "FAIL",
+      "details": "Missing: NetLink endpoint structure"
+    },
+    {
+      "category": "Documentation",
+      "test_name": "API Reference Node Endpoints",
+      "status": "PASS",
+      "details": "Contains: /api/v1/netlink-node/"
+    },
+    {
+      "category": "Documentation",
+      "test_name": "API Reference Core Endpoints",
+      "status": "PASS",
+      "details": "Contains: /api/v1/netlink-core/"
+    },
+    {
+      "category": "Documentation",
+      "test_name": "Rebranding Summary Document",
+      "status": "PASS",
+      "details": "Contains: NetLink Endpoint Rebranding Summary"
+    },
+    {
+      "category": "Documentation",
+      "test_name": "Service Documentation Updates",
+      "status": "PASS",
+      "details": "Contains: NetLink Node Management"
+    },
+    {
+      "category": "CLI Updates",
+      "test_name": "CLI Node Commands",
+      "status": "PASS",
+      "details": "Contains: NetLink node management operations"
+    },
+    {
+      "category": "CLI Updates",
+      "test_name": "CLI Status Commands",
+      "status": "PASS",
+      "details": "Contains: Show NetLink core status"
+    },
+    {
+      "category": "Main Application",
+      "test_name": "Main App Router Loading",
+      "status": "PASS",
+      "details": "Found: NetLink node management router loaded"
+    },
+    {
+      "category": "Main Application",
+      "test_name": "Main App System Router",
+      "status": "PASS",
+      "details": "Found: NetLink core system router loaded"
+    },
+    {
+      "category": "Main Application",
+      "test_name": "Main App Node Endpoint",
+      "status": "PASS",
+      "details": "Found: /api/v1/netlink-node/status"
+    },
+    {
+      "category": "Main Application",
+      "test_name": "Main App Core Endpoint",
+      "status": "PASS",
+      "details": "Found: /api/v1/netlink-core/health"
+    },
+    {
+      "category": "Main Application",
+      "test_name": "Main App Control Panel",
+      "status": "PASS",
+      "details": "Found: NetLink Control Panel"
+    }
+  ]
+}
