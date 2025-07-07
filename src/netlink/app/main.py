@@ -298,6 +298,38 @@ if ai_webui_router:
     app.include_router(ai_webui_router)
     logger.info("✅ AI WebUI endpoints registered")
 
+# AI-Powered Features router
+try:
+    from netlink.app.api.v1.ai_features import router as ai_features_router
+    app.include_router(ai_features_router)
+    logger.info("✅ AI-Powered Features API router loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ AI-Powered Features API router not available: {e}")
+
+# Edge Computing & Auto-scaling API router
+try:
+    from netlink.api.edge_computing import router as edge_computing_router
+    app.include_router(edge_computing_router)
+    logger.info("✅ Edge Computing & Auto-scaling API router loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ Edge Computing API router not available: {e}")
+
+# Multi-Tier Cache API router
+try:
+    from netlink.api.multi_tier_cache import router as cache_router
+    app.include_router(cache_router)
+    logger.info("✅ Multi-Tier Cache API router loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ Multi-Tier Cache API router not available: {e}")
+
+# Message Queue API router
+try:
+    from netlink.api.message_queue import router as queue_router
+    app.include_router(queue_router)
+    logger.info("✅ Message Queue API router loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ Message Queue API router not available: {e}")
+
 @app.get("/")
 async def root():
     """Root endpoint."""
@@ -3323,6 +3355,49 @@ async def startup():
     # Initialize SSL if enabled
     if SSL_CONFIG["enabled"]:
         await initialize_ssl()
+
+    # Initialize AI-Powered Features
+    try:
+        from netlink.services.ai_features_integration import startup_ai_features
+        await startup_ai_features()
+        logger.info("✅ AI-Powered Features initialized")
+    except ImportError as e:
+        logger.warning(f"⚠️ AI-Powered Features not available: {e}")
+    except Exception as e:
+        logger.error(f"❌ AI-Powered Features initialization failed: {e}")
+
+    # Initialize Edge Computing & Auto-scaling System
+    try:
+        from netlink.core.performance.edge_computing_manager import get_edge_computing_manager
+        edge_manager = get_edge_computing_manager()
+        await edge_manager.initialize()
+        logger.info("✅ Edge Computing & Auto-scaling System initialized")
+    except ImportError as e:
+        logger.warning(f"⚠️ Edge Computing System not available: {e}")
+    except Exception as e:
+        logger.error(f"❌ Edge Computing System initialization failed: {e}")
+
+    # Initialize Multi-Tier Cache System
+    try:
+        from netlink.core.performance.multi_tier_cache_manager import get_cache_manager
+        cache_manager = get_cache_manager()
+        await cache_manager.initialize()
+        logger.info("✅ Multi-Tier Cache System initialized")
+    except ImportError as e:
+        logger.warning(f"⚠️ Multi-Tier Cache System not available: {e}")
+    except Exception as e:
+        logger.error(f"❌ Multi-Tier Cache System initialization failed: {e}")
+
+    # Initialize Message Queue System
+    try:
+        from netlink.core.performance.message_queue_manager import get_queue_manager
+        queue_manager = get_queue_manager()
+        await queue_manager.initialize()
+        logger.info("✅ Message Queue System initialized")
+    except ImportError as e:
+        logger.warning(f"⚠️ Message Queue System not available: {e}")
+    except Exception as e:
+        logger.error(f"❌ Message Queue System initialization failed: {e}")
 
     logger.info("✅ NetLink startup complete")
 

@@ -1,0 +1,119 @@
+# NetLink Consolidated Testing Requirements
+# Comprehensive testing dependencies for all test categories in the unified test framework
+
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.0
+pytest-mock>=3.11.0
+pytest-timeout>=2.1.0
+pytest-html>=3.2.0
+pytest-json-report>=1.5.0
+
+# Performance testing
+pytest-benchmark>=4.0.0
+memory-profiler>=0.60.0
+psutil>=5.9.0
+
+# Security testing
+bandit>=1.7.5
+safety>=2.3.0
+semgrep>=1.45.0
+
+# HTTP testing
+httpx>=0.24.0
+aiohttp>=3.8.0
+requests>=2.31.0
+responses>=0.23.0
+
+# Database testing
+pytest-postgresql>=5.0.0
+pytest-redis>=3.0.0
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+
+# Mock and fixtures
+factory-boy>=3.3.0
+faker>=19.6.0
+freezegun>=1.2.0
+responses>=0.23.0
+
+# Code quality
+flake8>=6.0.0
+black>=23.7.0
+isort>=5.12.0
+mypy>=1.5.0
+pylint>=2.17.0
+
+# Coverage and reporting
+coverage>=7.3.0
+codecov>=2.1.0
+pytest-cov>=4.1.0
+
+# Utilities
+pyyaml>=6.0.0
+python-dotenv>=1.0.0
+click>=8.1.0
+rich>=13.5.0
+tabulate>=0.9.0
+
+# Async testing
+asynctest>=0.13.0
+pytest-asyncio>=0.21.0
+aiofiles>=23.2.0
+
+# File system testing
+pytest-tmp-path>=0.1.0
+tempfile-utils>=0.1.0
+
+# Network testing
+pytest-socket>=0.6.0
+pytest-httpserver>=1.0.0
+
+# Encryption testing
+cryptography>=41.0.0
+pycryptodome>=3.18.0
+
+# Logging testing
+pytest-logging>=2016.11.4
+
+# Parallel testing
+pytest-xdist>=3.3.0
+pytest-parallel>=0.1.1
+
+# API testing
+openapi-spec-validator>=0.6.0
+jsonschema>=4.19.0
+
+# Load testing
+locust>=2.16.0
+
+# Documentation testing
+pytest-doctestplus>=1.0.0
+
+# Environment testing
+tox>=4.11.0
+pytest-env>=0.8.0
+
+# NetLink specific dependencies
+# (These should match the main application requirements)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.4.0
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+redis>=5.0.0
+celery>=5.3.0
+websockets>=11.0.0
+cryptography>=41.0.0
+passlib>=1.7.4
+python-jose>=3.3.0
+python-multipart>=0.0.6
+aiofiles>=23.2.0
+jinja2>=3.1.0
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
+click>=8.1.0
+rich>=13.5.0
+httpx>=0.24.0

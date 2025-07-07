@@ -21,43 +21,30 @@ Features:
 - Advanced recovery capabilities
 """
 
-from .quantum_backup_manager import QuantumBackupManager, quantum_backup_manager
-from .distributed_shard_system import DistributedShardSystem, distributed_shard_system
-from .backup_node_network import BackupNodeNetwork, backup_node_network
-from .zero_knowledge_protocol import ZeroKnowledgeProtocol, zero_knowledge_protocol
-from .immutable_shard_manager import ImmutableShardManager, immutable_shard_manager
-from .advanced_recovery_system import AdvancedRecoverySystem, advanced_recovery_system
-from .backup_analytics import BackupAnalytics, backup_analytics
+# Core backup components
+from .backup_manager import GovernmentBackupManager
+from .shard_manager import ImmutableShardManager
+from .encryption_manager import QuantumEncryptionManager
+from .distribution_manager import IntelligentDistributionManager
+from .recovery_manager import AdvancedRecoveryManager
+from .proxy_manager import DatabaseProxyManager
+from .backup_node_auth import BackupNodeAuthManager
+from .user_message_backup import UniversalBackupManager
+from .backup_node_client import BackupNodeClient, BackupNodeManager
 
 __version__ = "3.0.0"
 __all__ = [
     # Core backup management
-    "QuantumBackupManager",
-    "quantum_backup_manager",
-    
-    # Distributed shard system
-    "DistributedShardSystem", 
-    "distributed_shard_system",
-    
-    # Backup node network
-    "BackupNodeNetwork",
-    "backup_node_network",
-    
-    # Zero-knowledge protocol
-    "ZeroKnowledgeProtocol",
-    "zero_knowledge_protocol",
-    
-    # Immutable shard management
-    "ImmutableShardManager",
-    "immutable_shard_manager",
-    
-    # Advanced recovery
-    "AdvancedRecoverySystem",
-    "advanced_recovery_system",
-    
-    # Analytics and monitoring
-    "BackupAnalytics",
-    "backup_analytics"
+    'GovernmentBackupManager',
+    'ImmutableShardManager',
+    'QuantumEncryptionManager',
+    'IntelligentDistributionManager',
+    'AdvancedRecoveryManager',
+    'DatabaseProxyManager',
+    'BackupNodeAuthManager',
+    'UniversalBackupManager',
+    'BackupNodeClient',
+    'BackupNodeManager'
 ]
 
 # Core system constants

@@ -47,10 +47,14 @@ from .device_manager import DeviceManager, device_manager
 from .audit_manager import AuthAuditManager, auth_audit_manager
 
 # Import authentication utilities
-from .decorators import require_auth, require_admin, require_mfa, require_level
-from .middleware import AuthenticationMiddleware
-from .validators import PasswordValidator, TokenValidator
-from .exceptions import AuthenticationError, AuthorizationError, MFAError
+from .decorators import require_auth, require_admin, require_mfa, require_level, optional_auth
+from .middleware import AuthenticationMiddleware, FlaskAuthMiddleware, FastAPIAuthMiddleware
+from .validators import PasswordValidator, TokenValidator, BiometricValidator
+from .exceptions import (
+    AuthenticationError, AuthorizationError, MFAError, TokenError,
+    SessionError, PasswordError, BiometricError, DeviceError,
+    OAuthError, RateLimitError, AccountLockError
+)
 
 __version__ = "3.0.0"
 __all__ = [
@@ -104,21 +108,33 @@ __all__ = [
     
     # Middleware
     "AuthenticationMiddleware",
-    
+    "FlaskAuthMiddleware",
+    "FastAPIAuthMiddleware",
+
     # Validators
     "PasswordValidator",
     "TokenValidator",
-    
+    "BiometricValidator",
+
     # Decorators
     "require_auth",
     "require_admin",
     "require_mfa",
     "require_level",
-    
+    "optional_auth",
+
     # Exceptions
     "AuthenticationError",
     "AuthorizationError",
-    "MFAError"
+    "MFAError",
+    "TokenError",
+    "SessionError",
+    "PasswordError",
+    "BiometricError",
+    "DeviceError",
+    "OAuthError",
+    "RateLimitError",
+    "AccountLockError"
 ]
 
 # Authentication system constants

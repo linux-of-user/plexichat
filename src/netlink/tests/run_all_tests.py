@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Runner for NetLink
-Runs all test suites and generates combined reports.
+NetLink Unified Testing Framework - Comprehensive Test Runner
+
+Consolidated test runner combining all NetLink test suites with:
+- Unit, Integration, End-to-End, Performance, and Security testing
+- Coverage reporting and CI/CD integration
+- Parallel test execution and advanced reporting
+- Mock services and comprehensive fixtures
 """
 
 import sys
@@ -9,12 +14,17 @@ import os
 import json
 import time
 import subprocess
+import pytest
+import asyncio
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
+import argparse
+import concurrent.futures
+from dataclasses import dataclass
 
 # Add src to path
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root / "src"))
 
 class TestRunner:

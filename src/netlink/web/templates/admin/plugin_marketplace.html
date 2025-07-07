@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugin Marketplace - NetLink Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .plugin-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+        }
+        .plugin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .plugin-icon {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .rating-stars {
+            color: #ffc107;
+        }
+        .category-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .search-filters {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .featured-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .plugin-screenshot {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .review-card {
+            border-left: 4px solid #007bff;
+            padding-left: 1rem;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .plugin-tags .badge {
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="h2 mb-0">
+                    <i class="fas fa-store me-2"></i>
+                    Plugin Marketplace
+                </h1>
+                <p class="text-muted">Discover, install, and manage NetLink plugins</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" onclick="refreshMarketplace()">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Dashboard -->
+        <div class="row mb-4" id="statsSection">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="h3 text-primary mb-1" id="totalPlugins">-</div>
+                    <div class="text-muted">Total Plugins</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="h3 text-success mb-1" id="totalDownloads">-</div>
+                    <div class="text-muted">Total Downloads</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="h3 text-info mb-1" id="totalReviews">-</div>
+                    <div class="text-muted">Total Reviews</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="h3 text-warning mb-1" id="activeDevelopers">-</div>
+                    <div class="text-muted">Active Developers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Plugins -->
+        <div class="featured-section" id="featuredSection">
+            <h3 class="mb-3">
+                <i class="fas fa-star me-2"></i>
+                Featured Plugins
+            </h3>
+            <div class="row" id="featuredPlugins">
+                <!-- Featured plugins will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="search-filters">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Search Plugins</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchQuery" placeholder="Search plugins...">
+                        <button class="btn btn-outline-secondary" onclick="searchPlugins()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        <!-- Categories will be loaded dynamically -->
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Sort By</label>
+                    <select class="form-select" id="sortBy">
+                        <option value="relevance">Relevance</option>
+                        <option value="rating">Rating</option>
+                        <option value="downloads">Downloads</option>
+                        <option value="newest">Newest</option>
+                        <option value="name">Name</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tags</label>
+                    <input type="text" class="form-control" id="tagsFilter" placeholder="tag1, tag2">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick="searchPlugins()">
+                        <i class="fas fa-filter me-1"></i>
+                        Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plugin Results -->
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Search Results -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 id="resultsTitle">All Plugins</h4>
+                    <div class="loading-spinner">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" id="pluginResults">
+                    <!-- Plugin cards will be loaded here -->
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Plugin pagination" class="mt-4">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Pagination will be generated dynamically -->
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Categories Sidebar -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tags me-2"></i>
+                            Categories
+                        </h5>
+                    </div>
+                    <div class="card-body" id="categoriesList">
+                        <!-- Categories will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clock me-2"></i>
+                            Recent Activity
+                        </h5>
+                    </div>
+                    <div class="card-body" id="recentActivity">
+                        <!-- Recent activity will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plugin Details Modal -->
+    <div class="modal fade" id="pluginModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pluginModalTitle">Plugin Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="pluginModalBody">
+                    <!-- Plugin details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="installPluginBtn" onclick="installPlugin()">
+                        <i class="fas fa-download me-1"></i>
+                        Install Plugin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Write a Review</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reviewForm">
+                        <input type="hidden" id="reviewPluginId">
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="rating-input">
+                                <input type="radio" name="rating" value="5" id="star5">
+                                <label for="star5">★</label>
+                                <input type="radio" name="rating" value="4" id="star4">
+                                <label for="star4">★</label>
+                                <input type="radio" name="rating" value="3" id="star3">
+                                <label for="star3">★</label>
+                                <input type="radio" name="rating" value="2" id="star2">
+                                <label for="star2">★</label>
+                                <input type="radio" name="rating" value="1" id="star1">
+                                <label for="star1">★</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" id="reviewTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Review</label>
+                            <textarea class="form-control" id="reviewContent" rows="4" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let currentPage = 0;
+        let currentQuery = '';
+        let currentCategory = '';
+        let currentTags = '';
+        let currentSort = 'relevance';
+        let selectedPluginId = '';
+
+        // Initialize marketplace
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMarketplaceData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Search on Enter key
+            document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchPlugins();
+                }
+            });
+
+            // Auto-search on filter changes
+            document.getElementById('categoryFilter').addEventListener('change', searchPlugins);
+            document.getElementById('sortBy').addEventListener('change', searchPlugins);
+        }
+
+        async function loadMarketplaceData() {
+            try {
+                showLoading(true);
+                
+                // Load statistics
+                await loadStatistics();
+                
+                // Load categories
+                await loadCategories();
+                
+                // Load featured plugins
+                await loadFeaturedPlugins();
+                
+                // Load all plugins
+                await searchPlugins();
+                
+            } catch (error) {
+                console.error('Failed to load marketplace data:', error);
+                showError('Failed to load marketplace data');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/v1/marketplace/statistics');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalPlugins').textContent = data.statistics.total_plugins;
+                    document.getElementById('totalDownloads').textContent = formatNumber(data.statistics.total_downloads);
+                    document.getElementById('totalReviews').textContent = formatNumber(data.statistics.total_reviews);
+                    document.getElementById('activeDevelopers').textContent = data.statistics.active_developers;
+                }
+            } catch (error) {
+                console.error('Failed to load statistics:', error);
+            }
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/v1/marketplace/categories');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const categoryFilter = document.getElementById('categoryFilter');
+                    const categoriesList = document.getElementById('categoriesList');
+                    
+                    // Clear existing options
+                    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+                    categoriesList.innerHTML = '';
+                    
+                    // Add categories
+                    Object.entries(data.categories).forEach(([key, category]) => {
+                        // Add to filter dropdown
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = category.name;
+                        categoryFilter.appendChild(option);
+                        
+                        // Add to sidebar
+                        const categoryItem = document.createElement('div');
+                        categoryItem.className = 'd-flex justify-content-between align-items-center mb-2';
+                        categoryItem.innerHTML = `
+                            <span class="category-link" onclick="filterByCategory('${key}')" style="cursor: pointer;">
+                                ${category.icon} ${category.name}
+                            </span>
+                            <span class="badge bg-secondary">${category.count}</span>
+                        `;
+                        categoriesList.appendChild(categoryItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        async function loadFeaturedPlugins() {
+            try {
+                const response = await fetch('/api/v1/marketplace/featured?limit=6');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('featuredPlugins');
+                    container.innerHTML = '';
+                    
+                    data.featured_plugins.forEach(plugin => {
+                        const pluginCard = createFeaturedPluginCard(plugin);
+                        container.appendChild(pluginCard);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load featured plugins:', error);
+            }
+        }
+
+        function createFeaturedPluginCard(plugin) {
+            const col = document.createElement('div');
+            col.className = 'col-md-4 mb-3';
+            
+            col.innerHTML = `
+                <div class="card plugin-card h-100 text-dark" onclick="showPluginDetails('${plugin.plugin_id}')" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="${plugin.icon_url || '/static/images/plugin-default.png'}" 
+                                 alt="${plugin.name}" class="plugin-icon me-3">
+                            <div>
+                                <h6 class="card-title mb-0">${plugin.name}</h6>
+                                <small class="text-muted">by ${plugin.author}</small>
+                            </div>
+                        </div>
+                        <p class="card-text small">${plugin.description.substring(0, 100)}...</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="rating-stars">
+                                ${generateStars(plugin.rating_average)}
+                                <small class="text-muted">(${plugin.rating_count})</small>
+                            </div>
+                            <small class="text-muted">${formatNumber(plugin.download_count)} downloads</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return col;
+        }
+
+        async function searchPlugins() {
+            try {
+                showLoading(true);
+                
+                // Get search parameters
+                currentQuery = document.getElementById('searchQuery').value;
+                currentCategory = document.getElementById('categoryFilter').value;
+                currentSort = document.getElementById('sortBy').value;
+                currentTags = document.getElementById('tagsFilter').value;
+                
+                // Build query parameters
+                const params = new URLSearchParams({
+                    query: currentQuery,
+                    sort_by: currentSort,
+                    limit: '20',
+                    offset: (currentPage * 20).toString()
+                });
+                
+                if (currentCategory) params.append('category', currentCategory);
+                if (currentTags) params.append('tags', currentTags);
+                
+                const response = await fetch(`/api/v1/marketplace/search?${params}`);
+                const data = await response.json();
+                
+                displaySearchResults(data);
+                updateResultsTitle(data);
+                
+            } catch (error) {
+                console.error('Search failed:', error);
+                showError('Search failed');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displaySearchResults(data) {
+            const container = document.getElementById('pluginResults');
+            container.innerHTML = '';
+            
+            if (data.plugins && data.plugins.length > 0) {
+                data.plugins.forEach(plugin => {
+                    const pluginCard = createPluginCard(plugin);
+                    container.appendChild(pluginCard);
+                });
+                
+                // Update pagination
+                updatePagination(data);
+            } else {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5>No plugins found</h5>
+                            <p class="text-muted">Try adjusting your search criteria</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function createPluginCard(plugin) {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4 mb-4';
+            
+            col.innerHTML = `
+                <div class="card plugin-card h-100" onclick="showPluginDetails('${plugin.plugin_id}')" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="${plugin.icon_url || '/static/images/plugin-default.png'}" 
+                                 alt="${plugin.name}" class="plugin-icon me-3">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">${plugin.name}</h6>
+                                <small class="text-muted">v${plugin.version} by ${plugin.author}</small>
+                            </div>
+                            ${plugin.verified ? '<i class="fas fa-check-circle text-success" title="Verified"></i>' : ''}
+                        </div>
+                        
+                        <p class="card-text">${plugin.description.substring(0, 120)}...</p>
+                        
+                        <div class="plugin-tags mb-2">
+                            <span class="badge category-badge bg-primary">${plugin.category.replace('_', ' ')}</span>
+                            ${plugin.tags.slice(0, 2).map(tag => `<span class="badge bg-secondary">${tag}</span>`).join('')}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="rating-stars">
+                                ${generateStars(plugin.rating_average)}
+                                <small class="text-muted">(${plugin.rating_count})</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">${formatNumber(plugin.download_count)} downloads</small>
+                                ${plugin.price > 0 ? `<strong>$${plugin.price}</strong>` : '<span class="text-success">Free</span>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return col;
+        }
+
+        // Utility functions
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        function showLoading(show) {
+            const spinner = document.querySelector('.loading-spinner');
+            spinner.style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            // TODO: Implement proper error display
+            console.error(message);
+        }
+
+        function updateResultsTitle(data) {
+            const title = document.getElementById('resultsTitle');
+            if (currentQuery) {
+                title.textContent = `Search Results for "${currentQuery}" (${data.total_count})`;
+            } else if (currentCategory) {
+                title.textContent = `${currentCategory.replace('_', ' ')} Plugins (${data.total_count})`;
+            } else {
+                title.textContent = `All Plugins (${data.total_count})`;
+            }
+        }
+
+        function updatePagination(data) {
+            // TODO: Implement pagination
+        }
+
+        function filterByCategory(category) {
+            document.getElementById('categoryFilter').value = category;
+            currentPage = 0;
+            searchPlugins();
+        }
+
+        function refreshMarketplace() {
+            currentPage = 0;
+            loadMarketplaceData();
+        }
+
+        // Plugin details and installation functions
+        async function showPluginDetails(pluginId) {
+            // TODO: Implement plugin details modal
+            selectedPluginId = pluginId;
+            console.log('Show details for plugin:', pluginId);
+        }
+
+        async function installPlugin() {
+            // TODO: Implement plugin installation
+            console.log('Install plugin:', selectedPluginId);
+        }
+
+        async function submitReview() {
+            // TODO: Implement review submission
+            console.log('Submit review for plugin:', selectedPluginId);
+        }
+    </script>
+</body>
+</html>
