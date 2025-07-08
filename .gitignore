@@ -8,3 +8,5 @@
 /logs
 /runtime
 /.augment
+.augment
+.augment/rules
