@@ -564,7 +564,341 @@ async def test_failover(
         raise HTTPException(status_code=500, detail=f"Failed to test failover: {str(e)}")
 
 
-# Hot Updates
+# Cluster Update Management
+class ClusterUpdateRequest(BaseModel):
+    target_version: str = Field(..., description="Target version (e.g., 0b1)")
+    update_type: str = Field("upgrade", description="Update type: upgrade, downgrade, reinstall")
+    strategy: str = Field("rolling", description="Update strategy: rolling, parallel")
+    target_nodes: List[str] = Field([], description="Target node IDs (empty for all)")
+    force: bool = Field(False, description="Force update without confirmation")
+
+
+class ClusterUpdateResponse(BaseModel):
+    operation_id: str
+    target_version: str
+    update_type: str
+    strategy: str
+    target_nodes: List[str]
+    current_phase: str
+    overall_progress: float
+    estimated_completion: Optional[str]
+    node_statuses: Dict[str, Any]
+
+
+@router.post("/updates/plan", response_model=ClusterUpdateResponse)
+async def plan_cluster_update(
+    request: ClusterUpdateRequest,
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Plan a cluster-wide update operation."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        # Import update system components
+        from ....clustering.core.cluster_update_manager import ClusterUpdateManager, ClusterUpdateStrategy
+        from ....core.versioning.version_manager import Version
+        from ....core.versioning.update_system import UpdateType
+
+        # Initialize cluster update manager if not exists
+        if not hasattr(cluster_manager, 'update_manager'):
+            cluster_manager.update_manager = ClusterUpdateManager(cluster_manager)
+            await cluster_manager.update_manager.initialize()
+
+        # Parse parameters
+        target_version = Version.parse(request.target_version)
+        update_type = UpdateType(request.update_type.upper())
+        strategy = ClusterUpdateStrategy(request.strategy.upper())
+
+        # Plan update
+        operation = await cluster_manager.update_manager.plan_cluster_update(
+            target_version=target_version,
+            update_type=update_type,
+            strategy=strategy,
+            target_nodes=request.target_nodes if request.target_nodes else None
+        )
+
+        return ClusterUpdateResponse(
+            operation_id=operation.operation_id,
+            target_version=str(operation.target_version),
+            update_type=operation.update_type.value,
+            strategy=operation.strategy.value,
+            target_nodes=operation.target_nodes,
+            current_phase=operation.current_phase.value,
+            overall_progress=operation.overall_progress,
+            estimated_completion=operation.estimated_completion.isoformat() if operation.estimated_completion else None,
+            node_statuses={node_id: status.to_dict() for node_id, status in operation.node_statuses.items()}
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to plan cluster update: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/updates/{operation_id}/execute")
+async def execute_cluster_update(
+    operation_id: str,
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Execute a planned cluster update operation."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'update_manager'):
+            raise HTTPException(status_code=400, detail="Update manager not initialized")
+
+        # Execute update in background
+        asyncio.create_task(cluster_manager.update_manager.execute_cluster_update(operation_id))
+
+        return {"message": f"Cluster update {operation_id} started", "operation_id": operation_id}
+
+    except Exception as e:
+        logger.error(f"Failed to execute cluster update: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/updates/{operation_id}/status", response_model=ClusterUpdateResponse)
+async def get_cluster_update_status(
+    operation_id: str,
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Get status of a cluster update operation."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'update_manager'):
+            raise HTTPException(status_code=400, detail="Update manager not initialized")
+
+        status = cluster_manager.update_manager.get_operation_status(operation_id)
+        if not status:
+            raise HTTPException(status_code=404, detail=f"Operation {operation_id} not found")
+
+        return ClusterUpdateResponse(**status)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get cluster update status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/updates/active", response_model=List[ClusterUpdateResponse])
+async def list_active_cluster_updates(
+    current_user: dict = Depends(require_admin_auth)
+):
+    """List all active cluster update operations."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'update_manager'):
+            return []
+
+        operations = cluster_manager.update_manager.list_active_operations()
+        return [ClusterUpdateResponse(**op) for op in operations]
+
+    except Exception as e:
+        logger.error(f"Failed to list active cluster updates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/updates/history")
+async def get_cluster_update_history(
+    limit: int = Query(10, description="Number of operations to return"),
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Get cluster update operation history."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'update_manager'):
+            return []
+
+        history = cluster_manager.update_manager.list_operation_history(limit)
+        return history
+
+    except Exception as e:
+        logger.error(f"Failed to get cluster update history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/updates/{operation_id}/rollback")
+async def rollback_cluster_update(
+    operation_id: str,
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Rollback a cluster update operation."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'update_manager'):
+            raise HTTPException(status_code=400, detail="Update manager not initialized")
+
+        # Get operation
+        operation = cluster_manager.update_manager.active_operations.get(operation_id)
+        if not operation:
+            raise HTTPException(status_code=404, detail=f"Operation {operation_id} not found")
+
+        # Initiate rollback
+        await cluster_manager.update_manager._rollback_cluster_update(operation)
+
+        return {"message": f"Rollback initiated for operation {operation_id}"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to rollback cluster update: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Distributed Storage Management
+class StorageOverviewResponse(BaseModel):
+    total_nodes: int
+    healthy_nodes: int
+    total_capacity_gb: float
+    used_capacity_gb: float
+    available_capacity_gb: float
+    usage_percentage: float
+    total_data_objects: int
+    replication_factor: int
+    storage_strategy: str
+    consistency_level: str
+
+
+class StorageNodeResponse(BaseModel):
+    node_id: str
+    hostname: str
+    ip_address: str
+    port: int
+    node_type: str
+    total_capacity_gb: float
+    used_capacity_gb: float
+    available_capacity_gb: float
+    usage_percentage: float
+    performance_score: float
+    reliability_score: float
+    geographic_region: str
+    last_heartbeat: str
+    status: str
+    is_healthy: bool
+
+
+@router.get("/storage/overview", response_model=StorageOverviewResponse)
+async def get_storage_overview(
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Get distributed storage system overview."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        # Initialize storage manager if not exists
+        if not hasattr(cluster_manager, 'storage_manager'):
+            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
+            cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
+            await cluster_manager.storage_manager.initialize()
+
+        overview = cluster_manager.storage_manager.get_storage_overview()
+        return StorageOverviewResponse(**overview)
+
+    except Exception as e:
+        logger.error(f"Failed to get storage overview: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/storage/nodes", response_model=List[StorageNodeResponse])
+async def list_storage_nodes(
+    current_user: dict = Depends(require_admin_auth)
+):
+    """List all storage nodes with details."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'storage_manager'):
+            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
+            cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
+            await cluster_manager.storage_manager.initialize()
+
+        nodes = cluster_manager.storage_manager.get_node_details()
+        return [StorageNodeResponse(**node) for node in nodes]
+
+    except Exception as e:
+        logger.error(f"Failed to list storage nodes: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/storage/distribution")
+async def get_data_distribution(
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Get data distribution statistics across storage nodes."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'storage_manager'):
+            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
+            cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
+            await cluster_manager.storage_manager.initialize()
+
+        distribution = cluster_manager.storage_manager.get_data_distribution()
+        return distribution
+
+    except Exception as e:
+        logger.error(f"Failed to get data distribution: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/storage/rebalance")
+async def trigger_storage_rebalance(
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Trigger manual storage rebalancing."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'storage_manager'):
+            raise HTTPException(status_code=400, detail="Storage manager not initialized")
+
+        # Trigger rebalancing in background
+        asyncio.create_task(cluster_manager.storage_manager._rebalance_storage())
+
+        return {"message": "Storage rebalancing initiated"}
+
+    except Exception as e:
+        logger.error(f"Failed to trigger storage rebalance: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/storage/cleanup")
+async def trigger_storage_cleanup(
+    current_user: dict = Depends(require_admin_auth)
+):
+    """Trigger manual storage cleanup."""
+    try:
+        if not cluster_manager.initialized:
+            await cluster_manager.initialize()
+
+        if not hasattr(cluster_manager, 'storage_manager'):
+            raise HTTPException(status_code=400, detail="Storage manager not initialized")
+
+        # Trigger cleanup in background
+        asyncio.create_task(cluster_manager.storage_manager._cleanup_orphaned_data())
+
+        return {"message": "Storage cleanup initiated"}
+
+    except Exception as e:
+        logger.error(f"Failed to trigger storage cleanup: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Hot Updates (Legacy)
 @router.post("/hot-update")
 async def perform_hot_update(
     update_package: str,
@@ -572,11 +906,11 @@ async def perform_hot_update(
     rollback_on_failure: bool = Query(True, description="Rollback on failure"),
     current_user: dict = Depends(require_admin_auth)
 ):
-    """Perform hot update across cluster nodes."""
+    """Perform hot update across cluster nodes (legacy endpoint)."""
     try:
         if not cluster_manager.initialized:
             await cluster_manager.initialize()
-        
+
         update_result = await cluster_manager.perform_hot_update(
             update_package=update_package,
             target_nodes=target_nodes if target_nodes else None,

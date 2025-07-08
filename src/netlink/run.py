@@ -459,10 +459,35 @@ class NetLinkRunner:
         return self.run_gui()
 
     def upgrade(self):
-        """Upgrade NetLink system."""
+        """Upgrade NetLink system using new update system."""
         print("🔄 Upgrading NetLink...")
         try:
-            # Try to import updater
+            # Use new update system
+            import asyncio
+            from netlink.cli.update_cli import UpdateCLI
+
+            update_cli = UpdateCLI()
+
+            # Create mock args for upgrade
+            class MockArgs:
+                def __init__(self):
+                    self.to = None
+                    self.latest = True
+                    self.stable = False
+                    self.force = False
+                    self.dry_run = False
+
+            args = MockArgs()
+            success = asyncio.run(update_cli.handle_upgrade(args))
+
+            if success:
+                print("✅ Upgrade completed successfully!")
+            else:
+                print("❌ Upgrade failed")
+                return False
+
+        except ImportError:
+            print("⚠️ New update system not available, trying legacy updater...")
             try:
                 from netlink.app.core.updater import NetLinkUpdater
                 updater = NetLinkUpdater()
@@ -673,6 +698,28 @@ Examples:
     # Upgrade command
     upgrade_parser = subparsers.add_parser("upgrade", help="Upgrade NetLink system")
 
+    # Update commands (new system)
+    update_parser = subparsers.add_parser("update", help="Advanced update system")
+    update_subparsers = update_parser.add_subparsers(dest="update_command", help="Update commands")
+
+    # Update check
+    update_check_parser = update_subparsers.add_parser("check", help="Check for updates")
+
+    # Update version
+    update_version_parser = update_subparsers.add_parser("version", help="Show version info")
+    update_version_parser.add_argument("--detailed", action="store_true", help="Show detailed info")
+
+    # Update upgrade
+    update_upgrade_parser = update_subparsers.add_parser("upgrade", help="Upgrade to newer version")
+    update_upgrade_parser.add_argument("--to", type=str, help="Target version")
+    update_upgrade_parser.add_argument("--latest", action="store_true", help="Upgrade to latest")
+    update_upgrade_parser.add_argument("--stable", action="store_true", help="Upgrade to stable")
+
+    # Update changelog
+    update_changelog_parser = update_subparsers.add_parser("changelog", help="Show changelog")
+    update_changelog_parser.add_argument("--version", type=str, help="Specific version")
+    update_changelog_parser.add_argument("--since", type=str, help="Since version")
+
     # Status command
     status_parser = subparsers.add_parser("status", help="Show system status")
 
@@ -714,6 +761,41 @@ Examples:
 
         elif args.command == "upgrade":
             runner.upgrade()
+
+        elif args.command == "update":
+            # Handle new update system commands
+            if args.update_command:
+                try:
+                    import asyncio
+                    from netlink.cli.update_cli import UpdateCLI
+
+                    update_cli = UpdateCLI()
+
+                    # Convert args to list format for update CLI
+                    update_args = [args.update_command]
+
+                    if hasattr(args, 'detailed') and args.detailed:
+                        update_args.append('--detailed')
+                    if hasattr(args, 'to') and args.to:
+                        update_args.extend(['--to', args.to])
+                    if hasattr(args, 'latest') and args.latest:
+                        update_args.append('--latest')
+                    if hasattr(args, 'stable') and args.stable:
+                        update_args.append('--stable')
+                    if hasattr(args, 'version') and args.version:
+                        update_args.extend(['--version', args.version])
+                    if hasattr(args, 'since') and args.since:
+                        update_args.extend(['--since', args.since])
+
+                    success = asyncio.run(update_cli.run(update_args))
+                    if not success:
+                        sys.exit(1)
+
+                except ImportError:
+                    print("⚠️ Advanced update system not available")
+                    print("💡 Use 'python run.py upgrade' for basic upgrade")
+            else:
+                print("❓ Use 'python run.py update --help' for update commands")
 
         elif args.command == "status":
             runner.status()

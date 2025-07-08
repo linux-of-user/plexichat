@@ -249,6 +249,16 @@
                             <i class="fas fa-shield-alt"></i> Failover
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="updates-tab" data-bs-toggle="tab" data-bs-target="#updates" type="button" role="tab">
+                            <i class="fas fa-download"></i> Updates
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="storage-tab" data-bs-toggle="tab" data-bs-target="#storage" type="button" role="tab">
+                            <i class="fas fa-hdd"></i> Storage
+                        </button>
+                    </li>
                 </ul>
                 
                 <div class="tab-content" id="clusterTabContent">
@@ -421,6 +431,150 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Cluster Updates Tab -->
+                    <div class="tab-pane fade" id="updates" role="tabpanel">
+                        <div class="mt-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-download"></i> Cluster Updates</h5>
+                                            <small class="text-muted">Manage coordinated updates across cluster nodes</small>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="targetVersion" class="form-label">Target Version</label>
+                                                <input type="text" class="form-control" id="targetVersion" placeholder="e.g., 0b1">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="updateType" class="form-label">Update Type</label>
+                                                <select class="form-select" id="updateType">
+                                                    <option value="upgrade">Upgrade</option>
+                                                    <option value="downgrade">Downgrade</option>
+                                                    <option value="reinstall">Reinstall</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="updateStrategy" class="form-label">Update Strategy</label>
+                                                <select class="form-select" id="updateStrategy">
+                                                    <option value="rolling">Rolling Update (Zero Downtime)</option>
+                                                    <option value="parallel">Parallel Update (Faster)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="targetNodes" class="form-label">Target Nodes</label>
+                                                <select class="form-select" id="targetNodes" multiple>
+                                                    <!-- Will be populated with available nodes -->
+                                                </select>
+                                                <small class="text-muted">Leave empty to update all nodes</small>
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary" onclick="planClusterUpdate()">
+                                                    <i class="fas fa-cogs"></i> Plan Update
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-tasks"></i> Active Updates</h5>
+                                        </div>
+                                        <div class="card-body" id="activeUpdates">
+                                            <!-- Active updates will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Distributed Storage Tab -->
+                    <div class="tab-pane fade" id="storage" role="tabpanel">
+                        <div class="mt-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-hdd"></i> Storage Overview</h5>
+                                        </div>
+                                        <div class="card-body" id="storageOverview">
+                                            <!-- Storage overview will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-server"></i> Storage Nodes</h5>
+                                            <div class="float-end">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="triggerStorageRebalance()">
+                                                    <i class="fas fa-balance-scale"></i> Rebalance
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning" onclick="triggerStorageCleanup()">
+                                                    <i class="fas fa-broom"></i> Cleanup
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped" id="storageNodesTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Node</th>
+                                                            <th>Capacity</th>
+                                                            <th>Usage</th>
+                                                            <th>Performance</th>
+                                                            <th>Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="storageNodesBody">
+                                                        <!-- Storage nodes will be populated here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-chart-pie"></i> Data Distribution</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="dataDistributionChart" width="400" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Progress Modal -->
+    <div class="modal fade" id="updateProgressModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cluster Update Progress</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="updateProgressContent">
+                    <!-- Update progress will be shown here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="rollbackUpdateBtn" onclick="rollbackUpdate()">
+                        <i class="fas fa-undo"></i> Rollback
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -586,6 +740,425 @@
             console.log(`${type}: ${message}`);
         }
         
+        // Cluster Update Functions
+        let currentUpdateOperation = null;
+        let updateProgressInterval = null;
+
+        async function planClusterUpdate() {
+            const targetVersion = document.getElementById('targetVersion').value;
+            const updateType = document.getElementById('updateType').value;
+            const updateStrategy = document.getElementById('updateStrategy').value;
+            const targetNodesSelect = document.getElementById('targetNodes');
+            const targetNodes = Array.from(targetNodesSelect.selectedOptions).map(option => option.value);
+
+            if (!targetVersion) {
+                showNotification('Please enter a target version', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/clustering/updates/plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        target_version: targetVersion,
+                        update_type: updateType,
+                        strategy: updateStrategy,
+                        target_nodes: targetNodes
+                    })
+                });
+
+                if (response.ok) {
+                    const operation = await response.json();
+                    currentUpdateOperation = operation;
+                    showUpdatePlan(operation);
+                } else {
+                    const error = await response.json();
+                    showNotification(`Failed to plan update: ${error.detail}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Error planning update: ${error.message}`, 'error');
+            }
+        }
+
+        function showUpdatePlan(operation) {
+            const modal = new bootstrap.Modal(document.getElementById('updateProgressModal'));
+            const content = document.getElementById('updateProgressContent');
+
+            content.innerHTML = `
+                <div class="mb-3">
+                    <h6>Update Plan</h6>
+                    <p><strong>Operation ID:</strong> ${operation.operation_id}</p>
+                    <p><strong>Target Version:</strong> ${operation.target_version}</p>
+                    <p><strong>Strategy:</strong> ${operation.strategy}</p>
+                    <p><strong>Target Nodes:</strong> ${operation.target_nodes.length} nodes</p>
+                    <p><strong>Estimated Completion:</strong> ${operation.estimated_completion || 'Unknown'}</p>
+                </div>
+                <div class="mb-3">
+                    <h6>Node Status</h6>
+                    <div id="nodeStatusList">
+                        ${Object.entries(operation.node_statuses).map(([nodeId, status]) => `
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>${status.node_name || nodeId}</span>
+                                <span class="badge bg-secondary">${status.status}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success" onclick="executeClusterUpdate('${operation.operation_id}')">
+                        <i class="fas fa-play"></i> Execute Update
+                    </button>
+                </div>
+            `;
+
+            modal.show();
+        }
+
+        async function executeClusterUpdate(operationId) {
+            try {
+                const response = await fetch(`/api/v1/clustering/updates/${operationId}/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    showNotification('Cluster update started', 'success');
+                    startUpdateProgressMonitoring(operationId);
+                } else {
+                    const error = await response.json();
+                    showNotification(`Failed to start update: ${error.detail}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Error starting update: ${error.message}`, 'error');
+            }
+        }
+
+        function startUpdateProgressMonitoring(operationId) {
+            updateProgressInterval = setInterval(async () => {
+                await updateProgressDisplay(operationId);
+            }, 5000); // Update every 5 seconds
+        }
+
+        async function updateProgressDisplay(operationId) {
+            try {
+                const response = await fetch(`/api/v1/clustering/updates/${operationId}/status`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const operation = await response.json();
+                    displayUpdateProgress(operation);
+
+                    // Stop monitoring if completed
+                    if (operation.current_phase === 'completion' || operation.current_phase === 'rollback') {
+                        clearInterval(updateProgressInterval);
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating progress:', error);
+            }
+        }
+
+        function displayUpdateProgress(operation) {
+            const content = document.getElementById('updateProgressContent');
+
+            content.innerHTML = `
+                <div class="mb-3">
+                    <h6>Update Progress</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: ${operation.overall_progress}%">
+                            ${Math.round(operation.overall_progress)}%
+                        </div>
+                    </div>
+                    <p><strong>Current Phase:</strong> ${operation.current_phase}</p>
+                </div>
+                <div class="mb-3">
+                    <h6>Node Status</h6>
+                    ${Object.entries(operation.node_statuses).map(([nodeId, status]) => `
+                        <div class="card mb-2">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><strong>${status.node_name || nodeId}</strong></span>
+                                    <span class="badge bg-${getStatusColor(status.status)}">${status.status}</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar" style="width: ${status.progress_percentage}%"></div>
+                                </div>
+                                <small class="text-muted">${status.current_phase}</small>
+                                ${status.error_message ? `<div class="text-danger small">${status.error_message}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 'completed': return 'success';
+                case 'failed': return 'danger';
+                case 'in_progress': return 'primary';
+                case 'pending': return 'secondary';
+                default: return 'secondary';
+            }
+        }
+
+        async function rollbackUpdate() {
+            if (!currentUpdateOperation) return;
+
+            try {
+                const response = await fetch(`/api/v1/clustering/updates/${currentUpdateOperation.operation_id}/rollback`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    showNotification('Rollback initiated', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification(`Failed to rollback: ${error.detail}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Error during rollback: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadActiveUpdates() {
+            try {
+                const response = await fetch('/api/v1/clustering/updates/active', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const operations = await response.json();
+                    displayActiveUpdates(operations);
+                }
+            } catch (error) {
+                console.error('Error loading active updates:', error);
+            }
+        }
+
+        function displayActiveUpdates(operations) {
+            const container = document.getElementById('activeUpdates');
+
+            if (operations.length === 0) {
+                container.innerHTML = '<p class="text-muted">No active updates</p>';
+                return;
+            }
+
+            container.innerHTML = operations.map(op => `
+                <div class="card mb-2">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>${op.target_version}</strong></span>
+                            <span class="badge bg-primary">${op.current_phase}</span>
+                        </div>
+                        <div class="progress mt-2" style="height: 5px;">
+                            <div class="progress-bar" style="width: ${op.overall_progress}%"></div>
+                        </div>
+                        <small class="text-muted">${op.target_nodes.length} nodes</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Distributed Storage Functions
+        async function loadStorageOverview() {
+            try {
+                const response = await fetch('/api/v1/clustering/storage/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const overview = await response.json();
+                    displayStorageOverview(overview);
+                }
+            } catch (error) {
+                console.error('Error loading storage overview:', error);
+            }
+        }
+
+        function displayStorageOverview(overview) {
+            const container = document.getElementById('storageOverview');
+
+            container.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">${overview.total_nodes}</h4>
+                        <small>Total Nodes</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">${overview.healthy_nodes}</h4>
+                        <small>Healthy Nodes</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Storage Used</span>
+                        <span>${overview.used_capacity_gb.toFixed(1)} GB</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: ${overview.usage_percentage}%"></div>
+                    </div>
+                    <small class="text-muted">${overview.usage_percentage.toFixed(1)}% of ${overview.total_capacity_gb.toFixed(1)} GB</small>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-info">${overview.total_data_objects}</h5>
+                        <small>Data Objects</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-warning">${overview.replication_factor}</h5>
+                        <small>Replication Factor</small>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadStorageNodes() {
+            try {
+                const response = await fetch('/api/v1/clustering/storage/nodes', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const nodes = await response.json();
+                    displayStorageNodes(nodes);
+                }
+            } catch (error) {
+                console.error('Error loading storage nodes:', error);
+            }
+        }
+
+        function displayStorageNodes(nodes) {
+            const tbody = document.getElementById('storageNodesBody');
+
+            tbody.innerHTML = nodes.map(node => `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="node-status status-${node.is_healthy ? 'online' : 'offline'}"></span>
+                            <div>
+                                <div><strong>${node.hostname}</strong></div>
+                                <small class="text-muted">${node.ip_address}:${node.port}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>${node.total_capacity_gb.toFixed(1)} GB</div>
+                        <small class="text-muted">${node.available_capacity_gb.toFixed(1)} GB available</small>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" style="width: ${node.usage_percentage}%">
+                                ${node.usage_percentage.toFixed(1)}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="performance-gauge small" style="width: 40px; height: 40px;">
+                            <div class="performance-value">${(node.performance_score * 100).toFixed(0)}%</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-${node.is_healthy ? 'success' : 'danger'}">${node.status}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function triggerStorageRebalance() {
+            try {
+                const response = await fetch('/api/v1/clustering/storage/rebalance', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    showNotification('Storage rebalancing initiated', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification(`Failed to start rebalancing: ${error.detail}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Error starting rebalancing: ${error.message}`, 'error');
+            }
+        }
+
+        async function triggerStorageCleanup() {
+            try {
+                const response = await fetch('/api/v1/clustering/storage/cleanup', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    showNotification('Storage cleanup initiated', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification(`Failed to start cleanup: ${error.detail}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Error starting cleanup: ${error.message}`, 'error');
+            }
+        }
+
+        // Enhanced initialization
+        async function initializeClusterManagement() {
+            await loadClusterOverview();
+            await loadClusterTopology();
+            await loadClusterNodes();
+            await loadPerformanceData();
+            await loadActiveUpdates();
+            await loadStorageOverview();
+            await loadStorageNodes();
+
+            // Populate target nodes dropdown
+            await populateTargetNodesDropdown();
+        }
+
+        async function populateTargetNodesDropdown() {
+            try {
+                const response = await fetch('/api/v1/clustering/nodes', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const nodes = await response.json();
+                    const select = document.getElementById('targetNodes');
+
+                    select.innerHTML = nodes.map(node =>
+                        `<option value="${node.node_id}">${node.hostname || node.node_id}</option>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading nodes for dropdown:', error);
+            }
+        }
+
         // Additional functions for other tabs would be implemented here
         async function loadClusterNodes() { /* Implementation */ }
         async function loadPerformanceData() { /* Implementation */ }

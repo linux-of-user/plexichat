@@ -175,21 +175,17 @@ class AdvancedClusterManager:
         await self.load_balancer.initialize()
         await self.performance_monitor.initialize()
         await self.failover_manager.initialize()
-        await self.task_manager.initialize()nager import IntelligentNodeManager
-        from .load_balancer import SmartLoadBalancer
-        from .performance_monitor import RealTimePerformanceMonitor
-        from .failover_manager import AutomaticFailoverManager
-        
-        self.node_manager = IntelligentNodeManager(self)
-        self.load_balancer = SmartLoadBalancer(self)
-        self.performance_monitor = RealTimePerformanceMonitor(self)
-        self.failover_manager = AutomaticFailoverManager(self)
-        
-        # Initialize all components
-        await self.node_manager.initialize()
-        await self.load_balancer.initialize()
-        await self.performance_monitor.initialize()
-        await self.failover_manager.initialize()
+        await self.task_manager.initialize()
+
+        # Initialize update and storage managers
+        from .cluster_update_manager import ClusterUpdateManager
+        from ..storage.distributed_storage_manager import DistributedStorageManager
+
+        self.update_manager = ClusterUpdateManager(self)
+        self.storage_manager = DistributedStorageManager(self)
+
+        await self.update_manager.initialize()
+        await self.storage_manager.initialize()
         
         # Start cluster operations
         await self._start_cluster_operations()

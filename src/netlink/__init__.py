@@ -21,29 +21,69 @@ Enterprise Architecture:
 - Tests: Comprehensive testing framework
 """
 
-__version__ = "3.0.0"
+__version__ = "0a1"
 __build__ = "enterprise-quantum"
 __author__ = "NetLink Development Team"
 __description__ = "Government-level secure communication platform with enterprise architecture, quantum encryption, and advanced features"
 __url__ = "https://github.com/linux-of-user/netlink"
 
-# Version info
-VERSION_INFO = {
-    "major": 3,
-    "minor": 0,
-    "patch": 0,
-    "pre_release": None,
-    "build": "enterprise-quantum"
-}
+# Import new version management system
+try:
+    from .core.versioning.version_manager import version_manager, Version, VersionType
+
+    # Initialize with current version
+    current_version = version_manager.get_current_version()
+    if current_version:
+        __version__ = str(current_version)
+    else:
+        # Set initial version
+        initial_version = Version(0, VersionType.ALPHA, 1, "enterprise-quantum")
+        version_manager.set_current_version(initial_version)
+        __version__ = str(initial_version)
+
+except ImportError:
+    # Fallback if versioning system not available
+    __version__ = "0a1+enterprise-quantum"
 
 def get_version():
-    """Get version string."""
-    version = f"{VERSION_INFO['major']}.{VERSION_INFO['minor']}.{VERSION_INFO['patch']}"
-    if VERSION_INFO['pre_release']:
-        version += f"-{VERSION_INFO['pre_release']}"
-    if VERSION_INFO['build']:
-        version += f"+{VERSION_INFO['build']}"
-    return version
+    """Get version string using new versioning system."""
+    try:
+        from .core.versioning.version_manager import version_manager
+        current_version = version_manager.get_current_version()
+        return str(current_version) if current_version else __version__
+    except ImportError:
+        return __version__
+
+def get_version_info():
+    """Get detailed version information."""
+    try:
+        from .core.versioning.version_manager import version_manager
+        current_version = version_manager.get_current_version()
+        if current_version:
+            version_info = version_manager.get_version_info(current_version)
+            return {
+                "version": str(current_version),
+                "major": current_version.major,
+                "type": current_version.type.value,
+                "minor": current_version.minor,
+                "build": current_version.build,
+                "status": current_version.get_status().value,
+                "release_date": version_info.release_date.isoformat() if version_info else None,
+                "database_version": version_info.database_version if version_info else None,
+                "config_version": version_info.config_version if version_info else None
+            }
+    except ImportError:
+        pass
+
+    # Fallback version info
+    return {
+        "version": __version__,
+        "major": 0,
+        "type": "a",
+        "minor": 1,
+        "build": __build__,
+        "status": "development"
+    }
 
 # Export main components (lazy imports to avoid circular dependencies)
 def get_app():
