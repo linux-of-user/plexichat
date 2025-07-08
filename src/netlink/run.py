@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 # Set up paths
-ROOT = Path(__file__).parent.resolve()
+ROOT = Path(__file__).parent.parent.parent.resolve()  # Go up to project root
 SRC = ROOT / "src"
 CONFIG_DIR = ROOT / "config"
 LOGS_DIR = ROOT / "logs"
@@ -50,10 +50,11 @@ def ensure_setup():
 
     return True
 
-# Ensure setup is complete
-if not ensure_setup():
-    print("❌ Setup failed. Please run 'python scripts/auto_setup.py' manually.")
-    sys.exit(1)
+# Only ensure setup if not being imported for GUI
+if __name__ == "__main__" or "gui" not in sys.argv:
+    if not ensure_setup():
+        print("❌ Setup failed. Please run 'python scripts/auto_setup.py' manually.")
+        sys.exit(1)
 
 # Add src to Python path
 sys.path.insert(0, str(SRC))
@@ -62,7 +63,7 @@ class NetLinkRunner:
     """Main NetLink application runner."""
 
     def __init__(self):
-        self.version = "3.0.0"
+        self.version = "1.0.0-alpha.1"
         self.config = self._load_config()
 
     def _load_config(self) -> Dict[str, Any]:
@@ -281,37 +282,414 @@ class NetLinkRunner:
         return True
 
     def run_gui(self):
-        """Run the GUI dashboard."""
+        """Run the GUI dashboard with auto-installation and venv support."""
         print("🖥️ Starting NetLink GUI Dashboard...")
 
-        # Check if GUI directory exists
-        gui_dir = ROOT / "gui"
+        # Check if GUI directory exists in the correct location
+        gui_dir = ROOT / "src" / "netlink" / "gui"
         if not gui_dir.exists():
-            print("❌ GUI directory not found")
-            return False
-
-        # Add GUI directory to path
-        gui_path = str(gui_dir)
-        if gui_path not in sys.path:
-            sys.path.insert(0, gui_path)
-
-        try:
-            # Try to import from GUI directory
-            gui_script = gui_dir / "netlink_admin_gui.py"
-            if gui_script.exists():
-                print("🚀 Launching NetLink Admin GUI...")
-                result = subprocess.run([sys.executable, str(gui_script)], cwd=str(gui_dir))
-                return result.returncode == 0
+            print(f"❌ GUI directory not found at: {gui_dir}")
+            # Try alternative location
+            alt_gui_dir = ROOT / "gui"
+            if alt_gui_dir.exists():
+                gui_dir = alt_gui_dir
+                print(f"✅ Found GUI at alternative location: {gui_dir}")
             else:
-                print("❌ GUI script not found")
+                print("❌ GUI directory not found in any expected location")
                 return False
 
-        except ImportError as e:
-            print(f"❌ GUI dependencies missing: {e}")
-            print("Install with: pip install customtkinter pillow")
+        # Try to use existing venv or create one
+        venv_python = self._ensure_gui_venv()
+        if venv_python:
+            return self._run_gui_with_venv(venv_python, gui_dir)
+
+        # Fallback: try with current Python after installing dependencies
+        if not self._ensure_gui_dependencies():
             return False
+
+        return self._run_gui_direct(gui_dir)
+
+    def _ensure_gui_venv(self):
+        """Ensure GUI virtual environment exists with dependencies."""
+        venv_dir = ROOT / "gui_venv"
+
+        # Check if venv already exists and works
+        if venv_dir.exists():
+            venv_python = self._get_venv_python(venv_dir)
+            if venv_python and self._check_venv_dependencies(venv_python):
+                print("✅ Using existing GUI virtual environment")
+                return venv_python
+
+        # Create new venv
+        print("🔧 Creating GUI virtual environment...")
+        try:
+            # Create venv
+            result = subprocess.run([
+                sys.executable, "-m", "venv", str(venv_dir)
+            ], capture_output=True, text=True, timeout=60)
+
+            if result.returncode != 0:
+                print(f"❌ Failed to create venv: {result.stderr}")
+                return None
+
+            venv_python = self._get_venv_python(venv_dir)
+            if not venv_python:
+                print("❌ Could not find venv Python executable")
+                return None
+
+            # Install dependencies in venv
+            print("📦 Installing GUI dependencies in virtual environment...")
+            deps = ["customtkinter", "pillow", "requests"]
+
+            for dep in deps:
+                print(f"📦 Installing {dep}...")
+                result = subprocess.run([
+                    venv_python, "-m", "pip", "install", dep
+                ], capture_output=True, text=True, timeout=120)
+
+                if result.returncode == 0:
+                    print(f"✅ {dep} installed in venv")
+                else:
+                    print(f"❌ Failed to install {dep} in venv: {result.stderr[:200]}")
+
+            # Verify dependencies
+            if self._check_venv_dependencies(venv_python):
+                print("✅ GUI virtual environment ready!")
+                return venv_python
+            else:
+                print("❌ GUI dependencies not working in venv")
+                return None
+
         except Exception as e:
-            print(f"❌ GUI error: {e}")
+            print(f"❌ Error creating GUI venv: {e}")
+            return None
+
+    def _get_venv_python(self, venv_dir):
+        """Get Python executable path for venv."""
+        if os.name == 'nt':  # Windows
+            python_exe = venv_dir / "Scripts" / "python.exe"
+        else:  # Unix/Linux/Mac
+            python_exe = venv_dir / "bin" / "python"
+
+        if python_exe.exists():
+            return str(python_exe)
+        return None
+
+    def _check_venv_dependencies(self, venv_python):
+        """Check if venv has required GUI dependencies."""
+        deps = ["customtkinter", "PIL", "requests"]
+
+        for dep in deps:
+            try:
+                result = subprocess.run([
+                    venv_python, "-c", f"import {dep}"
+                ], capture_output=True, timeout=10)
+
+                if result.returncode != 0:
+                    return False
+            except:
+                return False
+
+        return True
+
+    def _run_gui_with_venv(self, venv_python, gui_dir):
+        """Run GUI using virtual environment."""
+        try:
+            gui_script = gui_dir / "netlink_admin_gui.py"
+            if not gui_script.exists():
+                print(f"❌ GUI script not found at: {gui_script}")
+                return False
+
+            print("🚀 Launching NetLink Admin GUI with virtual environment...")
+
+            # Set up environment
+            env = os.environ.copy()
+            src_path = str(ROOT / "src")
+            gui_path = str(gui_dir)
+            env['PYTHONPATH'] = f"{src_path}{os.pathsep}{gui_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
+
+            # Launch GUI with venv Python
+            result = subprocess.run([
+                venv_python, str(gui_script)
+            ], cwd=str(gui_dir), env=env)
+
+            return result.returncode == 0
+
+        except Exception as e:
+            print(f"❌ GUI venv launch error: {e}")
+            return False
+
+    def _run_gui_direct(self, gui_dir):
+        """Run GUI directly with current Python."""
+        try:
+            gui_script = gui_dir / "netlink_admin_gui.py"
+            if not gui_script.exists():
+                print(f"❌ GUI script not found at: {gui_script}")
+                return False
+
+            print("🚀 Launching NetLink Admin GUI...")
+
+            # Add GUI directory and src to path
+            gui_path = str(gui_dir)
+            src_path = str(ROOT / "src")
+
+            for path in [gui_path, src_path]:
+                if path not in sys.path:
+                    sys.path.insert(0, path)
+
+            # Set up environment
+            env = os.environ.copy()
+            env['PYTHONPATH'] = f"{src_path}{os.pathsep}{gui_path}{os.pathsep}{env.get('PYTHONPATH', '')}"
+
+            # Launch GUI
+            result = subprocess.run([
+                sys.executable, str(gui_script)
+            ], cwd=str(gui_dir), env=env)
+
+            return result.returncode == 0
+
+        except Exception as e:
+            print(f"❌ GUI direct launch error: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def _ensure_gui_dependencies(self):
+        """Ensure GUI dependencies are installed on any OS with bulletproof installation."""
+        print("🔍 Checking GUI dependencies...")
+
+        # List of required GUI dependencies
+        gui_deps = [
+            "customtkinter",
+            "pillow",
+            "requests"
+        ]
+
+        # Check tkinter first (usually comes with Python)
+        try:
+            import tkinter
+            print("✅ tkinter found")
+        except ImportError:
+            print("❌ tkinter missing - this usually comes with Python")
+            print("💡 On Ubuntu/Debian: sudo apt-get install python3-tk")
+            print("💡 On CentOS/RHEL: sudo yum install tkinter")
+            print("💡 On macOS: tkinter should be included with Python")
+            return False
+
+        # Check which dependencies are missing
+        missing_deps = []
+        for dep in gui_deps:
+            try:
+                if dep == "pillow":
+                    import PIL
+                    print(f"✅ {dep} found")
+                elif dep == "customtkinter":
+                    import customtkinter
+                    print(f"✅ {dep} found")
+                elif dep == "requests":
+                    import requests
+                    print(f"✅ {dep} found")
+                else:
+                    __import__(dep)
+                    print(f"✅ {dep} found")
+            except ImportError:
+                missing_deps.append(dep)
+                print(f"❌ {dep} missing")
+
+        # Install missing dependencies if any
+        if missing_deps:
+            return self._install_dependencies_bulletproof(missing_deps)
+
+        print("✅ All GUI dependencies are available!")
+        return True
+
+    def _install_dependencies_bulletproof(self, deps):
+        """Bulletproof dependency installation that works on any OS."""
+        print(f"📦 Installing missing GUI dependencies: {', '.join(deps)}")
+
+        # Step 1: Ensure pip is available
+        if not self._ensure_pip():
+            return False
+
+        # Step 2: Try multiple installation strategies
+        strategies = [
+            # Strategy 1: Direct python -m pip
+            [sys.executable, "-m", "pip", "install", "--user"],
+            [sys.executable, "-m", "pip", "install"],
+
+            # Strategy 2: Try different pip executables
+            ["pip3", "install", "--user"],
+            ["pip", "install", "--user"],
+            ["pip3", "install"],
+            ["pip", "install"],
+
+            # Strategy 3: Try with different python executables
+            ["python3", "-m", "pip", "install", "--user"],
+            ["python", "-m", "pip", "install", "--user"],
+            ["python3", "-m", "pip", "install"],
+            ["python", "-m", "pip", "install"],
+        ]
+
+        # Try each strategy
+        for strategy in strategies:
+            print(f"💡 Trying: {' '.join(strategy)}")
+
+            # Test if this strategy works
+            test_cmd = strategy[:-1] + ["--version"]  # Remove install, add --version
+            try:
+                test_result = subprocess.run(
+                    test_cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+
+                if test_result.returncode != 0:
+                    continue
+
+            except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+                continue
+
+            # Try installing with this strategy
+            success_count = 0
+            for dep in deps:
+                try:
+                    print(f"📦 Installing {dep}...")
+                    result = subprocess.run(
+                        strategy + [dep],
+                        capture_output=True,
+                        text=True,
+                        timeout=180  # 3 minutes per package
+                    )
+
+                    if result.returncode == 0:
+                        print(f"✅ {dep} installed successfully")
+                        success_count += 1
+                    else:
+                        print(f"⚠️ {dep} installation had issues: {result.stderr[:200]}")
+
+                except subprocess.TimeoutExpired:
+                    print(f"⏰ Timeout installing {dep}")
+                except Exception as e:
+                    print(f"❌ Error installing {dep}: {e}")
+
+            # If we installed at least some packages, verify them
+            if success_count > 0:
+                print("🔍 Verifying installations...")
+                verified_count = 0
+
+                for dep in deps:
+                    try:
+                        if dep == "pillow":
+                            import PIL
+                        elif dep == "customtkinter":
+                            import customtkinter
+                        elif dep == "requests":
+                            import requests
+                        else:
+                            __import__(dep)
+                        print(f"✅ {dep} verified")
+                        verified_count += 1
+                    except ImportError:
+                        print(f"❌ {dep} still not available")
+
+                # If all dependencies are now available, we're done
+                if verified_count == len(deps):
+                    print("✅ All GUI dependencies installed and verified!")
+                    return True
+                elif verified_count > 0:
+                    print(f"✅ {verified_count}/{len(deps)} dependencies working")
+
+        # If we get here, installation failed
+        print("❌ Could not install all GUI dependencies automatically")
+        print("💡 Please try manual installation:")
+        print(f"   python -m pip install --user {' '.join(deps)}")
+        print("💡 Or create a virtual environment:")
+        print("   python -m venv netlink_env")
+        print("   # Activate: netlink_env\\Scripts\\activate (Windows) or source netlink_env/bin/activate (Linux/Mac)")
+        print(f"   pip install {' '.join(deps)}")
+        return False
+
+    def _ensure_pip(self):
+        """Ensure pip is available, install if necessary."""
+        print("🔍 Checking pip availability...")
+
+        # Try different ways to check pip
+        pip_check_commands = [
+            [sys.executable, "-m", "pip", "--version"],
+            ["pip3", "--version"],
+            ["pip", "--version"],
+            ["python3", "-m", "pip", "--version"],
+            ["python", "-m", "pip", "--version"]
+        ]
+
+        for cmd in pip_check_commands:
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    print(f"✅ pip found: {' '.join(cmd)}")
+                    return True
+            except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+                continue
+
+        print("❌ pip not found, attempting to install...")
+
+        # Try to install pip
+        pip_install_strategies = [
+            # Strategy 1: ensurepip
+            [sys.executable, "-m", "ensurepip", "--upgrade"],
+            [sys.executable, "-m", "ensurepip"],
+
+            # Strategy 2: get-pip.py download and install
+            "download_get_pip"
+        ]
+
+        for strategy in pip_install_strategies:
+            if strategy == "download_get_pip":
+                if self._install_pip_via_get_pip():
+                    return True
+            else:
+                try:
+                    print(f"💡 Trying: {' '.join(strategy)}")
+                    result = subprocess.run(strategy, capture_output=True, text=True, timeout=60)
+                    if result.returncode == 0:
+                        print("✅ pip installed successfully")
+                        return True
+                    else:
+                        print(f"⚠️ pip installation attempt failed: {result.stderr[:200]}")
+                except Exception as e:
+                    print(f"❌ pip installation error: {e}")
+
+        print("❌ Could not install pip automatically")
+        return False
+
+    def _install_pip_via_get_pip(self):
+        """Install pip by downloading get-pip.py."""
+        try:
+            print("📥 Downloading get-pip.py...")
+            import urllib.request
+            import tempfile
+
+            with tempfile.NamedTemporaryFile(mode='w+b', suffix='.py', delete=False) as f:
+                urllib.request.urlretrieve('https://bootstrap.pypa.io/get-pip.py', f.name)
+                get_pip_path = f.name
+
+            print("🔧 Installing pip...")
+            result = subprocess.run([sys.executable, get_pip_path],
+                                  capture_output=True, text=True, timeout=120)
+
+            # Clean up
+            os.unlink(get_pip_path)
+
+            if result.returncode == 0:
+                print("✅ pip installed via get-pip.py")
+                return True
+            else:
+                print(f"❌ get-pip.py failed: {result.stderr[:200]}")
+                return False
+
+        except Exception as e:
+            print(f"❌ get-pip.py download/install failed: {e}")
             return False
 
     def run_cli(self, args):

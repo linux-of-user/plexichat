@@ -42,9 +42,25 @@ def check_python_version():
     print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
     return True
 
+def check_pip_available():
+    """Check if pip is available."""
+    try:
+        result = subprocess.run([sys.executable, "-m", "pip", "--version"],
+                              capture_output=True, text=True, timeout=10)
+        return result.returncode == 0
+    except:
+        return False
+
 def install_core_dependencies():
     """Install core dependencies only."""
     print("🔧 Installing core NetLink dependencies...")
+
+    # Check if pip is available
+    if not check_pip_available():
+        print("⚠️ pip not available. Attempting to run without dependencies...")
+        print("💡 You may need to install dependencies manually:")
+        print("   pip install fastapi uvicorn customtkinter pillow")
+        return True  # Continue anyway
 
     core_deps = [
         "fastapi==0.115.12",
@@ -70,11 +86,14 @@ def install_core_dependencies():
     ]
 
     try:
-        # Upgrade pip first
-        print("📦 Upgrading pip...")
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install", "--upgrade", "pip"
-        ])
+        # Upgrade pip first (skip if pip not available)
+        if check_pip_available():
+            print("📦 Upgrading pip...")
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", "--upgrade", "pip"
+            ])
+        else:
+            print("⚠️ Skipping pip upgrade - pip not available")
 
         # Install core dependencies one by one
         for dep in core_deps:
@@ -114,11 +133,14 @@ def install_dependencies():
         return install_core_dependencies()
 
     try:
-        # Upgrade pip first
-        print("📦 Upgrading pip...")
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install", "--upgrade", "pip"
-        ])
+        # Upgrade pip first (skip if pip not available)
+        if check_pip_available():
+            print("📦 Upgrading pip...")
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", "--upgrade", "pip"
+            ])
+        else:
+            print("⚠️ Skipping pip upgrade - pip not available")
 
         # Try to install full requirements
         print("📦 Installing full requirements...")
@@ -258,15 +280,94 @@ def run_netlink_with_args(args):
 
             runner.run_server(host, port, debug)
 
+        elif command == "gui":
+            # Handle GUI command specially - don't require full setup
+            print("🖥️ Starting NetLink GUI...")
+
+            # Try to run GUI with minimal setup
+            try:
+                # Add src to path
+                src_path = os.path.join(os.path.dirname(__file__), "src")
+                if src_path not in sys.path:
+                    sys.path.insert(0, src_path)
+
+                # Import and use the comprehensive runner for GUI only
+                from netlink.run import NetLinkRunner
+                runner = NetLinkRunner()
+                success = runner.run_gui()
+
+                if not success:
+                    print("❌ GUI failed to start")
+                    sys.exit(1)
+
+            except ImportError as e:
+                print(f"❌ Could not import NetLink runner: {e}")
+                print("💡 Trying direct GUI launch...")
+
+                # Try direct GUI launch
+                gui_script = os.path.join(os.path.dirname(__file__), "src", "netlink", "gui", "netlink_admin_gui.py")
+                if os.path.exists(gui_script):
+                    # Install GUI dependencies first with bulletproof method
+                    print("📦 Installing GUI dependencies...")
+                    gui_deps = ["customtkinter", "pillow", "requests"]
+
+                    # Try multiple installation strategies
+                    strategies = [
+                        [sys.executable, "-m", "pip", "install", "--user"],
+                        [sys.executable, "-m", "pip", "install"],
+                        ["pip3", "install", "--user"],
+                        ["pip", "install", "--user"],
+                        ["python3", "-m", "pip", "install", "--user"],
+                        ["python", "-m", "pip", "install", "--user"]
+                    ]
+
+                    installed_any = False
+                    for strategy in strategies:
+                        try:
+                            # Test strategy
+                            test_cmd = strategy[:-1] + ["--version"]
+                            test_result = subprocess.run(test_cmd, capture_output=True, timeout=5)
+                            if test_result.returncode != 0:
+                                continue
+
+                            print(f"💡 Using: {' '.join(strategy)}")
+
+                            # Install dependencies
+                            for dep in gui_deps:
+                                try:
+                                    result = subprocess.run(strategy + [dep],
+                                                          capture_output=True, timeout=60)
+                                    if result.returncode == 0:
+                                        print(f"✅ {dep} installed")
+                                        installed_any = True
+                                except:
+                                    pass
+
+                            if installed_any:
+                                break
+
+                        except:
+                            continue
+
+                    if not installed_any:
+                        print("⚠️ Could not install GUI dependencies automatically")
+
+                    # Launch GUI directly
+                    env = os.environ.copy()
+                    env['PYTHONPATH'] = src_path + os.pathsep + env.get('PYTHONPATH', '')
+
+                    result = subprocess.run([sys.executable, gui_script], env=env)
+                    sys.exit(result.returncode)
+                else:
+                    print(f"❌ GUI script not found at: {gui_script}")
+                    sys.exit(1)
+
         else:
             # For all other commands, import and use the comprehensive runner
             from netlink.run import NetLinkRunner
             runner = NetLinkRunner()
 
-            if command == "gui":
-                runner.run_gui()
-
-            elif command == "full":
+            if command == "full":
                 # Parse host and port from args
                 host = None
                 port = None
@@ -328,16 +429,22 @@ def run_netlink_with_args(args):
 # Main entry point
 if __name__ == "__main__":
     try:
-        # Check if setup is needed
-        if not check_setup():
-            print("🔧 First-time setup detected...")
-            if not auto_setup():
-                print("❌ Setup failed. Please check the error messages above.")
-                sys.exit(1)
-
-        # Run NetLink with command line arguments
+        # Get command line arguments
         args = sys.argv[1:]  # Remove script name
-        run_netlink_with_args(args)
+
+        # Skip setup for GUI command - handle it specially
+        if args and args[0] == "gui":
+            run_netlink_with_args(args)
+        else:
+            # Check if setup is needed for other commands
+            if not check_setup():
+                print("🔧 First-time setup detected...")
+                if not auto_setup():
+                    print("❌ Setup failed. Please check the error messages above.")
+                    sys.exit(1)
+
+            # Run NetLink with command line arguments
+            run_netlink_with_args(args)
 
     except KeyboardInterrupt:
         print("\n👋 Goodbye!")

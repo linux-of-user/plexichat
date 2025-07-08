@@ -33,10 +33,10 @@ except ImportError:
 class NetLinkUpdater:
     """Handles self-updating functionality."""
     
-    def __init__(self):
+    def __init__(self, repo_owner: str = None, repo_name: str = None):
         self.current_version = self.get_current_version()
-        self.repo_owner = "linux-of-user"
-        self.repo_name = "netlink"
+        self.repo_owner = repo_owner or os.getenv("NETLINK_REPO_OWNER", "linux-of-user")
+        self.repo_name = repo_name or os.getenv("NETLINK_REPO_NAME", "netlink")
         self.github_api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
         self.github_releases_url = f"{self.github_api_url}/releases"
         self.project_root = Path(__file__).parent.parent.parent
@@ -48,9 +48,13 @@ class NetLinkUpdater:
         """Get current version from settings."""
         try:
             from app.logger_config import settings
-            return getattr(settings, 'APP_VERSION', '1.0.0')
+            return getattr(settings, 'APP_VERSION', '1.0.0-alpha.1')
         except ImportError:
-            return '1.0.0'
+            try:
+                from ...core.versioning.version_manager import version_manager
+                return str(version_manager.get_current_version())
+            except ImportError:
+                return '1.0.0-alpha.1'
     
     def ensure_directories(self):
         """Ensure necessary directories exist."""

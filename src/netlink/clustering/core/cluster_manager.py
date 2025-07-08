@@ -25,6 +25,16 @@ from . import (
     MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, MAXIMUM_CLUSTER_SIZE
 )
 
+# Import enhanced clustering components
+try:
+    from ..hybrid_cloud.cloud_orchestrator import hybrid_cloud_orchestrator
+    from ..service_mesh.mesh_manager import service_mesh_manager
+    from ..serverless.faas_manager import faas_manager
+    from ..predictive_scaling.ml_scaler import predictive_scaler
+    ENHANCED_CLUSTERING_AVAILABLE = True
+except ImportError:
+    ENHANCED_CLUSTERING_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -186,7 +196,11 @@ class AdvancedClusterManager:
 
         await self.update_manager.initialize()
         await self.storage_manager.initialize()
-        
+
+        # Initialize enhanced clustering components
+        if ENHANCED_CLUSTERING_AVAILABLE:
+            await self._initialize_enhanced_clustering()
+
         # Start cluster operations
         await self._start_cluster_operations()
         
@@ -736,3 +750,220 @@ class AdvancedClusterManager:
             scaling_result["success"] = True
 
         return scaling_result
+
+    # Enhanced Clustering Methods
+
+    async def _initialize_enhanced_clustering(self):
+        """Initialize enhanced clustering components."""
+        try:
+            logger.info("Initializing enhanced clustering components...")
+
+            # Initialize hybrid cloud orchestrator
+            await hybrid_cloud_orchestrator.initialize()
+            logger.info("✅ Hybrid cloud orchestrator initialized")
+
+            # Initialize service mesh manager
+            await service_mesh_manager.initialize()
+            logger.info("✅ Service mesh manager initialized")
+
+            # Initialize FaaS manager
+            await faas_manager.initialize()
+            logger.info("✅ FaaS manager initialized")
+
+            # Initialize predictive scaler
+            await predictive_scaler.initialize()
+            logger.info("✅ Predictive scaler initialized")
+
+            # Register cluster services with service mesh
+            await self._register_cluster_services()
+
+            # Setup hybrid cloud cluster configuration
+            await self._setup_hybrid_cloud_cluster()
+
+            # Start enhanced monitoring
+            await self._start_enhanced_monitoring()
+
+            logger.info("🚀 Enhanced clustering components initialized successfully!")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize enhanced clustering: {e}")
+
+    async def _register_cluster_services(self):
+        """Register cluster services with service mesh."""
+        try:
+            from ..service_mesh.mesh_manager import ServiceEndpoint
+
+            # Register core cluster services
+            services = [
+                ServiceEndpoint(
+                    service_name="cluster-manager",
+                    namespace="netlink-cluster",
+                    host=self.local_node.ip_address,
+                    port=self.local_node.port,
+                    protocol="HTTP",
+                    health_check_path="/api/v1/health",
+                    labels={"component": "cluster-core", "role": "manager"}
+                ),
+                ServiceEndpoint(
+                    service_name="load-balancer",
+                    namespace="netlink-cluster",
+                    host=self.local_node.ip_address,
+                    port=self.local_node.port + 1,
+                    protocol="HTTP",
+                    health_check_path="/api/v1/lb/health",
+                    labels={"component": "cluster-core", "role": "load-balancer"}
+                )
+            ]
+
+            for service in services:
+                await service_mesh_manager.register_service(service)
+
+            logger.info(f"Registered {len(services)} cluster services with service mesh")
+
+        except Exception as e:
+            logger.error(f"Failed to register cluster services: {e}")
+
+    async def _setup_hybrid_cloud_cluster(self):
+        """Setup hybrid cloud cluster configuration."""
+        try:
+            from ..hybrid_cloud.cloud_orchestrator import HybridClusterConfig, CloudRegion, CloudProvider, ComplianceRequirement
+
+            # Create hybrid cluster configuration
+            primary_region = CloudRegion(
+                provider=CloudProvider.PRIVATE,
+                region_id="local",
+                region_name="Local Data Center",
+                availability_zones=["zone1"],
+                compliance_certifications=[ComplianceRequirement.GOVERNMENT, ComplianceRequirement.ISO27001],
+                cost_tier="high",
+                latency_ms=5.0,
+                bandwidth_gbps=10.0,
+                storage_types=["Local SSD", "NAS"],
+                compute_types=["Bare Metal", "VM"]
+            )
+
+            cluster_config = HybridClusterConfig(
+                cluster_id=f"netlink-cluster-{self.local_node_id}",
+                primary_region=primary_region,
+                secondary_regions=[],
+                data_residency_requirements={"sensitive": "local"},
+                cost_optimization_enabled=True,
+                auto_scaling_enabled=True,
+                cross_cloud_networking=False,  # Start with local only
+                encryption_in_transit=True,
+                encryption_at_rest=True
+            )
+
+            await hybrid_cloud_orchestrator.create_hybrid_cluster(cluster_config)
+            logger.info("Hybrid cloud cluster configuration created")
+
+        except Exception as e:
+            logger.error(f"Failed to setup hybrid cloud cluster: {e}")
+
+    async def _start_enhanced_monitoring(self):
+        """Start enhanced monitoring and predictive scaling."""
+        try:
+            # Start collecting metrics for predictive scaling
+            asyncio.create_task(self._collect_predictive_metrics())
+
+            # Start service mesh monitoring
+            asyncio.create_task(self._monitor_service_mesh())
+
+            logger.info("Enhanced monitoring started")
+
+        except Exception as e:
+            logger.error(f"Failed to start enhanced monitoring: {e}")
+
+    async def _collect_predictive_metrics(self):
+        """Collect metrics for predictive scaling."""
+        while True:
+            try:
+                await asyncio.sleep(60)  # Collect every minute
+
+                # Collect cluster metrics
+                cluster_metrics = await self.get_cluster_metrics()
+
+                # Send metrics to predictive scaler
+                from ..predictive_scaling.ml_scaler import MetricDataPoint, ResourceType
+
+                for node_id, node_metrics in cluster_metrics.get("nodes", {}).items():
+                    timestamp = datetime.now(timezone.utc)
+
+                    # CPU metrics
+                    cpu_metric = MetricDataPoint(
+                        timestamp=timestamp,
+                        value=node_metrics.get("cpu_usage", 0.0) / 100.0,
+                        resource_type=ResourceType.CPU,
+                        service_name=f"node-{node_id}",
+                        node_id=node_id
+                    )
+                    await predictive_scaler.add_metric(cpu_metric)
+
+            except Exception as e:
+                logger.error(f"Predictive metrics collection error: {e}")
+
+    async def _monitor_service_mesh(self):
+        """Monitor service mesh health and performance."""
+        while True:
+            try:
+                await asyncio.sleep(120)  # Check every 2 minutes
+
+                # Get service mesh topology
+                topology = await service_mesh_manager.get_mesh_topology()
+
+                # Check service health
+                for service in topology.get("services", []):
+                    metrics = await service_mesh_manager.get_service_metrics(service["name"])
+
+                    if metrics.get("error_rate_percent", 0) > 5:
+                        logger.warning(f"High error rate in service {service['name']}: {metrics['error_rate_percent']:.1f}%")
+
+            except Exception as e:
+                logger.error(f"Service mesh monitoring error: {e}")
+
+    async def get_enhanced_cluster_status(self) -> Dict[str, Any]:
+        """Get enhanced cluster status including all new components."""
+        base_status = await self.get_cluster_status()
+
+        if not ENHANCED_CLUSTERING_AVAILABLE:
+            return base_status
+
+        try:
+            # Add service mesh status
+            mesh_topology = await service_mesh_manager.get_mesh_topology()
+
+            # Add FaaS status
+            faas_metrics = await faas_manager.get_all_metrics()
+
+            # Add predictive scaling status
+            scaling_metrics = predictive_scaler.get_scaling_metrics()
+
+            enhanced_status = {
+                **base_status,
+                "enhanced_clustering": {
+                    "service_mesh": {
+                        "enabled": True,
+                        "services": len(mesh_topology.get("services", [])),
+                        "connections": len(mesh_topology.get("connections", []))
+                    },
+                    "serverless": {
+                        "enabled": True,
+                        "functions": len(faas_metrics)
+                    },
+                    "predictive_scaling": {
+                        "enabled": True,
+                        "active_services": scaling_metrics["active_services"],
+                        "trained_models": scaling_metrics["trained_models"]
+                    }
+                }
+            }
+
+            return enhanced_status
+
+        except Exception as e:
+            logger.error(f"Failed to get enhanced cluster status: {e}")
+            return {**base_status, "enhanced_clustering": {"error": str(e)}}
+
+
+# Global cluster manager instance
+cluster_manager = AdvancedClusterManager()

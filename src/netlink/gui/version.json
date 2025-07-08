@@ -1,0 +1,16 @@
+﻿{
+  \ current_version\: \1.0.0-alpha.1\,
+  \last_updated\: \2025-07-08T20:00:00.000000+00:00\,
+  \history\: [
+    {
+      \version\: \1.0.0-alpha.1\,
+      \date\: \2025-07-08T20:00:00.000000+00:00\,
+      \changes\: [
+        \Fixed GUI launcher with auto-dependency installation\,
+        \Updated to match NetLink v1.0.0-alpha.1\,
+        \Improved cross-platform compatibility\,
+        \Enhanced error handling and fallback authentication\
+      ]
+    }
+  ]
+}

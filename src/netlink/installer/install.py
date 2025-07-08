@@ -18,9 +18,9 @@ from urllib.error import URLError
 class NetLinkInstaller:
     """GitHub-based NetLink installer."""
     
-    def __init__(self):
-        self.repo_owner = "linux-of-user"
-        self.repo_name = "netlink"
+    def __init__(self, repo_owner: str = None, repo_name: str = None):
+        self.repo_owner = repo_owner or os.getenv("NETLINK_REPO_OWNER", "linux-of-user")
+        self.repo_name = repo_name or os.getenv("NETLINK_REPO_NAME", "netlink")
         self.github_api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
         self.install_dir = Path.cwd() / "netlink"
         

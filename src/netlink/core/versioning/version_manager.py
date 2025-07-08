@@ -209,11 +209,11 @@ class VersionManager:
                     ]
             else:
                 # Initialize with default version
-                self.current_version = Version(0, VersionType.ALPHA, 1)
+                self.current_version = Version(1, VersionType.ALPHA, 1)
                 self._save_version_info()
         except Exception as e:
             logger.error(f"Failed to load version info: {e}")
-            self.current_version = Version(0, VersionType.ALPHA, 1)
+            self.current_version = Version(1, VersionType.ALPHA, 1)
     
     def _save_version_info(self):
         """Save version information to file."""

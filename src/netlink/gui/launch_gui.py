@@ -54,25 +54,33 @@ def install_dependencies():
 def launch_gui():
     """Launch the NetLink Admin GUI."""
     try:
-        # Add current directory to Python path
+        # Add current directory and src to Python path
         current_dir = Path(__file__).parent
-        sys.path.insert(0, str(current_dir))
-        
+        src_dir = current_dir.parent / "src"
+
+        for path in [str(current_dir), str(src_dir)]:
+            if path not in sys.path:
+                sys.path.insert(0, path)
+
         # Import and run the GUI
         from netlink_admin_gui import NetLinkAdminGUI
-        
+
         print("🚀 Launching NetLink Admin GUI...")
+        print("📍 GUI will connect to NetLink server automatically")
+        print("🔗 Make sure NetLink server is running: python run.py run")
+
         app = NetLinkAdminGUI()
         app.run()
-        
+
     except ImportError as e:
         print(f"❌ Failed to import GUI module: {e}")
-        print("Please ensure all dependencies are installed.")
+        print("💡 Try running: python run.py gui")
+        print("📦 Or install dependencies: pip install customtkinter pillow")
         return False
     except Exception as e:
         print(f"❌ Failed to launch GUI: {e}")
         return False
-    
+
     return True
 
 

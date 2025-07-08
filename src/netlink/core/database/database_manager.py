@@ -25,6 +25,14 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from .config import DatabaseConfig, DatabaseType, DatabaseRole
 from .exceptions import DatabaseError, ConnectionError
 
+# Import enhanced database components
+try:
+    from .zero_downtime_migration import zero_downtime_migration_manager
+    from .global_data_distribution import global_data_distribution_manager
+    ENHANCED_DATABASE_AVAILABLE = True
+except ImportError:
+    ENHANCED_DATABASE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -106,8 +114,12 @@ class DatabaseManager:
         """Initialize the database manager."""
         if self.initialized:
             return
-        
+
         try:
+            # Initialize enhanced database components if available
+            if ENHANCED_DATABASE_AVAILABLE:
+                await self._initialize_enhanced_features()
+
             if config:
                 self.config.update(config)
             
@@ -672,6 +684,56 @@ class DatabaseManager:
             pass
         except Exception as e:
             logger.error(f"❌ System metrics collection failed: {e}")
+
+    async def _initialize_enhanced_features(self):
+        """Initialize enhanced database features."""
+        try:
+            logger.info("🚀 Initializing enhanced database features...")
+
+            # Initialize zero-downtime migration manager
+            await zero_downtime_migration_manager.initialize()
+            logger.info("✅ Zero-downtime migration manager initialized")
+
+            # Initialize global data distribution manager
+            await global_data_distribution_manager.initialize()
+            logger.info("✅ Global data distribution manager initialized")
+
+            logger.info("🎉 Enhanced database features initialized successfully!")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize enhanced database features: {e}")
+
+    def get_enhanced_status(self) -> Dict[str, Any]:
+        """Get enhanced database status."""
+        base_status = self.get_status()
+
+        if not ENHANCED_DATABASE_AVAILABLE:
+            return {**base_status, "enhanced_features": {"available": False}}
+
+        try:
+            # Get zero-downtime migration status
+            migration_status = {
+                "active_migrations": len(zero_downtime_migration_manager.active_migrations),
+                "migration_history": len(zero_downtime_migration_manager.migration_history)
+            }
+
+            # Get global distribution status
+            distribution_status = global_data_distribution_manager.get_global_status()
+
+            enhanced_status = {
+                **base_status,
+                "enhanced_features": {
+                    "available": True,
+                    "zero_downtime_migrations": migration_status,
+                    "global_data_distribution": distribution_status
+                }
+            }
+
+            return enhanced_status
+
+        except Exception as e:
+            logger.error(f"Failed to get enhanced status: {e}")
+            return {**base_status, "enhanced_features": {"error": str(e)}}
 
 
 # Global instance
