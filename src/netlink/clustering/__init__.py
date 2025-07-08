@@ -1,6 +1,10 @@
 """
 NetLink Advanced Clustering System
 
+Consolidated clustering functionality from:
+- src/netlink/clustering/ (main clustering system)
+- src/netlink/app/clustering/ (additional node management)
+
 The defining feature of NetLink - a sophisticated clustering system with:
 - Performance optimization and tangible gains
 - Intelligent load balancing
@@ -8,6 +12,9 @@ The defining feature of NetLink - a sophisticated clustering system with:
 - Smart node distribution
 - Automatic failover and recovery
 - Government-level security
+- Multi-node clustering with specialized nodes
+- Hybrid cloud support
+- Service mesh architecture
 """
 
 from .core.cluster_manager import AdvancedClusterManager

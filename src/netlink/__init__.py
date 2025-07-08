@@ -27,23 +27,21 @@ __author__ = "NetLink Development Team"
 __description__ = "Government-level secure communication platform with enterprise architecture, quantum encryption, and advanced features"
 __url__ = "https://github.com/linux-of-user/netlink"
 
-# Import new version management system
+# Unified Version System - Single Source of Truth
+__version__ = "1.0.0-alpha.1"
+__version_info__ = (1, 0, 0, "alpha", 1)
+__build__ = "enterprise-quantum"
+
+# Import version management system
 try:
     from .core.versioning.version_manager import version_manager, Version, VersionType
 
-    # Initialize with current version
-    current_version = version_manager.get_current_version()
-    if current_version:
-        __version__ = str(current_version)
-    else:
-        # Set initial version
-        initial_version = Version(0, VersionType.ALPHA, 1, "enterprise-quantum")
-        version_manager.set_current_version(initial_version)
-        __version__ = str(initial_version)
+    # Ensure version consistency
+    version_manager.set_current_version_string(__version__)
 
 except ImportError:
-    # Fallback if versioning system not available
-    __version__ = "0a1+enterprise-quantum"
+    # Version system not available - use fallback
+    pass
 
 def get_version():
     """Get version string using new versioning system."""

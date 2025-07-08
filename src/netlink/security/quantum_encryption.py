@@ -33,7 +33,13 @@ from cryptography.hazmat.backends import default_backend
 # Post-quantum cryptography (using pycryptodome for now, will add real PQC libraries)
 from Crypto.Cipher import AES, ChaCha20_Poly1305
 from Crypto.Random import get_random_bytes
-from Crypto.Protocol.KDF import PBKDF2, Argon2d
+from Crypto.Protocol.KDF import PBKDF2
+try:
+    from Crypto.Protocol.KDF import Argon2d
+except ImportError:
+    # Fallback to argon2-cffi if Argon2d not available in pycryptodome
+    import argon2
+    Argon2d = None
 from Crypto.Hash import SHA3_512, BLAKE2b
 
 logger = logging.getLogger(__name__)

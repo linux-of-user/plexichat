@@ -13,16 +13,50 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 
-# Import all security components
+# Import core security components (quantum encryption, key management, monitoring)
 from .quantum_encryption import QuantumEncryptionSystem, quantum_encryption
 from .distributed_key_manager import DistributedKeyManager, distributed_key_manager, KeyDomain
 from .e2e_encryption import EndToEndEncryption, e2e_encryption, EndpointType
-from .database_encryption import DatabaseEncryption, database_encryption
+from .database_encryption import DatabaseEncryption, database_encryption, DataClassification
 from .distributed_monitoring import (
     DistributedSecurityMonitor, SecurityEvent, SecurityMetrics,
     ThreatPattern, ThreatLevel, MonitoringScope, SecurityEventType
 )
-from .database_encryption import DataClassification
+
+# Import consolidated authentication components
+from .auth import (
+    AuthManager, auth_manager, TokenManager, token_manager,
+    SessionManager, session_manager, PasswordManager, password_manager,
+    MFAManager, mfa_manager, BiometricManager, biometric_manager,
+    OAuthManager, oauth_manager, DeviceManager, device_manager,
+    AuthAuditManager, auth_audit_manager, SecurityLevel, AuthAction, AuthAttempt, AuthSession
+)
+
+# Import consolidated protection components
+from .protection import (
+    DDoSProtection, ddos_protection, RateLimiter, rate_limiter,
+    InputSanitizer, input_sanitizer, PenetrationTester, penetration_tester,
+    VulnerabilityScanner, vulnerability_scanner, BehavioralAnalyzer, behavioral_analyzer,
+    MITMProtection, mitm_protection, ThreatLevel as ProtectionThreatLevel,
+    AttackType, SecurityThreat
+)
+
+# Import SSL/TLS management
+from .ssl import SSLCertificateManager, ssl_manager
+
+# Import middleware and utilities
+from .middleware import SecurityMiddleware, AuthenticationMiddleware
+from .decorators import require_auth, require_admin, require_mfa, require_level, optional_auth
+from .validators import PasswordValidator, TokenValidator, BiometricValidator, InputValidator
+
+# Import exceptions
+from .exceptions import (
+    SecurityError, AuthenticationError, AuthorizationError, MFAError, TokenError,
+    SessionError, PasswordError, BiometricError, DeviceError, OAuthError,
+    RateLimitError, AccountLockError, DDoSError, ValidationError, EncryptionError,
+    KeyManagementError, CertificateError, PenetrationTestError, VulnerabilityError,
+    MonitoringError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -361,12 +395,24 @@ security_manager = SecurityManager()
 
 # Export all security components
 __all__ = [
+    # Core security management
     'SecurityManager',
     'security_manager',
+
+    # Quantum encryption and key management
     'QuantumEncryptionSystem',
+    'quantum_encryption',
     'DistributedKeyManager',
+    'distributed_key_manager',
+    'KeyDomain',
     'EndToEndEncryption',
+    'e2e_encryption',
+    'EndpointType',
     'DatabaseEncryption',
+    'database_encryption',
+    'DataClassification',
+
+    # Security monitoring
     'DistributedSecurityMonitor',
     'SecurityEvent',
     'SecurityMetrics',
@@ -374,11 +420,85 @@ __all__ = [
     'ThreatLevel',
     'MonitoringScope',
     'SecurityEventType',
-    'quantum_encryption',
-    'distributed_key_manager',
-    'e2e_encryption',
-    'database_encryption',
-    'KeyDomain',
-    'EndpointType',
-    'DataClassification'
+
+    # Authentication components
+    'AuthManager',
+    'auth_manager',
+    'TokenManager',
+    'token_manager',
+    'SessionManager',
+    'session_manager',
+    'PasswordManager',
+    'password_manager',
+    'MFAManager',
+    'mfa_manager',
+    'BiometricManager',
+    'biometric_manager',
+    'OAuthManager',
+    'oauth_manager',
+    'DeviceManager',
+    'device_manager',
+    'AuthAuditManager',
+    'auth_audit_manager',
+    'SecurityLevel',
+    'AuthAction',
+    'AuthAttempt',
+    'AuthSession',
+
+    # Protection components
+    'DDoSProtection',
+    'ddos_protection',
+    'RateLimiter',
+    'rate_limiter',
+    'InputSanitizer',
+    'input_sanitizer',
+    'PenetrationTester',
+    'penetration_tester',
+    'VulnerabilityScanner',
+    'vulnerability_scanner',
+    'BehavioralAnalyzer',
+    'behavioral_analyzer',
+    'MITMProtection',
+    'mitm_protection',
+    'AttackType',
+    'SecurityThreat',
+
+    # SSL/TLS management
+    'SSLCertificateManager',
+    'ssl_manager',
+
+    # Middleware and utilities
+    'SecurityMiddleware',
+    'AuthenticationMiddleware',
+    'require_auth',
+    'require_admin',
+    'require_mfa',
+    'require_level',
+    'optional_auth',
+    'PasswordValidator',
+    'TokenValidator',
+    'BiometricValidator',
+    'InputValidator',
+
+    # Exceptions
+    'SecurityError',
+    'AuthenticationError',
+    'AuthorizationError',
+    'MFAError',
+    'TokenError',
+    'SessionError',
+    'PasswordError',
+    'BiometricError',
+    'DeviceError',
+    'OAuthError',
+    'RateLimitError',
+    'AccountLockError',
+    'DDoSError',
+    'ValidationError',
+    'EncryptionError',
+    'KeyManagementError',
+    'CertificateError',
+    'PenetrationTestError',
+    'VulnerabilityError',
+    'MonitoringError'
 ]

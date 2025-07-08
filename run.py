@@ -44,19 +44,38 @@ def check_python_version():
 
 def check_pip_available():
     """Check if pip is available."""
+    print(f"🔍 Checking pip availability with Python: {sys.executable}")
+
+    # Try direct pip command first (since it works on this system)
+    try:
+        result = subprocess.run(["pip", "--version"],
+                              capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            print(f"✅ Found pip: {result.stdout.strip()}")
+            return "pip"
+    except:
+        pass
+
+    # Try python -m pip as fallback
     try:
         result = subprocess.run([sys.executable, "-m", "pip", "--version"],
                               capture_output=True, text=True, timeout=10)
-        return result.returncode == 0
+        if result.returncode == 0:
+            print(f"✅ Found python -m pip: {result.stdout.strip()}")
+            return "python_m_pip"
     except:
-        return False
+        pass
+
+    print("❌ pip not found")
+    return None
 
 def install_core_dependencies():
     """Install core dependencies only."""
     print("🔧 Installing core NetLink dependencies...")
 
     # Check if pip is available
-    if not check_pip_available():
+    pip_method = check_pip_available()
+    if not pip_method:
         print("⚠️ pip not available. Attempting to run without dependencies...")
         print("💡 You may need to install dependencies manually:")
         print("   pip install fastapi uvicorn customtkinter pillow")
@@ -86,22 +105,21 @@ def install_core_dependencies():
     ]
 
     try:
-        # Upgrade pip first (skip if pip not available)
-        if check_pip_available():
-            print("📦 Upgrading pip...")
-            subprocess.check_call([
-                sys.executable, "-m", "pip", "install", "--upgrade", "pip"
-            ])
+        # Upgrade pip first
+        print("📦 Upgrading pip...")
+        if pip_method == "python_m_pip":
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
         else:
-            print("⚠️ Skipping pip upgrade - pip not available")
+            subprocess.check_call(["pip", "install", "--upgrade", "pip"])
 
         # Install core dependencies one by one
         for dep in core_deps:
             try:
                 print(f"📦 Installing {dep.split('==')[0]}...")
-                subprocess.check_call([
-                    sys.executable, "-m", "pip", "install", dep
-                ])
+                if pip_method == "python_m_pip":
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", dep])
+                else:
+                    subprocess.check_call(["pip", "install", dep])
             except subprocess.CalledProcessError as e:
                 print(f"⚠️ Failed to install {dep}: {e}")
                 # Continue with other dependencies
@@ -224,12 +242,14 @@ def check_setup():
     required_dirs = [CONFIG_DIR, LOGS_DIR, DATA_DIR, ROOT / "backups"]
     missing_dirs = [d for d in required_dirs if not d.exists()]
 
-    # Check if we can import critical modules
+    # Check if we can import critical modules using the same Python executable
     try:
-        import fastapi
-        import uvicorn
-        modules_ok = True
-    except ImportError:
+        result = subprocess.run([
+            sys.executable, "-c",
+            "import fastapi, uvicorn, sqlmodel, pydantic, cryptography; print('OK')"
+        ], capture_output=True, text=True, timeout=10)
+        modules_ok = result.returncode == 0 and "OK" in result.stdout
+    except:
         modules_ok = False
 
     return len(missing_dirs) == 0 and modules_ok
