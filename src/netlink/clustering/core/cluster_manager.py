@@ -965,5 +965,5 @@ class AdvancedClusterManager:
             return {**base_status, "enhanced_clustering": {"error": str(e)}}
 
 
-# Global cluster manager instance
-cluster_manager = AdvancedClusterManager()
+# Global cluster manager instance (will be initialized later)
+cluster_manager = None

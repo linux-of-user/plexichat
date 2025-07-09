@@ -133,8 +133,8 @@ class QuantumEncryptionSystem:
         self.key_rotation_interval = timedelta(hours=24)
         self.max_key_age = timedelta(days=30)
         
-        # Initialize system
-        asyncio.create_task(self._initialize_system())
+        # Initialize system (will be called manually during app startup)
+        self._initialization_task = None
     
     async def _initialize_system(self):
         """Initialize the quantum encryption system."""

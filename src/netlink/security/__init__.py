@@ -101,7 +101,8 @@ class SecurityManager:
         self.last_security_check = datetime.now(timezone.utc)
         
         # Initialize system
-        asyncio.create_task(self._initialize_security_manager())
+        # Defer async initialization until event loop is running
+        self._initialized = False
     
     async def _initialize_security_manager(self):
         """Initialize the unified security manager."""
@@ -389,6 +390,11 @@ class SecurityManager:
         
         logger.critical("🔒 Emergency security measures activated")
 
+
+# Import consolidated auth modules from app/auth
+from .advanced_auth import AdvancedAuthManager
+from .default_admin import DefaultAdminManager
+from .login_manager import LoginManager
 
 # Global security manager instance
 security_manager = SecurityManager()

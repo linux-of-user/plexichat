@@ -1595,5 +1595,5 @@ class UpdateSystem:
             return False
 
 
-# Global update system instance
-update_system = UpdateSystem()
+# Global update system instance (will be initialized later)
+update_system = None

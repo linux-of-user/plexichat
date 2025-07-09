@@ -19,13 +19,7 @@ cryptography==42.0.5
 bleach==6.1.0
 python-magic==0.4.27
 
-# Quantum-Resistant Cryptography
-pqcrypto==0.1.0
-liboqs-python==0.10.0
-kyber-py==0.1.0
-dilithium-py==0.1.0
-sphincs-py==0.1.0
-ntru-python==0.1.0
+# Quantum-Resistant Cryptography (Core only for Windows compatibility)
 pycryptodome==3.19.0
 argon2-cffi==23.1.0
 
@@ -88,7 +82,7 @@ aiosmtplib==3.0.1
 # Cloud Storage & Deployment
 docker==6.1.3
 kubernetes==28.1.0
-consul-python==1.1.0
+python-consul==1.1.0
 boto3==1.34.0
 azure-storage-blob==12.19.0
 google-cloud-storage==2.10.0

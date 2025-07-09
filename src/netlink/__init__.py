@@ -37,7 +37,7 @@ try:
     from .core.versioning.version_manager import version_manager, Version, VersionType
 
     # Ensure version consistency
-    version_manager.set_current_version_string(__version__)
+    version_manager.set_current_version(__version__)
 
 except ImportError:
     # Version system not available - use fallback

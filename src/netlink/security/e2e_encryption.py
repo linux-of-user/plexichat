@@ -123,8 +123,8 @@ class EndToEndEncryption:
         self.quantum_encryption = QuantumEncryptionSystem()
         self.distributed_keys = DistributedKeyManager()
         
-        # Initialize system
-        asyncio.create_task(self._initialize_system())
+        # Initialize system (will be called manually during app startup)
+        self._initialization_task = None
     
     async def _initialize_system(self):
         """Initialize the E2E encryption system."""

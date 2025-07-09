@@ -113,8 +113,8 @@ class DistributedKeyManager:
         self.default_total_shards = 5
         self.max_compromised_vaults = 2  # System remains secure with up to 2 compromised vaults
         
-        # Initialize system
-        asyncio.create_task(self._initialize_system())
+        # Initialize system (will be called manually during app startup)
+        self._initialization_task = None
     
     async def _initialize_system(self):
         """Initialize the distributed key management system."""

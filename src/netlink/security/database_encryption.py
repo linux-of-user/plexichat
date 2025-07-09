@@ -1,982 +1,296 @@
 """
-NetLink Enhanced Database Encryption System
-
-Implements comprehensive database encryption with:
-- Transparent data encryption (TDE)
-- Column-level encryption for sensitive data
-- Quantum-resistant encryption algorithms
-- Zero-knowledge encryption protocols
-- Distributed key management with HSM support
-- Advanced key rotation and management
-- Encrypted backups and logs
-- Multi-tenant encryption isolation
-- Performance-optimized encryption
+Advanced Database Encryption System
+Provides comprehensive encryption for database connections, data at rest, and sensitive fields.
 """
 
-import asyncio
+import os
+import base64
 import secrets
 import hashlib
-import logging
-import json
-import base64
-import threading
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union, Callable
-from pathlib import Path
-from dataclasses import dataclass, field
-from enum import Enum
-from concurrent.futures import ThreadPoolExecutor
-import aiosqlite
-import aiofiles
-
-from .quantum_encryption import QuantumEncryptionSystem, EncryptionContext, SecurityTier
-from .distributed_key_manager import DistributedKeyManager, KeyDomain
-
-# Enhanced cryptography imports
-from cryptography.fernet import Fernet, MultiFernet
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305, AESGCM
-from cryptography.hazmat.primitives import hashes, serialization, padding
+from typing import Dict, Any, Optional, Union, List
+from datetime import datetime, timezone
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from cryptography.hazmat.primitives.asymmetric import rsa, padding as asym_padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+from sqlalchemy import event, text
+from sqlalchemy.engine import Engine
+from sqlmodel import Session
 
+import logging
 logger = logging.getLogger(__name__)
 
 
-class EncryptionLevel(Enum):
-    """Database encryption levels."""
-    NONE = 0
-    COLUMN = 1          # Encrypt specific columns
-    TABLE = 2           # Encrypt entire tables
-    DATABASE = 3        # Encrypt entire database
-    TRANSPARENT = 4     # Transparent data encryption
-    ZERO_KNOWLEDGE = 5  # Zero-knowledge encryption
-
-
-class EncryptionAlgorithm(Enum):
-    """Enhanced encryption algorithms."""
-    AES_256_GCM = "aes-256-gcm"
-    CHACHA20_POLY1305 = "chacha20-poly1305"
-    FERNET = "fernet"
-    MULTI_FERNET = "multi-fernet"
-    RSA_OAEP = "rsa-oaep"
-    QUANTUM_RESISTANT = "quantum-resistant"
-    ZERO_KNOWLEDGE = "zero-knowledge"
-    HYBRID_ENCRYPTION = "hybrid-encryption"
-
-
-class KeyRotationStrategy(Enum):
-    """Key rotation strategies."""
-    TIME_BASED = "time_based"
-    USAGE_BASED = "usage_based"
-    EVENT_BASED = "event_based"
-    MANUAL = "manual"
-    AUTOMATIC = "automatic"
-
-
-class DataClassification(Enum):
-    """Data classification levels."""
-    PUBLIC = 1
-    INTERNAL = 2
-    CONFIDENTIAL = 3
-    RESTRICTED = 4
-    TOP_SECRET = 5
-
-
-@dataclass
-class EncryptedColumn:
-    """Configuration for encrypted database column."""
-    table_name: str
-    column_name: str
-    data_type: str
-    classification: DataClassification
-    encryption_level: EncryptionLevel
-    key_id: str
-    algorithm: EncryptionAlgorithm
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    searchable: bool = False
-    indexed: bool = False
-    compression_enabled: bool = False
-    tenant_id: Optional[str] = None
-
-
-@dataclass
-class DatabaseKey:
-    """Enhanced database encryption key."""
-    key_id: str
-    purpose: str
-    classification: DataClassification
-    key_data: bytes
-    algorithm: EncryptionAlgorithm
-    created_at: datetime
-    expires_at: Optional[datetime] = None
-    rotation_count: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    rotation_strategy: KeyRotationStrategy = KeyRotationStrategy.TIME_BASED
-    usage_count: int = 0
-    max_usage: Optional[int] = None
-    tenant_id: Optional[str] = None
-    hsm_backed: bool = False
-
-
-@dataclass
-class EncryptionContext:
-    """Enhanced encryption context for operations."""
-    tenant_id: Optional[str] = None
-    user_id: Optional[str] = None
-    operation_type: str = "unknown"
-    classification: DataClassification = DataClassification.INTERNAL
-    algorithm: EncryptionAlgorithm = EncryptionAlgorithm.AES_256_GCM
-    compression: bool = False
-    searchable: bool = False
-    audit_required: bool = True
-    performance_tier: str = "standard"
-    additional_context: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class EncryptionPerformanceMetrics:
-    """Performance metrics for encryption operations."""
-    operation_type: str
-    algorithm: EncryptionAlgorithm
-    data_size: int
-    encryption_time: float
-    decryption_time: float
-    throughput_mbps: float
-    cpu_usage: float
-    memory_usage: int
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-
-
-class EnhancedDatabaseEncryption:
-    """
-    Enhanced Database Encryption System
-
-    Features:
-    - Transparent data encryption for entire databases
-    - Column-level encryption for sensitive fields
-    - Quantum-resistant encryption algorithms
-    - Zero-knowledge encryption protocols
-    - Multi-tenant encryption isolation
-    - Automatic key rotation with multiple strategies
-    - Encrypted database backups with integrity verification
-    - Search on encrypted data (where possible)
-    - Performance-optimized encryption with caching
-    - HSM integration for key storage
-    - Comprehensive audit logging
-    - Real-time encryption monitoring
-    """
-
-    def __init__(self, config_dir: str = "config/security/database"):
-        self.config_dir = Path(config_dir)
-        self.config_dir.mkdir(parents=True, exist_ok=True)
-
-        # Database for encryption metadata
-        self.metadata_db = self.config_dir / "encryption_metadata.db"
-
-        # Encryption configuration
-        self.encrypted_columns: Dict[str, EncryptedColumn] = {}
-        self.database_keys: Dict[str, DatabaseKey] = {}
-        self.classification_policies: Dict[DataClassification, Dict[str, Any]] = {}
-        self.tenant_keys: Dict[str, Dict[str, DatabaseKey]] = {}
-
-        # Performance optimization
-        self.encryption_cache: Dict[str, Any] = {}
-        self.key_cache: Dict[str, DatabaseKey] = {}
-        self.performance_metrics: List[EncryptionPerformanceMetrics] = []
-        self.thread_pool = ThreadPoolExecutor(max_workers=4)
-
-        # Encryption systems
-        self.quantum_encryption = QuantumEncryptionSystem()
-        self.distributed_keys = DistributedKeyManager()
-
-        # Algorithm implementations
-        self.algorithm_implementations = {
-            EncryptionAlgorithm.AES_256_GCM: self._aes_gcm_encrypt,
-            EncryptionAlgorithm.CHACHA20_POLY1305: self._chacha20_encrypt,
-            EncryptionAlgorithm.FERNET: self._fernet_encrypt,
-            EncryptionAlgorithm.MULTI_FERNET: self._multi_fernet_encrypt,
-            EncryptionAlgorithm.QUANTUM_RESISTANT: self._quantum_encrypt,
-            EncryptionAlgorithm.ZERO_KNOWLEDGE: self._zero_knowledge_encrypt,
-            EncryptionAlgorithm.HYBRID_ENCRYPTION: self._hybrid_encrypt
-        }
-
-        # Decryption implementations
-        self.decryption_implementations = {
-            EncryptionAlgorithm.AES_256_GCM: self._aes_gcm_decrypt,
-            EncryptionAlgorithm.CHACHA20_POLY1305: self._chacha20_decrypt,
-            EncryptionAlgorithm.FERNET: self._fernet_decrypt,
-            EncryptionAlgorithm.MULTI_FERNET: self._multi_fernet_decrypt,
-            EncryptionAlgorithm.QUANTUM_RESISTANT: self._quantum_decrypt,
-            EncryptionAlgorithm.ZERO_KNOWLEDGE: self._zero_knowledge_decrypt,
-            EncryptionAlgorithm.HYBRID_ENCRYPTION: self._hybrid_decrypt
-        }
-
-        # Monitoring and statistics
-        self.encryption_stats = {
-            "total_operations": 0,
-            "encryption_operations": 0,
-            "decryption_operations": 0,
-            "key_rotations": 0,
-            "cache_hits": 0,
-            "cache_misses": 0,
-            "errors": 0
-        }
-
-        # Initialize system
-        asyncio.create_task(self._initialize_system())
+class DatabaseEncryption:
+    """Advanced database encryption manager."""
     
-    async def _initialize_system(self):
-        """Initialize the database encryption system."""
-        await self._init_metadata_database()
-        await self._load_encryption_config()
-        await self._setup_classification_policies()
-        await self._ensure_database_keys()
-        logger.info("🔐 Database encryption system initialized")
-    
-    async def _init_metadata_database(self):
-        """Initialize the encryption metadata database."""
-        async with aiosqlite.connect(self.metadata_db) as db:
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS encrypted_columns (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    table_name TEXT NOT NULL,
-                    column_name TEXT NOT NULL,
-                    data_type TEXT NOT NULL,
-                    classification INTEGER NOT NULL,
-                    encryption_level INTEGER NOT NULL,
-                    key_id TEXT NOT NULL,
-                    algorithm TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    metadata TEXT,
-                    UNIQUE(table_name, column_name)
-                )
-            """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS database_keys (
-                    key_id TEXT PRIMARY KEY,
-                    purpose TEXT NOT NULL,
-                    classification INTEGER NOT NULL,
-                    key_data BLOB NOT NULL,
-                    algorithm TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    expires_at TEXT,
-                    rotation_count INTEGER DEFAULT 0,
-                    metadata TEXT
-                )
-            """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS encryption_operations (
-                    operation_id TEXT PRIMARY KEY,
-                    operation_type TEXT NOT NULL,
-                    table_name TEXT,
-                    column_name TEXT,
-                    key_id TEXT NOT NULL,
-                    data_size INTEGER,
-                    success BOOLEAN NOT NULL,
-                    timestamp TEXT NOT NULL,
-                    metadata TEXT
-                )
-            """)
-            
-            await db.commit()
-    
-    async def _load_encryption_config(self):
-        """Load encryption configuration from database."""
-        async with aiosqlite.connect(self.metadata_db) as db:
-            # Load encrypted columns
-            async with db.execute("SELECT * FROM encrypted_columns") as cursor:
-                async for row in cursor:
-                    column = EncryptedColumn(
-                        table_name=row[1],
-                        column_name=row[2],
-                        data_type=row[3],
-                        classification=DataClassification(row[4]),
-                        encryption_level=EncryptionLevel(row[5]),
-                        key_id=row[6],
-                        algorithm=row[7],
-                        created_at=datetime.fromisoformat(row[8]),
-                        metadata=json.loads(row[9]) if row[9] else {}
-                    )
-                    key = f"{column.table_name}.{column.column_name}"
-                    self.encrypted_columns[key] = column
-            
-            # Load database keys
-            async with db.execute("SELECT * FROM database_keys") as cursor:
-                async for row in cursor:
-                    key = DatabaseKey(
-                        key_id=row[0],
-                        purpose=row[1],
-                        classification=DataClassification(row[2]),
-                        key_data=row[3],
-                        algorithm=row[4],
-                        created_at=datetime.fromisoformat(row[5]),
-                        expires_at=datetime.fromisoformat(row[6]) if row[6] else None,
-                        rotation_count=row[7],
-                        metadata=json.loads(row[8]) if row[8] else {}
-                    )
-                    self.database_keys[key.key_id] = key
-    
-    async def _setup_classification_policies(self):
-        """Setup encryption policies for different data classifications."""
-        self.classification_policies = {
-            DataClassification.PUBLIC: {
-                "encryption_required": False,
-                "algorithm": "none",
-                "key_rotation_days": 0,
-                "security_tier": SecurityTier.STANDARD
-            },
-            DataClassification.INTERNAL: {
-                "encryption_required": True,
-                "algorithm": "aes-256-gcm",
-                "key_rotation_days": 90,
-                "security_tier": SecurityTier.ENHANCED
-            },
-            DataClassification.CONFIDENTIAL: {
-                "encryption_required": True,
-                "algorithm": "chacha20-poly1305",
-                "key_rotation_days": 30,
-                "security_tier": SecurityTier.GOVERNMENT
-            },
-            DataClassification.RESTRICTED: {
-                "encryption_required": True,
-                "algorithm": "quantum-resistant",
-                "key_rotation_days": 7,
-                "security_tier": SecurityTier.MILITARY
-            },
-            DataClassification.TOP_SECRET: {
-                "encryption_required": True,
-                "algorithm": "quantum-resistant-multi-layer",
-                "key_rotation_days": 1,
-                "security_tier": SecurityTier.QUANTUM_PROOF
-            }
-        }
-    
-    async def _ensure_database_keys(self):
-        """Ensure database keys exist for each classification level."""
-        for classification in DataClassification:
-            policy = self.classification_policies[classification]
-            if policy["encryption_required"]:
-                key_id = f"db_{classification.name.lower()}_master"
-                if not any(k.key_id.startswith(key_id) for k in self.database_keys.values()):
-                    await self._generate_database_key(classification, "master")
-    
-    async def _generate_database_key(self, classification: DataClassification, purpose: str) -> DatabaseKey:
-        """Generate a new database encryption key."""
-        policy = self.classification_policies[classification]
-        key_id = f"db_{classification.name.lower()}_{purpose}_{secrets.token_hex(8)}"
+    def __init__(self, master_key: Optional[str] = None):
+        """Initialize encryption with master key."""
+        self.master_key = master_key or self._generate_master_key()
+        self.field_cipher = self._create_field_cipher()
+        self.connection_cipher = self._create_connection_cipher()
+        self.encrypted_fields = set()
         
-        # Get key from distributed key manager
-        domain_key = await self.distributed_keys.get_domain_key(KeyDomain.DATABASE)
-        if domain_key:
-            # Derive database key from domain key
-            key_material = hashlib.blake2b(
-                domain_key + key_id.encode() + classification.name.encode(),
-                digest_size=32
-            ).digest()
-        else:
-            # Generate random key as fallback
-            key_material = secrets.token_bytes(32)
-        
-        # Set expiration based on policy
-        expires_at = None
-        if policy["key_rotation_days"] > 0:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=policy["key_rotation_days"])
-        
-        db_key = DatabaseKey(
-            key_id=key_id,
-            purpose=purpose,
-            classification=classification,
-            key_data=key_material,
-            algorithm=policy["algorithm"],
-            created_at=datetime.now(timezone.utc),
-            expires_at=expires_at,
-            metadata={
-                "policy": policy,
-                "auto_generated": True
-            }
+    def _generate_master_key(self) -> str:
+        """Generate a secure master key."""
+        return base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()
+    
+    def _create_field_cipher(self) -> Fernet:
+        """Create cipher for field-level encryption."""
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=b'netlink_field_salt_v1',
+            iterations=100000,
+            backend=default_backend()
         )
-        
-        self.database_keys[key_id] = db_key
-        await self._save_database_key(db_key)
-        
-        logger.info(f"🔑 Generated database key: {key_id} for {classification.name}")
-        return db_key
+        key = base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))
+        return Fernet(key)
     
-    async def configure_column_encryption(
-        self, 
-        table_name: str, 
-        column_name: str, 
-        data_type: str,
-        classification: DataClassification
-    ) -> bool:
-        """Configure encryption for a database column."""
-        policy = self.classification_policies[classification]
-        
-        if not policy["encryption_required"]:
-            logger.info(f"Encryption not required for {classification.name} data")
-            return True
-        
-        # Get or create appropriate key
-        key_id = f"db_{classification.name.lower()}_column_{secrets.token_hex(4)}"
-        db_key = await self._generate_database_key(classification, "column")
-        
-        # Create encrypted column configuration
-        encrypted_column = EncryptedColumn(
-            table_name=table_name,
-            column_name=column_name,
-            data_type=data_type,
-            classification=classification,
-            encryption_level=EncryptionLevel.COLUMN,
-            key_id=db_key.key_id,
-            algorithm=policy["algorithm"],
-            metadata={
-                "configured_by": "database_encryption_system",
-                "policy": policy
-            }
+    def _create_connection_cipher(self) -> Fernet:
+        """Create cipher for connection string encryption."""
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=b'netlink_conn_salt_v1',
+            iterations=100000,
+            backend=default_backend()
         )
+        key = base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))
+        return Fernet(key)
+    
+    def encrypt_field(self, data: str) -> str:
+        """Encrypt sensitive field data."""
+        if not data:
+            return data
         
-        column_key = f"{table_name}.{column_name}"
-        self.encrypted_columns[column_key] = encrypted_column
-        await self._save_encrypted_column(encrypted_column)
-        
-        logger.info(f"🔐 Configured encryption for column: {table_name}.{column_name}")
-        return True
-
-    async def encrypt_column_data(self, table_name: str, column_name: str, data: Any) -> Optional[str]:
-        """Encrypt data for a specific column."""
-        column_key = f"{table_name}.{column_name}"
-
-        if column_key not in self.encrypted_columns:
-            logger.warning(f"Column not configured for encryption: {column_key}")
-            return str(data) if data is not None else None
-
-        if data is None:
-            return None
-
-        encrypted_column = self.encrypted_columns[column_key]
-        db_key = self.database_keys.get(encrypted_column.key_id)
-
-        if not db_key:
-            logger.error(f"Database key not found: {encrypted_column.key_id}")
-            return None
-
-        # Convert data to bytes
-        if isinstance(data, str):
-            data_bytes = data.encode('utf-8')
-        elif isinstance(data, (int, float)):
-            data_bytes = str(data).encode('utf-8')
-        elif isinstance(data, bytes):
-            data_bytes = data
-        else:
-            data_bytes = json.dumps(data).encode('utf-8')
-
         try:
-            # Create encryption context
-            context = EncryptionContext(
-                operation_type="column_encrypt",
-                classification=encrypted_column.classification,
-                algorithm=encrypted_column.algorithm,
-                compression=encrypted_column.compression_enabled,
-                searchable=encrypted_column.searchable,
-                tenant_id=encrypted_column.tenant_id
-            )
-
-            # Performance monitoring
-            start_time = time.time()
-
-            # Encrypt based on algorithm
-            algorithm_func = self.algorithm_implementations.get(encrypted_column.algorithm)
-            if algorithm_func:
-                encrypted_data = await algorithm_func(data_bytes, db_key, context)
-            else:
-                logger.error(f"Unknown encryption algorithm: {encrypted_column.algorithm}")
-                return None
-
-            # Performance metrics
-            encryption_time = time.time() - start_time
-            self._record_performance_metrics(
-                "encrypt", encrypted_column.algorithm, len(data_bytes),
-                encryption_time, 0, context
-            )
-
-            # Encode as base64 for database storage
-            encoded_data = base64.b64encode(encrypted_data).decode('ascii')
-
-            # Update statistics
-            self.encryption_stats["total_operations"] += 1
-            self.encryption_stats["encryption_operations"] += 1
-
-            # Log the operation
-            await self._log_encryption_operation(
-                "encrypt", table_name, column_name, db_key.key_id,
-                len(data_bytes), True, context
-            )
-
-            return encoded_data
-
+            encrypted = self.field_cipher.encrypt(data.encode())
+            return base64.urlsafe_b64encode(encrypted).decode()
         except Exception as e:
-            logger.error(f"Failed to encrypt column data: {e}")
-            await self._log_encryption_operation(
-                "encrypt", table_name, column_name, db_key.key_id,
-                len(data_bytes), False
-            )
-            return None
-
-    async def decrypt_column_data(self, table_name: str, column_name: str, encrypted_data: str) -> Any:
-        """Decrypt data for a specific column."""
-        column_key = f"{table_name}.{column_name}"
-
-        if column_key not in self.encrypted_columns:
-            logger.warning(f"Column not configured for encryption: {column_key}")
-            return encrypted_data
-
+            logger.error(f"Field encryption failed: {e}")
+            raise
+    
+    def decrypt_field(self, encrypted_data: str) -> str:
+        """Decrypt sensitive field data."""
         if not encrypted_data:
-            return None
-
-        encrypted_column = self.encrypted_columns[column_key]
-        db_key = self.database_keys.get(encrypted_column.key_id)
-
-        if not db_key:
-            logger.error(f"Database key not found: {encrypted_column.key_id}")
-            return None
-
+            return encrypted_data
+        
         try:
-            # Decode from base64
-            encrypted_bytes = base64.b64decode(encrypted_data.encode('ascii'))
-
-            # Decrypt based on algorithm
-            if db_key.algorithm == "aes-256-gcm":
-                decrypted_data = await self._decrypt_aes_gcm(encrypted_bytes, db_key.key_data)
-            elif db_key.algorithm == "chacha20-poly1305":
-                decrypted_data = await self._decrypt_chacha20(encrypted_bytes, db_key.key_data)
-            elif db_key.algorithm.startswith("quantum-resistant"):
-                decrypted_data = await self._decrypt_quantum_resistant(encrypted_bytes, db_key, encrypted_column)
-            else:
-                logger.error(f"Unknown encryption algorithm: {db_key.algorithm}")
-                return None
-
-            # Convert back to appropriate data type
-            decrypted_str = decrypted_data.decode('utf-8')
-
-            # Try to convert back to original type based on column data type
-            if encrypted_column.data_type.upper() in ['INTEGER', 'INT']:
-                return int(decrypted_str)
-            elif encrypted_column.data_type.upper() in ['REAL', 'FLOAT', 'DOUBLE']:
-                return float(decrypted_str)
-            elif encrypted_column.data_type.upper() in ['JSON', 'JSONB']:
-                return json.loads(decrypted_str)
-            else:
-                return decrypted_str
-
+            decoded = base64.urlsafe_b64decode(encrypted_data.encode())
+            decrypted = self.field_cipher.decrypt(decoded)
+            return decrypted.decode()
         except Exception as e:
-            logger.error(f"Failed to decrypt column data: {e}")
-            return None
-
-    async def _encrypt_aes_gcm(self, data: bytes, key: bytes) -> bytes:
-        """Encrypt data using AES-256-GCM."""
-        # Derive key using PBKDF2
-        salt = secrets.token_bytes(16)
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-            backend=default_backend()
-        )
-        derived_key = kdf.derive(key)
-
-        # Encrypt with AES-GCM
-        cipher = AESGCM(derived_key)
-        nonce = secrets.token_bytes(12)
-        ciphertext = cipher.encrypt(nonce, data, None)
-
-        # Combine salt, nonce, and ciphertext
-        return salt + nonce + ciphertext
-
-    async def _decrypt_aes_gcm(self, encrypted_data: bytes, key: bytes) -> bytes:
-        """Decrypt data using AES-256-GCM."""
-        # Extract components
-        salt = encrypted_data[:16]
-        nonce = encrypted_data[16:28]
-        ciphertext = encrypted_data[28:]
-
-        # Derive key using PBKDF2
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-            backend=default_backend()
-        )
-        derived_key = kdf.derive(key)
-
-        # Decrypt with AES-GCM
-        cipher = AESGCM(derived_key)
-        plaintext = cipher.decrypt(nonce, ciphertext, None)
-
-        return plaintext
-
-    async def _encrypt_chacha20(self, data: bytes, key: bytes) -> bytes:
-        """Encrypt data using ChaCha20-Poly1305."""
-        # Derive key using BLAKE2b
-        salt = secrets.token_bytes(16)
-        derived_key = hashlib.blake2b(key + salt, digest_size=32).digest()
-
-        # Encrypt with ChaCha20-Poly1305
-        cipher = ChaCha20Poly1305(derived_key)
-        nonce = secrets.token_bytes(12)
-        ciphertext = cipher.encrypt(nonce, data, None)
-
-        # Combine salt, nonce, and ciphertext
-        return salt + nonce + ciphertext
-
-    async def _decrypt_chacha20(self, encrypted_data: bytes, key: bytes) -> bytes:
-        """Decrypt data using ChaCha20-Poly1305."""
-        # Extract components
-        salt = encrypted_data[:16]
-        nonce = encrypted_data[16:28]
-        ciphertext = encrypted_data[28:]
-
-        # Derive key using BLAKE2b
-        derived_key = hashlib.blake2b(key + salt, digest_size=32).digest()
-
-        # Decrypt with ChaCha20-Poly1305
-        cipher = ChaCha20Poly1305(derived_key)
-        plaintext = cipher.decrypt(nonce, ciphertext, None)
-
-        return plaintext
-
-    async def _encrypt_quantum_resistant(self, data: bytes, db_key: DatabaseKey, column: EncryptedColumn) -> bytes:
-        """Encrypt data using quantum-resistant algorithms."""
-        # Create encryption context
-        context = EncryptionContext(
-            operation_id=f"db_encrypt_{secrets.token_hex(8)}",
-            data_type="database_column",
-            security_tier=self.classification_policies[column.classification]["security_tier"],
-            algorithms=[],  # Will be determined by quantum encryption system
-            key_ids=[db_key.key_id],
-            metadata={
-                "table": column.table_name,
-                "column": column.column_name,
-                "classification": column.classification.name
-            }
-        )
-
-        # Use quantum encryption system
-        encrypted_data, metadata = await self.quantum_encryption.encrypt_data(data, context)
-
-        # Store metadata for decryption
-        metadata_bytes = json.dumps(metadata).encode('utf-8')
-        metadata_length = len(metadata_bytes).to_bytes(4, 'big')
-
-        return metadata_length + metadata_bytes + encrypted_data
-
-    async def _decrypt_quantum_resistant(self, encrypted_data: bytes, db_key: DatabaseKey, column: EncryptedColumn) -> bytes:
-        """Decrypt data using quantum-resistant algorithms."""
-        # Extract metadata
-        metadata_length = int.from_bytes(encrypted_data[:4], 'big')
-        metadata_bytes = encrypted_data[4:4+metadata_length]
-        ciphertext = encrypted_data[4+metadata_length:]
-
-        metadata = json.loads(metadata_bytes.decode('utf-8'))
-
-        # Use quantum encryption system
-        decrypted_data = await self.quantum_encryption.decrypt_data(ciphertext, metadata)
-
-        return decrypted_data
-
-    async def _save_encrypted_column(self, column: EncryptedColumn):
-        """Save encrypted column configuration to database."""
-        async with aiosqlite.connect(self.metadata_db) as db:
-            await db.execute("""
-                INSERT OR REPLACE INTO encrypted_columns
-                (table_name, column_name, data_type, classification, encryption_level,
-                 key_id, algorithm, created_at, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                column.table_name,
-                column.column_name,
-                column.data_type,
-                column.classification.value,
-                column.encryption_level.value,
-                column.key_id,
-                column.algorithm,
-                column.created_at.isoformat(),
-                json.dumps(column.metadata)
-            ))
-            await db.commit()
-
-    async def _save_database_key(self, key: DatabaseKey):
-        """Save database key to metadata database."""
-        async with aiosqlite.connect(self.metadata_db) as db:
-            await db.execute("""
-                INSERT OR REPLACE INTO database_keys
-                (key_id, purpose, classification, key_data, algorithm,
-                 created_at, expires_at, rotation_count, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                key.key_id,
-                key.purpose,
-                key.classification.value,
-                key.key_data,
-                key.algorithm,
-                key.created_at.isoformat(),
-                key.expires_at.isoformat() if key.expires_at else None,
-                key.rotation_count,
-                json.dumps(key.metadata)
-            ))
-            await db.commit()
-
-    async def _log_encryption_operation(self, operation_type: str, table_name: str,
-                                       column_name: str, key_id: str, data_size: int, success: bool):
-        """Log encryption operation for audit purposes."""
-        operation_id = f"op_{secrets.token_hex(8)}"
-
-        async with aiosqlite.connect(self.metadata_db) as db:
-            await db.execute("""
-                INSERT INTO encryption_operations
-                (operation_id, operation_type, table_name, column_name, key_id,
-                 data_size, success, timestamp, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                operation_id,
-                operation_type,
-                table_name,
-                column_name,
-                key_id,
-                data_size,
-                success,
-                datetime.now(timezone.utc).isoformat(),
-                json.dumps({
-                    "operation_id": operation_id,
-                    "success": success
-                })
-            ))
-            await db.commit()
-
-    async def rotate_database_keys(self, force: bool = False) -> int:
-        """Rotate expired database keys."""
-        rotated_count = 0
-        current_time = datetime.now(timezone.utc)
-
-        for key_id, db_key in list(self.database_keys.items()):
-            should_rotate = force
-
-            if not should_rotate and db_key.expires_at:
-                should_rotate = current_time >= db_key.expires_at
-
-            if should_rotate:
-                await self._rotate_database_key(db_key)
-                rotated_count += 1
-
-        logger.info(f"🔄 Rotated {rotated_count} database keys")
-        return rotated_count
-
-    async def _rotate_database_key(self, old_key: DatabaseKey):
-        """Rotate a single database key."""
-        # Generate new key
-        new_key = await self._generate_database_key(old_key.classification, old_key.purpose)
-
-        # Update all columns using the old key
-        for column_key, column in self.encrypted_columns.items():
-            if column.key_id == old_key.key_id:
-                column.key_id = new_key.key_id
-                await self._save_encrypted_column(column)
-
-        # Mark old key as rotated
-        old_key.metadata["rotated_to"] = new_key.key_id
-        old_key.metadata["rotated_at"] = datetime.now(timezone.utc).isoformat()
-        await self._save_database_key(old_key)
-
-        # Remove old key from active keys
-        del self.database_keys[old_key.key_id]
-
-        logger.info(f"🔄 Rotated database key: {old_key.key_id} -> {new_key.key_id}")
-
-    async def get_encryption_status(self) -> Dict[str, Any]:
-        """Get overall database encryption status."""
-        total_columns = len(self.encrypted_columns)
-        total_keys = len(self.database_keys)
-
-        # Count by classification
-        classification_stats = {}
-        for classification in DataClassification:
-            columns = [c for c in self.encrypted_columns.values() if c.classification == classification]
-            keys = [k for k in self.database_keys.values() if k.classification == classification]
-
-            classification_stats[classification.name] = {
-                "encrypted_columns": len(columns),
-                "active_keys": len(keys),
-                "policy": self.classification_policies[classification]
-            }
-
-        # Check for expired keys
-        current_time = datetime.now(timezone.utc)
-        expired_keys = [
-            k for k in self.database_keys.values()
-            if k.expires_at and current_time >= k.expires_at
+            logger.error(f"Field decryption failed: {e}")
+            raise
+    
+    def encrypt_connection_string(self, connection_string: str) -> str:
+        """Encrypt database connection string."""
+        try:
+            encrypted = self.connection_cipher.encrypt(connection_string.encode())
+            return base64.urlsafe_b64encode(encrypted).decode()
+        except Exception as e:
+            logger.error(f"Connection string encryption failed: {e}")
+            raise
+    
+    def decrypt_connection_string(self, encrypted_connection: str) -> str:
+        """Decrypt database connection string."""
+        try:
+            decoded = base64.urlsafe_b64decode(encrypted_connection.encode())
+            decrypted = self.connection_cipher.decrypt(decoded)
+            return decrypted.decode()
+        except Exception as e:
+            logger.error(f"Connection string decryption failed: {e}")
+            raise
+    
+    def register_encrypted_field(self, table_name: str, field_name: str):
+        """Register a field for automatic encryption/decryption."""
+        self.encrypted_fields.add(f"{table_name}.{field_name}")
+        logger.info(f"Registered encrypted field: {table_name}.{field_name}")
+    
+    def setup_database_encryption(self, engine: Engine):
+        """Setup database-level encryption hooks."""
+        
+        @event.listens_for(engine, "before_cursor_execute")
+        def encrypt_sensitive_data(conn, cursor, statement, parameters, context, executemany):
+            """Encrypt sensitive data before database operations."""
+            if parameters and isinstance(parameters, dict):
+                for key, value in parameters.items():
+                    if self._is_sensitive_field(key) and isinstance(value, str):
+                        parameters[key] = self.encrypt_field(value)
+        
+        @event.listens_for(engine, "before_bulk_insert")
+        def encrypt_bulk_data(update_context):
+            """Encrypt data in bulk operations."""
+            if hasattr(update_context, 'values'):
+                for row in update_context.values:
+                    for key, value in row.items():
+                        if self._is_sensitive_field(key) and isinstance(value, str):
+                            row[key] = self.encrypt_field(value)
+        
+        logger.info("Database encryption hooks installed")
+    
+    def _is_sensitive_field(self, field_name: str) -> bool:
+        """Check if a field should be encrypted."""
+        sensitive_patterns = [
+            'password', 'token', 'secret', 'key', 'private',
+            'ssn', 'credit_card', 'bank_account', 'api_key',
+            'webhook_secret', 'bot_token', 'refresh_token'
         ]
+        
+        field_lower = field_name.lower()
+        return any(pattern in field_lower for pattern in sensitive_patterns)
 
+
+class DatabaseAtRestEncryption:
+    """Encryption for database files at rest."""
+    
+    def __init__(self, encryption_key: str):
+        """Initialize with encryption key."""
+        self.encryption_key = encryption_key
+        self.cipher = self._create_cipher()
+    
+    def _create_cipher(self) -> Fernet:
+        """Create cipher for file encryption."""
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=b'netlink_file_salt_v1',
+            iterations=100000,
+            backend=default_backend()
+        )
+        key = base64.urlsafe_b64encode(kdf.derive(self.encryption_key.encode()))
+        return Fernet(key)
+    
+    def encrypt_database_file(self, file_path: str, output_path: Optional[str] = None) -> str:
+        """Encrypt database file."""
+        output_path = output_path or f"{file_path}.encrypted"
+        
+        try:
+            with open(file_path, 'rb') as infile:
+                data = infile.read()
+            
+            encrypted_data = self.cipher.encrypt(data)
+            
+            with open(output_path, 'wb') as outfile:
+                outfile.write(encrypted_data)
+            
+            logger.info(f"Database file encrypted: {file_path} -> {output_path}")
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"Database file encryption failed: {e}")
+            raise
+    
+    def decrypt_database_file(self, encrypted_file_path: str, output_path: Optional[str] = None) -> str:
+        """Decrypt database file."""
+        output_path = output_path or encrypted_file_path.replace('.encrypted', '')
+        
+        try:
+            with open(encrypted_file_path, 'rb') as infile:
+                encrypted_data = infile.read()
+            
+            decrypted_data = self.cipher.decrypt(encrypted_data)
+            
+            with open(output_path, 'wb') as outfile:
+                outfile.write(decrypted_data)
+            
+            logger.info(f"Database file decrypted: {encrypted_file_path} -> {output_path}")
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"Database file decryption failed: {e}")
+            raise
+
+
+class EncryptedDatabaseManager:
+    """Database manager with comprehensive encryption support."""
+    
+    def __init__(self, master_key: Optional[str] = None):
+        """Initialize encrypted database manager."""
+        self.encryption = DatabaseEncryption(master_key)
+        self.at_rest_encryption = DatabaseAtRestEncryption(master_key or self.encryption.master_key)
+        self.encrypted_connections = {}
+    
+    def store_encrypted_connection(self, name: str, connection_string: str):
+        """Store encrypted connection string."""
+        encrypted = self.encryption.encrypt_connection_string(connection_string)
+        self.encrypted_connections[name] = encrypted
+        logger.info(f"Stored encrypted connection: {name}")
+    
+    def get_decrypted_connection(self, name: str) -> str:
+        """Retrieve and decrypt connection string."""
+        if name not in self.encrypted_connections:
+            raise ValueError(f"Connection '{name}' not found")
+        
+        encrypted = self.encrypted_connections[name]
+        return self.encryption.decrypt_connection_string(encrypted)
+    
+    def setup_engine_encryption(self, engine: Engine):
+        """Setup comprehensive encryption for database engine."""
+        self.encryption.setup_database_encryption(engine)
+        
+        # Register common sensitive fields
+        sensitive_fields = [
+            ("users_enhanced", "password_hash"),
+            ("users_enhanced", "bot_token"),
+            ("bot_accounts", "bot_token"),
+            ("bot_accounts", "bot_secret"),
+            ("bot_accounts", "webhook_secret"),
+            ("user_sessions", "session_token"),
+            ("user_sessions", "refresh_token"),
+        ]
+        
+        for table, field in sensitive_fields:
+            self.encryption.register_encrypted_field(table, field)
+    
+    def create_encrypted_backup(self, database_path: str, backup_path: str) -> str:
+        """Create encrypted database backup."""
+        return self.at_rest_encryption.encrypt_database_file(database_path, backup_path)
+    
+    def restore_encrypted_backup(self, backup_path: str, restore_path: str) -> str:
+        """Restore from encrypted database backup."""
+        return self.at_rest_encryption.decrypt_database_file(backup_path, restore_path)
+    
+    def get_encryption_status(self) -> Dict[str, Any]:
+        """Get encryption system status."""
         return {
-            "total_encrypted_columns": total_columns,
-            "total_database_keys": total_keys,
-            "expired_keys": len(expired_keys),
-            "classification_stats": classification_stats,
-            "encryption_policies": {
-                name: policy for name, policy in
-                [(c.name, self.classification_policies[c]) for c in DataClassification]
-            },
-            "last_updated": current_time.isoformat()
+            "field_encryption_enabled": True,
+            "connection_encryption_enabled": True,
+            "at_rest_encryption_enabled": True,
+            "encrypted_fields_count": len(self.encryption.encrypted_fields),
+            "encrypted_connections_count": len(self.encrypted_connections),
+            "master_key_set": bool(self.encryption.master_key),
+            "encryption_algorithm": "AES-256 (Fernet)",
+            "key_derivation": "PBKDF2-SHA256 (100k iterations)"
         }
 
-    async def backup_encryption_metadata(self, backup_path: str) -> bool:
-        """Create encrypted backup of encryption metadata."""
-        try:
-            backup_file = Path(backup_path)
-            backup_file.parent.mkdir(parents=True, exist_ok=True)
 
-            # Get backup key from distributed key manager
-            backup_key = await self.distributed_keys.get_domain_key(KeyDomain.BACKUP)
-            if not backup_key:
-                logger.error("Could not get backup key for metadata encryption")
-                return False
+# Data classification enum
+class DataClassification:
+    """Data classification levels."""
+    PUBLIC = "public"
+    INTERNAL = "internal"
+    CONFIDENTIAL = "confidential"
+    RESTRICTED = "restricted"
+    TOP_SECRET = "top_secret"
 
-            # Create backup data
-            backup_data = {
-                "encrypted_columns": {
-                    key: {
-                        "table_name": col.table_name,
-                        "column_name": col.column_name,
-                        "data_type": col.data_type,
-                        "classification": col.classification.value,
-                        "encryption_level": col.encryption_level.value,
-                        "key_id": col.key_id,
-                        "algorithm": col.algorithm,
-                        "created_at": col.created_at.isoformat(),
-                        "metadata": col.metadata
-                    }
-                    for key, col in self.encrypted_columns.items()
-                },
-                "database_keys": {
-                    key_id: {
-                        "purpose": key.purpose,
-                        "classification": key.classification.value,
-                        "algorithm": key.algorithm,
-                        "created_at": key.created_at.isoformat(),
-                        "expires_at": key.expires_at.isoformat() if key.expires_at else None,
-                        "rotation_count": key.rotation_count,
-                        "metadata": key.metadata
-                        # Note: key_data is not included in backup for security
-                    }
-                    for key_id, key in self.database_keys.items()
-                },
-                "backup_timestamp": datetime.now(timezone.utc).isoformat(),
-                "backup_version": "1.0"
-            }
-
-            # Encrypt backup data
-            backup_json = json.dumps(backup_data, indent=2)
-
-            # Use ChaCha20-Poly1305 for backup encryption
-            nonce = secrets.token_bytes(12)
-            cipher = ChaCha20Poly1305(backup_key[:32])  # Use first 32 bytes as key
-            encrypted_backup = cipher.encrypt(nonce, backup_json.encode('utf-8'), None)
-
-            # Write encrypted backup
-            final_backup = nonce + encrypted_backup
-            async with aiofiles.open(backup_file, 'wb') as f:
-                await f.write(final_backup)
-
-            logger.info(f"📦 Created encrypted metadata backup: {backup_path}")
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to create metadata backup: {e}")
-            return False
-
-    async def is_column_encrypted(self, table_name: str, column_name: str) -> bool:
-        """Check if a column is configured for encryption."""
-        column_key = f"{table_name}.{column_name}"
-        return column_key in self.encrypted_columns
-
-    async def get_column_classification(self, table_name: str, column_name: str) -> Optional[DataClassification]:
-        """Get the data classification for a column."""
-        column_key = f"{table_name}.{column_name}"
-        if column_key in self.encrypted_columns:
-            return self.encrypted_columns[column_key].classification
-        return None
+# Global encryption manager instance
+encryption_manager = EncryptedDatabaseManager()
+database_encryption = encryption_manager
 
 
-# Enhanced encryption algorithm implementations for the existing class
-async def _aes_gcm_encrypt_enhanced(self, data: bytes, key: DatabaseKey, context: EncryptionContext) -> bytes:
-    """Enhanced AES-256-GCM encryption with context."""
-    # Generate random nonce
-    nonce = secrets.token_bytes(12)
+def get_encryption_manager() -> EncryptedDatabaseManager:
+    """Get global encryption manager instance."""
+    return encryption_manager
 
-    # Create cipher with proper key derivation
-    if len(key.key_data) != 32:  # AES-256 requires 32-byte key
-        derived_key = self._derive_key_enhanced(key.key_data, context, 32)
-    else:
-        derived_key = key.key_data
 
-    aesgcm = AESGCM(derived_key)
-
-    # Create additional authenticated data (AAD) from context
-    aad = self._create_aad_enhanced(context)
-
-    # Encrypt data
-    ciphertext = aesgcm.encrypt(nonce, data, aad)
-
-    # Update key usage if tracking is enabled
-    if hasattr(key, 'usage_count'):
-        key.usage_count += 1
-
-    # Return nonce + ciphertext
-    return nonce + ciphertext
-
-def _derive_key_enhanced(self, master_key: bytes, context: EncryptionContext, key_length: int, salt_suffix: str = "") -> bytes:
-    """Derive encryption key from master key and context."""
-    # Create salt from context
-    salt_data = f"{getattr(context, 'tenant_id', 'default')}:{getattr(context, 'operation_type', 'unknown')}:{salt_suffix}"
-    salt = hashlib.sha256(salt_data.encode()).digest()[:16]
-
-    # Use PBKDF2 for key derivation
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=key_length,
-        salt=salt,
-        iterations=100000,
-        backend=default_backend()
-    )
-
-    return kdf.derive(master_key)
-
-def _create_aad_enhanced(self, context: EncryptionContext) -> bytes:
-    """Create Additional Authenticated Data from context."""
-    aad_data = {
-        "tenant_id": getattr(context, 'tenant_id', 'default'),
-        "operation_type": getattr(context, 'operation_type', 'unknown'),
-        "classification": getattr(context, 'classification', 'INTERNAL'),
-        "algorithm": getattr(context, 'algorithm', 'AES_256_GCM')
-    }
-
-    return json.dumps(aad_data, sort_keys=True).encode()
-
-# Add enhanced methods to the existing DatabaseEncryption class
-DatabaseEncryption._aes_gcm_encrypt_enhanced = _aes_gcm_encrypt_enhanced
-DatabaseEncryption._derive_key_enhanced = _derive_key_enhanced
-DatabaseEncryption._create_aad_enhanced = _create_aad_enhanced
-
-# Global database encryption system instance
-database_encryption = DatabaseEncryption()
-
-def get_database_encryption() -> DatabaseEncryption:
-    """Get the global database encryption instance."""
-    return database_encryption
+def setup_database_encryption(engine: Engine, master_key: Optional[str] = None):
+    """Setup database encryption for an engine."""
+    global encryption_manager
+    if master_key:
+        encryption_manager = EncryptedDatabaseManager(master_key)
+    
+    encryption_manager.setup_engine_encryption(engine)
+    logger.info("Database encryption setup completed")
