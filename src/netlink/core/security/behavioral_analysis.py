@@ -14,7 +14,12 @@ from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict, deque
-import numpy as np
+# Optional import for advanced behavioral analysis
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
@@ -135,6 +140,12 @@ class BehavioralAnalyzer:
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize behavioral analyzer."""
+        if not HAS_NUMPY:
+            logger.warning("NumPy not available - advanced behavioral analysis disabled")
+            self.enabled = False
+        else:
+            self.enabled = True
+
         self.config = config or {}
         
         # Behavior profiles

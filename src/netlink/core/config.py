@@ -133,7 +133,7 @@ class NetLinkConfig(BaseSettings):
     """Main NetLink configuration."""
     # Application info
     app_name: str = Field(default="NetLink", description="Application name")
-    version: str = Field(default="3.0.0", description="Application version")
+    version: str = Field(default="a.1.0-1", description="Application version (new format: letter.major.minor-build)")
     environment: str = Field(default="development", description="Environment (development/staging/production)")
     debug: bool = Field(default=False, description="Enable debug mode")
     

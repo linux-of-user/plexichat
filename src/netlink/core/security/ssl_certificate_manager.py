@@ -17,7 +17,12 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-import OpenSSL
+# Optional import for full SSL functionality
+try:
+    import OpenSSL
+    HAS_OPENSSL = True
+except ImportError:
+    HAS_OPENSSL = False
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
@@ -103,6 +108,12 @@ class SSLCertificateManager:
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize SSL certificate manager."""
+        if not HAS_OPENSSL:
+            logger.warning("OpenSSL not available - SSL certificate management disabled")
+            self.enabled = False
+        else:
+            self.enabled = True
+
         self.config = config or {}
         self.certificates: Dict[str, Certificate] = {}
         

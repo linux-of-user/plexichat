@@ -182,3 +182,5 @@ docker-compose.override.yml
 /metrics/
 /exports/
 version.json
+default_creds.txt
+

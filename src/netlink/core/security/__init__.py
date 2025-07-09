@@ -42,7 +42,7 @@ from .oauth_provider import OAuthProvider, oauth_provider
 from .input_sanitization import InputSanitizer, input_sanitizer
 from .rate_limiting import RateLimiter, rate_limiter
 from .behavioral_analysis import BehavioralAnalyzer, behavioral_analyzer
-from .security_monitoring import SecurityMonitor, security_monitor_enhanced
+from .security_monitoring import SecurityMonitor, security_monitor
 from .vulnerability_scanner import VulnerabilityScanner, vulnerability_scanner
 
 __version__ = "4.0.0"

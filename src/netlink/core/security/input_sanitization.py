@@ -13,7 +13,12 @@ import logging
 from typing import Any, Dict, List, Optional, Union, Set
 from dataclasses import dataclass
 from enum import Enum
-import bleach
+# Optional import for HTML sanitization
+try:
+    import bleach
+    HAS_BLEACH = True
+except ImportError:
+    HAS_BLEACH = False
 from markupsafe import Markup
 
 logger = logging.getLogger(__name__)
@@ -213,16 +218,23 @@ class InputSanitizer:
             if re.search(pattern, value, re.IGNORECASE):
                 threats.append(f"XSS pattern detected: {pattern}")
         
-        # Use bleach for HTML sanitization
-        sanitized = bleach.clean(
-            value,
-            tags=self.allowed_html_tags,
-            attributes=self.allowed_html_attributes,
-            strip=True
-        )
-        
-        if sanitized != value:
-            applied.append("html_tag_filtering")
+        # Use bleach for HTML sanitization if available
+        if HAS_BLEACH:
+            sanitized = bleach.clean(
+                value,
+                tags=self.allowed_html_tags,
+                attributes=self.allowed_html_attributes,
+                strip=True
+            )
+
+            if sanitized != value:
+                applied.append("html_tag_filtering")
+        else:
+            # Basic HTML tag removal if bleach not available
+            import re
+            sanitized = re.sub(r'<[^>]+>', '', value)
+            if sanitized != value:
+                applied.append("basic_html_tag_removal")
         
         # Additional HTML entity encoding
         sanitized = html.escape(sanitized, quote=True)

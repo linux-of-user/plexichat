@@ -11,13 +11,24 @@ import hashlib
 import secrets
 import hmac
 import base64
-import qrcode
 import io
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
-import pyotp
+
+# Optional imports for full functionality
+try:
+    import qrcode
+    HAS_QRCODE = True
+except ImportError:
+    HAS_QRCODE = False
+
+try:
+    import pyotp
+    HAS_PYOTP = True
+except ImportError:
+    HAS_PYOTP = False
 import bcrypt
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -249,48 +260,61 @@ class AdvancedAuthenticationSystem:
     
     async def generate_totp_secret(self, user_id: str) -> Tuple[str, str]:
         """Generate TOTP secret and QR code for a user."""
+        if not HAS_PYOTP:
+            logger.warning("TOTP functionality not available - pyotp not installed")
+            raise ImportError("pyotp required for TOTP functionality")
+
         try:
             # Generate secret
             secret = pyotp.random_base32()
-            
+
             # Create TOTP URI
             totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
                 name=user_id,
                 issuer_name="NetLink"
             )
-            
-            # Generate QR code
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(totp_uri)
-            qr.make(fit=True)
-            
-            img = qr.make_image(fill_color="black", back_color="white")
-            img_buffer = io.BytesIO()
-            img.save(img_buffer, format='PNG')
-            qr_code_data = base64.b64encode(img_buffer.getvalue()).decode()
-            
+
+            # Generate QR code if available
+            qr_code_data = ""
+            if HAS_QRCODE:
+                qr = qrcode.QRCode(version=1, box_size=10, border=5)
+                qr.add_data(totp_uri)
+                qr.make(fit=True)
+
+                img = qr.make_image(fill_color="black", back_color="white")
+                img_buffer = io.BytesIO()
+                img.save(img_buffer, format='PNG')
+                qr_code_data = base64.b64encode(img_buffer.getvalue()).decode()
+            else:
+                logger.warning("QR code generation not available - qrcode not installed")
+                qr_code_data = f"Manual entry: {secret}"
+
             logger.info(f"✅ Generated TOTP secret for user: {user_id}")
             return secret, qr_code_data
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to generate TOTP secret for {user_id}: {e}")
             raise
     
     async def verify_totp(self, user_id: str, totp_code: str) -> bool:
         """Verify TOTP code for a user."""
+        if not HAS_PYOTP:
+            logger.warning("TOTP functionality not available - pyotp not installed")
+            return False
+
         try:
             user_credentials = self.credentials.get(user_id, [])
             totp_credentials = [c for c in user_credentials if c.method == AuthenticationMethod.TOTP and c.is_active]
-            
+
             for credential in totp_credentials:
                 secret = credential.credential_data.decode()
                 totp = pyotp.TOTP(secret)
-                
+
                 if totp.verify(totp_code, valid_window=1):  # Allow 1 window tolerance
                     return True
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ TOTP verification failed for {user_id}: {e}")
             return False

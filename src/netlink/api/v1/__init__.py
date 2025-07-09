@@ -1,18 +1,18 @@
 """
-NetLink API v2
+NetLink API v1
 
-Enhanced API endpoints with improved performance, new features, and modern design patterns.
-This version introduces advanced capabilities while maintaining backward compatibility.
+Core API endpoints with essential functionality and robust security.
+This is the stable API version providing all fundamental NetLink features.
 
-New Features in v2:
-- GraphQL support alongside REST
-- Enhanced real-time capabilities with WebSocket
-- Advanced AI integration
-- Improved batch operations
-- Enhanced security with zero-knowledge protocols
-- Advanced analytics and reporting
-- Plugin marketplace integration
-- Multi-tenant support
+Features in v1:
+- RESTful API design
+- Real-time capabilities with WebSocket
+- Core AI integration
+- Comprehensive security
+- User and message management
+- File handling and backup
+- Plugin system
+- Administrative functions
 """
 
 import logging
@@ -33,10 +33,10 @@ logger = logging.getLogger(__name__)
 # Security scheme
 security = HTTPBearer()
 
-# Main v2 router
-v2_router = APIRouter(
-    prefix="/v2",
-    tags=["v2"],
+# Main v1 router
+v1_router = APIRouter(
+    prefix="/v1",
+    tags=["v1"],
     responses={
         401: {"description": "Unauthorized"},
         403: {"description": "Forbidden"},
@@ -46,29 +46,28 @@ v2_router = APIRouter(
     }
 )
 
-# API endpoint categories with v2 enhancements
+# API endpoint categories for v1
 ENDPOINT_CATEGORIES = {
-    "auth": "Enhanced authentication with biometric and zero-knowledge support",
-    "users": "Advanced user management with profiles and analytics",
-    "messages": "Real-time messaging with AI features and collaboration",
-    "files": "Advanced file management with versioning and collaboration",
-    "admin": "Enhanced administrative functions with automation",
-    "backup": "Intelligent backup with AI-powered optimization",
-    "security": "Advanced security monitoring with threat intelligence",
-    "plugins": "Plugin marketplace with automated management",
-    "system": "Comprehensive system monitoring and analytics",
-    "ai": "AI-powered features and model management",
-    "collaboration": "Real-time collaboration tools",
-    "analytics": "Advanced analytics and reporting",
-    "webhooks": "Webhook management and automation",
-    "graphql": "GraphQL endpoint for flexible queries"
+    "auth": "Authentication and authorization",
+    "users": "User management and profiles",
+    "messages": "Messaging and communication",
+    "files": "File management and sharing",
+    "admin": "Administrative functions",
+    "backup": "Backup and recovery",
+    "security": "Security monitoring and controls",
+    "plugins": "Plugin management",
+    "system": "System monitoring and configuration",
+    "ai": "AI-powered features",
+    "collaboration": "Collaboration tools",
+    "analytics": "Analytics and reporting",
+    "webhooks": "Webhook management"
 }
 
 # Version information
 API_VERSION_INFO = {
-    "version": "2.0.0",
-    "release_date": "2024-06-01",
-    "status": "stable",
+    "version": "a.1.0-1",
+    "release_date": "2025-07-09",
+    "status": "alpha",
     "deprecation_date": None,
     "end_of_life_date": None,
     "features": [
@@ -98,13 +97,13 @@ API_VERSION_INFO = {
     }
 }
 
-@v2_router.get("/",
-               summary="API v2 Information",
-               description="Get information about API version 2 with enhanced features")
+@v1_router.get("/",
+               summary="API v1 Information",
+               description="Get information about API version 1")
 async def get_api_info():
-    """Get API v2 information and capabilities."""
+    """Get API v1 information and capabilities."""
     return {
-        "api_version": "v2",
+        "api_version": "v1",
         "info": API_VERSION_INFO,
         "endpoints": ENDPOINT_CATEGORIES,
         "timestamp": datetime.utcnow().isoformat(),

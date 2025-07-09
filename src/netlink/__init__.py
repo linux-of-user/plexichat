@@ -21,16 +21,13 @@ Enterprise Architecture:
 - Tests: Comprehensive testing framework
 """
 
-__version__ = "0a1"
+# Unified Version System - Single Source of Truth
+__version__ = "a.1.0-1"
+__version_info__ = ("a", 1, 0, 1)  # (letter, major, minor, build)
 __build__ = "enterprise-quantum"
 __author__ = "NetLink Development Team"
 __description__ = "Government-level secure communication platform with enterprise architecture, quantum encryption, and advanced features"
 __url__ = "https://github.com/linux-of-user/netlink"
-
-# Unified Version System - Single Source of Truth
-__version__ = "1.0.0-alpha.1"
-__version_info__ = (1, 0, 0, "alpha", 1)
-__build__ = "enterprise-quantum"
 
 # Import version management system
 try:
@@ -73,14 +70,23 @@ def get_version_info():
     except ImportError:
         pass
 
-    # Fallback version info
+    # Fallback version info using new format
+    version_parts = __version__.split('.')
+    letter = version_parts[0][0] if version_parts else "a"
+    major = int(version_parts[0][2:]) if len(version_parts[0]) > 2 else 1
+    minor = int(version_parts[1]) if len(version_parts) > 1 else 0
+    build_part = version_parts[2].split('-') if len(version_parts) > 2 else ["1"]
+    build_num = int(build_part[1]) if len(build_part) > 1 else 1
+
     return {
         "version": __version__,
-        "major": 0,
-        "type": "a",
-        "minor": 1,
+        "letter": letter,
+        "major": major,
+        "minor": minor,
+        "build_number": build_num,
         "build": __build__,
-        "status": "development"
+        "api_version": f"v{major}",
+        "status": "alpha" if letter == "a" else "beta" if letter == "b" else "release"
     }
 
 # Export main components (lazy imports to avoid circular dependencies)
