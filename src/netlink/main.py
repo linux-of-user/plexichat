@@ -37,15 +37,20 @@ except ImportError as e:
     logging.warning(f"⚠️ SSL Manager not available: {e}")
     ssl_manager = None
 
-# AI Abstraction Layer
+# AI Abstraction Layer (Optional - Full Install Only)
 try:
     from .ai.core.ai_abstraction_layer import AIAbstractionLayer
     from .ai.api.ai_endpoints import router as ai_api_router
     from .ai.webui.ai_management import router as ai_webui_router
     ai_layer = AIAbstractionLayer()
-    logging.info("✅ AI Abstraction Layer loaded")
+    logging.info("✅ AI Abstraction Layer loaded (Full Install)")
 except ImportError as e:
-    logging.warning(f"⚠️ AI Abstraction Layer not available: {e}")
+    logging.info("ℹ️ AI features not available (requires full installation)")
+    ai_layer = None
+    ai_api_router = None
+    ai_webui_router = None
+except Exception as e:
+    logging.warning(f"⚠️ AI Abstraction Layer failed to initialize: {e}")
     ai_layer = None
     ai_api_router = None
     ai_webui_router = None

@@ -9,8 +9,15 @@ import logging
 from typing import Dict, List, Optional, Any, AsyncGenerator
 from dataclasses import dataclass
 import aiohttp
-import openai
-from openai import AsyncOpenAI
+
+try:
+    import openai
+    from openai import AsyncOpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    openai = None
+    AsyncOpenAI = None
 
 from .base_provider import BaseAIProvider, AIRequest, AIResponse, ProviderConfig, ProviderStatus
 
@@ -49,6 +56,11 @@ class OpenAIProvider(BaseAIProvider):
     
     def _initialize_client(self):
         """Initialize the OpenAI client."""
+        if not OPENAI_AVAILABLE:
+            logger.error("OpenAI package not available - install with: pip install openai")
+            self.status = ProviderStatus.ERROR
+            return
+
         try:
             self.client = AsyncOpenAI(
                 api_key=self.config.api_key,
