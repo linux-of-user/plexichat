@@ -1,17 +1,26 @@
 """
-NetLink Main Application Factory
+NetLink Main Application
+Government-Level Secure Communication Platform
 
-Creates and configures the main NetLink application with all features.
+Unified main application that consolidates all NetLink functionality
+into a single, cohesive FastAPI application with comprehensive features.
 """
 
+import asyncio
+import time
+import ssl
+import os
 import logging
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
-from pathlib import Path
-import yaml
 from datetime import datetime
+from pathlib import Path
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+import uvicorn
+import yaml
 
 # Import configuration
 from .core.config import get_config
@@ -19,17 +28,36 @@ from .core.config import get_config
 # Import advanced logging
 from .core.logging.advanced_logger import get_advanced_logger, setup_module_logging
 
-# Import API routers (with fallback)
+# SSL/Certificate Management
 try:
-    from .api.v1.router import router as v1_router
-except ImportError:
-    # Create a fallback router if API module not available
-    from fastapi import APIRouter
-    v1_router = APIRouter(prefix="/api/v1")
+    from .core.security.ssl_manager import ComprehensiveSSLManager
+    ssl_manager = ComprehensiveSSLManager()
+    logging.info("✅ SSL Manager loaded")
+except ImportError as e:
+    logging.warning(f"⚠️ SSL Manager not available: {e}")
+    ssl_manager = None
 
-    @v1_router.get("/health")
-    async def health_check():
-        return {"status": "healthy", "message": "NetLink API v1 fallback"}
+# AI Abstraction Layer
+try:
+    from .ai.core.ai_abstraction_layer import AIAbstractionLayer
+    from .ai.api.ai_endpoints import router as ai_api_router
+    from .ai.webui.ai_management import router as ai_webui_router
+    ai_layer = AIAbstractionLayer()
+    logging.info("✅ AI Abstraction Layer loaded")
+except ImportError as e:
+    logging.warning(f"⚠️ AI Abstraction Layer not available: {e}")
+    ai_layer = None
+    ai_api_router = None
+    ai_webui_router = None
+
+# Clustering System
+try:
+    from .clustering import AdvancedClusterManager
+    cluster_manager = AdvancedClusterManager()
+    logging.info("✅ Advanced Clustering System loaded")
+except ImportError as e:
+    logging.warning(f"⚠️ Advanced Clustering System not available: {e}")
+    cluster_manager = None
 
 # Import security middleware (with fallback)
 try:
@@ -48,14 +76,98 @@ except ImportError:
         async def __call__(self, scope, receive, send):
             return await self.app(scope, receive, send)
 
-# Import component managers (lazy loading to avoid hanging)
-# from .security.auth import auth_manager
-# from .backups.manager import backup_manager
-# from .core.database import database_manager
+# Create necessary directories
+Path("logs").mkdir(exist_ok=True)
+Path("data").mkdir(exist_ok=True)
+Path("config").mkdir(exist_ok=True)
+Path("certs").mkdir(exist_ok=True)
 
-# Initialize advanced logging
-def initialize_logging():
-    """Initialize the advanced logging system."""
+# SSL Configuration
+SSL_CONFIG = {
+    "enabled": os.getenv("NETLINK_HTTPS_ENABLED", "false").lower() == "true",
+    "port": int(os.getenv("NETLINK_HTTPS_PORT", "443")),
+    "cert_path": os.getenv("NETLINK_SSL_CERT", "certs/server.crt"),
+    "key_path": os.getenv("NETLINK_SSL_KEY", "certs/server.key"),
+    "domain": os.getenv("NETLINK_DOMAIN", "localhost"),
+    "email": os.getenv("NETLINK_EMAIL", ""),
+    "use_letsencrypt": os.getenv("NETLINK_USE_LETSENCRYPT", "false").lower() == "true",
+    "auto_redirect": os.getenv("NETLINK_AUTO_REDIRECT_HTTPS", "true").lower() == "true"
+}
+
+# Pydantic models for API
+class Message(BaseModel):
+    id: Optional[int] = None
+    content: str
+    author: str
+    timestamp: Optional[str] = None
+
+class User(BaseModel):
+    id: Optional[int] = None
+    username: str
+    email: Optional[str] = None
+
+class TestResult(BaseModel):
+    test_name: str
+    status: str
+    duration_ms: float
+    message: Optional[str] = None
+
+# In-memory storage (for testing)
+messages = []
+users = []
+test_results = []
+
+# SSL Context
+ssl_context = None
+
+async def initialize_ssl():
+    """Initialize SSL/TLS configuration."""
+    global ssl_context
+
+    if not SSL_CONFIG["enabled"]:
+        logging.info("🔓 HTTPS disabled - running in HTTP mode")
+        return None
+
+    if not ssl_manager:
+        logging.error("❌ SSL Manager not available - cannot enable HTTPS")
+        return None
+
+    try:
+        logging.info("🔐 Initializing HTTPS/SSL...")
+
+        # Initialize SSL manager
+        result = await ssl_manager.initialize(SSL_CONFIG)
+
+        if result.get("ssl_enabled"):
+            ssl_context = result.get("ssl_context")
+            logging.info("✅ HTTPS/SSL initialized successfully")
+
+            # Setup automatic certificate management
+            if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
+                await ssl_manager.setup_automatic_https(
+                    domain=SSL_CONFIG["domain"],
+                    email=SSL_CONFIG["email"],
+                    domain_type="custom"
+                )
+            else:
+                # Use self-signed certificate
+                await ssl_manager.setup_automatic_https(
+                    domain=SSL_CONFIG["domain"],
+                    domain_type="localhost"
+                )
+
+            return ssl_context
+        else:
+            logging.error("❌ Failed to initialize SSL/TLS")
+            return None
+
+    except Exception as e:
+        logging.error(f"❌ SSL initialization failed: {e}")
+        return None
+
+# Initialize unified logging system
+def initialize_unified_logging():
+    """Initialize the unified logging system that consolidates all logging approaches."""
     try:
         # Load logging configuration
         config_file = Path("config/logging.yaml")
@@ -67,26 +179,161 @@ def initialize_logging():
                 "global": {
                     "log_level": "INFO",
                     "console_enabled": True,
-                    "file_enabled": True
+                    "file_enabled": True,
+                    "log_directory": "logs"
                 }
             }
 
-        # Initialize advanced logger
+        # Ensure logs directory exists
+        log_dir = Path(logging_config.get("global", {}).get("log_directory", "logs"))
+        log_dir.mkdir(exist_ok=True)
+
+        # Create subdirectories for different log types
+        (log_dir / "performance").mkdir(exist_ok=True)
+        (log_dir / "security").mkdir(exist_ok=True)
+        (log_dir / "audit").mkdir(exist_ok=True)
+        (log_dir / "crashes").mkdir(exist_ok=True)
+
+        # Initialize advanced logger (consolidates multiple logging systems)
         advanced_logger = get_advanced_logger(logging_config.get("global", {}))
 
-        # Setup module logging
-        modules_config = logging_config.get("modules", {})
+        # Setup module logging with proper levels
+        modules_config = logging_config.get("modules", {
+            "netlink.main": "INFO",
+            "netlink.api": "INFO",
+            "netlink.security": "DEBUG",
+            "netlink.performance": "INFO",
+            "netlink.cli": "DEBUG"
+        })
+
         for module, level in modules_config.items():
             setup_module_logging(module, level)
 
+        # Generate initial startup logs
+        startup_logger = logging.getLogger("netlink.startup")
+        startup_logger.info("🚀 NetLink unified logging system initialized")
+        startup_logger.info(f"📁 Log directory: {log_dir}")
+        startup_logger.info(f"📊 Log level: {logging_config.get('global', {}).get('log_level', 'INFO')}")
+        startup_logger.info("✅ All logging subsystems consolidated and active")
+
         return True
     except Exception as e:
-        print(f"Failed to initialize advanced logging: {e}")
+        print(f"Failed to initialize unified logging: {e}")
         return False
 
-# Initialize logging system
-initialize_logging()
+# Initialize unified logging system
+initialize_unified_logging()
 logger = setup_module_logging(__name__, "INFO")
+
+
+def _load_web_routers(app: FastAPI):
+    """Load routers from the consolidated web/routers directory."""
+    logger.info("🔄 Loading web routers...")
+
+    # Load routers from web/routers (new consolidated location)
+    router_modules = [
+        ("web.routers.auth", "router"),
+        ("web.routers.users", "router"),
+        ("web.routers.messages", "router"),
+        ("web.routers.files", "router"),
+        ("web.routers.admin", "router"),
+        ("web.routers.status", "router"),
+        ("web.routers.system", "router"),
+        ("web.routers.websocket", "router"),
+        ("web.routers.webhooks", "router"),
+        ("web.routers.cluster", "router"),
+        ("web.routers.database_setup", "router"),
+        ("web.routers.file_management", "router"),
+        ("web.routers.login", "router"),
+        ("web.routers.messaging_websocket_router", "router"),
+        ("web.routers.server_management", "router"),
+        ("web.routers.web", "router"),
+    ]
+
+    for module_path, router_name in router_modules:
+        try:
+            module = __import__(f"netlink.{module_path}", fromlist=[router_name])
+            router = getattr(module, router_name, None)
+            if router:
+                app.include_router(router)
+                logger.info(f"✅ {module_path} router loaded")
+        except ImportError as e:
+            logger.debug(f"⚠️ {module_path} not available: {e}")
+        except Exception as e:
+            logger.warning(f"❌ Failed to load {module_path}: {e}")
+
+
+def _load_api_routers(app: FastAPI):
+    """Load API routers from the api directory."""
+    logger.info("🔄 Loading API routers...")
+
+    # API v1 routers
+    api_v1_modules = [
+        ("api.v1.router", "router"),
+        ("api.v1.auth", "router"),
+        ("api.v1.users", "router"),
+        ("api.v1.messages", "router"),
+        ("api.v1.files", "router"),
+        ("api.v1.admin", "router"),
+        ("api.v1.moderation", "router"),
+        ("api.v1.security", "router"),
+        ("api.v1.plugins", "router"),
+        ("api.v1.rate_limits", "router"),
+        ("api.v1.permissions", "router"),
+        ("api.v1.testing", "router"),
+        ("api.v1.theming", "router"),
+        ("api.v1.social", "router"),
+    ]
+
+    for module_path, router_name in api_v1_modules:
+        try:
+            module = __import__(f"netlink.{module_path}", fromlist=[router_name])
+            router = getattr(module, router_name, None)
+            if router:
+                app.include_router(router)
+                logger.info(f"✅ API {router_name} loaded from {module_path}")
+        except ImportError as e:
+            logger.debug(f"⚠️ {module_path} not available: {e}")
+        except Exception as e:
+            logger.warning(f"❌ Failed to load {module_path}: {e}")
+
+
+def _load_specialized_routers(app: FastAPI):
+    """Load specialized routers (AI, clustering, etc.)."""
+    logger.info("🔄 Loading specialized routers...")
+
+    # AI routers
+    if ai_api_router:
+        app.include_router(ai_api_router)
+        logger.info("✅ AI API endpoints registered")
+
+    if ai_webui_router:
+        app.include_router(ai_webui_router)
+        logger.info("✅ AI WebUI endpoints registered")
+
+    # Clustering routers
+    try:
+        from .clustering.api import router as clustering_router
+        app.include_router(clustering_router)
+        logger.info("✅ Clustering API router loaded")
+    except ImportError:
+        logger.debug("⚠️ Clustering API router not available")
+
+    # Backup system routers
+    try:
+        from .backup.api import router as backup_router
+        app.include_router(backup_router)
+        logger.info("✅ Backup API router loaded")
+    except ImportError:
+        logger.debug("⚠️ Backup API router not available")
+
+    # Security routers
+    try:
+        from .security.api import router as security_router
+        app.include_router(security_router)
+        logger.info("✅ Security API router loaded")
+    except ImportError:
+        logger.debug("⚠️ Security API router not available")
 
 
 def create_app() -> FastAPI:
@@ -98,15 +345,15 @@ def create_app() -> FastAPI:
 
     # Create FastAPI app
     app = FastAPI(
-        title=config.app_name,
-        version=config.version,
+        title="NetLink v3.0",
+        version="3.0.0",
         description="Government-Level Secure Communication Platform",
         debug=config.debug,
         docs_url="/docs" if config.debug else None,
         redoc_url="/redoc" if config.debug else None
     )
     logger.info("✅ FastAPI application created")
-    
+
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -115,7 +362,25 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
+    # HTTPS Redirect Middleware
+    @app.middleware("http")
+    async def https_redirect_middleware(request: Request, call_next):
+        """Redirect HTTP to HTTPS if auto_redirect is enabled."""
+        if (SSL_CONFIG["enabled"] and SSL_CONFIG["auto_redirect"] and
+            request.url.scheme == "http" and not request.url.hostname in ["localhost", "127.0.0.1"]):
+
+            # Redirect to HTTPS
+            https_url = request.url.replace(scheme="https", port=SSL_CONFIG["port"])
+            return JSONResponse(
+                status_code=301,
+                headers={"Location": str(https_url)},
+                content={"message": "Redirecting to HTTPS", "location": str(https_url)}
+            )
+
+        response = await call_next(request)
+        return response
+
     # Add security middleware (with error handling)
     try:
         app.add_middleware(SecurityMiddleware)
@@ -124,17 +389,35 @@ def create_app() -> FastAPI:
     except Exception as e:
         logger.warning(f"⚠️ Security middleware failed to load: {e}")
     
-    # Include API routers
+    # Load all routers using the new consolidated approach
+    _load_web_routers(app)
+    _load_api_routers(app)
+    _load_specialized_routers(app)
+
+    # Mount static files from multiple locations
     try:
-        app.include_router(v1_router)
-        logger.info("✅ API v1 router loaded")
+        # Mount from web/static (new consolidated location)
+        web_static_path = Path("src/netlink/web/static")
+        if web_static_path.exists():
+            app.mount("/static", StaticFiles(directory=str(web_static_path)), name="static")
+            logger.info("✅ Web static files mounted from web/static")
+        else:
+            # Fallback to old static location
+            static_dir = Path("src/netlink/static")
+            if static_dir.exists():
+                app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+                logger.info("✅ Static files mounted from legacy location")
     except Exception as e:
-        logger.warning(f"⚠️ API v1 router failed to load: {e}")
-    
-    # Mount static files
-    static_dir = Path("src/netlink/static")
-    if static_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        logger.warning(f"⚠️ Static files failed to mount: {e}")
+
+    # Add basic routes
+    @app.get("/")
+    async def root():
+        return {"message": "NetLink Government-Level Secure Communication Platform", "version": "3.0.0"}
+
+    @app.get("/health")
+    async def health_check():
+        return {"status": "healthy", "timestamp": datetime.now().isoformat()}
     
     # Add startup and shutdown events
     @app.on_event("startup")

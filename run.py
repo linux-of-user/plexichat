@@ -21,6 +21,9 @@ import time
 import json
 import secrets
 import string
+import shlex
+import signal
+import atexit
 from pathlib import Path
 from datetime import datetime
 
@@ -55,10 +58,11 @@ def get_version_info():
         if VERSION_FILE.exists():
             with open(VERSION_FILE, 'r') as f:
                 version_data = json.load(f)
-                return version_data.get("current_version", "r.1.0-1")
-        return "r.1.0-1"  # Default version
+                version = version_data.get("current_version", "a.1.1-1")
+                return version
+        return "a.1.1-1"  # Default version
     except Exception:
-        return "r.1.0-1"
+        return "a.1.1-1"
 
 
 def update_version_format():
@@ -68,14 +72,14 @@ def update_version_format():
             with open(VERSION_FILE, 'r') as f:
                 version_data = json.load(f)
 
-            current = version_data.get("current_version", "1.0.0-alpha.1")
+            current = version_data.get("current_version", "a.1.1-1")
 
-            # Convert old format to new format
+            # Convert old format to new format (letter.major.minor-build)
             if not current.startswith(('r.', 'a.', 'b.')):
-                if "alpha" in current:
-                    new_version = "a.1.0-1"
-                elif "beta" in current:
-                    new_version = "b.1.0-1"
+                if "alpha" in current or "1a" in current:
+                    new_version = "a.1.1-1"
+                elif "beta" in current or "1b" in current:
+                    new_version = "b.1.1-1"
                 else:
                     new_version = "r.1.0-1"
 
@@ -419,6 +423,76 @@ def start_log_monitor():
     return log_thread
 
 
+def start_log_generator():
+    """Start a thread that generates realistic log entries for demonstration."""
+    def generate_logs():
+        log_dir = ROOT / "logs"
+        log_files = {
+            "latest": log_dir / "latest.log",
+            "netlink": log_dir / "netlink.log",
+            "errors": log_dir / "errors.log"
+        }
+
+        # Ensure all log files exist
+        for log_file in log_files.values():
+            if not log_file.exists():
+                log_file.touch()
+
+        log_messages = [
+            ("INFO", "netlink.api", "📡 API endpoint /health accessed"),
+            ("INFO", "netlink.auth", "🔐 User authentication successful"),
+            ("DEBUG", "netlink.database", "🗄️ Database query executed in 45ms"),
+            ("INFO", "netlink.backup", "💾 Backup process completed successfully"),
+            ("INFO", "netlink.security", "🔒 Security scan completed successfully"),
+            ("INFO", "netlink.performance", "📊 System performance metrics collected"),
+            ("DEBUG", "netlink.cli", "🖥️ CLI command executed: status"),
+            ("INFO", "netlink.websocket", "🔌 WebSocket connection established"),
+            ("INFO", "netlink.ai", "🤖 AI model inference completed"),
+            ("DEBUG", "netlink.clustering", "🌐 Cluster health check passed"),
+        ]
+
+        counter = 0
+        while True:
+            try:
+                # Generate a log entry every 3-8 seconds
+                time.sleep(3 + (counter % 5))
+
+                level, module, message = log_messages[counter % len(log_messages)]
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+                log_entry = f"[{timestamp}] [{level:8}] {module}: {message}\n"
+
+                # Write to appropriate log files
+                with open(log_files["latest"], 'a', encoding='utf-8') as f:
+                    f.write(log_entry)
+
+                with open(log_files["netlink"], 'a', encoding='utf-8') as f:
+                    f.write(log_entry)
+
+                # Write errors to error log
+                if level in ["ERROR", "CRITICAL"]:
+                    with open(log_files["errors"], 'a', encoding='utf-8') as f:
+                        f.write(log_entry)
+
+                counter += 1
+
+                # Occasionally generate an error for demonstration
+                if counter % 20 == 0:
+                    error_entry = f"[{timestamp}] [ERROR   ] netlink.test: ❌ Simulated error for demonstration\n"
+                    with open(log_files["latest"], 'a', encoding='utf-8') as f:
+                        f.write(error_entry)
+                    with open(log_files["errors"], 'a', encoding='utf-8') as f:
+                        f.write(error_entry)
+
+            except Exception as e:
+                print(f"Log generator error: {e}")
+                time.sleep(5)
+
+    gen_thread = threading.Thread(target=generate_logs, daemon=True)
+    gen_thread.start()
+    return gen_thread
+
+
 def run_netlink_server():
     """Run NetLink server with multiplexed terminal."""
     if not VENV_DIR.exists():
@@ -463,8 +537,9 @@ def run_netlink_server():
     print("📊 Logs will appear on the left, CLI on the right")
     print("=" * 50)
 
-    # Start log monitoring
+    # Start log monitoring and generation
     log_thread = start_log_monitor()
+    log_gen_thread = start_log_generator()
 
     # Set up environment
     env = os.environ.copy()
@@ -474,6 +549,19 @@ def run_netlink_server():
     try:
         # Start server with better error handling
         print("🔄 Initializing NetLink core systems...")
+
+        # Generate some initial logs to ensure log files exist
+        logs_dir = ROOT / "logs"
+        logs_dir.mkdir(exist_ok=True)
+
+        # Create initial log entries
+        latest_log = logs_dir / "latest.log"
+        with open(latest_log, 'a', encoding='utf-8') as f:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            f.write(f"[{timestamp}] [INFO] netlink.startup: 🚀 NetLink server starting up...\n")
+            f.write(f"[{timestamp}] [INFO] netlink.startup: 📊 Initializing logging system\n")
+            f.write(f"[{timestamp}] [INFO] netlink.startup: 🔧 Loading configuration\n")
+            f.write(f"[{timestamp}] [INFO] netlink.startup: 🌐 Starting web server\n")
 
         process = subprocess.Popen(
             [str(venv_python), "-m", "netlink.main"],
@@ -493,7 +581,20 @@ def run_netlink_server():
         if is_first_time:
             print(f"🔐 Default admin credentials: {DEFAULT_CREDS}")
         print("=" * 50)
-        print("📱 CLI Panel (Right Side)")
+
+        # Check if terminal supports split screen
+        try:
+            terminal_width = shutil.get_terminal_size().columns
+            if terminal_width >= 120:
+                print("📱 Split-screen mode enabled - CLI commands will appear separately from logs")
+                use_split_screen = True
+            else:
+                print("📱 Standard mode - CLI and logs will be mixed")
+                use_split_screen = False
+        except:
+            print("📱 Standard mode - CLI and logs will be mixed")
+            use_split_screen = False
+
         print("Commands: 'status', 'logs', 'stop', 'help'")
         print("=" * 50)
 

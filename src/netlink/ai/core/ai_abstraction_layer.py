@@ -43,6 +43,11 @@ class AIProvider(str, Enum):
     GROQ = "groq"
     TOGETHER = "together"
     REPLICATE = "replicate"
+    MISTRAL = "mistral"
+    PERPLEXITY = "perplexity"
+    CLAUDE = "claude"
+    GEMINI = "gemini"
+    LLAMA = "llama"
     CUSTOM = "custom"
     LOCAL = "local"
 

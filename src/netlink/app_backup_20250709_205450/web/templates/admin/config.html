@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Management - Chat API Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/modern-ui.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .config-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: var(--space-6);
+            height: calc(100vh - 200px);
+        }
+
+        .config-sidebar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            overflow-y: auto;
+        }
+
+        .config-category {
+            margin-bottom: var(--space-4);
+        }
+
+        .category-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--space-2);
+            padding: var(--space-2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-item {
+            padding: var(--space-2) var(--space-3);
+            margin: var(--space-1) 0;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .config-item:hover,
+        .config-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .config-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            overflow-y: auto;
+        }
+
+        .config-section {
+            display: none;
+        }
+
+        .config-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: var(--space-4);
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: var(--space-2);
+            color: var(--text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: var(--space-3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--background);
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .form-switch {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .switch.active {
+            background: var(--primary);
+        }
+
+        .switch::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .switch.active::before {
+            transform: translateX(26px);
+        }
+
+        .config-actions {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-save {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-reset {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-validate {
+            background: var(--info);
+            color: white;
+        }
+
+        .config-help {
+            background: var(--info-light);
+            border: 1px solid var(--info);
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+            margin-top: var(--space-2);
+            font-size: 0.9rem;
+        }
+
+        .config-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+        }
+
+        .status-healthy {
+            background: var(--success-light);
+            border: 1px solid var(--success);
+            color: var(--success-dark);
+        }
+
+        .status-warning {
+            background: var(--warning-light);
+            border: 1px solid var(--warning);
+            color: var(--warning-dark);
+        }
+
+        .status-error {
+            background: var(--error-light);
+            border: 1px solid var(--error);
+            color: var(--error-dark);
+        }
+
+        .config-tabs {
+            display: flex;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-tab {
+            padding: var(--space-3) var(--space-4);
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .config-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .config-search {
+            position: relative;
+            margin-bottom: var(--space-4);
+        }
+
+        .config-search input {
+            width: 100%;
+            padding: var(--space-2) var(--space-2) var(--space-2) 35px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--background);
+        }
+
+        .config-search i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .config-export {
+            display: flex;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+
+        .advanced-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+            padding: var(--space-3);
+            background: var(--surface-variant);
+            border-radius: var(--radius-md);
+        }
+
+        .config-diff {
+            background: var(--surface-variant);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            margin-top: var(--space-4);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .diff-added {
+            background: var(--success-light);
+            color: var(--success-dark);
+        }
+
+        .diff-removed {
+            background: var(--error-light);
+            color: var(--error-dark);
+        }
+
+        @media (max-width: 768px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .config-sidebar {
+                order: 2;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-cogs"></i>
+                <span>Configuration Management</span>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-icon" onclick="toggleTheme()">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                <a href="/web/admin" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Admin
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Status Bar -->
+            <div class="config-status status-healthy" id="configStatus">
+                <i class="fas fa-check-circle"></i>
+                <span>Configuration is valid and up to date</span>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="config-export">
+                <button class="btn btn-outline-primary" onclick="exportConfig()">
+                    <i class="fas fa-download"></i>
+                    Export Config
+                </button>
+                <button class="btn btn-outline-primary" onclick="importConfig()">
+                    <i class="fas fa-upload"></i>
+                    Import Config
+                </button>
+                <button class="btn btn-outline-info" onclick="validateConfig()">
+                    <i class="fas fa-check"></i>
+                    Validate
+                </button>
+                <button class="btn btn-outline-warning" onclick="resetToDefaults()">
+                    <i class="fas fa-undo"></i>
+                    Reset to Defaults
+                </button>
+            </div>
+
+            <!-- Advanced Toggle -->
+            <div class="advanced-toggle">
+                <div class="form-switch">
+                    <span>Show Advanced Options</span>
+                    <div class="switch" id="advancedToggle" onclick="toggleAdvanced()"></div>
+                </div>
+            </div>
+
+            <!-- Configuration Grid -->
+            <div class="config-grid">
+                <!-- Sidebar -->
+                <div class="config-sidebar">
+                    <div class="config-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search settings..." id="configSearch" oninput="filterSettings()">
+                    </div>
+
+                    <div class="config-category">
+                        <div class="category-title">
+                            <i class="fas fa-server"></i>
+                            Server
+                        </div>
+                        <div class="config-item active" data-section="server-basic">
+                            <i class="fas fa-play"></i>
+                            Basic Settings
+                        </div>
+                        <div class="config-item" data-section="server-advanced">
+                            <i class="fas fa-cogs"></i>
+                            Advanced Settings
+                        </div>
+                    </div>
+
+                    <div class="config-category">
+                        <div class="category-title">
+                            <i class="fas fa-database"></i>
+                            Database
+                        </div>
+                        <div class="config-item" data-section="database-connection">
+                            <i class="fas fa-link"></i>
+                            Connection
+                        </div>
+                        <div class="config-item" data-section="database-performance">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Performance
+                        </div>
+                    </div>
+
+                    <div class="config-category">
+                        <div class="category-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Security
+                        </div>
+                        <div class="config-item" data-section="security-auth">
+                            <i class="fas fa-key"></i>
+                            Authentication
+                        </div>
+                        <div class="config-item" data-section="security-ssl">
+                            <i class="fas fa-lock"></i>
+                            SSL/HTTPS
+                        </div>
+                        <div class="config-item" data-section="security-oauth">
+                            <i class="fas fa-users"></i>
+                            OAuth Providers
+                        </div>
+                    </div>
+
+                    <div class="config-category">
+                        <div class="category-title">
+                            <i class="fas fa-chart-line"></i>
+                            Features
+                        </div>
+                        <div class="config-item" data-section="features-websocket">
+                            <i class="fas fa-bolt"></i>
+                            WebSocket
+                        </div>
+                        <div class="config-item" data-section="features-uploads">
+                            <i class="fas fa-upload"></i>
+                            File Uploads
+                        </div>
+                        <div class="config-item" data-section="features-backup">
+                            <i class="fas fa-database"></i>
+                            Backup System
+                        </div>
+                    </div>
+
+                    <div class="config-category">
+                        <div class="category-title">
+                            <i class="fas fa-file-alt"></i>
+                            Logging
+                        </div>
+                        <div class="config-item" data-section="logging-basic">
+                            <i class="fas fa-list"></i>
+                            Basic Logging
+                        </div>
+                        <div class="config-item" data-section="logging-advanced">
+                            <i class="fas fa-cogs"></i>
+                            Advanced Logging
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="config-content">
+                    <!-- Server Basic Settings -->
+                    <div class="config-section active" id="server-basic">
+                        <h3><i class="fas fa-server"></i> Server Basic Settings</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Host Address</label>
+                            <input type="text" class="form-control" id="host" value="0.0.0.0" placeholder="0.0.0.0">
+                            <div class="config-help">
+                                <i class="fas fa-info-circle"></i>
+                                The host address to bind the server to. Use 0.0.0.0 to accept connections from any IP.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Port</label>
+                            <input type="number" class="form-control" id="port" value="8000" min="1" max="65535">
+                            <div class="config-help">
+                                <i class="fas fa-info-circle"></i>
+                                The port number for the server to listen on. Default is 8000.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Workers</label>
+                            <input type="number" class="form-control" id="workers" value="4" min="1" max="32">
+                            <div class="config-help">
+                                <i class="fas fa-info-circle"></i>
+                                Number of worker processes. Recommended: 2 × CPU cores.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-switch">
+                                <span class="form-label">Debug Mode</span>
+                                <div class="switch" id="debug" onclick="toggleSwitch('debug')"></div>
+                            </div>
+                            <div class="config-help">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Enable debug mode for development. Disable in production for security.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Environment</label>
+                            <select class="form-control" id="environment">
+                                <option value="development">Development</option>
+                                <option value="staging">Staging</option>
+                                <option value="production" selected>Production</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Actions -->
+                    <div class="config-actions">
+                        <button class="btn btn-save" onclick="saveConfiguration()">
+                            <i class="fas fa-save"></i>
+                            Save Configuration
+                        </button>
+                        <button class="btn btn-reset" onclick="resetConfiguration()">
+                            <i class="fas fa-undo"></i>
+                            Reset Changes
+                        </button>
+                        <button class="btn btn-validate" onclick="validateConfiguration()">
+                            <i class="fas fa-check"></i>
+                            Validate & Test
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="previewChanges()">
+                            <i class="fas fa-eye"></i>
+                            Preview Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Configuration Management JavaScript
+        let currentConfig = {};
+        let originalConfig = {};
+        let showAdvanced = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Sidebar navigation
+            document.querySelectorAll('.config-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    showConfigSection(section);
+
+                    // Update active state
+                    document.querySelectorAll('.config-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        function showConfigSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.config-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.add('active');
+            }
+        }
+
+        function toggleSwitch(switchId) {
+            const switchElement = document.getElementById(switchId);
+            switchElement.classList.toggle('active');
+        }
+
+        function toggleAdvanced() {
+            showAdvanced = !showAdvanced;
+            const toggle = document.getElementById('advancedToggle');
+            toggle.classList.toggle('active');
+
+            // Show/hide advanced options
+            document.querySelectorAll('[data-advanced="true"]').forEach(element => {
+                element.style.display = showAdvanced ? 'block' : 'none';
+            });
+        }
+
+        async function loadConfiguration() {
+            try {
+                const response = await fetch('/api/v1/admin/config');
+                const config = await response.json();
+
+                currentConfig = config;
+                originalConfig = JSON.parse(JSON.stringify(config));
+
+                populateConfigForm(config);
+                updateConfigStatus('healthy', 'Configuration loaded successfully');
+            } catch (error) {
+                console.error('Failed to load configuration:', error);
+                updateConfigStatus('error', 'Failed to load configuration');
+            }
+        }
+
+        function populateConfigForm(config) {
+            // Populate form fields with configuration values
+            Object.keys(config).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'checkbox' || element.classList.contains('switch')) {
+                        if (config[key]) {
+                            element.classList.add('active');
+                        }
+                    } else {
+                        element.value = config[key];
+                    }
+                }
+            });
+        }
+
+        async function saveConfiguration() {
+            try {
+                const config = collectConfigData();
+
+                const response = await fetch('/api/v1/admin/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    updateConfigStatus('healthy', 'Configuration saved successfully');
+                    originalConfig = JSON.parse(JSON.stringify(config));
+                } else {
+                    throw new Error('Failed to save configuration');
+                }
+            } catch (error) {
+                console.error('Failed to save configuration:', error);
+                updateConfigStatus('error', 'Failed to save configuration');
+            }
+        }
+
+        function collectConfigData() {
+            const config = {};
+
+            // Collect all form data
+            document.querySelectorAll('.form-control').forEach(element => {
+                config[element.id] = element.value;
+            });
+
+            // Collect switch states
+            document.querySelectorAll('.switch').forEach(element => {
+                config[element.id] = element.classList.contains('active');
+            });
+
+            return config;
+        }
+
+        async function validateConfiguration() {
+            try {
+                const config = collectConfigData();
+
+                const response = await fetch('/api/v1/admin/config/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+
+                if (result.valid) {
+                    updateConfigStatus('healthy', 'Configuration is valid');
+                } else {
+                    updateConfigStatus('error', `Validation failed: ${result.errors.join(', ')}`);
+                }
+            } catch (error) {
+                console.error('Validation failed:', error);
+                updateConfigStatus('error', 'Validation failed');
+            }
+        }
+
+        function updateConfigStatus(type, message) {
+            const status = document.getElementById('configStatus');
+            status.className = `config-status status-${type}`;
+
+            const icon = type === 'healthy' ? 'check-circle' :
+                        type === 'warning' ? 'exclamation-triangle' : 'times-circle';
+
+            status.innerHTML = `<i class="fas fa-${icon}"></i><span>${message}</span>`;
+        }
+
+        function resetConfiguration() {
+            if (confirm('Reset all changes to last saved configuration?')) {
+                populateConfigForm(originalConfig);
+                updateConfigStatus('healthy', 'Configuration reset to last saved state');
+            }
+        }
+
+        function exportConfig() {
+            const config = collectConfigData();
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chatapi-config-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importConfig() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const config = JSON.parse(e.target.result);
+                            populateConfigForm(config);
+                            updateConfigStatus('warning', 'Configuration imported - remember to save');
+                        } catch (error) {
+                            updateConfigStatus('error', 'Invalid configuration file');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+
+            input.click();
+        }
+
+        function generateSecretKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+            let result = '';
+            for (let i = 0; i < 64; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('secret_key').value = result;
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+
+            const icon = document.getElementById('theme-icon');
+            icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+    </script>
+</body>
+</html>

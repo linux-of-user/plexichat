@@ -1,6 +1,8 @@
-# NetLink Consolidated Testing Framework
+# NetLink Testing Framework
 
 Comprehensive testing framework for NetLink with unified test execution, extensive coverage, and government-level security testing.
+
+> **Note**: This documentation has been moved to [docs/testing-guide.md](../../docs/testing-guide.md)
 
 ## Overview
 

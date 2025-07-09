@@ -2,7 +2,7 @@
 NetLink Advanced Versioning System
 
 New versioning scheme with comprehensive update management:
-- Version format: {major}{type}{minor} (e.g., 0a1, 0b1, 0r1, 1a1)
+- Version format: letter.major.minor-build (e.g., a.1.1-1, b.1.2-1, r.1.0-1)
 - Types: 'a' (alpha), 'b' (beta), 'r' (release)
 - In-place upgrades and downgrades
 - Configuration and database migration

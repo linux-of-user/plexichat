@@ -123,6 +123,9 @@ class EnhancedDDoSProtection:
         self.blacklisted_ips: Set[str] = set()
         self.whitelisted_ips: Set[str] = set()
         self.temporary_blocks: Dict[str, datetime] = {}  # ip -> unblock_time
+
+        # Auto-whitelist localhost and common local IPs
+        self._setup_default_whitelist()
         
         # Threat detection
         self.threat_detections: List[ThreatDetection] = []
@@ -135,7 +138,59 @@ class EnhancedDDoSProtection:
         self.block_duration_minutes = self.config.get("block_duration_minutes", 60)
         
         self.initialized = False
-    
+
+    def _setup_default_whitelist(self):
+        """Setup default whitelist for localhost and common local IPs."""
+        default_whitelist = [
+            "127.0.0.1",      # IPv4 localhost
+            "::1",            # IPv6 localhost
+            "localhost",      # Hostname localhost
+            "0.0.0.0",        # All interfaces
+            "192.168.1.1",    # Common router IP
+            "10.0.0.1",       # Common private network
+            "172.16.0.1",     # Common private network
+        ]
+
+        # Add local network ranges that should be whitelisted
+        local_networks = [
+            "127.0.0.0/8",    # Loopback
+            "10.0.0.0/8",     # Private network
+            "172.16.0.0/12",  # Private network
+            "192.168.0.0/16", # Private network
+        ]
+
+        for ip in default_whitelist:
+            self.whitelisted_ips.add(ip)
+
+        # Store network ranges for checking
+        self.whitelisted_networks = []
+        for network in local_networks:
+            try:
+                import ipaddress
+                self.whitelisted_networks.append(ipaddress.ip_network(network))
+            except:
+                pass
+
+        logger.info(f"🔓 Default whitelist configured with {len(default_whitelist)} IPs and {len(local_networks)} networks")
+
+    def _is_whitelisted_ip(self, ip_address: str) -> bool:
+        """Check if IP is whitelisted (including network ranges)."""
+        # Direct IP check
+        if ip_address in self.whitelisted_ips:
+            return True
+
+        # Network range check
+        try:
+            import ipaddress
+            ip = ipaddress.ip_address(ip_address)
+            for network in getattr(self, 'whitelisted_networks', []):
+                if ip in network:
+                    return True
+        except:
+            pass
+
+        return False
+
     async def initialize(self):
         """Initialize the DDoS protection system."""
         if self.initialized:
@@ -329,17 +384,34 @@ class EnhancedDDoSProtection:
     async def _check_rate_limits(self, ip_address: str) -> Tuple[bool, Optional[str]]:
         """Check if IP address exceeds rate limits."""
         try:
+            # Check if IP is whitelisted (including network ranges)
+            if self._is_whitelisted_ip(ip_address):
+                return True, None
+
+            # Check if IP is blacklisted
+            if ip_address in self.blacklisted_ips:
+                return False, "IP address is blacklisted"
+
+            # Check temporary blocks
             current_time = datetime.now(timezone.utc)
+            if ip_address in self.temporary_blocks:
+                if current_time < self.temporary_blocks[ip_address]:
+                    remaining = (self.temporary_blocks[ip_address] - current_time).total_seconds()
+                    return False, f"Temporarily blocked for {remaining:.0f} seconds"
+                else:
+                    # Block expired, remove it
+                    del self.temporary_blocks[ip_address]
+
             minute_ago = current_time - timedelta(minutes=1)
-            
+
             # Count requests in the last minute
             recent_requests = [
                 r for r in self.ip_metrics[ip_address]
                 if r.timestamp > minute_ago
             ]
-            
+
             requests_per_minute = len(recent_requests)
-            
+
             # Check per-IP rate limit
             if requests_per_minute > self.per_ip_rate_limit:
                 # Apply temporary block

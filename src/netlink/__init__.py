@@ -22,8 +22,8 @@ Enterprise Architecture:
 """
 
 # Unified Version System - Single Source of Truth
-__version__ = "a.1.0-1"
-__version_info__ = ("a", 1, 0, 1)  # (letter, major, minor, build)
+__version__ = "a.1.1-1"
+__version_info__ = ("a", 1, 1, 1)  # (letter, major, minor, build)
 __build__ = "enterprise-quantum"
 __author__ = "NetLink Development Team"
 __description__ = "Government-level secure communication platform with enterprise architecture, quantum encryption, and advanced features"

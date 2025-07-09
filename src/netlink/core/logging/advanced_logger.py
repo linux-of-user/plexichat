@@ -282,10 +282,13 @@ class AdvancedLogger:
         }
 
     def _setup_logging(self):
-        """Setup comprehensive logging system."""
-        # Clear existing handlers
+        """Setup comprehensive logging system that consolidates all NetLink logging."""
+        # Clear existing handlers to avoid conflicts with other logging systems
         root_logger = logging.getLogger()
-        root_logger.handlers.clear()
+
+        # Only clear handlers if we haven't already set them up
+        if not hasattr(self, '_logging_setup_complete'):
+            root_logger.handlers.clear()
 
         # Set root level
         log_level = getattr(logging, self.config["log_level"].upper(), logging.INFO)
@@ -314,6 +317,22 @@ class AdvancedLogger:
         # Audit logging
         if self.config["audit_logging"]:
             self._setup_audit_logging()
+
+        # Mark setup as complete to avoid conflicts
+        self._logging_setup_complete = True
+
+        # Generate initial log entries to ensure system is working
+        logger = logging.getLogger("netlink.logging.system")
+        logger.info("🔧 Advanced logging system initialized")
+        logger.info(f"📁 Log directory: {self.log_dir}")
+        logger.info(f"📊 Log level: {self.config['log_level']}")
+        logger.debug("🔍 Debug logging enabled")
+
+        # Test all log levels
+        logger.info("✅ INFO level logging active")
+        logger.warning("⚠️ WARNING level logging active")
+        logger.error("❌ ERROR level logging active")
+        logger.critical("🚨 CRITICAL level logging active")
 
     def _setup_file_handlers(self, root_logger, log_level):
         """Setup file-based logging handlers."""

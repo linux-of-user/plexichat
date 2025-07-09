@@ -6,7 +6,10 @@ Comprehensive API documentation with all endpoints, examples, and interactive te
 
 **Default Base URL**: `http://localhost:8000`
 **API Version**: v1
+**Current Version**: a.1.1-1
 **Authentication**: JWT Bearer tokens or session cookies
+**Rate Limiting**: Per-user based on tier, localhost whitelisted
+**Content-Type**: `application/json`
 
 ## Quick Test Setup
 
@@ -426,12 +429,12 @@ curl -X DELETE "$NETLINK_URL/api/v1/users/2" \
 }
 ```
 
-## Messaging Endpoints
+## Enhanced Messaging Endpoints
 
 ### 💬 Send Message
 **Endpoint**: `POST /api/v1/messages`
 
-**Description**: Send a new message
+**Description**: Send a new message with enhanced validation and background processing
 
 **Request**:
 ```bash
@@ -439,49 +442,61 @@ curl -X POST "$NETLINK_URL/api/v1/messages" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
+    "recipient_id": 2,
     "content": "Hello, world! 👋",
-    "channel_id": "general",
-    "message_type": "text",
-    "metadata": {
-      "priority": "normal",
-      "tags": ["announcement"]
-    }
+    "message_type": "DEFAULT"
   }'
 ```
 
 **Response**:
 ```json
 {
-  "success": true,
-  "message": {
-    "id": 123,
-    "content": "Hello, world! 👋",
-    "author": "admin",
-    "channel_id": "general",
-    "message_type": "text",
-    "timestamp": "2024-01-01T12:00:00Z",
-    "edited": false,
-    "metadata": {
-      "priority": "normal",
-      "tags": ["announcement"]
-    }
-  }
+  "id": 123,
+  "sender_id": 1,
+  "recipient_id": 2,
+  "content": "Hello, world! 👋",
+  "timestamp": "2025-07-09T12:00:00Z"
 }
 ```
 
-### 📜 Get Messages
+**Features**:
+- ✅ Rate limiting (60 messages/minute)
+- ✅ Recipient validation
+- ✅ Background notification processing
+- ✅ Content validation
+
+### 📜 Get Messages (Enhanced)
 **Endpoint**: `GET /api/v1/messages`
 
-**Description**: Retrieve messages with filtering and pagination
+**Description**: Retrieve messages with advanced filtering, pagination, and search
 
-**Request**:
+**Query Parameters**:
+- `limit` (1-100): Number of messages to return (default: 50)
+- `offset` (≥0): Number of messages to skip (default: 0)
+- `conversation_with` (int): Filter by conversation with specific user
+- `message_type` (enum): Filter by message type
+- `since` (datetime): Messages since this timestamp
+- `until` (datetime): Messages until this timestamp
+- `search` (string): Search in message content (min 3 chars)
+- `sort_order` (asc|desc): Sort order (default: desc)
+- `include_deleted` (bool): Include deleted messages (default: false)
+
+**Request Examples**:
 ```bash
-# Get recent messages
-curl -X GET "$NETLINK_URL/api/v1/messages?channel_id=general&limit=50" \
+# Get recent messages with pagination
+curl -X GET "$NETLINK_URL/api/v1/messages?limit=20&offset=0" \
   -H "Authorization: Bearer $TOKEN"
 
-# Get messages with filters
-curl -X GET "$NETLINK_URL/api/v1/messages?author=admin&message_type=text&since=2024-01-01T00:00:00Z" \
+# Get conversation with specific user
+curl -X GET "$NETLINK_URL/api/v1/messages?conversation_with=2&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Search messages
+curl -X GET "$NETLINK_URL/api/v1/messages?search=hello&limit=10" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get messages in date range
+curl -X GET "$NETLINK_URL/api/v1/messages?since=2025-07-01T00:00:00Z&until=2025-07-09T23:59:59Z" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -515,21 +530,151 @@ curl -X GET "$NETLINK_URL/api/v1/messages?author=admin&message_type=text&since=2
 }
 ```
 
-### ✏️ Edit Message
-**Endpoint**: `PUT /api/v1/messages/{message_id}`
+**Enhanced Response**:
+```json
+{
+  "messages": [
+    {
+      "id": 123,
+      "sender_id": 1,
+      "recipient_id": 2,
+      "content": "Hello, world! 👋",
+      "timestamp": "2025-07-09T12:00:00Z",
+      "edited_timestamp": null
+    }
+  ],
+  "total": 1250,
+  "limit": 50,
+  "offset": 0,
+  "has_more": true,
+  "next_cursor": "2025-07-09T12:00:00Z_123",
+  "filters_applied": {
+    "conversation_with": 2,
+    "search": "hello"
+  }
+}
+```
 
-**Description**: Edit an existing message (author only)
+### 🔍 Search Messages
+**Endpoint**: `GET /api/v1/messages/search`
+
+**Description**: Advanced message search with relevance scoring
+
+**Query Parameters**:
+- `q` (required): Search query (min 3 chars)
+- `limit` (1-50): Number of results (default: 20)
+- `offset` (≥0): Number of results to skip
 
 **Request**:
 ```bash
-curl -X PUT "$NETLINK_URL/api/v1/messages/123" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "Hello, updated world! 🌍",
-    "edit_reason": "Fixed typo"
-  }'
+curl -X GET "$NETLINK_URL/api/v1/messages/search?q=hello%20world&limit=10" \
+  -H "Authorization: Bearer $TOKEN"
 ```
+
+**Response**:
+```json
+{
+  "messages": [
+    {
+      "id": 123,
+      "sender_id": 1,
+      "recipient_id": 2,
+      "content": "Hello, world! 👋",
+      "timestamp": "2025-07-09T12:00:00Z"
+    }
+  ],
+  "total_matches": 15,
+  "search_query": "hello world",
+  "search_time_ms": 45.2,
+  "suggestions": []
+}
+```
+
+### 📊 Message Statistics
+**Endpoint**: `GET /api/v1/messages/stats`
+
+**Description**: Get comprehensive message statistics for the user
+
+**Request**:
+```bash
+curl -X GET "$NETLINK_URL/api/v1/messages/stats" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response**:
+```json
+{
+  "total_messages": 1250,
+  "messages_sent": 800,
+  "messages_received": 450,
+  "today_count": 25,
+  "this_week_count": 180,
+  "this_month_count": 750,
+  "average_per_day": 25.0,
+  "most_active_hour": 14
+}
+```
+
+### 🗑️ Bulk Delete Messages
+**Endpoint**: `DELETE /api/v1/messages/bulk`
+
+**Description**: Delete multiple messages at once (sender only)
+
+**Query Parameters**:
+- `message_ids` (required): Array of message IDs to delete (max 100)
+
+**Request**:
+```bash
+curl -X DELETE "$NETLINK_URL/api/v1/messages/bulk?message_ids=123&message_ids=124&message_ids=125" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response**:
+```json
+{
+  "success_count": 2,
+  "failed_count": 1,
+  "total_requested": 3,
+  "errors": [
+    {
+      "message_id": 125,
+      "error": "Message not found or not owned by user"
+    }
+  ]
+}
+```
+
+### ✏️ Edit Message (Enhanced)
+**Endpoint**: `PUT /api/v1/messages/{message_id}`
+
+**Description**: Edit an existing message (sender only, within 15-minute time limit)
+
+**Query Parameters**:
+- `content` (required): New message content (min 1 char)
+
+**Request**:
+```bash
+curl -X PUT "$NETLINK_URL/api/v1/messages/123?content=Hello,%20updated%20world!%20🌍" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response**:
+```json
+{
+  "id": 123,
+  "sender_id": 1,
+  "recipient_id": 2,
+  "content": "Hello, updated world! 🌍",
+  "timestamp": "2025-07-09T12:00:00Z",
+  "edited_timestamp": "2025-07-09T12:05:00Z"
+}
+```
+
+**Features**:
+- ✅ 15-minute edit time limit
+- ✅ Sender-only editing
+- ✅ Edit timestamp tracking
+- ✅ Content validation
 
 ### 🗑️ Delete Message
 **Endpoint**: `DELETE /api/v1/messages/{message_id}`

@@ -175,7 +175,7 @@ class ChangelogManager:
         try:
             # Load from JSON data file if exists
             if self.changelog_data_file.exists():
-                with open(self.changelog_data_file, 'r') as f:
+                with open(self.changelog_data_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     for version_str, changelog_data in data.items():
                         changelog = VersionChangelog.from_dict(changelog_data)
@@ -206,7 +206,7 @@ class ChangelogManager:
     def _parse_markdown_changelog(self):
         """Parse existing markdown changelog."""
         try:
-            with open(self.changelog_file, 'r') as f:
+            with open(self.changelog_file, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
             
             # Simple parsing - extract version headers and changes
@@ -256,7 +256,7 @@ class ChangelogManager:
             for changelog in sorted_versions:
                 lines.append(changelog.to_markdown())
             
-            with open(self.changelog_file, 'w') as f:
+            with open(self.changelog_file, 'w', encoding='utf-8') as f:
                 f.write("\n".join(lines))
         except Exception as e:
             logger.error(f"Failed to generate markdown changelog: {e}")

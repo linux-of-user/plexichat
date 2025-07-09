@@ -61,15 +61,26 @@ class Version:
     @classmethod
     def parse(cls, version_string: str) -> 'Version':
         """Parse version string into Version object."""
-        # Pattern: {major}{type}{minor}[+{build}]
-        pattern = r'^(\d+)([abr])(\d+)(?:\+(.+))?$'
+        # Pattern: letter.major.minor-build (e.g., a.1.1-1)
+        pattern = r'^([abr])\.(\d+)\.(\d+)-(\d+)$'
         match = re.match(pattern, version_string.strip())
-        
+
         if not match:
+            # Try old format for backward compatibility
+            old_pattern = r'^(\d+)([abr])(\d+)(?:\+(.+))?$'
+            old_match = re.match(old_pattern, version_string.strip())
+            if old_match:
+                major, type_char, minor, build = old_match.groups()
+                return cls(
+                    major=int(major),
+                    type=VersionType(type_char),
+                    minor=int(minor),
+                    build=build or "1"
+                )
             raise ValueError(f"Invalid version format: {version_string}")
-        
-        major, type_char, minor, build = match.groups()
-        
+
+        type_char, major, minor, build = match.groups()
+
         return cls(
             major=int(major),
             type=VersionType(type_char),
@@ -79,9 +90,7 @@ class Version:
     
     def __str__(self) -> str:
         """String representation of version."""
-        version_str = f"{self.major}{self.type.value}{self.minor}"
-        if self.build:
-            version_str += f"+{self.build}"
+        version_str = f"{self.type.value}.{self.major}.{self.minor}-{self.build or '1'}"
         return version_str
     
     def __eq__(self, other) -> bool:
@@ -209,11 +218,11 @@ class VersionManager:
                     ]
             else:
                 # Initialize with default version
-                self.current_version = Version(1, VersionType.ALPHA, 1)
+                self.current_version = Version(1, VersionType.ALPHA, 1, "1")
                 self._save_version_info()
         except Exception as e:
             logger.error(f"Failed to load version info: {e}")
-            self.current_version = Version(1, VersionType.ALPHA, 1)
+            self.current_version = Version(1, VersionType.ALPHA, 1, "1")
     
     def _save_version_info(self):
         """Save version information to file."""

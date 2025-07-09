@@ -15,7 +15,7 @@ import shlex
 import readline
 import atexit
 
-from netlink.app.logger_config import logger
+import logging import logger
 from .enhanced_logic_engine import EnhancedLogicEngine
 from .automation_commands import AutomationCLI
 
@@ -1189,7 +1189,7 @@ Examples:
 
         try:
             # Import enhanced plugin CLI
-            from netlink.app.plugins.plugin_cli import handle_plugin_command
+            from netlink.plugins.plugin_cli import handle_plugin_command
             await handle_plugin_command(args)
 
         except ImportError:
@@ -1201,7 +1201,7 @@ Examples:
         """Handle rate limiting management commands."""
         try:
             # Import security CLI
-            from netlink.app.security.security_cli import handle_security_command
+            from netlink.security.security_cli import handle_security_command
 
             # Prepend 'rate-limits' context to args for the security CLI
             rate_limit_args = []
@@ -1231,7 +1231,7 @@ Examples:
         """Handle permission management commands."""
         try:
             # Import security CLI
-            from netlink.app.security.security_cli import handle_security_command
+            from netlink.security.security_cli import handle_security_command
 
             # Prepend 'permissions' context to args for the security CLI
             permission_args = []
@@ -1340,8 +1340,8 @@ Examples:
     async def _cmd_version(self, args: List[str]):
         """Show version information."""
         print(self._colorize("ℹ️ NetLink Version Information", "cyan"))
-        print("NetLink Server: 3.0.0")
-        print("CLI Version: 3.0.0")
+        print("NetLink Server: 1a1")
+        print("CLI Version: 1a1")
         print("Python Version:", sys.version.split()[0])
 
         # Show component versions

@@ -19,8 +19,8 @@ from typing import Dict, Any, List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
-    from app.modules.base import ModuleDeveloper, module_registry
-    from app.logger_config import logger
+    from netlink.modules.base import ModuleDeveloper, module_registry
+    import logging import logger
 except ImportError as e:
     print(f"Warning: Could not import NetLink modules: {e}")
     logger = None

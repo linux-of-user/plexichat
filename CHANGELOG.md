@@ -87,7 +87,7 @@ This is the first alpha release of NetLink v1.0, representing a complete transfo
 - **Security Updates**: Dedicated security update detection and prioritization
 
 ### Changed
-- **Version Format**: Changed from semantic versioning (3.0.0) to new format (0a1)
+- **Version Format**: Changed from semantic versioning (3.0.0) to new format (a.1.1-1)
 - **Update Process**: Replaced basic update system with comprehensive update management
 - **CLI Interface**: Enhanced CLI with dedicated update commands and subcommands
 
@@ -101,7 +101,7 @@ This is the first alpha release of NetLink v1.0, representing a complete transfo
 - **Update API**: Legacy update API replaced with new system
 
 ### Migration Notes
-- Version format changed from `X.Y.Z` to `{major}{type}{minor}` format
+- Version format changed from `X.Y.Z` to `letter.major.minor-build` format (e.g., a.1.1-1)
 - Update CLI commands moved from `upgrade` to `update` subcommands
 - Configuration files may need migration for new version format
 - Database schema updated to support new versioning system
@@ -110,13 +110,13 @@ This is the first alpha release of NetLink v1.0, representing a complete transfo
 
 ## Future Versions
 
-### Planned for 0b1 (Beta 1)
+### Planned for b.1.1-1 (Beta 1)
 - Enhanced clustering coordination during updates
 - Web UI for update management
 - Automated testing during updates
 - Performance optimizations for large deployments
 
-### Planned for 0r1 (Release 1)
+### Planned for r.1.1-1 (Release 1)
 - Production-ready update system
 - Advanced rollback strategies
 - Update scheduling and maintenance windows
@@ -154,15 +154,15 @@ netlink update version --detailed
 netlink update upgrade --latest
 
 # Upgrade to specific version
-netlink update upgrade --to 0b1
+netlink update upgrade --to 1b1
 
 # Downgrade to previous version
-netlink update downgrade --to 0a1
+netlink update downgrade --to 1a1
 
 # Show changelog
 netlink update changelog
-netlink update changelog --version 0b1
-netlink update changelog --since 0a1
+netlink update changelog --version 1b1
+netlink update changelog --since 1a1
 
 # Reinstall dependencies
 netlink update reinstall-deps

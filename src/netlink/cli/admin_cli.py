@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
     from netlink.core.security.government_auth import get_government_auth
-    from netlink.app.logger_config import logger
+    import logging import logger
     government_auth = None  # Will be initialized lazily
 except ImportError as e:
     print(f"Warning: Failed to import modules: {e}")

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limited - NetLink</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .error-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffecd2, #fcb69f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .speed-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .countdown {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid #fcb69f;
+        }
+
+        .countdown h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .countdown-timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fcb69f;
+            font-family: 'Courier New', monospace;
+        }
+
+        .navigation-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(45deg, #ffecd2, #fcb69f);
+            color: #333;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(252, 182, 159, 0.3);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(252, 182, 159, 0.4);
+        }
+
+        .nav-button.secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(45deg, #ffecd2, #fcb69f);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .footer-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e6ed;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .error-code {
+                font-size: 6rem;
+            }
+
+            .error-title {
+                font-size: 2rem;
+            }
+
+            .navigation-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="logo">NL</div>
+        <div class="speed-icon">🚀</div>
+        <div class="error-code">429</div>
+        <h1 class="error-title">Slow Down, Speed Racer!</h1>
+        <p class="error-message">
+            Whoa there! You're making requests faster than a caffeinated cheetah! 
+            We've temporarily limited your access to keep our servers happy. Take a breather and try again in a moment.
+        </p>
+
+        <div class="countdown">
+            <h3>⏰ Time until you can try again:</h3>
+            <div class="countdown-timer" id="countdown">60</div>
+            <p style="margin-top: 1rem; color: #7f8c8d;">
+                Don't worry, this is just a temporary timeout to prevent overload.
+            </p>
+        </div>
+
+        <div class="navigation-links">
+            <a href="/" class="nav-button">
+                🏠 Home
+            </a>
+            <a href="/docs/rate-limits" class="nav-button">
+                📊 Rate Limits Info
+            </a>
+            <a href="/support" class="nav-button secondary">
+                🆘 Contact Support
+            </a>
+            <a href="javascript:history.back()" class="nav-button secondary">
+                ← Go Back
+            </a>
+        </div>
+
+        <div class="footer-info">
+            <p>NetLink Communication Platform</p>
+            <p>Learn about our <a href="/docs/rate-limits" style="color: #fcb69f;">rate limiting policies</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Countdown timer
+        let timeLeft = 60; // 60 seconds
+        const countdownElement = document.getElementById('countdown');
+        
+        function updateCountdown() {
+            countdownElement.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                countdownElement.textContent = "Ready!";
+                countdownElement.style.color = "#27ae60";
+                
+                // Auto-refresh after countdown
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+                
+                return;
+            }
+            
+            timeLeft--;
+            setTimeout(updateCountdown, 1000);
+        }
+        
+        // Start countdown
+        updateCountdown();
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.history.back();
+            } else if (e.key === 'r' && e.ctrlKey) {
+                e.preventDefault();
+                if (timeLeft <= 0) {
+                    location.reload();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

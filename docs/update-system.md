@@ -134,10 +134,10 @@ netlink update downgrade --to 0a1 --force
 netlink update changelog
 
 # Show changelog for specific version
-netlink update changelog --version 0b1
+netlink update changelog --version 1b1
 
 # Show changes since version
-netlink update changelog --since 0a1
+netlink update changelog --since 1a1
 
 # Show changelog in different formats
 netlink update changelog --format json
@@ -152,7 +152,7 @@ netlink update reinstall-deps
 
 # Upgrade database schema only
 netlink update upgrade-db
-netlink update upgrade-db --to 0b1
+netlink update upgrade-db --to 1b1
 
 # Show update history
 netlink update history
@@ -235,16 +235,16 @@ update_system:
 
 ```json
 {
-  "current_version": "0a1",
-  "last_updated": "2024-12-19T00:00:00Z",
+  "current_version": "a.1.1-1",
+  "last_updated": "2025-07-09T00:00:00Z",
   "history": [
     {
-      "version": "0a1",
-      "release_date": "2024-12-19T00:00:00Z",
+      "version": "a.1.1-1",
+      "release_date": "2025-07-09T00:00:00Z",
       "status": "development",
       "migration_required": true,
-      "database_version": "0a1",
-      "config_version": "0a1"
+      "database_version": "a.1.1-1",
+      "config_version": "a.1.1-1"
     }
   ]
 }

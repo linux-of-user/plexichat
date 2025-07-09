@@ -1,15 +1,21 @@
 """
-NetLink Documentation System
-Comprehensive documentation interface with guides, API docs, and tutorials.
+NetLink Enhanced Documentation System
+Comprehensive documentation interface with advanced search, navigation, and modern UI.
 """
 
 import os
+import re
+import json
 import markdown
 from pathlib import Path
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, Request, HTTPException
+from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime
+from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Documentation router
 docs_router = APIRouter(prefix="/docs", tags=["documentation"])
@@ -18,14 +24,22 @@ docs_router = APIRouter(prefix="/docs", tags=["documentation"])
 template_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=template_dir)
 
-class DocumentationManager:
-    """Manages documentation content and structure."""
+class EnhancedDocumentationManager:
+    """Enhanced documentation manager with advanced features."""
 
     def __init__(self):
         self.docs_dir = Path("docs")
         self.docs_dir.mkdir(exist_ok=True)
+        self.cache = {}
+        self.search_index = {}
+        self.last_indexed = None
+
+        # Initialize documentation
         self._create_default_docs()
+        self._build_search_index()
         self.doc_structure = self._build_doc_structure()
+
+        logger.info(f"Enhanced documentation manager initialized: {self.docs_dir}")
 
     def _create_default_docs(self):
         """Create default documentation files."""
@@ -610,71 +624,230 @@ When reporting issues, include:
                 with open(doc_file, 'w', encoding='utf-8') as f:
                     f.write(content)
 
+    def _build_search_index(self):
+        """Build comprehensive search index."""
+        self.search_index = {}
+
+        for doc_file in self.docs_dir.glob("*.md"):
+            try:
+                with open(doc_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Extract metadata
+                title = self._extract_title(content)
+                headings = self._extract_headings(content)
+                word_count = len(content.split())
+
+                self.search_index[doc_file.name] = {
+                    'title': title,
+                    'content': content,
+                    'headings': headings,
+                    'word_count': word_count,
+                    'last_modified': doc_file.stat().st_mtime,
+                    'file_path': str(doc_file)
+                }
+
+            except Exception as e:
+                logger.error(f"Failed to index {doc_file}: {e}")
+
+        self.last_indexed = datetime.now()
+        logger.info(f"Search index built with {len(self.search_index)} documents")
+
+    def _extract_title(self, content: str) -> str:
+        """Extract title from markdown content."""
+        lines = content.split('\n')
+        for line in lines:
+            if line.startswith('# '):
+                return line[2:].strip()
+        return "Untitled"
+
+    def _extract_headings(self, content: str) -> List[Dict[str, Any]]:
+        """Extract all headings from markdown content."""
+        headings = []
+        lines = content.split('\n')
+
+        for i, line in enumerate(lines):
+            if line.startswith('#'):
+                level = len(line) - len(line.lstrip('#'))
+                text = line.lstrip('#').strip()
+                if text:
+                    headings.append({
+                        'level': level,
+                        'text': text,
+                        'line': i + 1,
+                        'id': self._generate_heading_id(text)
+                    })
+
+        return headings
+
+    def _generate_heading_id(self, text: str) -> str:
+        """Generate URL-friendly ID from heading text."""
+        return re.sub(r'[^\w\s-]', '', text.lower()).replace(' ', '-')
+
     def _build_doc_structure(self) -> Dict[str, Any]:
-        """Build documentation structure."""
+        """Build enhanced documentation structure."""
         return {
             "Getting Started": [
-                {"title": "Overview", "file": "README.md", "icon": "fas fa-home"},
-                {"title": "Installation", "file": "installation.md", "icon": "fas fa-download"},
-                {"title": "User Guide", "file": "user-guide.md", "icon": "fas fa-user"}
+                {"title": "Overview", "file": "README.md", "icon": "fas fa-home", "description": "Welcome to NetLink"},
+                {"title": "Installation", "file": "installation.md", "icon": "fas fa-download", "description": "Setup and installation guide"},
+                {"title": "Getting Started", "file": "GETTING_STARTED.md", "icon": "fas fa-rocket", "description": "Quick start guide"},
+                {"title": "User Guide", "file": "user-guide.md", "icon": "fas fa-user", "description": "Complete user manual"}
             ],
             "API Documentation": [
-                {"title": "API Guide", "file": "api-guide.md", "icon": "fas fa-code"},
-                {"title": "Interactive API", "url": "/api/docs", "icon": "fas fa-play-circle"},
-                {"title": "OpenAPI Schema", "url": "/api/openapi.json", "icon": "fas fa-file-code"}
+                {"title": "API Reference", "file": "api_reference.md", "icon": "fas fa-code", "description": "Complete API documentation"},
+                {"title": "API Guide", "file": "api-guide.md", "icon": "fas fa-book", "description": "API usage guide"},
+                {"title": "Interactive API", "url": "/api/docs", "icon": "fas fa-play-circle", "description": "Swagger UI"},
+                {"title": "OpenAPI Schema", "url": "/api/openapi.json", "icon": "fas fa-file-code", "description": "OpenAPI specification"}
             ],
-            "Administration": [
-                {"title": "System Configuration", "file": "admin-config.md", "icon": "fas fa-cogs"},
-                {"title": "User Management", "file": "user-management.md", "icon": "fas fa-users"},
-                {"title": "Security Guide", "file": "security.md", "icon": "fas fa-shield-alt"}
+            "System Administration": [
+                {"title": "Configuration", "file": "configuration.md", "icon": "fas fa-cog", "description": "System configuration guide"},
+                {"title": "User Management", "file": "user-management.md", "icon": "fas fa-users", "description": "User and permission management"},
+                {"title": "Security", "file": "security.md", "icon": "fas fa-shield-alt", "description": "Security configuration"},
+                {"title": "Monitoring", "file": "monitoring.md", "icon": "fas fa-chart-line", "description": "System monitoring"}
             ],
-            "Support": [
-                {"title": "Troubleshooting", "file": "troubleshooting.md", "icon": "fas fa-wrench"},
-                {"title": "FAQ", "file": "faq.md", "icon": "fas fa-question-circle"},
-                {"title": "Contact Support", "url": "/support", "icon": "fas fa-life-ring"}
+            "Advanced Features": [
+                {"title": "Clustering", "file": "clustering-system.md", "icon": "fas fa-network-wired", "description": "Multi-node clustering"},
+                {"title": "Backup System", "file": "backup-system.md", "icon": "fas fa-database", "description": "Backup and recovery"},
+                {"title": "Update System", "file": "update-system.md", "icon": "fas fa-sync-alt", "description": "Version management"},
+                {"title": "Troubleshooting", "file": "troubleshooting.md", "icon": "fas fa-tools", "description": "Problem resolution"}
+            ],
+            "Development": [
+                {"title": "Module Development", "file": "module_development.md", "icon": "fas fa-puzzle-piece", "description": "Creating custom modules"},
+                {"title": "Database Setup", "file": "database_setup_guide.md", "icon": "fas fa-database", "description": "Database configuration"},
+                {"title": "Testing", "file": "testing.md", "icon": "fas fa-vial", "description": "Testing framework"},
+                {"title": "Contributing", "file": "contributing.md", "icon": "fas fa-hands-helping", "description": "Contribution guidelines"}
             ]
         }
 
+    def advanced_search(self, query: str, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Advanced search with filters and ranking."""
+        if not query.strip():
+            return []
+
+        results = []
+        query_lower = query.lower()
+        filters = filters or {}
+
+        for filename, doc_info in self.search_index.items():
+            score = 0
+            matches = []
+
+            # Title match (highest weight)
+            if query_lower in doc_info['title'].lower():
+                score += 10
+                matches.append({
+                    'type': 'title',
+                    'text': doc_info['title'],
+                    'context': doc_info['title']
+                })
+
+            # Heading matches (high weight)
+            for heading in doc_info['headings']:
+                if query_lower in heading['text'].lower():
+                    score += 5
+                    matches.append({
+                        'type': 'heading',
+                        'text': heading['text'],
+                        'context': heading['text'],
+                        'level': heading['level']
+                    })
+
+            # Content matches (medium weight)
+            content_lines = doc_info['content'].split('\n')
+            for i, line in enumerate(content_lines):
+                if query_lower in line.lower():
+                    score += 1
+                    # Get context around the match
+                    start = max(0, i - 2)
+                    end = min(len(content_lines), i + 3)
+                    context = '\n'.join(content_lines[start:end])
+
+                    matches.append({
+                        'type': 'content',
+                        'text': line.strip(),
+                        'context': context,
+                        'line_number': i + 1
+                    })
+
+            if matches:
+                results.append({
+                    'filename': filename,
+                    'title': doc_info['title'],
+                    'score': score,
+                    'matches': matches[:5],  # Limit matches per document
+                    'word_count': doc_info['word_count'],
+                    'last_modified': doc_info['last_modified']
+                })
+
+        # Sort by score (descending)
+        results.sort(key=lambda x: x['score'], reverse=True)
+        return results[:20]  # Limit total results
+
     def get_document(self, filename: str) -> Optional[str]:
-        """Get document content."""
+        """Get enhanced document content with metadata."""
         doc_file = self.docs_dir / filename
         if doc_file.exists() and doc_file.suffix == '.md':
+            # Check cache first
+            cache_key = f"{filename}_{doc_file.stat().st_mtime}"
+            if cache_key in self.cache:
+                return self.cache[cache_key]
+
             with open(doc_file, 'r', encoding='utf-8') as f:
                 content = f.read()
-            return markdown.markdown(content, extensions=['codehilite', 'toc'])
+
+            # Enhanced markdown processing
+            html_content = markdown.markdown(
+                content,
+                extensions=[
+                    'codehilite',
+                    'toc',
+                    'tables',
+                    'fenced_code',
+                    'attr_list'
+                ]
+            )
+
+            # Cache the result
+            self.cache[cache_key] = html_content
+            return html_content
         return None
 
     def search_documents(self, query: str) -> List[Dict[str, Any]]:
-        """Search through documentation."""
-        results = []
-        query_lower = query.lower()
+        """Enhanced search through documentation."""
+        return self.advanced_search(query)
 
-        for doc_file in self.docs_dir.glob("*.md"):
-            with open(doc_file, 'r', encoding='utf-8') as f:
-                content = f.read()
+    def get_document_metadata(self, filename: str) -> Optional[Dict[str, Any]]:
+        """Get document metadata."""
+        if filename in self.search_index:
+            doc_info = self.search_index[filename]
+            return {
+                'title': doc_info['title'],
+                'headings': doc_info['headings'],
+                'word_count': doc_info['word_count'],
+                'last_modified': datetime.fromtimestamp(doc_info['last_modified']).isoformat(),
+                'file_path': doc_info['file_path']
+            }
+        return None
 
-            if query_lower in content.lower():
-                # Extract context around the match
-                lines = content.split('\n')
-                matching_lines = []
-                for i, line in enumerate(lines):
-                    if query_lower in line.lower():
-                        start = max(0, i - 2)
-                        end = min(len(lines), i + 3)
-                        context = '\n'.join(lines[start:end])
-                        matching_lines.append({
-                            "line_number": i + 1,
-                            "context": context
-                        })
+    def get_all_documents(self) -> List[Dict[str, Any]]:
+        """Get all documents with metadata."""
+        documents = []
 
-                if matching_lines:
-                    results.append({
-                        "file": doc_file.name,
-                        "title": doc_file.stem.replace('-', ' ').title(),
-                        "matches": matching_lines[:3]  # Limit to 3 matches per file
-                    })
+        for filename, doc_info in self.search_index.items():
+            documents.append({
+                'filename': filename,
+                'title': doc_info['title'],
+                'word_count': doc_info['word_count'],
+                'last_modified': datetime.fromtimestamp(doc_info['last_modified']).isoformat(),
+                'headings_count': len(doc_info['headings'])
+            })
 
-        return results
+        return sorted(documents, key=lambda x: x['title'])
+
+    def refresh_index(self):
+        """Refresh the search index."""
+        self._build_search_index()
+        logger.info("Documentation search index refreshed")
 
 # Documentation routes
 @docs_router.get("/", response_class=HTMLResponse)
@@ -717,10 +890,66 @@ async def view_document(request: Request, doc_name: str):
         "page_title": f"{title} - NetLink Documentation"
     })
 
+# Global enhanced documentation manager
+doc_manager = EnhancedDocumentationManager()
+
 @docs_router.get("/api/structure")
 async def get_doc_structure():
     """Get documentation structure as JSON."""
     return JSONResponse(doc_manager.doc_structure)
 
-# Global documentation manager
-doc_manager = DocumentationManager()
+@docs_router.get("/search")
+async def search_docs(
+    request: Request,
+    q: str = Query("", description="Search query"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    limit: int = Query(20, description="Maximum results")
+):
+    """Enhanced search documentation with filters."""
+    if not q:
+        return JSONResponse({"results": [], "total": 0, "query": q})
+
+    filters = {}
+    if category:
+        filters['category'] = category
+
+    results = doc_manager.advanced_search(q, filters)
+
+    # Limit results
+    limited_results = results[:limit]
+
+    return JSONResponse({
+        "results": limited_results,
+        "total": len(results),
+        "query": q,
+        "filters": filters,
+        "categories": list(doc_manager.doc_structure.keys())
+    })
+
+@docs_router.get("/api/documents")
+async def get_all_documents():
+    """Get all documents with metadata."""
+    documents = doc_manager.get_all_documents()
+    return JSONResponse({
+        "documents": documents,
+        "total": len(documents),
+        "last_indexed": doc_manager.last_indexed.isoformat() if doc_manager.last_indexed else None
+    })
+
+@docs_router.get("/api/document/{filename}/metadata")
+async def get_document_metadata(filename: str):
+    """Get document metadata."""
+    metadata = doc_manager.get_document_metadata(filename)
+    if not metadata:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return JSONResponse(metadata)
+
+@docs_router.post("/api/refresh-index")
+async def refresh_search_index():
+    """Refresh the documentation search index."""
+    doc_manager.refresh_index()
+    return JSONResponse({
+        "message": "Search index refreshed successfully",
+        "documents_indexed": len(doc_manager.search_index),
+        "last_indexed": doc_manager.last_indexed.isoformat()
+    })

@@ -68,7 +68,7 @@ DEFAULT_ENVIRONMENT = "development"
 SUPPORTED_FORMATS = ["yaml", "yml", "json"]
 
 # Configuration schema version
-CONFIG_SCHEMA_VERSION = "3.0.0"
+CONFIG_SCHEMA_VERSION = "1a1"
 
 # Environment variable prefixes
 ENV_PREFIX = "NETLINK_"
