@@ -1,5 +1,5 @@
 """
-Comprehensive Tests for Enhanced NetLink Systems
+Comprehensive Tests for Enhanced PlexiChat Systems
 
 Tests for quantum security, optimization, services, modules, and backup systems.
 """
@@ -18,10 +18,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Test basic imports first
 try:
-    from netlink.security.quantum_encryption import SecurityTier
-    from netlink.optimization.secure_cache import CacheLevel
-    from netlink.services import ServiceMetadata, ServiceType, ServicePriority
-    from netlink.modules import ModuleMetadata, ModuleType, ModuleAccessLevel
+    from plexichat.security.quantum_encryption import SecurityTier
+    from plexichat.optimization.secure_cache import CacheLevel
+    from plexichat.services import ServiceMetadata, ServiceType, ServicePriority
+    from plexichat.modules import ModuleMetadata, ModuleType, ModuleAccessLevel
     print("✅ Basic imports successful")
 except ImportError as e:
     print(f"❌ Import error: {e}")
@@ -215,7 +215,7 @@ class TestSystemArchitecture:
 # Test runner
 def run_all_tests():
     """Run all tests."""
-    print("🧪 Starting Enhanced NetLink Systems Tests")
+    print("🧪 Starting Enhanced PlexiChat Systems Tests")
     print("=" * 50)
 
     # Security tests
@@ -250,7 +250,7 @@ def run_all_tests():
     architecture_tests.test_metadata_structures()
 
     print("\n" + "=" * 50)
-    print("✅ All Enhanced NetLink Systems Tests Completed Successfully!")
+    print("✅ All Enhanced PlexiChat Systems Tests Completed Successfully!")
     print("🎯 System architecture validation complete!")
     print("🔒 Quantum security framework validated!")
     print("⚡ Optimization systems validated!")

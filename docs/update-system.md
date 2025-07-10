@@ -1,8 +1,8 @@
-# NetLink Advanced Update System
+# PlexiChat Advanced Update System
 
 ## Overview
 
-NetLink features a comprehensive update system with a new versioning scheme designed for enterprise-grade deployments. The system supports in-place upgrades, downgrades, rollbacks, and seamless integration with clustering.
+PlexiChat features a comprehensive update system with a new versioning scheme designed for enterprise-grade deployments. The system supports in-place upgrades, downgrades, rollbacks, and seamless integration with clustering.
 
 ## New Versioning Scheme
 
@@ -85,84 +85,84 @@ NetLink features a comprehensive update system with a new versioning scheme desi
 
 ```bash
 # Check for available updates
-netlink update check
+plexichat update check
 
 # Show current version information
-netlink update version
-netlink update version --detailed
+plexichat update version
+plexichat update version --detailed
 
 # Show update system status
-netlink update status
+plexichat update status
 ```
 
 ### Upgrade Commands
 
 ```bash
 # Upgrade to latest version
-netlink update upgrade --latest
+plexichat update upgrade --latest
 
 # Upgrade to latest stable version
-netlink update upgrade --stable
+plexichat update upgrade --stable
 
 # Upgrade to specific version
-netlink update upgrade --to 0b1
+plexichat update upgrade --to 0b1
 
 # Dry run (show what would be done)
-netlink update upgrade --to 0b1 --dry-run
+plexichat update upgrade --to 0b1 --dry-run
 
 # Force upgrade (skip warnings)
-netlink update upgrade --to 0b1 --force
+plexichat update upgrade --to 0b1 --force
 ```
 
 ### Downgrade Commands
 
 ```bash
 # Downgrade to specific version
-netlink update downgrade --to 0a1
+plexichat update downgrade --to 0a1
 
 # Dry run downgrade
-netlink update downgrade --to 0a1 --dry-run
+plexichat update downgrade --to 0a1 --dry-run
 
 # Force downgrade
-netlink update downgrade --to 0a1 --force
+plexichat update downgrade --to 0a1 --force
 ```
 
 ### Changelog Commands
 
 ```bash
 # Show current version changelog
-netlink update changelog
+plexichat update changelog
 
 # Show changelog for specific version
-netlink update changelog --version 1b1
+plexichat update changelog --version 1b1
 
 # Show changes since version
-netlink update changelog --since 1a1
+plexichat update changelog --since 1a1
 
 # Show changelog in different formats
-netlink update changelog --format json
-netlink update changelog --format markdown
+plexichat update changelog --format json
+plexichat update changelog --format markdown
 ```
 
 ### Maintenance Commands
 
 ```bash
 # Reinstall all dependencies
-netlink update reinstall-deps
+plexichat update reinstall-deps
 
 # Upgrade database schema only
-netlink update upgrade-db
-netlink update upgrade-db --to 1b1
+plexichat update upgrade-db
+plexichat update upgrade-db --to 1b1
 
 # Show update history
-netlink update history
-netlink update history --limit 20
+plexichat update history
+plexichat update history --limit 20
 
 # Rollback last update
-netlink update rollback
+plexichat update rollback
 
 # Rollback specific update
-netlink update rollback --update-id update_0a1_0b1_20241219_120000
+plexichat update rollback --update-id update_0a1_0b1_20241219_120000
 ```
 
 ## Update Process
@@ -255,7 +255,7 @@ update_system:
 ### Python API
 
 ```python
-from netlink.core.versioning import (
+from plexichat.core.versioning import (
     get_current_version,
     check_for_updates,
     upgrade_to_version,
@@ -355,44 +355,44 @@ POST /api/v1/system/updates/rollback
 #### Update Fails
 ```bash
 # Check update logs
-netlink update status
+plexichat update status
 
 # View detailed logs
 tail -f logs/update.log
 
 # Rollback if needed
-netlink update rollback
+plexichat update rollback
 ```
 
 #### Version Mismatch
 ```bash
 # Check current version
-netlink update version --detailed
+plexichat update version --detailed
 
 # Validate version format
-netlink update check
+plexichat update check
 
 # Reset version if corrupted
-netlink update reinstall-deps
+plexichat update reinstall-deps
 ```
 
 #### Database Migration Issues
 ```bash
 # Check database status
-netlink update upgrade-db --dry-run
+plexichat update upgrade-db --dry-run
 
 # Manual database upgrade
-netlink update upgrade-db --to 0b1
+plexichat update upgrade-db --to 0b1
 
 # Rollback database
-netlink update rollback --update-id <id>
+plexichat update rollback --update-id <id>
 ```
 
 ### Recovery Procedures
 
 #### Complete System Recovery
-1. Stop NetLink services
-2. Restore from backup: `netlink update rollback`
+1. Stop PlexiChat services
+2. Restore from backup: `plexichat update rollback`
 3. Verify system integrity
 4. Restart services
 
@@ -432,7 +432,7 @@ netlink update rollback --update-id <id>
 1. **Backup Current System**
    ```bash
    # Create full backup
-   netlink backup create --full
+   plexichat backup create --full
    ```
 
 2. **Update to New System**
@@ -444,10 +444,10 @@ netlink update rollback --update-id <id>
 3. **Verify Migration**
    ```bash
    # Check new version
-   netlink update version --detailed
+   plexichat update version --detailed
    
    # Verify functionality
-   netlink update check
+   plexichat update check
    ```
 
 4. **Update Scripts and Automation**
@@ -456,4 +456,4 @@ netlink update rollback --update-id <id>
    - Update monitoring systems
    - Adjust deployment procedures
 
-This comprehensive update system provides enterprise-grade update management with safety, reliability, and seamless integration with all NetLink components.
+This comprehensive update system provides enterprise-grade update management with safety, reliability, and seamless integration with all PlexiChat components.

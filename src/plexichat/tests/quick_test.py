@@ -41,7 +41,7 @@ def test_imports():
         return False
     
     try:
-        from netlink.app.logger_config import logger, settings
+        from plexichat.app.logger_config import logger, settings
         print("✅ Logger and settings imported successfully")
     except ImportError as e:
         print(f"❌ Logger/settings import failed: {e}")
@@ -54,8 +54,8 @@ def test_file_structure():
     print("\nTesting file structure...")
     
     essential_files = [
-        "src/netlink/app/main.py",
-        "src/netlink/app/logger_config.py",
+        "src/plexichat/app/main.py",
+        "src/plexichat/app/logger_config.py",
         "run.py",
         "requirements.txt",
         "README.md"
@@ -76,11 +76,11 @@ def test_directories():
     print("\nTesting directories...")
     
     essential_dirs = [
-        "src/netlink/app",
-        "src/netlink/app/routers",
-        "src/netlink/app/models",
-        "src/netlink/app/web",
-        "src/netlink/app/testing"
+        "src/plexichat/app",
+        "src/plexichat/app/routers",
+        "src/plexichat/app/models",
+        "src/plexichat/app/web",
+        "src/plexichat/app/testing"
     ]
     
     missing = []

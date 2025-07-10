@@ -1,13 +1,13 @@
-# Getting Started with NetLink
+# Getting Started with PlexiChat
 
-Welcome to NetLink! This guide will get you up and running in just a few minutes.
+Welcome to PlexiChat! This guide will get you up and running in just a few minutes.
 
 ## 🚀 Quick Start (30 seconds)
 
-### Step 1: Get NetLink
+### Step 1: Get PlexiChat
 ```bash
-git clone https://github.com/linux-of-user/netlink.git
-cd netlink
+git clone https://github.com/linux-of-user/plexichat.git
+cd plexichat
 ```
 
 ### Step 2: Start Everything
@@ -15,7 +15,7 @@ cd netlink
 python run.py
 ```
 
-That's it! NetLink will automatically:
+That's it! PlexiChat will automatically:
 - ✅ Check your Python version (3.8+ required)
 - ✅ Install missing dependencies
 - ✅ Validate system configuration
@@ -29,7 +29,7 @@ Once started, you'll see output like this:
 
 ```
 ============================================================
-                    NETLINK v1.0.0
+                    PLEXICHAT v1.0.0
 ============================================================
 ℹ️  Starting in SPLIT mode...
 ℹ️  Timestamp: 2024-01-01 12:00:00
@@ -50,7 +50,7 @@ WEB SERVER RUNNING - Starting CLI Interface
 ℹ️  Type 'help' for available commands
 ℹ️  Type 'exit' or Ctrl+C to shutdown
 
-netlink>
+plexichat>
 ```
 
 ## 🌐 Access Points
@@ -70,7 +70,7 @@ Open your browser and go to: **http://localhost:8000**
 
 ### Desktop GUI (Optional)
 ```bash
-python netlink_gui.py
+python plexichat_gui.py
 ```
 
 ## 🎮 Startup Options
@@ -102,7 +102,7 @@ python run.py --cli-only
 ```bash
 python run.py --force
 ```
-- Terminates any existing NetLink instance
+- Terminates any existing PlexiChat instance
 - Useful if previous shutdown was unclean
 
 ### System Validation
@@ -114,10 +114,10 @@ python run.py --validate
 
 ## 🔧 Configuration
 
-NetLink works out of the box with sensible defaults, but you can customize it:
+PlexiChat works out of the box with sensible defaults, but you can customize it:
 
 ### Environment Variables
-Create a `.env` file in the NetLink directory:
+Create a `.env` file in the PlexiChat directory:
 
 ```bash
 # Server Configuration
@@ -126,7 +126,7 @@ PORT=8000                       # Server port (default: 8000)
 WORKERS=4                       # Worker processes (default: 4)
 
 # Database
-DATABASE_URL=sqlite:///./data/netlink.db  # Database URL
+DATABASE_URL=sqlite:///./data/plexichat.db  # Database URL
 
 # Security
 SECRET_KEY=your-secret-key-here  # JWT signing key (auto-generated)
@@ -154,50 +154,50 @@ python run.py
 
 ## 🖥️ Using the CLI
 
-The CLI provides full control over NetLink:
+The CLI provides full control over PlexiChat:
 
 ### Basic Commands
 ```bash
-netlink> help              # Show all commands
-netlink> status             # System status
-netlink> info               # Detailed information
-netlink> version            # Version information
+plexichat> help              # Show all commands
+plexichat> status             # System status
+plexichat> info               # Detailed information
+plexichat> version            # Version information
 ```
 
 ### System Management
 ```bash
-netlink> restart            # Restart server
-netlink> shutdown           # Shutdown server
-netlink> test               # Run system tests
-netlink> performance        # Performance metrics
+plexichat> restart            # Restart server
+plexichat> shutdown           # Shutdown server
+plexichat> test               # Run system tests
+plexichat> performance        # Performance metrics
 ```
 
 ### User Management
 ```bash
-netlink> users list         # List all users
-netlink> users create       # Create new user
-netlink> users delete       # Delete user
+plexichat> users list         # List all users
+plexichat> users create       # Create new user
+plexichat> users delete       # Delete user
 ```
 
 ### Analytics & Monitoring
 ```bash
-netlink> analytics          # View analytics
-netlink> monitor status     # Monitor system
-netlink> monitor logs 50    # View recent logs
+plexichat> analytics          # View analytics
+plexichat> monitor status     # Monitor system
+plexichat> monitor logs 50    # View recent logs
 ```
 
 ### Updates
 ```bash
-netlink> update check       # Check for updates
-netlink> update start       # Start update process
-netlink> update status      # Update status
+plexichat> update check       # Check for updates
+plexichat> update start       # Start update process
+plexichat> update status      # Update status
 ```
 
 ### Clustering
 ```bash
-netlink> cluster status     # Cluster status
-netlink> cluster nodes      # List nodes
-netlink> cluster join <url> # Join cluster
+plexichat> cluster status     # Cluster status
+plexichat> cluster nodes      # List nodes
+plexichat> cluster join <url> # Join cluster
 ```
 
 ## 🌐 Web Interface Tour
@@ -229,7 +229,7 @@ netlink> cluster join <url> # Join cluster
 
 ## 🔄 Hot Updates
 
-NetLink supports zero-downtime updates:
+PlexiChat supports zero-downtime updates:
 
 ### Via Web Interface
 1. Go to **Admin Panel** → **Updates**
@@ -239,8 +239,8 @@ NetLink supports zero-downtime updates:
 
 ### Via CLI
 ```bash
-netlink> update check
-netlink> update start
+plexichat> update check
+plexichat> update start
 ```
 
 ### What Gets Updated
@@ -250,10 +250,10 @@ netlink> update start
 
 ## 🌐 Multi-Server Setup
 
-NetLink automatically discovers and coordinates with other instances:
+PlexiChat automatically discovers and coordinates with other instances:
 
 ### Automatic Discovery
-1. Start NetLink on multiple machines
+1. Start PlexiChat on multiple machines
 2. They automatically find each other on the local network
 3. Form a cluster with leader election
 4. Share load and provide redundancy
@@ -261,7 +261,7 @@ NetLink automatically discovers and coordinates with other instances:
 ### Manual Clustering
 ```bash
 # On second machine
-netlink> cluster join http://first-machine:8000
+plexichat> cluster join http://first-machine:8000
 ```
 
 ### Load Balancing
@@ -307,8 +307,8 @@ python test_startup_system.py
 
 ### From CLI
 ```bash
-netlink> test               # Run all tests
-netlink> test_health        # Quick health check
+plexichat> test               # Run all tests
+plexichat> test_health        # Quick health check
 ```
 
 ## 🆘 Troubleshooting
@@ -330,7 +330,7 @@ python run.py
 # Manual installation
 pip install -r requirements.txt
 
-# Or let NetLink handle it
+# Or let PlexiChat handle it
 python run.py  # Auto-installs dependencies
 ```
 
@@ -345,7 +345,7 @@ chmod +x run.sh
 #### Can't Access Web Interface
 ```bash
 # Check if server is running
-netlink> status
+plexichat> status
 
 # Check firewall settings
 # Make sure port 8000 is open
@@ -357,8 +357,8 @@ netlink> status
 ```bash
 python run.py --help        # Startup options
 python cli.py               # CLI help
-netlink> help               # All commands
-netlink> help <command>     # Specific command help
+plexichat> help               # All commands
+plexichat> help <command>     # Specific command help
 ```
 
 #### System Validation
@@ -369,7 +369,7 @@ python quick_test.py        # Quick test
 
 #### Documentation
 - **Troubleshooting Guide**: `TROUBLESHOOTING.md`
-- **API Reference**: `docs/netlink_api.md`
+- **API Reference**: `docs/plexichat_api.md`
 - **Interactive Docs**: http://localhost:8000/docs
 
 ## 🎯 Next Steps
@@ -394,7 +394,7 @@ python quick_test.py        # Quick test
 
 ## 🎉 You're Ready!
 
-Congratulations! You now have NetLink running. Here's what you can do:
+Congratulations! You now have PlexiChat running. Here's what you can do:
 
 - ✅ **Web Interface**: Modern, responsive dashboard
 - ✅ **API Access**: Complete REST API with documentation
@@ -403,7 +403,7 @@ Congratulations! You now have NetLink running. Here's what you can do:
 - ✅ **Clustering**: Multi-server coordination
 - ✅ **Desktop GUI**: Native desktop application
 
-**Happy networking with NetLink!** 🚀
+**Happy networking with PlexiChat!** 🚀
 
 ---
 

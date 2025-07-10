@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block description %}PlexiChat - Modern distributed communication platform{% endblock %}">
+    <meta name="keywords" content="plexichat, communication, messaging, real-time, distributed">
+    <meta name="author" content="PlexiChat Team">
+
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
+
+    <title>{% block title %}PlexiChat{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='images/favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', path='images/apple-touch-icon.png') }}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/themes.css') }}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading Chat API...</p>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    {% if not hide_nav %}
+    <nav class="navbar" id="navbar">
+        <div class="navbar-container">
+            <!-- Logo -->
+            <div class="navbar-brand">
+                <a href="{{ url_for('dashboard') }}" class="brand-link">
+                    <img src="{{ url_for('static', path='images/logo.svg') }}" alt="Chat API" class="brand-logo">
+                    <span class="brand-text">Chat API</span>
+                </a>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="navbar-nav" id="navbar-nav">
+                {% if current_user %}
+                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('guilds') }}" class="nav-link {% if request.url.path.startswith('/guilds') %}active{% endif %}">
+                    <i class="fas fa-server"></i>
+                    <span>Servers</span>
+                </a>
+                <a href="{{ url_for('messages') }}" class="nav-link {% if request.url.path.startswith('/messages') %}active{% endif %}">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="{{ url_for('files') }}" class="nav-link {% if request.url.path.startswith('/files') %}active{% endif %}">
+                    <i class="fas fa-folder"></i>
+                    <span>Files</span>
+                </a>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin') }}" class="nav-link {% if request.url.path.startswith('/admin') %}active{% endif %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('docs') }}" class="nav-link {% if request.url.path.startswith('/docs') %}active{% endif %}">
+                    <i class="fas fa-book"></i>
+                    <span>Docs</span>
+                </a>
+                {% endif %}
+            </div>
+            
+            <!-- User Menu -->
+            <div class="navbar-user">
+                {% if current_user %}
+                <div class="user-menu" id="user-menu">
+                    <button class="user-menu-toggle" id="user-menu-toggle">
+                        <img src="{{ current_user.avatar_url or url_for('static', path='images/default-avatar.png') }}" 
+                             alt="{{ current_user.display_name }}" class="user-avatar">
+                        <span class="user-name">{{ current_user.display_name or current_user.username }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-menu-dropdown" id="user-menu-dropdown">
+                        <div class="user-info">
+                            <img src="{{ current_user.avatar_url or url_for('static', path='images/default-avatar.png') }}" 
+                                 alt="{{ current_user.display_name }}" class="user-avatar-large">
+                            <div class="user-details">
+                                <div class="user-display-name">{{ current_user.display_name or current_user.username }}</div>
+                                <div class="user-username">@{{ current_user.username }}</div>
+                                <div class="user-status">
+                                    <span class="status-indicator online"></span>
+                                    Online
+                                </div>
+                            </div>
+                        </div>
+                        <div class="menu-divider"></div>
+                        <a href="{{ url_for('profile') }}" class="menu-item">
+                            <i class="fas fa-user"></i>
+                            Profile
+                        </a>
+                        <a href="{{ url_for('settings') }}" class="menu-item">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                        <a href="{{ url_for('help') }}" class="menu-item">
+                            <i class="fas fa-question-circle"></i>
+                            Help
+                        </a>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item theme-toggle" id="theme-toggle">
+                            <i class="fas fa-moon"></i>
+                            <span class="theme-text">Dark Mode</span>
+                        </button>
+                        <div class="menu-divider"></div>
+                        <a href="{{ url_for('logout') }}" class="menu-item logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="auth-buttons">
+                    <a href="{{ url_for('login') }}" class="btn btn-outline">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="main-content {% if not hide_nav %}with-navbar{% endif %}" id="main-content">
+        <!-- Flash Messages -->
+        {% if messages %}
+        <div class="flash-messages" id="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}" data-category="{{ category }}">
+                <div class="flash-content">
+                    <i class="flash-icon fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    <span class="flash-text">{{ message }}</span>
+                </div>
+                <button class="flash-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% if not hide_footer %}
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Chat API</h3>
+                <p>A comprehensive Discord-like chat application with advanced features.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Features</h4>
+                <ul>
+                    <li><a href="{{ url_for('docs', path='features/messaging') }}">Real-time Messaging</a></li>
+                    <li><a href="{{ url_for('docs', path='features/files') }}">File Management</a></li>
+                    <li><a href="{{ url_for('docs', path='features/guilds') }}">Server Management</a></li>
+                    <li><a href="{{ url_for('docs', path='features/api') }}">REST API</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Documentation</h4>
+                <ul>
+                    <li><a href="{{ url_for('docs', path='api/reference') }}">API Reference</a></li>
+                    <li><a href="{{ url_for('docs', path='guides/getting-started') }}">Getting Started</a></li>
+                    <li><a href="{{ url_for('docs', path='guides/authentication') }}">Authentication</a></li>
+                    <li><a href="{{ url_for('docs', path='guides/webhooks') }}">Webhooks</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="{{ url_for('help') }}">Help Center</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('status') }}">System Status</a></li>
+                    <li><a href="{{ url_for('privacy') }}">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-container">
+                <p>&copy; 2024 Chat API. All rights reserved.</p>
+                <p>Version {{ app_version }} | <a href="{{ url_for('changelog') }}">Changelog</a></p>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+    
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay"></div>
+    
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+    
+    <!-- WebSocket Connection Status -->
+    <div id="connection-status" class="connection-status">
+        <div class="connection-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Connecting...</span>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // Global configuration
+        window.ChatAPI = {
+            baseUrl: '{{ request.base_url }}',
+            apiUrl: '{{ request.base_url }}api/v1',
+            wsUrl: '{{ request.base_url.replace("http", "ws") }}ws',
+            currentUser: {% if current_user %}{{ current_user.to_dict() | tojson }}{% else %}null{% endif %},
+            csrfToken: '{{ csrf_token() }}',
+            version: '{{ app_version }}',
+            features: {
+                websockets: {{ 'true' if websocket_enabled else 'false' }},
+                fileUploads: {{ 'true' if file_uploads_enabled else 'false' }},
+                realTimeNotifications: {{ 'true' if notifications_enabled else 'false' }}
+            }
+        };
+    </script>
+    
+    <!-- Core JavaScript -->
+    <script src="{{ url_for('static', path='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', path='js/api.js') }}"></script>
+    <script src="{{ url_for('static', path='js/websocket.js') }}"></script>
+    <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', path='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', path='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

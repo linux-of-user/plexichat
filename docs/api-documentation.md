@@ -1,8 +1,8 @@
-# NetLink API Documentation
+# PlexiChat API Documentation
 
 ## Overview
 
-NetLink provides comprehensive REST API endpoints for backup management, clustering operations, and system administration. All endpoints require proper authentication and follow RESTful conventions.
+PlexiChat provides comprehensive REST API endpoints for backup management, clustering operations, and system administration. All endpoints require proper authentication and follow RESTful conventions.
 
 ## Authentication
 

@@ -11,7 +11,7 @@
 
 ### Option 1: Setup Wizard (Recommended)
 
-1. Download NetLink from the repository
+1. Download PlexiChat from the repository
 2. Run the setup wizard:
    ```bash
    python setup_wizard.py
@@ -22,8 +22,8 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-org/netlink.git
-   cd netlink
+   git clone https://github.com/your-org/plexichat.git
+   cd plexichat
    ```
 
 2. Create virtual environment:
@@ -39,7 +39,7 @@
 
 4. Run initial setup:
    ```bash
-   python -m netlink.setup
+   python -m plexichat.setup
    ```
 
 5. Start the application:
@@ -55,7 +55,7 @@ You can modify these files or use the web interface for configuration.
 ## First Login
 
 - Default username: `admin`
-- Default password: `NetLink2025!`
+- Default password: `PlexiChat2025!`
 - **Important**: Change the default password after first login!
 
 ## Troubleshooting
@@ -69,5 +69,5 @@ You can modify these files or use the web interface for configuration.
 ### Getting Help
 
 - Check the logs in `logs/` directory
-- Run system diagnostics: `python -m netlink.diagnostics`
+- Run system diagnostics: `python -m plexichat.diagnostics`
 - Contact support with error details

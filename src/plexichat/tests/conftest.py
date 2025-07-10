@@ -1,5 +1,5 @@
 """
-NetLink Test Configuration
+PlexiChat Test Configuration
 
 Pytest configuration and fixtures for the unified testing framework.
 """
@@ -28,7 +28,7 @@ def event_loop():
 @pytest.fixture
 def temp_dir() -> Generator[Path, None, None]:
     """Create a temporary directory for tests."""
-    temp_path = Path(tempfile.mkdtemp(prefix="netlink_test_"))
+    temp_path = Path(tempfile.mkdtemp(prefix="plexichat_test_"))
     yield temp_path
     shutil.rmtree(temp_path, ignore_errors=True)
 
@@ -37,7 +37,7 @@ def temp_dir() -> Generator[Path, None, None]:
 def test_config() -> Dict[str, Any]:
     """Test configuration."""
     return {
-        "database_url": "sqlite:///./test_netlink.db",
+        "database_url": "sqlite:///./test_plexichat.db",
         "test_mode": True,
         "debug": True,
         "security": {

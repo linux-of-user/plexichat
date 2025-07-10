@@ -1,6 +1,6 @@
 # PlexiChat - Government-Level Secure Communication Platform
 
-[![Version](https://img.shields.io/badge/version-a.1.1--1-blue.svg)](https://github.com/linux-of-user/netlink)
+[![Version](https://img.shields.io/badge/version-a.1.1--1-blue.svg)](https://github.com/linux-of-user/plexichat)
 [![License](https://img.shields.io/badge/license-CC0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
 [![Security](https://img.shields.io/badge/security-government--level-red.svg)](docs/security.md)
@@ -13,8 +13,8 @@ PlexiChat is a comprehensive, government-level secure communication platform des
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/linux-of-user/netlink.git
-   cd netlink
+   git clone https://github.com/linux-of-user/plexichat.git
+   cd plexichat
    ```
 
 2. **Run PlexiChat**:
@@ -178,39 +178,39 @@ POST /api/v1/updates/install
 
 ```bash
 # Server management
-netlink server start
-netlink server stop
-netlink server status
+plexichat server start
+plexichat server stop
+plexichat server status
 
 # User management
-netlink users list
-netlink users create username
+plexichat users list
+plexichat users create username
 
 # Admin management
-netlink admin password --change
-netlink admin password --reset username
+plexichat admin password --change
+plexichat admin password --reset username
 
 # System testing
-netlink test run
-netlink test health
-netlink test security
+plexichat test run
+plexichat test health
+plexichat test security
 
 # Updates
-netlink version update
-netlink version history
+plexichat version update
+plexichat version history
 
 # Backup and recovery
-netlink backup create
-netlink backup restore backup-id
+plexichat backup create
+plexichat backup restore backup-id
 
 # Documentation
-netlink docs list
-netlink docs view api_reference
+plexichat docs list
+plexichat docs view api_reference
 ```
 
 ## 🔄 Updates and Versioning
 
-NetLink uses semantic versioning with a special format: `letter.major.minor-build`
+PlexiChat uses semantic versioning with a special format: `letter.major.minor-build`
 
 - **Alpha**: `a.1.1-1` (Development)
 - **Beta**: `b.1.1-1` (Pre-release)
@@ -219,40 +219,40 @@ NetLink uses semantic versioning with a special format: `letter.major.minor-buil
 ### Automatic Updates
 ```bash
 # Enable auto-updates
-netlink version update --auto --channel stable
+plexichat version update --auto --channel stable
 
 # Check for updates
-netlink version update --check-only
+plexichat version update --check-only
 
 # Manual update
-netlink version update
+plexichat version update
 ```
 
 ## 🏢 Deployment
 
 ### Docker Deployment
 ```bash
-docker build -t netlink .
-docker run -p 8000:8000 netlink
+docker build -t plexichat .
+docker run -p 8000:8000 plexichat
 ```
 
 ### Production Deployment
 ```bash
 # Using gunicorn
-gunicorn src.netlink.app.main:app -w 4 -k uvicorn.workers.UvicornWorker
+gunicorn src.plexichat.app.main:app -w 4 -k uvicorn.workers.UvicornWorker
 
 # Using systemd
-sudo systemctl enable netlink
-sudo systemctl start netlink
+sudo systemctl enable plexichat
+sudo systemctl start plexichat
 ```
 
 ### Clustering
 ```bash
 # Join cluster
-netlink cluster join --node-id node-2 --host 192.168.1.100
+plexichat cluster join --node-id node-2 --host 192.168.1.100
 
 # Check cluster status
-netlink cluster status
+plexichat cluster status
 ```
 
 ## 📚 Documentation
@@ -280,12 +280,12 @@ This project is licensed under the CC0 License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 - **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/linux-of-user/netlink/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/linux-of-user/netlink/discussions)
+- **Issues**: [GitHub Issues](https://github.com/linux-of-user/plexichat/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/linux-of-user/plexichat/discussions)
 
 ## 🔒 Security
 
-For security vulnerabilities, please email security@netlink.local instead of using the issue tracker.
+For security vulnerabilities, please email security@plexichat.local instead of using the issue tracker.
 
 ## 🏆 Features Roadmap
 
@@ -310,6 +310,6 @@ For security vulnerabilities, please email security@netlink.local instead of usi
 
 ---
 
-**NetLink** - Secure. Scalable. Seamless.
+**PlexiChat** - Secure. Scalable. Seamless.
 
 *Built with ❤️ for organizations that demand the highest levels of security and reliability.*

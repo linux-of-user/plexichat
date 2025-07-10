@@ -1,34 +1,34 @@
-# NetLink Clustering System Documentation
+# PlexiChat Clustering System Documentation
 
 ## Overview
 
-NetLink's clustering system provides high-availability, load balancing, and performance optimization through intelligent node management and automated failover capabilities. The system is designed to deliver tangible performance gains while maintaining government-level security.
+PlexiChat's clustering system provides high-availability, load balancing, and performance optimization through intelligent node management and automated failover capabilities. The system is designed to deliver tangible performance gains while maintaining government-level security.
 
 ## Architecture
 
 ### Core Components
 
-1. **Advanced Cluster Manager** (`src/netlink/clustering/core/cluster_manager.py`)
+1. **Advanced Cluster Manager** (`src/plexichat/clustering/core/cluster_manager.py`)
    - Central orchestration of cluster operations
    - Node lifecycle management
    - Performance optimization algorithms
 
-2. **Intelligent Node Manager** (`src/netlink/clustering/core/node_manager.py`)
+2. **Intelligent Node Manager** (`src/plexichat/clustering/core/node_manager.py`)
    - Dynamic node provisioning and scaling
    - Health monitoring and diagnostics
    - Resource allocation optimization
 
-3. **Smart Load Balancer** (`src/netlink/clustering/core/load_balancer.py`)
+3. **Smart Load Balancer** (`src/plexichat/clustering/core/load_balancer.py`)
    - AI-optimized traffic distribution
    - Multiple balancing algorithms
    - Real-time performance adaptation
 
-4. **Real-Time Performance Monitor** (`src/netlink/clustering/core/performance_monitor.py`)
+4. **Real-Time Performance Monitor** (`src/plexichat/clustering/core/performance_monitor.py`)
    - Comprehensive metrics collection
    - Performance analytics and reporting
    - Predictive scaling recommendations
 
-5. **Automatic Failover Manager** (`src/netlink/clustering/core/failover_manager.py`)
+5. **Automatic Failover Manager** (`src/plexichat/clustering/core/failover_manager.py`)
    - Intelligent failure detection
    - Automated recovery procedures
    - Zero-downtime failover
@@ -37,7 +37,7 @@ NetLink's clustering system provides high-availability, load balancing, and perf
 
 #### Main Nodes
 - Primary application servers
-- Handle core NetLink functionality
+- Handle core PlexiChat functionality
 - Full feature set available
 
 #### Gateway Nodes

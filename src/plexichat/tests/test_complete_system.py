@@ -1,5 +1,5 @@
 """
-Complete System Integration Tests for Enhanced NetLink
+Complete System Integration Tests for Enhanced PlexiChat
 
 Tests the complete integrated system including all security,
 optimization, services, modules, and monitoring components.
@@ -17,20 +17,20 @@ def test_complete_system_structure():
     """Test that the complete system has proper structure."""
     print("🧪 Testing Complete System Structure...")
     
-    # Test main NetLink package
+    # Test main PlexiChat package
     try:
-        import netlink
-        assert hasattr(netlink, '__version__')
-        assert netlink.__version__ == "2.0.0"
-        assert "quantum-secure" in netlink.__build__
-        print("✅ Main NetLink package structure validated")
+        import plexichat
+        assert hasattr(plexichat, '__version__')
+        assert plexichat.__version__ == "2.0.0"
+        assert "quantum-secure" in plexichat.__build__
+        print("✅ Main PlexiChat package structure validated")
     except ImportError as e:
-        print(f"❌ Failed to import main NetLink package: {e}")
+        print(f"❌ Failed to import main PlexiChat package: {e}")
         return False
     
     # Test security system
     try:
-        from netlink.security import (
+        from plexichat.security import (
             SecurityManager, QuantumEncryptionSystem, DistributedKeyManager,
             EndToEndEncryption, DatabaseEncryption, DistributedSecurityMonitor,
             SecurityEvent, ThreatLevel, MonitoringScope, SecurityEventType
@@ -42,7 +42,7 @@ def test_complete_system_structure():
     
     # Test optimization system
     try:
-        from netlink.optimization import (
+        from plexichat.optimization import (
             SecureOptimizationManager, QuantumSecureCache, OptimizationLevel, CacheLevel
         )
         print("✅ Optimization system imports validated")
@@ -52,7 +52,7 @@ def test_complete_system_structure():
     
     # Test services system
     try:
-        from netlink.services import (
+        from plexichat.services import (
             SecureService, ServiceManager, ServiceMetadata, ServiceType, 
             ServicePriority, ServiceStatus
         )
@@ -63,7 +63,7 @@ def test_complete_system_structure():
     
     # Test modules system
     try:
-        from netlink.modules import (
+        from plexichat.modules import (
             SecureModule, ModuleMetadata, ModuleType, ModuleStatus, ModuleAccessLevel
         )
         print("✅ Modules system imports validated")
@@ -73,7 +73,7 @@ def test_complete_system_structure():
     
     # Test backup system
     try:
-        from netlink.backup import (
+        from plexichat.backup import (
             QuantumBackupSystem, BackupSecurity, ShardDistribution
         )
         print("✅ Backup system imports validated")
@@ -88,22 +88,22 @@ def test_system_integration_points():
     print("🔗 Testing System Integration Points...")
     
     try:
-        # Test NetLink main getter functions
-        import netlink
+        # Test PlexiChat main getter functions
+        import plexichat
         
         # Test getter functions exist
-        assert hasattr(netlink, 'get_security_manager')
-        assert hasattr(netlink, 'get_optimization_manager')
-        assert hasattr(netlink, 'get_service_manager')
-        assert hasattr(netlink, 'get_backup_system')
+        assert hasattr(plexichat, 'get_security_manager')
+        assert hasattr(plexichat, 'get_optimization_manager')
+        assert hasattr(plexichat, 'get_service_manager')
+        assert hasattr(plexichat, 'get_backup_system')
         
-        print("✅ NetLink getter functions validated")
+        print("✅ PlexiChat getter functions validated")
         
         # Test that systems can be retrieved
-        security_mgr = netlink.get_security_manager()
-        optimization_mgr = netlink.get_optimization_manager()
-        service_mgr = netlink.get_service_manager()
-        backup_sys = netlink.get_backup_system()
+        security_mgr = plexichat.get_security_manager()
+        optimization_mgr = plexichat.get_optimization_manager()
+        service_mgr = plexichat.get_service_manager()
+        backup_sys = plexichat.get_backup_system()
         
         assert security_mgr is not None
         assert optimization_mgr is not None
@@ -123,7 +123,7 @@ def test_security_system_integration():
     print("🔐 Testing Security System Integration...")
     
     try:
-        from netlink.security import security_manager, ThreatLevel, SecurityEventType
+        from plexichat.security import security_manager, ThreatLevel, SecurityEventType
         
         # Test security manager components
         assert hasattr(security_manager, 'quantum_encryption')
@@ -151,7 +151,7 @@ def test_optimization_system_integration():
     print("⚡ Testing Optimization System Integration...")
     
     try:
-        from netlink.optimization import optimization_manager, OptimizationLevel, CacheLevel
+        from plexichat.optimization import optimization_manager, OptimizationLevel, CacheLevel
         
         # Test optimization manager components
         assert hasattr(optimization_manager, 'optimization_level')
@@ -177,7 +177,7 @@ def test_services_system_integration():
     print("🔧 Testing Services System Integration...")
     
     try:
-        from netlink.services import ServiceType, ServicePriority, ServiceStatus
+        from plexichat.services import ServiceType, ServicePriority, ServiceStatus
         
         # Test service enums
         assert ServiceType.SECURITY is not None
@@ -197,7 +197,7 @@ def test_modules_system_integration():
     print("📦 Testing Modules System Integration...")
     
     try:
-        from netlink.modules import ModuleType, ModuleStatus, ModuleAccessLevel
+        from plexichat.modules import ModuleType, ModuleStatus, ModuleAccessLevel
         
         # Test module enums
         assert ModuleType.SECURITY is not None
@@ -217,7 +217,7 @@ def test_backup_system_integration():
     print("💾 Testing Backup System Integration...")
     
     try:
-        from netlink.backup import BackupSecurity, ShardDistribution
+        from plexichat.backup import BackupSecurity, ShardDistribution
         
         # Test backup enums
         assert BackupSecurity.QUANTUM_ENCRYPTED is not None
@@ -236,9 +236,9 @@ def test_quantum_security_features():
     print("🔬 Testing Quantum Security Features...")
     
     try:
-        from netlink.security import SecurityManager
-        from netlink.security.quantum_encryption import SecurityTier
-        from netlink.security.distributed_key_manager import KeyDomain
+        from plexichat.security import SecurityManager
+        from plexichat.security.quantum_encryption import SecurityTier
+        from plexichat.security.distributed_key_manager import KeyDomain
         
         # Test security tiers
         assert SecurityTier.QUANTUM_PROOF is not None
@@ -265,8 +265,8 @@ def test_distributed_architecture():
     print("🌐 Testing Distributed Architecture...")
     
     try:
-        from netlink.security import MonitoringScope
-        from netlink.backup import ShardDistribution
+        from plexichat.security import MonitoringScope
+        from plexichat.backup import ShardDistribution
         
         # Test monitoring scopes
         assert MonitoringScope.CLUSTER is not None
@@ -291,12 +291,12 @@ def test_system_metadata():
     print("📋 Testing System Metadata...")
     
     try:
-        import netlink
+        import plexichat
         
         # Test version information
-        assert netlink.__version__ == "2.0.0"
-        assert "quantum-secure" in netlink.__build__
-        assert "Government-level" in netlink.__description__
+        assert plexichat.__version__ == "2.0.0"
+        assert "quantum-secure" in plexichat.__build__
+        assert "Government-level" in plexichat.__description__
         
         print("✅ System metadata validated")
         
@@ -308,7 +308,7 @@ def test_system_metadata():
 
 def run_complete_system_tests():
     """Run all complete system tests."""
-    print("🧪 Starting Complete NetLink System Integration Tests")
+    print("🧪 Starting Complete PlexiChat System Integration Tests")
     print("=" * 70)
     
     tests = [
@@ -343,7 +343,7 @@ def run_complete_system_tests():
     
     if failed == 0:
         print("🎉 ALL COMPLETE SYSTEM TESTS PASSED!")
-        print("✅ Enhanced NetLink 2.0.0 quantum-secure system is fully integrated")
+        print("✅ Enhanced PlexiChat 2.0.0 quantum-secure system is fully integrated")
         print("🔒 Government-level security architecture validated")
         print("⚡ Performance optimization systems validated")
         print("🔧 Service management architecture validated")

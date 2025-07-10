@@ -1,4 +1,4 @@
-# NetLink Complete API Reference
+# PlexiChat Complete API Reference
 
 Comprehensive API documentation with all endpoints, examples, and interactive testing.
 
@@ -15,16 +15,16 @@ Comprehensive API documentation with all endpoints, examples, and interactive te
 
 ```bash
 # Set base URL for easy testing
-export NETLINK_URL="http://localhost:8000"
+export PLEXICHAT_URL="http://localhost:8000"
 
 # Login and get token
-TOKEN=$(curl -s -X POST "$NETLINK_URL/api/auth/login" \
+TOKEN=$(curl -s -X POST "$PLEXICHAT_URL/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}' | \
   jq -r '.access_token')
 
 # Use token in subsequent requests
-curl -H "Authorization: Bearer $TOKEN" "$NETLINK_URL/api/v1/system/status"
+curl -H "Authorization: Bearer $TOKEN" "$PLEXICHAT_URL/api/v1/system/status"
 ```
 
 ## Authentication Endpoints
@@ -36,7 +36,7 @@ curl -H "Authorization: Bearer $TOKEN" "$NETLINK_URL/api/v1/system/status"
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/auth/login" \
+curl -X POST "$PLEXICHAT_URL/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "admin",
@@ -55,7 +55,7 @@ curl -X POST "$NETLINK_URL/api/auth/login" \
   "token_type": "bearer",
   "user": {
     "username": "admin",
-    "email": "admin@netlink.local",
+    "email": "admin@plexichat.local",
     "is_admin": true
   }
 }
@@ -65,7 +65,7 @@ curl -X POST "$NETLINK_URL/api/auth/login" \
 ```bash
 #!/bin/bash
 # Test login endpoint
-response=$(curl -s -X POST "$NETLINK_URL/api/auth/login" \
+response=$(curl -s -X POST "$PLEXICHAT_URL/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}')
 
@@ -85,7 +85,7 @@ fi
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/auth/logout" \
+curl -X POST "$PLEXICHAT_URL/api/auth/logout" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -104,7 +104,7 @@ curl -X POST "$NETLINK_URL/api/auth/logout" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/auth/me" \
+curl -X GET "$PLEXICHAT_URL/api/auth/me" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -112,7 +112,7 @@ curl -X GET "$NETLINK_URL/api/auth/me" \
 ```json
 {
   "username": "admin",
-  "email": "admin@netlink.local",
+  "email": "admin@plexichat.local",
   "is_active": true,
   "is_admin": true,
   "created_at": "2024-01-01T00:00:00Z",
@@ -127,7 +127,7 @@ curl -X GET "$NETLINK_URL/api/auth/me" \
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/auth/validate" \
+curl -X POST "$PLEXICHAT_URL/api/auth/validate" \
   -H "Content-Type: application/json" \
   -d '{"session_id": "your-session-id"}'
 ```
@@ -141,7 +141,7 @@ curl -X POST "$NETLINK_URL/api/auth/validate" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/system/health"
+curl -X GET "$PLEXICHAT_URL/api/v1/system/health"
 ```
 
 **Response**:
@@ -164,7 +164,7 @@ curl -X GET "$NETLINK_URL/api/v1/system/health"
 ```bash
 #!/bin/bash
 # Health check with status validation
-health=$(curl -s "$NETLINK_URL/api/v1/system/health")
+health=$(curl -s "$PLEXICHAT_URL/api/v1/system/health")
 status=$(echo "$health" | jq -r '.status')
 
 case $status in
@@ -192,7 +192,7 @@ echo "$health" | jq '.checks'
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/system/status" \
+curl -X GET "$PLEXICHAT_URL/api/v1/system/status" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -235,13 +235,13 @@ curl -X GET "$NETLINK_URL/api/v1/system/status" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/system/info"
+curl -X GET "$PLEXICHAT_URL/api/v1/system/info"
 ```
 
 **Response**:
 ```json
 {
-  "app_name": "NetLink",
+  "app_name": "PlexiChat",
   "version": "1.0.0",
   "build_date": "2024-01-01",
   "python_version": "3.9.7",
@@ -269,11 +269,11 @@ curl -X GET "$NETLINK_URL/api/v1/system/info"
 ### 🔄 System Restart
 **Endpoint**: `POST /api/v1/system/restart`
 
-**Description**: Restart the NetLink server (admin only)
+**Description**: Restart the PlexiChat server (admin only)
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/v1/system/restart" \
+curl -X POST "$PLEXICHAT_URL/api/v1/system/restart" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"confirm": true, "delay": 5}'
@@ -292,11 +292,11 @@ curl -X POST "$NETLINK_URL/api/v1/system/restart" \
 ### 🛑 System Shutdown
 **Endpoint**: `POST /api/v1/system/shutdown`
 
-**Description**: Shutdown the NetLink server (admin only)
+**Description**: Shutdown the PlexiChat server (admin only)
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/v1/system/shutdown" \
+curl -X POST "$PLEXICHAT_URL/api/v1/system/shutdown" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"confirm": true, "delay": 10}'
@@ -311,7 +311,7 @@ curl -X POST "$NETLINK_URL/api/v1/system/shutdown" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/users?limit=50&offset=0" \
+curl -X GET "$PLEXICHAT_URL/api/v1/users?limit=50&offset=0" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -322,7 +322,7 @@ curl -X GET "$NETLINK_URL/api/v1/users?limit=50&offset=0" \
     {
       "id": 1,
       "username": "admin",
-      "email": "admin@netlink.local",
+      "email": "admin@plexichat.local",
       "is_active": true,
       "is_admin": true,
       "created_at": "2024-01-01T00:00:00Z",
@@ -354,7 +354,7 @@ curl -X GET "$NETLINK_URL/api/v1/users?limit=50&offset=0" \
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/v1/users" \
+curl -X POST "$PLEXICHAT_URL/api/v1/users" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -389,7 +389,7 @@ curl -X POST "$NETLINK_URL/api/v1/users" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/users/1" \
+curl -X GET "$PLEXICHAT_URL/api/v1/users/1" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -400,7 +400,7 @@ curl -X GET "$NETLINK_URL/api/v1/users/1" \
 
 **Request**:
 ```bash
-curl -X PUT "$NETLINK_URL/api/v1/users/2" \
+curl -X PUT "$PLEXICHAT_URL/api/v1/users/2" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -417,7 +417,7 @@ curl -X PUT "$NETLINK_URL/api/v1/users/2" \
 
 **Request**:
 ```bash
-curl -X DELETE "$NETLINK_URL/api/v1/users/2" \
+curl -X DELETE "$PLEXICHAT_URL/api/v1/users/2" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -438,7 +438,7 @@ curl -X DELETE "$NETLINK_URL/api/v1/users/2" \
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/v1/messages" \
+curl -X POST "$PLEXICHAT_URL/api/v1/messages" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -484,19 +484,19 @@ curl -X POST "$NETLINK_URL/api/v1/messages" \
 **Request Examples**:
 ```bash
 # Get recent messages with pagination
-curl -X GET "$NETLINK_URL/api/v1/messages?limit=20&offset=0" \
+curl -X GET "$PLEXICHAT_URL/api/v1/messages?limit=20&offset=0" \
   -H "Authorization: Bearer $TOKEN"
 
 # Get conversation with specific user
-curl -X GET "$NETLINK_URL/api/v1/messages?conversation_with=2&limit=50" \
+curl -X GET "$PLEXICHAT_URL/api/v1/messages?conversation_with=2&limit=50" \
   -H "Authorization: Bearer $TOKEN"
 
 # Search messages
-curl -X GET "$NETLINK_URL/api/v1/messages?search=hello&limit=10" \
+curl -X GET "$PLEXICHAT_URL/api/v1/messages?search=hello&limit=10" \
   -H "Authorization: Bearer $TOKEN"
 
 # Get messages in date range
-curl -X GET "$NETLINK_URL/api/v1/messages?since=2025-07-01T00:00:00Z&until=2025-07-09T23:59:59Z" \
+curl -X GET "$PLEXICHAT_URL/api/v1/messages?since=2025-07-01T00:00:00Z&until=2025-07-09T23:59:59Z" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -567,7 +567,7 @@ curl -X GET "$NETLINK_URL/api/v1/messages?since=2025-07-01T00:00:00Z&until=2025-
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/messages/search?q=hello%20world&limit=10" \
+curl -X GET "$PLEXICHAT_URL/api/v1/messages/search?q=hello%20world&limit=10" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -597,7 +597,7 @@ curl -X GET "$NETLINK_URL/api/v1/messages/search?q=hello%20world&limit=10" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/messages/stats" \
+curl -X GET "$PLEXICHAT_URL/api/v1/messages/stats" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -625,7 +625,7 @@ curl -X GET "$NETLINK_URL/api/v1/messages/stats" \
 
 **Request**:
 ```bash
-curl -X DELETE "$NETLINK_URL/api/v1/messages/bulk?message_ids=123&message_ids=124&message_ids=125" \
+curl -X DELETE "$PLEXICHAT_URL/api/v1/messages/bulk?message_ids=123&message_ids=124&message_ids=125" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -654,7 +654,7 @@ curl -X DELETE "$NETLINK_URL/api/v1/messages/bulk?message_ids=123&message_ids=12
 
 **Request**:
 ```bash
-curl -X PUT "$NETLINK_URL/api/v1/messages/123?content=Hello,%20updated%20world!%20🌍" \
+curl -X PUT "$PLEXICHAT_URL/api/v1/messages/123?content=Hello,%20updated%20world!%20🌍" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -683,7 +683,7 @@ curl -X PUT "$NETLINK_URL/api/v1/messages/123?content=Hello,%20updated%20world!%
 
 **Request**:
 ```bash
-curl -X DELETE "$NETLINK_URL/api/v1/messages/123" \
+curl -X DELETE "$PLEXICHAT_URL/api/v1/messages/123" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -694,7 +694,7 @@ curl -X DELETE "$NETLINK_URL/api/v1/messages/123" \
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/v1/messages/123/reactions" \
+curl -X POST "$PLEXICHAT_URL/api/v1/messages/123/reactions" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"emoji": "👍"}'
@@ -709,7 +709,7 @@ curl -X POST "$NETLINK_URL/api/v1/messages/123/reactions" \
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/v1/files/upload" \
+curl -X POST "$PLEXICHAT_URL/api/v1/files/upload" \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@document.pdf" \
   -F "channel_id=general" \
@@ -747,7 +747,7 @@ curl -X POST "$NETLINK_URL/api/v1/files/upload" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/files/file_abc123/download" \
+curl -X GET "$PLEXICHAT_URL/api/v1/files/file_abc123/download" \
   -H "Authorization: Bearer $TOKEN" \
   -o "downloaded_file.pdf"
 ```
@@ -760,11 +760,11 @@ curl -X GET "$NETLINK_URL/api/v1/files/file_abc123/download" \
 **Request**:
 ```bash
 # List all files
-curl -X GET "$NETLINK_URL/api/v1/files?limit=20" \
+curl -X GET "$PLEXICHAT_URL/api/v1/files?limit=20" \
   -H "Authorization: Bearer $TOKEN"
 
 # Filter by channel and type
-curl -X GET "$NETLINK_URL/api/v1/files?channel_id=general&content_type=image/*" \
+curl -X GET "$PLEXICHAT_URL/api/v1/files?channel_id=general&content_type=image/*" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -796,7 +796,7 @@ curl -X GET "$NETLINK_URL/api/v1/files?channel_id=general&content_type=image/*" 
 
 **Request**:
 ```bash
-curl -X DELETE "$NETLINK_URL/api/v1/files/file_abc123" \
+curl -X DELETE "$PLEXICHAT_URL/api/v1/files/file_abc123" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -809,7 +809,7 @@ curl -X DELETE "$NETLINK_URL/api/v1/files/file_abc123" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/cluster/status"
+curl -X GET "$PLEXICHAT_URL/api/cluster/status"
 ```
 
 **Response**:
@@ -860,7 +860,7 @@ curl -X GET "$NETLINK_URL/api/cluster/status"
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/cluster/nodes"
+curl -X GET "$PLEXICHAT_URL/api/cluster/nodes"
 ```
 
 **Response**:
@@ -895,7 +895,7 @@ curl -X GET "$NETLINK_URL/api/cluster/nodes"
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/cluster/load-balance"
+curl -X GET "$PLEXICHAT_URL/api/cluster/load-balance"
 ```
 
 **Response**:
@@ -930,7 +930,7 @@ curl -X GET "$NETLINK_URL/api/cluster/load-balance"
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/cluster/join" \
+curl -X POST "$PLEXICHAT_URL/api/cluster/join" \
   -H "Content-Type: application/json" \
   -d '{
     "node_id": "node-new123",
@@ -959,7 +959,7 @@ curl -X POST "$NETLINK_URL/api/cluster/join" \
 
 **Request**:
 ```bash
-curl -X DELETE "$NETLINK_URL/api/cluster/leave/node-def456" \
+curl -X DELETE "$PLEXICHAT_URL/api/cluster/leave/node-def456" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -970,7 +970,7 @@ curl -X DELETE "$NETLINK_URL/api/cluster/leave/node-def456" \
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/cluster/broadcast" \
+curl -X POST "$PLEXICHAT_URL/api/cluster/broadcast" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1004,7 +1004,7 @@ curl -X POST "$NETLINK_URL/api/cluster/broadcast" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/config" \
+curl -X GET "$PLEXICHAT_URL/api/v1/config" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -1020,7 +1020,7 @@ curl -X GET "$NETLINK_URL/api/v1/config" \
   },
   "database": {
     "type": "sqlite",
-    "url": "sqlite:///./data/netlink.db",
+    "url": "sqlite:///./data/plexichat.db",
     "pool_size": 10,
     "echo": false
   },
@@ -1055,7 +1055,7 @@ curl -X GET "$NETLINK_URL/api/v1/config" \
 
 **Request**:
 ```bash
-curl -X PUT "$NETLINK_URL/api/v1/config" \
+curl -X PUT "$PLEXICHAT_URL/api/v1/config" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1099,7 +1099,7 @@ curl -X PUT "$NETLINK_URL/api/v1/config" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/analytics?period=24h" \
+curl -X GET "$PLEXICHAT_URL/api/v1/analytics?period=24h" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -1147,7 +1147,7 @@ curl -X GET "$NETLINK_URL/api/v1/analytics?period=24h" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/analytics/metrics?metric=cpu_usage&period=1h&interval=5m" \
+curl -X GET "$PLEXICHAT_URL/api/v1/analytics/metrics?metric=cpu_usage&period=1h&interval=5m" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -1180,7 +1180,7 @@ curl -X GET "$NETLINK_URL/api/v1/analytics/metrics?metric=cpu_usage&period=1h&in
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/analytics/search?query=error&type=logs&since=1h" \
+curl -X GET "$PLEXICHAT_URL/api/v1/analytics/search?query=error&type=logs&since=1h" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -1193,7 +1193,7 @@ curl -X GET "$NETLINK_URL/api/v1/analytics/search?query=error&type=logs&since=1h
 
 **Request**:
 ```bash
-curl -X POST "$NETLINK_URL/api/v1/test/system" \
+curl -X POST "$PLEXICHAT_URL/api/v1/test/system" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1258,7 +1258,7 @@ curl -X POST "$NETLINK_URL/api/v1/test/system" \
 
 **Request**:
 ```bash
-curl -X GET "$NETLINK_URL/api/v1/test/health?deep=true" \
+curl -X GET "$PLEXICHAT_URL/api/v1/test/health?deep=true" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -1341,18 +1341,18 @@ Features:
 ### Complete API Test Suite
 ```bash
 #!/bin/bash
-# Complete NetLink API test suite
+# Complete PlexiChat API test suite
 
-NETLINK_URL="http://localhost:8000"
+PLEXICHAT_URL="http://localhost:8000"
 TEST_USER="testuser_$(date +%s)"
 TEST_EMAIL="test@example.com"
 
-echo "🧪 NetLink API Test Suite"
+echo "🧪 PlexiChat API Test Suite"
 echo "=========================="
 
 # 1. Health Check
 echo "1. Testing health endpoint..."
-health=$(curl -s "$NETLINK_URL/api/v1/system/health")
+health=$(curl -s "$PLEXICHAT_URL/api/v1/system/health")
 if echo "$health" | jq -e '.status == "healthy"' > /dev/null; then
     echo "✅ Health check passed"
 else
@@ -1362,7 +1362,7 @@ fi
 
 # 2. Authentication
 echo "2. Testing authentication..."
-login_response=$(curl -s -X POST "$NETLINK_URL/api/auth/login" \
+login_response=$(curl -s -X POST "$PLEXICHAT_URL/api/auth/login" \
     -H "Content-Type: application/json" \
     -d '{"username":"admin","password":"admin123"}')
 
@@ -1376,7 +1376,7 @@ fi
 
 # 3. System Status
 echo "3. Testing system status..."
-status=$(curl -s -H "Authorization: Bearer $TOKEN" "$NETLINK_URL/api/v1/system/status")
+status=$(curl -s -H "Authorization: Bearer $TOKEN" "$PLEXICHAT_URL/api/v1/system/status")
 if echo "$status" | jq -e '.server.status == "running"' > /dev/null; then
     echo "✅ System status OK"
 else
@@ -1385,7 +1385,7 @@ fi
 
 # 4. User Management
 echo "4. Testing user management..."
-create_user=$(curl -s -X POST "$NETLINK_URL/api/v1/users" \
+create_user=$(curl -s -X POST "$PLEXICHAT_URL/api/v1/users" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -d "{\"username\":\"$TEST_USER\",\"email\":\"$TEST_EMAIL\",\"password\":\"testpass123\"}")
@@ -1399,7 +1399,7 @@ fi
 
 # 5. Messaging
 echo "5. Testing messaging..."
-send_message=$(curl -s -X POST "$NETLINK_URL/api/v1/messages" \
+send_message=$(curl -s -X POST "$PLEXICHAT_URL/api/v1/messages" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"content":"Test message from API test","channel_id":"general"}')
@@ -1414,7 +1414,7 @@ fi
 # 6. File Upload (if test file exists)
 if [ -f "test_file.txt" ]; then
     echo "6. Testing file upload..."
-    upload_response=$(curl -s -X POST "$NETLINK_URL/api/v1/files/upload" \
+    upload_response=$(curl -s -X POST "$PLEXICHAT_URL/api/v1/files/upload" \
         -H "Authorization: Bearer $TOKEN" \
         -F "file=@test_file.txt" \
         -F "channel_id=general")
@@ -1429,7 +1429,7 @@ fi
 
 # 7. Cluster Status
 echo "7. Testing cluster status..."
-cluster_status=$(curl -s "$NETLINK_URL/api/cluster/status")
+cluster_status=$(curl -s "$PLEXICHAT_URL/api/cluster/status")
 if echo "$cluster_status" | jq -e '.cluster_health' > /dev/null; then
     echo "✅ Cluster status OK"
 else
@@ -1438,7 +1438,7 @@ fi
 
 # 8. Analytics
 echo "8. Testing analytics..."
-analytics=$(curl -s -H "Authorization: Bearer $TOKEN" "$NETLINK_URL/api/v1/analytics")
+analytics=$(curl -s -H "Authorization: Bearer $TOKEN" "$PLEXICHAT_URL/api/v1/analytics")
 if echo "$analytics" | jq -e '.overview' > /dev/null; then
     echo "✅ Analytics OK"
 else
@@ -1448,13 +1448,13 @@ fi
 # Cleanup
 echo "9. Cleanup..."
 if [ ! -z "$USER_ID" ]; then
-    curl -s -X DELETE "$NETLINK_URL/api/v1/users/$USER_ID" \
+    curl -s -X DELETE "$PLEXICHAT_URL/api/v1/users/$USER_ID" \
         -H "Authorization: Bearer $TOKEN" > /dev/null
     echo "✅ Test user cleaned up"
 fi
 
 if [ ! -z "$MESSAGE_ID" ]; then
-    curl -s -X DELETE "$NETLINK_URL/api/v1/messages/$MESSAGE_ID" \
+    curl -s -X DELETE "$PLEXICHAT_URL/api/v1/messages/$MESSAGE_ID" \
         -H "Authorization: Bearer $TOKEN" > /dev/null
     echo "✅ Test message cleaned up"
 fi
@@ -1466,18 +1466,18 @@ echo "🎉 API test suite completed!"
 ### Performance Test Script
 ```bash
 #!/bin/bash
-# NetLink API performance test
+# PlexiChat API performance test
 
-NETLINK_URL="http://localhost:8000"
+PLEXICHAT_URL="http://localhost:8000"
 CONCURRENT_USERS=10
 REQUESTS_PER_USER=100
 
-echo "🚀 NetLink Performance Test"
+echo "🚀 PlexiChat Performance Test"
 echo "Concurrent Users: $CONCURRENT_USERS"
 echo "Requests per User: $REQUESTS_PER_USER"
 
 # Login and get token
-TOKEN=$(curl -s -X POST "$NETLINK_URL/api/auth/login" \
+TOKEN=$(curl -s -X POST "$PLEXICHAT_URL/api/auth/login" \
     -H "Content-Type: application/json" \
     -d '{"username":"admin","password":"admin123"}' | \
     jq -r '.access_token')
@@ -1489,7 +1489,7 @@ performance_test() {
 
     for i in $(seq 1 $REQUESTS_PER_USER); do
         curl -s -H "Authorization: Bearer $TOKEN" \
-            "$NETLINK_URL/api/v1/system/health" > /dev/null
+            "$PLEXICHAT_URL/api/v1/system/health" > /dev/null
     done
 
     local end_time=$(date +%s)
@@ -1514,28 +1514,28 @@ echo "Performance test completed!"
 ### Authentication
 ```bash
 # Login
-curl -X POST "$NETLINK_URL/api/auth/login" -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}'
+curl -X POST "$PLEXICHAT_URL/api/auth/login" -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}'
 
 # Use token
-curl -H "Authorization: Bearer $TOKEN" "$NETLINK_URL/api/endpoint"
+curl -H "Authorization: Bearer $TOKEN" "$PLEXICHAT_URL/api/endpoint"
 ```
 
 ### Common Endpoints
 ```bash
 # Health check
-curl "$NETLINK_URL/api/v1/system/health"
+curl "$PLEXICHAT_URL/api/v1/system/health"
 
 # System status
-curl -H "Authorization: Bearer $TOKEN" "$NETLINK_URL/api/v1/system/status"
+curl -H "Authorization: Bearer $TOKEN" "$PLEXICHAT_URL/api/v1/system/status"
 
 # Send message
-curl -X POST "$NETLINK_URL/api/v1/messages" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"content":"Hello","channel_id":"general"}'
+curl -X POST "$PLEXICHAT_URL/api/v1/messages" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"content":"Hello","channel_id":"general"}'
 
 # Upload file
-curl -X POST "$NETLINK_URL/api/v1/files/upload" -H "Authorization: Bearer $TOKEN" -F "file=@filename.txt"
+curl -X POST "$PLEXICHAT_URL/api/v1/files/upload" -H "Authorization: Bearer $TOKEN" -F "file=@filename.txt"
 
 # Cluster status
-curl "$NETLINK_URL/api/cluster/status"
+curl "$PLEXICHAT_URL/api/cluster/status"
 ```
 
 ### Interactive Tools

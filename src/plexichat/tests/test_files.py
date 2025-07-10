@@ -15,11 +15,11 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, create_engine, SQLModel
 from sqlmodel.pool import StaticPool
 
-from netlink.app.main import app
-from netlink.app.db import get_session
-from netlink.app.models.user import User
-from netlink.app.models.files import FileRecord, FileShare
-from netlink.app.utils.auth import create_access_token
+from plexichat.app.main import app
+from plexichat.app.db import get_session
+from plexichat.app.models.user import User
+from plexichat.app.models.files import FileRecord, FileShare
+from plexichat.app.utils.auth import create_access_token
 
 # Test database setup
 @pytest.fixture(name="session")

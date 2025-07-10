@@ -1,29 +1,29 @@
-# NetLink Backup System Documentation
+# PlexiChat Backup System Documentation
 
 ## Overview
 
-NetLink's backup system provides government-level security with advanced shard distribution, encryption, and redundancy. The system is designed to ensure data integrity and availability even in the event of catastrophic failures.
+PlexiChat's backup system provides government-level security with advanced shard distribution, encryption, and redundancy. The system is designed to ensure data integrity and availability even in the event of catastrophic failures.
 
 ## Architecture
 
 ### Core Components
 
-1. **Government Backup Manager** (`src/netlink/backup/core/government_backup_manager.py`)
+1. **Government Backup Manager** (`src/plexichat/backup/core/government_backup_manager.py`)
    - Central orchestration of all backup operations
    - Government-level security implementation
    - Proxy mode for resilient operation
 
-2. **Shard Manager** (`src/netlink/backup/core/shard_manager.py`)
+2. **Shard Manager** (`src/plexichat/backup/core/shard_manager.py`)
    - Immutable shard creation and management
    - SHA-512 checksums for integrity verification
    - Advanced encryption with individual shard keys
 
-3. **Backup Node Manager** (`src/netlink/backup/core/backup_node_manager.py`)
+3. **Backup Node Manager** (`src/plexichat/backup/core/backup_node_manager.py`)
    - Distributed backup node coordination
    - API key authentication system
    - Intelligent shard distribution
 
-4. **Archive System** (`src/netlink/backup/plugins/archive_system.py`)
+4. **Archive System** (`src/plexichat/backup/plugins/archive_system.py`)
    - Version-controlled data archival
    - Server-by-server activation
    - Premium user permissions

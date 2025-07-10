@@ -38,7 +38,7 @@ class FilterSystemTests(BaseEndpointTest):
             ],
             "links": [
                 "Check out https://suspicious-site.com",
-                "Visit our official site at https://netlink.com",
+                "Visit our official site at https://plexichat.com",
                 "No links in this message",
                 "Malicious link: http://malware.example.com"
             ],

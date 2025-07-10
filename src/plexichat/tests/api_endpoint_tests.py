@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-API Endpoint Testing Suite for NetLink
+API Endpoint Testing Suite for PlexiChat
 Tests all API endpoints, authentication, and security features.
 """
 
@@ -293,7 +293,7 @@ class APITestSuite:
     
     def run_all_tests(self):
         """Run all API tests."""
-        print("🚀 NetLink API Endpoint Test Suite")
+        print("🚀 PlexiChat API Endpoint Test Suite")
         print("=" * 50)
 
         if not REQUESTS_AVAILABLE:

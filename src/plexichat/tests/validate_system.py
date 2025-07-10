@@ -501,9 +501,9 @@ class SystemValidator:
         print("\n📁 Checking required files...")
         
         required_files = [
-            "src/netlink/app/main.py",
-            "src/netlink/app/__init__.py",
-            "src/netlink/app/logger_config.py",
+            "src/plexichat/app/main.py",
+            "src/plexichat/app/__init__.py",
+            "src/plexichat/app/logger_config.py",
             "run.py",
             "requirements.txt",
             "README.md"
@@ -546,7 +546,7 @@ class SystemValidator:
 
         # Test basic imports first
         basic_modules = [
-            "netlink.app.logger_simple",
+            "plexichat.app.logger_simple",
         ]
 
         for module in basic_modules:

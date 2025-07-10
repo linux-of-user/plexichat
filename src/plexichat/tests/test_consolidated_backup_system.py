@@ -1,5 +1,5 @@
 """
-NetLink Consolidated Backup System Tests
+PlexiChat Consolidated Backup System Tests
 
 Comprehensive test suite combining unit, integration, performance, and security tests
 for the consolidated backup system with government-level security features.
@@ -18,7 +18,7 @@ from typing import Dict, Any, List
 
 # Import consolidated backup system components
 try:
-    from src.netlink.core.backup import (
+    from src.plexichat.core.backup import (
         GovernmentBackupManager,
         ImmutableShardManager,
         QuantumEncryptionManager,
@@ -40,7 +40,7 @@ except ImportError as e:
 @pytest.fixture
 async def temp_backup_dir():
     """Create temporary backup directory."""
-    temp_dir = Path(tempfile.mkdtemp(prefix="netlink_backup_test_"))
+    temp_dir = Path(tempfile.mkdtemp(prefix="plexichat_backup_test_"))
     yield temp_dir
     shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -68,7 +68,7 @@ def sample_backup_data():
             {"id": 3, "user_id": 1, "content": "How are you?", "timestamp": "2024-01-01T12:00:00Z"}
         ],
         "settings": {
-            "server_name": "NetLink Test Server",
+            "server_name": "PlexiChat Test Server",
             "max_users": 1000,
             "features": ["chat", "file_sharing", "video_calls", "backup"],
             "security_level": "government"

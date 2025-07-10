@@ -1,6 +1,6 @@
 """Security system tests."""
 import pytest
-from src.netlink.security import auth_manager, SecurityLevel
+from src.plexichat.security import auth_manager, SecurityLevel
 
 @pytest.mark.unit
 @pytest.mark.security

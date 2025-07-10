@@ -1,18 +1,18 @@
-# NetLink Admin Deployment Guide
+# PlexiChat Admin Deployment Guide
 
 ## 🚀 How to Push Updates to Users
 
-This guide explains how to create releases, deploy updates, and manage the NetLink update system as an administrator.
+This guide explains how to create releases, deploy updates, and manage the PlexiChat update system as an administrator.
 
 ## 📋 Prerequisites
 
-- Admin access to the NetLink GitHub repository: `github.com/linux-of-user/netlink`
+- Admin access to the PlexiChat GitHub repository: `github.com/linux-of-user/plexichat`
 - Git configured with appropriate permissions
-- Understanding of NetLink's version format: `XaY`, `XbY`, `XrY` (where X=major, a/b/r=alpha/beta/release, Y=minor)
+- Understanding of PlexiChat's version format: `XaY`, `XbY`, `XrY` (where X=major, a/b/r=alpha/beta/release, Y=minor)
 
 ## 🔄 Version Format
 
-NetLink uses a specific version format: `letter.major.minor-build`
+PlexiChat uses a specific version format: `letter.major.minor-build`
 - **Alpha**: `a.1.1-1`, `a.1.1-2`, `a.1.2-1`, etc. (Development/testing)
 - **Beta**: `b.1.1-1`, `b.1.1-2`, `b.1.2-1`, etc. (Pre-release testing)
 - **Release**: `r.1.1-1`, `r.1.1-2`, `r.1.2-1`, etc. (Stable production)
@@ -29,9 +29,9 @@ a.1.1-1 → a.1.1-2 → a.1.2-1 → b.1.2-1 → b.1.2-2 → r.1.2-1 → r.1.2-2 
 1. **Make your changes** in the development branch
 2. **Test thoroughly** using the built-in test system:
    ```bash
-   netlink test run
-   netlink test health
-   netlink test security
+   plexichat test run
+   plexichat test health
+   plexichat test security
    ```
 3. **Update version.json** if needed:
    ```json
@@ -67,19 +67,19 @@ a.1.1-1 → a.1.1-2 → a.1.2-1 → b.1.2-1 → b.1.2-2 → r.1.2-1 → r.1.2-2 
 
 ### Step 3: Create GitHub Release
 
-1. **Go to GitHub**: Navigate to `https://github.com/linux-of-user/netlink/releases`
+1. **Go to GitHub**: Navigate to `https://github.com/linux-of-user/plexichat/releases`
 
 2. **Click "Create a new release"**
 
 3. **Fill in the release information**:
    - **Tag version**: Select the tag you just created (e.g., `a.1.2-1`)
-   - **Release title**: Use format like "NetLink va.1.2-1 - Enhanced Collaboration"
+   - **Release title**: Use format like "PlexiChat va.1.2-1 - Enhanced Collaboration"
    - **Description**: Include detailed release notes (see template below)
    - **Pre-release**: Check this for alpha/beta versions, uncheck for stable releases
 
 4. **Release Notes Template**:
    ```markdown
-   # NetLink va.1.2-1 - Enhanced Collaboration
+   # PlexiChat va.1.2-1 - Enhanced Collaboration
    
    ## 🆕 New Features
    - Real-time collaboration with presence indicators
@@ -109,7 +109,7 @@ a.1.1-1 → a.1.1-2 → a.1.2-1 → b.1.2-1 → b.1.2-2 → r.1.2-1 → r.1.2-2 
    ## 🔄 Update Instructions
    Users can update using:
    ```bash
-   netlink version update --channel alpha
+   plexichat version update --channel alpha
    ```
    
    Or via the WebUI: Settings → Updates → Check for Updates
@@ -117,13 +117,13 @@ a.1.1-1 → a.1.1-2 → a.1.2-1 → b.1.2-1 → b.1.2-2 → r.1.2-1 → r.1.2-2 
 
 5. **Attach files** (optional):
    - You can attach pre-built packages if needed
-   - NetLink will automatically use the source code zipball
+   - PlexiChat will automatically use the source code zipball
 
 6. **Publish the release**
 
 ## 🎯 Update Channels
 
-NetLink supports three update channels:
+PlexiChat supports three update channels:
 
 ### Alpha Channel (`/api/beta`)
 - **Purpose**: Development and testing
@@ -148,7 +148,7 @@ NetLink supports three update channels:
 ### Check Update Status
 ```bash
 # Via CLI
-netlink version update --check-only
+plexichat version update --check-only
 
 # Via API
 curl -H "Authorization: Bearer $TOKEN" \
@@ -158,7 +158,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 ### Configure Auto-Updates
 ```bash
 # Enable auto-updates for stable channel
-netlink version update --auto --channel stable
+plexichat version update --auto --channel stable
 
 # Via API
 curl -X POST -H "Authorization: Bearer $TOKEN" \
@@ -170,7 +170,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 ### Monitor Update History
 ```bash
 # Via CLI
-netlink version history
+plexichat version history
 
 # Via API
 curl -H "Authorization: Bearer $TOKEN" \
@@ -215,16 +215,16 @@ For critical security updates:
 ### Health Monitoring
 ```bash
 # Check system health after updates
-netlink test health
+plexichat test health
 
 # Monitor logs
-tail -f logs/netlink.log | grep -i update
+tail -f logs/plexichat.log | grep -i update
 ```
 
 ## 🔄 Rollback Procedures
 
 ### Automatic Rollback
-NetLink automatically rolls back failed updates. Monitor logs:
+PlexiChat automatically rolls back failed updates. Monitor logs:
 ```bash
 tail -f logs/update.log
 ```
@@ -232,7 +232,7 @@ tail -f logs/update.log
 ### Manual Rollback
 ```bash
 # Via CLI
-netlink version rollback --to 1r1
+plexichat version rollback --to 1r1
 
 # Via API
 curl -X POST -H "Authorization: Bearer $TOKEN" \
@@ -284,10 +284,10 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 ### Debug Commands
 ```bash
 # Check update system status
-netlink version update --check-only --verbose
+plexichat version update --check-only --verbose
 
 # Test update system
-netlink test run --suite updates
+plexichat test run --suite updates
 
 # View detailed logs
 tail -f logs/github_updater.log
@@ -298,7 +298,7 @@ tail -f logs/github_updater.log
 For deployment issues:
 1. Check the troubleshooting section above
 2. Review logs in `logs/` directory
-3. Test with `netlink test run`
+3. Test with `plexichat test run`
 4. Contact development team with logs and error details
 
 ---

@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 import logging
 
-logger = logging.getLogger("netlink.testing.integration")
+logger = logging.getLogger("plexichat.testing.integration")
 
 class IntegrationTestSuite:
     """Comprehensive integration test suite."""

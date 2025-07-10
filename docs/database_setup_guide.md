@@ -1,6 +1,6 @@
-# NetLink Database Setup Guide
+# PlexiChat Database Setup Guide
 
-This comprehensive guide covers setting up databases for NetLink, including local and external database configurations.
+This comprehensive guide covers setting up databases for PlexiChat, including local and external database configurations.
 
 ## Quick Start
 
@@ -25,7 +25,7 @@ This comprehensive guide covers setting up databases for NetLink, including loca
 #### SQLite (Default)
 - **Best for**: Development, small deployments
 - **Configuration**: Automatic, no server required
-- **File location**: `data/netlink.db`
+- **File location**: `data/plexichat.db`
 
 #### PostgreSQL
 - **Best for**: Production deployments
@@ -76,13 +76,13 @@ This comprehensive guide covers setting up databases for NetLink, including loca
 
 ```bash
 # Basic database URL
-DATABASE_URL=sqlite:///data/netlink.db
+DATABASE_URL=sqlite:///data/plexichat.db
 
 # PostgreSQL example
-DATABASE_URL=postgresql://user:password@localhost:5432/netlink
+DATABASE_URL=postgresql://user:password@localhost:5432/plexichat
 
 # MySQL example
-DATABASE_URL=mysql+pymysql://user:password@localhost:3306/netlink
+DATABASE_URL=mysql+pymysql://user:password@localhost:3306/plexichat
 ```
 
 ### Configuration File
@@ -95,8 +95,8 @@ database:
   postgresql:
     host: "localhost"
     port: 5432
-    database: "netlink"
-    username: "netlink_user"
+    database: "plexichat"
+    username: "plexichat_user"
     password: "secure_password"
     ssl_mode: "require"
 ```
@@ -137,7 +137,7 @@ curl -X POST "http://localhost:8000/api/v1/database/setup/migration/analyze" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "source_database_url": "sqlite:///data/netlink.db",
+    "source_database_url": "sqlite:///data/plexichat.db",
     "backup_source": true
   }'
 ```
@@ -249,13 +249,13 @@ curl "http://localhost:8000/api/v1/database/backups" \
 
 ### Multiple Database Support
 
-NetLink supports multiple database connections:
+PlexiChat supports multiple database connections:
 
 ```yaml
 databases:
   primary:
     type: "postgresql"
-    url: "postgresql://user:pass@host:5432/netlink"
+    url: "postgresql://user:pass@host:5432/plexichat"
   
   analytics:
     type: "mysql"
@@ -277,7 +277,7 @@ database:
     connect_timeout: 30
     command_timeout: 60
     server_settings:
-      application_name: "netlink"
+      application_name: "plexichat"
       timezone: "UTC"
 ```
 
@@ -287,4 +287,4 @@ For additional help:
 - Check the logs in `logs/database.log`
 - Use the health endpoints for diagnostics
 - Consult provider-specific documentation
-- Contact NetLink support with configuration details
+- Contact PlexiChat support with configuration details

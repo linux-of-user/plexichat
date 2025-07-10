@@ -1,7 +1,7 @@
 """
-NetLink Comprehensive Systems Tests
+PlexiChat Comprehensive Systems Tests
 
-Complete test suite for all enhanced NetLink systems using the
+Complete test suite for all enhanced PlexiChat systems using the
 comprehensive testing framework.
 """
 

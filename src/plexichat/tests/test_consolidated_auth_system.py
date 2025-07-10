@@ -1,5 +1,5 @@
 """
-NetLink Consolidated Authentication System Tests
+PlexiChat Consolidated Authentication System Tests
 
 Comprehensive test suite for the unified authentication system with:
 - Unit tests for individual auth components
@@ -18,7 +18,7 @@ from typing import Dict, Any
 
 # Import authentication components
 try:
-    from src.netlink.core.auth import (
+    from src.plexichat.core.auth import (
         AuthManager, TokenManager, SessionManager, PasswordManager,
         MFAManager, BiometricAuthManager, DeviceManager,
         AuthenticationError, AuthorizationError

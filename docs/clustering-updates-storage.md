@@ -1,8 +1,8 @@
-# NetLink Clustering Updates & Distributed Storage
+# PlexiChat Clustering Updates & Distributed Storage
 
 ## Overview
 
-NetLink's clustering system now includes comprehensive update management and distributed storage capabilities, providing enterprise-grade infrastructure for managing multi-node deployments with zero-downtime updates and intelligent data distribution.
+PlexiChat's clustering system now includes comprehensive update management and distributed storage capabilities, providing enterprise-grade infrastructure for managing multi-node deployments with zero-downtime updates and intelligent data distribution.
 
 ## 🚀 Cluster Update Management
 
@@ -247,7 +247,7 @@ distributed_storage:
 
 ### 1. Initialize Clustering with Updates and Storage
 ```python
-from netlink.clustering.core.cluster_manager import AdvancedClusterManager
+from plexichat.clustering.core.cluster_manager import AdvancedClusterManager
 
 # Initialize cluster manager
 cluster_manager = AdvancedClusterManager()
@@ -260,8 +260,8 @@ storage_manager = cluster_manager.storage_manager
 
 ### 2. Plan and Execute Cluster Update
 ```python
-from netlink.core.versioning.version_manager import Version
-from netlink.clustering.core.cluster_update_manager import UpdateType, ClusterUpdateStrategy
+from plexichat.core.versioning.version_manager import Version
+from plexichat.clustering.core.cluster_update_manager import UpdateType, ClusterUpdateStrategy
 
 # Plan update
 target_version = Version.parse("0b1")
@@ -277,7 +277,7 @@ success = await update_manager.execute_cluster_update(operation.operation_id)
 
 ### 3. Store and Retrieve Data
 ```python
-from netlink.clustering.storage.distributed_storage_manager import DataConsistency
+from plexichat.clustering.storage.distributed_storage_manager import DataConsistency
 
 # Store data
 stored_data = await storage_manager.store_data(

@@ -1,5 +1,5 @@
 """
-Comprehensive test suite for NetLink clustering system.
+Comprehensive test suite for PlexiChat clustering system.
 Tests load balancing, failover, performance monitoring, and node management.
 """
 
@@ -12,12 +12,12 @@ from datetime import datetime, timedelta
 
 # Import clustering system components
 try:
-    from netlink.clustering.core.cluster_manager import ClusterManager
-    from netlink.clustering.core.node_manager import NodeManager, NodeType
-    from netlink.clustering.core.load_balancer import SmartLoadBalancer, LoadBalancingAlgorithm
-    from netlink.clustering.core.performance_monitor import RealTimePerformanceMonitor
-    from netlink.clustering.core.failover_manager import AutomaticFailoverManager
-    from netlink.clustering.models.cluster_models import ClusterNode, NodeStatus, PerformanceMetrics
+    from plexichat.clustering.core.cluster_manager import ClusterManager
+    from plexichat.clustering.core.node_manager import NodeManager, NodeType
+    from plexichat.clustering.core.load_balancer import SmartLoadBalancer, LoadBalancingAlgorithm
+    from plexichat.clustering.core.performance_monitor import RealTimePerformanceMonitor
+    from plexichat.clustering.core.failover_manager import AutomaticFailoverManager
+    from plexichat.clustering.models.cluster_models import ClusterNode, NodeStatus, PerformanceMetrics
     CLUSTERING_AVAILABLE = True
 except ImportError:
     CLUSTERING_AVAILABLE = False

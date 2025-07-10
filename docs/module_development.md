@@ -1,6 +1,6 @@
-# NetLink Module Development Guide
+# PlexiChat Module Development Guide
 
-Welcome to the NetLink Module Development Guide! This comprehensive guide will help you create powerful, flexible modules for the NetLink platform.
+Welcome to the PlexiChat Module Development Guide! This comprehensive guide will help you create powerful, flexible modules for the PlexiChat platform.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ Welcome to the NetLink Module Development Guide! This comprehensive guide will h
 
 ## Getting Started
 
-NetLink modules are Python packages that extend the core functionality of NetLink. They can add new API endpoints, WebUI components, background tasks, and integrate with external services.
+PlexiChat modules are Python packages that extend the core functionality of PlexiChat. They can add new API endpoints, WebUI components, background tasks, and integrate with external services.
 
 ### Prerequisites
 
@@ -26,13 +26,13 @@ NetLink modules are Python packages that extend the core functionality of NetLin
 
 ### Development Environment Setup
 
-1. Clone the NetLink repository
+1. Clone the PlexiChat repository
 2. Install development dependencies: `pip install -r requirements-dev.txt`
-3. Create your module directory: `src/netlink/modules/your_module_name/`
+3. Create your module directory: `src/plexichat/modules/your_module_name/`
 
 ## Module Structure
 
-A NetLink module follows a standardized structure:
+A PlexiChat module follows a standardized structure:
 
 ```
 your_module_name/
@@ -69,7 +69,7 @@ Every module must have a `config.yaml` file that defines its metadata and settin
 # Module Information
 module_name: "example_module"
 module_version: "1.0.0"
-module_description: "An example NetLink module"
+module_description: "An example PlexiChat module"
 module_author: "Your Name"
 module_license: "MIT"
 
@@ -130,8 +130,8 @@ security:
 All modules must inherit from the `BaseModule` class:
 
 ```python
-from netlink.app.modules.base import BaseModule
-from netlink.app.modules.decorators import module_endpoint, module_task
+from plexichat.app.modules.base import BaseModule
+from plexichat.app.modules.decorators import module_endpoint, module_task
 from fastapi import APIRouter
 import asyncio
 
@@ -176,7 +176,7 @@ class ExampleModule(BaseModule):
 
 ### Module Decorators
 
-NetLink provides several decorators to enhance module functionality:
+PlexiChat provides several decorators to enhance module functionality:
 
 #### `@module_endpoint`
 
@@ -222,10 +222,10 @@ async def on_user_login(event_data: dict):
 
 ### Module Utilities
 
-NetLink provides utility functions for common tasks:
+PlexiChat provides utility functions for common tasks:
 
 ```python
-from netlink.app.modules.utils import (
+from plexichat.app.modules.utils import (
     get_user_tier,
     check_permissions,
     cache_result,
@@ -311,7 +311,7 @@ async def api_call(self, endpoint: str):
 
 ```python
 from pydantic import BaseModel, validator
-from netlink.app.security.validators import sanitize_input
+from plexichat.app.security.validators import sanitize_input
 
 class UserInput(BaseModel):
     name: str
@@ -337,7 +337,7 @@ class UserInput(BaseModel):
 
 ```python
 import aioredis
-from netlink.app.cache import cache_manager
+from plexichat.app.cache import cache_manager
 
 class ExampleModule(BaseModule):
     async def initialize(self):
@@ -402,8 +402,8 @@ async def test_error_handling(module):
 
 ```python
 # modules/weather/module.py
-from netlink.app.modules.base import BaseModule
-from netlink.app.modules.decorators import module_endpoint
+from plexichat.app.modules.base import BaseModule
+from plexichat.app.modules.decorators import module_endpoint
 from fastapi import APIRouter, HTTPException
 import aiohttp
 
@@ -442,8 +442,8 @@ class WeatherModule(BaseModule):
 
 ```python
 # modules/cleanup/module.py
-from netlink.app.modules.base import BaseModule
-from netlink.app.modules.decorators import module_task
+from plexichat.app.modules.base import BaseModule
+from plexichat.app.modules.decorators import module_task
 import asyncio
 import os
 from pathlib import Path
@@ -479,10 +479,10 @@ Create comprehensive tests for your modules:
 
 ```bash
 # Run module tests
-pytest src/netlink/modules/your_module/tests/
+pytest src/plexichat/modules/your_module/tests/
 
 # Run with coverage
-pytest --cov=src/netlink/modules/your_module src/netlink/modules/your_module/tests/
+pytest --cov=src/plexichat/modules/your_module src/plexichat/modules/your_module/tests/
 
 # Run integration tests
 pytest tests/integration/test_your_module.py
@@ -492,8 +492,8 @@ pytest tests/integration/test_your_module.py
 
 ### Development Deployment
 
-1. Place your module in `src/netlink/modules/your_module_name/`
-2. Restart NetLink to load the module
+1. Place your module in `src/plexichat/modules/your_module_name/`
+2. Restart PlexiChat to load the module
 3. Check logs for any initialization errors
 
 ### Production Deployment
@@ -511,14 +511,14 @@ Create a `setup.py` for your module:
 from setuptools import setup, find_packages
 
 setup(
-    name="netlink-your-module",
+    name="plexichat-your-module",
     version="1.0.0",
-    description="Your NetLink module description",
+    description="Your PlexiChat module description",
     author="Your Name",
     author_email="your.email@example.com",
     packages=find_packages(),
     install_requires=[
-        "netlink>=3.0.0",
+        "plexichat>=3.0.0",
         # Add your dependencies here
     ],
     classifiers=[
@@ -535,7 +535,7 @@ setup(
 ### Database Integration
 
 ```python
-from netlink.app.database import get_database
+from plexichat.app.database import get_database
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -578,7 +578,7 @@ async def module_dashboard(request: Request):
 ### Event System Integration
 
 ```python
-from netlink.app.events import event_manager
+from plexichat.app.events import event_manager
 
 class EventModule(BaseModule):
     async def initialize(self):
@@ -615,10 +615,10 @@ settings:
   log_level: "DEBUG"
 ```
 
-Use the NetLink debugging tools:
+Use the PlexiChat debugging tools:
 
 ```python
-from netlink.app.debug import debug_manager
+from plexichat.app.debug import debug_manager
 
 # Add debug breakpoint
 await debug_manager.breakpoint("module_name", "function_name", locals())
@@ -629,9 +629,9 @@ debug_manager.log_state("module_name", {"variable": value})
 
 ## Support
 
-- Documentation: [NetLink Docs](https://docs.netlink.dev)
-- Community: [NetLink Discord](https://discord.gg/netlink)
-- Issues: [GitHub Issues](https://github.com/netlink/netlink/issues)
-- Examples: [Module Examples Repository](https://github.com/netlink/module-examples)
+- Documentation: [PlexiChat Docs](https://docs.plexichat.dev)
+- Community: [PlexiChat Discord](https://discord.gg/plexichat)
+- Issues: [GitHub Issues](https://github.com/plexichat/plexichat/issues)
+- Examples: [Module Examples Repository](https://github.com/plexichat/module-examples)
 
 Happy module development! 🚀

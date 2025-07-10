@@ -83,8 +83,8 @@ class SimpleTestRunner:
         start_time = time.time()
         
         essential_files = [
-            "src/netlink/app/main.py",
-            "src/netlink/app/logger_config.py",
+            "src/plexichat/app/main.py",
+            "src/plexichat/app/logger_config.py",
             "run.py",
             "requirements.txt"
         ]

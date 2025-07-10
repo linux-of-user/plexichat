@@ -1,5 +1,5 @@
 """
-Simple NetLink System Validation
+Simple PlexiChat System Validation
 Quick validation without complex imports.
 """
 
@@ -43,10 +43,10 @@ def validate_file_structure():
         "run.py",
         "requirements.txt",
         "README.md",
-        "src/netlink/app/main_working.py",
-        "src/netlink/app/logger_simple.py",
-        "src/netlink/core/launcher.py",
-        "src/netlink/cli/app.py"
+        "src/plexichat/app/main_working.py",
+        "src/plexichat/app/logger_simple.py",
+        "src/plexichat/core/launcher.py",
+        "src/plexichat/cli/app.py"
     ]
     
     success = True
@@ -65,7 +65,7 @@ def validate_app_import():
     
     try:
         sys.path.insert(0, "src")
-        from netlink.app.main_working import app
+        from plexichat.app.main_working import app
         print("✅ Main app imported successfully")
         return True
     except Exception as e:
@@ -74,7 +74,7 @@ def validate_app_import():
 
 def run_simple_validation():
     """Run simple validation."""
-    print("🚀 NetLink Simple System Validation")
+    print("🚀 PlexiChat Simple System Validation")
     print("=" * 50)
     
     checks = [

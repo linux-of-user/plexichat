@@ -25,13 +25,17 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Communications",
     "Topic :: Security",
     "Topic :: System :: Networking",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 dependencies = [
     # Core Web Framework
     "fastapi==0.115.12",
@@ -72,6 +76,7 @@ dependencies = [
     "python-dotenv==1.0.1",
     "pyyaml==6.0.1",
     "pydantic[email]==2.5.3",
+    "pydantic-settings==2.1.0",
     
     # Scheduling & Background Tasks
     "apscheduler==3.10.4",
@@ -180,15 +185,15 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/linux-of-user/netlink"
-Documentation = "https://github.com/linux-of-user/netlink/docs"
-Repository = "https://github.com/linux-of-user/netlink.git"
-Issues = "https://github.com/linux-of-user/netlink/issues"
+Homepage = "https://github.com/linux-of-user/plexichat"
+Documentation = "https://github.com/linux-of-user/plexichat/docs"
+Repository = "https://github.com/linux-of-user/plexichat.git"
+Issues = "https://github.com/linux-of-user/plexichat/issues"
 
 [project.scripts]
-plexichat = "plexichat.cli:main"
+plexichat = "plexichat.interfaces.cli.core.cli_manager:main"
 plexichat-server = "plexichat.main:main"
-plexichat-gui = "plexichat.gui:main"
+plexichat-gui = "plexichat.interfaces.gui.main:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

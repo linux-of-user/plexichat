@@ -1,10 +1,10 @@
 """
-NetLink Unified Testing Framework
+PlexiChat Unified Testing Framework
 
 Consolidated testing functionality from:
-- src/netlink/tests/ (main test suite)
-- src/netlink/app/testing/ (comprehensive test suite)
-- src/netlink/app/tests/ (additional tests)
+- src/plexichat/tests/ (main test suite)
+- src/plexichat/app/testing/ (comprehensive test suite)
+- src/plexichat/app/tests/ (additional tests)
 
 Provides comprehensive testing with:
 - Unit tests for all modules
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Test configuration
 TEST_CONFIG = {
-    "test_database_url": "sqlite:///./test_netlink.db",
+    "test_database_url": "sqlite:///./test_plexichat.db",
     "test_data_dir": "tests/data",
     "test_results_dir": "tests/results",
     "test_coverage_dir": "tests/coverage",

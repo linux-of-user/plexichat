@@ -1,5 +1,5 @@
 """
-Basic Structure Tests for Enhanced NetLink Systems
+Basic Structure Tests for Enhanced PlexiChat Systems
 
 Tests the basic structure and imports of our enhanced systems
 without requiring full dependency installation.
@@ -134,8 +134,8 @@ def test_file_content_structure():
     
     print("✅ File content structure test passed")
 
-def test_main_netlink_init():
-    """Test that main NetLink __init__.py is updated."""
+def test_main_plexichat_init():
+    """Test that main PlexiChat __init__.py is updated."""
     init_file = Path(__file__).parent.parent / "__init__.py"
     content = init_file.read_text(encoding='utf-8')
     
@@ -149,7 +149,7 @@ def test_main_netlink_init():
     assert "get_service_manager" in content, "Should have service manager getter"
     assert "get_backup_system" in content, "Should have backup system getter"
     
-    print("✅ Main NetLink init test passed")
+    print("✅ Main PlexiChat init test passed")
 
 def test_requirements_file():
     """Test that requirements.txt has necessary dependencies."""
@@ -222,7 +222,7 @@ def test_system_integration_points():
 
 def run_all_tests():
     """Run all basic structure tests."""
-    print("🧪 Starting Basic Structure Tests for Enhanced NetLink")
+    print("🧪 Starting Basic Structure Tests for Enhanced PlexiChat")
     print("=" * 60)
     
     try:
@@ -233,14 +233,14 @@ def run_all_tests():
         test_modules_files()
         test_backup_files()
         test_file_content_structure()
-        test_main_netlink_init()
+        test_main_plexichat_init()
         test_requirements_file()
         test_code_quality_indicators()
         test_system_integration_points()
         
         print("\n" + "=" * 60)
         print("✅ ALL BASIC STRUCTURE TESTS PASSED!")
-        print("🎯 Enhanced NetLink architecture is properly structured")
+        print("🎯 Enhanced PlexiChat architecture is properly structured")
         print("🔒 Quantum security framework files are in place")
         print("⚡ Optimization system files are in place")
         print("🔧 Service architecture files are in place")

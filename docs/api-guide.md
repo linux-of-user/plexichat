@@ -1,10 +1,10 @@
-# NetLink API Guide
+# PlexiChat API Guide
 
-NetLink provides a comprehensive RESTful API for all administrative functions. This guide covers practical examples and best practices for using the NetLink API va.1.1-1.
+PlexiChat provides a comprehensive RESTful API for all administrative functions. This guide covers practical examples and best practices for using the PlexiChat API va.1.1-1.
 
 ## API Versioning
 
-NetLink provides three API endpoints:
+PlexiChat provides three API endpoints:
 
 - **Stable API** (`/api`) - Production-ready, version r.1.0-1
 - **Current API** (`/api/v1`) - Latest features, version a.1.1-1
@@ -46,7 +46,7 @@ Content-Type: application/json
   "user": {
     "id": 1,
     "username": "admin",
-    "email": "admin@netlink.local",
+    "email": "admin@plexichat.local",
     "is_admin": true,
     "is_active": true
   },
@@ -138,7 +138,7 @@ Content-Type: application/json
 
 {
   "status": "online",
-  "custom_message": "Working on NetLink",
+  "custom_message": "Working on PlexiChat",
   "activity": {
     "type": "editing",
     "context": "api_documentation"
@@ -176,7 +176,7 @@ Authorization: Bearer {admin_token}
   "published_at": "2025-07-09T12:00:00Z",
   "is_major_update": false,
   "is_security_update": false,
-  "download_url": "https://github.com/linux-of-user/netlink/archive/a.1.2-1.zip",
+  "download_url": "https://github.com/linux-of-user/plexichat/archive/a.1.2-1.zip",
   "file_size": 15728640
 }
 ```

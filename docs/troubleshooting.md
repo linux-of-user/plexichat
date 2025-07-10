@@ -142,7 +142,7 @@
 
 Run system diagnostics:
 ```bash
-python -m netlink.diagnostics
+python -m plexichat.diagnostics
 ```
 
 This will check:
@@ -157,13 +157,13 @@ This will check:
 Check application logs:
 ```bash
 # View recent logs
-tail -f logs/netlink.log
+tail -f logs/plexichat.log
 
 # Search for errors
-grep ERROR logs/netlink.log
+grep ERROR logs/plexichat.log
 
 # View specific time range
-grep "2025-06-29 12:" logs/netlink.log
+grep "2025-06-29 12:" logs/plexichat.log
 ```
 
 ### System Health Check
@@ -200,7 +200,7 @@ When reporting issues, include:
 
 ### Log Locations
 
-- Application logs: `logs/netlink.log`
+- Application logs: `logs/plexichat.log`
 - Error logs: `logs/error.log`
 - Access logs: `logs/access.log`
 - Audit logs: `logs/audit.log`

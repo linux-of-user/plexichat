@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Security Testing Suite for NetLink
+Comprehensive Security Testing Suite for PlexiChat
 Tests all security features, authentication, and system components.
 """
 
@@ -51,7 +51,7 @@ class SecurityTestSuite:
         print("\n🔐 Testing Government Authentication System...")
         
         try:
-            from netlink.core.security.government_auth import get_government_auth
+            from plexichat.core.security.government_auth import get_government_auth
             auth_system = get_government_auth()
             
             if not auth_system:
@@ -84,7 +84,7 @@ class SecurityTestSuite:
         print("\n🛡️ Testing System Resilience Manager...")
         
         try:
-            from netlink.app.core.system_resilience import get_system_resilience
+            from plexichat.app.core.system_resilience import get_system_resilience
             resilience = get_system_resilience()
             
             if not resilience:
@@ -111,7 +111,7 @@ class SecurityTestSuite:
         print("\n📝 Testing Logger System...")
         
         try:
-            from netlink.app.logger_config import logger, Settings
+            from plexichat.app.logger_config import logger, Settings
             
             self.log_test("Logger Import", True, "Successfully imported logger")
             
@@ -135,7 +135,7 @@ class SecurityTestSuite:
         print("\n🗄️ Testing Database Security...")
         
         try:
-            from netlink.app.db.database_manager import DatabaseManager
+            from plexichat.app.db.database_manager import DatabaseManager
             
             # Test database manager initialization
             db_manager = DatabaseManager()
@@ -156,7 +156,7 @@ class SecurityTestSuite:
         print("\n💾 Testing Backup System Security...")
         
         try:
-            from netlink.backup.core.backup_manager import BackupManager
+            from plexichat.backup.core.backup_manager import BackupManager
             
             backup_manager = BackupManager()
             self.log_test("Backup Manager", True, "Successfully initialized")
@@ -178,7 +178,7 @@ class SecurityTestSuite:
         print("\n🔗 Testing Clustering Security...")
         
         try:
-            from netlink.clustering.core.cluster_manager import ClusterManager
+            from plexichat.clustering.core.cluster_manager import ClusterManager
             
             cluster_manager = ClusterManager()
             self.log_test("Cluster Manager", True, "Successfully initialized")
@@ -197,7 +197,7 @@ class SecurityTestSuite:
         print("\n🦠 Testing Antivirus System...")
         
         try:
-            from netlink.antivirus.core.antivirus_manager import AntivirusManager
+            from plexichat.antivirus.core.antivirus_manager import AntivirusManager
             
             av_manager = AntivirusManager()
             self.log_test("Antivirus Manager", True, "Successfully initialized")
@@ -216,7 +216,7 @@ class SecurityTestSuite:
         print("\n🔌 Testing Plugin System Security...")
         
         try:
-            from netlink.plugins.core.plugin_manager import PluginManager
+            from plexichat.plugins.core.plugin_manager import PluginManager
             
             plugin_manager = PluginManager()
             self.log_test("Plugin Manager", True, "Successfully initialized")
@@ -235,7 +235,7 @@ class SecurityTestSuite:
         print("\n⏱️ Testing Rate Limiting System...")
         
         try:
-            from netlink.app.core.rate_limiter import RateLimiter
+            from plexichat.app.core.rate_limiter import RateLimiter
             
             rate_limiter = RateLimiter()
             self.log_test("Rate Limiter", True, "Successfully initialized")
@@ -276,7 +276,7 @@ class SecurityTestSuite:
     
     def run_all_tests(self):
         """Run all security tests."""
-        print("🚀 NetLink Comprehensive Security Test Suite")
+        print("🚀 PlexiChat Comprehensive Security Test Suite")
         print("=" * 60)
         
         self.start_time = time.time()

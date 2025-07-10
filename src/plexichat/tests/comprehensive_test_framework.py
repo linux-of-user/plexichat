@@ -1,5 +1,5 @@
 """
-NetLink Comprehensive Testing Framework
+PlexiChat Comprehensive Testing Framework
 
 Unified testing framework that consolidates all test functionality with
 enhanced features, performance testing, and comprehensive coverage.
@@ -182,7 +182,7 @@ class ComprehensiveTestFramework:
     
     def __init__(self, test_directories: List[str] = None):
         self.test_directories = test_directories or [
-            "src/netlink/tests",
+            "src/plexichat/tests",
             "tests",
             "src/tests"
         ]

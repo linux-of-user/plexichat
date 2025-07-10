@@ -1,5 +1,5 @@
 """
-Comprehensive Testing System for NetLink
+Comprehensive Testing System for PlexiChat
 Granular self-tests with detailed outputs accessible from WebUI.
 """
 
@@ -534,7 +534,7 @@ class ComprehensiveTestManager:
             # Generate secure random test credentials
             test_username = self._generate_secure_username()
             test_password = self._generate_secure_password()
-            test_email = f"{test_username}@test.netlink.local"
+            test_email = f"{test_username}@test.plexichat.local"
 
             base_url = "http://localhost:8000"
 
@@ -785,7 +785,7 @@ class ComprehensiveTestManager:
 
             if response.status_code == 200:
                 # Extract session information
-                session_cookie = response.cookies.get('netlink_session')
+                session_cookie = response.cookies.get('plexichat_session')
                 return {
                     "success": True,
                     "status_code": response.status_code,
@@ -807,7 +807,7 @@ class ComprehensiveTestManager:
             return {"status": "skipped", "reason": "No session available"}
 
         try:
-            cookies = {"netlink_session": session}
+            cookies = {"plexichat_session": session}
             response = requests.get(f"{base_url}/api/v1/admin/profile",
                                   cookies=cookies,
                                   timeout=5)
@@ -1006,7 +1006,7 @@ async def testing_interface(request: Request):
     """Web interface for testing system."""
     return templates.TemplateResponse("testing/interface.html", {
         "request": request,
-        "page_title": "System Testing - NetLink"
+        "page_title": "System Testing - PlexiChat"
     })
 
 # Global test manager instance

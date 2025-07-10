@@ -1,5 +1,5 @@
 """
-Comprehensive Test Suite for Enhanced NetLink Features
+Comprehensive Test Suite for Enhanced PlexiChat Features
 Tests all the new functionality including admin interface, logging, split-screen, and bug fixes.
 """
 
@@ -18,7 +18,7 @@ src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
 
 class EnhancedFeatureTests:
-    """Test suite for enhanced NetLink features."""
+    """Test suite for enhanced PlexiChat features."""
     
     def __init__(self, base_url="http://localhost:8000"):
         self.base_url = base_url
@@ -27,7 +27,7 @@ class EnhancedFeatureTests:
         
     def run_all_tests(self):
         """Run all enhanced feature tests."""
-        print("🧪 NetLink Enhanced Features Test Suite")
+        print("🧪 PlexiChat Enhanced Features Test Suite")
         print("=" * 50)
         
         tests = [
@@ -95,7 +95,7 @@ class EnhancedFeatureTests:
         """Test bug fix system functionality."""
         try:
             # Import bug fix manager
-            from netlink.app.core.bug_fixes import bug_fix_manager
+            from plexichat.app.core.bug_fixes import bug_fix_manager
             
             # Test bug fix application
             results = bug_fix_manager.apply_all_fixes()
@@ -119,7 +119,7 @@ class EnhancedFeatureTests:
         """Test enhanced logging functionality."""
         try:
             # Import logging components
-            from netlink.app.core.error_handling.enhanced_error_handler import global_error_handler
+            from plexichat.app.core.error_handling.enhanced_error_handler import global_error_handler
             
             # Test error handling
             test_error = ValueError("Test error for logging")
@@ -389,8 +389,8 @@ class EnhancedFeatureTests:
 
 def main():
     """Run the enhanced features test suite."""
-    print("🚀 Starting NetLink Enhanced Features Test Suite")
-    print("Make sure the NetLink server is running on http://localhost:8000")
+    print("🚀 Starting PlexiChat Enhanced Features Test Suite")
+    print("Make sure the PlexiChat server is running on http://localhost:8000")
     print()
     
     # Wait a moment for server to be ready
@@ -403,7 +403,7 @@ def main():
     report = tester.generate_test_report()
     
     if success:
-        print("\n🎉 All tests passed! NetLink enhanced features are working correctly.")
+        print("\n🎉 All tests passed! PlexiChat enhanced features are working correctly.")
         return 0
     else:
         print(f"\n⚠️ Some tests failed. Check the report for details.")

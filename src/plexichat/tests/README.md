@@ -1,12 +1,12 @@
-# NetLink Testing Framework
+# PlexiChat Testing Framework
 
-Comprehensive testing framework for NetLink with unified test execution, extensive coverage, and government-level security testing.
+Comprehensive testing framework for PlexiChat with unified test execution, extensive coverage, and government-level security testing.
 
 > **Note**: This documentation has been moved to [docs/testing-guide.md](../../docs/testing-guide.md)
 
 ## Overview
 
-This consolidated testing framework combines all NetLink test suites into a unified system with:
+This consolidated testing framework combines all PlexiChat test suites into a unified system with:
 
 - **Unit Tests**: Individual component testing
 - **Integration Tests**: Component interaction testing  
@@ -17,7 +17,7 @@ This consolidated testing framework combines all NetLink test suites into a unif
 ## Directory Structure
 
 ```
-src/netlink/tests/
+src/plexichat/tests/
 ├── README.md                           # This file
 ├── conftest.py                         # Pytest configuration and fixtures
 ├── requirements.txt                    # Testing dependencies
@@ -39,7 +39,7 @@ src/netlink/tests/
 
 ```bash
 # Install testing requirements
-pip install -r src/netlink/tests/requirements.txt
+pip install -r src/plexichat/tests/requirements.txt
 
 # Or install with main requirements
 pip install -r requirements.txt
@@ -49,28 +49,28 @@ pip install -r requirements.txt
 
 ```bash
 # Run unified test suite
-python src/netlink/tests/unified_test_runner.py
+python src/plexichat/tests/unified_test_runner.py
 
 # Run with pytest directly
-pytest src/netlink/tests/
+pytest src/plexichat/tests/
 
 # Run specific test categories
-pytest src/netlink/tests/ -m unit
-pytest src/netlink/tests/ -m integration
-pytest src/netlink/tests/ -m security
+pytest src/plexichat/tests/ -m unit
+pytest src/plexichat/tests/ -m integration
+pytest src/plexichat/tests/ -m security
 ```
 
 ### Run Individual Test Files
 
 ```bash
 # Run backup system tests
-pytest src/netlink/tests/test_consolidated_backup_system.py
+pytest src/plexichat/tests/test_consolidated_backup_system.py
 
 # Run authentication tests
-pytest src/netlink/tests/test_consolidated_auth_system.py
+pytest src/plexichat/tests/test_consolidated_auth_system.py
 
 # Run with coverage
-pytest src/netlink/tests/ --cov=src/netlink --cov-report=html
+pytest src/plexichat/tests/ --cov=src/plexichat --cov-report=html
 ```
 
 ## Test Categories
@@ -141,20 +141,20 @@ security_scanner    # Vulnerability scanning
 
 ```bash
 # Test environment
-NETLINK_ENV=testing
-NETLINK_DEBUG=true
+PLEXICHAT_ENV=testing
+PLEXICHAT_DEBUG=true
 
 # Database
-NETLINK_DB_URL=sqlite:///:memory:
-NETLINK_TEST_DB_URL=sqlite:///test.db
+PLEXICHAT_DB_URL=sqlite:///:memory:
+PLEXICHAT_TEST_DB_URL=sqlite:///test.db
 
 # Security
-NETLINK_SECRET_KEY=test_secret_key
-NETLINK_ENCRYPTION_KEY=test_encryption_key
+PLEXICHAT_SECRET_KEY=test_secret_key
+PLEXICHAT_ENCRYPTION_KEY=test_encryption_key
 
 # Performance
-NETLINK_MAX_RESPONSE_TIME=2.0
-NETLINK_MAX_MEMORY_MB=100
+PLEXICHAT_MAX_RESPONSE_TIME=2.0
+PLEXICHAT_MAX_MEMORY_MB=100
 ```
 
 ## Advanced Usage
@@ -163,49 +163,49 @@ NETLINK_MAX_MEMORY_MB=100
 
 ```bash
 # Run tests in parallel
-pytest src/netlink/tests/ -n auto
+pytest src/plexichat/tests/ -n auto
 
 # Run with specific worker count
-pytest src/netlink/tests/ -n 4
+pytest src/plexichat/tests/ -n 4
 ```
 
 ### Coverage Reporting
 
 ```bash
 # Generate HTML coverage report
-pytest src/netlink/tests/ --cov=src/netlink --cov-report=html
+pytest src/plexichat/tests/ --cov=src/plexichat --cov-report=html
 
 # Generate XML coverage report (for CI)
-pytest src/netlink/tests/ --cov=src/netlink --cov-report=xml
+pytest src/plexichat/tests/ --cov=src/plexichat --cov-report=xml
 
 # Coverage with branch analysis
-pytest src/netlink/tests/ --cov=src/netlink --cov-branch
+pytest src/plexichat/tests/ --cov=src/plexichat --cov-branch
 ```
 
 ### Performance Testing
 
 ```bash
 # Run performance tests only
-pytest src/netlink/tests/ -m performance
+pytest src/plexichat/tests/ -m performance
 
 # Run with benchmark output
-pytest src/netlink/tests/ -m performance --benchmark-only
+pytest src/plexichat/tests/ -m performance --benchmark-only
 
 # Memory profiling
-pytest src/netlink/tests/ -m performance --profile
+pytest src/plexichat/tests/ -m performance --profile
 ```
 
 ### Security Testing
 
 ```bash
 # Run security tests only
-pytest src/netlink/tests/ -m security
+pytest src/plexichat/tests/ -m security
 
 # Run with security scanner
-pytest src/netlink/tests/ -m security --security-scan
+pytest src/plexichat/tests/ -m security --security-scan
 
 # Generate security report
-pytest src/netlink/tests/ -m security --security-report=security_report.json
+pytest src/plexichat/tests/ -m security --security-report=security_report.json
 ```
 
 ## Continuous Integration
@@ -215,7 +215,7 @@ pytest src/netlink/tests/ -m security --security-report=security_report.json
 The test framework integrates with GitHub Actions:
 
 ```yaml
-name: NetLink Tests
+name: PlexiChat Tests
 on: [push, pull_request]
 
 jobs:
@@ -229,10 +229,10 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          pip install -r src/netlink/tests/requirements.txt
+          pip install -r src/plexichat/tests/requirements.txt
       - name: Run tests
         run: |
-          python src/netlink/tests/unified_test_runner.py --ci
+          python src/plexichat/tests/unified_test_runner.py --ci
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```
@@ -278,7 +278,7 @@ The framework generates comprehensive reports:
 
 4. **Mock external dependencies**:
    ```python
-   @patch('src.netlink.external_service')
+   @patch('src.plexichat.external_service')
    async def test_with_mocked_service(mock_service):
    ```
 
@@ -330,20 +330,20 @@ The framework generates comprehensive reports:
 
 ```bash
 # Run tests in debug mode
-pytest src/netlink/tests/ -v -s --tb=long
+pytest src/plexichat/tests/ -v -s --tb=long
 
 # Run single test with debugging
-pytest src/netlink/tests/test_auth.py::test_login -v -s --pdb
+pytest src/plexichat/tests/test_auth.py::test_login -v -s --pdb
 ```
 
 ### Logging
 
 ```bash
 # Enable test logging
-pytest src/netlink/tests/ --log-cli-level=DEBUG
+pytest src/plexichat/tests/ --log-cli-level=DEBUG
 
 # Capture logs in reports
-pytest src/netlink/tests/ --log-file=test.log
+pytest src/plexichat/tests/ --log-file=test.log
 ```
 
 ## Contributing

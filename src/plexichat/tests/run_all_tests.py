@@ -101,14 +101,14 @@ class TestRunner:
         
         # Test critical imports
         critical_modules = [
-            "netlink.app.logger_config",
-            "netlink.core.security.government_auth",
-            "netlink.app.core.system_resilience",
-            "netlink.app.db.database_manager",
-            "netlink.backup.core.backup_manager",
-            "netlink.clustering.core.cluster_manager",
-            "netlink.antivirus.core.antivirus_manager",
-            "netlink.plugins.core.plugin_manager"
+            "plexichat.app.logger_config",
+            "plexichat.core.security.government_auth",
+            "plexichat.app.core.system_resilience",
+            "plexichat.app.db.database_manager",
+            "plexichat.backup.core.backup_manager",
+            "plexichat.clustering.core.cluster_manager",
+            "plexichat.antivirus.core.antivirus_manager",
+            "plexichat.plugins.core.plugin_manager"
         ]
         
         for module in critical_modules:
@@ -142,14 +142,14 @@ class TestRunner:
         
         # Check critical directories
         critical_dirs = [
-            "src/netlink",
-            "src/netlink/app",
-            "src/netlink/core",
-            "src/netlink/cli",
-            "src/netlink/backup",
-            "src/netlink/clustering",
-            "src/netlink/antivirus",
-            "src/netlink/plugins",
+            "src/plexichat",
+            "src/plexichat/app",
+            "src/plexichat/core",
+            "src/plexichat/cli",
+            "src/plexichat/backup",
+            "src/plexichat/clustering",
+            "src/plexichat/antivirus",
+            "src/plexichat/plugins",
             "config",
             "logs",
             "data",
@@ -170,10 +170,10 @@ class TestRunner:
         
         # Check critical files
         critical_files = [
-            "src/netlink/app/main.py",
-            "src/netlink/app/logger_config.py",
-            "src/netlink/core/security/government_auth.py",
-            "src/netlink/app/core/system_resilience.py",
+            "src/plexichat/app/main.py",
+            "src/plexichat/app/logger_config.py",
+            "src/plexichat/core/security/government_auth.py",
+            "src/plexichat/app/core/system_resilience.py",
             "run.py",
             "requirements.txt",
             ".gitignore"
@@ -363,7 +363,7 @@ class TestRunner:
     
     def run_all_tests(self):
         """Run all test suites."""
-        print("🚀 NetLink Comprehensive Test Suite Runner")
+        print("🚀 PlexiChat Comprehensive Test Suite Runner")
         print("=" * 60)
         
         self.start_time = time.time()

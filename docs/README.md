@@ -1,6 +1,6 @@
-# NetLink Documentation
+# PlexiChat Documentation
 
-Welcome to the comprehensive NetLink documentation system. This directory contains all official documentation for NetLink va.1.1-1.
+Welcome to the comprehensive PlexiChat documentation system. This directory contains all official documentation for PlexiChat va.1.1-1.
 
 ## 📚 Documentation Index
 
@@ -68,5 +68,5 @@ Welcome to the comprehensive NetLink documentation system. This directory contai
 For support and questions:
 1. Check the relevant documentation section above
 2. Review [Troubleshooting](troubleshooting.md)
-3. Check the [GitHub Issues](https://github.com/linux-of-user/netlink/issues)
-4. For security issues, contact: security@netlink.local
+3. Check the [GitHub Issues](https://github.com/linux-of-user/plexichat/issues)
+4. For security issues, contact: security@plexichat.local

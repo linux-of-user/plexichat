@@ -1,5 +1,5 @@
 """
-Comprehensive test suite for NetLink backup system.
+Comprehensive test suite for PlexiChat backup system.
 Tests government-level security features, shard management, and backup operations.
 """
 
@@ -14,11 +14,11 @@ import json
 
 # Import backup system components
 try:
-    from netlink.backup.core.government_backup_manager import GovernmentBackupManager
-    from netlink.backup.core.shard_manager import ShardManager
-    from netlink.backup.core.backup_node_manager import BackupNodeManager
-    from netlink.backup.plugins.archive_system import ArchiveSystem
-    from netlink.backup.models.backup_models import BackupOperation, BackupStatus, ShardInfo
+    from plexichat.backup.core.government_backup_manager import GovernmentBackupManager
+    from plexichat.backup.core.shard_manager import ShardManager
+    from plexichat.backup.core.backup_node_manager import BackupNodeManager
+    from plexichat.backup.plugins.archive_system import ArchiveSystem
+    from plexichat.backup.models.backup_models import BackupOperation, BackupStatus, ShardInfo
     BACKUP_AVAILABLE = True
 except ImportError:
     BACKUP_AVAILABLE = False
@@ -398,7 +398,7 @@ class TestUserBackupPreferences:
         }
         
         # Test opt-out
-        with patch('netlink.backup.core.user_preferences.UserPreferences') as mock_prefs:
+        with patch('plexichat.backup.core.user_preferences.UserPreferences') as mock_prefs:
             mock_prefs.get_preferences.return_value = user_prefs
             
             # Simulate backup operation respecting preferences

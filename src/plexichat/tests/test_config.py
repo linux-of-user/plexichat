@@ -1,6 +1,6 @@
 """Configuration system tests."""
 import pytest
-from src.netlink.core.config import config_manager, NetLinkConfig
+from src.plexichat.core.config import config_manager, PlexiChatConfig
 
 @pytest.mark.unit
 class TestConfigSystem:
@@ -14,8 +14,8 @@ class TestConfigSystem:
     def test_config_loading(self):
         """Test configuration loading."""
         config = config_manager.config
-        assert isinstance(config, NetLinkConfig)
-        assert config.app_name == "NetLink"
+        assert isinstance(config, PlexiChatConfig)
+        assert config.app_name == "PlexiChat"
     
     def test_config_validation(self):
         """Test configuration validation."""
@@ -27,7 +27,7 @@ class TestConfigSystem:
     def test_config_value_access(self):
         """Test configuration value access."""
         app_name = config_manager.get_config_value("app_name")
-        assert app_name == "NetLink"
+        assert app_name == "PlexiChat"
         
         # Test nested value access
         server_host = config_manager.get_config_value("server.host")

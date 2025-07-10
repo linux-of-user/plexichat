@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test suite for NetLink Database Setup System
+Test suite for PlexiChat Database Setup System
 Comprehensive tests for database setup wizard and external database support.
 """
 
@@ -17,10 +17,10 @@ from unittest.mock import Mock, patch, AsyncMock
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.netlink.core.database_setup_wizard import (
+from src.plexichat.core.database_setup_wizard import (
     DatabaseSetupWizard, DatabaseType, SetupStep, DatabaseConnection
 )
-from src.netlink.core.external_database import (
+from src.plexichat.core.external_database import (
     ExternalDatabaseManager, DatabaseProvider, DatabaseEngine, ExternalDatabaseConfig
 )
 

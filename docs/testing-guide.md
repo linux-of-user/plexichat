@@ -1,10 +1,10 @@
-# NetLink Testing Guide
+# PlexiChat Testing Guide
 
-Comprehensive testing framework for NetLink with unified test execution, extensive coverage, and government-level security testing.
+Comprehensive testing framework for PlexiChat with unified test execution, extensive coverage, and government-level security testing.
 
 ## Overview
 
-NetLink includes a sophisticated testing framework that combines multiple test types into a unified system:
+PlexiChat includes a sophisticated testing framework that combines multiple test types into a unified system:
 
 - **Unit Tests**: Individual component testing
 - **Integration Tests**: Component interaction testing  
@@ -19,33 +19,33 @@ NetLink includes a sophisticated testing framework that combines multiple test t
 
 ```bash
 # Run all tests
-netlink test run
+plexichat test run
 
 # Run specific test categories
-netlink test run --suite security
-netlink test run --suite connectivity
-netlink test run --suite database
+plexichat test run --suite security
+plexichat test run --suite connectivity
+plexichat test run --suite database
 
 # Run health checks
-netlink test health
+plexichat test health
 
 # Run security tests only
-netlink test security
+plexichat test security
 ```
 
 ### Running Tests via Python
 
 ```bash
 # Run unified test suite
-python src/netlink/tests/unified_test_runner.py
+python src/plexichat/tests/unified_test_runner.py
 
 # Run with pytest directly
-pytest src/netlink/tests/
+pytest src/plexichat/tests/
 
 # Run specific test categories
-pytest src/netlink/tests/ -m unit
-pytest src/netlink/tests/ -m integration
-pytest src/netlink/tests/ -m security
+pytest src/plexichat/tests/ -m unit
+pytest src/plexichat/tests/ -m integration
+pytest src/plexichat/tests/ -m security
 ```
 
 ## Test Categories
@@ -92,18 +92,18 @@ pytest src/netlink/tests/ -m security
 
 ```bash
 # Install testing dependencies
-pip install -r src/netlink/tests/requirements.txt
+pip install -r src/plexichat/tests/requirements.txt
 
 # Set test environment variables
-export NETLINK_TEST_MODE=true
-export NETLINK_TEST_DB=sqlite:///test.db
+export PLEXICHAT_TEST_MODE=true
+export PLEXICHAT_TEST_DB=sqlite:///test.db
 ```
 
 ### Test Data
 
 Tests use fixtures and mock data located in:
-- `src/netlink/tests/fixtures/` - Test data files
-- `src/netlink/tests/conftest.py` - Pytest fixtures
+- `src/plexichat/tests/fixtures/` - Test data files
+- `src/plexichat/tests/conftest.py` - Pytest fixtures
 
 ## Advanced Testing
 
@@ -111,37 +111,37 @@ Tests use fixtures and mock data located in:
 
 ```bash
 # Run comprehensive security tests
-pytest src/netlink/tests/ -m security
+pytest src/plexichat/tests/ -m security
 
 # Run with security scanner
-pytest src/netlink/tests/ -m security --security-scan
+pytest src/plexichat/tests/ -m security --security-scan
 
 # Generate security report
-pytest src/netlink/tests/ -m security --security-report=security_report.json
+pytest src/plexichat/tests/ -m security --security-report=security_report.json
 ```
 
 ### Performance Testing
 
 ```bash
 # Run performance tests
-pytest src/netlink/tests/ -m performance
+pytest src/plexichat/tests/ -m performance
 
 # Run with benchmark output
-pytest src/netlink/tests/ -m performance --benchmark-only
+pytest src/plexichat/tests/ -m performance --benchmark-only
 
 # Memory profiling
-pytest src/netlink/tests/ -m performance --profile
+pytest src/plexichat/tests/ -m performance --profile
 ```
 
 ### Integration Testing
 
 ```bash
 # Run integration tests
-pytest src/netlink/tests/integration/
+pytest src/plexichat/tests/integration/
 
 # Test specific integrations
-pytest src/netlink/tests/integration/test_api_integration.py
-pytest src/netlink/tests/integration/test_database_integration.py
+pytest src/plexichat/tests/integration/test_api_integration.py
+pytest src/plexichat/tests/integration/test_database_integration.py
 ```
 
 ## Test Results and Reporting
@@ -151,7 +151,7 @@ pytest src/netlink/tests/integration/test_database_integration.py
 The unified test manager provides comprehensive reporting:
 
 ```python
-from src.netlink.core.testing.unified_test_manager import unified_test_manager
+from src.plexichat.core.testing.unified_test_manager import unified_test_manager
 
 # Run all tests
 results = await unified_test_manager.run_all_tests()
@@ -200,10 +200,10 @@ Example output:
 
 ### GitHub Actions
 
-NetLink includes GitHub Actions workflows for automated testing:
+PlexiChat includes GitHub Actions workflows for automated testing:
 
 ```yaml
-name: NetLink Tests
+name: PlexiChat Tests
 on: [push, pull_request]
 
 jobs:
@@ -245,7 +245,7 @@ pre-commit run --all-files
 
 ```python
 import pytest
-from src.netlink.core.testing.unified_test_manager import unified_test_manager
+from src.plexichat.core.testing.unified_test_manager import unified_test_manager
 
 class TestExample:
     """Example test class."""
@@ -312,14 +312,14 @@ def test_performance_functionality():
    netstat -tulpn | grep :8000
    
    # Kill conflicting processes
-   pkill -f "python.*netlink"
+   pkill -f "python.*plexichat"
    ```
 
 3. **Permission Issues**:
    ```bash
    # Fix file permissions
    chmod +x run.py
-   chmod -R 755 src/netlink/tests/
+   chmod -R 755 src/plexichat/tests/
    ```
 
 ### Debug Mode
@@ -328,13 +328,13 @@ Run tests in debug mode for detailed output:
 
 ```bash
 # Enable debug logging
-export NETLINK_LOG_LEVEL=DEBUG
+export PLEXICHAT_LOG_LEVEL=DEBUG
 
 # Run tests with verbose output
-pytest src/netlink/tests/ -v -s
+pytest src/plexichat/tests/ -v -s
 
 # Run with pdb on failure
-pytest src/netlink/tests/ --pdb
+pytest src/plexichat/tests/ --pdb
 ```
 
 ## Best Practices

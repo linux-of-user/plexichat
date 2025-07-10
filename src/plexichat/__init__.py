@@ -1,5 +1,5 @@
 """
-NetLink - Government-Level Secure Communication Platform
+PlexiChat - Government-Level Secure Communication Platform
 
 Enterprise architecture with comprehensive security and advanced features:
 - Government-level security with quantum encryption
@@ -25,9 +25,9 @@ Enterprise Architecture:
 __version__ = "a.1.1-1"
 __version_info__ = ("a", 1, 1, 1)  # (letter, major, minor, build)
 __build__ = "enterprise-quantum"
-__author__ = "NetLink Development Team"
+__author__ = "PlexiChat Development Team"
 __description__ = "Government-level secure communication platform with enterprise architecture, quantum encryption, and advanced features"
-__url__ = "https://github.com/linux-of-user/netlink"
+__url__ = "https://github.com/linux-of-user/plexichat"
 
 # Import version management system
 try:
@@ -96,9 +96,9 @@ def get_app():
     return app
 
 def get_launcher():
-    """Get the NetLink launcher."""
-    from .core.launcher import NetLinkLauncher
-    return NetLinkLauncher
+    """Get the PlexiChat launcher."""
+    from .core.launcher import PlexiChatLauncher
+    return PlexiChatLauncher
 
 def get_security_manager():
     """Get the security manager."""
@@ -162,7 +162,7 @@ def get_plugin_manager():
 
 # Application metadata
 APPLICATION_INFO = {
-    "name": "NetLink",
+    "name": "PlexiChat",
     "version": __version__,
     "description": "Government-Level Secure Communication Platform",
     "architecture": "Enterprise Microservices",

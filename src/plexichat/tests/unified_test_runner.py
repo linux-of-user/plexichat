@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-NetLink Unified Testing Framework - Comprehensive Test Runner
+PlexiChat Unified Testing Framework - Comprehensive Test Runner
 
-Consolidated test runner combining all NetLink test suites with:
+Consolidated test runner combining all PlexiChat test suites with:
 - Unit, Integration, End-to-End, Performance, and Security testing
 - Coverage reporting and CI/CD integration
 - Parallel test execution and advanced reporting
@@ -39,7 +39,7 @@ class TestResult:
     details: Dict[str, Any]
 
 class UnifiedTestRunner:
-    """Comprehensive test runner for all NetLink test suites."""
+    """Comprehensive test runner for all PlexiChat test suites."""
     
     def __init__(self):
         self.results = {}
@@ -49,7 +49,7 @@ class UnifiedTestRunner:
         
     async def run_all_tests(self, args: argparse.Namespace) -> Dict[str, Any]:
         """Run all test categories based on arguments."""
-        print("🧪 NetLink Unified Test Suite")
+        print("🧪 PlexiChat Unified Test Suite")
         print("=" * 60)
         print(f"📁 Test Directory: {self.tests_dir}")
         print(f"🏠 Project Root: {self.project_root}")
@@ -164,7 +164,7 @@ class UnifiedTestRunner:
         # Add coverage if requested
         if not args.skip_coverage:
             cmd.extend([
-                "--cov=src/netlink",
+                "--cov=src/plexichat",
                 "--cov-report=term-missing",
                 f"--cov-report=html:tests/results/coverage/{category}"
             ])
@@ -245,7 +245,7 @@ class UnifiedTestRunner:
             # Generate HTML coverage report
             cmd = [
                 sys.executable, "-m", "pytest",
-                "--cov=src/netlink",
+                "--cov=src/plexichat",
                 "--cov-report=html:tests/results/coverage/html",
                 "--cov-report=xml:tests/results/coverage/coverage.xml",
                 "--cov-report=json:tests/results/coverage/coverage.json",
@@ -318,7 +318,7 @@ class UnifiedTestRunner:
 def create_argument_parser() -> argparse.ArgumentParser:
     """Create command line argument parser."""
     parser = argparse.ArgumentParser(
-        description="NetLink Unified Testing Framework",
+        description="PlexiChat Unified Testing Framework",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     

@@ -1,6 +1,6 @@
 """Backup system tests."""
 import pytest
-from src.netlink.backups import backup_manager, BackupType, BackupPriority
+from src.plexichat.backups import backup_manager, BackupType, BackupPriority
 
 @pytest.mark.unit
 class TestBackupSystem:

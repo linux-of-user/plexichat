@@ -1,5 +1,5 @@
 """
-Enhanced self-testing system for NetLink with WebUI and GUI integration.
+Enhanced self-testing system for PlexiChat with WebUI and GUI integration.
 Provides comprehensive testing capabilities with detailed reporting.
 """
 
@@ -114,7 +114,7 @@ class EnhancedTestResult:
 
 
 class EnhancedTestSuite:
-    """Enhanced comprehensive testing framework for NetLink."""
+    """Enhanced comprehensive testing framework for PlexiChat."""
     
     def __init__(self):
         self.tests: Dict[str, EnhancedTestResult] = {}
@@ -145,7 +145,7 @@ class EnhancedTestSuite:
     
     async def run_comprehensive_tests(self, categories: Optional[List[str]] = None) -> Dict[str, Any]:
         """Run comprehensive test suite with detailed reporting."""
-        logger.info("🚀 Starting Enhanced NetLink Test Suite...")
+        logger.info("🚀 Starting Enhanced PlexiChat Test Suite...")
         
         if categories is None:
             categories = list(self.test_categories.keys())
@@ -231,7 +231,7 @@ class EnhancedTestSuite:
         test.start()
         
         try:
-            from netlink.core.config_manager import config_manager
+            from plexichat.core.config_manager import config_manager
             
             # Initialize configuration
             init_report = config_manager.initialize_application()
@@ -410,7 +410,7 @@ class EnhancedTestSuite:
 
             # Test backup service availability
             try:
-                from netlink.services.enhanced_backup_service import EnhancedBackupService
+                from plexichat.services.enhanced_backup_service import EnhancedBackupService
                 test.details["backup_service_available"] = True
             except ImportError:
                 test.add_warning("Enhanced backup service not available")
@@ -483,7 +483,7 @@ class EnhancedTestSuite:
 
         try:
             # Simulate creating multiple shards
-            original_data = b"NetLink Test Data " * 1000  # ~17KB
+            original_data = b"PlexiChat Test Data " * 1000  # ~17KB
             shard_size = 5000  # 5KB shards
 
             # Split into shards
@@ -714,7 +714,7 @@ class EnhancedTestSuite:
         test.start()
 
         try:
-            from netlink.core.database import get_session
+            from plexichat.core.database import get_session
 
             # Test connection
             start_time = time.time()
