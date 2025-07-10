@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "netlink"
+name = "plexichat"
 version = "3.0.0"
 description = "Government-Level Secure Communication Platform"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "NetLink Team", email = "team@netlink.local"}
+    {name = "PlexiChat Team", email = "team@plexichat.local"}
 ]
 maintainers = [
-    {name = "NetLink Team", email = "team@netlink.local"}
+    {name = "PlexiChat Team", email = "team@plexichat.local"}
 ]
 keywords = [
     "communication", "security", "government", "encryption", 
@@ -176,7 +176,7 @@ linux = [
 
 # All optional dependencies
 all = [
-    "netlink[quantum,gui,cloud,analytics,dev,production,windows,linux]",
+    "plexichat[quantum,gui,cloud,analytics,dev,production,windows,linux]",
 ]
 
 [project.urls]
@@ -186,9 +186,9 @@ Repository = "https://github.com/linux-of-user/netlink.git"
 Issues = "https://github.com/linux-of-user/netlink/issues"
 
 [project.scripts]
-netlink = "netlink.cli:main"
-netlink-server = "netlink.main:main"
-netlink-gui = "netlink.gui:main"
+plexichat = "plexichat.cli:main"
+plexichat-server = "plexichat.main:main"
+plexichat-gui = "plexichat.gui:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -197,7 +197,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-netlink = ["static/**/*", "templates/**/*", "config/**/*"]
+plexichat = ["static/**/*", "templates/**/*", "config/**/*"]
 
 # Black configuration
 [tool.black]
@@ -263,7 +263,7 @@ markers = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["src/netlink"]
+source = ["src/plexichat"]
 omit = [
     "*/tests/*",
     "*/test_*",

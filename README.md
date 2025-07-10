@@ -1,11 +1,11 @@
-# NetLink - Government-Level Secure Communication Platform
+# PlexiChat - Government-Level Secure Communication Platform
 
 [![Version](https://img.shields.io/badge/version-a.1.1--1-blue.svg)](https://github.com/linux-of-user/netlink)
 [![License](https://img.shields.io/badge/license-CC0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
 [![Security](https://img.shields.io/badge/security-government--level-red.svg)](docs/security.md)
 
-NetLink is a comprehensive, government-level secure communication platform designed for organizations requiring the highest levels of security, reliability, and performance. Built with quantum-resistant encryption, advanced clustering capabilities, and seamless update management.
+PlexiChat is a comprehensive, government-level secure communication platform designed for organizations requiring the highest levels of security, reliability, and performance. Built with quantum-resistant encryption, advanced clustering capabilities, and seamless update management.
 
 ## 🚀 Quick Start
 
@@ -17,7 +17,7 @@ NetLink is a comprehensive, government-level secure communication platform desig
    cd netlink
    ```
 
-2. **Run NetLink**:
+2. **Run PlexiChat**:
    ```bash
    python run.py
    ```
@@ -27,19 +27,19 @@ NetLink is a comprehensive, government-level secure communication platform desig
    - Sets up virtual environment
    - Installs dependencies
    - Configures the system
-   - Starts NetLink
+   - Starts PlexiChat
 
 3. **Access the interfaces**:
    - **WebUI**: http://localhost:8000
    - **API**: http://localhost:8000/api/v1
    - **Documentation**: http://localhost:8000/docs
-   - **CLI**: `netlink --help`
+   - **CLI**: `plexichat --help`
 
 ### Default Credentials
 - **Username**: `admin`
 - **Password**: `admin123`
 
-⚠️ **Change the default password immediately**: `netlink admin password --change`
+⚠️ **Change the default password immediately**: `plexichat admin password --change`
 
 ## 🌟 Key Features
 
@@ -90,7 +90,7 @@ NetLink is a comprehensive, government-level secure communication platform desig
 
 ## 🏃‍♂️ Installation Types
 
-NetLink supports multiple installation types:
+PlexiChat supports multiple installation types:
 
 ### Minimal Installation
 ```bash
@@ -121,23 +121,23 @@ python run.py --dev
 
 ## 🔧 Configuration
 
-NetLink uses YAML configuration files in the `config/` directory:
+PlexiChat uses YAML configuration files in the `config/` directory:
 
-- `netlink.yaml` - Main configuration
+- `plexichat.yaml` - Main configuration
 - `security.yaml` - Security settings
 - `clustering.yaml` - Cluster configuration
 - `backup.yaml` - Backup settings
 
 ### Environment Variables
 ```bash
-export NETLINK_ENV=production
-export NETLINK_SECRET_KEY=your-secret-key
-export NETLINK_DB_URL=postgresql://user:pass@host/db
+export PLEXICHAT_ENV=production
+export PLEXICHAT_SECRET_KEY=your-secret-key
+export PLEXICHAT_DB_URL=postgresql://user:pass@host/db
 ```
 
 ## 🌐 API Endpoints
 
-NetLink provides three API versions:
+PlexiChat provides three API versions:
 
 ### Stable API (`/api`)
 - Production-ready endpoints

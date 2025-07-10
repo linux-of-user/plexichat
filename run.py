@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NetLink Application Runner
+PlexiChat Application Runner
 
 Simple, reliable cross-platform entry point with automatic environment setup.
 Features:
@@ -123,7 +123,7 @@ IMPORTANT: Change password after first login and delete this file.
 
 def get_port_configuration():
     """Get port configuration from config file."""
-    config_file = ROOT / "config" / "netlink.json"
+    config_file = ROOT / "config" / "plexichat.json"
     default_ports = {
         "api_http": 8000,
         "api_https": 8443,
@@ -342,13 +342,13 @@ def start_log_monitor():
 
         print("📊 Advanced Log Monitor Started (Left Panel)")
         print("=" * 50)
-        print("🔍 Monitoring: latest.log, netlink.log, errors.log")
+        print("🔍 Monitoring: latest.log, plexichat.log, errors.log")
         print("=" * 50)
 
         # Monitor multiple log files
         log_files = {
             "latest": log_dir / "latest.log",
-            "main": log_dir / "netlink.log",
+            "main": log_dir / "plexichat.log",
             "errors": log_dir / "errors.log"
         }
 
@@ -429,7 +429,7 @@ def start_log_generator():
         log_dir = ROOT / "logs"
         log_files = {
             "latest": log_dir / "latest.log",
-            "netlink": log_dir / "netlink.log",
+            "plexichat": log_dir / "plexichat.log",
             "errors": log_dir / "errors.log"
         }
 
@@ -439,16 +439,16 @@ def start_log_generator():
                 log_file.touch()
 
         log_messages = [
-            ("INFO", "netlink.api", "📡 API endpoint /health accessed"),
-            ("INFO", "netlink.auth", "🔐 User authentication successful"),
-            ("DEBUG", "netlink.database", "🗄️ Database query executed in 45ms"),
-            ("INFO", "netlink.backup", "💾 Backup process completed successfully"),
-            ("INFO", "netlink.security", "🔒 Security scan completed successfully"),
-            ("INFO", "netlink.performance", "📊 System performance metrics collected"),
-            ("DEBUG", "netlink.cli", "🖥️ CLI command executed: status"),
-            ("INFO", "netlink.websocket", "🔌 WebSocket connection established"),
-            ("INFO", "netlink.ai", "🤖 AI model inference completed"),
-            ("DEBUG", "netlink.clustering", "🌐 Cluster health check passed"),
+            ("INFO", "plexichat.api", "📡 API endpoint /health accessed"),
+            ("INFO", "plexichat.auth", "🔐 User authentication successful"),
+            ("DEBUG", "plexichat.database", "🗄️ Database query executed in 45ms"),
+            ("INFO", "plexichat.backup", "💾 Backup process completed successfully"),
+            ("INFO", "plexichat.security", "🔒 Security scan completed successfully"),
+            ("INFO", "plexichat.performance", "📊 System performance metrics collected"),
+            ("DEBUG", "plexichat.cli", "🖥️ CLI command executed: status"),
+            ("INFO", "plexichat.websocket", "🔌 WebSocket connection established"),
+            ("INFO", "plexichat.ai", "🤖 AI model inference completed"),
+            ("DEBUG", "plexichat.clustering", "🌐 Cluster health check passed"),
         ]
 
         counter = 0
@@ -466,7 +466,7 @@ def start_log_generator():
                 with open(log_files["latest"], 'a', encoding='utf-8') as f:
                     f.write(log_entry)
 
-                with open(log_files["netlink"], 'a', encoding='utf-8') as f:
+                with open(log_files["plexichat"], 'a', encoding='utf-8') as f:
                     f.write(log_entry)
 
                 # Write errors to error log
@@ -478,7 +478,7 @@ def start_log_generator():
 
                 # Occasionally generate an error for demonstration
                 if counter % 20 == 0:
-                    error_entry = f"[{timestamp}] [ERROR   ] netlink.test: ❌ Simulated error for demonstration\n"
+                    error_entry = f"[{timestamp}] [ERROR   ] plexichat.test: ❌ Simulated error for demonstration\n"
                     with open(log_files["latest"], 'a', encoding='utf-8') as f:
                         f.write(error_entry)
                     with open(log_files["errors"], 'a', encoding='utf-8') as f:
@@ -493,8 +493,8 @@ def start_log_generator():
     return gen_thread
 
 
-def run_netlink_server():
-    """Run NetLink server with multiplexed terminal."""
+def run_plexichat_server():
+    """Run PlexiChat server with multiplexed terminal."""
     if not VENV_DIR.exists():
         print("❌ Virtual environment not found. Run setup first.")
         return False
@@ -516,7 +516,7 @@ def run_netlink_server():
     version = get_version_info()
     ports = get_port_configuration()
 
-    print(f"🔗 NetLink v{version}")
+    print(f"💬 PlexiChat v{version}")
     print(f"📦 Installation Type: {install_type.upper()}")
     print("=" * 50)
     print("🌐 Service Ports:")
@@ -533,7 +533,7 @@ def run_netlink_server():
         print("❌ Incomplete installation detected. Please run setup again.")
         return False
 
-    print("🚀 Starting NetLink server with multiplexed terminal...")
+    print("🚀 Starting PlexiChat server with multiplexed terminal...")
     print("📊 Logs will appear on the left, CLI on the right")
     print("=" * 50)
 
@@ -544,11 +544,11 @@ def run_netlink_server():
     # Set up environment
     env = os.environ.copy()
     env["PYTHONPATH"] = str(SRC)
-    env["NETLINK_LOG_TO_FILE"] = "1"  # Force logging to file
+    env["PLEXICHAT_LOG_TO_FILE"] = "1"  # Force logging to file
 
     try:
         # Start server with better error handling
-        print("🔄 Initializing NetLink core systems...")
+        print("🔄 Initializing PlexiChat core systems...")
 
         # Generate some initial logs to ensure log files exist
         logs_dir = ROOT / "logs"
@@ -558,13 +558,13 @@ def run_netlink_server():
         latest_log = logs_dir / "latest.log"
         with open(latest_log, 'a', encoding='utf-8') as f:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            f.write(f"[{timestamp}] [INFO] netlink.startup: 🚀 NetLink server starting up...\n")
-            f.write(f"[{timestamp}] [INFO] netlink.startup: 📊 Initializing logging system\n")
-            f.write(f"[{timestamp}] [INFO] netlink.startup: 🔧 Loading configuration\n")
-            f.write(f"[{timestamp}] [INFO] netlink.startup: 🌐 Starting web server\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: 🚀 PlexiChat server starting up...\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: 📊 Initializing logging system\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: 🔧 Loading configuration\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: 🌐 Starting web server\n")
 
         process = subprocess.Popen(
-            [str(venv_python), "-m", "netlink.main"],
+            [str(venv_python), "-m", "plexichat.main"],
             env=env,
             cwd=str(ROOT),
             stdout=subprocess.PIPE,
@@ -574,7 +574,7 @@ def run_netlink_server():
             universal_newlines=True
         )
 
-        print("✅ NetLink server process started")
+        print("✅ PlexiChat server process started")
         print("🌐 Services are now available:")
         print(f"   📡 API:     http://localhost:{ports['api_http']}")
         print(f"   🖥️  WebUI:   http://localhost:{ports['webui_http']}")
@@ -601,8 +601,8 @@ def run_netlink_server():
         # Initialize integrated CLI
         try:
             sys.path.insert(0, str(SRC))
-            from netlink.cli.integrated_cli import NetLinkCLI
-            cli = NetLinkCLI()
+            from plexichat.cli.integrated_cli import PlexiChatCLI
+            cli = PlexiChatCLI()
             print("✅ Integrated CLI loaded")
         except Exception as e:
             print(f"⚠️ Failed to load integrated CLI: {e}")
@@ -611,7 +611,7 @@ def run_netlink_server():
         # Enhanced CLI loop
         while process.poll() is None and (cli is None or cli.running):
             try:
-                cmd = input("NetLink> ").strip()
+                cmd = input("PlexiChat> ").strip()
 
                 if not cmd:
                     continue
@@ -631,7 +631,7 @@ def run_netlink_server():
 
                         # Check if CLI wants to stop
                         if not cli.running:
-                            print("🛑 Stopping NetLink server...")
+                            print("🛑 Stopping PlexiChat server...")
                             process.terminate()
                             break
 
@@ -641,7 +641,7 @@ def run_netlink_server():
                     # Fallback simple CLI
                     cmd_lower = cmd.lower()
                     if cmd_lower == "stop":
-                        print("🛑 Stopping NetLink server...")
+                        print("🛑 Stopping PlexiChat server...")
                         process.terminate()
                         break
                     elif cmd_lower == "status":
@@ -654,7 +654,7 @@ def run_netlink_server():
                         print(f"❓ Unknown command: {cmd}")
 
             except (EOFError, KeyboardInterrupt):
-                print("\n🛑 Stopping NetLink server...")
+                print("\n🛑 Stopping PlexiChat server...")
                 process.terminate()
                 break
 
@@ -663,15 +663,15 @@ def run_netlink_server():
         return True
 
     except Exception as e:
-        print(f"❌ NetLink server failed to start: {e}")
+        print(f"❌ PlexiChat server failed to start: {e}")
         print("🔍 Check the logs for more details")
         return False
 
 
 def clean_environment():
     """Clean up virtual environment and cache."""
-    print("🧹 Cleaning NetLink environment...")
-    
+    print("🧹 Cleaning PlexiChat environment...")
+
     if VENV_DIR.exists():
         print("🗑️ Removing virtual environment...")
         shutil.rmtree(VENV_DIR)
@@ -695,7 +695,7 @@ def show_help():
     install_type = detect_installation_type()
 
     print(f"""
-🔗 NetLink v{version} - Government-Level Secure Communication Platform
+💬 PlexiChat v{version} - Government-Level Secure Communication Platform
 📦 Current Installation: {install_type.upper()}
 
 Usage: python run.py [command] [type]
@@ -703,7 +703,7 @@ Usage: python run.py [command] [type]
 Commands:
   setup [type]  Set up virtual environment and install dependencies
                 Types: minimal (default), full
-  run           Start NetLink server with multiplexed terminal
+  run           Start PlexiChat server with multiplexed terminal
   test          Run comprehensive test suite
   clean         Clean up virtual environment and cache
   version       Show version information
@@ -743,7 +743,7 @@ First-time Setup:
 
 def main():
     """Main entry point."""
-    print("🔗 NetLink Application Runner")
+    print("💬 PlexiChat Application Runner")
     print("=" * 40)
 
     check_python_version()
@@ -757,7 +757,7 @@ def main():
             print("📦 Installing minimal dependencies...")
             if install_dependencies("minimal"):
                 print("✅ Setup complete!")
-                print("🚀 Run 'python run.py run' to start NetLink with multiplexed terminal.")
+                print("🚀 Run 'python run.py run' to start PlexiChat with multiplexed terminal.")
                 print("📋 Default admin credentials will be generated on first run.")
             else:
                 print("❌ Setup failed")
@@ -774,7 +774,7 @@ def main():
     elif command == "version":
         version = get_version_info()
         install_type = detect_installation_type()
-        print(f"🔗 NetLink Version: {version}")
+        print(f"💬 PlexiChat Version: {version}")
         print(f"📦 Installation Type: {install_type.upper()}")
         print(f"🐍 Python Version: {sys.version.split()[0]}")
         print(f"💻 Platform: {platform.system()} {platform.release()}")
@@ -789,10 +789,10 @@ def main():
                 print("Valid types: minimal, full")
                 sys.exit(1)
 
-        print(f"🔧 Setting up NetLink ({install_type} installation)...")
+        print(f"🔧 Setting up PlexiChat ({install_type} installation)...")
         if install_dependencies(install_type):
             print("✅ Setup complete!")
-            print("🚀 Run 'python run.py run' to start NetLink.")
+            print("🚀 Run 'python run.py run' to start PlexiChat.")
         else:
             print("❌ Setup failed")
             sys.exit(1)
@@ -801,7 +801,7 @@ def main():
         if not VENV_DIR.exists():
             print("❌ Environment not set up. Run 'python run.py setup' first.")
             sys.exit(1)
-        run_netlink_server()
+        run_plexichat_server()
 
     elif command == "clean":
         clean_environment()
@@ -819,7 +819,7 @@ def main():
             env = os.environ.copy()
             env["PYTHONPATH"] = str(SRC)
             try:
-                subprocess.run([str(venv_python), "-m", "pytest", "src/netlink/tests/", "-v"], env=env, check=True)
+                subprocess.run([str(venv_python), "-m", "pytest", "src/plexichat/tests/", "-v"], env=env, check=True)
                 print("✅ All tests passed!")
             except subprocess.CalledProcessError:
                 print("❌ Some tests failed. Check output above.")

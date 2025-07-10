@@ -1,6 +1,6 @@
-# NetLink Features Overview
+# PlexiChat Features Overview
 
-NetLink is a comprehensive, government-level secure communication platform with extensive features across security, communication, administration, and development. This document provides a complete overview of all available features and capabilities.
+PlexiChat is a comprehensive, government-level secure communication platform with extensive features across security, communication, administration, and development. This document provides a complete overview of all available features and capabilities.
 
 ## 🔒 Security & Authentication
 
