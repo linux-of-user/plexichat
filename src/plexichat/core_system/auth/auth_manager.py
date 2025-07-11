@@ -24,9 +24,7 @@ from .biometric_manager import BiometricManager
 from .device_manager import DeviceManager
 from .audit_manager import AuthAuditManager
 from .exceptions import AuthenticationError, AuthorizationError, MFAError
-from ...core.security.advanced_authentication import (
-    AuthenticationMethod, AuthenticationLevel, AdvancedAuthenticationSystem
-)
+# Note: Removed import from deleted advanced_authentication.py - functionality now in unified system
 
 logger = logging.getLogger(__name__)
 

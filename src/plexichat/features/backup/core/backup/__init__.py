@@ -21,26 +21,19 @@ Features:
 - Advanced recovery capabilities
 """
 
-# Core backup components
-from .backup_manager import GovernmentBackupManager
-from .shard_manager import ImmutableShardManager
-from .encryption_manager import QuantumEncryptionManager
-from .distribution_manager import IntelligentDistributionManager
-from .recovery_manager import AdvancedRecoveryManager
-from .proxy_manager import DatabaseProxyManager
+# Core backup components - CONSOLIDATED
+# Note: Individual managers removed and consolidated into unified system
+# Removed: backup_manager.py, shard_manager.py, encryption_manager.py
+# Removed: distribution_manager.py, recovery_manager.py, proxy_manager.py
+# All functionality now provided by ../unified_backup_manager.py
 from .backup_node_auth import BackupNodeAuthManager
 from .user_message_backup import UniversalBackupManager
 from .backup_node_client import BackupNodeClient, BackupNodeManager
 
 __version__ = "3.0.0"
 __all__ = [
-    # Core backup management
-    'GovernmentBackupManager',
-    'ImmutableShardManager',
-    'QuantumEncryptionManager',
-    'IntelligentDistributionManager',
-    'AdvancedRecoveryManager',
-    'DatabaseProxyManager',
+    # Note: Core backup managers consolidated into unified system
+    # Legacy exports removed - use unified_backup_manager instead
     'BackupNodeAuthManager',
     'UniversalBackupManager',
     'BackupNodeClient',

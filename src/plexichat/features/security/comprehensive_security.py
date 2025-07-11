@@ -13,8 +13,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, RedirectResponse
 
-from plexichat.app.security.advanced_2fa import tfa_system, Advanced2FASystem
-from plexichat.app.security.mitm_protection import mitm_protection, MITMProtectionSystem
+# Note: advanced_2fa and mitm_protection imports updated to use unified security system
+from ...core_system.auth import mfa_manager
+from ..security.mitm_protection import mitm_protection
 from plexichat.app.logger_config import logger
 
 

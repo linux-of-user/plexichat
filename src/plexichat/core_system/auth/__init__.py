@@ -27,13 +27,11 @@ Features:
 """
 
 # Import existing authentication components (consolidated)
-from ...core.security.advanced_authentication import (
-    AdvancedAuthenticationSystem, AuthenticationMethod, AuthenticationLevel,
-    AuthenticationCredential, AuthenticationSession, BiometricTemplate
-)
-from ...core.security.government_auth import GovernmentAuthSystem
-from ...app.auth.login_manager import LoginManager
-from ...app.auth.advanced_auth import AuthAction, AuthAttempt
+# Note: Removed duplicate authentication systems - now using unified core system
+# Removed: features/security/advanced_auth.py (CONSOLIDATED)
+# Removed: features/security/core/government_auth.py (CONSOLIDATED)
+# Removed: features/security/core/advanced_authentication.py (CONSOLIDATED)
+# Removed: features/security/login_manager.py (CONSOLIDATED)
 
 # Import new unified components
 from .auth_manager import AuthManager, auth_manager
@@ -94,17 +92,8 @@ __all__ = [
     "AuthAuditManager",
     "auth_audit_manager",
     
-    # Existing components
-    "AdvancedAuthenticationSystem",
-    "AuthenticationMethod",
-    "AuthenticationLevel",
-    "AuthenticationCredential",
-    "AuthenticationSession",
-    "BiometricTemplate",
-    "GovernmentAuthSystem",
-    "LoginManager",
-    "AuthAction",
-    "AuthAttempt",
+    # Legacy components (now consolidated into unified system)
+    # Note: These are now provided by the unified auth system above
     
     # Middleware
     "AuthenticationMiddleware",

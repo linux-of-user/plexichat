@@ -3,7 +3,6 @@
 [![Version](https://img.shields.io/badge/version-a.1.1--1-blue.svg)](https://github.com/linux-of-user/plexichat)
 [![License](https://img.shields.io/badge/license-CC0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
-[![Security](https://img.shields.io/badge/security-government--level-red.svg)](docs/security.md)
 
 PlexiChat is a comprehensive, government-level secure communication platform designed for organizations requiring the highest levels of security, reliability, and performance. Built with quantum-resistant encryption, advanced clustering capabilities, and seamless update management.
 
@@ -261,7 +260,6 @@ plexichat cluster status
 - [User Manual](docs/user-guide.md)
 - [API Reference](docs/api_reference.md)
 - [Admin Guide](docs/admin_deployment_guide.md)
-- [Security Documentation](docs/security.md)
 - [Clustering Guide](docs/clustering-system.md)
 - [Backup System](docs/backup-system.md)
 

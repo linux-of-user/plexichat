@@ -37,9 +37,10 @@ def check_dependencies():
 def install_dependencies():
     """Install missing dependencies."""
     print("Installing GUI dependencies...")
-    
-    requirements_file = Path(__file__).parent / "requirements.txt"
-    
+
+    # Use root requirements.txt which includes all GUI dependencies
+    requirements_file = Path(__file__).parent.parent.parent.parent / "requirements.txt"
+
     try:
         subprocess.check_call([
             sys.executable, "-m", "pip", "install", "-r", str(requirements_file)

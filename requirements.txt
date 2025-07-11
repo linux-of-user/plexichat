@@ -1,7 +1,14 @@
-# PlexiChat Consolidated Dependencies
-# Unified requirements file combining all dependencies for consistent management
+# PlexiChat Unified Dependencies
+# CONSOLIDATED requirements file - SINGLE SOURCE OF TRUTH for all dependencies
+# Successfully consolidated from:
+# - ✅ src/plexichat/interfaces/gui/requirements.txt (REMOVED)
+# - ✅ src/plexichat/features/backup/nodes/requirements.txt (REMOVED)
+# - ✅ pyproject.toml dependencies (synchronized)
+# - ✅ All testing and development dependencies (integrated)
+#
 # Organized by installation type with multi-Python version support (3.8+)
-# Enhanced with fallback installation options
+# Enhanced with fallback installation options and version pinning
+# Last consolidated: 2025-07-11
 
 # ===== MINIMAL INSTALLATION =====
 # Core dependencies required for basic PlexiChat functionality
@@ -101,9 +108,13 @@ click>=8.1.0
 typer>=0.9.0
 rich>=13.0.0
 
-# GUI (Optional)
+# GUI (Optional) - Consolidated from interfaces/gui/requirements.txt
 customtkinter>=5.2.0
 textual>=0.85.0
+# tkinter is built-in with Python
+pillow>=10.0.0  # Image processing for GUI
+matplotlib>=3.7.0  # For charts and graphs
+numpy>=1.24.0  # Numerical operations (also used in analytics)
 
 # ===== TESTING & DEVELOPMENT =====
 # Comprehensive testing dependencies consolidated from tests/requirements.txt

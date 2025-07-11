@@ -20,14 +20,15 @@ Features:
 - Backup and recovery integration
 """
 
-# Import core database components
-from .database_manager import DatabaseManager, database_manager
-from .database_cluster import DatabaseCluster, db_cluster
-from .migration_manager import MigrationManager, migration_manager
-from .database_encryption import DatabaseEncryption, database_encryption
-from .connection_pool import ConnectionPoolManager, connection_pool
-from .database_monitor import DatabaseMonitor, database_monitor
-from .external_providers import ExternalDatabaseProvider, external_db_provider
+# Import consolidated database components
+from .manager import (
+    ConsolidatedDatabaseManager, database_manager, DatabaseType, DatabaseRole,
+    DatabaseConfig, DatabaseMetrics, ConnectionStatus, initialize_database_system,
+    get_database_manager
+)
+# Note: Consolidated from database_manager.py, unified_database_manager.py, enhanced_abstraction.py
+# Legacy imports maintained for backward compatibility
+DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibility
 
 # Import database models and schemas
 from .models import *
@@ -43,47 +44,21 @@ from .exceptions import DatabaseError, ConnectionError, MigrationError, Encrypti
 
 __version__ = "3.0.0"
 __all__ = [
-    # Core database management
-    "DatabaseManager",
+    # Consolidated database management (SINGLE SOURCE OF TRUTH)
+    "ConsolidatedDatabaseManager",
     "database_manager",
-    
-    # Database clustering
-    "DatabaseCluster", 
-    "db_cluster",
-    
-    # Migration management
-    "MigrationManager",
-    "migration_manager",
-    
-    # Database encryption
-    "DatabaseEncryption",
-    "database_encryption",
-    
-    # Connection management
-    "ConnectionPoolManager",
-    "connection_pool",
-    
-    # Database monitoring
-    "DatabaseMonitor",
-    "database_monitor",
-    
-    # External providers
-    "ExternalDatabaseProvider",
-    "external_db_provider",
-    
-    # Backup integration
-    "DatabaseBackupIntegration",
-    "db_backup",
-    
-    # Database utilities
-    "DatabaseUtils",
-    "db_utils",
-    
-    # Configuration and types
+    "DatabaseManager",  # Backward compatibility alias
+
+    # Database configuration and types
     "DatabaseConfig",
     "DatabaseType",
-    "DatabaseRole", 
-    "DatabaseProvider",
+    "DatabaseRole",
+    "DatabaseMetrics",
+    "ConnectionStatus",
+
+    # Initialization functions
+    "initialize_database_system",
+    "get_database_manager",
     
     # Exceptions
     "DatabaseError",
@@ -327,32 +302,19 @@ BACKUP_CONFIG = {
     "restore_testing": True
 }
 
-async def initialize_database_system(config: dict = None) -> bool:
+# Note: initialize_database_system is now provided by the consolidated manager
+# Legacy function maintained for backward compatibility
+async def initialize_database_system_legacy(config: dict = None) -> bool:
     """
-    Initialize the unified database system.
-    
+    Legacy initialization function - use database_manager.initialize() instead.
+
     Args:
         config: Optional configuration dictionary
-        
+
     Returns:
         bool: True if initialization successful
     """
-    try:
-        # Merge with default configuration
-        system_config = DEFAULT_DATABASE_CONFIG.copy()
-        if config:
-            system_config.update(config)
-        
-        # Initialize core components
-        await database_manager.initialize(system_config)
-        await db_cluster.initialize(system_config)
-        await migration_manager.initialize(system_config)
-        await database_encryption.initialize(system_config)
-        await connection_pool.initialize(system_config)
-        await database_monitor.initialize(system_config)
-        await db_backup.initialize(system_config)
-        
-        return True
+    return await database_manager.initialize(config)
         
     except Exception as e:
         import logging

@@ -33,7 +33,8 @@ def check_dependencies():
         print("❌ Missing required dependencies:")
         for package in missing_packages:
             print(f"   - {package}")
-        print("\nInstall with: pip install " + " ".join(missing_packages))
+        print("\nInstall with: pip install -r requirements.txt")
+        print("(All dependencies are now consolidated in the root requirements.txt)")
         return False
     
     return True

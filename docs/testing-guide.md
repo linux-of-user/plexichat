@@ -91,8 +91,8 @@ pytest src/plexichat/tests/ -m security
 ### Environment Setup
 
 ```bash
-# Install testing dependencies
-pip install -r src/plexichat/tests/requirements.txt
+# Install all dependencies including testing requirements
+pip install -r requirements.txt
 
 # Set test environment variables
 export PLEXICHAT_TEST_MODE=true

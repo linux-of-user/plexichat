@@ -38,11 +38,10 @@ src/plexichat/tests/
 ### Install Dependencies
 
 ```bash
-# Install testing requirements
-pip install -r src/plexichat/tests/requirements.txt
-
-# Or install with main requirements
+# Install all dependencies including testing requirements
 pip install -r requirements.txt
+
+# All testing dependencies are consolidated in the root requirements.txt
 ```
 
 ### Run All Tests

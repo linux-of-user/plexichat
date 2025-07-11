@@ -23,13 +23,14 @@ from .distributed_monitoring import (
     ThreatPattern, ThreatLevel, MonitoringScope, SecurityEventType
 )
 
-# Import consolidated authentication components
-from .auth import (
+# Import consolidated authentication components from unified core system
+# Note: Authentication components now consolidated in core_system/auth/
+from ...core_system.auth import (
     AuthManager, auth_manager, TokenManager, token_manager,
     SessionManager, session_manager, PasswordManager, password_manager,
     MFAManager, mfa_manager, BiometricManager, biometric_manager,
     OAuthManager, oauth_manager, DeviceManager, device_manager,
-    AuthAuditManager, auth_audit_manager, SecurityLevel, AuthAction, AuthAttempt, AuthSession
+    AuthAuditManager, auth_audit_manager
 )
 
 # Import consolidated protection components

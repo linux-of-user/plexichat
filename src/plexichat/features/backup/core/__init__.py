@@ -37,3 +37,15 @@ DEFAULT_CONFIG = {
 }
 
 __version__ = "2.0.0"
+
+# CONSOLIDATION NOTICE:
+# Individual backup managers in backup/ subdirectory have been REMOVED and consolidated:
+# - backup_manager.py -> unified_backup_manager.py
+# - encryption_manager.py -> unified_encryption_manager.py
+# - shard_manager.py -> unified_shard_manager.py
+# - recovery_manager.py -> unified_recovery_manager.py
+# - distribution_manager.py -> REMOVED (functionality in unified managers)
+# - proxy_manager.py -> REMOVED (functionality in unified managers)
+# - quantum_backup_manager.py -> REMOVED (functionality in unified managers)
+#
+# All backup functionality now provided by unified managers at core level.

@@ -34,7 +34,7 @@ from ...security import (
 )
 
 # Import consolidated security modules
-from .advanced_authentication import AdvancedAuthenticationSystem, advanced_auth
+# Note: advanced_authentication.py removed - functionality consolidated into core_system/auth/
 from .ddos_protection import EnhancedDDoSProtection, ddos_protection
 from .penetration_testing import PenetrationTestingSystem, penetration_tester
 from .ssl_certificate_manager import SSLCertificateManager, ssl_manager
