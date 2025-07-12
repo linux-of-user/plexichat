@@ -45,7 +45,7 @@ class LogEntry:
     line: int
     thread_id: int
     process_id: int
-    extra: Dict[str, Any] = None
+    extra: Optional[Dict[str, Any]] = None
     exception: Optional[str] = None
     performance: Optional[Dict[str, Any]] = None
 
@@ -165,7 +165,7 @@ class PerformanceLogger:
         """Start timing an operation."""
         self.start_times[operation] = time.time()
         
-    def end_timer(self, operation: str, extra_data: Dict[str, Any] = None):
+    def end_timer(self, operation: str, extra_data: Optional[Dict[str, Any]] = None):
         """End timing and log performance."""
         if operation not in self.start_times:
             return
@@ -179,7 +179,7 @@ class PerformanceLogger:
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        if extra_data:
+        if extra_data is not None:
             perf_data.update(extra_data)
             
         # Create log record with performance data
@@ -244,7 +244,7 @@ class LogStreamer:
 class AdvancedLogger:
     """Advanced logging system manager."""
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or self._default_config()
         self.log_dir = Path(self.config.get("log_directory", "logs"))
         self.log_dir.mkdir(exist_ok=True)
@@ -439,7 +439,7 @@ class AdvancedLogger:
             self.log_streamers[log_type] = LogStreamer(log_file)
         return self.log_streamers[log_type]
 
-    def configure_module_logging(self, module_name: str, level: str = None):
+    def configure_module_logging(self, module_name: str, level: str = "INFO"):
         """Configure logging for a specific module."""
         logger = logging.getLogger(module_name)
         if level:
@@ -461,7 +461,7 @@ class AdvancedLogger:
 # Global logger instance
 _advanced_logger = None
 
-def get_advanced_logger(config: Dict[str, Any] = None) -> AdvancedLogger:
+def get_advanced_logger(config: Optional[Dict[str, Any]] = None) -> AdvancedLogger:
     """Get global advanced logger instance."""
     global _advanced_logger
     if _advanced_logger is None:

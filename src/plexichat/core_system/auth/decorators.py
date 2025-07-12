@@ -11,7 +11,7 @@ from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
 
 
-def require_auth(security_level: str = "BASIC", scopes: List[str] = None):
+def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = None):
     """
     Decorator to require authentication with optional security level and scopes.
     
@@ -30,7 +30,13 @@ def require_auth(security_level: str = "BASIC", scopes: List[str] = None):
             
             # Validate authentication
             auth_result = await auth_manager.require_authentication(token, security_level)
-            
+
+            # Check scopes if provided
+            if scopes:
+                user_scopes = auth_result.get('scopes', [])
+                if not all(scope in user_scopes for scope in scopes):
+                    raise AuthorizationError(f"Insufficient scopes. Required: {scopes}")
+
             # Add auth context to kwargs
             kwargs['auth_context'] = auth_result
             
@@ -50,7 +56,13 @@ def require_auth(security_level: str = "BASIC", scopes: List[str] = None):
             auth_result = loop.run_until_complete(
                 auth_manager.require_authentication(token, security_level)
             )
-            
+
+            # Check scopes if provided
+            if scopes:
+                user_scopes = auth_result.get('scopes', [])
+                if not all(scope in user_scopes for scope in scopes):
+                    raise AuthorizationError(f"Insufficient scopes. Required: {scopes}")
+
             # Add auth context to kwargs
             kwargs['auth_context'] = auth_result
             

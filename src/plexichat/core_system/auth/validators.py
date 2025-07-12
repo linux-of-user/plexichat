@@ -28,7 +28,7 @@ class ValidationResult:
 class PasswordValidator:
     """Password strength and policy validator - Enhanced with unified validation."""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.input_validator = get_input_validator()
 
@@ -40,8 +40,15 @@ class PasswordValidator:
         self.require_symbols = self.config.get("require_symbols", True)
         self.prevent_common_passwords = self.config.get("prevent_common_passwords", True)
         self.prevent_personal_info = self.config.get("prevent_personal_info", True)
+
+        # Common passwords list for validation
+        self.common_passwords = {
+            "password", "123456", "password123", "admin", "qwerty", "letmein",
+            "welcome", "monkey", "1234567890", "abc123", "111111", "123123",
+            "password1", "1234", "12345", "dragon", "master", "login"
+        }
     
-    def validate_password(self, password: str, user_info: Dict[str, Any] = None) -> ValidationResult:
+    def validate_password(self, password: str, user_info: Optional[Dict[str, Any]] = None) -> ValidationResult:
         """
         Validate password against policy requirements using unified validator.
 
@@ -77,79 +84,6 @@ class PasswordValidator:
                 warnings=[],
                 score=0.0
             )
-        
-        # Length check
-        if len(password) < self.min_length:
-            errors.append(f"Password must be at least {self.min_length} characters long")
-        else:
-            score += min(len(password) / self.min_length, 2.0) * 20
-        
-        # Character requirements
-        if self.require_uppercase and not re.search(r'[A-Z]', password):
-            errors.append("Password must contain at least one uppercase letter")
-        elif re.search(r'[A-Z]', password):
-            score += 15
-        
-        if self.require_lowercase and not re.search(r'[a-z]', password):
-            errors.append("Password must contain at least one lowercase letter")
-        elif re.search(r'[a-z]', password):
-            score += 15
-        
-        if self.require_numbers and not re.search(r'[0-9]', password):
-            errors.append("Password must contain at least one number")
-        elif re.search(r'[0-9]', password):
-            score += 15
-        
-        if self.require_symbols and not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-            errors.append("Password must contain at least one special character")
-        elif re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-            score += 15
-        
-        # Common password check
-        if self.prevent_common_passwords and password.lower() in self.common_passwords:
-            errors.append("Password is too common")
-        
-        # Personal information check
-        if self.prevent_personal_info and user_info:
-            personal_info = [
-                user_info.get("username", "").lower(),
-                user_info.get("email", "").lower().split("@")[0],
-                user_info.get("first_name", "").lower(),
-                user_info.get("last_name", "").lower()
-            ]
-            
-            for info in personal_info:
-                if info and len(info) > 2 and info in password.lower():
-                    errors.append("Password should not contain personal information")
-                    break
-        
-        # Complexity bonus
-        unique_chars = len(set(password))
-        if unique_chars > len(password) * 0.7:
-            score += 10
-        
-        # Pattern penalties
-        if re.search(r'(.)\1{2,}', password):  # Repeated characters
-            warnings.append("Avoid repeating characters")
-            score -= 5
-        
-        if re.search(r'(012|123|234|345|456|567|678|789|890)', password):  # Sequential numbers
-            warnings.append("Avoid sequential numbers")
-            score -= 5
-        
-        if re.search(r'(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)', password.lower()):  # Sequential letters
-            warnings.append("Avoid sequential letters")
-            score -= 5
-        
-        # Normalize score
-        score = max(0, min(100, score))
-        
-        return ValidationResult(
-            valid=len(errors) == 0,
-            errors=errors,
-            warnings=warnings,
-            score=score
-        )
     
     def get_password_strength(self, score: float) -> str:
         """Get password strength description."""
@@ -192,7 +126,7 @@ class PasswordValidator:
 class TokenValidator:
     """JWT token validator."""
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
     
     def validate_token_format(self, token: str) -> ValidationResult:
@@ -213,7 +147,7 @@ class TokenValidator:
         # Check base64 encoding
         import base64
         try:
-            for i, part in enumerate(parts[:2]):  # Don't decode signature
+            for _, part in enumerate(parts[:2]):  # Don't decode signature
                 # Add padding if needed
                 padded = part + '=' * (4 - len(part) % 4)
                 base64.urlsafe_b64decode(padded)
@@ -259,7 +193,7 @@ class TokenValidator:
 class BiometricValidator:
     """Biometric data validator."""
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.min_quality_score = self.config.get("min_quality_score", 0.8)
     
@@ -290,15 +224,18 @@ class BiometricValidator:
     
     def _validate_fingerprint(self, data: bytes) -> ValidationResult:
         """Validate fingerprint data."""
-        # Mock implementation
+        # Mock implementation - data parameter is for future use
+        _ = data  # Acknowledge parameter to avoid unused warning
         return ValidationResult(valid=True, errors=[], warnings=[])
-    
+
     def _validate_face(self, data: bytes) -> ValidationResult:
         """Validate face recognition data."""
-        # Mock implementation
+        # Mock implementation - data parameter is for future use
+        _ = data  # Acknowledge parameter to avoid unused warning
         return ValidationResult(valid=True, errors=[], warnings=[])
-    
+
     def _validate_voice(self, data: bytes) -> ValidationResult:
         """Validate voice recognition data."""
-        # Mock implementation
+        # Mock implementation - data parameter is for future use
+        _ = data  # Acknowledge parameter to avoid unused warning
         return ValidationResult(valid=True, errors=[], warnings=[])

@@ -17,11 +17,41 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool, NullPool
 from sqlmodel import Session
-import redis.asyncio as redis
-from motor.motor_asyncio import AsyncIOMotorClient
-import pymongo
+try:
+    import redis.asyncio as redis  # type: ignore
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    redis = None
 
-from plexichat.core.config.settings import settings
+try:
+    from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
+    MOTOR_AVAILABLE = True
+except ImportError:
+    MOTOR_AVAILABLE = False
+    AsyncIOMotorClient = None
+
+try:
+    import pymongo  # type: ignore
+    PYMONGO_AVAILABLE = True
+except ImportError:
+    PYMONGO_AVAILABLE = False
+    pymongo = None
+
+try:
+    from plexichat.core.config.settings import settings  # type: ignore
+except ImportError:
+    # Fallback configuration if settings module is not available
+    import os
+    class Settings:
+        def __init__(self):
+            self.DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./plexichat.db")
+            self.REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+            self.MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+            self.DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "20"))
+            self.DB_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "30"))
+            self.DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
+    settings = Settings()
 import logging
 
 logger = logging.getLogger(__name__)
@@ -136,7 +166,11 @@ class DatabaseCluster:
             try:
                 if config.type == DatabaseType.MONGODB:
                     # MongoDB client
-                    self.engines[name] = AsyncIOMotorClient(config.url)
+                    if AsyncIOMotorClient is not None:
+                        self.engines[name] = AsyncIOMotorClient(config.url)
+                    else:
+                        logger.warning(f"MongoDB support not available for {name}")
+                        continue
                 else:
                     # SQL databases
                     engine_kwargs = {

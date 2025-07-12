@@ -40,7 +40,7 @@ class NodeMetrics:
     network_latency: float = 0.0
     error_rate: float = 0.0
     uptime_percentage: float = 100.0
-    last_updated: datetime = None
+    last_updated: Optional[datetime] = None
     
     @property
     def load_score(self) -> float:

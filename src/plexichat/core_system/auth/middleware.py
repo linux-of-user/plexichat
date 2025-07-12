@@ -19,7 +19,7 @@ class AuthenticationMiddleware:
     Automatically handles token extraction, validation, and context injection.
     """
     
-    def __init__(self, app: Callable, config: Dict[str, Any] = None):
+    def __init__(self, app: Callable, config: Optional[Dict[str, Any]] = None):
         self.app = app
         self.config = config or {}
         
@@ -93,7 +93,7 @@ class AuthenticationMiddleware:
 class FlaskAuthMiddleware:
     """Authentication middleware for Flask applications."""
     
-    def __init__(self, app, config: Dict[str, Any] = None):
+    def __init__(self, app, config: Optional[Dict[str, Any]] = None):
         self.app = app
         self.config = config or {}
         
@@ -102,7 +102,11 @@ class FlaskAuthMiddleware:
     
     def before_request(self):
         """Flask before_request handler."""
-        from flask import request, g
+        try:
+            from flask import request, g  # type: ignore
+        except ImportError:
+            # Flask not available, skip Flask-specific functionality
+            return
         
         # Check if path should be excluded
         if request.path in self.config.get("exclude_paths", []):
@@ -129,14 +133,18 @@ class FlaskAuthMiddleware:
                 g.authenticated = True
             except (AuthenticationError, AuthorizationError):
                 if self.config.get("require_auth_by_default", False):
-                    from flask import jsonify
-                    return jsonify({"error": "Authentication failed"}), 401
+                    try:
+                        from flask import jsonify  # type: ignore
+                        return jsonify({"error": "Authentication failed"}), 401
+                    except ImportError:
+                        # Flask not available, return None
+                        return None
 
 
 class FastAPIAuthMiddleware:
     """Authentication middleware for FastAPI applications."""
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
     
     async def __call__(self, request, call_next):

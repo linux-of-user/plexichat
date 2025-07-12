@@ -76,7 +76,7 @@ class MetricHistory:
     timestamps: List[datetime] = field(default_factory=list)
     max_history_size: int = 100
     
-    def add_value(self, value: float, timestamp: datetime = None):
+    def add_value(self, value: float, timestamp: Optional[datetime] = None):
         """Add new metric value."""
         if timestamp is None:
             timestamp = datetime.now(timezone.utc)
@@ -260,6 +260,8 @@ class CanaryHealthMonitor:
             url = f"http://{node.node_id}:8000{check.endpoint}"
             
             start_time = datetime.now()
+            if self.session is None or self.session.closed:
+                self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
             async with self.session.get(url, timeout=check.timeout_seconds) as response:
                 response_time = (datetime.now() - start_time).total_seconds() * 1000
                 
@@ -398,7 +400,7 @@ class CanaryHealthMonitor:
         
         return metrics
     
-    def get_active_alerts(self, node_id: str = None) -> List[HealthAlert]:
+    def get_active_alerts(self, node_id: Optional[str] = None) -> List[HealthAlert]:
         """Get active alerts."""
         alerts = list(self.active_alerts.values())
         

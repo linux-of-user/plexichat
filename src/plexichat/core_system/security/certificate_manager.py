@@ -424,6 +424,9 @@ class ConsolidatedCertificateManager:
                     self.ssl_contexts.pop(domain, None)
                     logger.info(f"Let's Encrypt certificate renewed for {domain}")
                     return True
+                else:
+                    logger.error(f"Certificate info update failed for {domain} after renewal.")
+                    return False
             else:
                 logger.error(f"Certificate renewal failed for {domain}: {stderr.decode()}")
                 return False

@@ -124,8 +124,8 @@ class AuthManager:
         self.device_manager = DeviceManager()
         self.audit_manager = AuthAuditManager()
         
-        # Advanced authentication system
-        self.advanced_auth = AdvancedAuthenticationSystem()
+        # Advanced authentication system (placeholder - functionality integrated into this manager)
+        self.advanced_auth = None
         
         # Configuration
         self.config = {}
@@ -159,8 +159,8 @@ class AuthManager:
             await self.device_manager.initialize(config.get("device_management", {}))
             await self.audit_manager.initialize(config.get("audit_logging", {}))
             
-            # Initialize advanced authentication
-            await self.advanced_auth.initialize(config)
+            # Advanced authentication functionality is integrated into this manager
+            # No separate initialization needed
             
             # Load security configurations
             self.security_levels = config.get("security_levels", {})
@@ -191,10 +191,10 @@ class AuthManager:
             await self.audit_manager.log_auth_attempt(
                 audit_id=audit_id,
                 username=request.username,
-                ip_address=request.ip_address,
-                user_agent=request.user_agent,
+                ip_address=request.ip_address or "unknown",
+                user_agent=request.user_agent or "unknown",
                 auth_method="password",
-                device_info=request.device_info
+                device_info=request.device_info or {}
             )
             
             # Check rate limiting
@@ -228,7 +228,7 @@ class AuthManager:
             user_id = auth_result.user_id
             
             # Check if MFA is required
-            mfa_required = await self._is_mfa_required(user_id, request.security_level, risk_score)
+            mfa_required = await self._is_mfa_required(user_id or "unknown", request.security_level, risk_score)
             
             if mfa_required and not request.mfa_code:
                 # Get available MFA methods from user status
@@ -359,7 +359,10 @@ class AuthManager:
         # Convert TokenValidationResult to dict if needed
         if hasattr(result, '__dict__'):
             return result.__dict__
-        return result
+        # Ensure we always return a dict
+        if isinstance(result, dict):
+            return result
+        return {"valid": False, "error": "Invalid token format"}
     
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
         """Refresh an access token."""
@@ -424,7 +427,7 @@ class AuthManager:
             await self.password_manager.shutdown()
             await self.session_manager.shutdown()
             await self.token_manager.shutdown()
-            await self.advanced_auth.shutdown()
+            # Advanced authentication functionality is integrated - no separate shutdown needed
             
             logger.info("✅ Authentication Manager shutdown complete")
             

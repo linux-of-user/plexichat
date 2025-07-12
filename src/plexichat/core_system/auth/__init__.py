@@ -473,7 +473,10 @@ async def shutdown_auth_system():
 # Convenience functions for common operations
 async def authenticate_user(username: str, password: str, mfa_code: Optional[str] = None) -> dict:
     """Authenticate user with username/password and optional MFA."""
-    from .models import AuthenticationRequest
+    # Import the request class locally to avoid circular imports
+    from .auth_manager import AuthenticationRequest
+
+    # Create authentication request
     request = AuthenticationRequest(
         username=username,
         password=password,
@@ -482,8 +485,21 @@ async def authenticate_user(username: str, password: str, mfa_code: Optional[str
         user_agent="PlexiChat-Internal",  # Default for convenience function
         device_info={}  # Default for convenience function
     )
-    response = await auth_manager.authenticate(request)
-    return response.__dict__ if hasattr(response, '__dict__') else response
+
+    # Use the imported auth_manager instance
+    manager = globals()['auth_manager']  # Get the auth_manager from module globals
+    response = await manager.authenticate(request)
+
+    # Convert response to dict for backward compatibility
+    if hasattr(response, '__dict__'):
+        result = response.__dict__.copy()
+        # Convert any non-serializable objects to strings
+        for key, value in result.items():
+            if hasattr(value, '__dict__'):
+                result[key] = value.__dict__
+        return result
+    # Ensure we always return a dict
+    return {"success": False, "error": "Invalid response format"}
 
 async def create_session(user_id: str, device_info: Optional[dict] = None) -> str:
     """Create authenticated session for user."""
@@ -495,7 +511,10 @@ async def validate_token(token: str) -> Any:
     # Convert TokenValidationResult to dict if needed
     if hasattr(result, '__dict__'):
         return result.__dict__
-    return result
+    # Ensure we always return a dict
+    if isinstance(result, dict):
+        return result
+    return {"valid": False, "error": "Invalid token format"}
 
 async def require_authentication(token: str, required_level: str = "BASIC") -> dict:
     """Require authentication with minimum security level."""

@@ -44,7 +44,7 @@ class SessionManager:
         self.initialized = True
         logger.info("✅ Session Manager initialized")
     
-    async def create_session(self, user_id: str, device_info: Dict[str, Any] = None,
+    async def create_session(self, user_id: str, device_info: Optional[Dict[str, Any]] = None,
                            security_level: str = "GOVERNMENT", risk_score: float = 0.0) -> str:
         """Create new session."""
         session_id = str(uuid.uuid4())

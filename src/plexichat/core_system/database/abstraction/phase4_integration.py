@@ -5,18 +5,19 @@ Coordinates all Phase IV database enhancements into a unified system
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Type, TypeVar
+from typing import Dict, List, Optional, Any, Type, TypeVar, Callable
+from sqlmodel import SQLModel
 from datetime import datetime, timezone
 from dataclasses import dataclass
 
-from ..dao.base_dao import BaseDAO, QueryOptions, FilterCriteria, SortCriteria, PaginationParams
+from ..dao.base_dao import BaseDAO, QueryOptions, FilterCriteria, SortCriteria, PaginationParams, FilterOperator
 from ..repository.base_repository import BaseRepository, RepositoryConfig, CacheStrategy
 from ..orm.advanced_orm import AdvancedORM, ORMConfig
 from ..manager import ConsolidatedDatabaseManager, database_manager
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar('T', bound=SQLModel)
 
 
 @dataclass
@@ -211,7 +212,7 @@ class Phase4DatabaseCoordinator:
     
     # Factory Methods
     
-    def create_dao(self, model_class: Type[T], name: str = None) -> BaseDAO:
+    def create_dao(self, model_class: Type[T], name: Optional[str] = None) -> BaseDAO:
         """Create and register a new DAO instance."""
         dao_name = name or f"{model_class.__name__}DAO"
         
@@ -226,10 +227,10 @@ class Phase4DatabaseCoordinator:
         
         return dao
     
-    def create_repository(self, 
-                         dao: BaseDAO, 
-                         name: str = None,
-                         config: RepositoryConfig = None) -> BaseRepository:
+    def create_repository(self,
+                         dao: BaseDAO,
+                         name: Optional[str] = None,
+                         config: Optional[RepositoryConfig] = None) -> BaseRepository:
         """Create and register a new repository instance."""
         repo_name = name or f"{dao.model_class.__name__}Repository"
         
@@ -254,8 +255,9 @@ class Phase4DatabaseCoordinator:
         if self.advanced_orm:
             return self.advanced_orm.get_async_session
         else:
-            # Fallback to database manager session
-            return self.database_manager.get_session
+            # Fallback to database cluster session
+            from ..engines import db_cluster
+            return db_cluster.get_session
     
     def _create_generic_repository(self, dao: BaseDAO, config: RepositoryConfig) -> BaseRepository:
         """Create a generic repository implementation."""
@@ -281,7 +283,7 @@ class Phase4DatabaseCoordinator:
                 for field, value in criteria.items():
                     filter_criteria = FilterCriteria(
                         field=field,
-                        operator="eq",  # Default to equals
+                        operator=FilterOperator.EQUALS,  # Default to equals
                         value=value
                     )
                     filters.append(filter_criteria)
@@ -291,19 +293,20 @@ class Phase4DatabaseCoordinator:
     
     # Query Operations
     
-    async def execute_query(self, 
-                           query: str, 
-                           parameters: Dict[str, Any] = None,
+    async def execute_query(self,
+                           query: str,
+                           parameters: Optional[Dict[str, Any]] = None,
                            database: str = "default") -> Any:
         """Execute raw SQL query through the abstraction layer."""
         start_time = datetime.now(timezone.utc)
         
         try:
             # Use ORM if available, otherwise fall back to database manager
+            params = parameters or {}
             if self.advanced_orm:
-                result = await self.advanced_orm.execute_query(query, parameters)
+                result = await self.advanced_orm.execute_query(query, params)
             else:
-                result = await self.database_manager.execute_query(query, parameters, database)
+                result = await self.database_manager.execute_query(query, params, database)
             
             # Update metrics
             execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
@@ -317,28 +320,32 @@ class Phase4DatabaseCoordinator:
             logger.error(f"Query execution failed: {e}")
             raise
     
-    async def find_by_id(self, 
-                        model_class: Type[T], 
+    async def find_by_id(self,
+                        model_class: Type[T],
                         id: Any,
-                        include_relations: List[str] = None) -> Optional[T]:
+                        include_relations: Optional[List[str]] = None) -> Optional[T]:
         """Find entity by ID using ORM."""
         if not self.advanced_orm:
             raise RuntimeError("Advanced ORM not initialized")
         
-        return await self.advanced_orm.find_by_id(model_class, id, include_relations)
+        return await self.advanced_orm.find_by_id(model_class, id, include_relations or [])
     
-    async def find_all(self, 
+    async def find_all(self,
                       model_class: Type[T],
-                      filters: Dict[str, Any] = None,
-                      order_by: List[str] = None,
-                      limit: int = None,
-                      offset: int = None) -> List[T]:
+                      filters: Optional[Dict[str, Any]] = None,
+                      order_by: Optional[List[str]] = None,
+                      limit: Optional[int] = None,
+                      offset: Optional[int] = None) -> List[T]:
         """Find all entities using ORM."""
         if not self.advanced_orm:
             raise RuntimeError("Advanced ORM not initialized")
         
         return await self.advanced_orm.find_all(
-            model_class, filters, order_by, limit, offset
+            model_class,
+            filters or {},
+            order_by or [],
+            limit or 100,
+            offset or 0
         )
     
     # Transaction Management
@@ -353,8 +360,9 @@ class Phase4DatabaseCoordinator:
                             await operation(session)
                         await session.commit()
             else:
-                # Use database manager transaction
-                async with self.database_manager.get_session() as session:
+                # Use database cluster transaction
+                from ..engines import db_cluster
+                async with db_cluster.get_session() as session:
                     async with session.begin():
                         for operation in operations:
                             await operation(session)
@@ -439,7 +447,7 @@ class Phase4DatabaseCoordinator:
         """Perform health checks on database components."""
         try:
             # Check database manager health
-            db_status = self.database_manager.get_status()
+            _ = self.database_manager.get_status()  # Acknowledge but don't use
             
             # Check ORM health
             orm_health = None

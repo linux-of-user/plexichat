@@ -7,8 +7,8 @@ import asyncio
 import logging
 from typing import Dict, List, Optional, Any, Type, TypeVar, Generic, Union
 from datetime import datetime, timezone
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+# ABC removed - BaseDAO is now concrete
+from dataclasses import dataclass, field
 from enum import Enum
 import uuid
 
@@ -80,28 +80,15 @@ class PaginationParams:
 @dataclass
 class QueryOptions:
     """Advanced query options."""
-    filters: List[FilterCriteria] = None
-    sorts: List[SortCriteria] = None
+    filters: List[FilterCriteria] = field(default_factory=list)
+    sorts: List[SortCriteria] = field(default_factory=list)
     pagination: Optional[PaginationParams] = None
     include_deleted: bool = False
-    include_relations: List[str] = None
-    select_fields: List[str] = None
-    group_by: List[str] = None
-    having: List[FilterCriteria] = None
-    
-    def __post_init__(self):
-        if self.filters is None:
-            self.filters = []
-        if self.sorts is None:
-            self.sorts = []
-        if self.include_relations is None:
-            self.include_relations = []
-        if self.select_fields is None:
-            self.select_fields = []
-        if self.group_by is None:
-            self.group_by = []
-        if self.having is None:
-            self.having = []
+    include_relations: List[str] = field(default_factory=list)
+    select_fields: List[str] = field(default_factory=list)
+    group_by: List[str] = field(default_factory=list)
+    having: List[FilterCriteria] = field(default_factory=list)
+
 
 
 @dataclass
@@ -120,7 +107,7 @@ class QueryResult(Generic[T]):
         return (self.total_count + self.page_size - 1) // self.page_size
 
 
-class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
+class BaseDAO(Generic[T, CreateT, UpdateT]):
     """
     Base Data Access Object providing standardized database operations.
     
@@ -150,12 +137,18 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
         
         # Soft delete
         self.soft_delete_enabled = hasattr(model_class, 'deleted_at')
+
+        # Statistics
+        self.stats: Dict[str, Any] = {}
     
-    async def get_session(self) -> AsyncSession:
+    async def get_session(self) -> AsyncSession:  # type: ignore
         """Get database session."""
         if callable(self.session_factory):
-            return await self.session_factory()
-        return self.session_factory
+            result = self.session_factory()
+            if hasattr(result, '__await__'):
+                return await result  # type: ignore
+            return result  # type: ignore
+        return self.session_factory  # type: ignore
     
     # CRUD Operations
     
@@ -167,7 +160,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 if isinstance(data, dict):
                     instance = self.model_class(**data)
                 elif hasattr(data, 'dict'):
-                    instance = self.model_class(**data.dict())
+                    instance = self.model_class(**data.dict())  # type: ignore
                 else:
                     instance = self.model_class(**data.__dict__)
                 
@@ -176,8 +169,8 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                     instance.created_at = datetime.now(timezone.utc)
                 if hasattr(instance, 'updated_at'):
                     instance.updated_at = datetime.now(timezone.utc)
-                if hasattr(instance, 'id') and not instance.id:
-                    instance.id = str(uuid.uuid4())
+                if hasattr(instance, 'id') and not getattr(instance, 'id', None):
+                    setattr(instance, 'id', str(uuid.uuid4()))
                 
                 session.add(instance)
                 await session.commit()
@@ -188,9 +181,10 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 
                 # Log audit trail
                 if self.audit_enabled:
-                    await self._log_audit('CREATE', instance.id if hasattr(instance, 'id') else None, None, instance)
+                    record_id = getattr(instance, 'id', None) or str(uuid.uuid4())
+                    await self._log_audit('CREATE', record_id, None, instance)
                 
-                logger.debug(f"Created {self.model_class.__name__}: {instance.id if hasattr(instance, 'id') else 'unknown'}")
+                logger.debug(f"Created {self.model_class.__name__}: {getattr(instance, 'id', 'unknown')}")
                 return instance
                 
             except Exception as e:
@@ -198,7 +192,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 logger.error(f"Failed to create {self.model_class.__name__}: {e}")
                 raise
     
-    async def get_by_id(self, id: str, include_relations: List[str] = None) -> Optional[T]:
+    async def get_by_id(self, id: str, include_relations: Optional[List[str]] = None) -> Optional[T]:
         """Get record by ID."""
         cache_key = f"{self.table_name}:id:{id}"
         
@@ -208,11 +202,13 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
         
         async with await self.get_session() as session:
             try:
-                query = select(self.model_class).where(self.model_class.id == id)
+                query = select(self.model_class).where(getattr(self.model_class, 'id') == id)
                 
                 # Add soft delete filter
                 if self.soft_delete_enabled:
-                    query = query.where(self.model_class.deleted_at.is_(None))
+                    deleted_at_attr = getattr(self.model_class, 'deleted_at', None)
+                    if deleted_at_attr is not None:
+                        query = query.where(deleted_at_attr.is_(None))
                 
                 # Include relations
                 if include_relations:
@@ -233,7 +229,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 logger.error(f"Failed to get {self.model_class.__name__} by ID {id}: {e}")
                 raise
     
-    async def get_all(self, options: QueryOptions = None) -> QueryResult[T]:
+    async def get_all(self, options: Optional[QueryOptions] = None) -> QueryResult[T]:
         """Get all records with advanced filtering and pagination."""
         if options is None:
             options = QueryOptions()
@@ -245,7 +241,9 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 
                 # Apply soft delete filter
                 if self.soft_delete_enabled and not options.include_deleted:
-                    query = query.where(self.model_class.deleted_at.is_(None))
+                    deleted_at_attr = getattr(self.model_class, 'deleted_at', None)
+                    if deleted_at_attr is not None:
+                        query = query.where(deleted_at_attr.is_(None))
                 
                 # Apply filters
                 query = self._apply_filters(query, options.filters)
@@ -286,6 +284,9 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 page = options.pagination.page if options.pagination else 1
                 page_size = options.pagination.page_size if options.pagination else len(instances)
                 
+                # Ensure total_count is not None
+                total_count = total_count or 0
+
                 return QueryResult(
                     data=list(instances),
                     total_count=total_count,
@@ -309,13 +310,20 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                     return None
                 
                 # Store old values for audit
-                old_values = instance.dict() if hasattr(instance, 'dict') else instance.__dict__.copy()
+                if hasattr(instance, 'model_dump'):
+                    old_values = instance.model_dump()
+                elif hasattr(instance, 'dict'):
+                    old_values = instance.dict()  # type: ignore
+                else:
+                    old_values = instance.__dict__.copy()
                 
                 # Update fields
                 if isinstance(data, dict):
                     update_data = data
+                elif hasattr(data, 'model_dump'):
+                    update_data = data.model_dump(exclude_unset=True)  # type: ignore
                 elif hasattr(data, 'dict'):
-                    update_data = data.dict(exclude_unset=True)
+                    update_data = data.dict(exclude_unset=True)  # type: ignore
                 else:
                     update_data = {k: v for k, v in data.__dict__.items() if not k.startswith('_')}
                 
@@ -345,7 +353,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 logger.error(f"Failed to update {self.model_class.__name__} {id}: {e}")
                 raise
     
-    async def delete(self, id: str, soft_delete: bool = None) -> bool:
+    async def delete(self, id: str, soft_delete: Optional[bool] = None) -> bool:
         """Delete record by ID (soft or hard delete)."""
         if soft_delete is None:
             soft_delete = self.soft_delete_enabled
@@ -393,8 +401,10 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                 for data in data_list:
                     if isinstance(data, dict):
                         instance = self.model_class(**data)
+                    elif hasattr(data, 'model_dump'):
+                        instance = self.model_class(**data.model_dump())  # type: ignore
                     elif hasattr(data, 'dict'):
-                        instance = self.model_class(**data.dict())
+                        instance = self.model_class(**data.dict())  # type: ignore
                     else:
                         instance = self.model_class(**data.__dict__)
                     
@@ -403,8 +413,8 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                         instance.created_at = datetime.now(timezone.utc)
                     if hasattr(instance, 'updated_at'):
                         instance.updated_at = datetime.now(timezone.utc)
-                    if hasattr(instance, 'id') and not instance.id:
-                        instance.id = str(uuid.uuid4())
+                    if hasattr(instance, 'id') and not getattr(instance, 'id', None):
+                        setattr(instance, 'id', str(uuid.uuid4()))
                     
                     instances.append(instance)
                 
@@ -439,7 +449,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
                     record_id = update_data.pop('id')
                     update_data['updated_at'] = datetime.now(timezone.utc)
                     
-                    query = update(self.model_class).where(self.model_class.id == record_id).values(**update_data)
+                    query = update(self.model_class).where(getattr(self.model_class, 'id') == record_id).values(**update_data)
                     result = await session.execute(query)
                     updated_count += result.rowcount
                 
@@ -518,6 +528,8 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
     
     def _apply_having(self, query, having_clauses: List[FilterCriteria]):
         """Apply having clauses to query."""
+        # Acknowledge parameter to avoid unused warning
+        _ = having_clauses
         # Implementation would depend on specific aggregation needs
         return query
     
@@ -528,17 +540,49 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
     
     async def _log_audit(self, action: str, record_id: str, old_values: Any, new_values: Any):
         """Log audit trail entry."""
+        # Acknowledge parameters to avoid unused warnings
+        _ = old_values, new_values
         # Implementation would integrate with audit system
         logger.debug(f"Audit: {action} {self.model_class.__name__} {record_id}")
     
-    # Abstract methods for custom implementations
-    
-    @abstractmethod
+    # Default implementations for custom methods
+
     async def find_by_criteria(self, criteria: Dict[str, Any]) -> List[T]:
         """Find records by custom criteria."""
-        pass
-    
-    @abstractmethod
+        # Default implementation using standard filtering
+        filters = []
+        for key, value in criteria.items():
+            if hasattr(self.model_class, key):
+                filters.append(FilterCriteria(field=key, operator=FilterOperator.EQUALS, value=value))
+
+        options = QueryOptions(filters=filters)
+        result = await self.get_all(options=options)
+        return result.data
+
     async def get_statistics(self) -> Dict[str, Any]:
         """Get DAO statistics."""
-        pass
+        # Default implementation providing basic statistics
+        async with await self.get_session() as session:
+            try:
+                # Count total records
+                count_query = select(func.count()).select_from(self.model_class)
+                if self.soft_delete_enabled:
+                    count_query = count_query.where(getattr(self.model_class, 'deleted_at').is_(None))
+
+                result = await session.execute(count_query)
+                total_count = result.scalar() or 0
+
+                return {
+                    "total_records": total_count,
+                    "table_name": self.table_name,
+                    "cache_enabled": self.cache_enabled,
+                    "soft_delete_enabled": self.soft_delete_enabled,
+                    "audit_enabled": self.audit_enabled
+                }
+            except Exception as e:
+                logger.error(f"Error getting statistics for {self.model_class.__name__}: {e}")
+                return {
+                    "total_records": 0,
+                    "table_name": self.table_name,
+                    "error": str(e)
+                }

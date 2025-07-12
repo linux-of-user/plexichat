@@ -138,13 +138,13 @@ class TokenManager:
             logger.error(f"❌ Failed to initialize Token Manager: {e}")
             raise
     
-    async def create_access_token(self, user_id: str, session_id: str, 
+    async def create_access_token(self, user_id: str, session_id: str,
                                 security_level: str = "GOVERNMENT",
-                                scopes: List[str] = None,
-                                device_id: str = None,
-                                ip_address: str = None,
-                                user_agent: str = None,
-                                metadata: Dict[str, Any] = None) -> str:
+                                scopes: Optional[List[str]] = None,
+                                device_id: Optional[str] = None,
+                                ip_address: Optional[str] = None,
+                                user_agent: Optional[str] = None,
+                                metadata: Optional[Dict[str, Any]] = None) -> str:
         """Create a new access token."""
         try:
             token_id = str(uuid.uuid4())
@@ -189,7 +189,7 @@ class TokenManager:
             # Sign token
             token = jwt.encode(
                 payload,
-                self.private_key,
+                self.private_key or b"",  # Provide default empty bytes if None
                 algorithm=self.algorithm,
                 headers={"kid": self.key_id}
             )
@@ -205,8 +205,8 @@ class TokenManager:
             raise
     
     async def create_refresh_token(self, user_id: str, session_id: str,
-                                 device_id: str = None,
-                                 metadata: Dict[str, Any] = None) -> str:
+                                 device_id: Optional[str] = None,
+                                 metadata: Optional[Dict[str, Any]] = None) -> str:
         """Create a new refresh token."""
         try:
             token_id = str(uuid.uuid4())
@@ -246,7 +246,7 @@ class TokenManager:
             # Sign token
             token = jwt.encode(
                 payload,
-                self.private_key,
+                self.private_key or b"",  # Provide default empty bytes if None
                 algorithm=self.algorithm,
                 headers={"kid": self.key_id}
             )
@@ -285,7 +285,7 @@ class TokenManager:
             # Verify and decode token
             payload = jwt.decode(
                 token,
-                self.public_key,
+                self.public_key or b"",  # Provide default empty bytes if None
                 algorithms=[self.algorithm],
                 audience="plexichat-api",
                 issuer="plexichat-auth"
@@ -349,11 +349,14 @@ class TokenManager:
                 raise ValueError(f"Invalid refresh token: {validation_result.error_message}")
             
             token_data = validation_result.token_data
-            
+
+            if not token_data:
+                raise ValueError("Invalid token data")
+
             # Verify it's a refresh token
             if token_data.token_type != TokenType.REFRESH:
                 raise ValueError("Token is not a refresh token")
-            
+
             # Create new access token
             new_access_token = await self.create_access_token(
                 user_id=token_data.user_id,
@@ -466,7 +469,10 @@ class TokenManager:
                 }
             
             token_data = validation_result.token_data
-            
+
+            if not token_data:
+                return {"active": False, "error": "Invalid token data"}
+
             return {
                 "active": True,
                 "token_id": token_data.token_id,

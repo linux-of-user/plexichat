@@ -169,7 +169,8 @@ class AutomatedSecurityTester:
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = config or get_config().get("security_testing", {})
+        plexi_config = get_config()
+        self.config = config or getattr(plexi_config, "security_testing", {})
         self.initialized = False
         
         # Test configuration

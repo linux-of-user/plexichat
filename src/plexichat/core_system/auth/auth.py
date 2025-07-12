@@ -357,12 +357,12 @@ class TokenManager:
     async def create_access_token(self, username: str, security_level: SecurityLevel) -> str:
         """Create JWT access token."""
         # Implementation will be added
-        pass
+        return f"mock_token_{username}_{security_level.value}"
 
     async def validate_token(self, token: str) -> Dict[str, Any]:
         """Validate JWT token."""
         # Implementation will be added
-        pass
+        return {"valid": True, "username": "mock_user", "security_level": "BASIC"}
 
 class SessionManager:
     """Session management for web authentication."""

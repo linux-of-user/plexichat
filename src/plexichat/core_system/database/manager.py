@@ -40,8 +40,19 @@ from sqlmodel import SQLModel, Session, select
 
 # Database-specific imports
 import aiosqlite
-import redis.asyncio as redis
-from motor.motor_asyncio import AsyncIOMotorClient
+try:
+    import redis.asyncio as redis  # type: ignore
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    redis = None
+
+try:
+    from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
+    MOTOR_AVAILABLE = True
+except ImportError:
+    MOTOR_AVAILABLE = False
+    AsyncIOMotorClient = None
 
 # PlexiChat imports
 from ...core_system.logging import get_logger
@@ -127,7 +138,20 @@ class ConsolidatedDatabaseManager:
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = config or get_config().get("database", {})
+        # Handle config safely
+        if config:
+            self.config = config
+        else:
+            try:
+                config_obj = get_config()
+                if hasattr(config_obj, 'get'):
+                    self.config = config_obj.get("database", {})  # type: ignore
+                elif hasattr(config_obj, 'database'):
+                    self.config = getattr(config_obj, 'database', {})
+                else:
+                    self.config = {}
+            except Exception:
+                self.config = {}
         self.initialized = False
         
         # Database configurations and connections
@@ -249,11 +273,13 @@ class ConsolidatedDatabaseManager:
         try:
             # Initialize encryption manager
             self.encryption_manager = quantum_encryption
-            await self.encryption_manager.initialize()
-            
+            if hasattr(self.encryption_manager, 'initialize'):
+                await self.encryption_manager.initialize()  # type: ignore
+
             # Initialize key manager
             self.key_manager = distributed_key_manager
-            await self.key_manager.initialize()
+            if hasattr(self.key_manager, 'initialize'):
+                await self.key_manager.initialize()  # type: ignore
             
             logger.info("Database security components initialized")
             
@@ -368,18 +394,26 @@ class ConsolidatedDatabaseManager:
                 self.engines[name] = engine
 
             elif config.type == DatabaseType.MONGODB:
-                connection_string = f"mongodb://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
-                client = AsyncIOMotorClient(connection_string)
-                self.engines[name] = client
+                if AsyncIOMotorClient is not None:
+                    connection_string = f"mongodb://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
+                    client = AsyncIOMotorClient(connection_string)
+                    self.engines[name] = client
+                else:
+                    logger.warning(f"MongoDB support not available for {name}")
+                    return False
 
             elif config.type == DatabaseType.REDIS:
-                client = redis.Redis(
-                    host=config.host,
-                    port=config.port,
-                    password=config.password,
-                    decode_responses=True
-                )
-                self.engines[name] = client
+                if redis is not None:
+                    client = redis.Redis(
+                        host=config.host,
+                        port=config.port,
+                        password=config.password,
+                        decode_responses=True
+                    )
+                    self.engines[name] = client
+                else:
+                    logger.warning(f"Redis support not available for {name}")
+                    return False
 
             # Initialize metrics
             self.connection_metrics[name] = DatabaseMetrics()
@@ -410,10 +444,18 @@ class ConsolidatedDatabaseManager:
                     await conn.execute(text("SELECT 1"))
 
             elif config.type == DatabaseType.MONGODB:
-                await engine.admin.command('ping')
+                if hasattr(engine, 'admin'):
+                    await engine.admin.command('ping')  # type: ignore
+                else:
+                    # Alternative ping for MongoDB
+                    await engine.server_info()  # type: ignore
 
             elif config.type == DatabaseType.REDIS:
-                await engine.ping()
+                if hasattr(engine, 'ping'):
+                    await engine.ping()  # type: ignore
+                else:
+                    # Alternative ping for Redis
+                    await engine.execute_command('PING')  # type: ignore
 
             self.connection_status[name] = ConnectionStatus.CONNECTED
             self.global_metrics["databases_connected"] += 1
@@ -424,8 +466,8 @@ class ConsolidatedDatabaseManager:
             self.connection_status[name] = ConnectionStatus.ERROR
             return False
 
-    async def execute_query(self, query: str, params: Dict[str, Any] = None,
-                          database: str = None) -> Dict[str, Any]:
+    async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None,
+                          database: Optional[str] = None) -> Dict[str, Any]:
         """Execute a database query with unified interface."""
         start_time = time.time()
         database = database or getattr(self, 'default_database', 'default')
@@ -453,7 +495,11 @@ class ConsolidatedDatabaseManager:
                 # Parse MongoDB query (simplified)
                 import json
                 query_obj = json.loads(query)
-                collection = engine[config.database][query_obj.get("collection", "default")]
+                # Access MongoDB collection safely
+                db = getattr(engine, config.database, None)
+                if db is None:
+                    db = engine[config.database]  # type: ignore
+                collection = db[query_obj.get("collection", "default")]
 
                 if query_obj.get("operation") == "find":
                     cursor = collection.find(query_obj.get("filter", {}))
@@ -469,10 +515,16 @@ class ConsolidatedDatabaseManager:
                 command = parts[0].upper()
 
                 if command == "GET":
-                    value = await engine.get(parts[1])
+                    if hasattr(engine, 'get'):
+                        value = await engine.get(parts[1])  # type: ignore
+                    else:
+                        value = await engine.execute_command('GET', parts[1])  # type: ignore
                     result = {"value": value}
                 elif command == "SET":
-                    await engine.set(parts[1], parts[2])
+                    if hasattr(engine, 'set'):
+                        await engine.set(parts[1], parts[2])  # type: ignore
+                    else:
+                        await engine.execute_command('SET', parts[1], parts[2])  # type: ignore
                     result = {"status": "OK"}
 
             # Update metrics
@@ -483,7 +535,7 @@ class ConsolidatedDatabaseManager:
 
         except Exception as e:
             execution_time = time.time() - start_time
-            self._update_metrics(database, execution_time, success=False)
+            self._update_metrics(database or 'unknown', execution_time, success=False)
             logger.error(f"Query execution failed on '{database}': {e}")
             return {"success": False, "error": str(e), "execution_time": execution_time}
 

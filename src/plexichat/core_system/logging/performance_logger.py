@@ -320,7 +320,7 @@ class PerformanceLogger:
                 metadata={"operation_name": operation_name}
             )
     
-    def time_function(self, func_name: str = None):
+    def time_function(self, func_name: Optional[str] = None):
         """Decorator for timing function execution."""
         def decorator(func):
             nonlocal func_name
@@ -328,7 +328,8 @@ class PerformanceLogger:
                 func_name = f"{func.__module__}.{func.__name__}"
             
             def wrapper(*args, **kwargs):
-                with self.timer(func_name):
+                operation_name = func_name if func_name is not None else f"{func.__module__}.{func.__name__}"
+                with self.timer(operation_name):
                     return func(*args, **kwargs)
             return wrapper
         return decorator
@@ -445,9 +446,9 @@ def get_performance_logger() -> PerformanceLogger:
     """Get the global performance logger instance."""
     global _performance_logger
     if _performance_logger is None:
-        from ..config import get_config
+        from ..config import get_config  # type: ignore
         config = get_config()
-        log_dir = Path(config.get("logging.directory", "logs")) / "performance"
+        log_dir = Path(getattr(config.logging, "directory", "logs")) / "performance"
         _performance_logger = PerformanceLogger(log_dir)
     return _performance_logger
 
@@ -460,7 +461,7 @@ def timer(operation_name: str, **kwargs):
     """Timer context manager."""
     return get_performance_logger().timer(operation_name, **kwargs)
 
-def time_function(func_name: str = None):
+def time_function(func_name: Optional[str] = None):
     """Function timing decorator."""
     return get_performance_logger().time_function(func_name)
 

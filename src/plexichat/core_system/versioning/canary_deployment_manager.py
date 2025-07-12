@@ -189,7 +189,7 @@ class CanaryDeploymentManager:
     
     async def create_deployment_plan(self, update_id: str, 
                                    strategy: CanaryStrategy = CanaryStrategy.PERCENTAGE_BASED,
-                                   custom_config: Dict[str, Any] = None) -> CanaryDeploymentPlan:
+                                   custom_config: Optional[Dict[str, Any]] = None) -> CanaryDeploymentPlan:
         """Create canary deployment plan."""
         deployment_id = f"canary_{update_id}_{int(datetime.now().timestamp())}"
         

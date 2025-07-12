@@ -66,7 +66,6 @@ class DataRegion:
     is_primary: bool = False
     is_active: bool = True
     
-    @property
     def is_compliant_for(self, compliance_requirements: List[str]) -> bool:
         """Check if region meets compliance requirements."""
         return all(req in self.compliance_zones for req in compliance_requirements)
@@ -316,9 +315,9 @@ class GlobalDataDistributionManager:
         logger.info("Data placement policies loaded")
     
     async def place_data(self, data_id: str, data_type: str, data_size_mb: float,
-                        access_pattern: Dict[str, Any] = None,
-                        compliance_requirements: List[str] = None,
-                        consistency_model: ConsistencyModel = None) -> DataPlacement:
+                        access_pattern: Optional[Dict[str, Any]] = None,
+                        compliance_requirements: Optional[List[str]] = None,
+                        consistency_model: Optional[ConsistencyModel] = None) -> DataPlacement:
         """Intelligently place data across global regions."""
         try:
             access_pattern = access_pattern or {}
@@ -364,7 +363,7 @@ class GlobalDataDistributionManager:
             logger.error(f"Data placement failed for {data_id}: {e}")
             raise
     
-    def _find_suitable_regions(self, compliance_requirements: List[str], data_size_mb: float) -> List[DataRegion]:
+    def _find_suitable_regions(self, compliance_requirements: Optional[List[str]], data_size_mb: float) -> List[DataRegion]:
         """Find regions that meet compliance and capacity requirements."""
         suitable = []
         
@@ -373,7 +372,7 @@ class GlobalDataDistributionManager:
                 continue
             
             # Check compliance
-            if not region.is_compliant_for(compliance_requirements):
+            if compliance_requirements and not region.is_compliant_for(compliance_requirements):
                 continue
             
             # Check capacity (simplified)
@@ -439,7 +438,7 @@ class GlobalDataDistributionManager:
             return ReplicationStrategy.EVENTUAL_CONSISTENCY
 
     async def replicate_data(self, data_id: str, data: bytes,
-                           metadata: Dict[str, Any] = None) -> bool:
+                           metadata: Optional[Dict[str, Any]] = None) -> bool:
         """Replicate data to all configured regions."""
         try:
             if data_id not in self.data_placements:
@@ -499,8 +498,8 @@ class GlobalDataDistributionManager:
             logger.error(f"Replication to {region_id} failed: {e}")
             return False
 
-    async def read_data(self, data_id: str, consistency_level: ConsistencyModel = None,
-                       preferred_region: str = None) -> Tuple[Optional[bytes], Dict[str, Any]]:
+    async def read_data(self, data_id: str, consistency_level: Optional[ConsistencyModel] = None,
+                       preferred_region: Optional[str] = None) -> Tuple[Optional[bytes], Dict[str, Any]]:
         """Read data with specified consistency guarantees."""
         try:
             if data_id not in self.data_placements:
@@ -523,7 +522,7 @@ class GlobalDataDistributionManager:
             logger.error(f"Data read failed for {data_id}: {e}")
             return None, {}
 
-    async def _read_with_strong_consistency(self, data_id: str, placement: DataPlacement) -> Tuple[bytes, Dict[str, Any]]:
+    async def _read_with_strong_consistency(self, data_id: str, placement: DataPlacement) -> Tuple[Optional[bytes], Dict[str, Any]]:
         """Read with strong consistency (quorum read)."""
         # Read from majority of replicas
         required_reads = len(placement.replica_regions) // 2 + 2  # +1 for primary, +1 for majority
@@ -550,7 +549,7 @@ class GlobalDataDistributionManager:
         # Return most recent version (simplified)
         return read_results[0]
 
-    async def _read_with_causal_consistency(self, data_id: str, placement: DataPlacement) -> Tuple[bytes, Dict[str, Any]]:
+    async def _read_with_causal_consistency(self, data_id: str, placement: DataPlacement) -> Tuple[Optional[bytes], Dict[str, Any]]:
         """Read with causal consistency."""
         # Read from any replica that satisfies causal ordering
         for region_id in [placement.primary_region] + placement.replica_regions:
@@ -569,13 +568,13 @@ class GlobalDataDistributionManager:
 
         raise Exception("No causally consistent replica found")
 
-    async def _read_with_monotonic_consistency(self, data_id: str, placement: DataPlacement) -> Tuple[bytes, Dict[str, Any]]:
+    async def _read_with_monotonic_consistency(self, data_id: str, placement: DataPlacement) -> Tuple[Optional[bytes], Dict[str, Any]]:
         """Read with monotonic read consistency."""
         # Read from primary region for monotonic guarantees
         return await self._read_from_region(placement.primary_region, data_id)
 
     async def _read_with_eventual_consistency(self, data_id: str, placement: DataPlacement,
-                                            preferred_region: str = None) -> Tuple[bytes, Dict[str, Any]]:
+                                            preferred_region: Optional[str] = None) -> Tuple[Optional[bytes], Dict[str, Any]]:
         """Read with eventual consistency."""
         # Try preferred region first
         if preferred_region and preferred_region in [placement.primary_region] + placement.replica_regions:
@@ -642,7 +641,8 @@ class GlobalDataDistributionManager:
             elif resolution_rule.resolution_strategy == "merge":
                 return self._resolve_merge(conflicting_versions)
             elif resolution_rule.resolution_strategy == "custom":
-                return await self._resolve_custom(conflicting_versions, resolution_rule.custom_resolver)
+                resolver_name = getattr(resolution_rule, 'custom_resolver', None) or 'default'
+                return await self._resolve_custom(conflicting_versions, resolver_name)
 
             return conflicting_versions[0]  # Fallback
 
@@ -676,6 +676,8 @@ class GlobalDataDistributionManager:
 
     async def _resolve_custom(self, versions: List[Dict[str, Any]], resolver_name: str) -> Dict[str, Any]:
         """Resolve conflicts using custom resolver."""
+        # Acknowledge parameter to avoid unused warning
+        _ = resolver_name
         # Placeholder for custom conflict resolution
         # In production, this would call the specified resolver function
         return self._resolve_last_write_wins(versions)
@@ -702,6 +704,8 @@ class GlobalDataDistributionManager:
 
     async def _check_data_consistency(self, data_id: str, placement: DataPlacement):
         """Check and maintain data consistency."""
+        # Acknowledge parameters to avoid unused warnings
+        _ = data_id, placement
         # Placeholder for consistency checking
         # In production, this would compare data across regions
         pass
@@ -721,6 +725,8 @@ class GlobalDataDistributionManager:
 
     async def _check_region_health(self, region_id: str) -> bool:
         """Check health of specific region."""
+        # Acknowledge parameter to avoid unused warning
+        _ = region_id
         # Placeholder for region health check
         return True
 
@@ -739,6 +745,8 @@ class GlobalDataDistributionManager:
 
     async def _optimize_data_placement(self, data_id: str, placement: DataPlacement):
         """Optimize data placement based on access patterns."""
+        # Acknowledge parameters to avoid unused warnings
+        _ = data_id, placement
         # Placeholder for placement optimization
         # In production, this would analyze access patterns and suggest migrations
         pass

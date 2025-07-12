@@ -128,7 +128,9 @@ class UnifiedInputValidator:
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = config or get_config().get("input_validation", {})
+        # Use attribute access or the correct method to get input_validation config
+        plexi_config = get_config()
+        self.config = config or getattr(plexi_config, "input_validation", {})
         self.initialized = False
         
         # Security patterns
