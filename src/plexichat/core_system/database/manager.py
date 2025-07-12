@@ -163,7 +163,11 @@ class ConsolidatedDatabaseManager:
             "active_connections": 0,
             "databases_connected": 0
         }
-        
+
+        # Repository registry for new channel system
+        self.repositories = {}
+        self._register_default_repositories()
+
         logger.info("Consolidated Database Manager initialized")
     
     async def initialize(self, config: Optional[Dict[str, Any]] = None) -> bool:
@@ -192,6 +196,53 @@ class ConsolidatedDatabaseManager:
         except Exception as e:
             logger.error(f"❌ Database manager initialization failed: {e}")
             return False
+
+    def _register_default_repositories(self):
+        """Register default repositories for the channel system."""
+        try:
+            # Import repository classes
+            from ...features.channels.repositories.channel_repository import ChannelRepository
+            from ...features.channels.repositories.role_repository import RoleRepository
+            from ...features.channels.repositories.permission_overwrite_repository import PermissionOverwriteRepository
+
+            # Register channel system repositories
+            self.register_repository("channel", ChannelRepository)
+            self.register_repository("role", RoleRepository)
+            self.register_repository("permission_overwrite", PermissionOverwriteRepository)
+
+            logger.info("✅ Default repositories registered successfully")
+
+        except ImportError as e:
+            logger.warning(f"⚠️ Some repositories not available yet: {e}")
+        except Exception as e:
+            logger.error(f"❌ Failed to register default repositories: {e}")
+
+    def register_repository(self, name: str, repository_class):
+        """Register a repository class with the database manager."""
+        try:
+            self.repositories[name] = repository_class
+            logger.debug(f"Registered repository: {name} -> {repository_class.__name__}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to register repository {name}: {e}")
+            return False
+
+    def get_repository(self, name: str, session_factory=None):
+        """Get a repository instance by name."""
+        try:
+            if name not in self.repositories:
+                raise ValueError(f"Repository '{name}' not registered")
+
+            repository_class = self.repositories[name]
+            return repository_class(session_factory)
+
+        except Exception as e:
+            logger.error(f"Failed to get repository {name}: {e}")
+            return None
+
+    def list_repositories(self) -> list:
+        """List all registered repositories."""
+        return list(self.repositories.keys())
     
     async def _initialize_security(self) -> None:
         """Initialize security and encryption components."""

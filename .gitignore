@@ -48,6 +48,7 @@ Thumbs.db
 /backup_data/
 /databases/
 /temp/
+/temp_clone/
 /cache/
 
 # Configuration Files (keep examples)

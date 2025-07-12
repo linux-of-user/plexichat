@@ -1,0 +1,32 @@
+plexichat:
+  database:
+    backup:
+      enabled: true
+      interval_hours: 6
+    encryption: true
+    url: sqlite:///./data/plexichat.db
+  features:
+    ai_integration: true
+    channels: true
+    spaces: true
+    status_updates: true
+    voice_video: true
+  generated_at: '2025-07-12T10:25:37.994088'
+  logging:
+    file: logs/plexichat.log
+    level: INFO
+    max_size_mb: 100
+  security:
+    jwt_algorithm: HS256
+    mfa_enabled: true
+    password_min_length: 8
+    secret_key: cc6ef83de4576a84f88b072c48169865dec38eb58d566fe149ec728c02020069
+  server:
+    host: 0.0.0.0
+    port: 8080
+    ssl:
+      cert_file: certs/plexichat.crt
+      domain: plexichat.local
+      enabled: true
+      key_file: certs/plexichat.key
+  version: 3.0.0

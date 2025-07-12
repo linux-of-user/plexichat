@@ -51,6 +51,18 @@ class DatabaseClientFactory:
         """Register a new database client implementation."""
         cls._client_registry[db_type] = client_class
         logger.info(f"Registered database client: {db_type.value} -> {client_class.__name__}")
+
+    @classmethod
+    def register_repository(cls, name: str, repository_class):
+        """Register a repository class for dependency injection."""
+        from .manager import database_manager
+        return database_manager.register_repository(name, repository_class)
+
+    @classmethod
+    def get_repository(cls, name: str, session_factory=None):
+        """Get a repository instance by name."""
+        from .manager import database_manager
+        return database_manager.get_repository(name, session_factory)
     
     @classmethod
     def create_client(cls, config: DatabaseConfig) -> AbstractDatabaseClient:
