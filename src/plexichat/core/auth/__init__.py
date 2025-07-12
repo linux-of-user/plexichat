@@ -34,25 +34,77 @@ Features:
 # Removed: features/security/login_manager.py (CONSOLIDATED)
 
 # Import new unified components
-from .auth_manager import AuthManager, auth_manager
-from .token_manager import TokenManager, token_manager
-from .session_manager import SessionManager, session_manager
-from .password_manager import PasswordManager, password_manager
-from .mfa_manager import MFAManager, mfa_manager
-from .biometric_manager import BiometricManager, biometric_manager
-from .oauth_manager import OAuthManager, oauth_manager
-from .device_manager import DeviceManager, device_manager
-from .audit_manager import AuthAuditManager, auth_audit_manager
+try:
+    from .manager_auth import AuthManager, auth_manager
+except ImportError:
+    AuthManager = auth_manager = None
+
+try:
+    from .manager_token import TokenManager, token_manager
+except ImportError:
+    TokenManager = token_manager = None
+
+try:
+    from .manager_session import SessionManager, session_manager
+except ImportError:
+    SessionManager = session_manager = None
+
+try:
+    from .manager_password import PasswordManager, password_manager
+except ImportError:
+    PasswordManager = password_manager = None
+
+try:
+    from .manager_mfa import MFAManager, mfa_manager
+except ImportError:
+    MFAManager = mfa_manager = None
+
+try:
+    from .manager_biometric import BiometricManager, biometric_manager
+except ImportError:
+    BiometricManager = biometric_manager = None
+
+try:
+    from .manager_oauth import OAuthManager, oauth_manager
+except ImportError:
+    OAuthManager = oauth_manager = None
+
+try:
+    from .manager_device import DeviceManager, device_manager
+except ImportError:
+    DeviceManager = device_manager = None
+
+try:
+    from .manager_audit import AuthAuditManager, auth_audit_manager
+except ImportError:
+    AuthAuditManager = auth_audit_manager = None
 
 # Import authentication utilities
-from .decorators import require_auth, require_admin, require_mfa, require_level, optional_auth
-from .middleware import AuthenticationMiddleware, FlaskAuthMiddleware, FastAPIAuthMiddleware
-from .validators import PasswordValidator, TokenValidator, BiometricValidator
-from .exceptions import (
-    AuthenticationError, AuthorizationError, MFAError, TokenError,
-    SessionError, PasswordError, BiometricError, DeviceError,
-    OAuthError, RateLimitError, AccountLockError
-)
+try:
+    from .decorators_auth import require_auth, require_admin, require_mfa, require_level, optional_auth
+except ImportError:
+    require_auth = require_admin = require_mfa = require_level = optional_auth = None
+
+try:
+    from .middleware_auth import AuthenticationMiddleware, FlaskAuthMiddleware, FastAPIAuthMiddleware
+except ImportError:
+    AuthenticationMiddleware = FlaskAuthMiddleware = FastAPIAuthMiddleware = None
+
+try:
+    from .validators_auth import PasswordValidator, TokenValidator, BiometricValidator
+except ImportError:
+    PasswordValidator = TokenValidator = BiometricValidator = None
+
+try:
+    from .exceptions_auth import (
+        AuthenticationError, AuthorizationError, MFAError, TokenError,
+        SessionError, PasswordError, BiometricError, DeviceError,
+        OAuthError, RateLimitError, AccountLockError
+    )
+except ImportError:
+    AuthenticationError = AuthorizationError = MFAError = TokenError = None
+    SessionError = PasswordError = BiometricError = DeviceError = None
+    OAuthError = RateLimitError = AccountLockError = None
 
 __version__ = "3.0.0"
 __all__ = [

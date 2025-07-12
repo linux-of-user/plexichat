@@ -12,7 +12,7 @@ from pathlib import Path
 
 # Import login manager
 try:
-    from plexichat.auth.login_manager import login_manager
+    from plexichat.core.auth.manager_auth import login_manager
 except ImportError:
     login_manager = None
 

@@ -5,12 +5,15 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 
-import logging import settings, logger
+import logging
+
+logger = logging.getLogger(__name__)
+# settings import will be added when needed
 from plexichat.core.database import engine
-from plexichat.users.message import Message, MessageType
-from plexichat.web.schemas.error import ValidationErrorResponse
-from plexichat.web.schemas.message import MessageCreate, MessageRead
-from plexichat.web.routers.auth import get_current_user
+from plexichat.features.users.message import Message, MessageType
+from plexichat.interfaces.web.schemas.error import ValidationErrorResponse
+from plexichat.interfaces.web.schemas.message import MessageCreate, MessageRead
+from plexichat.interfaces.web.routers.auth import get_current_user
 
 router = APIRouter()
 

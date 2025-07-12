@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlmodel import Session, select
 
 from plexichat.main import engine
-from plexichat.users.message import Message
-from plexichat.users.user import User
+from plexichat.features.users.message import Message
+from plexichat.features.users.user import User
 
 router = APIRouter()
 

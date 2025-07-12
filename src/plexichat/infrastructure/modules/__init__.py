@@ -23,13 +23,20 @@ import tempfile
 # Import security and services (with fallbacks for missing modules)
 try:
     from ...features.security import security_manager
+    from ...features.security.distributed_key_manager import distributed_key_manager
 except ImportError:
     security_manager = None
+    distributed_key_manager = None
 
 try:
     from ..services.loader import ServiceLoader
+    from ..services import ServiceMetadata, ServiceType, ServicePriority, SecureService
 except ImportError:
     ServiceLoader = None
+    ServiceMetadata = None
+    ServiceType = None
+    ServicePriority = None
+    SecureService = None
 
 try:
     from ..performance.cache_manager import CacheManager
@@ -126,7 +133,7 @@ class SecureModule:
         # Module state
         self.load_time: Optional[datetime] = None
         self.module_instance: Optional[Any] = None
-        self.service_instance: Optional[SecureService] = None
+        self.service_instance: Optional[Any] = None  # SecureService if available
         
         # Security integration
         self.encryption_context = None
@@ -168,7 +175,8 @@ class SecureModule:
             # Create service instance if module provides services
             if hasattr(self.module_instance, 'create_service'):
                 service_metadata = await self._create_service_metadata()
-                self.service_instance = await self.module_instance.create_service(service_metadata)
+                if service_metadata is not None:
+                    self.service_instance = await self.module_instance.create_service(service_metadata)
             
             self.status = ModuleStatus.LOADED
             self.health.status = ModuleStatus.LOADED
@@ -290,10 +298,14 @@ class SecureModule:
     async def _setup_module_security(self):
         """Setup module-specific security."""
         try:
-            # Get module encryption key
-            self.module_key = await distributed_key_manager.get_domain_key(
-                distributed_key_manager.KeyDomain.COMMUNICATION
-            )
+            # Get module encryption key if distributed_key_manager is available
+            if distributed_key_manager is not None:
+                self.module_key = await distributed_key_manager.get_domain_key(
+                    distributed_key_manager.KeyDomain.COMMUNICATION
+                )
+            else:
+                # Use a default key or skip encryption setup
+                self.module_key = None
             
             # Create encryption context
             self.encryption_context = type('Context', (), {
@@ -349,8 +361,11 @@ class SecureModule:
             'version': self.metadata.version
         })()
     
-    async def _create_service_metadata(self) -> ServiceMetadata:
+    async def _create_service_metadata(self) -> Optional[Any]:
         """Create service metadata for module service."""
+        if ServiceMetadata is None or ServiceType is None or ServicePriority is None:
+            return None
+
         return ServiceMetadata(
             service_id=f"module_service_{self.metadata.module_id}",
             name=f"{self.metadata.name} Service",

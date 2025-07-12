@@ -10,7 +10,9 @@ from typing import Dict, Any, List
 import httpx
 
 from .test_base import BaseEndpointTest, TestResult
-import logging import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AuthEndpointTests(BaseEndpointTest):

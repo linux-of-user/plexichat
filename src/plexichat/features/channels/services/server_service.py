@@ -13,7 +13,6 @@ from ..models.role import Role, Permissions
 from ..models.channel import Channel, ChannelType
 from ..models.server_member import ServerMember
 from ..repositories.server_repository import ServerRepository
-from .permission_service import PermissionService
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,6 @@ class ServerService:
     
     def __init__(self, server_repository: ServerRepository = None):
         self.server_repository = server_repository or ServerRepository()
-        self.permission_service = PermissionService()
     
     async def create_server(self, owner_id: str, server_data: Dict[str, Any]) -> Server:
         """

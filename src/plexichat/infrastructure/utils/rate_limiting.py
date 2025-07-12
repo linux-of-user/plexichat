@@ -5,13 +5,24 @@ Advanced rate limiting system with multiple strategies and storage backends.
 
 import time
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from collections import defaultdict, deque
 import threading
 import json
 from pathlib import Path
 
-from app.logger_config import settings, logger
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Settings fallback
+class Settings:
+    LOG_DIR = "logs"
+
+try:
+    from plexichat.core.config.settings import settings
+except ImportError:
+    settings = Settings()
 
 
 class RateLimiter:

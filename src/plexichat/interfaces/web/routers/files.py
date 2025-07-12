@@ -19,13 +19,16 @@ from PIL import Image
 import magic
 
 from plexichat.core.database import get_session
-import logging import logger, logging_manager
-from plexichat.users.user import User
-from plexichat.users.files import FileRecord, FileShare, FileVersion
-from plexichat.web.schemas.files import FileUploadResponse, FileListResponse, FileInfoResponse
-from plexichat.utils.auth import get_current_user, require_permissions
-from plexichat.utils.security import sanitize_filename, validate_file_type, scan_file_content
-from plexichat.utils.monitoring import track_performance
+import logging
+
+logger = logging.getLogger(__name__)
+logging_manager = logging.getLogger(f"{__name__}.manager")
+from plexichat.features.users.user import User
+from plexichat.features.users.files import FileRecord, FileShare, FileVersion
+from plexichat.interfaces.web.schemas.files import FileUploadResponse, FileListResponse, FileInfoResponse
+from plexichat.infrastructure.utils.auth import get_current_user, require_permissions
+from plexichat.infrastructure.utils.security import sanitize_filename, validate_file_type, scan_file_content
+from plexichat.infrastructure.utils.monitoring import track_performance
 
 router = APIRouter()
 

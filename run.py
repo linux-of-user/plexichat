@@ -32,12 +32,12 @@ from datetime import datetime
 
 # Try to import optional dependencies
 try:
-    import yaml
+    import yaml  # Optional dependency for version verification and backup/restore
 except ImportError:
     yaml = None
 
 try:
-    from tqdm import tqdm
+    from tqdm import tqdm # type: ignore
 except ImportError:
     tqdm = None
 from datetime import datetime
@@ -55,6 +55,10 @@ class SimpleProgressBar:
         self.desc = desc
         self.width = width
         self.start_time = time.time()
+
+    def set_description(self, desc):
+        """Set the description for the progress bar (for compatibility with tqdm)."""
+        self.desc = desc
 
     def update(self, n=1):
         self.current += n
@@ -665,8 +669,10 @@ IMPORTANT: Change password after first login and delete this file.
 
 
 def get_port_configuration():
-    """Get port configuration from config file."""
-    config_file = ROOT / "config" / "plexichat.json"
+    """
+    Get port configuration from unified config (YAML or JSON).
+    Falls back to defaults if config missing or invalid.
+    """
     default_ports = {
         "api_http": 8000,
         "api_https": 8443,
@@ -676,11 +682,39 @@ def get_port_configuration():
         "admin": 8002
     }
 
-    try:
-        if config_file.exists():
-            with open(config_file, 'r') as f:
-                config = json.load(f)
+    # Try YAML unified config first
+    yaml_config_file = ROOT / "plexichat.yaml"
+    if yaml_config_file.exists():
+        try:
+            with open(yaml_config_file, "r") as f:
+                if yaml is not None:
+                    config = yaml.safe_load(f)
+                else:
+                    print("⚠️ Warning: PyYAML not installed, falling back to JSON config if available.")
+                    raise ImportError("PyYAML not installed")
+            ports = (
+                config.get("plexichat", {})
+                .get("server", {})
+                .get("ports", {})
+            )
+            # Support both flat and nested port configs
+            return {
+                "api_http": ports.get("api_http", default_ports["api_http"]),
+                "api_https": ports.get("api_https", default_ports["api_https"]),
+                "webui_http": ports.get("webui_http", default_ports["webui_http"]),
+                "webui_https": ports.get("webui_https", default_ports["webui_https"]),
+                "websocket": ports.get("websocket", default_ports["websocket"]),
+                "admin": ports.get("admin", default_ports["admin"])
+            }
+        except Exception as e:
+            print(f"⚠️ Warning: Could not load YAML port configuration: {e}")
 
+    # Try legacy JSON config
+    json_config_file = ROOT / "config" / "plexichat.json"
+    if json_config_file.exists():
+        try:
+            with open(json_config_file, "r") as f:
+                config = json.load(f)
             ports = config.get("ports", {})
             return {
                 "api_http": ports.get("api", {}).get("http", default_ports["api_http"]),
@@ -690,9 +724,10 @@ def get_port_configuration():
                 "websocket": ports.get("websocket", default_ports["websocket"]),
                 "admin": ports.get("admin", default_ports["admin"])
             }
-    except Exception as e:
-        print(f"⚠️ Warning: Could not load port configuration: {e}")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not load JSON port configuration: {e}")
 
+    # Fallback to defaults
     return default_ports
 
 
@@ -1510,7 +1545,10 @@ def run_plexichat_server():
         # Initialize integrated CLI
         try:
             sys.path.insert(0, str(SRC))
-            from plexichat.cli.integrated_cli import PlexiChatCLI
+            try:
+                from plexichat.cli.integrated_cli import PlexiChatCLI
+            except ImportError:
+                from src.plexichat.cli.integrated_cli import PlexiChatCLI
             cli = PlexiChatCLI()
             print("✅ Integrated CLI loaded")
         except Exception as e:
@@ -1950,6 +1988,8 @@ def export_plexichat_config(filename=None, options=None):
             hash_md5 = hashlib.md5()
             with open(export_path, "rb") as f:
                 for chunk in iter(lambda: f.read(4096), b""):
+                    if isinstance(chunk, str):
+                        chunk = chunk.encode('utf-8')
                     hash_md5.update(chunk)
             file_hash = hash_md5.hexdigest()
 
@@ -2010,6 +2050,8 @@ def import_plexichat_config(filename, options=None):
             hash_md5 = hashlib.md5()
             with open(import_path, "rb") as f:
                 for chunk in iter(lambda: f.read(4096), b""):
+                    if isinstance(chunk, str):
+                        chunk = chunk.encode('utf-8')
                     hash_md5.update(chunk)
             actual_hash = hash_md5.hexdigest()
 
@@ -3593,12 +3635,12 @@ def start_classic_terminal():
 
                 # Read server output
                 try:
-                    line = process.stdout.readline()
-                    if line:
-                        print(line.rstrip())
+                    if process.stdout is not None:
+                        line = process.stdout.readline()
+                        if line:
+                            print(line.rstrip())
                 except:
                     pass
-
         except KeyboardInterrupt:
             print("\n🛑 Stopping PlexiChat server...")
 
@@ -3642,14 +3684,7 @@ def start_dashboard_terminal(debug_mode=False):
     start_classic_terminal()
 
 
-def get_port_configuration():
-    """Get service port configuration."""
-    return {
-        "WebUI": "8080",
-        "API": "8000",
-        "WebSocket": "8001",
-        "Admin": "8002"
-    }
+# Duplicate get_port_configuration removed to avoid obscured declaration error.
 
 
 # ============================================================================
@@ -3796,7 +3831,11 @@ def validate_configuration():
 
     try:
         with open(config_file, 'r') as f:
-            config = yaml.safe_load(f)
+            if yaml is not None:
+                config = yaml.safe_load(f)
+            else:
+                print("❌ YAML library not available")
+                return False
 
         # Basic validation
         if "plexichat" not in config:
@@ -3825,11 +3864,18 @@ def show_current_config():
 
     try:
         with open(config_file, 'r') as f:
-            config = yaml.safe_load(f)
+            if yaml is not None:
+                config = yaml.safe_load(f)
+            else:
+                print("❌ YAML library not available")
+                return
 
         print("📋 Current PlexiChat Configuration:")
         print("=" * 40)
-        print(yaml.dump(config, default_flow_style=False, indent=2))
+        if yaml is not None:
+            print(yaml.dump(config, default_flow_style=False, indent=2))
+        else:
+            print(json.dumps(config, indent=2))
 
     except Exception as e:
         print(f"❌ Failed to read configuration: {e}")
@@ -4137,10 +4183,9 @@ def run_robust_update():
         # Try to import core modules to verify the update worked
         verification_passed = True
         try:
-            # Test basic Python imports
-            import json
-            import os
-            import sys
+            # Test basic Python imports (sys, json, os already imported globally)
+            import yaml  # Optional dependency for version verification
+
 
             # Test if we can read the version file
             if (ROOT / "version.json").exists():

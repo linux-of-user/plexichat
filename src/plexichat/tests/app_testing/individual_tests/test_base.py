@@ -13,7 +13,9 @@ from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
 import json
 
-import logging import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

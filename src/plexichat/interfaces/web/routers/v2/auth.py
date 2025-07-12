@@ -16,11 +16,14 @@ import bcrypt
 from jose import JWTError, jwt
 
 from plexichat.core.database import get_session
-from plexichat.users.user import User
-import logging import settings, logger
-from plexichat.utils.monitoring import error_handler, monitor_performance
-from plexichat.utils.security import SecurityManager, InputSanitizer
-from plexichat.utils.rate_limiting import RateLimiter
+from plexichat.features.users.user import User
+import logging
+
+logger = logging.getLogger(__name__)
+# settings import will be added when needed
+from plexichat.infrastructure.utils.monitoring import error_handler, monitor_performance
+from plexichat.infrastructure.utils.security import SecurityManager, InputSanitizer
+from plexichat.infrastructure.utils.rate_limiting import RateLimiter
 
 router = APIRouter(prefix="/v2/auth", tags=["auth-v2"])
 security = HTTPBearer()

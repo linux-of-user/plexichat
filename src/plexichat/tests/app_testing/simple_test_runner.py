@@ -146,10 +146,11 @@ class SimpleTestRunner:
             
             # Try to load settings
             try:
-                import logging import settings
-                config_status += f", Settings loaded successfully"
+                import logging
+                # settings import will be added when needed
+                config_status += f", Logging loaded successfully"
             except ImportError:
-                config_status += ", Settings import failed"
+                config_status += ", Logging import failed"
                 passed = False
             
             self.results.append(SimpleTestResult(

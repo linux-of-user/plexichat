@@ -34,8 +34,13 @@ except ImportError:
     import logging
     def get_logger(name):
         return logging.getLogger(name)
-    def setup_module_logging():
+    def setup_module_logging(module_name=None, level="INFO"):
+        if module_name:
+            logger = logging.getLogger(module_name)
+            logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+            return logger
         logging.basicConfig(level=logging.INFO)
+        return logging.getLogger()
     get_advanced_logger = get_logger
 
 # SSL/Certificate Management
@@ -67,12 +72,14 @@ except Exception as e:
 
 # Clustering System
 try:
-    from .features.clustering.core.cluster_manager import ClusterManager
-    cluster_manager = ClusterManager()
-    logging.info("✅ Advanced Clustering System loaded")
+    from .features.clustering.core.cluster_manager import AdvancedClusterManager
+    # Initialize cluster manager later after app is created
+    cluster_manager = None
+    logging.info("✅ Advanced Clustering System available")
 except ImportError as e:
     logging.warning(f"⚠️ Advanced Clustering System not available: {e}")
     cluster_manager = None
+    AdvancedClusterManager = None
 
 # Import security middleware (with fallback)
 try:
@@ -151,25 +158,30 @@ async def initialize_ssl():
         logging.info("🔐 Initializing HTTPS/SSL...")
 
         # Initialize SSL manager
-        result = await ssl_manager.initialize(SSL_CONFIG)
+        result = await ssl_manager.initialize()
 
-        if result.get("ssl_enabled"):
+        if isinstance(result, dict) and result.get("ssl_enabled"):
             ssl_context = result.get("ssl_context")
             logging.info("✅ HTTPS/SSL initialized successfully")
 
             # Setup automatic certificate management
             if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
-                await ssl_manager.setup_automatic_https(
-                    domain=SSL_CONFIG["domain"],
-                    email=SSL_CONFIG["email"],
-                    domain_type="custom"
-                )
+                if hasattr(ssl_manager, 'setup_automatic_https'):
+                    await ssl_manager.setup_automatic_https(
+                        domain=SSL_CONFIG["domain"],
+                        email=SSL_CONFIG["email"],
+                        domain_type="custom"
+                    )
             else:
                 # Use self-signed certificate
-                await ssl_manager.setup_automatic_https(
-                    domain=SSL_CONFIG["domain"],
-                    domain_type="localhost"
-                )
+                if hasattr(ssl_manager, 'setup_automatic_https'):
+                    await ssl_manager.setup_automatic_https(
+                        domain=SSL_CONFIG["domain"],
+                        domain_type="localhost"
+                    )
+        elif result:
+            # If result is just True/False, create basic SSL context
+            logging.info("✅ HTTPS/SSL initialized successfully")
 
             return ssl_context
         else:
@@ -222,7 +234,8 @@ def initialize_unified_logging():
         })
 
         for module, level in modules_config.items():
-            setup_module_logging(module, level)
+            if callable(setup_module_logging):
+                setup_module_logging(module, level)
 
         # Generate initial startup logs
         startup_logger = logging.getLogger("plexichat.startup")
@@ -336,11 +349,17 @@ def _load_specialized_routers(app: FastAPI):
 
     # Backup system routers
     try:
-        from .features.backup.core import router as backup_router
+        from .features.backup.services import router as backup_router
         app.include_router(backup_router)
         logger.info("✅ Backup API router loaded")
     except ImportError:
-        logger.debug("⚠️ Backup API router not available")
+        try:
+            # Try alternative import path
+            from .features.backup import router as backup_router
+            app.include_router(backup_router)
+            logger.info("✅ Backup API router loaded")
+        except ImportError:
+            logger.debug("⚠️ Backup API router not available")
 
     # Security routers
     try:
@@ -425,14 +444,7 @@ def create_app() -> FastAPI:
     except Exception as e:
         logger.warning(f"⚠️ Static files failed to mount: {e}")
 
-    # Add basic routes
-    @app.get("/")
-    async def root():
-        return {"message": "PlexiChat Government-Level Secure Communication Platform", "version": "3.0.0"}
-
-    @app.get("/health")
-    async def health_check():
-        return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    # Basic routes are defined later with more comprehensive implementations
     
     # Add startup and shutdown events
     @app.on_event("startup")
@@ -446,11 +458,22 @@ def create_app() -> FastAPI:
 
         # Initialize core systems with lazy loading to prevent hanging
         try:
+            # Initialize cluster manager if available
+            global cluster_manager
+            if AdvancedClusterManager and cluster_manager is None:
+                try:
+                    cluster_manager = AdvancedClusterManager(app)
+                    await cluster_manager.initialize()
+                    logger.info("✅ Advanced Clustering System initialized")
+                except Exception as e:
+                    logger.warning(f"⚠️ Clustering system initialization failed: {e}")
+                    cluster_manager = None
+
             # Enhanced Database System initialization
             logger.info("🗄️ Initializing enhanced database system...")
             try:
-                from .core_system.database.manager import DatabaseManager
-                database_manager = DatabaseManager()
+                from .core_system.database import get_database_manager
+                database_manager = await get_database_manager()
                 success = await database_manager.initialize()
                 # Compatibility wrapper
                 async def initialize_enhanced_database_system():
@@ -464,6 +487,7 @@ def create_app() -> FastAPI:
                     try:
                         from .core_system.integration.orchestrator import SystemOrchestrator
                         orchestrator = SystemOrchestrator()
+                        await orchestrator.initialize()
                         # Compatibility wrapper
                         async def initialize_plexichat_system():
                             result = await orchestrator.initialize_all_systems()
@@ -497,9 +521,12 @@ def create_app() -> FastAPI:
 
                 # Fallback to legacy database manager if enhanced system fails
                 if not success:
-                    from .core.database import database_manager
-                    await database_manager.initialize()
-                    logger.info("✅ Legacy database manager initialized as fallback")
+                    try:
+                        from .core.database import database_manager
+                        await database_manager.initialize()
+                        logger.info("✅ Legacy database manager initialized as fallback")
+                    except ImportError:
+                        logger.warning("⚠️ Legacy database manager not available")
 
             except Exception as e:
                 logger.warning(f"⚠️ Database system initialization failed: {e}")
@@ -520,8 +547,8 @@ def create_app() -> FastAPI:
             # Backup system initialization
             logger.info("💾 Initializing backup manager...")
             try:
-                from .features.backup.core import BackupManager
-                backup_manager = BackupManager()
+                from .features.backup.core.unified_backup_manager import get_unified_backup_manager
+                backup_manager = get_unified_backup_manager()
                 await backup_manager.initialize()
                 logger.info("✅ Backup manager initialized successfully")
             except Exception as e:
@@ -553,23 +580,28 @@ def create_app() -> FastAPI:
         # Shutdown systems safely
         try:
             # Shutdown enhanced database system
-            from .core_system.database.manager import DatabaseManager
-            database_manager = DatabaseManager()
-            await database_manager.shutdown()
+            from .core_system.database import get_database_manager
+            database_manager = await get_database_manager()
+            if hasattr(database_manager, 'shutdown'):
+                await database_manager.shutdown()
         except Exception as e:
             logger.warning(f"⚠️ Enhanced database system shutdown failed: {e}")
 
         try:
-            from .features.backup.core import BackupManager
-            backup_manager = BackupManager()
-            await backup_manager.shutdown()
+            from .features.backup.core.unified_backup_manager import get_unified_backup_manager
+            backup_manager = get_unified_backup_manager()
+            if hasattr(backup_manager, 'shutdown'):
+                await backup_manager.shutdown()
+            elif hasattr(backup_manager, 'cleanup'):
+                await backup_manager.cleanup()
         except Exception as e:
             logger.warning(f"⚠️ Backup manager shutdown failed: {e}")
 
         try:
-            from .core_system.database.manager import DatabaseManager
-            legacy_manager = DatabaseManager()
-            await legacy_manager.shutdown()
+            from .core_system.database import get_database_manager
+            legacy_manager = await get_database_manager()
+            if hasattr(legacy_manager, 'shutdown'):
+                await legacy_manager.shutdown()
         except Exception as e:
             logger.warning(f"⚠️ Legacy database manager shutdown failed: {e}")
 
@@ -618,7 +650,7 @@ def create_app() -> FastAPI:
 
         health_status = {
             "status": "healthy",
-            "version": config.version,
+            "version": getattr(config, 'version', '1.0.0'),
             "timestamp": datetime.now().isoformat(),
             "services": {
                 "api": "running",

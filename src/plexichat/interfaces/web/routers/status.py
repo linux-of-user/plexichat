@@ -3,10 +3,13 @@ from sqlmodel import Session, select
 from sqlalchemy import func
 from datetime import datetime, timezone
 
-import logging import settings, logger
+import logging
+
+logger = logging.getLogger(__name__)
+# settings import will be added when needed
 from plexichat.core.database import engine
-from plexichat.users.user import User
-from plexichat.users.message import Message
+from plexichat.features.users.user import User
+from plexichat.features.users.message import Message
 
 server_start_time = datetime.now(timezone.utc)
 router = APIRouter()

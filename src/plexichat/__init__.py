@@ -52,7 +52,7 @@ def get_version():
 def get_version_info():
     """Get detailed version information."""
     try:
-        from .core.versioning.version_manager import version_manager
+        from .core_system.versioning.version_manager import version_manager
         current_version = version_manager.get_current_version()
         if current_version:
             version_info = version_manager.get_version_info(current_version)
@@ -92,7 +92,7 @@ def get_version_info():
 # Export main components (lazy imports to avoid circular dependencies)
 def get_app():
     """Get the FastAPI app instance."""
-    from .app.main import app
+    from .main import app
     return app
 
 def get_launcher():
@@ -102,60 +102,73 @@ def get_launcher():
 
 def get_security_manager():
     """Get the security manager."""
-    from .security import security_manager
-    return security_manager
+    try:
+        from .features.security import security_manager
+        return security_manager
+    except ImportError:
+        return None
 
 def get_optimization_manager():
     """Get the optimization manager."""
-    from .optimization import optimization_manager
-    return optimization_manager
+    try:
+        from .infrastructure.performance import get_edge_computing_manager
+        return get_edge_computing_manager()
+    except ImportError:
+        return None
 
 def get_service_manager():
     """Get the service manager."""
-    from .services.service_manager import service_manager
-    return service_manager
+    try:
+        from .infrastructure.services.service_manager import service_manager
+        return service_manager
+    except ImportError:
+        return None
 
 def get_backup_system():
     """Get the quantum backup system."""
-    from .backup import quantum_backup_system
-    return quantum_backup_system
+    try:
+        from .features.backup import quantum_backup_system
+        return quantum_backup_system
+    except ImportError:
+        return None
 
 def get_api_manager():
     """Get the API manager."""
     try:
-        from .api import get_api_manager as _get_api_manager
-        return _get_api_manager()
+        # API functionality is integrated with the web interface
+        from .interfaces.web import get_web_manager
+        return get_web_manager()
     except ImportError:
         return None
 
 def get_web_manager():
     """Get the web interface manager."""
     try:
-        from .web import get_web_manager as _get_web_manager
-        return _get_web_manager()
+        from .interfaces.web import get_web_manager
+        return get_web_manager()
     except ImportError:
         return None
 
 def get_cli():
     """Get the CLI interface."""
     try:
-        from .cli import get_cli as _get_cli
-        return _get_cli()
+        from .cli.integrated_cli import PlexiChatCLI
+        return PlexiChatCLI()
     except ImportError:
         return None
 
 def get_ai_manager():
     """Get the AI manager."""
     try:
-        from .ai import get_ai_manager
-        return get_ai_manager()
+        from .features.ai.ai_coordinator import ai_coordinator
+        return ai_coordinator
     except ImportError:
         return None
 
 def get_plugin_manager():
     """Get the plugin manager."""
     try:
-        from .plugins import get_plugin_manager
+        from .infrastructure.modules.plugin_manager import get_plugin_manager
         return get_plugin_manager()
     except ImportError:
         return None

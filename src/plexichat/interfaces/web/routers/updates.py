@@ -8,8 +8,10 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
-from plexichat.web.routers.auth import get_current_admin_user
-import logging import logger
+from plexichat.interfaces.web.routers.auth import get_current_admin_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 

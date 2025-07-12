@@ -33,7 +33,9 @@ except ImportError:
     WEBSOCKETS_AVAILABLE = False
 
 try:
-    import logging import settings, logger
+    import logging
+    logger = logging.getLogger(__name__)
+    # settings import will be added when needed
     LOGGER_AVAILABLE = True
 except ImportError:
     LOGGER_AVAILABLE = False

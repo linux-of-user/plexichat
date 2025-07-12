@@ -93,8 +93,8 @@ class AICommandLineInterface:
 
         return 0
 
-    async def configure_provider(self, provider_name: str, **kwargs):
-        """Configure an AI provider."""
+    async def configure_provider_advanced(self, provider_name: str, **kwargs):
+        """Configure an AI provider (advanced)."""
         try:
             provider = AIProvider(provider_name)
 

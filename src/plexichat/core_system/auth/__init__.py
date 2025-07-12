@@ -26,6 +26,8 @@ Features:
 - Audit logging and compliance reporting
 """
 
+from typing import Optional, Dict, Any
+
 # Import existing authentication components (consolidated)
 # Note: Removed duplicate authentication systems - now using unified core system
 # Removed: features/security/advanced_auth.py (CONSOLIDATED)
@@ -38,7 +40,7 @@ from .auth_manager import AuthManager, auth_manager
 from .token_manager import TokenManager, token_manager
 from .session_manager import SessionManager, session_manager
 from .password_manager import PasswordManager, password_manager
-from .mfa_manager import MFAManager, mfa_manager
+from .mfa_manager import Advanced2FASystem as MFAManager, tfa_system as mfa_manager
 from .biometric_manager import BiometricManager, biometric_manager
 from .oauth_manager import OAuthManager, oauth_manager
 from .device_manager import DeviceManager, device_manager
@@ -412,7 +414,7 @@ RISK_THRESHOLDS = {
     }
 }
 
-async def initialize_auth_system(config: dict = None) -> bool:
+async def initialize_auth_system(config: Optional[dict] = None) -> bool:
     """
     Initialize the unified authentication system.
     
@@ -433,7 +435,8 @@ async def initialize_auth_system(config: dict = None) -> bool:
         await token_manager.initialize(system_config)
         await session_manager.initialize(system_config)
         await password_manager.initialize(system_config)
-        await mfa_manager.initialize(system_config)
+        # mfa_manager (Advanced2FASystem) doesn't have initialize method
+        # await mfa_manager.initialize(system_config)
         await biometric_manager.initialize(system_config)
         await oauth_manager.initialize(system_config)
         await device_manager.initialize(system_config)
@@ -455,7 +458,8 @@ async def shutdown_auth_system():
         await device_manager.shutdown()
         await oauth_manager.shutdown()
         await biometric_manager.shutdown()
-        await mfa_manager.shutdown()
+        # mfa_manager (Advanced2FASystem) doesn't have shutdown method
+        # await mfa_manager.shutdown()
         await password_manager.shutdown()
         await session_manager.shutdown()
         await token_manager.shutdown()
@@ -467,17 +471,31 @@ async def shutdown_auth_system():
         logger.error(f"❌ Error during authentication system shutdown: {e}")
 
 # Convenience functions for common operations
-async def authenticate_user(username: str, password: str, mfa_code: str = None) -> dict:
+async def authenticate_user(username: str, password: str, mfa_code: Optional[str] = None) -> dict:
     """Authenticate user with username/password and optional MFA."""
-    return await auth_manager.authenticate(username, password, mfa_code)
+    from .models import AuthenticationRequest
+    request = AuthenticationRequest(
+        username=username,
+        password=password,
+        mfa_code=mfa_code or "",
+        ip_address="127.0.0.1",  # Default for convenience function
+        user_agent="PlexiChat-Internal",  # Default for convenience function
+        device_info={}  # Default for convenience function
+    )
+    response = await auth_manager.authenticate(request)
+    return response.__dict__ if hasattr(response, '__dict__') else response
 
-async def create_session(user_id: str, device_info: dict = None) -> str:
+async def create_session(user_id: str, device_info: Optional[dict] = None) -> str:
     """Create authenticated session for user."""
-    return await session_manager.create_session(user_id, device_info)
+    return await session_manager.create_session(user_id, device_info or {})
 
-async def validate_token(token: str) -> dict:
+async def validate_token(token: str) -> Any:
     """Validate JWT access token."""
-    return await token_manager.validate_token(token)
+    result = await token_manager.validate_token(token)
+    # Convert TokenValidationResult to dict if needed
+    if hasattr(result, '__dict__'):
+        return result.__dict__
+    return result
 
 async def require_authentication(token: str, required_level: str = "BASIC") -> dict:
     """Require authentication with minimum security level."""

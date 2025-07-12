@@ -11,7 +11,7 @@ import logging
 from datetime import datetime
 
 from plexichat.core.server_manager import server_manager, ServerState, UpdateType, UpdateInfo
-from plexichat.utils.auth import verify_admin_token
+from plexichat.infrastructure.utils.auth import verify_admin_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/server", tags=["server-management"])

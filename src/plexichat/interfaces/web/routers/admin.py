@@ -16,16 +16,16 @@ from fastapi.security import HTTPBearer
 from sqlmodel import Session, select, func
 
 from plexichat.core.database import get_session
-from plexichat.users.user import User
-from plexichat.users.message import Message
+from plexichat.features.users.user import User
+from plexichat.features.users.message import Message
 import logging import settings, logger, selftest_logger, monitoring_logger
-from plexichat.utils.monitoring import system_monitor, error_handler
+from plexichat.infrastructure.utils.monitoring import system_monitor, error_handler
 from plexichat.utils.self_tests.test_executor import test_executor
 from plexichat.utils.self_tests.connectivity import run_connectivity_tests
 from plexichat.utils.self_tests.database import run_database_tests
 from plexichat.utils.self_tests.users import run_user_tests
 from plexichat.utils.self_tests.endpoints import run_endpoint_tests
-from plexichat.utils.scheduling import run_comprehensive_self_tests, get_scheduler_status
+from plexichat.infrastructure.utils.scheduling import run_comprehensive_self_tests, get_scheduler_status
 from plexichat.core.config import config_manager
 
 router = APIRouter(prefix="/admin", tags=["admin"])

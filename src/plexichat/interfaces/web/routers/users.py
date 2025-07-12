@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlmodel import Session, select
 
-import logging import settings, logger
+import logging
+
+logger = logging.getLogger(__name__)
+# settings import will be added when needed
 from plexichat.core.database import engine
-from plexichat.users.user import User
-from plexichat.utils.security import get_password_hash
-from plexichat.web.schemas.user import UserCreate, UserRead, UserUpdate
-from plexichat.web.routers.auth import get_current_user
+from plexichat.features.users.user import User
+from plexichat.infrastructure.utils.security import get_password_hash
+from plexichat.interfaces.web.schemas.user import UserCreate, UserRead, UserUpdate
+from plexichat.interfaces.web.routers.auth import get_current_user
 
 router = APIRouter()
 

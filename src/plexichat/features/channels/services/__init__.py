@@ -14,6 +14,5 @@ __all__ = [
     "ServerService",
     "ChannelService", 
     "RoleService",
-    "PermissionService",
     "MessageService",
 ]

@@ -12,7 +12,9 @@ from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from plexichat.core.security.government_auth import government_auth
-import logging import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GovernmentSecurityMiddleware(BaseHTTPMiddleware):

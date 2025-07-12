@@ -314,8 +314,8 @@ async def initialize_database_system_legacy(config: dict = None) -> bool:
     Returns:
         bool: True if initialization successful
     """
-    return await database_manager.initialize(config)
-        
+    try:
+        return await database_manager.initialize(config)
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)

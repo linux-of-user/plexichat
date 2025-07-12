@@ -76,7 +76,7 @@ function Test-Requirements {
     
     # Check internet connection
     try {
-        $response = Invoke-WebRequest -Uri "https://github.com" -Method Head -TimeoutSec 5 -UseBasicParsing
+        Invoke-WebRequest -Uri "https://github.com" -Method Head -TimeoutSec 5 -UseBasicParsing | Out-Null
         Write-ColorOutput "✅ Internet connection available" "Green"
     } catch {
         Write-ColorOutput "❌ No internet connection" "Red"
@@ -114,16 +114,16 @@ function Start-Installation {
     
     try {
         # Prepare arguments
-        $args = @()
+        $installerArgs = @()
         if ($InstallPath) {
-            $args += "--install-path", $InstallPath
+            $installerArgs += "--install-path", $InstallPath
         }
         if ($Force) {
-            $args += "--force"
+            $installerArgs += "--force"
         }
         
         # Run Python installer
-        $process = Start-Process -FilePath "python" -ArgumentList @($InstallerPath) + $args -Wait -PassThru -NoNewWindow
+        $process = Start-Process -FilePath "python" -ArgumentList @($InstallerPath) + $installerArgs -Wait -PassThru -NoNewWindow
         
         if ($process.ExitCode -eq 0) {
             Write-ColorOutput "🎉 Installation completed successfully!" "Green"

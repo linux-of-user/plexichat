@@ -13,7 +13,8 @@ from sqlalchemy.exc import SQLAlchemyError
 import logging
 
 from plexichat.core.database.multi_backend import db_manager
-import logging import logger
+
+logger = logging.getLogger(__name__)
 
 class Migration:
     """Represents a single database migration."""

@@ -12,8 +12,8 @@ import asyncio
 
 # Import authentication (with fallback)
 try:
-    from plexichat.web.routers.login import get_current_user
-    from plexichat.auth.login_manager import login_manager
+    from plexichat.interfaces.web.routers.login import get_current_user
+    from plexichat.core.auth.manager_auth import login_manager
     AUTH_AVAILABLE = True
 except ImportError:
     AUTH_AVAILABLE = False

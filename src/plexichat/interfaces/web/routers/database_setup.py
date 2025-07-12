@@ -11,7 +11,7 @@ import logging
 
 from plexichat.core.database_setup_wizard import database_wizard, DatabaseType, SetupStep
 from plexichat.core.external_database import external_db_manager, DatabaseProvider, DatabaseEngine, ExternalDatabaseConfig
-from plexichat.utils.auth import verify_admin_token
+from plexichat.infrastructure.utils.auth import verify_admin_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/database/setup", tags=["database-setup"])

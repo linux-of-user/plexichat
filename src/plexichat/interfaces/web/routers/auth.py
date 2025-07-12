@@ -5,9 +5,9 @@ from datetime import datetime
 from jose import JWTError, jwt
 
 from plexichat.core.database import get_engine
-from plexichat.users.user import User
-from plexichat.web.schemas.auth import LoginRequest, TokenResponse, ErrorDetail, ValidationErrorResponse
-from plexichat.utils.security import verify_password, create_access_token
+from plexichat.features.users.user import User
+from plexichat.interfaces.web.schemas.auth import LoginRequest, TokenResponse, ErrorDetail, ValidationErrorResponse
+from plexichat.infrastructure.utils.security import verify_password, create_access_token
 from plexichat.core.config import get_config
 import logging
 

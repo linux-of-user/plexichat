@@ -16,9 +16,11 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from plexichat.auth.dependencies import get_current_admin_user
-from plexichat.users.user import User
-import logging import logger
+from plexichat.core.auth.dependencies import get_current_admin_user
+from plexichat.features.users.user import User
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/admin/files", tags=["File Management"])
 

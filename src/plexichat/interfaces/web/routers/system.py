@@ -18,11 +18,15 @@ from sqlmodel import Session, select, func
 from pydantic import BaseModel
 
 from plexichat.core.database import get_session
-import logging import logger, logging_manager, settings
-from plexichat.users.user import User
-from plexichat.users.files import FileRecord
-from plexichat.utils.auth import get_current_user, require_admin
-from plexichat.utils.monitoring import SystemMonitor, PerformanceTracker
+import logging
+
+logger = logging.getLogger(__name__)
+logging_manager = logging.getLogger(f"{__name__}.manager")
+# settings import will be added when needed
+from plexichat.features.users.user import User
+from plexichat.features.users.files import FileRecord
+from plexichat.infrastructure.utils.auth import get_current_user, require_admin
+from plexichat.infrastructure.utils.monitoring import SystemMonitor, PerformanceTracker
 
 router = APIRouter()
 
@@ -500,7 +504,7 @@ async def run_tests(
     Runs comprehensive system tests and returns results.
     """
     try:
-        from plexichat.testing.comprehensive_test_suite import test_framework
+        from plexichat.tests.comprehensive_test_suite import test_framework
 
         logger.info(f"Running tests - Suite: {suite or 'all'}, User: {current_user.username}")
 
@@ -552,7 +556,7 @@ async def list_test_suites(current_user: User = Depends(require_admin)) -> Dict[
     **Admin only endpoint**
     """
     try:
-        from plexichat.testing.comprehensive_test_suite import test_framework
+        from plexichat.tests.comprehensive_test_suite import test_framework
 
         suites_info = {}
         for suite_name, suite in test_framework.test_suites.items():

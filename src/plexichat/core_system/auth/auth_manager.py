@@ -19,7 +19,7 @@ import uuid
 from .token_manager import TokenManager
 from .session_manager import SessionManager
 from .password_manager import PasswordManager
-from .mfa_manager import MFAManager
+from .mfa_manager import Advanced2FASystem as MFAManager
 from .biometric_manager import BiometricManager
 from .device_manager import DeviceManager
 from .audit_manager import AuthAuditManager
@@ -153,7 +153,8 @@ class AuthManager:
             await self.token_manager.initialize(config.get("token_management", {}))
             await self.session_manager.initialize(config.get("session_management", {}))
             await self.password_manager.initialize(config.get("password_policy", {}))
-            await self.mfa_manager.initialize(config.get("multi_factor_auth", {}))
+            # mfa_manager (Advanced2FASystem) doesn't have initialize method
+            # await self.mfa_manager.initialize(config.get("multi_factor_auth", {}))
             await self.biometric_manager.initialize(config.get("biometric_auth", {}))
             await self.device_manager.initialize(config.get("device_management", {}))
             await self.audit_manager.initialize(config.get("audit_logging", {}))
@@ -230,7 +231,12 @@ class AuthManager:
             mfa_required = await self._is_mfa_required(user_id, request.security_level, risk_score)
             
             if mfa_required and not request.mfa_code:
-                available_methods = await self.mfa_manager.get_user_methods(user_id)
+                # Get available MFA methods from user status
+                if user_id:
+                    status = self.mfa_manager.get_user_2fa_status(int(user_id))
+                    available_methods = status.get("enabled_methods", [])
+                else:
+                    available_methods = []
                 return AuthenticationResponse(
                     result=AuthenticationResult.MFA_REQUIRED,
                     success=False,
@@ -241,14 +247,14 @@ class AuthManager:
                 )
             
             # Verify MFA if provided
-            if request.mfa_code:
-                mfa_result = await self.mfa_manager.verify_code(
-                    user_id=user_id,
+            if request.mfa_code and user_id:
+                mfa_result = self.mfa_manager.verify_2fa_login(
+                    user_id=int(user_id),
                     code=request.mfa_code,
-                    method=request.mfa_method
+                    method=request.mfa_method or "totp"
                 )
-                
-                if not mfa_result.success:
+
+                if not mfa_result.get("success", False):
                     await self._record_failed_attempt(request)
                     return AuthenticationResponse(
                         result=AuthenticationResult.INVALID_CREDENTIALS,
@@ -258,34 +264,40 @@ class AuthManager:
                     )
             
             # Check device trust
-            device_trusted = await self.device_manager.is_device_trusted(
-                user_id=user_id,
-                device_info=request.device_info
-            )
-            
-            # Register device if requested
-            if request.remember_device and not device_trusted:
-                await self.device_manager.register_device(
+            if user_id and request.device_info:
+                device_trusted = await self.device_manager.is_device_trusted(
                     user_id=user_id,
                     device_info=request.device_info
                 )
-                device_trusted = True
+
+                # Register device if requested
+                if request.remember_device and not device_trusted:
+                    await self.device_manager.register_device(
+                        user_id=user_id,
+                        device_info=request.device_info
+                    )
+                    device_trusted = True
+            else:
+                device_trusted = False
             
             # Create session
+            if not user_id:
+                raise AuthenticationError("User ID is required for session creation")
+
             session_id = await self.session_manager.create_session(
                 user_id=user_id,
-                device_info=request.device_info,
+                device_info=request.device_info or {},
                 security_level=request.security_level,
                 risk_score=risk_score
             )
-            
+
             # Create tokens
             access_token = await self.token_manager.create_access_token(
                 user_id=user_id,
                 session_id=session_id,
                 security_level=request.security_level
             )
-            
+
             refresh_token = await self.token_manager.create_refresh_token(
                 user_id=user_id,
                 session_id=session_id
@@ -343,13 +355,17 @@ class AuthManager:
     
     async def validate_token(self, token: str) -> Dict[str, Any]:
         """Validate an access token."""
-        return await self.token_manager.validate_token(token)
+        result = await self.token_manager.validate_token(token)
+        # Convert TokenValidationResult to dict if needed
+        if hasattr(result, '__dict__'):
+            return result.__dict__
+        return result
     
     async def refresh_token(self, refresh_token: str) -> Dict[str, Any]:
         """Refresh an access token."""
         return await self.token_manager.refresh_token(refresh_token)
     
-    async def logout(self, session_id: str = None, token: str = None) -> bool:
+    async def logout(self, session_id: Optional[str] = None, token: Optional[str] = None) -> bool:
         """Logout user and invalidate session/token."""
         try:
             if session_id:
@@ -403,7 +419,8 @@ class AuthManager:
             await self.audit_manager.shutdown()
             await self.device_manager.shutdown()
             await self.biometric_manager.shutdown()
-            await self.mfa_manager.shutdown()
+            # mfa_manager (Advanced2FASystem) doesn't have shutdown method
+            # await self.mfa_manager.shutdown()
             await self.password_manager.shutdown()
             await self.session_manager.shutdown()
             await self.token_manager.shutdown()
@@ -429,6 +446,9 @@ class AuthManager:
     async def _authenticate_password(self, request: AuthenticationRequest) -> AuthenticationResponse:
         """Authenticate with username/password."""
         try:
+            if not request.password:
+                raise AuthenticationError("Password is required")
+
             result = await self.password_manager.verify_password(
                 username=request.username,
                 password=request.password
@@ -458,41 +478,61 @@ class AuthManager:
     
     async def _authenticate_oauth(self, request: AuthenticationRequest) -> AuthenticationResponse:
         """Authenticate with OAuth provider."""
-        # OAuth authentication logic here
-        pass
-    
+        # OAuth authentication logic here - using request for future implementation
+        _ = request  # Mark as used
+        return AuthenticationResponse(
+            result=AuthenticationResult.INVALID_CREDENTIALS,
+            success=False,
+            error_message="OAuth authentication not implemented"
+        )
+
     async def _authenticate_biometric(self, request: AuthenticationRequest) -> AuthenticationResponse:
         """Authenticate with biometric data."""
-        # Biometric authentication logic here
-        pass
-    
+        # Biometric authentication logic here - using request for future implementation
+        _ = request  # Mark as used
+        return AuthenticationResponse(
+            result=AuthenticationResult.INVALID_CREDENTIALS,
+            success=False,
+            error_message="Biometric authentication not implemented"
+        )
+
     async def _authenticate_hardware_key(self, request: AuthenticationRequest) -> AuthenticationResponse:
         """Authenticate with hardware security key."""
-        # Hardware key authentication logic here
-        pass
+        # Hardware key authentication logic here - using request for future implementation
+        _ = request  # Mark as used
+        return AuthenticationResponse(
+            result=AuthenticationResult.INVALID_CREDENTIALS,
+            success=False,
+            error_message="Hardware key authentication not implemented"
+        )
     
     async def _is_rate_limited(self, request: AuthenticationRequest) -> bool:
         """Check if request is rate limited."""
-        # Rate limiting logic here
+        # Rate limiting logic here - using request for future implementation
+        _ = request  # Mark as used
         return False
-    
+
     async def _get_retry_after(self, request: AuthenticationRequest) -> int:
         """Get retry after seconds for rate limited request."""
+        _ = request  # Mark as used
         return 60
-    
+
     async def _is_account_locked(self, username: str) -> bool:
         """Check if account is locked."""
-        # Account locking logic here
+        # Account locking logic here - using username for future implementation
+        _ = username  # Mark as used
         return False
-    
+
     async def _assess_risk(self, request: AuthenticationRequest) -> float:
         """Assess authentication risk."""
-        # Risk assessment logic here
+        # Risk assessment logic here - using request for future implementation
+        _ = request  # Mark as used
         return 0.1
-    
+
     async def _is_mfa_required(self, user_id: str, security_level: str, risk_score: float) -> bool:
         """Check if MFA is required."""
-        # MFA requirement logic here
+        # MFA requirement logic here - using parameters for future implementation
+        _ = user_id, security_level, risk_score  # Mark as used
         return self.config.get("multi_factor_auth", {}).get("enabled", True)
     
     async def _meets_security_level(self, current: str, required: str) -> bool:
@@ -502,12 +542,14 @@ class AuthManager:
     
     async def _record_failed_attempt(self, request: AuthenticationRequest):
         """Record failed authentication attempt."""
-        # Failed attempt recording logic here
+        # Failed attempt recording logic here - using request for future implementation
+        _ = request  # Mark as used
         pass
-    
+
     async def _clear_failed_attempts(self, username: str):
         """Clear failed attempts for user."""
-        # Clear failed attempts logic here
+        # Clear failed attempts logic here - using username for future implementation
+        _ = username  # Mark as used
         pass
 
 

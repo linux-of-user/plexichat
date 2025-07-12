@@ -17,7 +17,7 @@ from rich.live import Live
 from rich.layout import Layout
 from rich.text import Text
 
-from plexichat.testing.comprehensive_test_suite import test_framework, TestResult
+from plexichat.tests.comprehensive_test_suite import test_framework, TestResult
 
 console = Console()
 app = typer.Typer(help="Enhanced Chat API Testing Framework")

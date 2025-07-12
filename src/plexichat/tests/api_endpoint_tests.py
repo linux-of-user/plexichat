@@ -34,7 +34,7 @@ class APITestSuite:
         self.failed_tests = 0
         self.auth_token = None
         
-    def log_test(self, test_name: str, passed: bool, message: str = "", details: Dict = None):
+    def log_test(self, test_name: str, passed: bool, message: str = "", details: Optional[Dict] = None):
         """Log test result."""
         result = {
             "test_name": test_name,

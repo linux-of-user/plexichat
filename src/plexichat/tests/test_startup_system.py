@@ -264,8 +264,8 @@ class StartupSystemTester:
         
         try:
             # Test if run.py can load configuration
-            import run
-            launcher = run.UnifiedLauncher()
+            from run import UnifiedLauncher
+            launcher = UnifiedLauncher()
             
             # Check if configuration was loaded
             has_host = hasattr(launcher, 'host') and launcher.host

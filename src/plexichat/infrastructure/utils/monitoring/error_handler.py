@@ -14,7 +14,11 @@ from functools import wraps
 from pathlib import Path
 import json
 
-import logging import logger, monitoring_logger, settings
+import logging
+from plexichat.core.config.settings import settings
+
+logger = logging.getLogger(__name__)
+monitoring_logger = logging.getLogger(f"{__name__}.monitoring")
 
 
 class ErrorSeverity:

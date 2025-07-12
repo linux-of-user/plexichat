@@ -18,10 +18,14 @@ from sqlmodel import Session
 import jwt
 
 from plexichat.core.database import get_session
-import logging import logger, logging_manager, settings
-from plexichat.users.user import User
-from plexichat.utils.auth import get_user_from_token
-from plexichat.utils.security import InputSanitizer
+import logging
+
+logger = logging.getLogger(__name__)
+logging_manager = logging.getLogger(f"{__name__}.manager")
+# settings import will be added when needed
+from plexichat.features.users.user import User
+from plexichat.infrastructure.utils.auth import get_user_from_token
+from plexichat.infrastructure.utils.security import InputSanitizer
 
 router = APIRouter()
 
@@ -393,7 +397,7 @@ async def authenticate_websocket(websocket: WebSocket, token: str) -> Optional[U
         
         # In a real implementation, you'd get the user from database
         # For now, create a mock user
-        from plexichat.users.user import User
+        from plexichat.features.users.user import User
         user = User(id=1, username=username, is_admin=True)  # Mock user
         return user
         

@@ -8,6 +8,7 @@ This module provides centralized access to all utility functions used throughout
 # Import all utility modules
 from .utilities import *
 from .enhanced_logging import *
+from .enhanced_logging import setup_logging
 from .common_utils import *
 from .performance import *
 from .security import *
