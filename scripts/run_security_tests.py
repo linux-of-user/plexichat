@@ -19,12 +19,12 @@ from typing import Dict, List, Any
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from plexichat.core_system.security.automated_security_testing import (
+from plexichat.core.security.automated_security_testing import (
     get_automated_security_tester, 
     TestCategory,
     SeverityLevel
 )
-from plexichat.core_system.logging import get_logger
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 

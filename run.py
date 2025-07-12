@@ -540,8 +540,72 @@ def get_venv_python():
         return VENV_DIR / "bin" / "python"
 
 
-def create_virtual_environment():
-    """Create virtual environment if it doesn't exist."""
+def detect_python_environments():
+    """Detect available Python environment managers."""
+    environments = {
+        'venv': {'available': False, 'command': [sys.executable, '-m', 'venv']},
+        'conda': {'available': False, 'command': ['conda', 'create']},
+        'mamba': {'available': False, 'command': ['mamba', 'create']},
+        'virtualenv': {'available': False, 'command': ['virtualenv']},
+        'pipenv': {'available': False, 'command': ['pipenv', 'install']},
+        'poetry': {'available': False, 'command': ['poetry', 'install']}
+    }
+
+    # Check venv (built-in)
+    try:
+        subprocess.run([sys.executable, '-m', 'venv', '--help'],
+                      capture_output=True, check=True)
+        environments['venv']['available'] = True
+    except:
+        pass
+
+    # Check conda
+    try:
+        result = subprocess.run(['conda', '--version'],
+                              capture_output=True, check=True, text=True)
+        environments['conda']['available'] = True
+        environments['conda']['version'] = result.stdout.strip()
+    except:
+        pass
+
+    # Check mamba
+    try:
+        result = subprocess.run(['mamba', '--version'],
+                              capture_output=True, check=True, text=True)
+        environments['mamba']['available'] = True
+        environments['mamba']['version'] = result.stdout.strip()
+    except:
+        pass
+
+    # Check virtualenv
+    try:
+        subprocess.run(['virtualenv', '--version'],
+                      capture_output=True, check=True)
+        environments['virtualenv']['available'] = True
+    except:
+        pass
+
+    # Check pipenv
+    try:
+        subprocess.run(['pipenv', '--version'],
+                      capture_output=True, check=True)
+        environments['pipenv']['available'] = True
+    except:
+        pass
+
+    # Check poetry
+    try:
+        subprocess.run(['poetry', '--version'],
+                      capture_output=True, check=True)
+        environments['poetry']['available'] = True
+    except:
+        pass
+
+    return environments
+
+
+def create_virtual_environment(env_type='auto'):
+    """Create virtual environment with support for multiple environment managers."""
     if VENV_DIR.exists():
         venv_python = get_venv_python()
         if venv_python and venv_python.exists():
@@ -549,15 +613,88 @@ def create_virtual_environment():
             return True
         else:
             print("🔄 Recreating corrupted virtual environment...")
-            shutil.rmtree(VENV_DIR)
-    
-    print("🔄 Creating virtual environment...")
+            clean_environment()
+
+    environments = detect_python_environments()
+
+    # Auto-select best available environment manager
+    if env_type == 'auto':
+        if environments['mamba']['available']:
+            env_type = 'mamba'
+        elif environments['conda']['available']:
+            env_type = 'conda'
+        elif environments['venv']['available']:
+            env_type = 'venv'
+        elif environments['virtualenv']['available']:
+            env_type = 'virtualenv'
+        else:
+            print("❌ No suitable Python environment manager found")
+            return False
+
+    print(f"🔄 Creating virtual environment using {env_type}...")
+
     try:
-        subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)])
-        print("✅ Virtual environment created")
+        if env_type == 'conda':
+            # Create conda environment
+            env_name = f"plexichat-{ROOT.name}"
+            cmd = ['conda', 'create', '-n', env_name, f'python={sys.version_info.major}.{sys.version_info.minor}', '-y']
+            subprocess.check_call(cmd)
+
+            # Create symlink or batch file to mimic venv structure
+            if platform.system() == "Windows":
+                conda_python = subprocess.check_output(['conda', 'run', '-n', env_name, 'where', 'python'], text=True).strip().split('\n')[0]
+                VENV_DIR.mkdir(exist_ok=True)
+                (VENV_DIR / "Scripts").mkdir(exist_ok=True)
+
+                # Create activation script
+                with open(VENV_DIR / "Scripts" / "activate.bat", 'w') as f:
+                    f.write(f'@echo off\nconda activate {env_name}\n')
+
+                # Create python symlink
+                try:
+                    (VENV_DIR / "Scripts" / "python.exe").symlink_to(conda_python)
+                except:
+                    # Fallback: create batch file
+                    with open(VENV_DIR / "Scripts" / "python.bat", 'w') as f:
+                        f.write(f'@echo off\nconda run -n {env_name} python %*\n')
+            else:
+                conda_python = subprocess.check_output(['conda', 'run', '-n', env_name, 'which', 'python'], text=True).strip()
+                VENV_DIR.mkdir(exist_ok=True)
+                (VENV_DIR / "bin").mkdir(exist_ok=True)
+                (VENV_DIR / "bin" / "python").symlink_to(conda_python)
+
+            print(f"✅ Conda environment '{env_name}' created")
+
+        elif env_type == 'mamba':
+            # Similar to conda but with mamba
+            env_name = f"plexichat-{ROOT.name}"
+            cmd = ['mamba', 'create', '-n', env_name, f'python={sys.version_info.major}.{sys.version_info.minor}', '-y']
+            subprocess.check_call(cmd)
+            print(f"✅ Mamba environment '{env_name}' created")
+
+        elif env_type == 'venv':
+            # Standard venv
+            subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)])
+            print("✅ Virtual environment created with venv")
+
+        elif env_type == 'virtualenv':
+            # virtualenv
+            subprocess.check_call(["virtualenv", str(VENV_DIR)])
+            print("✅ Virtual environment created with virtualenv")
+
+        else:
+            print(f"❌ Unsupported environment type: {env_type}")
+            return False
+
         return True
+
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to create virtual environment: {e}")
+        print("💡 Available environment managers:")
+        for env, info in environments.items():
+            status = "✅" if info['available'] else "❌"
+            version = info.get('version', 'Unknown version')
+            print(f"   {status} {env}: {version if info['available'] else 'Not available'}")
         return False
 
 
@@ -650,16 +787,103 @@ def install_full_deps(venv_python):
     return install_package_list(venv_python, all_deps)
 
 
-def install_package_list(venv_python, packages):
-    """Install a list of packages."""
+def install_package_list(venv_python, packages, use_fallbacks=True):
+    """Install a list of packages with enhanced error handling and fallback options."""
+    failed_packages = []
+
     for package in packages:
-        try:
-            print(f"📦 Installing {package}...")
-            subprocess.check_call([str(venv_python), "-m", "pip", "install", package])
-        except subprocess.CalledProcessError as e:
-            print(f"⚠️ Failed to install {package}: {e}")
+        success = install_single_package(venv_python, package, use_fallbacks)
+        if success:
+            print(f"   ✅ {package}")
+        else:
+            print(f"   ❌ Failed to install {package}")
+            failed_packages.append(package)
+
+    if failed_packages:
+        print(f"\n⚠️  {len(failed_packages)} packages failed to install:")
+        for pkg in failed_packages:
+            print(f"   - {pkg}")
+
+        # Check if any critical packages failed
+        critical_packages = ['fastapi', 'uvicorn', 'sqlalchemy', 'pydantic']
+        critical_failed = [pkg for pkg in failed_packages if any(crit in pkg.lower() for crit in critical_packages)]
+
+        if critical_failed:
+            print(f"\n❌ Critical packages failed: {critical_failed}")
+            print("💡 Try installing manually or check system dependencies")
             return False
-    return True
+        else:
+            print("\n⚠️  Some optional packages failed, but core functionality should work.")
+            return True
+    else:
+        print("✅ All packages installed successfully")
+        return True
+
+
+def install_single_package(python_exe, package, use_fallbacks=True):
+    """Install a single package with fallback strategies."""
+    install_methods = [
+        # Primary method
+        {
+            'name': 'pip (default)',
+            'cmd': [str(python_exe), "-m", "pip", "install", package, "--timeout", "60"]
+        }
+    ]
+
+    if use_fallbacks:
+        install_methods.extend([
+            # Fallback methods
+            {
+                'name': 'pip (no-cache)',
+                'cmd': [str(python_exe), "-m", "pip", "install", package, "--no-cache-dir", "--timeout", "60"]
+            },
+            {
+                'name': 'pip (user)',
+                'cmd': [str(python_exe), "-m", "pip", "install", package, "--user", "--timeout", "60"]
+            },
+            {
+                'name': 'pip (pre-release)',
+                'cmd': [str(python_exe), "-m", "pip", "install", package, "--pre", "--timeout", "60"]
+            }
+        ])
+
+    for method in install_methods:
+        try:
+            print(f"   🔄 Trying {method['name']} for {package}...")
+            subprocess.check_call(
+                method['cmd'],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                timeout=180
+            )
+            return True
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            print(f"   ⚠️  {method['name']} failed: {e}")
+            continue
+
+    # Final fallback: try system package manager suggestions
+    if use_fallbacks:
+        print(f"   💡 Consider installing {package} via system package manager:")
+        system = platform.system().lower()
+        if system == "linux":
+            # Try to detect distribution
+            try:
+                with open('/etc/os-release', 'r') as f:
+                    os_info = f.read().lower()
+                if 'ubuntu' in os_info or 'debian' in os_info:
+                    pkg_name = package.lower().replace('_', '-')
+                    print(f"      sudo apt-get install python3-{pkg_name}")
+                elif 'centos' in os_info or 'rhel' in os_info or 'fedora' in os_info:
+                    pkg_name = package.lower().replace('_', '-')
+                    print(f"      sudo yum install python3-{pkg_name}")
+            except:
+                print(f"      Check your distribution's package manager for python3-{package}")
+        elif system == "darwin":  # macOS
+            print(f"      brew install {package}")
+        elif system == "windows":
+            print(f"      Consider using conda: conda install {package}")
+
+    return False
 
 
 def start_log_monitor():
@@ -1003,25 +1227,134 @@ def run_plexichat_server():
         return False
 
 
-def clean_environment():
-    """Clean up virtual environment and cache."""
+def clean_environment(deep_clean=False):
+    """Clean up virtual environment and cache with Windows compatibility."""
     print("🧹 Cleaning PlexiChat environment...")
 
+    # Stop any running processes first
+    stop_running_processes()
+
+    # Clean virtual environment with Windows-safe approach
     if VENV_DIR.exists():
         print("🗑️ Removing virtual environment...")
-        shutil.rmtree(VENV_DIR)
-        print("✅ Virtual environment removed")
-    
-    # Remove Python cache
+        try:
+            # Windows-safe removal with retry mechanism
+            if platform.system() == "Windows":
+                # Try to unlock files first
+                try:
+                    subprocess.run(["taskkill", "/F", "/IM", "python.exe"],
+                                 capture_output=True, check=False)
+                    time.sleep(2)  # Wait for processes to terminate
+                except:
+                    pass
+
+                # Use robocopy for Windows (more reliable than shutil.rmtree)
+                temp_empty_dir = VENV_DIR.parent / "temp_empty"
+                temp_empty_dir.mkdir(exist_ok=True)
+                try:
+                    subprocess.run([
+                        "robocopy", str(temp_empty_dir), str(VENV_DIR),
+                        "/MIR", "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np"
+                    ], capture_output=True, check=False)
+                    shutil.rmtree(VENV_DIR, ignore_errors=True)
+                    shutil.rmtree(temp_empty_dir, ignore_errors=True)
+                except Exception as e:
+                    print(f"⚠️  Windows cleanup method failed: {e}")
+                    # Fallback to standard removal with ignore_errors
+                    shutil.rmtree(VENV_DIR, ignore_errors=True)
+            else:
+                # Unix/Linux/macOS - standard removal
+                shutil.rmtree(VENV_DIR)
+
+            print("✅ Virtual environment removed")
+        except Exception as e:
+            print(f"⚠️  Could not fully remove virtual environment: {e}")
+            print("💡 Try running as administrator or manually delete the .venv folder")
+
+    # Remove Python cache with enhanced cleanup
+    cache_dirs_removed = 0
     for root, dirs, files in os.walk(ROOT):
         for dir_name in dirs[:]:
-            if dir_name == "__pycache__":
+            if dir_name in ["__pycache__", ".pytest_cache", ".mypy_cache", ".coverage"]:
                 cache_dir = Path(root) / dir_name
-                print(f"🗑️ Removing cache: {cache_dir}")
-                shutil.rmtree(cache_dir)
-                dirs.remove(dir_name)
-    
-    print("✅ Environment cleaned")
+                try:
+                    print(f"🗑️ Removing cache: {cache_dir}")
+                    shutil.rmtree(cache_dir, ignore_errors=True)
+                    cache_dirs_removed += 1
+                    dirs.remove(dir_name)
+                except Exception as e:
+                    print(f"⚠️  Could not remove {cache_dir}: {e}")
+
+    # Deep clean additional items
+    if deep_clean:
+        print("🧹 Performing deep clean...")
+        deep_clean_items = [
+            "logs/*.log",
+            "logs/**/*.log",
+            "data/temp/*",
+            "*.pyc",
+            "*.pyo",
+            "*.egg-info",
+            ".coverage*",
+            "htmlcov/",
+            ".tox/",
+            ".nox/",
+            "build/",
+            "dist/",
+            ".eggs/",
+        ]
+
+        for pattern in deep_clean_items:
+            try:
+                import glob
+                for item in glob.glob(str(ROOT / pattern), recursive=True):
+                    item_path = Path(item)
+                    if item_path.exists():
+                        if item_path.is_file():
+                            item_path.unlink(missing_ok=True)
+                        else:
+                            shutil.rmtree(item_path, ignore_errors=True)
+                        print(f"🗑️ Removed: {item_path}")
+            except Exception as e:
+                print(f"⚠️  Could not clean {pattern}: {e}")
+
+    print(f"✅ Environment cleaned ({cache_dirs_removed} cache directories removed)")
+
+
+def stop_running_processes():
+    """Stop any running PlexiChat processes."""
+    try:
+        if platform.system() == "Windows":
+            # Find and kill Python processes running PlexiChat
+            result = subprocess.run([
+                "wmic", "process", "where",
+                "CommandLine like '%plexichat%' and Name='python.exe'",
+                "get", "ProcessId", "/format:value"
+            ], capture_output=True, text=True, check=False)
+
+            if result.returncode == 0:
+                for line in result.stdout.split('\n'):
+                    if line.startswith('ProcessId='):
+                        pid = line.split('=')[1].strip()
+                        if pid and pid.isdigit():
+                            try:
+                                subprocess.run(["taskkill", "/F", "/PID", pid],
+                                             capture_output=True, check=False)
+                                print(f"🛑 Stopped process PID: {pid}")
+                            except:
+                                pass
+        else:
+            # Unix/Linux/macOS
+            try:
+                result = subprocess.run([
+                    "pkill", "-f", "plexichat"
+                ], capture_output=True, check=False)
+                if result.returncode == 0:
+                    print("🛑 Stopped running PlexiChat processes")
+            except:
+                pass
+    except Exception as e:
+        print(f"⚠️  Could not stop processes: {e}")
 
 
 def show_help():
@@ -1446,7 +1779,8 @@ Versioning: Git-based (GitHub releases)
             start_classic_terminal()
 
     elif command == "clean":
-        clean_environment()
+        deep_clean = "--all" in args
+        clean_environment(deep_clean)
 
     elif command == "test":
         if not VENV_DIR.exists():
