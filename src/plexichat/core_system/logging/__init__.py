@@ -36,7 +36,7 @@ import os
 
 # Import configuration and utilities
 from ..config import get_config
-from ...services import get_service
+# from ...services import get_service  # Commented out for now
 
 # Log levels with custom additions
 class LogLevel(Enum):
@@ -49,6 +49,7 @@ class LogLevel(Enum):
     CRITICAL = 50
     SECURITY = 60
     AUDIT = 70
+    PERFORMANCE = 80
 
 # Log categories for organization
 class LogCategory(Enum):
@@ -215,7 +216,7 @@ class StructuredFormatter(logging.Formatter):
         # Create log entry
         entry = LogEntry(
             timestamp=datetime.fromtimestamp(record.created, tz=timezone.utc),
-            level=LogLevel(record.levelname.upper()) if hasattr(LogLevel, record.levelname.upper()) else LogLevel.INFO,
+            level=self._get_log_level_from_name(record.levelname),
             category=getattr(record, 'category', LogCategory.SYSTEM),
             message=record.getMessage(),
             module=record.module if hasattr(record, 'module') else record.name,
@@ -228,6 +229,23 @@ class StructuredFormatter(logging.Formatter):
         )
         
         return json.dumps(entry.to_dict(), default=str, separators=(',', ':'))
+
+    def _get_log_level_from_name(self, level_name: str) -> LogLevel:
+        """Convert logging level name to LogLevel enum."""
+        level_mapping = {
+            'TRACE': LogLevel.TRACE,
+            'DEBUG': LogLevel.DEBUG,
+            'INFO': LogLevel.INFO,
+            'WARNING': LogLevel.WARNING,
+            'WARN': LogLevel.WARNING,
+            'ERROR': LogLevel.ERROR,
+            'CRITICAL': LogLevel.CRITICAL,
+            'FATAL': LogLevel.CRITICAL,
+            'SECURITY': LogLevel.SECURITY,
+            'AUDIT': LogLevel.AUDIT,
+            'PERFORMANCE': LogLevel.PERFORMANCE
+        }
+        return level_mapping.get(level_name.upper(), LogLevel.INFO)
 
 class ColorizedFormatter(logging.Formatter):
     """Colorized console formatter."""
@@ -288,7 +306,9 @@ class LoggingManager:
 
     def __init__(self):
         self.config = get_config()
-        self.log_buffer = LogBuffer(max_size=self.config.get("logging.buffer_size", 10000))
+        # Safe config access with fallbacks
+        buffer_size = getattr(self.config.logging, 'buffer_size', 10000) if hasattr(self.config, 'logging') else 10000
+        self.log_buffer = LogBuffer(max_size=buffer_size)
         self.performance_tracker = PerformanceTracker()
         self.loggers: Dict[str, logging.Logger] = {}
         self.handlers: List[logging.Handler] = []
@@ -296,6 +316,19 @@ class LoggingManager:
 
         # Setup logging system
         self._setup_logging_system()
+
+    def _get_config(self, key: str, default: Any = None) -> Any:
+        """Safely get configuration value with fallback."""
+        try:
+            parts = key.split('.')
+            value = self.config
+            for part in parts:
+                value = getattr(value, part, None)
+                if value is None:
+                    return default
+            return value
+        except (AttributeError, TypeError):
+            return default
 
         # Setup performance monitoring
         self._setup_performance_monitoring()
@@ -306,7 +339,7 @@ class LoggingManager:
     def _setup_logging_system(self):
         """Setup the comprehensive logging system."""
         # Create log directory
-        log_dir = Path(self.config.get("logging.directory", "logs"))
+        log_dir = Path(self._get_config("logging.directory", "logs"))
         log_dir.mkdir(exist_ok=True, parents=True)
 
         # Configure root logger
@@ -317,15 +350,15 @@ class LoggingManager:
         root_logger.handlers.clear()
 
         # Setup console handler
-        if self.config.get("logging.console_enabled", True):
+        if self._get_config("logging.console_enabled", True):
             self._setup_console_handler(root_logger)
 
         # Setup file handlers
-        if self.config.get("logging.file_enabled", True):
+        if self._get_config("logging.file_enabled", True):
             self._setup_file_handlers(root_logger, log_dir)
 
         # Setup structured logging handler
-        if self.config.get("logging.structured_enabled", True):
+        if self._get_config("logging.structured_enabled", True):
             self._setup_structured_handler(root_logger, log_dir)
 
         # Setup real-time streaming handler
@@ -340,14 +373,14 @@ class LoggingManager:
     def _setup_console_handler(self, logger: logging.Logger):
         """Setup colorized console handler."""
         console_handler = logging.StreamHandler(sys.stdout)
-        console_level = getattr(logging, self.config.get("logging.console_level", "INFO"))
+        console_level = getattr(logging, self._get_config("logging.console_level", "INFO"))
         console_handler.setLevel(console_level)
 
         formatter = ColorizedFormatter(
-            fmt=self.config.get("logging.console_format",
+            fmt=self._get_config("logging.console_format",
                 "[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s"),
-            datefmt=self.config.get("logging.date_format", "%Y-%m-%d %H:%M:%S"),
-            use_colors=self.config.get("logging.console_colors", True)
+            datefmt=self._get_config("logging.date_format", "%Y-%m-%d %H:%M:%S"),
+            use_colors=self._get_config("logging.console_colors", True)
         )
         console_handler.setFormatter(formatter)
 
@@ -359,16 +392,16 @@ class LoggingManager:
         # Main log file
         main_handler = CompressingRotatingFileHandler(
             filename=log_dir / "plexichat.log",
-            maxBytes=self._parse_size(self.config.get("logging.max_file_size", "10MB")),
-            backupCount=self.config.get("logging.backup_count", 5),
+            maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
+            backupCount=self._get_config("logging.backup_count", 5),
             encoding="utf-8"
         )
-        main_handler.setLevel(getattr(logging, self.config.get("logging.file_level", "INFO")))
+        main_handler.setLevel(getattr(logging, self._get_config("logging.file_level", "INFO")))
 
         formatter = logging.Formatter(
-            fmt=self.config.get("logging.file_format",
+            fmt=self._get_config("logging.file_format",
                 "[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s"),
-            datefmt=self.config.get("logging.date_format", "%Y-%m-%d %H:%M:%S")
+            datefmt=self._get_config("logging.date_format", "%Y-%m-%d %H:%M:%S")
         )
         main_handler.setFormatter(formatter)
 
@@ -378,8 +411,8 @@ class LoggingManager:
         # Error-only log file
         error_handler = CompressingRotatingFileHandler(
             filename=log_dir / "plexichat_errors.log",
-            maxBytes=self._parse_size(self.config.get("logging.max_file_size", "10MB")),
-            backupCount=self.config.get("logging.backup_count", 5),
+            maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
+            backupCount=self._get_config("logging.backup_count", 5),
             encoding="utf-8"
         )
         error_handler.setLevel(logging.ERROR)
@@ -392,14 +425,14 @@ class LoggingManager:
         """Setup structured JSON logging handler."""
         structured_handler = CompressingRotatingFileHandler(
             filename=log_dir / "plexichat_structured.jsonl",
-            maxBytes=self._parse_size(self.config.get("logging.max_file_size", "10MB")),
-            backupCount=self.config.get("logging.backup_count", 5),
+            maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
+            backupCount=self._get_config("logging.backup_count", 5),
             encoding="utf-8"
         )
         structured_handler.setLevel(logging.DEBUG)
 
         formatter = StructuredFormatter(
-            include_context=self.config.get("logging.include_context", True)
+            include_context=self._get_config("logging.include_context", True)
         )
         structured_handler.setFormatter(formatter)
 
@@ -418,7 +451,7 @@ class LoggingManager:
                     # Create log entry and add to buffer
                     entry = LogEntry(
                         timestamp=datetime.fromtimestamp(record.created, tz=timezone.utc),
-                        level=LogLevel(record.levelname.upper()) if hasattr(LogLevel, record.levelname.upper()) else LogLevel.INFO,
+                        level=self._get_log_level_from_name(record.levelname),
                         category=getattr(record, 'category', LogCategory.SYSTEM),
                         message=record.getMessage(),
                         module=record.module if hasattr(record, 'module') else record.name,
@@ -432,6 +465,23 @@ class LoggingManager:
                     self.log_buffer.add_entry(entry)
                 except Exception:
                     self.handleError(record)
+
+            def _get_log_level_from_name(self, level_name: str) -> LogLevel:
+                """Convert logging level name to LogLevel enum."""
+                level_mapping = {
+                    'TRACE': LogLevel.TRACE,
+                    'DEBUG': LogLevel.DEBUG,
+                    'INFO': LogLevel.INFO,
+                    'WARNING': LogLevel.WARNING,
+                    'WARN': LogLevel.WARNING,
+                    'ERROR': LogLevel.ERROR,
+                    'CRITICAL': LogLevel.CRITICAL,
+                    'FATAL': LogLevel.CRITICAL,
+                    'SECURITY': LogLevel.SECURITY,
+                    'AUDIT': LogLevel.AUDIT,
+                    'PERFORMANCE': LogLevel.PERFORMANCE
+                }
+                return level_mapping.get(level_name.upper(), LogLevel.INFO)
 
         streaming_handler = StreamingHandler(self.log_buffer)
         streaming_handler.setLevel(logging.DEBUG)
@@ -452,8 +502,8 @@ class LoggingManager:
         """Setup audit logging."""
         audit_handler = CompressingRotatingFileHandler(
             filename=log_dir / "audit.log",
-            maxBytes=self._parse_size(self.config.get("logging.max_file_size", "10MB")),
-            backupCount=self.config.get("logging.backup_count", 5),
+            maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
+            backupCount=self._get_config("logging.backup_count", 5),
             encoding="utf-8"
         )
         audit_handler.setLevel(logging.INFO)
@@ -492,9 +542,12 @@ class LoggingManager:
         alert_logger = logging.getLogger("plexichat.alerts")
         alert_logger.critical(f"ALERT: {entry.message}")
 
-    def _parse_size(self, size_str: str) -> int:
-        """Parse size string to bytes."""
-        size_str = size_str.upper()
+    def _parse_size(self, size_input: Union[str, int]) -> int:
+        """Parse size string or int to bytes."""
+        if isinstance(size_input, int):
+            return size_input
+
+        size_str = str(size_input).upper()
         if size_str.endswith('KB'):
             return int(size_str[:-2]) * 1024
         elif size_str.endswith('MB'):
@@ -558,9 +611,17 @@ def get_logger(name: str) -> logging.Logger:
 
     return manager.loggers[name]
 
+
+def setup_module_logging(module_name: str, level: str = "INFO") -> logging.Logger:
+    """Setup logging for a specific module."""
+    logger = get_logger(module_name)
+    logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+    return logger
+
 # Export main components
 __all__ = [
     "LogLevel", "LogCategory", "LogContext", "LogEntry", "LogBuffer",
     "PerformanceTracker", "StructuredFormatter", "ColorizedFormatter",
-    "CompressingRotatingFileHandler", "LoggingManager", "get_logging_manager", "get_logger"
+    "CompressingRotatingFileHandler", "LoggingManager", "get_logging_manager", "get_logger",
+    "setup_module_logging"
 ]

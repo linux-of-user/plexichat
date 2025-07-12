@@ -1,0 +1,24 @@
+# AI Node Plugin Requirements
+
+# Core AI/ML libraries
+torch>=2.0.0
+transformers>=4.30.0
+huggingface_hub>=0.16.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Web UI
+fastapi>=0.100.0
+uvicorn>=0.23.0
+jinja2>=3.1.0
+
+# Optional AI frameworks
+llama-cpp-python>=0.2.0; extra == "llama"
+onnxruntime>=1.15.0; extra == "onnx"
+accelerate>=0.21.0; extra == "gpu"
+bitsandbytes>=0.41.0; extra == "quantization"
+
+# Utilities
+requests>=2.31.0
+aiofiles>=23.0.0
+psutil>=5.9.0

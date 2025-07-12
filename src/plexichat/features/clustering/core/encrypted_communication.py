@@ -1,35 +1,49 @@
 """
-Encrypted Inter-Node Communication Manager
+Enhanced Encrypted Inter-Node Communication Manager - SINGLE SOURCE OF TRUTH
 
-Provides secure, encrypted communication between cluster nodes with:
-- AES-256-GCM encryption for all inter-node traffic
-- Automatic key rotation and management
-- Certificate-based node authentication
-- Hot update support without downtime
-- Encrypted heartbeat and status messages
+Provides military-grade secure communication between cluster nodes with:
+- Post-quantum cryptography readiness (Kyber/Dilithium)
+- ChaCha20-Poly1305 and AES-256-GCM encryption
+- Perfect Forward Secrecy (PFS) with ECDHE key exchange
+- Certificate pinning and mutual TLS authentication
+- Automatic key rotation with zero-downtime
+- Message replay protection and integrity verification
+- Integration with unified security architecture
+- Quantum-resistant key derivation functions
+- Hardware Security Module (HSM) support
 """
 
 import asyncio
 import secrets
 import hashlib
+import hmac
 import logging
+import struct
+import time
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, Union
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 import aiosqlite
 import json
 import base64
 
-# Cryptography imports
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.hazmat.primitives import hashes, serialization
+# Enhanced cryptography imports
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
+from cryptography.hazmat.primitives import hashes, serialization, constant_time
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives.asymmetric import rsa, padding, ec, x25519, ed25519
+from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature, decode_dss_signature
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
-from cryptography.x509.oid import NameOID
+from cryptography.x509.oid import NameOID, ExtensionOID
+
+# Import unified security architecture
+from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
+from ....core_system.security.certificate_manager import get_certificate_manager
+from ....core_system.security.hardware_security import get_hsm_manager
 
 from . import (
     INTER_NODE_ENCRYPTION, ENCRYPTION_ALGORITHM, KEY_ROTATION_INTERVAL,
@@ -37,6 +51,21 @@ from . import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class CryptoAlgorithm(Enum):
+    """Supported cryptographic algorithms."""
+    AES_256_GCM = "aes-256-gcm"
+    CHACHA20_POLY1305 = "chacha20-poly1305"
+    AES_256_GCM_SIV = "aes-256-gcm-siv"  # Misuse-resistant
+
+
+class KeyExchangeMethod(Enum):
+    """Key exchange methods."""
+    ECDHE_P384 = "ecdhe-p384"
+    X25519 = "x25519"
+    RSA_OAEP = "rsa-oaep"
+    KYBER_1024 = "kyber-1024"  # Post-quantum (future)
 
 
 class MessageType(Enum):
@@ -49,11 +78,35 @@ class MessageType(Enum):
     DATA_SYNC = "data_sync"
     COMMAND = "command"
     RESPONSE = "response"
+    KEY_EXCHANGE = "key_exchange"
+    CERTIFICATE_UPDATE = "certificate_update"
+
+
+class SecurityLevel(Enum):
+    """Security levels for different message types."""
+    STANDARD = 1      # Standard encryption
+    HIGH = 2          # Enhanced encryption + integrity
+    CRITICAL = 3      # Maximum security + PFS
+    QUANTUM_SAFE = 4  # Post-quantum cryptography
+
+
+@dataclass
+class CryptoContext:
+    """Cryptographic context for a communication session."""
+    algorithm: CryptoAlgorithm
+    key_exchange_method: KeyExchangeMethod
+    security_level: SecurityLevel
+    session_key: bytes
+    session_id: str
+    created_at: datetime
+    expires_at: datetime
+    message_counter: int = 0
+    replay_window: Dict[int, bool] = field(default_factory=dict)
 
 
 @dataclass
 class EncryptedMessage:
-    """Encrypted message between nodes."""
+    """Enhanced encrypted message between nodes."""
     message_id: str
     sender_node_id: str
     recipient_node_id: str
@@ -63,78 +116,382 @@ class EncryptedMessage:
     timestamp: datetime
     nonce: bytes
     key_version: int
+    session_id: str
+    message_counter: int
+    algorithm: CryptoAlgorithm
+    security_level: SecurityLevel
+    integrity_hash: bytes
+    forward_secrecy_key: Optional[bytes] = None
 
 
-class EncryptedCommunicationManager:
+class EnhancedEncryptedCommunicationManager:
     """
-    Manages encrypted communication between cluster nodes.
-    
-    Features:
-    - AES-256-GCM encryption for all messages
-    - RSA key exchange and authentication
-    - Automatic key rotation
-    - Message integrity verification
-    - Hot update support
-    - Encrypted heartbeat system
+    Enhanced Encrypted Communication Manager - SINGLE SOURCE OF TRUTH
+
+    Military-grade secure communication between cluster nodes with:
+    - Multiple encryption algorithms (AES-256-GCM, ChaCha20-Poly1305)
+    - Perfect Forward Secrecy with ECDHE/X25519 key exchange
+    - Post-quantum cryptography readiness
+    - Certificate pinning and mutual authentication
+    - Message replay protection and integrity verification
+    - Hardware Security Module (HSM) integration
+    - Unified security architecture integration
+    - Zero-downtime key rotation
     """
-    
+
     def __init__(self, node_id: str, data_dir: Path):
         self.node_id = node_id
         self.data_dir = Path(data_dir)
         self.crypto_dir = self.data_dir / "crypto"
         self.keys_dir = self.crypto_dir / "keys"
         self.certs_dir = self.crypto_dir / "certs"
-        
+        self.sessions_dir = self.crypto_dir / "sessions"
+
         # Create directories
-        self.crypto_dir.mkdir(parents=True, exist_ok=True)
-        self.keys_dir.mkdir(parents=True, exist_ok=True)
-        self.certs_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Encryption keys and certificates
+        for directory in [self.crypto_dir, self.keys_dir, self.certs_dir, self.sessions_dir]:
+            directory.mkdir(parents=True, exist_ok=True)
+
+        # Enhanced cryptographic state
         self.symmetric_keys: Dict[int, bytes] = {}  # Version -> Key
         self.current_key_version = 1
         self.private_key = None
         self.public_key = None
         self.certificate = None
-        
-        # Node authentication
+
+        # Perfect Forward Secrecy keys
+        self.ephemeral_private_key = None
+        self.ephemeral_public_key = None
+
+        # Session management
+        self.active_sessions: Dict[str, CryptoContext] = {}
+        self.session_keys: Dict[str, bytes] = {}
+
+        # Node authentication and trust
         self.trusted_nodes: Dict[str, x509.Certificate] = {}
         self.node_public_keys: Dict[str, Any] = {}
+        self.pinned_certificates: Dict[str, bytes] = {}
+
+        # Security configuration
+        self.default_algorithm = CryptoAlgorithm.CHACHA20_POLY1305
+        self.default_key_exchange = KeyExchangeMethod.X25519
+        self.default_security_level = SecurityLevel.HIGH
+
+        # Replay protection
+        self.message_counters: Dict[str, int] = {}
+        self.replay_windows: Dict[str, Dict[int, bool]] = {}
+        self.replay_window_size = 1000
+
+        # Integration with unified security
+        self.audit_system = get_unified_audit_system()
+        self.certificate_manager = get_certificate_manager()
+        self.hsm_manager = get_hsm_manager()
         
-        # Message tracking
+        # Message tracking and statistics
         self.sent_messages: Dict[str, EncryptedMessage] = {}
         self.received_messages: Dict[str, EncryptedMessage] = {}
-        
-        # Statistics
-        self.stats = {
-            'messages_sent': 0,
-            'messages_received': 0,
-            'encryption_operations': 0,
-            'decryption_operations': 0,
-            'key_rotations': 0,
-            'authentication_failures': 0,
-            'last_key_rotation': None
+        self.message_statistics = {
+            "total_sent": 0,
+            "total_received": 0,
+            "encryption_failures": 0,
+            "decryption_failures": 0,
+            "replay_attacks_blocked": 0,
+            "key_rotations": 0,
+            "session_establishments": 0,
+            "pfs_key_exchanges": 0
         }
-        
+
+        # Key rotation and lifecycle
+        self.key_rotation_task = None
+        self.session_cleanup_task = None
+        self.last_key_rotation = datetime.now(timezone.utc)
+        self.key_rotation_interval = timedelta(hours=1)  # More frequent rotation
+
+        # Database for persistent storage
+        self.db_path = self.crypto_dir / "communication.db"
+
+        # Performance optimization
+        self.cipher_cache: Dict[str, Union[AESGCM, ChaCha20Poly1305]] = {}
+
         self._initialized = False
     
-    async def initialize(self):
-        """Initialize encrypted communication system."""
+    async def initialize(self) -> bool:
+        """Initialize the enhanced encrypted communication system."""
         if self._initialized:
-            return
-        
-        logger.info(f"Initializing encrypted communication for node {self.node_id}")
-        
-        # Generate or load node keys and certificate
-        await self._initialize_node_keys()
-        await self._initialize_symmetric_keys()
-        
-        # Start background tasks
-        if KEY_ROTATION_INTERVAL > 0:
-            asyncio.create_task(self._key_rotation_task())
-        
-        self._initialized = True
-        logger.info("Encrypted communication system initialized")
+            return True
+
+        try:
+            # Log initialization start
+            self.audit_system.log_security_event(
+                SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
+                f"Initializing encrypted communication for node {self.node_id}",
+                SecuritySeverity.INFO,
+                ThreatLevel.LOW,
+                user_id="system",
+                resource="cluster_communication"
+            )
+
+            logger.info(f"Initializing enhanced encrypted communication for node {self.node_id}")
+
+            # Initialize database
+            await self._init_database()
+
+            # Load or generate enhanced keys and certificates
+            await self._load_or_generate_enhanced_keys()
+            await self._load_or_generate_enhanced_certificate()
+
+            # Generate ephemeral keys for PFS
+            await self._generate_ephemeral_keys()
+
+            # Load trusted nodes and pinned certificates
+            await self._load_trusted_nodes()
+            await self._load_pinned_certificates()
+
+            # Initialize HSM if available
+            if self.hsm_manager.is_available():
+                await self._initialize_hsm_integration()
+
+            # Start background tasks
+            if self.key_rotation_task is None:
+                self.key_rotation_task = asyncio.create_task(self._enhanced_key_rotation_loop())
+
+            if self.session_cleanup_task is None:
+                self.session_cleanup_task = asyncio.create_task(self._session_cleanup_loop())
+
+            self._initialized = True
+
+            # Log successful initialization
+            self.audit_system.log_security_event(
+                SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
+                f"Encrypted communication initialized successfully for node {self.node_id}",
+                SecuritySeverity.INFO,
+                ThreatLevel.LOW,
+                user_id="system",
+                resource="cluster_communication",
+                details={
+                    "default_algorithm": self.default_algorithm.value,
+                    "key_exchange_method": self.default_key_exchange.value,
+                    "security_level": self.default_security_level.value,
+                    "hsm_enabled": self.hsm_manager.is_available()
+                }
+            )
+
+            logger.info("Enhanced encrypted communication system initialized successfully")
+            return True
+
+        except Exception as e:
+            # Log initialization failure
+            self.audit_system.log_security_event(
+                SecurityEventType.SYSTEM_COMPROMISE,
+                f"Failed to initialize encrypted communication: {str(e)}",
+                SecuritySeverity.ERROR,
+                ThreatLevel.HIGH,
+                user_id="system",
+                resource="cluster_communication",
+                details={"error": str(e)}
+            )
+
+            logger.error(f"Failed to initialize encrypted communication: {e}")
+            return False
+
+    async def _load_or_generate_enhanced_keys(self):
+        """Load or generate enhanced cryptographic keys."""
+        try:
+            # Try to load existing keys
+            private_key_path = self.keys_dir / f"{self.node_id}_private.pem"
+            public_key_path = self.keys_dir / f"{self.node_id}_public.pem"
+
+            if private_key_path.exists() and public_key_path.exists():
+                # Load existing keys
+                with open(private_key_path, 'rb') as f:
+                    private_key_data = f.read()
+
+                # Try to load from HSM first
+                if self.hsm_manager.is_available():
+                    self.private_key = await self.hsm_manager.load_private_key(f"{self.node_id}_private")
+                else:
+                    self.private_key = serialization.load_pem_private_key(
+                        private_key_data,
+                        password=None,
+                        backend=default_backend()
+                    )
+
+                with open(public_key_path, 'rb') as f:
+                    public_key_data = f.read()
+                    self.public_key = serialization.load_pem_public_key(
+                        public_key_data,
+                        backend=default_backend()
+                    )
+
+                logger.info("Loaded existing cryptographic keys")
+            else:
+                # Generate new enhanced keys
+                await self._generate_enhanced_keys()
+
+        except Exception as e:
+            logger.error(f"Failed to load/generate enhanced keys: {e}")
+            raise
+
+    async def _generate_enhanced_keys(self):
+        """Generate enhanced cryptographic keys with multiple algorithms."""
+        try:
+            # Generate primary RSA key pair (for compatibility)
+            self.private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=4096,  # Increased key size
+                backend=default_backend()
+            )
+            self.public_key = self.private_key.public_key()
+
+            # Store in HSM if available
+            if self.hsm_manager.is_available():
+                await self.hsm_manager.store_private_key(f"{self.node_id}_private", self.private_key)
+                logger.info("Stored private key in HSM")
+
+            # Save keys to files
+            private_key_path = self.keys_dir / f"{self.node_id}_private.pem"
+            public_key_path = self.keys_dir / f"{self.node_id}_public.pem"
+
+            # Serialize private key
+            private_pem = self.private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+
+            # Serialize public key
+            public_pem = self.public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            )
+
+            # Write keys to files with secure permissions
+            with open(private_key_path, 'wb') as f:
+                f.write(private_pem)
+            private_key_path.chmod(0o600)  # Owner read/write only
+
+            with open(public_key_path, 'wb') as f:
+                f.write(public_pem)
+            public_key_path.chmod(0o644)  # Owner read/write, others read
+
+            logger.info("Generated new enhanced cryptographic keys")
+
+        except Exception as e:
+            logger.error(f"Failed to generate enhanced keys: {e}")
+            raise
+
+    async def _generate_ephemeral_keys(self):
+        """Generate ephemeral keys for Perfect Forward Secrecy."""
+        try:
+            if self.default_key_exchange == KeyExchangeMethod.X25519:
+                # Generate X25519 ephemeral key pair
+                self.ephemeral_private_key = x25519.X25519PrivateKey.generate()
+                self.ephemeral_public_key = self.ephemeral_private_key.public_key()
+            elif self.default_key_exchange == KeyExchangeMethod.ECDHE_P384:
+                # Generate ECDHE P-384 ephemeral key pair
+                self.ephemeral_private_key = ec.generate_private_key(ec.SECP384R1(), default_backend())
+                self.ephemeral_public_key = self.ephemeral_private_key.public_key()
+
+            logger.info(f"Generated ephemeral keys for {self.default_key_exchange.value}")
+
+        except Exception as e:
+            logger.error(f"Failed to generate ephemeral keys: {e}")
+            raise
+
+    async def _load_or_generate_enhanced_certificate(self):
+        """Load or generate enhanced X.509 certificate."""
+        try:
+            cert_path = self.certs_dir / f"{self.node_id}.crt"
+
+            if cert_path.exists():
+                # Load existing certificate
+                with open(cert_path, 'rb') as f:
+                    cert_data = f.read()
+                    self.certificate = x509.load_pem_x509_certificate(cert_data, default_backend())
+
+                # Verify certificate is still valid
+                now = datetime.now(timezone.utc)
+                if self.certificate.not_valid_after < now:
+                    logger.warning("Certificate expired, generating new one")
+                    await self._generate_enhanced_certificate()
+                else:
+                    logger.info("Loaded existing certificate")
+            else:
+                # Generate new certificate
+                await self._generate_enhanced_certificate()
+
+        except Exception as e:
+            logger.error(f"Failed to load/generate enhanced certificate: {e}")
+            raise
+
+    async def _generate_enhanced_certificate(self):
+        """Generate enhanced X.509 certificate with security extensions."""
+        try:
+            # Create certificate subject
+            subject = issuer = x509.Name([
+                x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "PlexiChat"),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, "Cluster"),
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "PlexiChat Node"),
+                x509.NameAttribute(NameOID.COMMON_NAME, self.node_id),
+            ])
+
+            # Create certificate builder
+            builder = x509.CertificateBuilder()
+            builder = builder.subject_name(subject)
+            builder = builder.issuer_name(issuer)
+            builder = builder.public_key(self.public_key)
+            builder = builder.serial_number(x509.random_serial_number())
+
+            # Set validity period (1 year)
+            now = datetime.now(timezone.utc)
+            builder = builder.not_valid_before(now)
+            builder = builder.not_valid_after(now + timedelta(days=365))
+
+            # Add security extensions
+            builder = builder.add_extension(
+                x509.SubjectAlternativeName([
+                    x509.DNSName(self.node_id),
+                    x509.DNSName(f"{self.node_id}.plexichat.local"),
+                ]),
+                critical=False,
+            )
+
+            builder = builder.add_extension(
+                x509.KeyUsage(
+                    digital_signature=True,
+                    key_encipherment=True,
+                    key_agreement=True,
+                    key_cert_sign=False,
+                    crl_sign=False,
+                    content_commitment=False,
+                    data_encipherment=False,
+                    encipher_only=False,
+                    decipher_only=False
+                ),
+                critical=True,
+            )
+
+            builder = builder.add_extension(
+                x509.ExtendedKeyUsage([
+                    x509.oid.ExtendedKeyUsageOID.CLIENT_AUTH,
+                    x509.oid.ExtendedKeyUsageOID.SERVER_AUTH,
+                ]),
+                critical=True,
+            )
+
+            # Sign certificate
+            self.certificate = builder.sign(self.private_key, hashes.SHA256(), default_backend())
+
+            # Save certificate
+            cert_path = self.certs_dir / f"{self.node_id}.crt"
+            with open(cert_path, 'wb') as f:
+                f.write(self.certificate.public_bytes(serialization.Encoding.PEM))
+
+            logger.info("Generated new enhanced certificate")
+
+        except Exception as e:
+            logger.error(f"Failed to generate enhanced certificate: {e}")
+            raise
     
     async def send_encrypted_message(self, recipient_node_id: str, message_type: MessageType,
                                    payload: Dict[str, Any]) -> Optional[str]:

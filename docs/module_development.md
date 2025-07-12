@@ -1,53 +1,484 @@
 # PlexiChat Module Development Guide
 
-Welcome to the PlexiChat Module Development Guide! This comprehensive guide will help you create powerful, flexible modules for the PlexiChat platform.
+Welcome to the PlexiChat Module Development Guide! This comprehensive guide covers the **new unified module system** with strict interfaces, automated validation, hot-reloading, and centralized configuration management.
+
+## 🚀 What's New in the Unified Module System
+
+- **Strict Interface Contracts**: Type-safe interfaces with automated validation
+- **Hot-Reloading**: Update modules without system restart
+- **Isolation**: Modules run in isolated environments for security
+- **Unified Configuration**: Centralized, hot-reloadable configuration management
+- **Performance Monitoring**: Real-time resource usage tracking
+- **Security Validation**: Automated security scanning and permission management
+- **Contract Validation**: Ensures modules meet quality and security standards
 
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Module Structure](#module-structure)
-3. [Configuration](#configuration)
-4. [API Reference](#api-reference)
-5. [Best Practices](#best-practices)
-6. [Examples](#examples)
-7. [Testing](#testing)
-8. [Deployment](#deployment)
+1. [Quick Start](#quick-start)
+2. [Module Interfaces](#module-interfaces)
+3. [Configuration System](#configuration-system)
+4. [Contract Validation](#contract-validation)
+5. [Hot-Reloading](#hot-reloading)
+6. [Security & Permissions](#security--permissions)
+7. [Best Practices](#best-practices)
+8. [Examples](#examples)
+9. [Testing](#testing)
+10. [Migration Guide](#migration-guide)
 
-## Getting Started
+## Quick Start
 
-PlexiChat modules are Python packages that extend the core functionality of PlexiChat. They can add new API endpoints, WebUI components, background tasks, and integrate with external services.
+### 1. Create Your First Module
+
+```python
+from plexichat.infrastructure.modules.interfaces import (
+    BaseModule, ModulePermissions, ModuleCapability
+)
+
+class MyAwesomeModule(BaseModule):
+    def __init__(self, name: str = "MyAwesome", version: str = "1.0.0"):
+        super().__init__(name, version)
+        self.api_client = None
+
+    async def initialize(self) -> bool:
+        """Initialize your module - REQUIRED"""
+        try:
+            self.logger.info("MyAwesome module initializing...")
+
+            # Get configuration from unified config system
+            api_key = self.get_config_value("api_key")
+            if not api_key:
+                self.logger.error("API key not configured")
+                return False
+
+            # Setup your module
+            self.api_client = SomeAPIClient(api_key)
+
+            self.logger.info("MyAwesome module initialized successfully")
+            return True
+        except Exception as e:
+            self.last_error = e
+            self.logger.error(f"Initialization failed: {e}")
+            return False
+
+    def get_metadata(self) -> Dict[str, Any]:
+        """Module metadata - REQUIRED"""
+        return {
+            "name": self.name,
+            "version": self.version,
+            "description": "My awesome PlexiChat module",
+            "author": "Your Name",
+            "license": "MIT"
+        }
+
+    def get_required_permissions(self) -> ModulePermissions:
+        """Required permissions - REQUIRED"""
+        return ModulePermissions(
+            capabilities=[ModuleCapability.EXTERNAL_API],
+            network_access=True,
+            external_api_access=True
+        )
+```
+
+### 2. Create Configuration Schema
+
+Create `config/plugins/schemas/myawesome.json`:
+
+```json
+{
+  "version": "1.0.0",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "settings": {
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "minLength": 1,
+            "description": "API key for external service"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "default": 30
+          }
+        },
+        "required": ["api_key"]
+      }
+    }
+  },
+  "defaults": {
+    "settings": {
+      "timeout": 30,
+      "debug": false
+    }
+  }
+}
+```
+
+### 3. Create Configuration File
+
+Create `config/plugins/myawesome.yaml`:
+
+```yaml
+metadata:
+  name: "My Awesome Module"
+  version: "1.0.0"
+  description: "Does awesome things"
+  author: "Your Name"
+
+plugin:
+  type: "feature"
+  category: "integration"
+  enabled: true
+  auto_load: true
+
+settings:
+  api_key: "your-api-key-here"
+  timeout: 30
+  debug: false
+
+permissions:
+  required:
+    - "network.access"
+    - "external_api.access"
+```
 
 ### Prerequisites
 
 - Python 3.8+
-- Basic understanding of FastAPI
-- Familiarity with async/await patterns
-- Understanding of YAML configuration
+- Understanding of async/await patterns
+- Familiarity with type hints
+- Basic knowledge of JSON Schema
 
 ### Development Environment Setup
 
 1. Clone the PlexiChat repository
 2. Install development dependencies: `pip install -r requirements-dev.txt`
-3. Create your module directory: `src/plexichat/modules/your_module_name/`
+3. Create your module directory: `plugins/your_module_name/`
+
+## Module Interfaces
+
+The unified module system uses strict interfaces to ensure consistency and reliability.
+
+### Core Interface: BaseModule
+
+All modules must inherit from `BaseModule`:
+
+```python
+from plexichat.infrastructure.modules.interfaces import BaseModule
+
+class YourModule(BaseModule):
+    def __init__(self, name: str = "YourModule", version: str = "1.0.0"):
+        super().__init__(name, version)
+
+    # Required methods
+    async def initialize(self) -> bool: ...
+    def get_metadata(self) -> Dict[str, Any]: ...
+    def get_required_permissions(self) -> ModulePermissions: ...
+
+    # Optional lifecycle methods
+    async def start(self) -> bool: ...
+    async def stop(self) -> bool: ...
+    async def pause(self) -> bool: ...
+    async def resume(self) -> bool: ...
+    async def shutdown(self) -> bool: ...
+    async def health_check(self) -> Dict[str, Any]: ...
+```
+
+### Module Capabilities
+
+Declare what your module can do:
+
+```python
+from plexichat.infrastructure.modules.interfaces import ModuleCapability
+
+# Core capabilities
+ModuleCapability.MESSAGING          # Message handling
+ModuleCapability.USER_MANAGEMENT     # User operations
+ModuleCapability.FILE_HANDLING       # File operations
+ModuleCapability.AUTHENTICATION      # Auth operations
+
+# Advanced capabilities
+ModuleCapability.AI_PROCESSING       # AI/ML operations
+ModuleCapability.BACKUP_STORAGE      # Backup operations
+ModuleCapability.SECURITY_SCANNING   # Security scans
+ModuleCapability.ENCRYPTION          # Crypto operations
+
+# UI capabilities
+ModuleCapability.WEB_INTERFACE       # Web UI
+ModuleCapability.API_ENDPOINTS       # REST API
+ModuleCapability.ADMIN_PANEL         # Admin interface
+```
+
+### Permission System
+
+Declare required permissions:
+
+```python
+def get_required_permissions(self) -> ModulePermissions:
+    return ModulePermissions(
+        capabilities=[
+            ModuleCapability.MESSAGING,
+            ModuleCapability.DATABASE_ACCESS
+        ],
+        network_access=True,           # Internet access
+        file_system_access=False,      # File system access
+        database_access=True,          # Database access
+        admin_access=False,            # Admin privileges
+        user_data_access=True,         # User data access
+        external_api_access=True       # External API access
+    )
+```
 
 ## Module Structure
 
-A PlexiChat module follows a standardized structure:
+The new unified structure:
 
 ```
-your_module_name/
+plugins/your_module_name/
+├── main.py                  # Main module class (inherits BaseModule)
 ├── __init__.py              # Module initialization
-├── config.yaml              # Module configuration
-├── module.py                # Main module class
 ├── api/                     # API endpoints (optional)
 │   ├── __init__.py
 │   └── routes.py
 ├── webui/                   # WebUI components (optional)
-│   ├── __init__.py
 │   ├── templates/
 │   └── static/
 ├── tasks/                   # Background tasks (optional)
-│   ├── __init__.py
+│   └── background.py
+└── tests/                   # Module tests
+    └── test_module.py
+```
+
+Configuration is now managed centrally:
+
+```
+config/plugins/
+├── schemas/                 # Configuration schemas
+│   └── your_module.json
+├── your_module.yaml         # Main configuration
+└── environments/            # Environment-specific configs
+    ├── development/
+    │   └── your_module.yaml
+    ├── testing/
+    │   └── your_module.yaml
+    └── production/
+        └── your_module.yaml
+```
+
+## Configuration System
+
+The unified configuration system provides hot-reloadable, validated configuration management.
+
+### Configuration Schema
+
+Define your configuration schema in `config/plugins/schemas/your_module.json`:
+
+```json
+{
+  "version": "1.0.0",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "version": {"type": "string"},
+          "description": {"type": "string"}
+        },
+        "required": ["name", "version"]
+      },
+      "plugin": {
+        "type": "object",
+        "properties": {
+          "type": {"type": "string", "enum": ["feature", "system", "ui"]},
+          "enabled": {"type": "boolean", "default": true},
+          "auto_load": {"type": "boolean", "default": true}
+        }
+      },
+      "settings": {
+        "type": "object",
+        "properties": {
+          "api_key": {"type": "string", "minLength": 1},
+          "timeout": {"type": "integer", "minimum": 1, "default": 30},
+          "debug": {"type": "boolean", "default": false}
+        },
+        "required": ["api_key"]
+      }
+    },
+    "required": ["metadata", "plugin", "settings"]
+  },
+  "defaults": {
+    "settings": {
+      "timeout": 30,
+      "debug": false
+    }
+  },
+  "environment_overrides": {
+    "development": {
+      "settings": {
+        "debug": true,
+        "timeout": 60
+      }
+    },
+    "production": {
+      "settings": {
+        "debug": false,
+        "timeout": 30
+      }
+    }
+  }
+}
+```
+
+### Configuration File
+
+Create `config/plugins/your_module.yaml`:
+
+```yaml
+metadata:
+  name: "Your Module"
+  version: "1.0.0"
+  description: "Your module description"
+  author: "Your Name"
+  license: "MIT"
+
+plugin:
+  type: "feature"
+  category: "integration"
+  enabled: true
+  auto_load: true
+  main_file: "main.py"
+  class_name: "YourModule"
+
+settings:
+  api_key: "your-api-key"
+  timeout: 30
+  debug: false
+  custom_setting: "value"
+
+permissions:
+  required:
+    - "network.access"
+    - "database.read"
+  optional:
+    - "admin.access"
+
+dependencies:
+  python: ">=3.8"
+  packages:
+    - "requests>=2.25.0"
+    - "aiohttp>=3.7.0"
+```
+
+### Accessing Configuration
+
+In your module:
+
+```python
+class YourModule(BaseModule):
+    async def initialize(self) -> bool:
+        # Get configuration values
+        api_key = self.get_config_value("api_key")
+        timeout = self.get_config_value("timeout", default=30)
+        debug = self.get_config_value("debug", default=False)
+
+        # Get nested configuration
+        custom_value = self.get_config_value("nested.setting.value")
+
+        # Get entire configuration
+        full_config = self.get_current_config()
+
+        return True
+```
+
+### Hot Configuration Reload
+
+Register for configuration changes:
+
+```python
+def __init__(self, name: str = "YourModule"):
+    super().__init__(name)
+
+    # Register for config changes
+    self.register_event_handler("config_changed", self._on_config_changed)
+
+async def _on_config_changed(self, event_data):
+    """Handle configuration changes"""
+    new_config = event_data.get("config", {})
+
+    # Apply new configuration
+    if self.validate_config(new_config):
+        self.apply_config(new_config)
+        self.logger.info("Configuration updated successfully")
+    else:
+        self.logger.error("Invalid configuration - keeping current settings")
+```
+
+## Contract Validation
+
+All modules are automatically validated against strict contracts to ensure quality and security.
+
+### Validation Categories
+
+1. **Interface Compliance**: Implements required interfaces
+2. **Method Signatures**: Correct method signatures and types
+3. **Security Compliance**: Proper permission declarations
+4. **Configuration Compliance**: Valid configuration schemas
+5. **Performance Constraints**: Resource usage limits
+6. **API Contracts**: Consistent API behavior
+7. **Documentation**: Adequate documentation
+
+### Running Validation
+
+```python
+# Manual validation
+from plexichat.infrastructure.modules.contracts import get_contract_validator
+
+async def validate_my_module():
+    module = YourModule()
+    validator = get_contract_validator()
+
+    result = await validator.validate_module(module)
+
+    print(f"Valid: {result.is_valid}")
+    print(f"Score: {result.score:.1f}%")
+
+    if result.violations:
+        print("Errors:")
+        for violation in result.violations:
+            print(f"  - {violation.message}")
+
+    if result.warnings:
+        print("Warnings:")
+        for warning in result.warnings:
+            print(f"  - {warning.message}")
+
+    # Generate detailed report
+    report = validator.generate_compliance_report(result)
+    print(report)
+```
+
+### Validation Results
+
+```python
+# Example validation result
+{
+    "is_valid": True,
+    "score": 95.5,  # Compliance score 0-100
+    "violations": [],  # Critical errors
+    "warnings": [     # Non-critical issues
+        {
+            "severity": "warning",
+            "category": "documentation",
+            "message": "Method lacks documentation"
+        }
+    ]
+}
+```
 │   └── background.py
 ├── models/                  # Data models (optional)
 │   ├── __init__.py

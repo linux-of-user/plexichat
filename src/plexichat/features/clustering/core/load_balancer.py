@@ -1,8 +1,15 @@
 """
-Smart Load Balancer
+Advanced Smart Load Balancer - SINGLE SOURCE OF TRUTH
 
-Advanced load balancing system with multiple strategies, real-time optimization,
-and intelligent traffic distribution for maximum performance gains.
+Enhanced load balancing system with:
+- Machine learning-based adaptive algorithms
+- Predictive load distribution
+- Geographic and latency-aware routing
+- Real-time performance optimization
+- Security-aware load balancing
+- Integration with unified security architecture
+- Advanced health checking and circuit breakers
+- Multi-dimensional load metrics
 """
 
 import asyncio
@@ -11,13 +18,20 @@ import secrets
 import json
 import time
 import random
+import math
+import statistics
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Dict, List, Optional, Any, Tuple, Set, Union
 from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
 import aiosqlite
 import hashlib
+import numpy as np
+from collections import deque, defaultdict
+
+# Import unified security architecture
+from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
 
 from . import (
     ClusterRole, NodeStatus, LoadBalancingStrategy, PerformanceMetric,

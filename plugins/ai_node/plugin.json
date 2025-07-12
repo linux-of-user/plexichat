@@ -1,0 +1,95 @@
+{
+  "plugin_id": "ai_node",
+  "name": "AI Node",
+  "version": "1.0.0",
+  "description": "Dedicated AI processing node with HuggingFace integration and local model support",
+  "author": "PlexiChat Team",
+  "plugin_type": "ai_node",
+  "min_plexichat_version": "2.0.0",
+  "permissions": [
+    "ai_services",
+    "model_management",
+    "inference_engine",
+    "huggingface_integration",
+    "network_access",
+    "file_system_access",
+    "background_tasks",
+    "caching",
+    "clustering",
+    "monitoring"
+  ],
+  "capabilities": [
+    "AI_SERVICES",
+    "MODEL_MANAGEMENT",
+    "INFERENCE_ENGINE",
+    "HUGGINGFACE_INTEGRATION",
+    "NETWORK_ACCESS",
+    "FILE_SYSTEM_ACCESS",
+    "BACKGROUND_TASKS",
+    "CACHING",
+    "CLUSTERING",
+    "MONITORING"
+  ],
+  "main_module": "ai_node_plugin",
+  "entry_point": "AINodePlugin",
+  "web_ui": {
+    "enabled": true,
+    "setup_wizard": true,
+    "management_interface": true,
+    "model_browser": true
+  },
+  "supported_frameworks": [
+    "transformers",
+    "llama.cpp",
+    "bitnet.cpp",
+    "onnx",
+    "tensorrt"
+  ],
+  "supported_model_types": [
+    "text-generation",
+    "text-classification",
+    "question-answering",
+    "summarization",
+    "translation",
+    "embedding",
+    "image-classification",
+    "image-generation",
+    "speech-recognition",
+    "text-to-speech"
+  ],
+  "hardware_requirements": {
+    "min_ram_gb": 8,
+    "recommended_ram_gb": 32,
+    "gpu_support": true,
+    "cpu_cores": 4
+  },
+  "dependencies": {
+    "python": ">=3.8",
+    "torch": ">=2.0.0",
+    "transformers": ">=4.30.0",
+    "huggingface_hub": ">=0.16.0",
+    "fastapi": ">=0.100.0",
+    "uvicorn": ">=0.23.0",
+    "numpy": ">=1.24.0",
+    "requests": ">=2.31.0"
+  },
+  "optional_dependencies": {
+    "llama-cpp-python": ">=0.2.0",
+    "bitnet-cpp": ">=0.1.0",
+    "onnxruntime": ">=1.15.0",
+    "tensorrt": ">=8.6.0",
+    "accelerate": ">=0.21.0",
+    "bitsandbytes": ">=0.41.0"
+  },
+  "configuration": {
+    "default_model": "microsoft/DialoGPT-medium",
+    "max_models": 10,
+    "model_cache_size_gb": 50,
+    "inference_timeout": 30,
+    "batch_size": 1,
+    "max_sequence_length": 2048,
+    "enable_gpu": true,
+    "enable_quantization": true,
+    "enable_model_caching": true
+  }
+}

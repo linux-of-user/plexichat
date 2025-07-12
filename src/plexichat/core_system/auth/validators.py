@@ -1,13 +1,17 @@
 """
 PlexiChat Authentication Validators
 
-Validation utilities for passwords, tokens, and authentication data.
+ENHANCED to integrate with unified input validation framework.
+Provides specialized validation for authentication-specific data.
 """
 
 import re
 import logging
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
+
+# Import unified input validation
+from ..security.input_validation import get_input_validator, InputType, ValidationLevel
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +26,13 @@ class ValidationResult:
 
 
 class PasswordValidator:
-    """Password strength and policy validator."""
-    
+    """Password strength and policy validator - Enhanced with unified validation."""
+
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
-        
-        # Default password requirements
+        self.input_validator = get_input_validator()
+
+        # Legacy compatibility - these are now handled by unified validator
         self.min_length = self.config.get("min_length", 12)
         self.require_uppercase = self.config.get("require_uppercase", True)
         self.require_lowercase = self.config.get("require_lowercase", True)
@@ -35,27 +40,43 @@ class PasswordValidator:
         self.require_symbols = self.config.get("require_symbols", True)
         self.prevent_common_passwords = self.config.get("prevent_common_passwords", True)
         self.prevent_personal_info = self.config.get("prevent_personal_info", True)
-        
-        # Common passwords list (simplified)
-        self.common_passwords = {
-            "password", "123456", "password123", "admin", "qwerty",
-            "letmein", "welcome", "monkey", "dragon", "master"
-        }
     
     def validate_password(self, password: str, user_info: Dict[str, Any] = None) -> ValidationResult:
         """
-        Validate password against policy requirements.
-        
+        Validate password against policy requirements using unified validator.
+
         Args:
             password: Password to validate
             user_info: User information for personal info checking
-            
+
         Returns:
             ValidationResult: Validation result with errors and score
         """
-        errors = []
-        warnings = []
-        score = 0.0
+        try:
+            # Extract username for unified validator
+            username = None
+            if user_info:
+                username = user_info.get("username")
+
+            # Use unified input validator for comprehensive password validation
+            password_result = self.input_validator.validate_password(password, username)
+
+            # Convert to legacy ValidationResult format for compatibility
+            return ValidationResult(
+                valid=password_result.is_valid,
+                errors=password_result.errors,
+                warnings=password_result.warnings,
+                score=password_result.strength_score
+            )
+
+        except Exception as e:
+            logger.error(f"Password validation error: {e}")
+            return ValidationResult(
+                valid=False,
+                errors=[f"Password validation failed: {e}"],
+                warnings=[],
+                score=0.0
+            )
         
         # Length check
         if len(password) < self.min_length:

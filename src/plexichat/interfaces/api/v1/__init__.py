@@ -367,9 +367,9 @@ def register_v1_endpoints():
         from . import backup
         v1_router.include_router(backup.router, prefix="/backup", tags=["backup"])
 
-        # Enhanced security endpoints
-        from . import security
-        v1_router.include_router(security.router, prefix="/security", tags=["security"])
+        # Unified security endpoints
+        from .security_api import router as security_router
+        v1_router.include_router(security_router, tags=["security"])
 
         # Enhanced plugin endpoints
         from . import plugins

@@ -42,6 +42,32 @@ from .protection import (
     AttackType, SecurityThreat
 )
 
+# Import Phase I security enhancements
+from .waf import (
+    WebApplicationFirewall, waf, waf_middleware,
+    WAFRule, WAFRuleType, WAFAction, WAFViolation
+)
+from .csp import (
+    ContentSecurityPolicyManager, csp_manager,
+    CSPPolicy, CSPDirective, CSPSource
+)
+from .bug_bounty import (
+    BugBountyManager, bug_bounty_manager,
+    VulnerabilityReport, VulnerabilityType, SeverityLevel, ReportStatus
+)
+from .siem_integration import (
+    SIEMIntegration, siem_integration,
+    SecurityEvent, EventSeverity, EventCategory, SIEMProvider, SIEMConfiguration
+)
+from .security_headers import (
+    AdvancedSecurityHeaders, security_headers_manager,
+    SecurityHeaderType, SecurityHeaderConfig
+)
+from .cicd_security import (
+    CICDSecurityScanner, cicd_scanner,
+    Vulnerability, ScanResult, ScannerType, VulnerabilitySeverity, ScanType
+)
+
 # Import SSL/TLS management
 from .ssl import SSLCertificateManager, ssl_manager
 
@@ -469,6 +495,44 @@ __all__ = [
     'mitm_protection',
     'AttackType',
     'SecurityThreat',
+
+    # Phase I Security Enhancements
+    'WebApplicationFirewall',
+    'waf',
+    'waf_middleware',
+    'WAFRule',
+    'WAFRuleType',
+    'WAFAction',
+    'WAFViolation',
+    'ContentSecurityPolicyManager',
+    'csp_manager',
+    'CSPPolicy',
+    'CSPDirective',
+    'CSPSource',
+    'BugBountyManager',
+    'bug_bounty_manager',
+    'VulnerabilityReport',
+    'VulnerabilityType',
+    'SeverityLevel',
+    'ReportStatus',
+    'SIEMIntegration',
+    'siem_integration',
+    'SecurityEvent',
+    'EventSeverity',
+    'EventCategory',
+    'SIEMProvider',
+    'SIEMConfiguration',
+    'AdvancedSecurityHeaders',
+    'security_headers_manager',
+    'SecurityHeaderType',
+    'SecurityHeaderConfig',
+    'CICDSecurityScanner',
+    'cicd_scanner',
+    'Vulnerability',
+    'ScanResult',
+    'ScannerType',
+    'VulnerabilitySeverity',
+    'ScanType',
 
     # SSL/TLS management
     'SSLCertificateManager',

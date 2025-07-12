@@ -23,15 +23,15 @@ import uvicorn
 import yaml
 
 # Import configuration
-from .core.config import get_config
+from .core_system.config import get_config
 
 # Import advanced logging
-from .core.logging.advanced_logger import get_advanced_logger, setup_module_logging
+from .core_system.logging import get_logger, setup_module_logging
 
 # SSL/Certificate Management
 try:
-    from .core.security.ssl_manager import ComprehensiveSSLManager
-    ssl_manager = ComprehensiveSSLManager()
+    from .core_system.security.certificate_manager import get_certificate_manager
+    ssl_manager = get_certificate_manager()
     logging.info("✅ SSL Manager loaded")
 except ImportError as e:
     logging.warning(f"⚠️ SSL Manager not available: {e}")
@@ -39,9 +39,9 @@ except ImportError as e:
 
 # AI Abstraction Layer (Optional - Full Install Only)
 try:
-    from .ai.core.ai_abstraction_layer import AIAbstractionLayer
-    from .ai.api.ai_endpoints import router as ai_api_router
-    from .ai.webui.ai_management import router as ai_webui_router
+    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+    from .features.ai.api.ai_endpoints import router as ai_api_router
+    from .features.ai.webui.ai_management import router as ai_webui_router
     ai_layer = AIAbstractionLayer()
     logging.info("✅ AI Abstraction Layer loaded (Full Install)")
 except ImportError as e:
@@ -57,8 +57,8 @@ except Exception as e:
 
 # Clustering System
 try:
-    from .clustering import AdvancedClusterManager
-    cluster_manager = AdvancedClusterManager()
+    from .features.clustering.manager import get_cluster_manager
+    cluster_manager = get_cluster_manager()
     logging.info("✅ Advanced Clustering System loaded")
 except ImportError as e:
     logging.warning(f"⚠️ Advanced Clustering System not available: {e}")
@@ -66,7 +66,7 @@ except ImportError as e:
 
 # Import security middleware (with fallback)
 try:
-    from .security.middleware import SecurityMiddleware, AuthenticationMiddleware
+    from .core_system.security.middleware import SecurityMiddleware, AuthenticationMiddleware
 except ImportError:
     # Fallback middleware if security module not available
     class SecurityMiddleware:
@@ -237,22 +237,22 @@ def _load_web_routers(app: FastAPI):
 
     # Load routers from web/routers (new consolidated location)
     router_modules = [
-        ("web.routers.auth", "router"),
-        ("web.routers.users", "router"),
-        ("web.routers.messages", "router"),
-        ("web.routers.files", "router"),
-        ("web.routers.admin", "router"),
-        ("web.routers.status", "router"),
-        ("web.routers.system", "router"),
-        ("web.routers.websocket", "router"),
-        ("web.routers.webhooks", "router"),
-        ("web.routers.cluster", "router"),
-        ("web.routers.database_setup", "router"),
-        ("web.routers.file_management", "router"),
-        ("web.routers.login", "router"),
-        ("web.routers.messaging_websocket_router", "router"),
-        ("web.routers.server_management", "router"),
-        ("web.routers.web", "router"),
+        ("interfaces.web.routers.auth", "router"),
+        ("interfaces.web.routers.users", "router"),
+        ("interfaces.web.routers.messages", "router"),
+        ("interfaces.web.routers.files", "router"),
+        ("interfaces.web.routers.admin", "router"),
+        ("interfaces.web.routers.status", "router"),
+        ("interfaces.web.routers.system", "router"),
+        ("interfaces.web.routers.websocket", "router"),
+        ("interfaces.web.routers.webhooks", "router"),
+        ("interfaces.web.routers.cluster", "router"),
+        ("interfaces.web.routers.database_setup", "router"),
+        ("interfaces.web.routers.file_management", "router"),
+        ("interfaces.web.routers.login", "router"),
+        ("interfaces.web.routers.messaging_websocket_router", "router"),
+        ("interfaces.web.routers.server_management", "router"),
+        ("interfaces.web.routers.web", "router"),
     ]
 
     for module_path, router_name in router_modules:
@@ -274,20 +274,20 @@ def _load_api_routers(app: FastAPI):
 
     # API v1 routers
     api_v1_modules = [
-        ("api.v1.router", "router"),
-        ("api.v1.auth", "router"),
-        ("api.v1.users", "router"),
-        ("api.v1.messages", "router"),
-        ("api.v1.files", "router"),
-        ("api.v1.admin", "router"),
-        ("api.v1.moderation", "router"),
-        ("api.v1.security", "router"),
-        ("api.v1.plugins", "router"),
-        ("api.v1.rate_limits", "router"),
-        ("api.v1.permissions", "router"),
-        ("api.v1.testing", "router"),
-        ("api.v1.theming", "router"),
-        ("api.v1.social", "router"),
+        ("interfaces.api.v1.router", "router"),
+        ("interfaces.api.v1.auth", "router"),
+        ("interfaces.api.v1.users", "router"),
+        ("interfaces.api.v1.messages", "router"),
+        ("interfaces.api.v1.files", "router"),
+        ("interfaces.api.v1.admin", "router"),
+        ("interfaces.api.v1.moderation", "router"),
+        ("interfaces.api.v1.security", "router"),
+        ("interfaces.api.v1.plugins", "router"),
+        ("interfaces.api.v1.rate_limits", "router"),
+        ("interfaces.api.v1.permissions", "router"),
+        ("interfaces.api.v1.testing", "router"),
+        ("interfaces.api.v1.theming", "router"),
+        ("interfaces.api.v1.social", "router"),
     ]
 
     for module_path, router_name in api_v1_modules:
@@ -346,7 +346,7 @@ def create_app() -> FastAPI:
     logger.info("🚀 Creating PlexiChat FastAPI application...")
 
     config = get_config()
-    logger.info(f"📋 Configuration loaded: {config.app_name} v{config.version}")
+    logger.info(f"📋 Configuration loaded: {getattr(config, 'app_name', 'PlexiChat')} v{getattr(config, 'app_version', '3.0.0')}")
 
     # Create FastAPI app
     app = FastAPI(

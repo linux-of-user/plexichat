@@ -2,7 +2,7 @@
 PlexiChat Certificate Manager - SINGLE SOURCE OF TRUTH
 
 CONSOLIDATED from multiple certificate management systems:
-- core_system/security/certificate_manager.py - REMOVED
+- core_system/security/certificate_manager.py - REMOVED (this file)
 - features/security/ssl.py - REMOVED
 - features/security/core/certificate_manager.py - REMOVED
 - features/security/core/ssl_certificate_manager.py - REMOVED
@@ -65,114 +65,140 @@ class CertificateInfo:
     """Certificate information."""
     domain: str
     certificate_type: CertificateType
-    cert_path: str
-    key_path: str
-    fullchain_path: str
-    
-    # Certificate details
-    issued_date: datetime
-    expiry_date: datetime
-    issuer: str
-    subject: str
-    serial_number: str
-    fingerprint: str
-    
-    # Configuration
+    certificate_path: Path
+    private_key_path: Path
+    fullchain_path: Optional[Path] = None
+    created_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    expiry_date: Optional[datetime] = None
+    status: CertificateStatus = CertificateStatus.VALID
     auto_renew: bool = True
     renewal_threshold_days: int = 30
-    
-    # Status
-    status: CertificateStatus = CertificateStatus.VALID
-    last_checked: Optional[datetime] = None
-    
-    # Metadata
+    last_renewal_attempt: Optional[datetime] = None
+    renewal_failures: int = 0
     san_domains: List[str] = field(default_factory=list)
-    key_size: int = 2048
-    signature_algorithm: str = "sha256"
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-@dataclass
-class DomainConfig:
-    """Domain configuration for certificate management."""
-    domain: str
-    use_lets_encrypt: bool = True
-    email: str = ""
-    webroot_path: str = "/var/www/html"
-    auto_renew: bool = True
-    san_domains: List[str] = field(default_factory=list)
-    challenge_type: str = "http-01"  # http-01, dns-01, tls-alpn-01
-
-
-class UnifiedCertificateManager:
+class ConsolidatedCertificateManager:
     """
-    Unified Certificate Manager
-    
-    Provides comprehensive certificate management with automated
-    Let's Encrypt integration and enterprise-grade security.
+    Consolidated Certificate Manager - Single Source of Truth
+
+    Replaces all previous certificate management systems with a unified,
+    comprehensive solution supporting all certificate types and operations.
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = config or get_config().get("certificates", {})
+        self.config = config or getattr(get_config(), "certificates", {})
         self.initialized = False
-        
-        # Directories
-        self.cert_dir = Path(self.config.get("cert_directory", "data/certificates"))
-        self.backup_dir = self.cert_dir / "backups"
-        self.temp_dir = self.cert_dir / "temp"
-        
+
         # Certificate storage
         self.certificates: Dict[str, CertificateInfo] = {}
-        self.domain_configs: Dict[str, DomainConfig] = {}
-        
-        # Let's Encrypt configuration
+
+        # Configuration
+        self.cert_directory = Path(self.config.get("cert_directory", "./certificates"))
         self.lets_encrypt_email = self.config.get("lets_encrypt_email", "admin@example.com")
         self.lets_encrypt_staging = self.config.get("lets_encrypt_staging", False)
-        self.acme_server = (
-            "https://acme-staging-v02.api.letsencrypt.org/directory" 
-            if self.lets_encrypt_staging 
-            else "https://acme-v02.api.letsencrypt.org/directory"
-        )
-        
-        # Renewal settings
         self.auto_renewal_enabled = self.config.get("auto_renewal_enabled", True)
         self.renewal_threshold_days = self.config.get("renewal_threshold_days", 30)
-        self.renewal_check_interval = self.config.get("renewal_check_interval", 3600)  # 1 hour
-        
-        # SSL/TLS settings
-        self.min_tls_version = self.config.get("min_tls_version", "1.2")
-        self.max_tls_version = self.config.get("max_tls_version", "1.3")
-        self.cipher_suites = self.config.get("cipher_suites", 
-            "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS"
-        )
-        
-        logger.info("Unified Certificate Manager initialized")
-    
-    async def initialize(self) -> None:
+        self.webroot_path = self.config.get("webroot_path", "/var/www/html")
+
+        # ACME configuration
+        self.acme_server = "https://acme-v02.api.letsencrypt.org/directory"
+        self.acme_staging = "https://acme-staging-v02.api.letsencrypt.org/directory"
+
+        # SSL context cache
+        self.ssl_contexts: Dict[str, ssl.SSLContext] = {}
+
+        logger.info("Consolidated Certificate Manager initialized")
+
+    async def initialize(self) -> bool:
         """Initialize the certificate manager."""
-        if self.initialized:
-            return
-        
-        # Create directories
-        self.cert_dir.mkdir(parents=True, exist_ok=True)
-        self.backup_dir.mkdir(parents=True, exist_ok=True)
-        self.temp_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Load existing certificates
-        await self._load_existing_certificates()
-        
-        # Load domain configurations
-        await self._load_domain_configurations()
-        
-        # Start background tasks
-        if self.auto_renewal_enabled:
-            asyncio.create_task(self._certificate_renewal_task())
-        
-        asyncio.create_task(self._certificate_monitoring_task())
-        
-        self.initialized = True
-        logger.info("Unified Certificate Manager initialized successfully")
-    
+        try:
+            # Create certificate directory
+            self.cert_directory.mkdir(parents=True, exist_ok=True)
+
+            # Load existing certificates
+            await self._load_existing_certificates()
+
+            # Start background tasks
+            if self.auto_renewal_enabled:
+                asyncio.create_task(self._certificate_renewal_task())
+                asyncio.create_task(self._certificate_monitoring_task())
+
+            self.initialized = True
+            logger.info("✅ Certificate Manager initialized successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"❌ Certificate Manager initialization failed: {e}")
+            return False
+
+    async def _load_existing_certificates(self) -> None:
+        """Load existing certificates from disk."""
+        try:
+            if not self.cert_directory.exists():
+                return
+
+            for cert_file in self.cert_directory.glob("*.crt"):
+                domain = cert_file.stem
+                key_file = self.cert_directory / f"{domain}.key"
+
+                if key_file.exists():
+                    cert_info = await self._create_certificate_info_from_files(
+                        domain, cert_file, key_file
+                    )
+                    if cert_info:
+                        self.certificates[domain] = cert_info
+                        logger.info(f"Loaded existing certificate for {domain}")
+
+        except Exception as e:
+            logger.error(f"Failed to load existing certificates: {e}")
+
+    async def _create_certificate_info_from_files(
+        self, domain: str, cert_path: Path, key_path: Path
+    ) -> Optional[CertificateInfo]:
+        """Create certificate info from existing files."""
+        try:
+            # Read certificate to get expiry date
+            with open(cert_path, 'rb') as f:
+                cert_data = f.read()
+
+            cert = x509.load_pem_x509_certificate(cert_data)
+            expiry_date = cert.not_valid_after.replace(tzinfo=timezone.utc)
+
+            # Determine certificate type
+            cert_type = CertificateType.SELF_SIGNED
+            if "Let's Encrypt" in str(cert.issuer):
+                cert_type = CertificateType.LETS_ENCRYPT
+
+            return CertificateInfo(
+                domain=domain,
+                certificate_type=cert_type,
+                certificate_path=cert_path,
+                private_key_path=key_path,
+                expiry_date=expiry_date,
+                status=self._get_certificate_status(expiry_date)
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to create certificate info for {domain}: {e}")
+            return None
+
+    def _get_certificate_status(self, expiry_date: datetime) -> CertificateStatus:
+        """Get certificate status based on expiry date."""
+        if not expiry_date:
+            return CertificateStatus.INVALID
+
+        now = datetime.now(timezone.utc)
+        days_until_expiry = (expiry_date - now).days
+
+        if days_until_expiry < 0:
+            return CertificateStatus.EXPIRED
+        elif days_until_expiry <= self.renewal_threshold_days:
+            return CertificateStatus.EXPIRING_SOON
+        else:
+            return CertificateStatus.VALID
+
     async def generate_certificate(
         self,
         domain: str,
@@ -183,9 +209,9 @@ class UnifiedCertificateManager:
         """Generate a certificate for a domain."""
         if not self.initialized:
             await self.initialize()
-        
+
         logger.info(f"Generating {certificate_type.value} certificate for {domain}")
-        
+
         try:
             if certificate_type == CertificateType.LETS_ENCRYPT:
                 return await self._generate_lets_encrypt_certificate(domain, email, san_domains)
@@ -193,184 +219,119 @@ class UnifiedCertificateManager:
                 return await self._generate_self_signed_certificate(domain, san_domains)
             else:
                 raise ValueError(f"Unsupported certificate type: {certificate_type}")
-                
+
         except Exception as e:
             logger.error(f"Failed to generate certificate for {domain}: {e}")
-            # Fallback to self-signed if Let's Encrypt fails
-            if certificate_type == CertificateType.LETS_ENCRYPT:
-                logger.info(f"Falling back to self-signed certificate for {domain}")
-                return await self._generate_self_signed_certificate(domain, san_domains)
             return None
-    
-    async def renew_certificate(self, domain: str) -> bool:
-        """Renew a certificate."""
-        if domain not in self.certificates:
-            logger.error(f"Certificate for {domain} not found")
-            return False
-        
-        cert_info = self.certificates[domain]
-        
-        try:
-            if cert_info.certificate_type == CertificateType.LETS_ENCRYPT:
-                return await self._renew_lets_encrypt_certificate(domain)
-            elif cert_info.certificate_type == CertificateType.SELF_SIGNED:
-                # Regenerate self-signed certificate
-                new_cert = await self._generate_self_signed_certificate(domain)
-                return new_cert is not None
-            else:
-                logger.warning(f"Cannot auto-renew {cert_info.certificate_type.value} certificate for {domain}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Failed to renew certificate for {domain}: {e}")
-            return False
-    
-    async def get_ssl_context(self, domain: str) -> Optional[ssl.SSLContext]:
-        """Get SSL context for a domain."""
-        if domain not in self.certificates:
-            logger.warning(f"No certificate found for {domain}")
-            return None
-        
-        cert_info = self.certificates[domain]
-        
-        try:
-            # Create SSL context
-            context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-            context.load_cert_chain(cert_info.fullchain_path, cert_info.key_path)
-            
-            # Configure TLS versions
-            if self.min_tls_version == "1.2":
-                context.minimum_version = ssl.TLSVersion.TLSv1_2
-            elif self.min_tls_version == "1.3":
-                context.minimum_version = ssl.TLSVersion.TLSv1_3
-            
-            if self.max_tls_version == "1.3":
-                context.maximum_version = ssl.TLSVersion.TLSv1_3
-            
-            # Configure cipher suites
-            context.set_ciphers(self.cipher_suites)
-            
-            # Security options
-            context.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
-            context.options |= ssl.OP_SINGLE_DH_USE | ssl.OP_SINGLE_ECDH_USE
-            context.options |= ssl.OP_CIPHER_SERVER_PREFERENCE
-            
-            return context
-            
-        except Exception as e:
-            logger.error(f"Failed to create SSL context for {domain}: {e}")
-            return None
-    
-    async def check_certificate_expiration(self) -> Dict[str, Any]:
-        """Check certificate expiration status."""
-        expiration_report = {
-            "total_certificates": len(self.certificates),
-            "valid_certificates": 0,
-            "expiring_soon": 0,
-            "expired_certificates": 0,
-            "certificates": []
-        }
-        
-        current_time = datetime.now(timezone.utc)
-        
-        for domain, cert_info in self.certificates.items():
-            # Update certificate status
-            await self._update_certificate_status(cert_info)
-            
-            cert_status = {
-                "domain": domain,
-                "status": cert_info.status.value,
-                "expiry_date": cert_info.expiry_date.isoformat(),
-                "days_until_expiry": (cert_info.expiry_date - current_time).days,
-                "auto_renew": cert_info.auto_renew
-            }
-            
-            if cert_info.status == CertificateStatus.VALID:
-                expiration_report["valid_certificates"] += 1
-            elif cert_info.status == CertificateStatus.EXPIRING_SOON:
-                expiration_report["expiring_soon"] += 1
-            elif cert_info.status == CertificateStatus.EXPIRED:
-                expiration_report["expired_certificates"] += 1
-            
-            expiration_report["certificates"].append(cert_status)
-        
-        return expiration_report
-    
-    async def get_certificate_info(self, domain: str) -> Optional[CertificateInfo]:
-        """Get certificate information for a domain."""
-        return self.certificates.get(domain)
-    
-    async def list_certificates(self) -> List[CertificateInfo]:
-        """List all managed certificates."""
-        return list(self.certificates.values())
-    
-    async def backup_certificates(self) -> str:
-        """Create a backup of all certificates."""
-        backup_timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        backup_path = self.backup_dir / f"certificates_backup_{backup_timestamp}"
-        backup_path.mkdir(parents=True, exist_ok=True)
-        
-        try:
-            # Copy all certificate files
-            for domain, cert_info in self.certificates.items():
-                domain_backup_dir = backup_path / domain
-                domain_backup_dir.mkdir(exist_ok=True)
-                
-                # Copy certificate files
-                if Path(cert_info.cert_path).exists():
-                    shutil.copy2(cert_info.cert_path, domain_backup_dir / "cert.pem")
-                if Path(cert_info.key_path).exists():
-                    shutil.copy2(cert_info.key_path, domain_backup_dir / "key.pem")
-                if Path(cert_info.fullchain_path).exists():
-                    shutil.copy2(cert_info.fullchain_path, domain_backup_dir / "fullchain.pem")
-            
-            logger.info(f"Certificate backup created: {backup_path}")
-            return str(backup_path)
-            
-        except Exception as e:
-            logger.error(f"Failed to create certificate backup: {e}")
-            raise
 
-    # Private Implementation Methods
+    async def _generate_self_signed_certificate(
+        self, domain: str, san_domains: Optional[List[str]] = None
+    ) -> Optional[CertificateInfo]:
+        """Generate a self-signed certificate."""
+        try:
+            # Generate private key
+            private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+            )
+
+            # Create certificate
+            subject = issuer = x509.Name([
+                x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "CA"),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "PlexiChat"),
+                x509.NameAttribute(NameOID.COMMON_NAME, domain),
+            ])
+
+            cert_builder = x509.CertificateBuilder()
+            cert_builder = cert_builder.subject_name(subject)
+            cert_builder = cert_builder.issuer_name(issuer)
+            cert_builder = cert_builder.public_key(private_key.public_key())
+            cert_builder = cert_builder.serial_number(x509.random_serial_number())
+            cert_builder = cert_builder.not_valid_before(datetime.now(timezone.utc))
+            cert_builder = cert_builder.not_valid_after(
+                datetime.now(timezone.utc) + timedelta(days=365)
+            )
+
+            # Add SAN extension
+            san_list = [x509.DNSName(domain)]
+            if san_domains:
+                san_list.extend([x509.DNSName(san) for san in san_domains])
+
+            cert_builder = cert_builder.add_extension(
+                x509.SubjectAlternativeName(san_list),
+                critical=False,
+            )
+
+            # Sign certificate
+            certificate = cert_builder.sign(private_key, hashes.SHA256())
+
+            # Save certificate and key
+            cert_path = self.cert_directory / f"{domain}.crt"
+            key_path = self.cert_directory / f"{domain}.key"
+
+            with open(cert_path, "wb") as f:
+                f.write(certificate.public_bytes(serialization.Encoding.PEM))
+
+            with open(key_path, "wb") as f:
+                f.write(private_key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.PKCS8,
+                    encryption_algorithm=serialization.NoEncryption()
+                ))
+
+            # Create certificate info
+            cert_info = CertificateInfo(
+                domain=domain,
+                certificate_type=CertificateType.SELF_SIGNED,
+                certificate_path=cert_path,
+                private_key_path=key_path,
+                expiry_date=certificate.not_valid_after.replace(tzinfo=timezone.utc),
+                san_domains=san_domains or []
+            )
+
+            self.certificates[domain] = cert_info
+            logger.info(f"Self-signed certificate generated for {domain}")
+            return cert_info
+
+        except Exception as e:
+            logger.error(f"Failed to generate self-signed certificate for {domain}: {e}")
+            return None
 
     async def _generate_lets_encrypt_certificate(
-        self,
-        domain: str,
-        email: Optional[str] = None,
-        san_domains: Optional[List[str]] = None
+        self, domain: str, email: Optional[str] = None, san_domains: Optional[List[str]] = None
     ) -> Optional[CertificateInfo]:
-        """Generate Let's Encrypt certificate using certbot."""
-        # Check if certbot is available
-        if not shutil.which("certbot"):
-            logger.error("Certbot not available, falling back to self-signed")
-            return await self._generate_self_signed_certificate(domain, san_domains)
-
-        email = email or self.lets_encrypt_email
-
+        """Generate a Let's Encrypt certificate using certbot."""
         try:
+            # Check if certbot is available
+            if not shutil.which("certbot"):
+                logger.warning("Certbot not available, falling back to self-signed certificate")
+                return await self._generate_self_signed_certificate(domain, san_domains)
+
+            email = email or self.lets_encrypt_email
+            server_url = self.acme_staging if self.lets_encrypt_staging else self.acme_server
+
             # Prepare certbot command
             cmd = [
                 "certbot", "certonly",
-                "--non-interactive",
-                "--agree-tos",
+                "--webroot",
+                "--webroot-path", self.webroot_path,
                 "--email", email,
-                "--domains", domain
+                "--agree-tos",
+                "--no-eff-email",
+                "--server", server_url,
+                "--cert-name", domain,
+                "-d", domain
             ]
 
             # Add SAN domains
             if san_domains:
-                for san_domain in san_domains:
-                    cmd.extend(["--domains", san_domain])
+                for san in san_domains:
+                    cmd.extend(["-d", san])
 
             if self.lets_encrypt_staging:
-                cmd.append("--staging")
-
-            # Use webroot challenge by default
-            domain_config = self.domain_configs.get(domain)
-            if domain_config and domain_config.webroot_path:
-                cmd.extend(["--webroot", "--webroot-path", domain_config.webroot_path])
-            else:
-                cmd.append("--standalone")
+                cmd.append("--test-cert")
 
             # Run certbot
             process = await asyncio.create_subprocess_exec(
@@ -382,283 +343,65 @@ class UnifiedCertificateManager:
             stdout, stderr = await process.communicate()
 
             if process.returncode == 0:
-                # Certificate generated successfully
-                cert_info = await self._create_cert_info_from_letsencrypt(domain)
-                if cert_info:
-                    self.certificates[domain] = cert_info
-                    logger.info(f"Let's Encrypt certificate generated for: {domain}")
-                    return cert_info
+                # Find certificate files
+                cert_path = Path(f"/etc/letsencrypt/live/{domain}/fullchain.pem")
+                key_path = Path(f"/etc/letsencrypt/live/{domain}/privkey.pem")
+
+                if cert_path.exists() and key_path.exists():
+                    # Copy to our certificate directory
+                    local_cert_path = self.cert_directory / f"{domain}.crt"
+                    local_key_path = self.cert_directory / f"{domain}.key"
+
+                    shutil.copy2(cert_path, local_cert_path)
+                    shutil.copy2(key_path, local_key_path)
+
+                    # Create certificate info
+                    cert_info = await self._create_certificate_info_from_files(
+                        domain, local_cert_path, local_key_path
+                    )
+
+                    if cert_info:
+                        cert_info.certificate_type = CertificateType.LETS_ENCRYPT
+                        cert_info.san_domains = san_domains or []
+                        self.certificates[domain] = cert_info
+                        logger.info(f"Let's Encrypt certificate generated for {domain}")
+                        return cert_info
             else:
                 logger.error(f"Certbot failed for {domain}: {stderr.decode()}")
-                return None
+                # Fallback to self-signed
+                return await self._generate_self_signed_certificate(domain, san_domains)
 
         except Exception as e:
             logger.error(f"Let's Encrypt generation failed for {domain}: {e}")
-            return None
+            return await self._generate_self_signed_certificate(domain, san_domains)
 
-    async def _generate_self_signed_certificate(
-        self,
-        domain: str,
-        san_domains: Optional[List[str]] = None,
-        key_size: int = 2048,
-        validity_days: int = 365
-    ) -> Optional[CertificateInfo]:
-        """Generate self-signed certificate."""
+    async def renew_certificate(self, domain: str) -> bool:
+        """Renew a certificate."""
+        if domain not in self.certificates:
+            logger.error(f"Certificate for {domain} not found")
+            return False
+
+        cert_info = self.certificates[domain]
+
         try:
-            # Generate private key
-            private_key = rsa.generate_private_key(
-                public_exponent=65537,
-                key_size=key_size
-            )
-
-            # Create certificate subject
-            subject = x509.Name([
-                x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "PlexiChat"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "PlexiChat"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "PlexiChat"),
-                x509.NameAttribute(NameOID.COMMON_NAME, domain),
-            ])
-
-            # Create certificate
-            cert_builder = x509.CertificateBuilder()
-            cert_builder = cert_builder.subject_name(subject)
-            cert_builder = cert_builder.issuer_name(subject)
-            cert_builder = cert_builder.public_key(private_key.public_key())
-            cert_builder = cert_builder.serial_number(x509.random_serial_number())
-            cert_builder = cert_builder.not_valid_before(datetime.now(timezone.utc))
-            cert_builder = cert_builder.not_valid_after(
-                datetime.now(timezone.utc) + timedelta(days=validity_days)
-            )
-
-            # Add SAN extension
-            san_list = [x509.DNSName(domain)]
-            if san_domains:
-                san_list.extend([x509.DNSName(san_domain) for san_domain in san_domains])
-
-            cert_builder = cert_builder.add_extension(
-                x509.SubjectAlternativeName(san_list),
-                critical=False,
-            )
-
-            # Add basic constraints
-            cert_builder = cert_builder.add_extension(
-                x509.BasicConstraints(ca=False, path_length=None),
-                critical=True,
-            )
-
-            # Add key usage
-            cert_builder = cert_builder.add_extension(
-                x509.KeyUsage(
-                    digital_signature=True,
-                    key_encipherment=True,
-                    key_agreement=False,
-                    key_cert_sign=False,
-                    crl_sign=False,
-                    content_commitment=False,
-                    data_encipherment=False,
-                    encipher_only=False,
-                    decipher_only=False
-                ),
-                critical=True,
-            )
-
-            # Sign certificate
-            certificate = cert_builder.sign(private_key, hashes.SHA256())
-
-            # Save certificate and key
-            cert_path = self.cert_dir / f"{domain}.crt"
-            key_path = self.cert_dir / f"{domain}.key"
-            fullchain_path = self.cert_dir / f"{domain}_fullchain.pem"
-
-            # Write certificate
-            with open(cert_path, "wb") as f:
-                f.write(certificate.public_bytes(serialization.Encoding.PEM))
-
-            # Write private key
-            with open(key_path, "wb") as f:
-                f.write(private_key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.PKCS8,
-                    encryption_algorithm=serialization.NoEncryption()
-                ))
-
-            # Write fullchain (same as cert for self-signed)
-            with open(fullchain_path, "wb") as f:
-                f.write(certificate.public_bytes(serialization.Encoding.PEM))
-
-            # Create certificate info
-            cert_info = CertificateInfo(
-                domain=domain,
-                certificate_type=CertificateType.SELF_SIGNED,
-                cert_path=str(cert_path),
-                key_path=str(key_path),
-                fullchain_path=str(fullchain_path),
-                issued_date=datetime.now(timezone.utc),
-                expiry_date=datetime.now(timezone.utc) + timedelta(days=validity_days),
-                issuer="PlexiChat Self-Signed",
-                subject=f"CN={domain}",
-                serial_number=str(certificate.serial_number),
-                fingerprint=certificate.fingerprint(hashes.SHA256()).hex(),
-                san_domains=san_domains or [],
-                key_size=key_size
-            )
-
-            self.certificates[domain] = cert_info
-            logger.info(f"Self-signed certificate generated for: {domain}")
-
-            return cert_info
+            if cert_info.certificate_type == CertificateType.LETS_ENCRYPT:
+                return await self._renew_lets_encrypt_certificate(domain)
+            elif cert_info.certificate_type == CertificateType.SELF_SIGNED:
+                # Regenerate self-signed certificate
+                new_cert = await self._generate_self_signed_certificate(domain)
+                return new_cert is not None
+            else:
+                logger.warning(f"Cannot auto-renew {cert_info.certificate_type.value} certificate for {domain}")
+                return False
 
         except Exception as e:
-            logger.error(f"Failed to generate self-signed certificate for {domain}: {e}")
-            return None
-
-    async def _load_existing_certificates(self) -> None:
-        """Load existing certificates from disk."""
-        try:
-            # Load self-signed certificates
-            for cert_file in self.cert_dir.glob("*.crt"):
-                domain = cert_file.stem
-                key_file = self.cert_dir / f"{domain}.key"
-                fullchain_file = self.cert_dir / f"{domain}_fullchain.pem"
-
-                if key_file.exists():
-                    cert_info = await self._parse_certificate_file(
-                        str(cert_file), str(key_file), str(fullchain_file)
-                    )
-                    if cert_info:
-                        self.certificates[domain] = cert_info
-
-            # Load Let's Encrypt certificates
-            letsencrypt_dir = Path("/etc/letsencrypt/live")
-            if letsencrypt_dir.exists():
-                for domain_dir in letsencrypt_dir.iterdir():
-                    if domain_dir.is_dir():
-                        cert_info = await self._create_cert_info_from_letsencrypt(domain_dir.name)
-                        if cert_info:
-                            self.certificates[domain_dir.name] = cert_info
-
-            logger.info(f"Loaded {len(self.certificates)} existing certificates")
-
-        except Exception as e:
-            logger.error(f"Failed to load existing certificates: {e}")
-
-    async def _load_domain_configurations(self) -> None:
-        """Load domain configurations."""
-        # Load from configuration file or database
-        # Placeholder implementation
-        pass
-
-    async def _parse_certificate_file(
-        self, cert_path: str, key_path: str, fullchain_path: str
-    ) -> Optional[CertificateInfo]:
-        """Parse certificate file and extract information."""
-        try:
-            with open(cert_path, "rb") as f:
-                cert_data = f.read()
-
-            certificate = x509.load_pem_x509_certificate(cert_data)
-
-            # Extract domain from subject
-            domain = None
-            for attribute in certificate.subject:
-                if attribute.oid == NameOID.COMMON_NAME:
-                    domain = attribute.value
-                    break
-
-            if not domain:
-                return None
-
-            cert_info = CertificateInfo(
-                domain=domain,
-                certificate_type=CertificateType.SELF_SIGNED,
-                cert_path=cert_path,
-                key_path=key_path,
-                fullchain_path=fullchain_path,
-                issued_date=certificate.not_valid_before.replace(tzinfo=timezone.utc),
-                expiry_date=certificate.not_valid_after.replace(tzinfo=timezone.utc),
-                issuer=certificate.issuer.rfc4514_string(),
-                subject=certificate.subject.rfc4514_string(),
-                serial_number=str(certificate.serial_number),
-                fingerprint=certificate.fingerprint(hashes.SHA256()).hex()
-            )
-
-            return cert_info
-
-        except Exception as e:
-            logger.error(f"Failed to parse certificate file {cert_path}: {e}")
-            return None
-
-    async def _update_certificate_status(self, cert_info: CertificateInfo) -> None:
-        """Update certificate status based on expiration."""
-        current_time = datetime.now(timezone.utc)
-
-        if current_time > cert_info.expiry_date:
-            cert_info.status = CertificateStatus.EXPIRED
-        elif (cert_info.expiry_date - current_time).days <= cert_info.renewal_threshold_days:
-            cert_info.status = CertificateStatus.EXPIRING_SOON
-        else:
-            cert_info.status = CertificateStatus.VALID
-
-        cert_info.last_checked = current_time
-
-    async def _create_cert_info_from_letsencrypt(self, domain: str) -> Optional[CertificateInfo]:
-        """Create certificate info from Let's Encrypt files."""
-        try:
-            # Let's Encrypt certificate paths
-            letsencrypt_dir = Path(f"/etc/letsencrypt/live/{domain}")
-            cert_path = letsencrypt_dir / "cert.pem"
-            key_path = letsencrypt_dir / "privkey.pem"
-            fullchain_path = letsencrypt_dir / "fullchain.pem"
-
-            if not all(path.exists() for path in [cert_path, key_path, fullchain_path]):
-                return None
-
-            # Parse certificate
-            with open(cert_path, "rb") as f:
-                cert_data = f.read()
-
-            certificate = x509.load_pem_x509_certificate(cert_data)
-
-            cert_info = CertificateInfo(
-                domain=domain,
-                certificate_type=CertificateType.LETS_ENCRYPT,
-                cert_path=str(cert_path),
-                key_path=str(key_path),
-                fullchain_path=str(fullchain_path),
-                issued_date=certificate.not_valid_before.replace(tzinfo=timezone.utc),
-                expiry_date=certificate.not_valid_after.replace(tzinfo=timezone.utc),
-                issuer=certificate.issuer.rfc4514_string(),
-                subject=certificate.subject.rfc4514_string(),
-                serial_number=str(certificate.serial_number),
-                fingerprint=certificate.fingerprint(hashes.SHA256()).hex(),
-                auto_renew=True
-            )
-
-            # Extract SAN domains
-            try:
-                san_extension = certificate.extensions.get_extension_for_oid(
-                    x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME
-                )
-                cert_info.san_domains = [
-                    name.value for name in san_extension.value
-                    if isinstance(name, x509.DNSName)
-                ]
-            except x509.ExtensionNotFound:
-                pass
-
-            return cert_info
-
-        except Exception as e:
-            logger.error(f"Failed to create certificate info for {domain}: {e}")
-            return None
+            logger.error(f"Failed to renew certificate for {domain}: {e}")
+            return False
 
     async def _renew_lets_encrypt_certificate(self, domain: str) -> bool:
-        """Renew Let's Encrypt certificate."""
+        """Renew a Let's Encrypt certificate."""
         try:
-            cmd = ["certbot", "renew", "--cert-name", domain, "--non-interactive"]
-            if self.lets_encrypt_staging:
-                cmd.append("--staging")
+            cmd = ["certbot", "renew", "--cert-name", domain, "--quiet"]
 
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -670,44 +413,101 @@ class UnifiedCertificateManager:
 
             if process.returncode == 0:
                 # Update certificate info
-                cert_info = await self._create_cert_info_from_letsencrypt(domain)
-                if cert_info:
-                    self.certificates[domain] = cert_info
-                    logger.info(f"Let's Encrypt certificate renewed for: {domain}")
+                cert_info = self.certificates[domain]
+                updated_info = await self._create_certificate_info_from_files(
+                    domain, cert_info.certificate_path, cert_info.private_key_path
+                )
+                if updated_info:
+                    updated_info.certificate_type = CertificateType.LETS_ENCRYPT
+                    self.certificates[domain] = updated_info
+                    # Clear SSL context cache
+                    self.ssl_contexts.pop(domain, None)
+                    logger.info(f"Let's Encrypt certificate renewed for {domain}")
                     return True
             else:
                 logger.error(f"Certificate renewal failed for {domain}: {stderr.decode()}")
                 return False
 
         except Exception as e:
-            logger.error(f"Failed to renew certificate for {domain}: {e}")
+            logger.error(f"Let's Encrypt renewal failed for {domain}: {e}")
             return False
 
-    # Background Tasks
+    def get_ssl_context(self, domain: str) -> Optional[ssl.SSLContext]:
+        """Get SSL context for a domain."""
+        if domain in self.ssl_contexts:
+            return self.ssl_contexts[domain]
+
+        cert_info = self.certificates.get(domain)
+        if not cert_info:
+            return None
+
+        try:
+            context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            context.load_cert_chain(
+                str(cert_info.certificate_path),
+                str(cert_info.private_key_path)
+            )
+
+            # Enhanced security settings
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+            context.maximum_version = ssl.TLSVersion.TLSv1_3
+            context.set_ciphers('ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS')
+            context.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+            context.options |= ssl.OP_SINGLE_DH_USE | ssl.OP_SINGLE_ECDH_USE
+
+            # Cache the context
+            self.ssl_contexts[domain] = context
+            return context
+
+        except Exception as e:
+            logger.error(f"Failed to create SSL context for {domain}: {e}")
+            return None
+
+    def get_certificate_status(self, domain: str) -> Dict[str, Any]:
+        """Get certificate status information."""
+        cert_info = self.certificates.get(domain)
+        if not cert_info:
+            return {"error": f"Certificate for {domain} not found"}
+
+        now = datetime.now(timezone.utc)
+        days_until_expiry = None
+
+        if cert_info.expiry_date:
+            days_until_expiry = (cert_info.expiry_date - now).days
+
+        return {
+            "domain": domain,
+            "certificate_type": cert_info.certificate_type.value,
+            "status": cert_info.status.value,
+            "created_date": cert_info.created_date.isoformat(),
+            "expiry_date": cert_info.expiry_date.isoformat() if cert_info.expiry_date else None,
+            "days_until_expiry": days_until_expiry,
+            "auto_renew": cert_info.auto_renew,
+            "san_domains": cert_info.san_domains,
+            "renewal_failures": cert_info.renewal_failures
+        }
 
     async def _certificate_renewal_task(self) -> None:
-        """Background task for automatic certificate renewal."""
+        """Background task for certificate renewal."""
         while True:
             try:
-                await asyncio.sleep(self.renewal_check_interval)
+                await asyncio.sleep(86400)  # Check daily
 
                 current_time = datetime.now(timezone.utc)
 
                 for domain, cert_info in self.certificates.items():
-                    if not cert_info.auto_renew:
-                        continue
+                    if cert_info.auto_renew and cert_info.expiry_date:
+                        # Check if renewal is needed
+                        days_until_expiry = (cert_info.expiry_date - current_time).days
 
-                    # Check if renewal is needed
-                    days_until_expiry = (cert_info.expiry_date - current_time).days
+                        if days_until_expiry <= cert_info.renewal_threshold_days:
+                            logger.info(f"Attempting to renew certificate for {domain}")
+                            success = await self.renew_certificate(domain)
 
-                    if days_until_expiry <= cert_info.renewal_threshold_days:
-                        logger.info(f"Attempting to renew certificate for {domain}")
-                        success = await self.renew_certificate(domain)
-
-                        if success:
-                            logger.info(f"Certificate renewed successfully for {domain}")
-                        else:
-                            logger.error(f"Failed to renew certificate for {domain}")
+                            if success:
+                                logger.info(f"Certificate renewed successfully for {domain}")
+                            else:
+                                logger.error(f"Failed to renew certificate for {domain}")
 
             except Exception as e:
                 logger.error(f"Certificate renewal task error: {e}")
@@ -720,33 +520,51 @@ class UnifiedCertificateManager:
 
                 # Update certificate statuses
                 for cert_info in self.certificates.values():
-                    await self._update_certificate_status(cert_info)
-
-                # Generate expiration report
-                expiration_report = await self.check_certificate_expiration()
+                    if cert_info.expiry_date:
+                        cert_info.status = self._get_certificate_status(cert_info.expiry_date)
 
                 # Log warnings for expiring certificates
-                if expiration_report["expiring_soon"] > 0:
-                    logger.warning(f"{expiration_report['expiring_soon']} certificates expiring soon")
+                expiring_certs = [
+                    domain for domain, cert_info in self.certificates.items()
+                    if cert_info.status == CertificateStatus.EXPIRING_SOON
+                ]
 
-                if expiration_report["expired_certificates"] > 0:
-                    logger.error(f"{expiration_report['expired_certificates']} certificates have expired")
+                expired_certs = [
+                    domain for domain, cert_info in self.certificates.items()
+                    if cert_info.status == CertificateStatus.EXPIRED
+                ]
+
+                if expiring_certs:
+                    logger.warning(f"Certificates expiring soon: {', '.join(expiring_certs)}")
+
+                if expired_certs:
+                    logger.error(f"Expired certificates: {', '.join(expired_certs)}")
 
             except Exception as e:
                 logger.error(f"Certificate monitoring task error: {e}")
 
 
-# Global instance
-_unified_certificate_manager: Optional[UnifiedCertificateManager] = None
+# Global instance - SINGLE SOURCE OF TRUTH
+_certificate_manager: Optional[ConsolidatedCertificateManager] = None
 
 
-def get_unified_certificate_manager() -> UnifiedCertificateManager:
-    """Get the global unified certificate manager instance."""
-    global _unified_certificate_manager
-    if _unified_certificate_manager is None:
-        _unified_certificate_manager = UnifiedCertificateManager()
-    return _unified_certificate_manager
+def get_certificate_manager() -> ConsolidatedCertificateManager:
+    """Get the global certificate manager instance."""
+    global _certificate_manager
+    if _certificate_manager is None:
+        _certificate_manager = ConsolidatedCertificateManager()
+    return _certificate_manager
 
 
-# Alias for backward compatibility
-certificate_manager = get_unified_certificate_manager()
+# Primary instance
+certificate_manager = get_certificate_manager()
+
+# Export main components
+__all__ = [
+    "ConsolidatedCertificateManager",
+    "certificate_manager",
+    "CertificateType",
+    "CertificateStatus",
+    "CertificateInfo",
+    "get_certificate_manager"
+]

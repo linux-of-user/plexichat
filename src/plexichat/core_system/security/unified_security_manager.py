@@ -257,40 +257,49 @@ class UnifiedSecurityManager:
         mfa_code: Optional[str] = None,
         request_info: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Authenticate a user with comprehensive security checks."""
+        """Authenticate a user with comprehensive security checks using unified auth manager."""
         if not self.initialized:
             await self.initialize()
-        
-        auth_result = {
-            "success": False,
-            "user_id": None,
-            "session_id": None,
-            "mfa_required": False,
-            "security_level": SecurityLevel.BASIC,
-            "error_message": None
-        }
-        
+
         try:
-            # Primary authentication
-            user_id = await self._verify_credentials(username, password)
-            if not user_id:
-                auth_result["error_message"] = "Invalid credentials"
-                return auth_result
-            
-            # Check if MFA is required
-            mfa_required = await self._is_mfa_required(user_id, request_info)
-            
-            if mfa_required and not mfa_code:
-                auth_result["mfa_required"] = True
-                auth_result["user_id"] = user_id
-                return auth_result
-            
-            # Verify MFA if provided
-            if mfa_code:
-                mfa_valid = await self._verify_mfa(user_id, mfa_code)
-                if not mfa_valid:
-                    auth_result["error_message"] = "Invalid MFA code"
-                    return auth_result
+            if not self.auth_manager:
+                return {
+                    "success": False,
+                    "error_message": "Authentication system not available"
+                }
+
+            # Create authentication request
+            from .unified_auth_manager import AuthenticationRequest, SecurityLevel, AuthenticationMethod
+
+            auth_request = AuthenticationRequest(
+                username=username,
+                password=password,
+                mfa_code=mfa_code,
+                mfa_method=AuthenticationMethod.MFA_TOTP if mfa_code else None,
+                ip_address=request_info.get("ip_address") if request_info else None,
+                user_agent=request_info.get("user_agent") if request_info else None,
+                device_id=request_info.get("device_id") if request_info else None,
+                required_security_level=SecurityLevel.BASIC
+            )
+
+            # Authenticate using unified auth manager
+            auth_response = await self.auth_manager.authenticate(auth_request)
+
+            # Convert response to legacy format for compatibility
+            return {
+                "success": auth_response.success,
+                "user_id": auth_response.user_id,
+                "session_id": auth_response.session_id,
+                "access_token": auth_response.access_token,
+                "refresh_token": auth_response.refresh_token,
+                "mfa_required": auth_response.mfa_required,
+                "mfa_methods": [method.value for method in auth_response.mfa_methods],
+                "security_level": auth_response.security_level.value if auth_response.security_level else "BASIC",
+                "risk_score": auth_response.risk_score,
+                "device_trusted": auth_response.device_trusted,
+                "error_message": auth_response.error_message,
+                "audit_id": auth_response.audit_id
+            }
             
             # Create secure session
             session_id = await self._create_session(user_id, request_info)
@@ -366,37 +375,38 @@ class UnifiedSecurityManager:
 
     async def _initialize_components(self) -> None:
         """Initialize all security component managers."""
-        # Import and initialize components
-        from .unified_auth_manager import UnifiedAuthManager
-        from .unified_ddos_protection import UnifiedDDoSProtection
-        from .unified_rate_limiter import UnifiedRateLimiter
-        from .unified_input_validator import UnifiedInputValidator
-        from .unified_certificate_manager import UnifiedCertificateManager
-        from .unified_threat_detector import UnifiedThreatDetector
-        from .unified_vulnerability_scanner import UnifiedVulnerabilityScanner
-        from .unified_penetration_tester import UnifiedPenetrationTester
+        try:
+            # Import and initialize our consolidated components
+            from .unified_auth_manager import get_unified_auth_manager
+            from ..security.input_validation import get_input_validator
+            from ...features.security.network_protection import get_network_protection
+            from .certificate_manager import get_certificate_manager
 
-        # Initialize components
-        self.auth_manager = UnifiedAuthManager(self)
-        self.ddos_protection = UnifiedDDoSProtection(self)
-        self.rate_limiter = UnifiedRateLimiter(self)
-        self.input_validator = UnifiedInputValidator(self)
-        self.certificate_manager = UnifiedCertificateManager(self)
-        self.threat_detector = UnifiedThreatDetector(self)
-        self.vulnerability_scanner = UnifiedVulnerabilityScanner(self)
-        self.penetration_tester = UnifiedPenetrationTester(self)
+            # Initialize components with our consolidated systems
+            self.auth_manager = get_unified_auth_manager()
+            self.input_validator = get_input_validator()
+            self.network_protection = get_network_protection()
+            self.certificate_manager = get_certificate_manager()
 
-        # Initialize all components
-        await self.auth_manager.initialize()
-        await self.ddos_protection.initialize()
-        await self.rate_limiter.initialize()
-        await self.input_validator.initialize()
-        await self.certificate_manager.initialize()
-        await self.threat_detector.initialize()
-        await self.vulnerability_scanner.initialize()
-        await self.penetration_tester.initialize()
+            # Initialize all components
+            await self.auth_manager.initialize()
+            await self.input_validator.initialize()
+            await self.network_protection.initialize()
+            await self.certificate_manager.initialize()
 
-        logger.info("All security components initialized")
+            logger.info("✅ All consolidated security components initialized")
+
+        except ImportError as e:
+            logger.warning(f"Some security components not available: {e}")
+            # Initialize basic fallback components
+            self.auth_manager = None
+            self.input_validator = None
+            self.network_protection = None
+            self.certificate_manager = None
+
+        except Exception as e:
+            logger.error(f"Failed to initialize security components: {e}")
+            raise
 
     async def _load_threat_intelligence(self) -> None:
         """Load threat intelligence data."""

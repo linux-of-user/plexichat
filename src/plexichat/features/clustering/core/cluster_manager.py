@@ -173,12 +173,20 @@ class AdvancedClusterManager:
         from .performance_monitor import RealTimePerformanceMonitor
         from .failover_manager import AutomaticFailoverManager
         from .task_manager import AdvancedTaskManager
+        from ..specialized import create_specialized_node, NODE_TYPES
 
         self.node_manager = IntelligentNodeManager(self)
         self.load_balancer = SmartLoadBalancer(self)
         self.performance_monitor = RealTimePerformanceMonitor(self)
         self.failover_manager = AutomaticFailoverManager(self)
         self.task_manager = AdvancedTaskManager(self)
+
+        # Specialized node management
+        self.specialized_nodes: Dict[str, Any] = {}
+        self.node_type_registry = NODE_TYPES.copy()
+
+        # Initialize specialized nodes based on configuration
+        await self._initialize_specialized_nodes()
 
         # Initialize all components
         await self.node_manager.initialize()
@@ -422,6 +430,260 @@ class AdvancedClusterManager:
         await self._save_node_to_database(local_node)
 
         logger.info(f"Initialized local node {self.local_node_id} as {role.value}")
+
+    async def _initialize_specialized_nodes(self):
+        """Initialize specialized cluster nodes based on configuration."""
+        try:
+            logger.info("🔧 Initializing specialized cluster nodes")
+
+            # Get specialized node configuration
+            specialized_config = self.cluster_config.get("specialized_nodes", {})
+
+            for node_type, config in specialized_config.items():
+                if config.get("enabled", False):
+                    await self._create_specialized_node(node_type, config)
+
+            # If no specialized nodes configured, create default main node
+            if not self.specialized_nodes:
+                await self._create_default_specialized_nodes()
+
+            logger.info(f"✅ Initialized {len(self.specialized_nodes)} specialized nodes")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize specialized nodes: {e}")
+
+    async def _create_specialized_node(self, node_type: str, config: Dict[str, Any]):
+        """Create and initialize a specialized node."""
+        try:
+            if node_type not in self.node_type_registry:
+                logger.warning(f"Unknown specialized node type: {node_type}")
+                return
+
+            # Generate unique node ID
+            node_id = f"{node_type}_{self.local_node_id}"
+
+            # Merge cluster config with node-specific config
+            node_config = {
+                **self.cluster_config,
+                **config,
+                "cluster_manager": self,
+                "local_node_id": self.local_node_id
+            }
+
+            # Create specialized node instance
+            specialized_node = create_specialized_node(node_type, node_id, node_config)
+
+            # Initialize the specialized node
+            await specialized_node.initialize()
+
+            # Register with cluster
+            self.specialized_nodes[node_id] = specialized_node
+
+            # Update cluster node with specialized capabilities
+            if self.local_node_id in self.cluster_nodes:
+                cluster_node = self.cluster_nodes[self.local_node_id]
+                cluster_node.capabilities.extend(specialized_node.get_capabilities())
+                cluster_node.metadata[f"{node_type}_node"] = True
+                await self._save_node_to_database(cluster_node)
+
+            logger.info(f"✅ Created specialized {node_type} node: {node_id}")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to create specialized {node_type} node: {e}")
+
+    async def _create_default_specialized_nodes(self):
+        """Create default specialized nodes if none configured."""
+        try:
+            # Create main node by default
+            default_config = {
+                "enabled": True,
+                "max_concurrent_requests": 100,
+                "database_pool_size": 10
+            }
+
+            await self._create_specialized_node("main", default_config)
+
+        except Exception as e:
+            logger.error(f"❌ Failed to create default specialized nodes: {e}")
+
+    async def get_specialized_node(self, node_type: str) -> Optional[Any]:
+        """Get a specialized node by type."""
+        for node_id, node in self.specialized_nodes.items():
+            if node_id.startswith(f"{node_type}_"):
+                return node
+        return None
+
+    async def get_specialized_nodes_by_capability(self, capability: str) -> List[Any]:
+        """Get specialized nodes that have a specific capability."""
+        matching_nodes = []
+
+        for node in self.specialized_nodes.values():
+            if hasattr(node, 'get_capabilities') and capability in node.get_capabilities():
+                matching_nodes.append(node)
+
+        return matching_nodes
+
+    async def route_request_to_specialized_node(self, request_type: str, request_data: Dict[str, Any]) -> Any:
+        """Route a request to the appropriate specialized node."""
+        try:
+            # Determine which specialized node should handle this request
+            target_node = await self._determine_target_node(request_type, request_data)
+
+            if not target_node:
+                logger.warning(f"No specialized node available for request type: {request_type}")
+                return None
+
+            # Route the request
+            if hasattr(target_node, 'handle_request'):
+                return await target_node.handle_request(request_type, request_data)
+            else:
+                logger.warning(f"Specialized node {target_node} does not support request handling")
+                return None
+
+        except Exception as e:
+            logger.error(f"❌ Failed to route request to specialized node: {e}")
+            return None
+
+    async def _determine_target_node(self, request_type: str, request_data: Dict[str, Any]) -> Optional[Any]:
+        """Determine which specialized node should handle a request."""
+        try:
+            # Request type to node type mapping
+            request_routing = {
+                "antivirus_scan": "antivirus",
+                "file_scan": "antivirus",
+                "threat_analysis": "antivirus",
+                "ssl_termination": "gateway",
+                "load_balance": "gateway",
+                "proxy_request": "gateway",
+                "api_request": "main",
+                "database_query": "main",
+                "message_processing": "main",
+                "plugin_execution": "main"
+            }
+
+            target_type = request_routing.get(request_type)
+            if target_type:
+                return await self.get_specialized_node(target_type)
+
+            # If no specific routing, try to find a node with the required capability
+            capability_mapping = {
+                "scan": "antivirus",
+                "proxy": "gateway",
+                "api": "main",
+                "database": "main"
+            }
+
+            for keyword, node_type in capability_mapping.items():
+                if keyword in request_type.lower():
+                    return await self.get_specialized_node(node_type)
+
+            # Default to main node
+            return await self.get_specialized_node("main")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to determine target node: {e}")
+            return None
+
+    async def get_specialized_node_status(self) -> Dict[str, Any]:
+        """Get status of all specialized nodes."""
+        try:
+            status = {}
+
+            for node_id, node in self.specialized_nodes.items():
+                node_status = {
+                    "node_id": node_id,
+                    "node_type": node_id.split("_")[0],
+                    "status": "online" if hasattr(node, 'is_running') and node.is_running else "unknown",
+                    "capabilities": node.get_capabilities() if hasattr(node, 'get_capabilities') else [],
+                    "performance_metrics": {}
+                }
+
+                # Get performance metrics if available
+                if hasattr(node, 'get_performance_metrics'):
+                    try:
+                        node_status["performance_metrics"] = await node.get_performance_metrics()
+                    except Exception as e:
+                        logger.debug(f"Could not get performance metrics for {node_id}: {e}")
+
+                status[node_id] = node_status
+
+            return status
+
+        except Exception as e:
+            logger.error(f"❌ Failed to get specialized node status: {e}")
+            return {}
+
+    async def shutdown_specialized_nodes(self):
+        """Shutdown all specialized nodes gracefully."""
+        try:
+            logger.info("🛑 Shutting down specialized nodes")
+
+            shutdown_tasks = []
+            for node_id, node in self.specialized_nodes.items():
+                if hasattr(node, 'shutdown'):
+                    task = asyncio.create_task(node.shutdown())
+                    shutdown_tasks.append(task)
+
+            if shutdown_tasks:
+                await asyncio.gather(*shutdown_tasks, return_exceptions=True)
+
+            self.specialized_nodes.clear()
+            logger.info("✅ All specialized nodes shut down")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to shutdown specialized nodes: {e}")
+
+    async def shutdown(self):
+        """Gracefully shutdown the cluster manager and all components."""
+        try:
+            logger.info("🛑 Shutting down Advanced Cluster Manager")
+
+            # Update local node status
+            if self.local_node_id in self.cluster_nodes:
+                self.cluster_nodes[self.local_node_id].status = NodeStatus.OFFLINE
+                await self._save_node_to_database(self.cluster_nodes[self.local_node_id])
+
+            # Shutdown specialized nodes first
+            await self.shutdown_specialized_nodes()
+
+            # Shutdown component managers in reverse order of initialization
+            shutdown_tasks = []
+
+            if hasattr(self, 'task_manager') and self.task_manager:
+                shutdown_tasks.append(asyncio.create_task(self.task_manager.shutdown()))
+
+            if hasattr(self, 'failover_manager') and self.failover_manager:
+                shutdown_tasks.append(asyncio.create_task(self.failover_manager.shutdown()))
+
+            if hasattr(self, 'performance_monitor') and self.performance_monitor:
+                shutdown_tasks.append(asyncio.create_task(self.performance_monitor.shutdown()))
+
+            if hasattr(self, 'load_balancer') and self.load_balancer:
+                shutdown_tasks.append(asyncio.create_task(self.load_balancer.shutdown()))
+
+            if hasattr(self, 'node_manager') and self.node_manager:
+                shutdown_tasks.append(asyncio.create_task(self.node_manager.shutdown()))
+
+            # Wait for all components to shutdown
+            if shutdown_tasks:
+                await asyncio.gather(*shutdown_tasks, return_exceptions=True)
+
+            # Cancel background tasks
+            for task in self.background_tasks:
+                task.cancel()
+
+            if self.background_tasks:
+                await asyncio.gather(*self.background_tasks, return_exceptions=True)
+
+            # Close database connection
+            if hasattr(self, 'db_connection') and self.db_connection:
+                await self.db_connection.close()
+
+            logger.info("✅ Advanced Cluster Manager shutdown complete")
+
+        except Exception as e:
+            logger.error(f"❌ Error during cluster manager shutdown: {e}")
+            raise
 
     async def _save_node_to_database(self, node: ClusterNode):
         """Save node information to database."""

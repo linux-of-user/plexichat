@@ -1,7 +1,12 @@
 {
-  "current_version": "a.1.1-6",
-  "last_updated": "2025-07-11T01:00:00.000000+00:00",
+  "current_version": "a.1.1-7",
+  "last_updated": "2025-07-11T01:15:00.000000+00:00",
   "history": [
+    {
+      "version": "a.1.1-6",
+      "date": "2025-07-11T01:00:00.000000+00:00",
+      "changes": "Backup core consolidation completed"
+    },
     {
       "version": "a.1.1-5",
       "date": "2025-07-11T00:45:00.000000+00:00",
@@ -27,5 +32,8 @@
       "date": "2025-07-10T18:14:28.466309+00:00",
       "changes": "Initial version"
     }
-  ]
+  ],
+  "deprecated": true,
+  "deprecation_notice": "This file is deprecated. PlexiChat now uses Git-based versioning.",
+  "migration_date": "2025-07-11T17:44:28.374763"
 }

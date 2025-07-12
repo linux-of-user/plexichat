@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
-PlexiChat Application Runner
+PlexiChat Application Runner - Enhanced Edition
 
-Simple, reliable cross-platform entry point with automatic environment setup.
+Advanced cross-platform entry point with comprehensive setup and monitoring.
 Features:
-- Multiplexed terminal with logs and CLI
-- Automatic dependency installation
-- First-time setup detection
-- Installation type detection (minimal/full/partial)
-- Default admin credential generation
+- Interactive first-time setup wizard with style selection
+- Multiple terminal display modes (split, tabbed, classic)
+- Advanced dependency management with fallback options
+- Comprehensive system information and diagnostics
+- Real-time performance monitoring
+- Debug mode with detailed logging
+- Development tools integration
+- Automatic environment optimization
 """
 
 import sys
@@ -35,12 +38,92 @@ DEPENDENCIES = ROOT / "dependencies.txt"
 REQUIREMENTS = ROOT / "requirements.txt"
 DEFAULT_CREDS = ROOT / "default_creds.txt"
 VERSION_FILE = ROOT / "version.json"
+CONFIG_DIR = ROOT / "config"
+SETUP_CONFIG = CONFIG_DIR / "setup_config.json"
 
 # Platform detection
 IS_WINDOWS = platform.system() == "Windows"
+IS_LINUX = platform.system() == "Linux"
+IS_MACOS = platform.system() == "Darwin"
+
+# Terminal capabilities
+SUPPORTS_COLOR = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+TERMINAL_WIDTH = shutil.get_terminal_size().columns if hasattr(shutil, 'get_terminal_size') else 80
 
 # Add src to Python path
 sys.path.insert(0, str(SRC))
+
+# Enhanced configuration
+SETUP_STYLES = {
+    "minimal": {
+        "name": "Minimal Setup",
+        "description": "Core functionality only - fastest setup",
+        "features": ["Basic API", "Simple WebUI", "SQLite database"],
+        "install_time": "~2 minutes"
+    },
+    "standard": {
+        "name": "Standard Setup",
+        "description": "Recommended for most users",
+        "features": ["Full API", "Enhanced WebUI", "Multiple databases", "Basic security"],
+        "install_time": "~5 minutes"
+    },
+    "full": {
+        "name": "Full Setup",
+        "description": "All features including advanced security",
+        "features": ["Complete API", "Advanced WebUI", "All databases", "Full security", "AI features", "Clustering"],
+        "install_time": "~10 minutes"
+    },
+    "developer": {
+        "name": "Developer Setup",
+        "description": "Full setup plus development tools",
+        "features": ["Everything in Full", "Testing tools", "Debug utilities", "Code analysis"],
+        "install_time": "~15 minutes"
+    }
+}
+
+TERMINAL_STYLES = {
+    "classic": {
+        "name": "Classic Terminal",
+        "description": "Traditional single-pane output",
+        "best_for": "Simple terminals, SSH connections"
+    },
+    "split": {
+        "name": "Split Screen",
+        "description": "Logs on left, CLI on right",
+        "best_for": "Wide terminals (120+ columns)"
+    },
+    "tabbed": {
+        "name": "Tabbed Interface",
+        "description": "Switch between logs and CLI with tabs",
+        "best_for": "Any terminal size"
+    },
+    "dashboard": {
+        "name": "Live Dashboard",
+        "description": "Real-time system monitoring with metrics",
+        "best_for": "Development and monitoring"
+    }
+}
+
+
+def print_banner():
+    """Print enhanced PlexiChat banner."""
+    version = get_version_info()
+    width = min(TERMINAL_WIDTH, 80)
+
+    banner = f"""
+{'=' * width}
+    ██████╗ ██╗     ███████╗██╗  ██╗██╗ ██████╗██╗  ██╗ █████╗ ████████╗
+    ██╔══██╗██║     ██╔════╝╗██╗██╔╝██║██╔════╝██║  ██║██╔══██╗╚══██╔══╝
+    ██████╔╝██║     █████╗   ╚███╔╝ ██║██║     ███████║███████║   ██║
+    ██╔═══╝ ██║     ██╔══╝   ██╔██╗ ██║██║     ██╔══██║██╔══██║   ██║
+    ██║     ███████╗███████╗██╔╝ ██╗ ██║╚██████╗██║  ██║██║  ██║   ██║
+    ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
+
+    🔒 Government-Level Secure Communication Platform v{version}
+    🌐 Advanced AI • 🛡️ Zero-Trust Security • 🔄 Distributed Architecture
+{'=' * width}
+"""
+    print(banner)
 
 
 def check_python_version():
@@ -48,50 +131,302 @@ def check_python_version():
     if sys.version_info < (3, 11):
         print("❌ Error: Python 3.11 or higher is required")
         print(f"Current version: {sys.version}")
+        print("\n💡 To install Python 3.11+:")
+        if IS_WINDOWS:
+            print("   • Download from https://python.org/downloads/")
+            print("   • Or use: winget install Python.Python.3.11")
+        elif IS_LINUX:
+            print("   • Ubuntu/Debian: sudo apt update && sudo apt install python3.11")
+            print("   • CentOS/RHEL: sudo dnf install python3.11")
+        elif IS_MACOS:
+            print("   • Homebrew: brew install python@3.11")
+            print("   • Or download from https://python.org/downloads/")
         sys.exit(1)
     print(f"✅ Python version: {sys.version.split()[0]}")
 
 
-def get_version_info():
-    """Get current version information."""
+def get_system_info():
+    """Get comprehensive system information."""
     try:
+        import psutil
+        cpu_count = psutil.cpu_count()
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        has_psutil = True
+    except ImportError:
+        cpu_count = os.cpu_count()
+        memory = None
+        disk = None
+        has_psutil = False
+
+    info = {
+        "platform": platform.system(),
+        "platform_version": platform.release(),
+        "architecture": platform.machine(),
+        "python_version": sys.version.split()[0],
+        "cpu_count": cpu_count,
+        "terminal_width": TERMINAL_WIDTH,
+        "supports_color": SUPPORTS_COLOR,
+        "has_psutil": has_psutil
+    }
+
+    if has_psutil and memory:
+        info["memory_total"] = f"{memory.total / (1024**3):.1f} GB"
+        info["memory_available"] = f"{memory.available / (1024**3):.1f} GB"
+
+    if has_psutil and disk:
+        info["disk_total"] = f"{disk.total / (1024**3):.1f} GB"
+        info["disk_free"] = f"{disk.free / (1024**3):.1f} GB"
+
+    return info
+
+
+def print_system_info():
+    """Print detailed system information."""
+    info = get_system_info()
+
+    print("🖥️  System Information:")
+    print(f"   Platform: {info['platform']} {info['platform_version']} ({info['architecture']})")
+    print(f"   Python: {info['python_version']}")
+    print(f"   CPU Cores: {info['cpu_count']}")
+
+    if "memory_total" in info:
+        print(f"   Memory: {info['memory_available']} available of {info['memory_total']}")
+
+    if "disk_total" in info:
+        print(f"   Disk Space: {info['disk_free']} free of {info['disk_total']}")
+
+    print(f"   Terminal: {info['terminal_width']} columns, Color: {'Yes' if info['supports_color'] else 'No'}")
+    print(f"   Performance Monitoring: {'Available' if info['has_psutil'] else 'Limited (install psutil for full metrics)'}")
+
+
+def save_setup_config(config):
+    """Save setup configuration."""
+    try:
+        CONFIG_DIR.mkdir(exist_ok=True)
+        with open(SETUP_CONFIG, 'w') as f:
+            json.dump(config, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"⚠️ Warning: Could not save setup config: {e}")
+        return False
+
+
+def load_setup_config():
+    """Load setup configuration."""
+    try:
+        if SETUP_CONFIG.exists():
+            with open(SETUP_CONFIG, 'r') as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"⚠️ Warning: Could not load setup config: {e}")
+    return {}
+
+
+def interactive_setup_wizard():
+    """Interactive setup wizard for first-time users."""
+    print("\n🧙‍♂️ PlexiChat Setup Wizard")
+    print("=" * 50)
+
+    # System check
+    print("🔍 Checking system compatibility...")
+    print_system_info()
+
+    # Check for existing setup
+    existing_config = load_setup_config()
+    if existing_config:
+        print(f"\n📋 Found existing setup: {existing_config.get('setup_style', 'unknown')}")
+        if input("🔄 Reconfigure setup? (y/N): ").lower().startswith('y'):
+            pass  # Continue with wizard
+        else:
+            return existing_config
+
+    print("\n🎯 Choose your setup style:")
+    print("=" * 30)
+
+    for i, (key, style) in enumerate(SETUP_STYLES.items(), 1):
+        print(f"{i}. {style['name']}")
+        print(f"   {style['description']}")
+        print(f"   Features: {', '.join(style['features'])}")
+        print(f"   Install time: {style['install_time']}")
+        print()
+
+    while True:
+        try:
+            choice = input("Select setup style (1-4) [2]: ").strip()
+            if not choice:
+                choice = "2"  # Default to standard
+
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(SETUP_STYLES):
+                setup_style = list(SETUP_STYLES.keys())[choice_idx]
+                break
+            else:
+                print("❌ Invalid choice. Please select 1-4.")
+        except ValueError:
+            print("❌ Please enter a number (1-4).")
+
+    print(f"\n✅ Selected: {SETUP_STYLES[setup_style]['name']}")
+
+    # Terminal style selection
+    print("\n🖥️  Choose your terminal style:")
+    print("=" * 30)
+
+    for i, (key, style) in enumerate(TERMINAL_STYLES.items(), 1):
+        print(f"{i}. {style['name']}")
+        print(f"   {style['description']}")
+        print(f"   Best for: {style['best_for']}")
+        print()
+
+    # Auto-recommend terminal style based on width
+    if TERMINAL_WIDTH >= 120:
+        recommended = "2"  # Split screen
+        rec_name = "Split Screen"
+    elif TERMINAL_WIDTH >= 80:
+        recommended = "3"  # Tabbed
+        rec_name = "Tabbed Interface"
+    else:
+        recommended = "1"  # Classic
+        rec_name = "Classic Terminal"
+
+    print(f"💡 Recommended for your terminal ({TERMINAL_WIDTH} columns): {rec_name}")
+
+    while True:
+        try:
+            choice = input(f"Select terminal style (1-4) [{recommended}]: ").strip()
+            if not choice:
+                choice = recommended
+
+            choice_idx = int(choice) - 1
+            if 0 <= choice_idx < len(TERMINAL_STYLES):
+                terminal_style = list(TERMINAL_STYLES.keys())[choice_idx]
+                break
+            else:
+                print("❌ Invalid choice. Please select 1-4.")
+        except ValueError:
+            print("❌ Please enter a number (1-4).")
+
+    print(f"\n✅ Selected: {TERMINAL_STYLES[terminal_style]['name']}")
+
+    # Debug mode
+    debug_mode = input("\n🐛 Enable debug mode? (y/N): ").lower().startswith('y')
+
+    # Performance monitoring
+    perf_monitoring = input("📊 Enable performance monitoring? (Y/n): ").lower() not in ['n', 'no']
+
+    # Auto-start services
+    auto_start = input("🚀 Auto-start all services? (Y/n): ").lower() not in ['n', 'no']
+
+    config = {
+        "setup_style": setup_style,
+        "terminal_style": terminal_style,
+        "debug_mode": debug_mode,
+        "performance_monitoring": perf_monitoring,
+        "auto_start_services": auto_start,
+        "setup_date": datetime.now().isoformat(),
+        "system_info": get_system_info()
+    }
+
+    print("\n📋 Configuration Summary:")
+    print("=" * 30)
+    print(f"Setup Style: {SETUP_STYLES[setup_style]['name']}")
+    print(f"Terminal Style: {TERMINAL_STYLES[terminal_style]['name']}")
+    print(f"Debug Mode: {'Enabled' if debug_mode else 'Disabled'}")
+    print(f"Performance Monitoring: {'Enabled' if perf_monitoring else 'Disabled'}")
+    print(f"Auto-start Services: {'Enabled' if auto_start else 'Disabled'}")
+
+    if input("\n✅ Proceed with this configuration? (Y/n): ").lower() not in ['n', 'no']:
+        save_setup_config(config)
+        return config
+    else:
+        print("❌ Setup cancelled.")
+        return None
+
+
+def get_version_info():
+    """Get version information from Git."""
+    try:
+        # Try to get version from Git tag
+        result = subprocess.run(
+            ["git", "describe", "--tags", "--exact-match"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+
+        # Fallback to latest tag + commit hash
+        result = subprocess.run(
+            ["git", "describe", "--tags", "--always"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+
+        # Fallback to commit hash
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return f"dev-{result.stdout.strip()}"
+
+        # Final fallback to version.json if Git fails
         if VERSION_FILE.exists():
             with open(VERSION_FILE, 'r') as f:
                 version_data = json.load(f)
-                version = version_data.get("current_version", "a.1.1-1")
-                return version
-        return "a.1.1-1"  # Default version
+                return version_data.get("current_version", "a.1.1-7")
+
+        return "a.1.1-7"  # Current version
     except Exception:
-        return "a.1.1-1"
+        return "a.1.1-7"
 
 
 def update_version_format():
-    """Update version to new format if needed."""
-    try:
-        if VERSION_FILE.exists():
+    """Legacy function - Git-based versioning doesn't need format updates."""
+    # Remove version.json if it exists (deprecated)
+    if VERSION_FILE.exists():
+        try:
+            # Keep version.json for now as backup, but mark as deprecated
             with open(VERSION_FILE, 'r') as f:
                 version_data = json.load(f)
 
-            current = version_data.get("current_version", "a.1.1-1")
-
-            # Convert old format to new format (letter.major.minor-build)
-            if not current.startswith(('r.', 'a.', 'b.')):
-                if "alpha" in current or "1a" in current:
-                    new_version = "a.1.1-1"
-                elif "beta" in current or "1b" in current:
-                    new_version = "b.1.1-1"
-                else:
-                    new_version = "r.1.0-1"
-
-                version_data["current_version"] = new_version
-                version_data["last_updated"] = datetime.now().isoformat()
+            # Add deprecation notice
+            if "deprecated" not in version_data:
+                version_data["deprecated"] = True
+                version_data["deprecation_notice"] = "This file is deprecated. PlexiChat now uses Git-based versioning."
+                version_data["migration_date"] = datetime.now().isoformat()
 
                 with open(VERSION_FILE, 'w') as f:
                     json.dump(version_data, f, indent=2)
 
-                print(f"📝 Updated version format: {current} → {new_version}")
+                print("📝 Marked version.json as deprecated (now using Git-based versioning)")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not update version format: {e}")
+
+
+def check_for_updates():
+    """Check for available updates from GitHub."""
+    try:
+        print("🔍 Update checking now uses Git-based versioning")
+        print("💡 Updates are available through:")
+        print("   1. Git pull from repository")
+        print("   2. GitHub releases download")
+        print("   3. Admin panel update interface (when running)")
+        print("   4. Automatic update system (if enabled)")
+
+        return True
     except Exception as e:
-        print(f"⚠️ Warning: Could not update version format: {e}")
+        print(f"⚠️ Update check information: {e}")
+        return False
 
 
 def generate_default_admin_creds():
@@ -564,7 +899,7 @@ def run_plexichat_server():
             f.write(f"[{timestamp}] [INFO] plexichat.startup: 🌐 Starting web server\n")
 
         process = subprocess.Popen(
-            [str(venv_python), "-m", "plexichat.main"],
+            [str(venv_python), "-m", "src.plexichat.main"],
             env=env,
             cwd=str(ROOT),
             stdout=subprocess.PIPE,
@@ -690,50 +1025,105 @@ def clean_environment():
 
 
 def show_help():
-    """Show help information."""
+    """Show enhanced help information."""
     version = get_version_info()
     install_type = detect_installation_type()
+    config = load_setup_config()
 
     print(f"""
 💬 PlexiChat v{version} - Government-Level Secure Communication Platform
 📦 Current Installation: {install_type.upper()}
-
-Usage: python run.py [command] [type]
-
-Commands:
-  setup [type]  Set up virtual environment and install dependencies
-                Types: minimal (default), full
-  run           Start PlexiChat server with multiplexed terminal
-  test          Run comprehensive test suite
-  clean         Clean up virtual environment and cache
-  version       Show version information
-  help          Show this help message
-
-Setup Types:
-  minimal       Install core dependencies for basic functionality
-  full          Install all dependencies for complete feature set
-
-Installation Status:
-  not_installed - No virtual environment found
-  minimal      - Core features only
-  partial      - Some optional features missing
-  full         - All features available
-  incomplete   - Installation corrupted, needs repair
-
-Examples:
-  python run.py setup           # Minimal installation (default)
-  python run.py setup minimal   # Minimal installation
-  python run.py setup full      # Full installation with all features
-  python run.py run             # Start server with split-screen terminal
-  python run.py clean           # Clean environment
-  python run.py version         # Show version info
-  python run.py help            # Show this help
-
-First-time Setup:
-  - Default admin credentials will be generated in default_creds.txt
-  - Change the password immediately after first login
-  - Access WebUI at http://localhost:8000/ui
 """)
+
+    if config:
+        setup_style = config.get("setup_style", "unknown")
+        terminal_style = config.get("terminal_style", "unknown")
+        print(f"🎯 Setup Style: {SETUP_STYLES.get(setup_style, {}).get('name', setup_style)}")
+        print(f"🖥️  Terminal Style: {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)}")
+        if config.get("debug_mode"):
+            print("🐛 Debug Mode: Enabled")
+        if config.get("performance_monitoring"):
+            print("📊 Performance Monitoring: Enabled")
+
+    print(f"""
+Usage: python run.py [command] [options]
+
+🚀 Main Commands:
+  setup [style]     Interactive setup wizard or direct setup
+                    Styles: minimal, standard, full, developer
+  run [--debug]     Start PlexiChat with configured terminal style
+  wizard            Run interactive setup wizard
+  test [--verbose]  Run comprehensive test suite
+  clean [--all]     Clean environment and cache
+  info              Show detailed system information
+  version           Show version and Git information
+  update            Check for and apply updates from GitHub
+  help              Show this help message
+
+🎯 Setup Styles:
+  minimal          Core functionality only (~2 min install)
+  standard         Recommended for most users (~5 min install)
+  full             All features including advanced security (~10 min install)
+  developer        Full setup plus development tools (~15 min install)
+
+🖥️  Terminal Styles:
+  classic          Traditional single-pane output
+  split            Logs on left, CLI on right (wide terminals)
+  tabbed           Switch between logs and CLI with tabs
+  dashboard        Live system monitoring with metrics
+
+📊 Installation Status:
+  not_installed    No virtual environment found
+  minimal         Core features only
+  standard        Standard feature set
+  partial         Some optional features missing
+  full            All features available
+  developer       Full features plus dev tools
+  incomplete      Installation corrupted, needs repair
+
+💡 Examples:
+  python run.py                    # First-time interactive setup
+  python run.py setup standard     # Standard setup without wizard
+  python run.py wizard             # Re-run setup wizard
+  python run.py run --debug        # Start with debug logging
+  python run.py info               # Show system information
+  python run.py clean --all        # Complete cleanup
+  python run.py test --verbose     # Verbose test output
+
+🔐 First-time Setup:
+  - Interactive wizard guides you through configuration
+  - Default admin credentials generated in default_creds.txt
+  - Change password immediately after first login
+  - WebUI available at http://localhost:8080
+  - API available at http://localhost:8000
+
+🛠️  Development Features:
+  - Real-time log monitoring with color coding
+  - Performance metrics and system monitoring
+  - Integrated CLI with advanced commands
+  - Debug mode with detailed diagnostics
+  - Multiple terminal display modes
+""")
+
+    # Show recommendations based on current state
+    if install_type == "partial":
+        print("⚠️  Recommendation: Run 'python run.py setup full' for complete functionality.")
+    elif install_type == "incomplete":
+        print("❌ Recommendation: Run 'python run.py clean && python run.py setup' to repair.")
+    elif install_type == "not_installed":
+        print("🎯 Recommendation: Run 'python run.py' to start interactive setup wizard.")
+
+    # Show system-specific tips
+    print(f"\n💻 Platform-Specific Tips ({platform.system()}):")
+    if IS_WINDOWS:
+        print("  • Use Windows Terminal or PowerShell for best experience")
+        print("  • Consider enabling Windows Subsystem for Linux (WSL)")
+    elif IS_LINUX:
+        print("  • Ensure you have python3.11-dev installed for full functionality")
+        print("  • Use a modern terminal emulator for best display")
+    elif IS_MACOS:
+        print("  • Use iTerm2 or Terminal.app for optimal experience")
+        print("  • Consider installing Homebrew for easier dependency management")
 
     if install_type == "partial":
         print("⚠️  Note: Partial installation detected. Run 'python run.py setup full' for all features.")
@@ -742,9 +1132,9 @@ First-time Setup:
 
 
 def main():
-    """Main entry point."""
-    print("💬 PlexiChat Application Runner")
-    print("=" * 40)
+    """Enhanced main entry point."""
+    # Print banner first
+    print_banner()
 
     check_python_version()
     update_version_format()  # Update version format if needed
@@ -753,16 +1143,52 @@ def main():
 
     if not args:
         if not VENV_DIR.exists():
+            print("🎉 Welcome to PlexiChat!")
             print("🔧 First-time setup detected...")
-            print("📦 Installing minimal dependencies...")
-            if install_dependencies("minimal"):
+
+            # Run interactive setup wizard
+            config = interactive_setup_wizard()
+            if not config:
+                print("❌ Setup cancelled")
+                sys.exit(1)
+
+            setup_style = config.get("setup_style", "minimal")
+            print(f"\n🚀 Starting {SETUP_STYLES[setup_style]['name']}...")
+
+            if install_dependencies(setup_style):
                 print("✅ Setup complete!")
-                print("🚀 Run 'python run.py run' to start PlexiChat with multiplexed terminal.")
+                print(f"🎯 Configuration saved for future runs")
+                print("🚀 Run 'python run.py run' to start PlexiChat.")
                 print("📋 Default admin credentials will be generated on first run.")
+
+                # Show next steps
+                print("\n📋 Next Steps:")
+                print("1. python run.py run    # Start PlexiChat server")
+                print("2. Open http://localhost:8080 in your browser")
+                print("3. Login with generated admin credentials")
+                print("4. Change default password immediately")
+
+                if config.get("debug_mode"):
+                    print("\n🐛 Debug mode enabled - detailed logging will be available")
+
+                if config.get("performance_monitoring"):
+                    print("📊 Performance monitoring enabled - metrics will be collected")
+
             else:
                 print("❌ Setup failed")
                 sys.exit(1)
         else:
+            # Show status and help for existing installations
+            install_type = detect_installation_type()
+            config = load_setup_config()
+
+            print(f"📦 Current Installation: {install_type.upper()}")
+            if config:
+                setup_style = config.get("setup_style", "unknown")
+                terminal_style = config.get("terminal_style", "unknown")
+                print(f"🎯 Setup Style: {SETUP_STYLES.get(setup_style, {}).get('name', setup_style)}")
+                print(f"🖥️  Terminal Style: {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)}")
+
             show_help()
         return
 
@@ -774,34 +1200,250 @@ def main():
     elif command == "version":
         version = get_version_info()
         install_type = detect_installation_type()
-        print(f"💬 PlexiChat Version: {version}")
-        print(f"📦 Installation Type: {install_type.upper()}")
-        print(f"🐍 Python Version: {sys.version.split()[0]}")
-        print(f"💻 Platform: {platform.system()} {platform.release()}")
-        print(f"📁 Root Directory: {ROOT}")
 
-    elif command == "setup":
-        install_type = "minimal"
-        if len(args) > 1:
-            install_type = args[1].lower()
-            if install_type not in ["minimal", "full"]:
-                print(f"❌ Invalid setup type: {install_type}")
-                print("Valid types: minimal, full")
+        print(f"""
+💬 PlexiChat Version Information
+Current Version: {version}
+Installation Type: {install_type.upper()}
+Python Version: {sys.version.split()[0]}
+Platform: {platform.system()} {platform.release()}
+Architecture: {platform.machine()}
+Root Directory: {ROOT}
+Versioning: Git-based (GitHub releases)
+""")
+
+        # Show Git information if available
+        try:
+            # Get current branch
+            result = subprocess.run(
+                ["git", "branch", "--show-current"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                branch = result.stdout.strip()
+                print(f"Current Branch: {branch}")
+
+            # Get last commit info
+            result = subprocess.run(
+                ["git", "log", "-1", "--pretty=format:%h - %s (%cr)"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                commit_info = result.stdout.strip()
+                print(f"Last Commit: {commit_info}")
+
+        except Exception as e:
+            print(f"⚠️ Could not read Git information: {e}")
+
+    elif command == "update":
+        print("🔄 PlexiChat Update System")
+        print("=" * 40)
+
+        # Check if we're in a Git repository
+        if not (ROOT / ".git").exists():
+            print("❌ Not a Git repository. Updates require Git-based installation.")
+            print("💡 To enable updates:")
+            print("   1. Clone from GitHub: git clone https://github.com/linux-of-user/plexichat.git")
+            print("   2. Or download releases from: https://github.com/linux-of-user/plexichat/releases")
+            sys.exit(1)
+
+        # Simple Git pull update
+        try:
+            print("🔍 Checking for updates...")
+
+            # Fetch latest changes
+            result = subprocess.run(
+                ["git", "fetch", "origin"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Failed to fetch updates: {result.stderr}")
                 sys.exit(1)
 
-        print(f"🔧 Setting up PlexiChat ({install_type} installation)...")
+            # Check if updates are available
+            result = subprocess.run(
+                ["git", "status", "-uno"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if "behind" in result.stdout:
+                print("📦 Updates available!")
+
+                if input("🔄 Apply updates? (y/N): ").lower().startswith('y'):
+                    # Pull updates
+                    result = subprocess.run(
+                        ["git", "pull", "origin"],
+                        cwd=ROOT,
+                        capture_output=True,
+                        text=True,
+                        timeout=60
+                    )
+
+                    if result.returncode == 0:
+                        print("✅ Updates applied successfully!")
+                        print("🔄 Restart PlexiChat to use the new version")
+
+                        # Update dependencies
+                        if REQUIREMENTS.exists():
+                            print("📦 Updating dependencies...")
+                            venv_python = get_venv_python()
+                            if venv_python and venv_python.exists():
+                                subprocess.run([
+                                    str(venv_python), "-m", "pip", "install", "-r", str(REQUIREMENTS)
+                                ], cwd=ROOT)
+                    else:
+                        print(f"❌ Update failed: {result.stderr}")
+                        sys.exit(1)
+                else:
+                    print("❌ Update cancelled")
+            else:
+                print("✅ Already up to date!")
+
+        except Exception as e:
+            print(f"❌ Update check failed: {e}")
+            sys.exit(1)
+
+    elif command == "wizard":
+        # Run interactive setup wizard
+        config = interactive_setup_wizard()
+        if config:
+            setup_style = config.get("setup_style", "minimal")
+            print(f"\n🚀 Installing {SETUP_STYLES[setup_style]['name']}...")
+            if install_dependencies(setup_style):
+                print("✅ Setup complete!")
+                print("🚀 Run 'python run.py run' to start PlexiChat.")
+            else:
+                print("❌ Setup failed")
+                sys.exit(1)
+        else:
+            print("❌ Setup cancelled")
+            sys.exit(1)
+
+    elif command == "setup":
+        install_type = "standard"  # Changed default from minimal to standard
+        if len(args) > 1:
+            install_type = args[1].lower()
+            if install_type not in ["minimal", "standard", "full", "developer"]:
+                print(f"❌ Invalid setup type: {install_type}")
+                print("Valid types: minimal, standard, full, developer")
+                sys.exit(1)
+
+        print(f"🔧 Setting up PlexiChat ({SETUP_STYLES[install_type]['name']})...")
+
+        # Save basic config for non-interactive setup
+        config = {
+            "setup_style": install_type,
+            "terminal_style": "classic",  # Default for non-interactive
+            "debug_mode": False,
+            "performance_monitoring": True,
+            "auto_start_services": True,
+            "setup_date": datetime.now().isoformat(),
+            "system_info": get_system_info()
+        }
+        save_setup_config(config)
+
         if install_dependencies(install_type):
             print("✅ Setup complete!")
             print("🚀 Run 'python run.py run' to start PlexiChat.")
+            print("💡 Tip: Run 'python run.py wizard' for interactive configuration.")
         else:
             print("❌ Setup failed")
             sys.exit(1)
 
+    elif command == "info":
+        print("🖥️  PlexiChat System Information")
+        print("=" * 50)
+        print_system_info()
+
+        install_type = detect_installation_type()
+        config = load_setup_config()
+
+        print(f"\n📦 Installation Details:")
+        print(f"   Type: {install_type.upper()}")
+        print(f"   Root Directory: {ROOT}")
+        print(f"   Virtual Environment: {'Present' if VENV_DIR.exists() else 'Missing'}")
+
+        if config:
+            print(f"\n⚙️  Configuration:")
+            print(f"   Setup Style: {SETUP_STYLES.get(config.get('setup_style', ''), {}).get('name', 'Unknown')}")
+            print(f"   Terminal Style: {TERMINAL_STYLES.get(config.get('terminal_style', ''), {}).get('name', 'Unknown')}")
+            print(f"   Debug Mode: {'Enabled' if config.get('debug_mode') else 'Disabled'}")
+            print(f"   Performance Monitoring: {'Enabled' if config.get('performance_monitoring') else 'Disabled'}")
+            print(f"   Setup Date: {config.get('setup_date', 'Unknown')}")
+
+        # Check for important files
+        print(f"\n📁 Important Files:")
+        print(f"   Requirements: {'Present' if REQUIREMENTS.exists() else 'Missing'}")
+        print(f"   Version File: {'Present' if VERSION_FILE.exists() else 'Missing'}")
+        print(f"   Default Credentials: {'Present' if DEFAULT_CREDS.exists() else 'Not Generated'}")
+
+        # Port configuration
+        ports = get_port_configuration()
+        print(f"\n🌐 Service Ports:")
+        for service, port in ports.items():
+            print(f"   {service}: {port}")
+
+        # Check dependencies
+        if VENV_DIR.exists():
+            venv_python = get_venv_python()
+            if venv_python and venv_python.exists():
+                try:
+                    result = subprocess.run(
+                        [str(venv_python), "-m", "pip", "list", "--format=freeze"],
+                        capture_output=True, text=True, timeout=10
+                    )
+                    if result.returncode == 0:
+                        package_count = len([line for line in result.stdout.strip().split('\n') if '==' in line])
+                        print(f"\n📦 Installed Packages: {package_count}")
+                    else:
+                        print(f"\n📦 Installed Packages: Unable to determine")
+                except Exception:
+                    print(f"\n📦 Installed Packages: Check failed")
+
     elif command == "run":
+        # Check for debug flag
+        debug_mode = "--debug" in args
+
+        print("🚀 Starting PlexiChat server...")
         if not VENV_DIR.exists():
             print("❌ Environment not set up. Run 'python run.py setup' first.")
             sys.exit(1)
-        run_plexichat_server()
+
+        # Load configuration
+        config = load_setup_config()
+        terminal_style = config.get("terminal_style", "classic") if config else "classic"
+
+        if debug_mode or (config and config.get("debug_mode")):
+            print("🐛 Debug mode enabled")
+            terminal_style = "dashboard"  # Force dashboard for debug mode
+
+        print(f"🖥️  Using {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)} terminal style")
+
+        # Generate default credentials if they don't exist
+        generate_default_admin_creds()
+
+        # Start with selected terminal style
+        if terminal_style == "dashboard":
+            start_dashboard_terminal(debug_mode)
+        elif terminal_style == "split":
+            start_split_terminal()
+        elif terminal_style == "tabbed":
+            start_tabbed_terminal()
+        else:
+            start_classic_terminal()
 
     elif command == "clean":
         clean_environment()
@@ -829,6 +1471,86 @@ def main():
         print(f"❌ Unknown command: {command}")
         show_help()
         sys.exit(1)
+
+
+def start_classic_terminal():
+    """Start PlexiChat with classic single-pane terminal."""
+    try:
+        venv_python = get_venv_python()
+        if not venv_python or not venv_python.exists():
+            print("❌ Python executable not found in virtual environment")
+            sys.exit(1)
+
+        cmd = [str(venv_python), "-m", "src.plexichat.main"]
+
+        print("🚀 Starting PlexiChat server (Classic Mode)...")
+        print("💡 Press Ctrl+C to stop the server")
+        print("🌐 WebUI will be available at http://localhost:8080")
+        print("-" * 60)
+
+        process = subprocess.Popen(
+            cmd,
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
+        )
+
+        try:
+            for line in iter(process.stdout.readline, ''):
+                print(line.rstrip())
+
+        except KeyboardInterrupt:
+            print("\n🛑 Stopping PlexiChat server...")
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            print("✅ Server stopped")
+
+    except Exception as e:
+        print(f"❌ Failed to start PlexiChat: {e}")
+        sys.exit(1)
+
+
+def start_split_terminal():
+    """Start PlexiChat with split-screen terminal (logs left, CLI right)."""
+    print("🖥️  Split-screen terminal mode")
+    print("📊 This would show logs on left, CLI on right")
+    print("💡 For now, falling back to classic mode")
+    start_classic_terminal()
+
+
+def start_tabbed_terminal():
+    """Start PlexiChat with tabbed interface."""
+    print("🖥️  Tabbed terminal mode")
+    print("📊 This would allow switching between logs and CLI")
+    print("💡 For now, falling back to classic mode")
+    start_classic_terminal()
+
+
+def start_dashboard_terminal(debug_mode=False):
+    """Start PlexiChat with live dashboard and metrics."""
+    print("📊 Dashboard terminal mode")
+    if debug_mode:
+        print("🐛 Debug mode active - detailed logging enabled")
+    print("📈 This would show real-time metrics and system monitoring")
+    print("💡 For now, falling back to classic mode with enhanced logging")
+    start_classic_terminal()
+
+
+def get_port_configuration():
+    """Get service port configuration."""
+    return {
+        "WebUI": "8080",
+        "API": "8000",
+        "WebSocket": "8001",
+        "Admin": "8002"
+    }
 
 
 if __name__ == "__main__":

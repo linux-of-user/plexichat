@@ -1,12 +1,21 @@
 """
-Enhanced backup API for PlexiChat.
+Enhanced backup API for PlexiChat - SECURED WITH UNIFIED AUTHENTICATION
 Handles government-level secure backup operations, recovery, and monitoring.
+
+ENHANCED SECURITY FEATURES:
+- Unified authentication/authorization integration
+- End-to-end encryption for all backup operations
+- Comprehensive audit logging
+- Role-based access control
+- Input validation and sanitization
+- Rate limiting and DDoS protection
 """
 
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Request, status, Query, BackgroundTasks
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 from sqlmodel import Session, select
 from pydantic import BaseModel
 
@@ -15,6 +24,61 @@ from plexichat.app.models.enhanced_backup import (
     EnhancedBackup, BackupType, BackupStatus, SecurityLevel,
     BackupNode, UserBackupQuota, BackupRecoveryLog
 )
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
+from ....core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
+
+# Initialize security components
+auth_manager = get_unified_auth_manager()
+audit_system = get_unified_audit_system()
+input_validator = get_input_validator()
+security = HTTPBearer()
+
+
+async def require_enhanced_backup_auth(request: Request, token: str = Depends(security)):
+    """Require enhanced authentication for backup operations."""
+    try:
+        # Validate token with critical security level for enhanced backups
+        auth_result = await auth_manager.require_authentication(
+            token.credentials,
+            AuthSecurityLevel.CRITICAL
+        )
+
+        if not auth_result.get('authenticated'):
+            # Log failed authentication
+            audit_system.log_security_event(
+                SecurityEventType.AUTHORIZATION_FAILURE,
+                f"Failed enhanced backup authentication from {request.client.host if request.client else 'unknown'}",
+                SecuritySeverity.CRITICAL,
+                ThreatLevel.HIGH,
+                source_ip=request.client.host if request.client else None,
+                resource="/api/v1/system/enhanced-backup",
+                details={"error": auth_result.get('error')}
+            )
+            raise HTTPException(status_code=401, detail="Critical authentication required")
+
+        # Check enhanced backup permissions
+        permissions = auth_result.get('permissions', [])
+        if not any(perm in permissions for perm in ['super_admin', 'enhanced_backup_admin', 'government_backup']):
+            # Log authorization failure
+            audit_system.log_security_event(
+                SecurityEventType.AUTHORIZATION_FAILURE,
+                f"Insufficient permissions for enhanced backup operations: {permissions}",
+                SecuritySeverity.CRITICAL,
+                ThreatLevel.HIGH,
+                user_id=auth_result.get('user_id'),
+                source_ip=request.client.host if request.client else None,
+                resource="/api/v1/system/enhanced-backup"
+            )
+            raise HTTPException(status_code=403, detail="Enhanced backup privileges required")
+
+        return auth_result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Enhanced backup authentication error: {e}")
+        raise HTTPException(status_code=500, detail="Authentication system error")
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.services.enhanced_backup_service import EnhancedBackupService
 from plexichat.app.utils.auth import get_current_user

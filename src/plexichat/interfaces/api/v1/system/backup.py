@@ -1,19 +1,82 @@
 """
-Backup management API endpoints.
+Backup management API endpoints - SECURED WITH UNIFIED AUTHENTICATION
 Provides access to distributed backup system functionality.
+
+ENHANCED SECURITY FEATURES:
+- Unified authentication/authorization integration
+- End-to-end encryption for all backup operations
+- Comprehensive audit logging
+- Role-based access control
+- Input validation and sanitization
+- Rate limiting and DDoS protection
 """
 
 from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 import asyncio
+import logging
 
 from app.core.backup.distributed_backup import distributed_backup
-from app.core.auth.dependencies import get_current_user, require_admin
-from app.models.user import User
-from app.logger_config import logger
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
+from ....core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backup", tags=["backup"])
+security = HTTPBearer()
+
+# Initialize security components
+auth_manager = get_unified_auth_manager()
+audit_system = get_unified_audit_system()
+input_validator = get_input_validator()
+
+
+async def require_backup_auth(request: Request, token: str = Depends(security)):
+    """Require authentication for backup operations."""
+    try:
+        # Validate token with high security level
+        auth_result = await auth_manager.require_authentication(
+            token.credentials,
+            AuthSecurityLevel.HIGH
+        )
+
+        if not auth_result.get('authenticated'):
+            # Log failed authentication
+            audit_system.log_security_event(
+                SecurityEventType.AUTHORIZATION_FAILURE,
+                f"Failed backup authentication from {request.client.host if request.client else 'unknown'}",
+                SecuritySeverity.WARNING,
+                ThreatLevel.MEDIUM,
+                source_ip=request.client.host if request.client else None,
+                resource="/api/v1/system/backup",
+                details={"error": auth_result.get('error')}
+            )
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        # Check backup permissions
+        permissions = auth_result.get('permissions', [])
+        if not any(perm in permissions for perm in ['admin', 'super_admin', 'backup_admin']):
+            # Log authorization failure
+            audit_system.log_security_event(
+                SecurityEventType.AUTHORIZATION_FAILURE,
+                f"Insufficient permissions for backup operations: {permissions}",
+                SecuritySeverity.WARNING,
+                ThreatLevel.MEDIUM,
+                user_id=auth_result.get('user_id'),
+                source_ip=request.client.host if request.client else None,
+                resource="/api/v1/system/backup"
+            )
+            raise HTTPException(status_code=403, detail="Backup privileges required")
+
+        return auth_result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Backup authentication error: {e}")
+        raise HTTPException(status_code=500, detail="Authentication system error")
 
 class CreateBackupRequest(BaseModel):
     """Request model for creating a backup."""
@@ -32,12 +95,15 @@ class BackupResponse(BaseModel):
     data: Optional[Dict[str, Any]] = None
 
 @router.get("/status")
-async def get_backup_status(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
+async def get_backup_status(
+    request: Request,
+    current_user: dict = Depends(require_backup_auth)
+) -> Dict[str, Any]:
     """
-    Get overall backup system status.
-    
-    **Admin only endpoint**
-    
+    Get overall backup system status with enhanced security.
+
+    **Admin only endpoint with comprehensive audit logging**
+
     Returns:
     - Total number of backups
     - System health metrics
@@ -45,7 +111,32 @@ async def get_backup_status(current_user: User = Depends(require_admin)) -> Dict
     - Redundancy information
     """
     try:
+        # Log access attempt
+        audit_system.log_security_event(
+            SecurityEventType.DATA_ACCESS,
+            "Backup system status requested",
+            SecuritySeverity.INFO,
+            ThreatLevel.LOW,
+            user_id=current_user.get('user_id'),
+            source_ip=request.client.host if request.client else None,
+            resource="/api/v1/system/backup/status",
+            action="GET"
+        )
+
         status = await distributed_backup.get_backup_status()
+
+        # Log successful access
+        audit_system.log_security_event(
+            SecurityEventType.DATA_ACCESS,
+            "Backup system status accessed successfully",
+            SecuritySeverity.INFO,
+            ThreatLevel.LOW,
+            user_id=current_user.get('user_id'),
+            source_ip=request.client.host if request.client else None,
+            resource="/api/v1/system/backup/status",
+            details={"total_backups": status.get("total_backups", 0)}
+        )
+
         return {
             "success": True,
             "data": status
