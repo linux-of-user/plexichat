@@ -4115,10 +4115,11 @@ def run_robust_update():
 
             if log_result.returncode == 0 and log_result.stdout.strip():
                 print("\n📋 Changes to be applied:")
-                for line in log_result.stdout.strip().split('\n')[:5]:  # Show last 5 commits
+                commit_lines = log_result.stdout.strip().split('\n')
+                for line in commit_lines[:5]:  # Show last 5 commits
                     print(f"   • {line}")
-                if len(log_result.stdout.strip().split('\n')) > 5:
-                    print(f"   ... and {len(log_result.stdout.strip().split('\n')) - 5} more commits")
+                if len(commit_lines) > 5:
+                    print(f"   ... and {len(commit_lines) - 5} more commits")
         except:
             pass
 

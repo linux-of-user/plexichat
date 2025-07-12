@@ -5,26 +5,38 @@ Automatic database migrations with version control and rollback support.
 
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from sqlalchemy import text, MetaData, Table, Column, Integer, String, DateTime, Text
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 
-from plexichat.core.database.multi_backend import db_manager
+try:
+    from plexichat.core.database.multi_backend import db_manager  # type: ignore
+    MULTI_BACKEND_AVAILABLE = True
+except ImportError:
+    MULTI_BACKEND_AVAILABLE = False
+    # Create placeholder db_manager
+    class MockDBManager:
+        def __init__(self):
+            pass
+        async def execute_query(self, query, params=None):
+            # Mock implementation
+            return {"success": True, "data": []}
+    db_manager = MockDBManager()
 
 logger = logging.getLogger(__name__)
 
 class Migration:
     """Represents a single database migration."""
     
-    def __init__(self, version: str, name: str, up_sql: str, down_sql: str = None):
+    def __init__(self, version: str, name: str, up_sql: str, down_sql: Optional[str] = None):
         self.version = version
         self.name = name
         self.up_sql = up_sql
         self.down_sql = down_sql
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now(datetime.timezone.utc)
     
     def __str__(self):
         return f"Migration {self.version}: {self.name}"

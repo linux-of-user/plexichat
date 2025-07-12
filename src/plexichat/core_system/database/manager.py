@@ -616,7 +616,7 @@ class ConsolidatedDatabaseManager:
                         "average_response_time": self.connection_metrics[name].average_response_time,
                         "errors": self.connection_metrics[name].errors,
                         "last_query": self.connection_metrics[name].last_query_time.isoformat()
-                                    if self.connection_metrics[name].last_query_time else None
+                                    if self.connection_metrics[name].last_query_time is not None else None
                     } if name in self.connection_metrics else {}
                 }
                 for name, config in self.database_configs.items()
@@ -637,7 +637,7 @@ class ConsolidatedDatabaseManager:
                 if hasattr(engine, 'dispose'):
                     await engine.dispose()
                 elif hasattr(engine, 'close'):
-                    await engine.close()
+                    await engine.close()  # type: ignore
                 logger.info(f"Closed connection to '{name}'")
             except Exception as e:
                 logger.error(f"Error closing connection to '{name}': {e}")
@@ -653,6 +653,8 @@ class ConsolidatedDatabaseManager:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        # Acknowledge unused parameters
+        _ = exc_type, exc_val, exc_tb
         """Async context manager exit."""
         await self.close_all_connections()
 
@@ -662,7 +664,7 @@ database_manager = ConsolidatedDatabaseManager()
 
 
 # Convenience functions for backward compatibility
-async def initialize_database_system(config: dict = None) -> bool:
+async def initialize_database_system(config: Optional[dict] = None) -> bool:
     """Initialize the consolidated database system."""
     return await database_manager.initialize(config)
 
