@@ -26,7 +26,17 @@ import yaml
 from .core_system.config import get_config
 
 # Import advanced logging
-from .core_system.logging import get_logger, setup_module_logging
+try:
+    from .core_system.logging import get_logger, setup_module_logging
+    get_advanced_logger = get_logger  # Alias for compatibility
+except ImportError:
+    # Fallback logging
+    import logging
+    def get_logger(name):
+        return logging.getLogger(name)
+    def setup_module_logging():
+        logging.basicConfig(level=logging.INFO)
+    get_advanced_logger = get_logger
 
 # SSL/Certificate Management
 try:
@@ -57,8 +67,8 @@ except Exception as e:
 
 # Clustering System
 try:
-    from .features.clustering.manager import get_cluster_manager
-    cluster_manager = get_cluster_manager()
+    from .features.clustering.core.cluster_manager import ClusterManager
+    cluster_manager = ClusterManager()
     logging.info("✅ Advanced Clustering System loaded")
 except ImportError as e:
     logging.warning(f"⚠️ Advanced Clustering System not available: {e}")
@@ -66,7 +76,7 @@ except ImportError as e:
 
 # Import security middleware (with fallback)
 try:
-    from .core_system.security.middleware import SecurityMiddleware, AuthenticationMiddleware
+    from .features.security.middleware import SecurityMiddleware, AuthenticationMiddleware
 except ImportError:
     # Fallback middleware if security module not available
     class SecurityMiddleware:
@@ -318,7 +328,7 @@ def _load_specialized_routers(app: FastAPI):
 
     # Clustering routers
     try:
-        from .clustering.api import router as clustering_router
+        from .interfaces.api.v1.clustering import router as clustering_router
         app.include_router(clustering_router)
         logger.info("✅ Clustering API router loaded")
     except ImportError:
@@ -326,7 +336,7 @@ def _load_specialized_routers(app: FastAPI):
 
     # Backup system routers
     try:
-        from .backup.api import router as backup_router
+        from .features.backup.core import router as backup_router
         app.include_router(backup_router)
         logger.info("✅ Backup API router loaded")
     except ImportError:
@@ -334,7 +344,7 @@ def _load_specialized_routers(app: FastAPI):
 
     # Security routers
     try:
-        from .security.api import router as security_router
+        from .interfaces.api.v1.security_api import router as security_router
         app.include_router(security_router)
         logger.info("✅ Security API router loaded")
     except ImportError:
@@ -439,7 +449,12 @@ def create_app() -> FastAPI:
             # Enhanced Database System initialization
             logger.info("🗄️ Initializing enhanced database system...")
             try:
-                from .core.database.enhanced_abstraction import initialize_enhanced_database_system
+                from .core_system.database.manager import DatabaseManager
+                database_manager = DatabaseManager()
+                success = await database_manager.initialize()
+                # Compatibility wrapper
+                async def initialize_enhanced_database_system():
+                    return success
                 success = await initialize_enhanced_database_system()
                 if success:
                     logger.info("✅ Enhanced database system initialized successfully")
@@ -447,7 +462,18 @@ def create_app() -> FastAPI:
                     # Initialize comprehensive system integration
                     logger.info("🚀 Initializing comprehensive system integration...")
                     try:
-                        from .core.system_integration import initialize_plexichat_system
+                        from .core_system.integration.orchestrator import SystemOrchestrator
+                        orchestrator = SystemOrchestrator()
+                        # Compatibility wrapper
+                        async def initialize_plexichat_system():
+                            result = await orchestrator.initialize_all_systems()
+                            return {
+                                "summary": {
+                                    "overall_success": result.get("success", False),
+                                    "systems_initialized": result.get("initialized_systems", []),
+                                    "modules_imported": result.get("modules_imported", [])
+                                }
+                            }
                         integration_results = await initialize_plexichat_system()
 
                         if integration_results["summary"]["overall_success"]:
@@ -482,7 +508,8 @@ def create_app() -> FastAPI:
             # Auth system initialization
             logger.info("🔐 Initializing authentication manager...")
             try:
-                from .security.auth import auth_manager
+                from .core_system.auth.unified_auth_manager import UnifiedAuthManager
+                auth_manager = UnifiedAuthManager()
                 if hasattr(auth_manager, 'initialize'):
                     await auth_manager.initialize()
                 logger.info("✅ Auth manager initialized successfully")
@@ -493,7 +520,8 @@ def create_app() -> FastAPI:
             # Backup system initialization
             logger.info("💾 Initializing backup manager...")
             try:
-                from .backups.manager import backup_manager
+                from .features.backup.core import BackupManager
+                backup_manager = BackupManager()
                 await backup_manager.initialize()
                 logger.info("✅ Backup manager initialized successfully")
             except Exception as e:
@@ -525,20 +553,23 @@ def create_app() -> FastAPI:
         # Shutdown systems safely
         try:
             # Shutdown enhanced database system
-            from .core.database.enhanced_abstraction import shutdown_enhanced_database_system
-            await shutdown_enhanced_database_system()
+            from .core_system.database.manager import DatabaseManager
+            database_manager = DatabaseManager()
+            await database_manager.shutdown()
         except Exception as e:
             logger.warning(f"⚠️ Enhanced database system shutdown failed: {e}")
 
         try:
-            from .backups.manager import backup_manager
+            from .features.backup.core import BackupManager
+            backup_manager = BackupManager()
             await backup_manager.shutdown()
         except Exception as e:
             logger.warning(f"⚠️ Backup manager shutdown failed: {e}")
 
         try:
-            from .core.database import database_manager
-            await database_manager.shutdown()
+            from .core_system.database.manager import DatabaseManager
+            legacy_manager = DatabaseManager()
+            await legacy_manager.shutdown()
         except Exception as e:
             logger.warning(f"⚠️ Legacy database manager shutdown failed: {e}")
 
