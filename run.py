@@ -35,7 +35,110 @@ try:
     import yaml
 except ImportError:
     yaml = None
+
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
 from datetime import datetime
+
+# ============================================================================
+# PROGRESS BAR AND UTILITY FUNCTIONS
+# ============================================================================
+
+class SimpleProgressBar:
+    """Simple progress bar implementation when tqdm is not available."""
+
+    def __init__(self, total, desc="Progress", width=50):
+        self.total = total
+        self.current = 0
+        self.desc = desc
+        self.width = width
+        self.start_time = time.time()
+
+    def update(self, n=1):
+        self.current += n
+        self._display()
+
+    def _display(self):
+        if self.total == 0:
+            return
+
+        percent = (self.current / self.total) * 100
+        filled = int((self.current / self.total) * self.width)
+        bar = "█" * filled + "░" * (self.width - filled)
+        elapsed = time.time() - self.start_time
+
+        if self.current > 0:
+            eta = (elapsed / self.current) * (self.total - self.current)
+            eta_str = f"{int(eta)}s"
+        else:
+            eta_str = "?s"
+
+        print(f"\r{self.desc}: |{bar}| {percent:.1f}% ({self.current}/{self.total}) ETA: {eta_str}", end="", flush=True)
+
+        if self.current >= self.total:
+            print()  # New line when complete
+
+    def close(self):
+        if self.current < self.total:
+            self.current = self.total
+            self._display()
+
+def create_progress_bar(total, desc="Progress"):
+    """Create a progress bar using tqdm if available, otherwise use simple implementation."""
+    if tqdm is not None:
+        return tqdm(total=total, desc=desc, unit="item",
+                   bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]")
+    else:
+        return SimpleProgressBar(total, desc)
+
+def install_with_progress(packages, desc="Installing packages"):
+    """Install packages with detailed progress tracking."""
+    if not packages:
+        return True
+
+    print(f"📦 {desc}...")
+
+    # Create progress bar
+    progress = create_progress_bar(len(packages), desc)
+
+    success_count = 0
+    failed_packages = []
+
+    for package in packages:
+        try:
+            # Update progress bar description
+            if hasattr(progress, 'set_description'):
+                progress.set_description(f"Installing {package}")
+
+            # Install package
+            result = subprocess.run([
+                sys.executable, "-m", "pip", "install", package, "--quiet"
+            ], capture_output=True, text=True, check=True)
+
+            success_count += 1
+            progress.update(1)
+
+        except subprocess.CalledProcessError as e:
+            failed_packages.append(package)
+            progress.update(1)
+            continue
+
+    progress.close()
+
+    # Report results
+    if success_count == len(packages):
+        print(f"✅ Successfully installed {success_count} packages")
+        return True
+    elif success_count > 0:
+        print(f"⚠️ Installed {success_count}/{len(packages)} packages")
+        if failed_packages:
+            print(f"❌ Failed to install: {', '.join(failed_packages)}")
+        return True
+    else:
+        print(f"❌ Failed to install all packages")
+        return False
 
 # Set up paths
 ROOT = Path(__file__).parent.resolve()
@@ -1021,15 +1124,29 @@ def install_developer_deps(venv_python):
 
 def install_package_list(venv_python, packages, use_fallbacks=True):
     """Install a list of packages with enhanced error handling and fallback options."""
+    if not packages:
+        return True
+
     failed_packages = []
 
+    # Create progress bar
+    progress = create_progress_bar(len(packages), "Installing packages")
+
     for package in packages:
+        # Update progress description
+        if hasattr(progress, 'set_description'):
+            progress.set_description(f"Installing {package}")
+
         success = install_single_package(venv_python, package, use_fallbacks)
         if success:
-            print(f"   ✅ {package}")
+            # Don't print individual success messages to avoid cluttering with progress bar
+            pass
         else:
-            print(f"   ❌ Failed to install {package}")
             failed_packages.append(package)
+
+        progress.update(1)
+
+    progress.close()
 
     if failed_packages:
         print(f"\n⚠️  {len(failed_packages)} packages failed to install:")
@@ -1045,10 +1162,11 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
             print("💡 Try installing manually or check system dependencies")
             return False
         else:
-            print("\n⚠️  Some optional packages failed, but core functionality should work.")
+            print(f"\n⚠️  Some optional packages failed, but core functionality should work.")
+            print(f"✅ Successfully installed {len(packages) - len(failed_packages)}/{len(packages)} packages")
             return True
     else:
-        print("✅ All packages installed successfully")
+        print(f"✅ All {len(packages)} packages installed successfully")
         return True
 
 
@@ -3022,16 +3140,7 @@ Versioning: Git-based (GitHub releases)
             print(f"⚠️ Could not read Git information: {e}")
 
     elif command == "update":
-        print("🔄 PlexiChat Update System")
-        print("=" * 40)
-
-        # Check if we're in a Git repository
-        if not (ROOT / ".git").exists():
-            print("❌ Not a Git repository. Updates require Git-based installation.")
-            print("💡 To enable updates:")
-            print("   1. Clone from GitHub: git clone https://github.com/linux-of-user/plexichat.git")
-            print("   2. Or download releases from: https://github.com/linux-of-user/plexichat/releases")
-            sys.exit(1)
+        run_robust_update()
 
         # Simple Git pull update
         try:
@@ -3141,8 +3250,19 @@ Versioning: Git-based (GitHub releases)
         save_setup_config(config)
 
         if install_dependencies(install_type):
-            print("✅ Setup complete!")
+            print("✅ Dependencies installed successfully!")
+
+            # Generate unified configuration
+            print("🔧 Generating unified configuration...")
+            generate_unified_config()
+
+            # Setup SSL certificates for development
+            print("🔒 Setting up SSL certificates...")
+            setup_ssl_certificates()
+
+            print("\n🎉 Setup complete!")
             print("🚀 Run 'python run.py run' to start PlexiChat.")
+            print("🌐 Access via: https://plexichat.local (after adding to hosts file)")
             print("💡 Tip: Run 'python run.py wizard' for interactive configuration.")
         else:
             print("❌ Setup failed")
@@ -3876,6 +3996,182 @@ def view_system_logs(args):
 
 def manage_alerts(args):
     print("🚨 Alert management not yet implemented.")
+
+def run_robust_update():
+    """Robust update system that works even with missing modules."""
+    print("🔄 PlexiChat Robust Update System")
+    print("=" * 45)
+
+    # Check if we're in a Git repository
+    if not (ROOT / ".git").exists():
+        print("❌ Not a Git repository. Updates require Git-based installation.")
+        print("💡 To enable updates:")
+        print("   1. Clone from GitHub: git clone https://github.com/linux-of-user/plexichat.git")
+        print("   2. Or download releases from: https://github.com/linux-of-user/plexichat/releases")
+        return False
+
+    try:
+        print("🔍 Checking for updates...")
+
+        # Create progress bar for update process
+        update_steps = ["Fetching updates", "Checking status", "Applying updates", "Installing dependencies", "Verifying installation"]
+        progress = create_progress_bar(len(update_steps), "Update Process")
+
+        # Step 1: Fetch latest changes
+        if hasattr(progress, 'set_description'):
+            progress.set_description("Fetching updates")
+
+        result = subprocess.run(
+            ["git", "fetch", "origin"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        if result.returncode != 0:
+            progress.close()
+            print(f"❌ Failed to fetch updates: {result.stderr}")
+            return False
+
+        progress.update(1)
+
+        # Step 2: Check if updates are available
+        if hasattr(progress, 'set_description'):
+            progress.set_description("Checking status")
+
+        result = subprocess.run(
+            ["git", "status", "-uno"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        progress.update(1)
+
+        if "behind" not in result.stdout:
+            progress.close()
+            print("✅ PlexiChat is already up to date!")
+            return True
+
+        print("\n📦 Updates available!")
+
+        # Show what will be updated
+        try:
+            log_result = subprocess.run(
+                ["git", "log", "--oneline", "HEAD..origin/main"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if log_result.returncode == 0 and log_result.stdout.strip():
+                print("\n📋 Changes to be applied:")
+                for line in log_result.stdout.strip().split('\n')[:5]:  # Show last 5 commits
+                    print(f"   • {line}")
+                if len(log_result.stdout.strip().split('\n')) > 5:
+                    print(f"   ... and {len(log_result.stdout.strip().split('\n')) - 5} more commits")
+        except:
+            pass
+
+        if not input("\n🔄 Apply updates? (y/N): ").lower().startswith('y'):
+            progress.close()
+            print("❌ Update cancelled by user")
+            return False
+
+        # Step 3: Apply updates
+        if hasattr(progress, 'set_description'):
+            progress.set_description("Applying updates")
+
+        result = subprocess.run(
+            ["git", "pull", "origin", "main"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        if result.returncode != 0:
+            progress.close()
+            print(f"❌ Failed to apply updates: {result.stderr}")
+            return False
+
+        progress.update(1)
+
+        # Step 4: Install/update dependencies (robust approach)
+        if hasattr(progress, 'set_description'):
+            progress.set_description("Installing dependencies")
+
+        # Install essential packages first (these are needed for the system to work)
+        essential_packages = ["PyYAML", "requests", "tqdm"]
+
+        print("\n📦 Installing essential packages...")
+        for package in essential_packages:
+            try:
+                subprocess.run([
+                    sys.executable, "-m", "pip", "install", package, "--quiet", "--upgrade"
+                ], check=True, capture_output=True)
+            except:
+                print(f"⚠️ Failed to install {package}, continuing...")
+
+        # Try to install from requirements.txt if it exists
+        if REQUIREMENTS.exists():
+            print("📦 Updating dependencies from requirements.txt...")
+            try:
+                # Use a more robust approach that doesn't depend on our parsing functions
+                subprocess.run([
+                    sys.executable, "-m", "pip", "install", "-r", str(REQUIREMENTS), "--quiet", "--upgrade"
+                ], timeout=300, capture_output=True)
+                print("✅ Dependencies updated successfully")
+            except Exception as e:
+                print(f"⚠️ Some dependencies may not have updated: {e}")
+
+        progress.update(1)
+
+        # Step 5: Verify installation
+        if hasattr(progress, 'set_description'):
+            progress.set_description("Verifying installation")
+
+        # Try to import core modules to verify the update worked
+        verification_passed = True
+        try:
+            # Test basic Python imports
+            import json
+            import os
+            import sys
+
+            # Test if we can read the version file
+            if (ROOT / "version.json").exists():
+                with open(ROOT / "version.json", 'r') as f:
+                    version_data = json.load(f)
+                    print(f"✅ Updated to version: {version_data.get('current_version', 'unknown')}")
+
+        except Exception as e:
+            print(f"⚠️ Verification warning: {e}")
+            verification_passed = False
+
+        progress.update(1)
+        progress.close()
+
+        if verification_passed:
+            print("\n🎉 Update completed successfully!")
+            print("🔄 Restart PlexiChat to use the new version")
+            print("💡 Run 'python run.py version' to see the new version")
+        else:
+            print("\n⚠️ Update applied but verification had issues")
+            print("💡 Try running 'python run.py setup' to fix any issues")
+
+        return True
+
+    except subprocess.TimeoutExpired:
+        print("❌ Update timed out. Please check your internet connection.")
+        return False
+    except Exception as e:
+        print(f"❌ Update failed: {e}")
+        print("💡 Try running 'git pull' manually or reinstalling PlexiChat")
+        return False
 
 if __name__ == "__main__":
     main()

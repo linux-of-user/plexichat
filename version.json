@@ -1,7 +1,12 @@
 {
-  "current_version": "b1.1-8",
-  "last_updated": "2025-07-12T10:40:00.000000+00:00",
+  "current_version": "b1.1-9",
+  "last_updated": "2025-07-12T11:15:00.000000+00:00",
   "history": [
+    {
+      "version": "b1.1-9",
+      "date": "2025-07-12T11:15:00.000000+00:00",
+      "changes": "Enhanced update system with progress bars, fixed import errors, integrated SSL setup, robust dependency handling"
+    },
     {
       "version": "b1.1-8",
       "date": "2025-07-12T10:40:00.000000+00:00",
