@@ -30,9 +30,34 @@ from enum import Enum
 import json
 from collections import defaultdict
 
-from .enhanced_abstraction import DatabaseType, AbstractDatabaseClient
+try:
+    from .enhanced_abstraction import DatabaseType, AbstractDatabaseClient  # type: ignore
+    ENHANCED_ABSTRACTION_AVAILABLE = True
+except ImportError:
+    ENHANCED_ABSTRACTION_AVAILABLE = False
+    # Create placeholder classes
+    class AbstractDatabaseClient:
+        def __init__(self, config):
+            self.config = config
+        async def execute_query(self, query, params=None):
+            return {"success": True, "data": []}
+
+    class DatabaseType:
+        POSTGRESQL = "postgresql"
+        MYSQL = "mysql"
+        SQLITE = "sqlite"
 
 logger = logging.getLogger(__name__)
+
+
+def _get_result_data(result, default_value=None):
+    """Helper function to safely get data from result objects or dicts."""
+    if hasattr(result, 'data'):
+        return getattr(result, 'data')
+    elif hasattr(result, 'get') and callable(getattr(result, 'get')):
+        return result.get('data', default_value)
+    else:
+        return default_value
 
 
 class DataTypeCategory(Enum):
@@ -319,9 +344,10 @@ class DataTypeAnalyzer:
                 params = {}
             
             result = await client.execute_query(query, params)
-            
-            if result.data:
-                return result.data[0]
+
+            data = _get_result_data(result, [])
+            if data:
+                return data[0]
             
         except Exception as e:
             logger.error(f"Failed to get column info for {table_name}.{column_name}: {e}")
@@ -345,14 +371,16 @@ class DataTypeAnalyzer:
             """
             
             result = await client.execute_query(query)
-            
-            if result.data:
-                stats = result.data[0]
-                
+
+            data = _get_result_data(result, [])
+            if data:
+                stats = data[0]
+
                 # Get sample values
                 sample_query = f"SELECT DISTINCT {column_name} FROM {table_name} LIMIT 20"
                 sample_result = await client.execute_query(sample_query)
-                sample_values = [row[column_name] for row in sample_result.data if row[column_name] is not None]
+                sample_data = _get_result_data(sample_result, [])
+                sample_values = [row[column_name] for row in sample_data if row[column_name] is not None]
                 
                 # Analyze value patterns
                 is_numeric = self._is_numeric_column(sample_values)
@@ -406,7 +434,7 @@ class DataTypeAnalyzer:
                 params = {}
             
             result = await client.execute_query(query, params)
-            return result.data
+            return _get_result_data(result, [])
             
         except Exception as e:
             logger.error(f"Failed to get table columns for {table_name}: {e}")
@@ -554,7 +582,8 @@ class DataTypeAnalyzer:
             ALTER TABLE {analysis.table_name} ALTER COLUMN {analysis.column_name} TYPE {enum_name} USING {analysis.column_name}::{enum_name};
             """
         else:
-            return f"-- ENUM types not supported in {database_type.value}"
+            db_type_str = getattr(database_type, 'value', str(database_type))
+            return f"-- ENUM types not supported in {db_type_str}"
 
 
 # Global instance

@@ -272,16 +272,24 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
         """Execute multiple MongoDB operations in batch."""
         results = []
         for query in queries:
-            result = await self.execute_query(query)
+            # Convert dict query to string for execute_query
+            if isinstance(query, dict):
+                import json
+                query_str = json.dumps(query)
+            else:
+                query_str = str(query)
+            result = await self.execute_query(query_str)
             results.append(result)
         return results
     
     async def health_check(self) -> Dict[str, Any]:
         """Check MongoDB health."""
         try:
+            if self.client is None:
+                raise Exception("MongoDB client not connected")
             # Ping the database
             await self.client.admin.command('ping')
-            
+
             # Get server status
             status = await self.client.admin.command('serverStatus')
             
@@ -303,12 +311,14 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
     async def get_schema_info(self) -> Dict[str, Any]:
         """Get MongoDB schema information."""
         try:
+            if self.database is None:
+                raise Exception("MongoDB database not connected")
             collections = await self.database.list_collection_names()
             schema_info = {
                 "database": self.config.database,
                 "collections": {}
             }
-            
+
             for collection_name in collections:
                 collection = self.database[collection_name]
                 # Get sample document to infer schema
@@ -328,6 +338,8 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
                           index_type: str = "btree") -> bool:
         """Create MongoDB index."""
         try:
+            if self.database is None:
+                raise Exception("MongoDB database not connected")
             collection = self.database[table]
             
             # Build index specification
@@ -345,7 +357,7 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
             logger.error(f"❌ Failed to create index: {e}")
             return False
     
-    async def stream_data(self, query: str, params: Dict[str, Any] = None) -> AsyncGenerator:
+    async def stream_data(self, query: str, params: Optional[Dict[str, Any]] = None) -> AsyncGenerator:
         """Stream MongoDB data."""
         try:
             query_doc = json.loads(query) if isinstance(query, str) else query
@@ -355,6 +367,8 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
             if params:
                 filter_doc = self._substitute_params(filter_doc, params)
             
+            if self.database is None:
+                raise Exception("MongoDB database not connected")
             collection = self.database[collection_name]
             
             async for document in collection.find(filter_doc):
@@ -424,6 +438,8 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None,
                           query_type: QueryType = QueryType.SELECT) -> QueryResult:
         """Execute Redis command."""
+        # Acknowledge unused parameter
+        _ = query_type
         start_time = time.time()
         
         try:
@@ -442,6 +458,8 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
                        else arg for arg in args]
             
             # Execute Redis command
+            if self.redis is None:
+                raise Exception("Redis client not connected")
             result = await self.redis.execute_command(command, *args)
             
             execution_time = time.time() - start_time
@@ -463,17 +481,20 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
     async def execute_batch(self, queries: List[Dict[str, Any]]) -> List[QueryResult]:
         """Execute Redis pipeline."""
         try:
+            if self.redis is None:
+                raise Exception("Redis client not connected")
             pipe = self.redis.pipeline()
-            
+
             for query in queries:
                 if isinstance(query, str):
                     command_parts = query.split()
                 else:
                     command_parts = query
-                
-                command = command_parts[0]
-                args = command_parts[1:]
-                pipe.execute_command(command, *args)
+
+                if isinstance(command_parts, list) and len(command_parts) > 0:
+                    command = command_parts[0]
+                    args = command_parts[1:] if len(command_parts) > 1 else []
+                    pipe.execute_command(command, *args)
             
             results = await pipe.execute()
             
@@ -489,6 +510,8 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
     async def health_check(self) -> Dict[str, Any]:
         """Check Redis health."""
         try:
+            if self.redis is None:
+                raise Exception("Redis client not connected")
             info = await self.redis.info()
             
             return {
@@ -512,6 +535,8 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
     async def get_schema_info(self) -> Dict[str, Any]:
         """Get Redis schema information."""
         try:
+            if self.redis is None:
+                raise Exception("Redis client not connected")
             info = await self.redis.info()
             keyspace = await self.redis.info("keyspace")
             
@@ -527,7 +552,10 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
 
 
 # Register clients with factory
-from .enhanced_abstraction import DatabaseClientFactory
-
-DatabaseClientFactory.register_client(DatabaseType.MONGODB, MongoDBClient)
-DatabaseClientFactory.register_client(DatabaseType.REDIS, RedisClient)
+try:
+    from .enhanced_abstraction import DatabaseClientFactory  # type: ignore
+    DatabaseClientFactory.register_client(DatabaseType.MONGODB, MongoDBClient)
+    DatabaseClientFactory.register_client(DatabaseType.REDIS, RedisClient)
+except ImportError:
+    # DatabaseClientFactory not available, skip registration
+    pass

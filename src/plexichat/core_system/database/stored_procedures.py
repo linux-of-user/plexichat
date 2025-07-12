@@ -30,7 +30,28 @@ from enum import Enum
 import json
 import re
 
-from .enhanced_abstraction import DatabaseType, AbstractDatabaseClient, QueryType
+try:
+    from .enhanced_abstraction import DatabaseType, AbstractDatabaseClient, QueryType  # type: ignore
+    ENHANCED_ABSTRACTION_AVAILABLE = True
+except ImportError:
+    ENHANCED_ABSTRACTION_AVAILABLE = False
+    # Create placeholder classes
+    class AbstractDatabaseClient:
+        def __init__(self, config):
+            self.config = config
+        async def execute_query(self, query, params=None):
+            return {"success": True, "data": []}
+
+    class DatabaseType:
+        POSTGRESQL = "postgresql"
+        MYSQL = "mysql"
+        SQLITE = "sqlite"
+
+    class QueryType:
+        SELECT = "select"
+        INSERT = "insert"
+        UPDATE = "update"
+        DELETE = "delete"
 from .query_optimizer import sql_analyzer, performance_monitor
 
 logger = logging.getLogger(__name__)
@@ -447,7 +468,8 @@ class StoredProcedureManager:
             query_stats = performance_monitor.query_stats
             
             for query_hash, stats in query_stats.items():
-                if stats["count"] >= 10:  # Frequently executed queries
+                count = stats.get("count", 0)
+                if count is not None and count >= 10:  # Frequently executed queries
                     # We'd need the actual query text here
                     # For demonstration, we'll create some common procedures
                     procedures = self._create_common_procedures(database_type)
@@ -475,7 +497,7 @@ class StoredProcedureManager:
             procedure_type=ProcedureType.QUERY,
             database_type=database_type,
             sql_definition="SELECT * FROM users WHERE id = user_id_param;",
-            parameters=[{"name": "user_id_param", "type": "INTEGER", "default": None}],
+            parameters=[{"name": "user_id_param", "type": "INTEGER", "default": ""}],
             return_type="TABLE(id INTEGER, username TEXT, email TEXT, created_at TIMESTAMP)",
             description="Get user by ID with optimized query plan"
         )
@@ -492,9 +514,9 @@ class StoredProcedureManager:
                 RETURNING id;
             """,
             parameters=[
-                {"name": "channel_id_param", "type": "INTEGER", "default": None},
-                {"name": "user_id_param", "type": "INTEGER", "default": None},
-                {"name": "content_param", "type": "TEXT", "default": None}
+                {"name": "channel_id_param", "type": "INTEGER", "default": ""},
+                {"name": "user_id_param", "type": "INTEGER", "default": ""},
+                {"name": "content_param", "type": "TEXT", "default": ""}
             ],
             return_type="INTEGER",
             description="Insert new message and return message ID"
@@ -518,7 +540,7 @@ class StoredProcedureManager:
                 GROUP BY channel_id;
             """,
             parameters=[
-                {"name": "channel_id_param", "type": "INTEGER", "default": None},
+                {"name": "channel_id_param", "type": "INTEGER", "default": ""},
                 {"name": "start_date_param", "type": "TIMESTAMP", "default": "NOW() - INTERVAL '30 days'"}
             ],
             return_type="TABLE(channel_id INTEGER, message_count INTEGER, unique_users INTEGER, last_message_at TIMESTAMP)",

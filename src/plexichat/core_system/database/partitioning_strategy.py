@@ -24,9 +24,34 @@ from dataclasses import dataclass, field
 import hashlib
 import calendar
 
-from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType
+try:
+    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
+    ENHANCED_ABSTRACTION_AVAILABLE = True
+except ImportError:
+    ENHANCED_ABSTRACTION_AVAILABLE = False
+    # Create placeholder classes
+    class AbstractDatabaseClient:
+        def __init__(self, config):
+            self.config = config
+        async def execute_query(self, query, params=None):
+            return {"success": True, "data": []}
+
+    class DatabaseType:
+        POSTGRESQL = "postgresql"
+        MYSQL = "mysql"
+        SQLITE = "sqlite"
 
 logger = logging.getLogger(__name__)
+
+
+def _get_result_attribute(result, attr_name, default_value):
+    """Helper function to safely get attributes from result objects or dicts."""
+    if hasattr(result, attr_name):
+        return getattr(result, attr_name)
+    elif hasattr(result, 'get') and callable(getattr(result, 'get')):
+        return result.get(attr_name, default_value)
+    else:
+        return default_value
 
 
 class PartitionType(Enum):
@@ -134,8 +159,10 @@ class PartitionManager:
         
         # Calculate partition dates
         now = datetime.now(timezone.utc)
+        if config.interval is None:
+            raise ValueError("Partition interval is required for time-based partitioning")
         partition_dates = self._calculate_partition_dates(now, config.interval, periods)
-        
+
         for start_date, end_date in partition_dates:
             partition_name = self._generate_time_partition_name(
                 config.table_name, start_date, config.interval, config.partition_prefix
@@ -159,8 +186,10 @@ class PartitionManager:
                     )
                 
                 result = await client.execute_query(sql)
-                
-                if result.success:
+
+                # Handle both dict and object result formats
+                success = _get_result_attribute(result, 'success', True)
+                if success:
                     created_partitions.append(partition_name)
                     
                     # Store partition info
@@ -180,7 +209,8 @@ class PartitionManager:
                     
                     logger.info(f"✅ Created time partition: {partition_name}")
                 else:
-                    logger.error(f"❌ Failed to create partition {partition_name}: {result.error}")
+                    error = _get_result_attribute(result, 'error', 'Unknown error')
+                    logger.error(f"❌ Failed to create partition {partition_name}: {error}")
                     
             except Exception as e:
                 logger.error(f"❌ Error creating partition {partition_name}: {e}")
@@ -224,11 +254,13 @@ class PartitionManager:
                 
                 result = await client.execute_query(sql)
                 
-                if result.success:
+                success = _get_result_attribute(result, 'success', True)
+                if success:
                     created_partitions.append(partition_name)
                     logger.info(f"✅ Created hash partition: {partition_name}")
                 else:
-                    logger.error(f"❌ Failed to create hash partition {partition_name}: {result.error}")
+                    error = _get_result_attribute(result, 'error', 'Unknown error')
+                    logger.error(f"❌ Failed to create hash partition {partition_name}: {error}")
                     
             except Exception as e:
                 logger.error(f"❌ Error creating hash partition {partition_name}: {e}")
@@ -277,11 +309,13 @@ class PartitionManager:
                 
                 result = await client.execute_query(sql)
                 
-                if result.success:
+                success = _get_result_attribute(result, 'success', True)
+                if success:
                     created_partitions.append(partition_name)
                     logger.info(f"✅ Created range partition: {partition_name}")
                 else:
-                    logger.error(f"❌ Failed to create range partition {partition_name}: {result.error}")
+                    error = _get_result_attribute(result, 'error', 'Unknown error')
+                    logger.error(f"❌ Failed to create range partition {partition_name}: {error}")
                     
             except Exception as e:
                 logger.error(f"❌ Error creating range partition {partition_name}: {e}")
@@ -357,10 +391,12 @@ class PartitionManager:
         FOR VALUES FROM ('{start_date.isoformat()}') TO ('{end_date.isoformat()}')
         """
     
-    def _generate_mysql_time_partition_sql(self, config: PartitionConfig, 
-                                         partition_name: str, start_date: datetime, 
+    def _generate_mysql_time_partition_sql(self, config: PartitionConfig,
+                                         partition_name: str, start_date: datetime,
                                          end_date: datetime) -> str:
         """Generate MySQL time partition SQL."""
+        # Acknowledge unused parameters
+        _ = start_date
         # MySQL partitioning is typically defined on the main table
         return f"""
         ALTER TABLE {config.table_name}
@@ -404,21 +440,25 @@ class PartitionManager:
                     drop_sql = f"DROP TABLE {partition.name}"
                     result = await client.execute_query(drop_sql)
                     
-                    if result.success:
+                    success = _get_result_attribute(result, 'success', True)
+                    if success:
                         dropped_partitions.append(partition.name)
                         partitions.remove(partition)
                         logger.info(f"✅ Dropped old partition: {partition.name}")
                     else:
-                        logger.error(f"❌ Failed to drop partition {partition.name}: {result.error}")
+                        error = _get_result_attribute(result, 'error', 'Unknown error')
+                        logger.error(f"❌ Failed to drop partition {partition.name}: {error}")
                         
                 except Exception as e:
                     logger.error(f"❌ Error dropping partition {partition.name}: {e}")
         
         return dropped_partitions
     
-    async def get_partition_statistics(self, client: AbstractDatabaseClient, 
+    async def get_partition_statistics(self, client: AbstractDatabaseClient,
                                      table_name: str) -> Dict[str, Any]:
         """Get statistics for table partitions."""
+        # Acknowledge unused parameter
+        _ = client
         if table_name not in self.partition_info:
             return {"error": "No partition info found"}
         
@@ -455,7 +495,9 @@ class PartitionManager:
         if config.partition_type == PartitionType.TIME_BASED:
             if isinstance(value, datetime):
                 for partition in partitions:
-                    if (partition.start_value <= value < partition.end_value):
+                    # Ensure both start_value and end_value are not None before comparison
+                    if (partition.start_value is not None and partition.end_value is not None and
+                        partition.start_value <= value < partition.end_value):
                         return partition.name
         
         elif config.partition_type == PartitionType.HASH_BASED:

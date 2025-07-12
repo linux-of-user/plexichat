@@ -250,7 +250,8 @@ class AdvancedORM:
             async with self.async_engine.begin() as conn:
                 await conn.run_sync(SQLModel.metadata.create_all)
         else:
-            SQLModel.metadata.create_all(self.sync_engine)
+            if self.sync_engine is not None:
+                SQLModel.metadata.create_all(self.sync_engine)
     
     # Session Management
     
@@ -266,15 +267,15 @@ class AdvancedORM:
             raise RuntimeError("Async ORM not initialized")
         return self.async_session_factory()
     
-    async def execute_query(self, 
-                           query: str, 
-                           parameters: Dict[str, Any] = None,
+    async def execute_query(self,
+                           query: str,
+                           parameters: Optional[Dict[str, Any]] = None,
                            use_cache: bool = True) -> Any:
         """Execute raw SQL query with caching and monitoring."""
         
         # Check cache first
         if use_cache and self.config.enable_query_cache:
-            cache_key = self._get_cache_key(query, parameters)
+            cache_key = self._get_cache_key(query, parameters or {})
             cached_result = self._get_from_cache(cache_key)
             if cached_result:
                 self.query_metrics.cache_hits += 1
@@ -287,12 +288,14 @@ class AdvancedORM:
             # Execute query
             if self.async_session_factory:
                 async with await self.get_async_session() as session:
-                    result = await session.execute(query, parameters or {})
+                    from sqlalchemy import text
+                    result = await session.execute(text(query), parameters or {})
                     await session.commit()
                     data = result.fetchall()
             else:
                 with self.get_sync_session() as session:
-                    result = session.execute(query, parameters or {})
+                    from sqlalchemy import text
+                    result = session.execute(text(query), parameters or {})
                     session.commit()
                     data = result.fetchall()
             
@@ -302,7 +305,7 @@ class AdvancedORM:
             
             # Cache result
             if use_cache and self.config.enable_query_cache:
-                cache_key = self._get_cache_key(query, parameters)
+                cache_key = self._get_cache_key(query, parameters or {})
                 self._put_in_cache(cache_key, data)
             
             return data
@@ -314,7 +317,7 @@ class AdvancedORM:
     
     # Model Registration and Management
     
-    def register_model(self, model_class: Type[SQLModel], name: str = None):
+    def register_model(self, model_class: Type[SQLModel], name: Optional[str] = None):
         """Register SQLModel class."""
         model_name = name or model_class.__name__
         self.registered_models[model_name] = model_class
@@ -330,12 +333,16 @@ class AdvancedORM:
     
     # Advanced Query Builder
     
-    async def find_by_id(self, model_class: Type[T], id: Any, include_relations: List[str] = None) -> Optional[T]:
+    async def find_by_id(self, model_class: Type[T], id: Any, include_relations: Optional[List[str]] = None) -> Optional[T]:
         """Find model instance by ID with optional relationship loading."""
         
         if self.async_session_factory:
             async with await self.get_async_session() as session:
-                query = select(model_class).where(model_class.id == id)
+                # Use getattr to safely access id attribute
+                id_attr = getattr(model_class, 'id', None)
+                if id_attr is None:
+                    raise ValueError(f"Model {model_class.__name__} does not have an 'id' attribute")
+                query = select(model_class).where(id_attr == id)
                 
                 # Add relationship loading
                 if include_relations:
@@ -347,7 +354,11 @@ class AdvancedORM:
                 return result.scalar_one_or_none()
         else:
             with self.get_sync_session() as session:
-                query = select(model_class).where(model_class.id == id)
+                # Use getattr to safely access id attribute
+                id_attr = getattr(model_class, 'id', None)
+                if id_attr is None:
+                    raise ValueError(f"Model {model_class.__name__} does not have an 'id' attribute")
+                query = select(model_class).where(id_attr == id)
                 
                 # Add relationship loading
                 if include_relations:
@@ -358,13 +369,13 @@ class AdvancedORM:
                 result = session.execute(query)
                 return result.scalar_one_or_none()
     
-    async def find_all(self, 
+    async def find_all(self,
                       model_class: Type[T],
-                      filters: Dict[str, Any] = None,
-                      order_by: List[str] = None,
-                      limit: int = None,
-                      offset: int = None,
-                      include_relations: List[str] = None) -> List[T]:
+                      filters: Optional[Dict[str, Any]] = None,
+                      order_by: Optional[List[str]] = None,
+                      limit: Optional[int] = None,
+                      offset: Optional[int] = None,
+                      include_relations: Optional[List[str]] = None) -> List[T]:
         """Find all model instances with filtering and pagination."""
         
         query = select(model_class)
@@ -404,11 +415,11 @@ class AdvancedORM:
         if self.async_session_factory:
             async with await self.get_async_session() as session:
                 result = await session.execute(query)
-                return result.scalars().all()
+                return list(result.scalars().all())
         else:
             with self.get_sync_session() as session:
                 result = session.execute(query)
-                return result.scalars().all()
+                return list(result.scalars().all())
     
     async def create(self, model_instance: T) -> T:
         """Create new model instance."""
@@ -442,7 +453,7 @@ class AdvancedORM:
                 session.refresh(model_instance)
                 return model_instance
     
-    async def delete(self, model_instance: T) -> bool:
+    async def delete(self, model_instance: SQLModel) -> bool:
         """Delete model instance."""
         
         try:
@@ -461,7 +472,7 @@ class AdvancedORM:
     
     # Caching Methods
     
-    def _get_cache_key(self, query: str, parameters: Dict[str, Any] = None) -> str:
+    def _get_cache_key(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> str:
         """Generate cache key for query."""
         import hashlib
         content = f"{query}:{parameters or {}}"

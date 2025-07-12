@@ -101,11 +101,11 @@ class DatabaseConnection:
 class SetupProgress:
     """Setup wizard progress tracking."""
     current_step: SetupStep = SetupStep.WELCOME
-    completed_steps: List[SetupStep] = None
+    completed_steps: Optional[List[SetupStep]] = None
     connection_config: Optional[DatabaseConnection] = None
-    test_results: Dict[str, Any] = None
-    errors: List[str] = None
-    warnings: List[str] = None
+    test_results: Optional[Dict[str, Any]] = None
+    errors: Optional[List[str]] = None
+    warnings: Optional[List[str]] = None
     
     def __post_init__(self):
         if self.completed_steps is None:
@@ -164,18 +164,46 @@ class DatabaseSetupWizard:
                 "cons": ["Requires server setup", "Less widespread than MySQL"]
             }
         }
-    
+
+    def _ensure_lists_initialized(self):
+        """Ensure progress lists are initialized."""
+        if self.progress.completed_steps is None:
+            self.progress.completed_steps = []
+        if self.progress.errors is None:
+            self.progress.errors = []
+        if self.progress.warnings is None:
+            self.progress.warnings = []
+        if self.progress.test_results is None:
+            self.progress.test_results = {}
+
+    def _add_completed_step(self, step: SetupStep):
+        """Safely add a completed step."""
+        self._ensure_lists_initialized()
+        assert self.progress.completed_steps is not None
+        if step not in self.progress.completed_steps:
+            self.progress.completed_steps.append(step)
+
+    def _add_error(self, error: str):
+        """Safely add an error."""
+        self._ensure_lists_initialized()
+        assert self.progress.errors is not None
+        self.progress.errors.append(error)
+
     def get_wizard_status(self) -> Dict[str, Any]:
         """Get current wizard status."""
+        completed_steps = self.progress.completed_steps or []
+        errors = self.progress.errors or []
+        warnings = self.progress.warnings or []
+
         return {
             "current_step": self.progress.current_step.value,
-            "completed_steps": [step.value for step in self.progress.completed_steps],
+            "completed_steps": [step.value for step in completed_steps],
             "total_steps": len(SetupStep),
-            "progress_percentage": (len(self.progress.completed_steps) / len(SetupStep)) * 100,
-            "has_errors": len(self.progress.errors) > 0,
-            "has_warnings": len(self.progress.warnings) > 0,
+            "progress_percentage": (len(completed_steps) / len(SetupStep)) * 100,
+            "has_errors": len(errors) > 0,
+            "has_warnings": len(warnings) > 0,
             "connection_configured": self.progress.connection_config is not None,
-            "test_results": self.progress.test_results
+            "test_results": self.progress.test_results or {}
         }
     
     def get_database_types(self) -> Dict[str, Any]:
@@ -206,6 +234,8 @@ class DatabaseSetupWizard:
             )
             
             # Mark step as completed
+            if self.progress.completed_steps is None:
+                self.progress.completed_steps = []
             if SetupStep.DATABASE_TYPE not in self.progress.completed_steps:
                 self.progress.completed_steps.append(SetupStep.DATABASE_TYPE)
             
@@ -224,6 +254,18 @@ class DatabaseSetupWizard:
             
         except ValueError:
             error_msg = f"Invalid database type: {db_type}"
+            if self.progress.errors is None:
+                self.progress.errors = []
+            if self.progress.errors is None:
+                self.progress.errors = []
+            if self.progress.errors is None:
+                self.progress.errors = []
+            if self.progress.errors is None:
+                self.progress.errors = []
+            if self.progress.errors is None:
+                self.progress.errors = []
+            if self.progress.errors is None:
+                self.progress.errors = []
             self.progress.errors.append(error_msg)
             return {
                 "success": False,
@@ -251,6 +293,14 @@ class DatabaseSetupWizard:
                 config.database = details.get("database", "plexichat")
             
             # Mark step as completed
+            if self.progress.completed_steps is None:
+                self.progress.completed_steps = []
+            if self.progress.completed_steps is None:
+                self.progress.completed_steps = []
+            if self.progress.completed_steps is None:
+                self.progress.completed_steps = []
+            if self.progress.completed_steps is None:
+                self.progress.completed_steps = []
             if SetupStep.CONNECTION_DETAILS not in self.progress.completed_steps:
                 self.progress.completed_steps.append(SetupStep.CONNECTION_DETAILS)
             
@@ -269,6 +319,8 @@ class DatabaseSetupWizard:
             
         except Exception as e:
             error_msg = f"Failed to set connection details: {e}"
+            if self.progress.errors is None:
+                self.progress.errors = []
             self.progress.errors.append(error_msg)
             return {
                 "success": False,
@@ -289,8 +341,7 @@ class DatabaseSetupWizard:
             config.password = auth_details.get("password")
             
             # Mark step as completed
-            if SetupStep.AUTHENTICATION not in self.progress.completed_steps:
-                self.progress.completed_steps.append(SetupStep.AUTHENTICATION)
+            self._add_completed_step(SetupStep.AUTHENTICATION)
             
             self.progress.current_step = SetupStep.ADVANCED_SETTINGS
             
@@ -302,7 +353,7 @@ class DatabaseSetupWizard:
             
         except Exception as e:
             error_msg = f"Failed to set authentication: {e}"
-            self.progress.errors.append(error_msg)
+            self._add_error(error_msg)
             return {
                 "success": False,
                 "error": error_msg
@@ -329,8 +380,7 @@ class DatabaseSetupWizard:
             config.connect_timeout = settings.get("connect_timeout", config.connect_timeout)
             
             # Mark step as completed
-            if SetupStep.ADVANCED_SETTINGS not in self.progress.completed_steps:
-                self.progress.completed_steps.append(SetupStep.ADVANCED_SETTINGS)
+            self._add_completed_step(SetupStep.ADVANCED_SETTINGS)
             
             self.progress.current_step = SetupStep.TEST_CONNECTION
             
@@ -347,7 +397,7 @@ class DatabaseSetupWizard:
             
         except Exception as e:
             error_msg = f"Failed to set advanced settings: {e}"
-            self.progress.errors.append(error_msg)
+            self._add_error(error_msg)
             return {
                 "success": False,
                 "error": error_msg
@@ -408,8 +458,7 @@ class DatabaseSetupWizard:
 
             if test_results["connection_successful"]:
                 # Mark step as completed
-                if SetupStep.TEST_CONNECTION not in self.progress.completed_steps:
-                    self.progress.completed_steps.append(SetupStep.TEST_CONNECTION)
+                self._add_completed_step(SetupStep.TEST_CONNECTION)
 
                 self.progress.current_step = SetupStep.INITIALIZE_SCHEMA
 
@@ -429,7 +478,7 @@ class DatabaseSetupWizard:
 
         except Exception as e:
             error_msg = f"Connection test failed: {e}"
-            self.progress.errors.append(error_msg)
+            self._add_error(error_msg)
             return {
                 "success": False,
                 "error": error_msg,
@@ -448,7 +497,8 @@ class DatabaseSetupWizard:
 
             with engine.connect() as conn:
                 result = conn.execute(text("SELECT sqlite_version()"))
-                version = result.fetchone()[0]
+                row = result.fetchone()
+                version = row[0] if row else "Unknown"
 
                 # Test write permissions
                 conn.execute(text("CREATE TABLE IF NOT EXISTS test_table (id INTEGER)"))
@@ -476,11 +526,13 @@ class DatabaseSetupWizard:
             with engine.connect() as conn:
                 # Test basic connection
                 result = conn.execute(text("SELECT version()"))
-                version = result.fetchone()[0]
+                row = result.fetchone()
+                version = row[0] if row else "Unknown"
 
                 # Check if database exists
                 result = conn.execute(text("SELECT current_database()"))
-                current_db = result.fetchone()[0]
+                row = result.fetchone()
+                current_db = row[0] if row else "Unknown"
 
                 # Test permissions
                 conn.execute(text("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY)"))
@@ -508,11 +560,13 @@ class DatabaseSetupWizard:
             with engine.connect() as conn:
                 # Test basic connection
                 result = conn.execute(text("SELECT VERSION()"))
-                version = result.fetchone()[0]
+                row = result.fetchone()
+                version = row[0] if row else "Unknown"
 
                 # Check database
                 result = conn.execute(text("SELECT DATABASE()"))
-                current_db = result.fetchone()[0]
+                row = result.fetchone()
+                current_db = row[0] if row else "Unknown"
 
                 # Test permissions
                 conn.execute(text("CREATE TABLE IF NOT EXISTS test_table (id INT AUTO_INCREMENT PRIMARY KEY)"))
@@ -564,9 +618,10 @@ class DatabaseSetupWizard:
 
         return common_tips
 
-    async def initialize_schema(self, options: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def initialize_schema(self, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Initialize database schema."""
-        if not self.progress.connection_config or not self.progress.test_results.get("connection_successful"):
+        test_results = self.progress.test_results or {}
+        if not self.progress.connection_config or not test_results.get("connection_successful"):
             return {
                 "success": False,
                 "error": "Database connection must be tested successfully first"
@@ -592,9 +647,14 @@ class DatabaseSetupWizard:
             engine = create_engine(connection_string)
 
             # Import models to ensure they're registered
-            from plexichat.app.models.user import User
-            from plexichat.app.models.message import Message
-            from plexichat.app.models.guild import Guild
+            try:
+                from plexichat.app.models.user import User  # type: ignore
+                from plexichat.app.models.message import Message  # type: ignore
+                from plexichat.app.models.guild import Guild  # type: ignore
+                MODELS_AVAILABLE = True
+            except ImportError:
+                MODELS_AVAILABLE = False
+                logger.warning("PlexiChat models not available, skipping model registration")
 
             # Create all tables
             from sqlmodel import SQLModel
@@ -613,15 +673,15 @@ class DatabaseSetupWizard:
                 elif config.db_type in [DatabaseType.MYSQL, DatabaseType.MARIADB]:
                     result = conn.execute(text("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()"))
 
-                schema_results["tables_created"] = result.fetchone()[0]
+                row = result.fetchone()
+                schema_results["tables_created"] = row[0] if row else 0
 
             # Create sample data if requested
             if create_sample_data:
                 schema_results["sample_data_created"] = await self._create_sample_data(engine)
 
             # Mark step as completed
-            if SetupStep.INITIALIZE_SCHEMA not in self.progress.completed_steps:
-                self.progress.completed_steps.append(SetupStep.INITIALIZE_SCHEMA)
+            self._add_completed_step(SetupStep.INITIALIZE_SCHEMA)
 
             self.progress.current_step = SetupStep.COMPLETE
 
@@ -634,7 +694,7 @@ class DatabaseSetupWizard:
 
         except Exception as e:
             error_msg = f"Schema initialization failed: {e}"
-            self.progress.errors.append(error_msg)
+            self._add_error(error_msg)
             return {
                 "success": False,
                 "error": error_msg
@@ -647,7 +707,11 @@ class DatabaseSetupWizard:
 
             with Session(engine) as session:
                 # Create sample admin user
-                from plexichat.app.models.user import User
+                try:
+                    from plexichat.app.models.user import User  # type: ignore
+                except ImportError:
+                    logger.warning("User model not available")
+                    return False
                 admin_user = User(
                     username="admin",
                     email="admin@plexichat.local",
@@ -657,7 +721,11 @@ class DatabaseSetupWizard:
                 session.add(admin_user)
 
                 # Create sample guild
-                from plexichat.app.models.guild import Guild
+                try:
+                    from plexichat.app.models.guild import Guild  # type: ignore
+                except ImportError:
+                    logger.warning("Guild model not available")
+                    return False
                 sample_guild = Guild(
                     name="General",
                     description="Default server for PlexiChat",
@@ -666,7 +734,11 @@ class DatabaseSetupWizard:
                 session.add(sample_guild)
 
                 # Create sample message
-                from plexichat.app.models.message import Message
+                try:
+                    from plexichat.app.models.message import Message  # type: ignore
+                except ImportError:
+                    logger.warning("Message model not available")
+                    return False
                 welcome_message = Message(
                     content="Welcome to PlexiChat! This is a sample message.",
                     author_id=1,
@@ -739,6 +811,8 @@ class DatabaseSetupWizard:
                 f.writelines(env_content)
 
             # Mark setup as complete
+            if self.progress.completed_steps is None:
+                self.progress.completed_steps = []
             if SetupStep.COMPLETE not in self.progress.completed_steps:
                 self.progress.completed_steps.append(SetupStep.COMPLETE)
 
@@ -755,6 +829,8 @@ class DatabaseSetupWizard:
 
         except Exception as e:
             error_msg = f"Failed to save configuration: {e}"
+            if self.progress.errors is None:
+                self.progress.errors = []
             self.progress.errors.append(error_msg)
             return {
                 "success": False,

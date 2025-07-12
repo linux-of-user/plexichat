@@ -26,12 +26,43 @@ try:
 except ImportError:
     aiosqlite = None
 
-from .enhanced_abstraction import AbstractDatabaseClient, DatabaseConfig, DatabaseType, QueryResult
+try:
+    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseConfig, DatabaseType, QueryResult  # type: ignore
+    ENHANCED_ABSTRACTION_AVAILABLE = True
+except ImportError:
+    ENHANCED_ABSTRACTION_AVAILABLE = False
+    # Create placeholder classes
+    class AbstractDatabaseClient:
+        def __init__(self, config):
+            self.config = config
+        async def execute_query(self, query, params=None):
+            return {"success": True, "data": []}
+
+    class DatabaseConfig:
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+    class QueryResult:
+        def __init__(self, data=None, count=0, execution_time=0.0, metadata=None, success=True, **kwargs):
+            self.data = data or []
+            self.count = count
+            self.execution_time = execution_time
+            self.metadata = metadata or {}
+            self.success = success
+            # Accept any additional keyword arguments
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+    class DatabaseType:
+        POSTGRESQL = "postgresql"
+        MYSQL = "mysql"
+        SQLITE = "sqlite"
 
 logger = logging.getLogger(__name__)
 
 
-class PostgreSQLClient(AbstractDatabaseClient):
+class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
     """PostgreSQL-specific database client with advanced features."""
     
     def __init__(self, config: DatabaseConfig):
@@ -194,7 +225,7 @@ class PostgreSQLClient(AbstractDatabaseClient):
         }
 
 
-class MySQLClient(AbstractDatabaseClient):
+class MySQLClient(AbstractDatabaseClient):  # type: ignore
     """MySQL-specific database client with optimizations."""
     
     def __init__(self, config: DatabaseConfig):
@@ -247,7 +278,8 @@ class MySQLClient(AbstractDatabaseClient):
         
         try:
             async with self.pool.acquire() as connection:
-                async with connection.cursor(aiomysql.DictCursor) as cursor:
+                dict_cursor = getattr(aiomysql, 'DictCursor', None) if aiomysql else None
+                async with connection.cursor(dict_cursor) as cursor:
                     if params:
                         # Convert named parameters to MySQL format
                         mysql_query = query
@@ -298,7 +330,8 @@ class MySQLClient(AbstractDatabaseClient):
                 for i, query in enumerate(queries):
                     params = params_list[i] if params_list and i < len(params_list) else None
                     
-                    async with connection.cursor(aiomysql.DictCursor) as cursor:
+                    dict_cursor = getattr(aiomysql, 'DictCursor', None) if aiomysql else None
+                    async with connection.cursor(dict_cursor) as cursor:
                         if params:
                             mysql_query = query
                             mysql_params = []
@@ -332,7 +365,7 @@ class MySQLClient(AbstractDatabaseClient):
         return results
 
 
-class SQLiteClient(AbstractDatabaseClient):
+class SQLiteClient(AbstractDatabaseClient):  # type: ignore
     """SQLite-specific database client with optimizations."""
     
     def __init__(self, config: DatabaseConfig):

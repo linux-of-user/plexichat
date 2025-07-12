@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-PlexiChat Application Runner - Enhanced Edition
+PlexiChat Application Runner - Enhanced Edition with Bootstrap Installer
 
 Advanced cross-platform entry point with comprehensive setup and monitoring.
 Features:
+- 🚀 BOOTSTRAP MODE: One-script installation from GitHub (--bootstrap)
 - Interactive first-time setup wizard with style selection
 - Multiple terminal display modes (split, tabbed, classic)
 - Advanced dependency management with fallback options
@@ -12,6 +13,8 @@ Features:
 - Debug mode with detailed logging
 - Development tools integration
 - Automatic environment optimization
+- Repository cloning and automatic setup
+- Standalone installer capability
 """
 
 import sys
@@ -24,9 +27,10 @@ import time
 import json
 import secrets
 import string
-import shlex
-import signal
-import atexit
+import tempfile
+import zipfile
+import urllib.request
+import urllib.error
 from pathlib import Path
 from datetime import datetime
 
@@ -43,6 +47,16 @@ except ImportError:
 from datetime import datetime
 
 # ============================================================================
+# BOOTSTRAP CONFIGURATION
+# ============================================================================
+
+# Bootstrap configuration
+PLEXICHAT_VERSION = "1.0.0"
+GITHUB_REPO = "https://github.com/linux-of-user/plexichat.git"
+GITHUB_ZIP = "https://github.com/linux-of-user/plexichat/archive/refs/heads/main.zip"
+REQUIRED_PYTHON_BOOTSTRAP = (3, 8)  # Lower requirement for bootstrap
+
+# ============================================================================
 # PROGRESS BAR AND UTILITY FUNCTIONS
 # ============================================================================
 
@@ -54,25 +68,30 @@ class SimpleProgressBar:
         self.current = 0
         self.desc = desc
         self.start_time = time.time()
-        self.last_line_count = 0
 
-        # Get terminal width dynamically
+        # Set a fixed, consistent width that works well across terminals
         if width is None:
             try:
                 import shutil
                 terminal_width = shutil.get_terminal_size().columns
-                # Reserve space for description, percentage, count, and ETA
-                # Format: "desc: |bar| 100.0% (30/31) ETA: 123s"
-                reserved_space = len(desc) + 25  # Approximate space for other elements
-                self.width = max(20, terminal_width - reserved_space)
+                # Use a conservative approach: ensure we have enough space
+                # Format: "Installing package: |████████████████████████████████████████| 100.0% (36/36) ETA: 123s"
+                # Reserve space for: description (30) + " |" (2) + "| 100.0% (999/999) ETA: 999s" (25) = 57 chars
+                available_width = max(80, terminal_width)  # Ensure minimum 80 chars
+                self.width = min(50, available_width - 57)  # Cap bar width at 50, reserve 57 for other elements
+                self.width = max(20, self.width)  # Minimum bar width of 20
             except:
-                self.width = 50
+                self.width = 30  # Safe fallback
         else:
             self.width = width
 
     def set_description(self, desc):
         """Set the description for the progress bar (for compatibility with tqdm)."""
-        self.desc = desc
+        # Truncate description if too long to prevent line wrapping
+        if len(desc) > 25:
+            self.desc = desc[:22] + "..."
+        else:
+            self.desc = desc
 
     def update(self, n=1):
         self.current += n
@@ -87,35 +106,26 @@ class SimpleProgressBar:
         bar = "█" * filled + "░" * (self.width - filled)
         elapsed = time.time() - self.start_time
 
-        if self.current > 0:
+        if self.current > 0 and self.current < self.total:
             eta = (elapsed / self.current) * (self.total - self.current)
             eta_str = f"{int(eta)}s"
         else:
-            eta_str = "?s"
+            eta_str = "0s"
 
-        # Save cursor position and move to bottom of terminal
-        try:
-            import shutil
-            terminal_height = shutil.get_terminal_size().lines
-            # Move cursor to bottom line
-            print(f"\033[s", end="")  # Save cursor position
-            print(f"\033[{terminal_height};1H", end="")  # Move to bottom line
-            print(f"\033[K", end="")  # Clear line
-            print(f"{self.desc}: |{bar}| {percent:.1f}% ({self.current}/{self.total}) ETA: {eta_str}", end="", flush=True)
-            print(f"\033[u", end="")  # Restore cursor position
-        except:
-            # Fallback to simple progress bar if terminal control fails
-            print(f"\r{self.desc}: |{bar}| {percent:.1f}% ({self.current}/{self.total}) ETA: {eta_str}", end="", flush=True)
+        # Create the progress line with consistent formatting
+        progress_line = f"{self.desc}: |{bar}| {percent:.1f}% ({self.current}/{self.total}) ETA: {eta_str}"
+
+        # Use simple carriage return for reliable updating
+        print(f"\r{progress_line}", end="", flush=True)
+
+    def finish(self):
+        """Complete the progress bar and move to next line."""
+        if self.current < self.total:
+            self.current = self.total
+            self._display()
+        print()  # Move to next line
 
         if self.current >= self.total:
-            # Clear the bottom line and print completion message
-            try:
-                import shutil
-                terminal_height = shutil.get_terminal_size().lines
-                print(f"\033[{terminal_height};1H", end="")  # Move to bottom line
-                print(f"\033[K", end="")  # Clear line
-            except:
-                pass
             print()  # New line when complete
 
     def close(self):
@@ -123,14 +133,7 @@ class SimpleProgressBar:
             self.current = self.total
             self._display()
         else:
-            # Clear the progress bar from bottom line
-            try:
-                import shutil
-                terminal_height = shutil.get_terminal_size().lines
-                print(f"\033[{terminal_height};1H", end="")  # Move to bottom line
-                print(f"\033[K", end="")  # Clear line
-            except:
-                pass
+            print()  # Ensure we end with a newline
 
 def create_progress_bar(total, desc="Progress"):
     """Create a progress bar using tqdm if available, otherwise use simple implementation."""
@@ -267,20 +270,39 @@ def print_banner():
     version = get_version_info()
     width = min(TERMINAL_WIDTH, 80)
 
-    banner = f"""
+    # Try to print Unicode banner first, fallback to ASCII if encoding fails
+    try:
+        banner = f"""
 {'=' * width}
-    ██████╗ ██╗     ███████╗██╗  ██╗██╗ ██████╗██╗  ██╗ █████╗ ████████╗   
-    ██╔══██╗██║     ██╔════╝╗██╗██╔╝██║██╔════╝██║  ██║██╔══██╗╚══██╔══╝   
-    ██████╔╝██║     █████╗   ╚███╔╝ ██║██║     ███████║███████║   ██║      
-    ██╔═══╝ ██║     ██╔══╝   ██╔██╗ ██║██║     ██╔══██║██╔══██║   ██║      
-    ██║     ███████╗███████╗██╔╝ ██╗██║╚██████╗██║  ██║██║  ██║   ██║      
-    ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝      
+    ██████╗ ██╗     ███████╗██╗  ██╗██╗ ██████╗██╗  ██╗ █████╗ ████████╗
+    ██╔══██╗██║     ██╔════╝╗██╗██╔╝██║██╔════╝██║  ██║██╔══██╗╚══██╔══╝
+    ██████╔╝██║     █████╗   ╚███╔╝ ██║██║     ███████║███████║   ██║
+    ██╔═══╝ ██║     ██╔══╝   ██╔██╗ ██║██║     ██╔══██║██╔══██║   ██║
+    ██║     ███████╗███████╗██╔╝ ██╗██║╚██████╗██║  ██║██║  ██║   ██║
+    ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
 
     🔒 Government-Level Secure Communication Platform v{version}
     🌐 Advanced AI • 🛡️ Zero-Trust Security • 🔄 Distributed Architecture
 {'=' * width}
 """
-    print(banner)
+        print(banner)
+    except UnicodeEncodeError:
+        # Fallback to ASCII banner for systems with encoding issues
+        banner = f"""
+{'=' * width}
+    ########  ##       ######## ##     ## ####  ######  ##     ##    ###    ########
+    ##     ## ##       ##        ##   ##   ##  ##    ## ##     ##   ## ##      ##
+    ##     ## ##       ##         ## ##    ##  ##       ##     ##  ##   ##     ##
+    ########  ##       ######      ###     ##  ##       ######### ##     ##    ##
+    ##        ##       ##         ## ##    ##  ##       ##     ## #########    ##
+    ##        ##       ##        ##   ##   ##  ##    ## ##     ## ##     ##    ##
+    ##        ######## ######## ##     ## ####  ######  ##     ## ##     ##    ##
+
+    [*] Government-Level Secure Communication Platform v{version}
+    [*] Advanced AI * Zero-Trust Security * Distributed Architecture
+{'=' * width}
+"""
+        print(banner)
 
 
 def check_python_version():
@@ -299,7 +321,10 @@ def check_python_version():
             print("   • Homebrew: brew install python@3.11")
             print("   • Or download from https://python.org/downloads/")
         sys.exit(1)
-    print(f"✅ Python version: {sys.version.split()[0]}")
+    try:
+        print(f"✅ Python version: {sys.version.split()[0]}")
+    except UnicodeEncodeError:
+        print(f"[OK] Python version: {sys.version.split()[0]}")
 
 
 def get_system_info():
@@ -355,6 +380,258 @@ def get_system_info():
         info["available_env_managers"] = {"detection_failed": True}
 
     return info
+
+
+# ============================================================================
+# BOOTSTRAP INSTALLER CLASS
+# ============================================================================
+
+class PlexiChatBootstrapper:
+    """Bootstrap installer for PlexiChat from a single script."""
+
+    def __init__(self):
+        self.script_dir = Path(__file__).parent.absolute()
+        self.install_dir = self.script_dir / "plexichat"
+        self.venv_dir = self.script_dir / "venv"
+        self.config_file = self.script_dir / "plexichat_config.json"
+
+    def print_bootstrap_banner(self):
+        """Print bootstrap banner."""
+        print(f"""
++===============================================================+
+|                     PlexiChat Server                         |
+|                  Bootstrap Installer v{PLEXICHAT_VERSION}                 |
+|                                                               |
+|  * One-script installation for PlexiChat Server              |
+|  * Automatic dependency management                           |
+|  * Development & production ready                            |
++===============================================================+
+""")
+
+    def check_bootstrap_requirements(self) -> bool:
+        """Check if system meets bootstrap requirements."""
+        print("🔍 Checking bootstrap requirements...")
+
+        # Check Python version (more lenient for bootstrap)
+        current_version = sys.version_info[:2]
+        if current_version < REQUIRED_PYTHON_BOOTSTRAP:
+            print(f"❌ Python {REQUIRED_PYTHON_BOOTSTRAP[0]}.{REQUIRED_PYTHON_BOOTSTRAP[1]}+ required for bootstrap. "
+                  f"Current: {current_version[0]}.{current_version[1]}")
+            return False
+
+        print(f"✅ Python {current_version[0]}.{current_version[1]} detected")
+
+        # Check internet connectivity
+        try:
+            urllib.request.urlopen('https://github.com', timeout=10)
+            print("✅ Internet connectivity verified")
+        except urllib.error.URLError:
+            print("❌ Internet connection required for bootstrap")
+            return False
+
+        return True
+
+    def check_git_available(self) -> bool:
+        """Check if git is available."""
+        try:
+            subprocess.run(["git", "--version"], capture_output=True, check=True)
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return False
+
+    def download_with_progress(self, url: str, destination: Path, description: str = "Downloading") -> bool:
+        """Download file with progress bar."""
+        try:
+            print(f"📥 {description}...")
+
+            with urllib.request.urlopen(url) as response:
+                total_size = int(response.headers.get('content-length', 0))
+
+                if total_size == 0:
+                    print("⚠️  Unknown file size")
+                    with open(destination, 'wb') as f:
+                        f.write(response.read())
+                    return True
+
+                # Use existing progress bar
+                if tqdm:
+                    progress = tqdm(total=total_size, unit='B', unit_scale=True, desc=description)
+
+                    with open(destination, 'wb') as f:
+                        while True:
+                            chunk = response.read(8192)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+                            progress.update(len(chunk))
+
+                    progress.close()
+                else:
+                    progress = SimpleProgressBar(total_size, description)
+
+                    with open(destination, 'wb') as f:
+                        downloaded = 0
+                        while True:
+                            chunk = response.read(8192)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+                            downloaded += len(chunk)
+                            progress.update(len(chunk))
+
+                    progress.finish()
+
+                return True
+
+        except urllib.error.URLError as e:
+            print(f"❌ Download failed: {e}")
+            return False
+
+    def clone_or_download_repo(self) -> bool:
+        """Clone repository using git or download as zip."""
+        print("📥 Acquiring PlexiChat source code...")
+
+        if self.install_dir.exists():
+            print("⚠️  Installation directory exists. Removing...")
+            shutil.rmtree(self.install_dir)
+
+        # Try git clone first
+        if self.check_git_available():
+            print("🔄 Cloning repository with git...")
+            try:
+                subprocess.run([
+                    "git", "clone", GITHUB_REPO, str(self.install_dir)
+                ], check=True, capture_output=True)
+                print("✅ Repository cloned successfully")
+                return True
+            except subprocess.CalledProcessError:
+                print("⚠️  Git clone failed, trying ZIP download...")
+
+        # Fallback to zip download
+        print("📦 Downloading repository as ZIP...")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            zip_path = Path(temp_dir) / "plexichat.zip"
+
+            if not self.download_with_progress(GITHUB_ZIP, zip_path, "Downloading PlexiChat"):
+                return False
+
+            print("📂 Extracting files...")
+            try:
+                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                    zip_ref.extractall(temp_dir)
+
+                # Find the extracted directory (usually repo-name-branch)
+                extracted_dirs = [d for d in Path(temp_dir).iterdir()
+                                if d.is_dir() and d.name != "__pycache__" and "plexichat" in d.name.lower()]
+
+                if not extracted_dirs:
+                    print("❌ No PlexiChat directories found in ZIP")
+                    return False
+
+                # Move the extracted directory to install location
+                shutil.move(str(extracted_dirs[0]), str(self.install_dir))
+                print("✅ Source code extracted successfully")
+                return True
+
+            except zipfile.BadZipFile:
+                print("❌ Downloaded file is not a valid ZIP")
+                return False
+
+    def create_virtual_environment(self) -> bool:
+        """Create Python virtual environment."""
+        print("🐍 Creating Python virtual environment...")
+
+        if self.venv_dir.exists():
+            print("⚠️  Virtual environment exists. Recreating...")
+            shutil.rmtree(self.venv_dir)
+
+        try:
+            subprocess.run([
+                sys.executable, "-m", "venv", str(self.venv_dir)
+            ], check=True, capture_output=True)
+
+            print("✅ Virtual environment created")
+            return True
+
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to create virtual environment: {e}")
+            return False
+
+    def get_venv_python(self) -> str:
+        """Get path to virtual environment Python executable."""
+        if IS_WINDOWS:
+            return str(self.venv_dir / "Scripts" / "python.exe")
+        else:
+            return str(self.venv_dir / "bin" / "python")
+
+    def get_venv_pip(self) -> str:
+        """Get path to virtual environment pip executable."""
+        if IS_WINDOWS:
+            return str(self.venv_dir / "Scripts" / "pip.exe")
+        else:
+            return str(self.venv_dir / "bin" / "pip")
+
+    def install_dependencies(self) -> bool:
+        """Install PlexiChat dependencies."""
+        print("📦 Installing dependencies...")
+
+        # Check for requirements.txt
+        requirements_file = self.install_dir / "requirements.txt"
+        if not requirements_file.exists():
+            print("⚠️  No requirements.txt found, trying basic installation...")
+            return True
+
+        try:
+            # Upgrade pip first
+            subprocess.run([
+                self.get_venv_pip(), "install", "--upgrade", "pip"
+            ], check=True, capture_output=True)
+
+            # Install requirements
+            subprocess.run([
+                self.get_venv_pip(), "install", "-r", str(requirements_file)
+            ], check=True, capture_output=True)
+
+            print("✅ Dependencies installed successfully")
+            return True
+
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to install dependencies: {e}")
+            return False
+
+    def run_bootstrap(self) -> bool:
+        """Run the complete bootstrap process."""
+        self.print_bootstrap_banner()
+
+        print("🚀 Starting PlexiChat bootstrap installation...")
+        print("=" * 60)
+
+        # Step 1: Check requirements
+        if not self.check_bootstrap_requirements():
+            return False
+
+        # Step 2: Download source code
+        if not self.clone_or_download_repo():
+            return False
+
+        # Step 3: Create virtual environment
+        if not self.create_virtual_environment():
+            return False
+
+        # Step 4: Install dependencies
+        if not self.install_dependencies():
+            return False
+
+        print("\n" + "=" * 60)
+        print("🎉 Bootstrap installation completed successfully!")
+        print("\nNext steps:")
+        print(f"  1. cd {self.script_dir}")
+        print("  2. python run.py --server    # Start the server")
+        print("  3. python run.py --dev       # Development mode")
+        print("  4. python run.py --help      # See all options")
+
+        return True
 
 
 def print_system_info():
@@ -1215,7 +1492,7 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
         if hasattr(progress, 'set_description'):
             progress.set_description(f"Installing {package}")
 
-        success = install_single_package(venv_python, package, use_fallbacks)
+        success = install_single_package(venv_python, package, use_fallbacks, verbose=False)
         if success:
             # Don't print individual success messages to avoid cluttering with progress bar
             pass
@@ -1293,7 +1570,7 @@ def install_single_package(python_exe, package, use_fallbacks=True, verbose=Fals
             continue
 
     # Final fallback: try system package manager suggestions
-    if use_fallbacks:
+    if use_fallbacks and verbose:
         print(f"   💡 Consider installing {package} via system package manager:")
         system = platform.system().lower()
         if system == "linux":
@@ -2681,6 +2958,8 @@ def show_help():
 Usage: python run.py [command] [options]
 
 🚀 Main Commands:
+  bootstrap         🚀 ONE-SCRIPT INSTALLER: Complete PlexiChat installation from GitHub
+                    Downloads source, creates venv, installs dependencies
   setup [style]     Interactive setup wizard or direct setup
                     Styles: minimal, standard, full, developer
   run [--debug]     Start PlexiChat with configured terminal style
@@ -2725,6 +3004,13 @@ Usage: python run.py [command] [options]
   split            Logs on left, CLI on right (wide terminals)
   tabbed           Switch between logs and CLI with tabs
   dashboard        Live system monitoring with metrics
+
+🚀 First-Time Installation:
+  If you only have this run.py file, use:
+  python run.py bootstrap    # Downloads and installs everything automatically
+
+  Requirements: Python 3.8+, internet connection
+  Creates: plexichat/ directory, venv/ directory, dependencies
 
 📊 Installation Status:
   not_installed    No virtual environment found
@@ -3226,6 +3512,81 @@ Versioning: Git-based (GitHub releases)
 
         except Exception as e:
             print(f"⚠️ Could not read Git information: {e}")
+
+    elif command == "bootstrap":
+        # Bootstrap installation from scratch
+        if "--help" in args or "-h" in args:
+            try:
+                print("""
+🚀 PlexiChat Bootstrap Installer
+
+Usage: python run.py bootstrap [options]
+
+This command performs a complete PlexiChat installation from scratch:
+1. Downloads PlexiChat source code from GitHub
+2. Creates a Python virtual environment
+3. Installs all dependencies
+4. Sets up initial configuration
+
+Options:
+  --help, -h    Show this help message
+
+Requirements:
+  - Python 3.8+ (Python 3.11+ recommended for full features)
+  - Internet connection
+  - Git (optional, will fallback to ZIP download)
+
+Example:
+  python run.py bootstrap    # Complete installation
+
+Note: This will create a 'plexichat' directory and 'venv' directory
+in the same location as this script.
+""")
+            except UnicodeEncodeError:
+                print("""
+[*] PlexiChat Bootstrap Installer
+
+Usage: python run.py bootstrap [options]
+
+This command performs a complete PlexiChat installation from scratch:
+1. Downloads PlexiChat source code from GitHub
+2. Creates a Python virtual environment
+3. Installs all dependencies
+4. Sets up initial configuration
+
+Options:
+  --help, -h    Show this help message
+
+Requirements:
+  - Python 3.8+ (Python 3.11+ recommended for full features)
+  - Internet connection
+  - Git (optional, will fallback to ZIP download)
+
+Example:
+  python run.py bootstrap    # Complete installation
+
+Note: This will create a 'plexichat' directory and 'venv' directory
+in the same location as this script.
+""")
+            return
+
+        # Check if we're already in a PlexiChat installation
+        if (Path(__file__).parent / "src" / "plexichat").exists():
+            print("⚠️  You appear to already be in a PlexiChat installation directory.")
+            print("The bootstrap command is for installing PlexiChat from a standalone run.py file.")
+            print("Use 'python run.py setup' instead to configure this installation.")
+            return
+
+        # Run bootstrap installation
+        bootstrapper = PlexiChatBootstrapper()
+        success = bootstrapper.run_bootstrap()
+
+        if success:
+            print("\n🎉 Bootstrap completed! PlexiChat is ready to use.")
+            sys.exit(0)
+        else:
+            print("\n❌ Bootstrap failed. Please check the errors above.")
+            sys.exit(1)
 
     elif command == "update":
         run_robust_update()

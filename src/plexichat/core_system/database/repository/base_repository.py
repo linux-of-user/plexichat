@@ -13,7 +13,34 @@ from enum import Enum
 import uuid
 
 from ..dao.base_dao import BaseDAO, QueryOptions, FilterCriteria, SortCriteria, PaginationParams, QueryResult
-from ...events.event_bus import event_bus, DomainEvent
+
+try:
+    from sqlmodel import SQLModel  # type: ignore
+except ImportError:
+    # Create a placeholder SQLModel for type hints
+    class SQLModel:
+        pass
+try:
+    from ...events.event_bus import event_bus, DomainEvent  # type: ignore
+    EVENT_BUS_AVAILABLE = True
+except ImportError:
+    EVENT_BUS_AVAILABLE = False
+    # Create placeholder classes
+    class DomainEvent:
+        def __init__(self, event_type, entity_id=None, data=None, **kwargs):
+            self.event_type = event_type
+            self.entity_id = entity_id
+            self.data = data or {}
+            # Accept any additional keyword arguments
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+    class MockEventBus:
+        def __init__(self):
+            pass
+        async def publish(self, event):
+            pass
+    event_bus = MockEventBus()
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +85,8 @@ class RepositoryConfig:
 class ValidationResult:
     """Validation result."""
     is_valid: bool
-    errors: List[str] = None
-    warnings: List[str] = None
+    errors: Optional[List[str]] = None
+    warnings: Optional[List[str]] = None
     
     def __post_init__(self):
         if self.errors is None:
@@ -83,7 +110,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     - Transaction management
     """
     
-    def __init__(self, dao: BaseDAO[T, CreateT, UpdateT], config: RepositoryConfig = None):
+    def __init__(self, dao: BaseDAO[T, CreateT, UpdateT], config: Optional[RepositoryConfig] = None):  # type: ignore
         self.dao = dao
         self.config = config or RepositoryConfig()
         self.entity_name = self.dao.model_class.__name__
@@ -111,7 +138,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     
     # Core Repository Operations
     
-    async def find_by_id(self, id: str, include_relations: List[str] = None) -> Optional[T]:
+    async def find_by_id(self, id: str, include_relations: Optional[List[str]] = None) -> Optional[T]:
         """Find entity by ID with caching and validation."""
         self.stats["operations_count"] += 1
         
@@ -136,11 +163,11 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         
         return entity
     
-    async def find_all(self, 
-                      filters: List[FilterCriteria] = None,
-                      sorts: List[SortCriteria] = None,
-                      pagination: PaginationParams = None,
-                      include_relations: List[str] = None) -> QueryResult[T]:
+    async def find_all(self,
+                      filters: Optional[List[FilterCriteria]] = None,
+                      sorts: Optional[List[SortCriteria]] = None,
+                      pagination: Optional[PaginationParams] = None,
+                      include_relations: Optional[List[str]] = None) -> QueryResult[T]:  # type: ignore
         """Find entities with advanced filtering and pagination."""
         self.stats["operations_count"] += 1
         
@@ -175,7 +202,8 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
             validation_result = await self._validate_create(create_data)
             if not validation_result.is_valid:
                 self.stats["validation_errors"] += 1
-                raise ValueError(f"Validation failed: {', '.join(validation_result.errors)}")
+                errors = validation_result.errors or []
+                raise ValueError(f"Validation failed: {', '.join(errors)}")
         
         # Transform to DAO format
         dao_data = await self._to_dao_create(create_data)
@@ -212,7 +240,8 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
             validation_result = await self._validate_update(id, update_data, existing_entity)
             if not validation_result.is_valid:
                 self.stats["validation_errors"] += 1
-                raise ValueError(f"Validation failed: {', '.join(validation_result.errors)}")
+                errors = validation_result.errors or []
+                raise ValueError(f"Validation failed: {', '.join(errors)}")
         
         # Transform to DAO format
         dao_data = await self._to_dao_update(update_data)
@@ -235,7 +264,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         
         return domain_entity
     
-    async def delete(self, id: str, soft_delete: bool = None) -> bool:
+    async def delete(self, id: str, soft_delete: Optional[bool] = None) -> bool:
         """Delete entity with events."""
         self.stats["operations_count"] += 1
         
@@ -279,7 +308,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         entity = await self.find_by_id(id)
         return entity is not None
     
-    async def count(self, filters: List[FilterCriteria] = None) -> int:
+    async def count(self, filters: Optional[List[FilterCriteria]] = None) -> int:
         """Count entities matching criteria."""
         options = QueryOptions(filters=filters or [])
         result = await self.dao.get_all(options)
@@ -295,7 +324,8 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
                 validation_result = await self._validate_create(create_data)
                 if not validation_result.is_valid:
                     self.stats["validation_errors"] += 1
-                    raise ValueError(f"Validation failed: {', '.join(validation_result.errors)}")
+                    errors = validation_result.errors or []
+                    raise ValueError(f"Validation failed: {', '.join(errors)}")
         
         # Transform to DAO format
         dao_data_list = []
@@ -320,10 +350,12 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
                     self._put_in_cache(f"id:{entity_id}", entity)
         
         # Publish bulk event
-        if self.config.enable_events:
-            await self._publish_event(EventType.BULK_OPERATION, domain_entities, {
+        if self.config.enable_events and domain_entities:
+            # Use the first entity as representative for the event
+            await self._publish_event(EventType.BULK_OPERATION, domain_entities[0], {
                 "operation": "create",
-                "count": len(domain_entities)
+                "count": len(domain_entities),
+                "entities": domain_entities
             })
         
         return domain_entities
@@ -339,10 +371,10 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
             # This is a simplified implementation
             # In practice, you'd need DAO support for restoration
             entity = await self.dao.get_by_id(id)  # This might need to include deleted entities
-            if entity and hasattr(entity, 'deleted_at') and entity.deleted_at:
+            if entity and hasattr(entity, 'deleted_at') and getattr(entity, 'deleted_at', None):
                 # Clear deleted_at field
-                update_data = {"deleted_at": None}
-                restored_entity = await self.dao.update(id, update_data)
+                update_data = {"deleted_at": None}  # type: ignore
+                restored_entity = await self.dao.update(id, update_data)  # type: ignore
                 
                 if restored_entity:
                     domain_entity = await self._to_domain_entity(restored_entity)
@@ -395,7 +427,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     
     # Event Methods
     
-    async def _publish_event(self, event_type: EventType, entity: T, metadata: Dict[str, Any] = None):
+    async def _publish_event(self, event_type: EventType, entity: T, metadata: Optional[Dict[str, Any]] = None):
         """Publish domain event."""
         try:
             event = DomainEvent(
@@ -426,6 +458,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     async def _validate_create(self, create_data: CreateT) -> ValidationResult:
         """Validate create data."""
         result = ValidationResult(is_valid=True)
+        result.__post_init__()
         
         # Run custom validators
         for validator in self._validators:
@@ -433,29 +466,38 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
                 validation_result = await validator(create_data, "create")
                 if not validation_result.is_valid:
                     result.is_valid = False
-                    result.errors.extend(validation_result.errors)
-                    result.warnings.extend(validation_result.warnings)
+                    if result.errors is not None and validation_result.errors:
+                        result.errors.extend(validation_result.errors)
+                    if result.warnings is not None and validation_result.warnings:
+                        result.warnings.extend(validation_result.warnings)
             except Exception as e:
                 result.is_valid = False
-                result.errors.append(f"Validator error: {str(e)}")
+                if result.errors is not None:
+                    result.errors.append(f"Validator error: {str(e)}")
         
         return result
     
     async def _validate_update(self, id: str, update_data: UpdateT, existing_entity: T) -> ValidationResult:
         """Validate update data."""
+        # Acknowledge unused parameter
+        _ = id
         result = ValidationResult(is_valid=True)
-        
+        result.__post_init__()
+
         # Run custom validators
         for validator in self._validators:
             try:
                 validation_result = await validator(update_data, "update", existing_entity)
                 if not validation_result.is_valid:
                     result.is_valid = False
-                    result.errors.extend(validation_result.errors)
-                    result.warnings.extend(validation_result.warnings)
+                    if result.errors is not None and validation_result.errors:
+                        result.errors.extend(validation_result.errors)
+                    if result.warnings is not None and validation_result.warnings:
+                        result.warnings.extend(validation_result.warnings)
             except Exception as e:
                 result.is_valid = False
-                result.errors.append(f"Validator error: {str(e)}")
+                if result.errors is not None:
+                    result.errors.append(f"Validator error: {str(e)}")
         
         return result
     

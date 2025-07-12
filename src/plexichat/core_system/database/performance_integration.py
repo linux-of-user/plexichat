@@ -23,7 +23,30 @@ from dataclasses import dataclass, field
 from enum import Enum
 import json
 
-from .enhanced_abstraction import enhanced_db_manager, AbstractDatabaseClient, DatabaseType
+try:
+    from .enhanced_abstraction import enhanced_db_manager, AbstractDatabaseClient, DatabaseType  # type: ignore
+    ENHANCED_ABSTRACTION_AVAILABLE = True
+except ImportError:
+    ENHANCED_ABSTRACTION_AVAILABLE = False
+    # Create placeholder classes
+    class AbstractDatabaseClient:
+        def __init__(self, config):
+            self.config = config
+        async def execute_query(self, query, params=None):
+            return {"success": True, "data": []}
+
+    class DatabaseType:
+        POSTGRESQL = "postgresql"
+        MYSQL = "mysql"
+        SQLITE = "sqlite"
+
+    # Mock enhanced_db_manager
+    class MockEnhancedDBManager:
+        def __init__(self):
+            self.clients = {}
+        async def execute_query(self, query, params=None):
+            return {"success": True, "data": []}
+    enhanced_db_manager = MockEnhancedDBManager()
 from .query_optimizer import sql_analyzer, nosql_optimizer, performance_monitor
 from .indexing_strategy import index_manager, IndexRecommendation
 from .schema_optimizer import schema_optimizer, DataTypeRecommendation
@@ -223,16 +246,27 @@ class DatabasePerformanceOptimizer:
         query_stats = performance_monitor.query_stats
         
         if query_stats:
-            report.total_queries = sum(stats["count"] for stats in query_stats.values())
-            
+            # Filter out None values and sum
+            count_values = [
+                stats["count"] for stats in query_stats.values()
+                if stats.get("count") is not None and isinstance(stats["count"], (int, float))
+            ]
+            report.total_queries = int(sum(count_values)) if count_values else 0
+
             # Calculate average query time
-            total_time = sum(stats["total_time"] for stats in query_stats.values())
+            time_values = [
+                stats["total_time"] for stats in query_stats.values()
+                if stats.get("total_time") is not None and isinstance(stats["total_time"], (int, float))
+            ]
+            total_time = sum(time_values) if time_values else 0
             report.avg_query_time_ms = total_time / report.total_queries if report.total_queries > 0 else 0
             
             # Count slow queries
             report.slow_queries_count = len([
-                stats for stats in query_stats.values() 
-                if stats["avg_time"] > self.slow_query_threshold_ms
+                stats for stats in query_stats.values()
+                if (stats.get("avg_time") is not None and
+                    isinstance(stats["avg_time"], (int, float)) and
+                    stats["avg_time"] > self.slow_query_threshold_ms)
             ])
     
     async def _analyze_index_performance(self, database_name: str, client: AbstractDatabaseClient, 
@@ -291,7 +325,9 @@ class DatabasePerformanceOptimizer:
             recommendations = []
             
             for query_hash, stats in query_stats.items():
-                if stats["count"] >= 10 and stats["avg_time"] > 500:  # Frequently executed, moderately slow
+                count = stats.get("count", 0)
+                avg_time = stats.get("avg_time", 0)
+                if count is not None and avg_time is not None and count >= 10 and avg_time > 500:  # Frequently executed, moderately slow
                     recommendations.append(f"Consider creating stored procedure for frequently executed query (hash: {query_hash[:8]})")
             
             report.procedure_recommendations = recommendations

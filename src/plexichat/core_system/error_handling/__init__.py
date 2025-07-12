@@ -22,14 +22,15 @@ Features:
 """
 
 # Import existing error handling components (consolidated)
-from ..app.core.error_handling.error_codes import ErrorCode, ErrorDetails, error_code_manager
-from ..app.core.error_handling.exceptions import (
+# Note: Import from existing modules and create missing ones
+from .exceptions import (
+    ErrorCode, ErrorDetails, error_code_manager,
     BaseAPIException, ValidationError, AuthenticationError, AuthorizationError,
     DatabaseError, NetworkError, ExternalServiceError, FileError, RateLimitError
 )
-from ..app.core.error_handling.crash_reporter import CrashReporter, crash_reporter, CrashContext
-from ..app.core.error_handling.circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
-from ..app.core.error_handling.enhanced_error_handler import EnhancedErrorHandler
+from .crash_reporter import CrashReporter, crash_reporter, CrashContext
+from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
+from .enhanced_error_handler import EnhancedErrorHandler
 
 # Import new unified components
 from .error_manager import ErrorManager, error_manager

@@ -539,6 +539,10 @@ class ConsolidatedDatabaseManager:
             logger.error(f"Query execution failed on '{database}': {e}")
             return {"success": False, "error": str(e), "execution_time": execution_time}
 
+    def _format_last_query_time(self, last_query_time) -> Optional[str]:
+        """Helper method to safely format last query time."""
+        return last_query_time.isoformat() if last_query_time is not None else None
+
     def _update_metrics(self, database: str, execution_time: float, success: bool = True):
         """Update database metrics."""
         if database in self.connection_metrics:
@@ -615,8 +619,7 @@ class ConsolidatedDatabaseManager:
                         "queries_executed": self.connection_metrics[name].queries_executed,
                         "average_response_time": self.connection_metrics[name].average_response_time,
                         "errors": self.connection_metrics[name].errors,
-                        "last_query": (self.connection_metrics[name].last_query_time.isoformat()
-                                    if self.connection_metrics[name].last_query_time is not None else None)
+                        "last_query": self._format_last_query_time(self.connection_metrics[name].last_query_time)
                     } if name in self.connection_metrics else {}
                 }
                 for name, config in self.database_configs.items()
