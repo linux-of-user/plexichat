@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 PlexiChat Application Runner - Enhanced Edition with Bootstrap Installer
 
