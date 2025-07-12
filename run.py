@@ -49,12 +49,26 @@ from datetime import datetime
 class SimpleProgressBar:
     """Simple progress bar implementation when tqdm is not available."""
 
-    def __init__(self, total, desc="Progress", width=50):
+    def __init__(self, total, desc="Progress", width=None):
         self.total = total
         self.current = 0
         self.desc = desc
-        self.width = width
         self.start_time = time.time()
+        self.last_line_count = 0
+
+        # Get terminal width dynamically
+        if width is None:
+            try:
+                import shutil
+                terminal_width = shutil.get_terminal_size().columns
+                # Reserve space for description, percentage, count, and ETA
+                # Format: "desc: |bar| 100.0% (30/31) ETA: 123s"
+                reserved_space = len(desc) + 25  # Approximate space for other elements
+                self.width = max(20, terminal_width - reserved_space)
+            except:
+                self.width = 50
+        else:
+            self.width = width
 
     def set_description(self, desc):
         """Set the description for the progress bar (for compatibility with tqdm)."""
@@ -79,15 +93,44 @@ class SimpleProgressBar:
         else:
             eta_str = "?s"
 
-        print(f"\r{self.desc}: |{bar}| {percent:.1f}% ({self.current}/{self.total}) ETA: {eta_str}", end="", flush=True)
+        # Save cursor position and move to bottom of terminal
+        try:
+            import shutil
+            terminal_height = shutil.get_terminal_size().lines
+            # Move cursor to bottom line
+            print(f"\033[s", end="")  # Save cursor position
+            print(f"\033[{terminal_height};1H", end="")  # Move to bottom line
+            print(f"\033[K", end="")  # Clear line
+            print(f"{self.desc}: |{bar}| {percent:.1f}% ({self.current}/{self.total}) ETA: {eta_str}", end="", flush=True)
+            print(f"\033[u", end="")  # Restore cursor position
+        except:
+            # Fallback to simple progress bar if terminal control fails
+            print(f"\r{self.desc}: |{bar}| {percent:.1f}% ({self.current}/{self.total}) ETA: {eta_str}", end="", flush=True)
 
         if self.current >= self.total:
+            # Clear the bottom line and print completion message
+            try:
+                import shutil
+                terminal_height = shutil.get_terminal_size().lines
+                print(f"\033[{terminal_height};1H", end="")  # Move to bottom line
+                print(f"\033[K", end="")  # Clear line
+            except:
+                pass
             print()  # New line when complete
 
     def close(self):
         if self.current < self.total:
             self.current = self.total
             self._display()
+        else:
+            # Clear the progress bar from bottom line
+            try:
+                import shutil
+                terminal_height = shutil.get_terminal_size().lines
+                print(f"\033[{terminal_height};1H", end="")  # Move to bottom line
+                print(f"\033[K", end="")  # Clear line
+            except:
+                pass
 
 def create_progress_bar(total, desc="Progress"):
     """Create a progress bar using tqdm if available, otherwise use simple implementation."""
@@ -1205,7 +1248,7 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
         return True
 
 
-def install_single_package(python_exe, package, use_fallbacks=True):
+def install_single_package(python_exe, package, use_fallbacks=True, verbose=False):
     """Install a single package with fallback strategies."""
     install_methods = [
         # Primary method
@@ -1234,7 +1277,9 @@ def install_single_package(python_exe, package, use_fallbacks=True):
 
     for method in install_methods:
         try:
-            print(f"   🔄 Trying {method['name']} for {package}...")
+            # Only print verbose messages if requested (not during progress bar)
+            if verbose:
+                print(f"   🔄 Trying {method['name']} for {package}...")
             subprocess.check_call(
                 method['cmd'],
                 stdout=subprocess.DEVNULL,
@@ -1243,7 +1288,8 @@ def install_single_package(python_exe, package, use_fallbacks=True):
             )
             return True
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            print(f"   ⚠️  {method['name']} failed: {e}")
+            if verbose:
+                print(f"   ⚠️  {method['name']} failed: {e}")
             continue
 
     # Final fallback: try system package manager suggestions

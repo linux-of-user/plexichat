@@ -20,8 +20,34 @@ except ImportError:
     # Create placeholder db_manager
     class MockDBManager:
         def __init__(self):
-            pass
+            # Mock async_engine
+            class MockAsyncEngine:
+                def begin(self):
+                    return self
+                async def __aenter__(self):
+                    return self
+                async def __aexit__(self, exc_type, exc_val, exc_tb):
+                    pass
+                async def execute(self, query, params=None):
+                    # Acknowledge parameters to avoid unused warnings
+                    _ = query, params
+                    # Mock result with fetchall method
+                    class MockResult:
+                        def fetchall(self):
+                            return []
+                    return MockResult()
+
+            # Mock backend
+            class MockBackend:
+                def __init__(self):
+                    self.url = "sqlite:///mock.db"
+
+            self.async_engine = MockAsyncEngine()
+            self.backend = MockBackend()
+
         async def execute_query(self, query, params=None):
+            # Acknowledge parameters to avoid unused warnings
+            _ = query, params
             # Mock implementation
             return {"success": True, "data": []}
     db_manager = MockDBManager()
@@ -36,7 +62,7 @@ class Migration:
         self.name = name
         self.up_sql = up_sql
         self.down_sql = down_sql
-        self.timestamp = datetime.now(datetime.timezone.utc)
+        self.timestamp = datetime.now(timezone.utc)
     
     def __str__(self):
         return f"Migration {self.version}: {self.name}"
@@ -324,7 +350,7 @@ class MigrationManager:
                 """), {
                     "version": migration.version,
                     "name": migration.name,
-                    "applied_at": datetime.utcnow()
+                    "applied_at": datetime.now(timezone.utc)
                 })
             
             logger.info(f"Successfully applied migration: {migration}")
@@ -380,7 +406,7 @@ class MigrationManager:
             
         return sql
     
-    async def migrate_up(self, target_version: str = None) -> bool:
+    async def migrate_up(self, target_version: Optional[str] = None) -> bool:
         """Apply all pending migrations up to target version."""
         pending = await self.get_pending_migrations()
         
