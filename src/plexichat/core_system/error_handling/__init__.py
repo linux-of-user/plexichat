@@ -34,15 +34,63 @@ from .crash_reporter import CrashReporter, crash_reporter, CrashContext
 from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
 from .enhanced_error_handler import EnhancedErrorHandler
 
-# Import new unified components
-from .error_manager import ErrorManager, error_manager
-from .error_recovery import ErrorRecoveryManager, recovery_manager
-from .error_monitor import ErrorMonitor, error_monitor
-from .error_analytics import ErrorAnalytics, error_analytics
-from .decorators import error_handler, crash_handler, circuit_breaker, retry
-from .middleware import ErrorHandlingMiddleware
-from .context import ErrorContext, ErrorBoundary
-from .reporting import ErrorReporter, error_reporter
+# Import new unified components with error handling
+try:
+    from .error_manager import ErrorManager, error_manager
+except ImportError as e:
+    print(f"Warning: Could not import error_manager: {e}")
+    ErrorManager = None
+    error_manager = None
+
+try:
+    from .error_recovery import ErrorRecoveryManager, recovery_manager
+except ImportError as e:
+    print(f"Warning: Could not import error_recovery: {e}")
+    ErrorRecoveryManager = None
+    recovery_manager = None
+
+try:
+    from .error_monitor import ErrorMonitor, error_monitor
+except ImportError as e:
+    print(f"Warning: Could not import error_monitor: {e}")
+    ErrorMonitor = None
+    error_monitor = None
+
+try:
+    from .error_analytics import ErrorAnalytics, error_analytics
+except ImportError as e:
+    print(f"Warning: Could not import error_analytics: {e}")
+    ErrorAnalytics = None
+    error_analytics = None
+
+try:
+    from .decorators import error_handler, crash_handler, circuit_breaker, retry
+except ImportError as e:
+    print(f"Warning: Could not import decorators: {e}")
+    error_handler = None
+    crash_handler = None
+    circuit_breaker = None
+    retry = None
+
+try:
+    from .middleware import ErrorHandlingMiddleware
+except ImportError as e:
+    print(f"Warning: Could not import middleware: {e}")
+    ErrorHandlingMiddleware = None
+
+try:
+    from .context import ErrorContext, ErrorBoundary
+except ImportError as e:
+    print(f"Warning: Could not import context: {e}")
+    ErrorContext = None
+    ErrorBoundary = None
+
+try:
+    from .reporting import ErrorReporter, error_reporter
+except ImportError as e:
+    print(f"Warning: Could not import reporting: {e}")
+    ErrorReporter = None
+    error_reporter = None
 
 __version__ = "2.0.0"
 __all__ = [

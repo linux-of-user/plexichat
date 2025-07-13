@@ -33,6 +33,8 @@ import zipfile
 import urllib.request
 import urllib.error
 from pathlib import Path
+import msvcrt  # For Windows key detection
+import select  # For Unix key detection
 from datetime import datetime
 
 # Try to import optional dependencies
@@ -367,6 +369,253 @@ def get_system_info():
 # BOOTSTRAP INSTALLER CLASS
 # ============================================================================
 
+class InteractiveSetupWizard:
+    """
+    Interactive setup wizard for PlexiChat configuration.
+    """
+
+    def __init__(self):
+        """Initialize the setup wizard."""
+        self.config = {}
+        self.features = {
+            'database_type': {
+                'name': 'Database Type',
+                'options': ['SQLite (Default)', 'PostgreSQL', 'MySQL', 'MongoDB'],
+                'selected': 0,
+                'required': True
+            },
+            'installation_type': {
+                'name': 'Installation Type',
+                'options': ['Minimal', 'Standard', 'Full', 'Developer'],
+                'selected': 1,
+                'required': True
+            },
+            'ai_features': {
+                'name': 'AI Features',
+                'enabled': True,
+                'description': 'Enable AI chat capabilities and language models'
+            },
+            'security_features': {
+                'name': 'Enhanced Security',
+                'enabled': True,
+                'description': 'Zero-trust security, encryption, and advanced auth'
+            },
+            'clustering': {
+                'name': 'Clustering Support',
+                'enabled': False,
+                'description': 'Multi-node clustering and load balancing'
+            },
+            'monitoring': {
+                'name': 'Monitoring & Analytics',
+                'enabled': True,
+                'description': 'Error monitoring, performance analytics, and logging'
+            },
+            'backup_system': {
+                'name': 'Backup System',
+                'enabled': True,
+                'description': 'Automated backups and disaster recovery'
+            },
+            'ssl_setup': {
+                'name': 'SSL/TLS Setup',
+                'enabled': True,
+                'description': 'Automatic SSL certificate generation and management'
+            },
+            'webui': {
+                'name': 'Web UI',
+                'enabled': True,
+                'description': 'Modern web-based user interface'
+            },
+            'api_server': {
+                'name': 'API Server',
+                'enabled': True,
+                'description': 'RESTful API server for integrations'
+            }
+        }
+
+    def get_key_input(self):
+        """Get a single key input cross-platform."""
+        if IS_WINDOWS:
+            try:
+                return msvcrt.getch().decode('utf-8', errors='ignore')
+            except:
+                return input().strip()[:1]  # Fallback
+        else:
+            # Unix/Linux implementation
+            try:
+                import termios, tty
+                fd = sys.stdin.fileno()
+                old_settings = termios.tcgetattr(fd)
+                try:
+                    tty.setraw(sys.stdin.fileno())
+                    ch = sys.stdin.read(1)
+                    return ch
+                finally:
+                    termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            except:
+                return input().strip()[:1]  # Fallback
+
+    def clear_screen(self):
+        """Clear the terminal screen."""
+        os.system('cls' if IS_WINDOWS else 'clear')
+
+    def print_header(self, title):
+        """Print a formatted header."""
+        print("=" * 70)
+        print(f"  {title}")
+        print("=" * 70)
+
+    def print_menu_item(self, index, text, selected=False, enabled=None):
+        """Print a menu item with selection indicator."""
+        if selected:
+            prefix = ">> "
+        else:
+            prefix = "   "
+
+        if enabled is not None:
+            status = "[ON]" if enabled else "[OFF]"
+            print(f"{prefix}{index + 1}. {text} {status}")
+        else:
+            print(f"{prefix}{index + 1}. {text}")
+
+    def show_selection_menu(self, title, options, current_selection=0):
+        """Show a selection menu with arrow key navigation."""
+        selection = current_selection
+
+        while True:
+            self.clear_screen()
+            self.print_header(title)
+            print()
+
+            for i, option in enumerate(options):
+                self.print_menu_item(i, option, selected=(i == selection))
+
+            print()
+            print("Use UP/DOWN arrows to navigate, ENTER to select, ESC to cancel")
+
+            key = self.get_key_input()
+
+            if key == '\x1b':  # ESC key
+                # Check for arrow keys (ESC [ A/B)
+                try:
+                    next_key = self.get_key_input()
+                    if next_key == '[':
+                        arrow_key = self.get_key_input()
+                        if arrow_key == 'A':  # Up arrow
+                            selection = (selection - 1) % len(options)
+                        elif arrow_key == 'B':  # Down arrow
+                            selection = (selection + 1) % len(options)
+                    else:
+                        return None  # ESC pressed
+                except:
+                    return None  # ESC pressed
+            elif key == '\r' or key == '\n':  # Enter key
+                return selection
+            elif key.upper() == 'Q':
+                return None
+            elif key.isdigit():
+                num = int(key) - 1
+                if 0 <= num < len(options):
+                    return num
+
+    def show_features_menu(self):
+        """Show interactive features configuration menu."""
+        feature_keys = [k for k in self.features.keys() if not self.features[k].get('required', False)]
+        selection = 0
+
+        while True:
+            self.clear_screen()
+            self.print_header("PlexiChat Features Configuration")
+            print()
+            print("Configure optional features (use SPACE to toggle, ENTER to continue):")
+            print()
+
+            for i, key in enumerate(feature_keys):
+                feature = self.features[key]
+                selected = (i == selection)
+                enabled = feature.get('enabled', False)
+
+                self.print_menu_item(i, feature['name'], selected=selected, enabled=enabled)
+                if selected:
+                    print(f"     {feature.get('description', '')}")
+
+            print()
+            print("Controls: UP/DOWN arrows, SPACE to toggle, ENTER to continue, Q to quit")
+
+            key = self.get_key_input()
+
+            if key == '\x1b':  # ESC key for arrow keys
+                try:
+                    next_key = self.get_key_input()
+                    if next_key == '[':
+                        arrow_key = self.get_key_input()
+                        if arrow_key == 'A':  # Up arrow
+                            selection = (selection - 1) % len(feature_keys)
+                        elif arrow_key == 'B':  # Down arrow
+                            selection = (selection + 1) % len(feature_keys)
+                except:
+                    pass
+            elif key == ' ':  # Space to toggle
+                feature_key = feature_keys[selection]
+                self.features[feature_key]['enabled'] = not self.features[feature_key]['enabled']
+            elif key == '\r' or key == '\n':  # Enter to continue
+                break
+            elif key.upper() == 'Q':
+                return False
+
+        return True
+
+    def run_setup_wizard(self):
+        """Run the complete interactive setup wizard."""
+        self.clear_screen()
+        print("=" * 70)
+        print("  Welcome to PlexiChat Interactive Setup Wizard")
+        print("=" * 70)
+        print()
+        print("This wizard will guide you through configuring PlexiChat.")
+        print("Press ENTER to continue or Q to quit...")
+
+        key = input().strip()
+        if key.upper() == 'Q':
+            return False
+
+        # Step 1: Choose installation type
+        install_result = self.show_selection_menu(
+            "Choose Installation Type",
+            self.features['installation_type']['options'],
+            self.features['installation_type']['selected']
+        )
+
+        if install_result is None:
+            return False
+
+        self.features['installation_type']['selected'] = install_result
+        self.config['installation_type'] = self.features['installation_type']['options'][install_result]
+
+        # Step 2: Choose database type
+        db_result = self.show_selection_menu(
+            "Choose Database Type",
+            self.features['database_type']['options'],
+            self.features['database_type']['selected']
+        )
+
+        if db_result is None:
+            return False
+
+        self.features['database_type']['selected'] = db_result
+        self.config['database_type'] = self.features['database_type']['options'][db_result]
+
+        # Step 3: Configure optional features
+        if not self.show_features_menu():
+            return False
+
+        # Save enabled features to config
+        for key, feature in self.features.items():
+            if not feature.get('required', False):
+                self.config[key] = feature.get('enabled', False)
+
+        return True
+
+
 class PlexiChatBootstrapper:
     """Bootstrap installer for PlexiChat from a single script."""
 
@@ -623,7 +872,7 @@ class PlexiChatBootstrapper:
             return False
 
     def run_bootstrap(self) -> bool:
-        """Run the complete bootstrap process."""
+        """Run the bootstrap process - clone source code only."""
         self.print_bootstrap_banner()
 
         print("[*] Starting PlexiChat bootstrap installation...")
@@ -633,31 +882,23 @@ class PlexiChatBootstrapper:
         if not self.check_bootstrap_requirements():
             return False
 
-        # Step 2: Download source code
+        # Step 2: Download source code ONLY
         if not self.clone_or_download_repo():
             return False
 
-        # Step 3: Create virtual environment
-        if not self.create_virtual_environment():
-            return False
-
-        # Step 4: Install dependencies
-        if not self.install_dependencies():
-            return False
-
-        # Step 5: Create initial configuration
-        self.create_initial_config()
-
         print("\n" + "=" * 60)
-        print("[SUCCESS] Bootstrap installation completed successfully!")
+        print("[SUCCESS] Bootstrap completed successfully!")
+        print("\nPlexiChat source code has been downloaded.")
         print("\nNext steps:")
-        print(f"  1. cd {self.script_dir}")
-        print("  2. cd plexichat")
-        print("  3. python run.py setup       # Configure PlexiChat")
-        print("  4. python run.py run         # Start the server")
-        print("  5. python run.py --help      # See all options")
-        print("\nFor development:")
-        print("  python run.py setup developer  # Full development setup")
+        print(f"  1. cd {self.install_dir}")
+        print("  2. python run.py setup       # Run interactive setup wizard")
+        print("\nThe setup wizard will guide you through:")
+        print("  * Choosing installation type (minimal/full/developer)")
+        print("  * Selecting database type")
+        print("  * Configuring optional features")
+        print("  * Installing dependencies")
+        print("  * Setting up SSL certificates")
+        print("  * Creating initial configuration")
 
         return True
 
@@ -810,13 +1051,9 @@ def load_setup_config():
 
 
 def interactive_setup_wizard():
-    """Interactive setup wizard for first-time users."""
-    print("\n[*] PlexiChat Setup Wizard")
-    print("=" * 50)
-
-    # System check
-    print("[*] Checking system compatibility...")
-    print_system_info()
+    """Enhanced interactive setup wizard for first-time users."""
+    # Use the new InteractiveSetupWizard class
+    wizard = InteractiveSetupWizard()
 
     # Check for existing setup
     existing_config = load_setup_config()
@@ -827,99 +1064,51 @@ def interactive_setup_wizard():
         else:
             return existing_config
 
-    print("\n[*] Choose your setup style:")
-    print("=" * 30)
+    # Run the enhanced setup wizard
+    if not wizard.run_setup_wizard():
+        return None
 
-    for i, (key, style) in enumerate(SETUP_STYLES.items(), 1):
-        print(f"{i}. {style['name']}")
-        print(f"   {style['description']}")
-        print(f"   Features: {', '.join(style['features'])}")
-        print(f"   Install time: {style['install_time']}")
-        print()
+    # Convert wizard config to legacy format for compatibility
+    config = wizard.config.copy()
 
-    while True:
-        try:
-            choice = input("Select setup style (1-4) [2]: ").strip()
-            if not choice:
-                choice = "2"  # Default to standard
-
-            choice_idx = int(choice) - 1
-            if 0 <= choice_idx < len(SETUP_STYLES):
-                setup_style = list(SETUP_STYLES.keys())[choice_idx]
-                break
-            else:
-                print("[ERROR] Invalid choice. Please select 1-4.")
-        except ValueError:
-            print("[ERROR] Please enter a number (1-4).")
-
-    print(f"\n[OK] Selected: {SETUP_STYLES[setup_style]['name']}")
-
-    # Terminal style selection
-    print("\n[*]  Choose your terminal style:")
-    print("=" * 30)
-
-    for i, (key, style) in enumerate(TERMINAL_STYLES.items(), 1):
-        print(f"{i}. {style['name']}")
-        print(f"   {style['description']}")
-        print(f"   Best for: {style['best_for']}")
-        print()
-
-    # Auto-recommend terminal style based on width
-    if TERMINAL_WIDTH >= 120:
-        recommended = "2"  # Split screen
-        rec_name = "Split Screen"
-    elif TERMINAL_WIDTH >= 80:
-        recommended = "3"  # Tabbed
-        rec_name = "Tabbed Interface"
+    # Map installation type to setup style
+    install_type = config.get('installation_type', 'Standard')
+    if 'Minimal' in install_type:
+        config['setup_style'] = 'minimal'
+    elif 'Full' in install_type:
+        config['setup_style'] = 'full'
+    elif 'Developer' in install_type:
+        config['setup_style'] = 'developer'
     else:
-        recommended = "1"  # Classic
-        rec_name = "Classic Terminal"
+        config['setup_style'] = 'standard'
 
-    print(f"[INFO] Recommended for your terminal ({TERMINAL_WIDTH} columns): {rec_name}")
+    # Add terminal style selection (simplified for now)
+    if TERMINAL_WIDTH >= 120:
+        config['terminal_style'] = 'split'
+    elif TERMINAL_WIDTH >= 80:
+        config['terminal_style'] = 'tabbed'
+    else:
+        config['terminal_style'] = 'classic'
 
-    while True:
-        try:
-            choice = input(f"Select terminal style (1-4) [{recommended}]: ").strip()
-            if not choice:
-                choice = recommended
+    # Add other configuration options
+    config.update({
+        'debug_mode': False,
+        'performance_monitoring': config.get('monitoring', True),
+        'auto_start_services': True,
+        'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'system_info': get_system_info()
+    })
 
-            choice_idx = int(choice) - 1
-            if 0 <= choice_idx < len(TERMINAL_STYLES):
-                terminal_style = list(TERMINAL_STYLES.keys())[choice_idx]
-                break
-            else:
-                print("[ERROR] Invalid choice. Please select 1-4.")
-        except ValueError:
-            print("[ERROR] Please enter a number (1-4).")
-
-    print(f"\n[OK] Selected: {TERMINAL_STYLES[terminal_style]['name']}")
-
-    # Debug mode
-    debug_mode = input("\n[DEBUG] Enable debug mode? (y/N): ").lower().startswith('y')
-
-    # Performance monitoring
-    perf_monitoring = input("[*] Enable performance monitoring? (Y/n): ").lower() not in ['n', 'no']
-
-    # Auto-start services
-    auto_start = input("[*] Auto-start all services? (Y/n): ").lower() not in ['n', 'no']
-
-    config = {
-        "setup_style": setup_style,
-        "terminal_style": terminal_style,
-        "debug_mode": debug_mode,
-        "performance_monitoring": perf_monitoring,
-        "auto_start_services": auto_start,
-        "setup_date": datetime.now().isoformat(),
-        "system_info": get_system_info()
-    }
-
+    # Show configuration summary
     print("\n[*] Configuration Summary:")
-    print("=" * 30)
-    print(f"Setup Style: {SETUP_STYLES[setup_style]['name']}")
-    print(f"Terminal Style: {TERMINAL_STYLES[terminal_style]['name']}")
-    print(f"Debug Mode: {'Enabled' if debug_mode else 'Disabled'}")
-    print(f"Performance Monitoring: {'Enabled' if perf_monitoring else 'Disabled'}")
-    print(f"Auto-start Services: {'Enabled' if auto_start else 'Disabled'}")
+    print("=" * 50)
+    print(f"Installation Type: {config.get('installation_type', 'Standard')}")
+    print(f"Database Type: {config.get('database_type', 'SQLite (Default)')}")
+    print(f"AI Features: {'Enabled' if config.get('ai_features', True) else 'Disabled'}")
+    print(f"Security Features: {'Enabled' if config.get('security_features', True) else 'Disabled'}")
+    print(f"Monitoring: {'Enabled' if config.get('monitoring', True) else 'Disabled'}")
+    print(f"SSL Setup: {'Enabled' if config.get('ssl_setup', True) else 'Disabled'}")
+    print(f"Web UI: {'Enabled' if config.get('webui', True) else 'Disabled'}")
 
     if input("\n[OK] Proceed with this configuration? (Y/n): ").lower() not in ['n', 'no']:
         save_setup_config(config)
@@ -3645,6 +3834,82 @@ in the same location as this script.
             sys.exit(0)
         else:
             print("\n[ERROR] Bootstrap failed. Please check the errors above.")
+            sys.exit(1)
+
+    elif command == "setup":
+        # Interactive setup wizard
+        if "--help" in args or "-h" in args:
+            print("""
+[*] PlexiChat Interactive Setup Wizard
+
+Usage: python run.py setup [type]
+
+This command runs the interactive setup wizard to configure PlexiChat:
+1. Choose installation type (minimal/standard/full/developer)
+2. Select database type (SQLite/PostgreSQL/MySQL/MongoDB)
+3. Configure optional features with arrow key navigation
+4. Install dependencies based on selections
+5. Set up SSL certificates and initial configuration
+
+Types:
+  (none)      Interactive wizard with all options
+  minimal     Quick minimal setup
+  standard    Standard setup with common features
+  full        Full installation with all features
+  developer   Development setup with debugging tools
+
+Options:
+  --help, -h  Show this help message
+
+Examples:
+  python run.py setup           # Interactive wizard
+  python run.py setup developer # Quick developer setup
+  python run.py setup minimal   # Quick minimal setup
+""")
+            return
+
+        # Check if we have a setup type argument
+        setup_type = args[1] if len(args) > 1 else None
+
+        if setup_type in ['minimal', 'standard', 'full', 'developer']:
+            # Quick setup without wizard
+            print(f"[*] Running {setup_type} setup...")
+            config = {
+                'setup_style': setup_type,
+                'installation_type': setup_type.title(),
+                'database_type': 'SQLite (Default)',
+                'ai_features': setup_type != 'minimal',
+                'security_features': True,
+                'monitoring': setup_type in ['full', 'developer'],
+                'ssl_setup': setup_type != 'minimal',
+                'webui': True,
+                'api_server': True,
+                'debug_mode': setup_type == 'developer',
+                'performance_monitoring': setup_type in ['full', 'developer'],
+                'auto_start_services': True,
+                'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'system_info': get_system_info()
+            }
+            save_setup_config(config)
+        else:
+            # Run interactive wizard
+            config = interactive_setup_wizard()
+            if not config:
+                print("[ERROR] Setup cancelled")
+                sys.exit(1)
+
+        # Install dependencies based on configuration
+        setup_style = config.get("setup_style", "standard")
+        print(f"\n[*] Installing dependencies for {setup_style} setup...")
+
+        if install_dependencies(setup_style):
+            print("[SUCCESS] Setup completed successfully!")
+            print("\nNext steps:")
+            print("1. python run.py run    # Start PlexiChat server")
+            print("2. Open http://localhost:8080 in your browser")
+            print("3. Login with generated admin credentials")
+        else:
+            print("[ERROR] Setup failed during dependency installation")
             sys.exit(1)
 
     elif command == "update":
