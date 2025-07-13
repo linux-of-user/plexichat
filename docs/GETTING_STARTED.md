@@ -1,410 +1,444 @@
 # Getting Started with PlexiChat
 
-Welcome to PlexiChat! This guide will get you up and running in just a few minutes.
+This comprehensive guide will help you set up, configure, and start using PlexiChat in your environment.
 
-## 🚀 Quick Start (30 seconds)
+## Table of Contents
 
-### Step 1: Get PlexiChat
+1. [System Requirements](#system-requirements)
+2. [Installation Methods](#installation-methods)
+3. [Initial Configuration](#initial-configuration)
+4. [First Run Setup](#first-run-setup)
+5. [Basic Usage](#basic-usage)
+6. [Configuration Options](#configuration-options)
+7. [Troubleshooting](#troubleshooting)
+
+## System Requirements
+
+### Minimum Requirements
+
+- **Operating System**: Linux (Ubuntu 18.04+), macOS (10.15+), Windows 10+
+- **Python**: 3.8 or higher
+- **Memory**: 2GB RAM minimum, 4GB recommended
+- **Storage**: 5GB free space minimum
+- **Network**: Internet connection for initial setup and AI features
+
+### Recommended Requirements
+
+- **Operating System**: Linux (Ubuntu 20.04+), macOS (12+), Windows 11
+- **Python**: 3.10 or higher
+- **Memory**: 8GB RAM or more
+- **Storage**: 20GB free space
+- **Database**: PostgreSQL 12+ or MySQL 8.0+
+- **Cache**: Redis 6.0+
+- **CPU**: Multi-core processor (4+ cores recommended)
+
+### Dependencies
+
+#### Required
+- **FastAPI**: Web framework
+- **SQLAlchemy**: Database ORM
+- **Pydantic**: Data validation
+- **Cryptography**: Security and encryption
+- **WebSockets**: Real-time communication
+
+#### Optional
+- **PostgreSQL**: Production database (recommended)
+- **Redis**: Caching and session storage
+- **Docker**: Containerized deployment
+- **Node.js**: Web interface development
+
+## Installation Methods
+
+### Method 1: Standard Python Installation
+
 ```bash
+# Clone the repository
 git clone https://github.com/linux-of-user/plexichat.git
 cd plexichat
+
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# On Linux/macOS:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install PlexiChat in development mode
+pip install -e .
 ```
 
-### Step 2: Start Everything
+### Method 2: Docker Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/linux-of-user/plexichat.git
+cd plexichat
+
+# Using Docker Compose (recommended)
+docker-compose up -d
+
+# Or build and run manually
+docker build -t plexichat .
+docker run -p 8000:8000 -v $(pwd)/data:/app/data plexichat
+```
+
+### Method 3: Production Installation
+
+```bash
+# For production deployment
+pip install plexichat
+
+# Or using pipx for isolated installation
+pipx install plexichat
+```
+
+## Initial Configuration
+
+### 1. Environment Setup
+
+Create a `.env` file in your project root:
+
+```bash
+# Core Configuration
+PLEXICHAT_ENV=development
+PLEXICHAT_SECRET_KEY=your-super-secret-key-here
+PLEXICHAT_DEBUG=true
+
+# Database Configuration
+PLEXICHAT_DATABASE_URL=sqlite:///./plexichat.db
+# For PostgreSQL: postgresql://user:password@localhost:5432/plexichat
+# For MySQL: mysql://user:password@localhost:3306/plexichat
+
+# Security Configuration
+PLEXICHAT_ENCRYPTION_KEY=your-encryption-key-here
+PLEXICHAT_JWT_SECRET=your-jwt-secret-here
+PLEXICHAT_JWT_EXPIRE_MINUTES=30
+
+# AI Configuration (optional)
+OPENAI_API_KEY=your-openai-api-key
+ANTHROPIC_API_KEY=your-anthropic-api-key
+GOOGLE_AI_API_KEY=your-google-ai-api-key
+
+# Redis Configuration (optional)
+REDIS_URL=redis://localhost:6379/0
+
+# Email Configuration (optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+```
+
+### 2. Database Setup
+
+#### SQLite (Development)
+```bash
+# SQLite is used by default - no additional setup required
+python -m plexichat db init
+```
+
+#### PostgreSQL (Recommended for Production)
+```bash
+# Install PostgreSQL and create database
+sudo apt-get install postgresql postgresql-contrib  # Ubuntu/Debian
+# or
+brew install postgresql  # macOS
+
+# Create database and user
+sudo -u postgres psql
+CREATE DATABASE plexichat;
+CREATE USER plexichat_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE plexichat TO plexichat_user;
+\q
+
+# Update .env file with PostgreSQL URL
+PLEXICHAT_DATABASE_URL=postgresql://plexichat_user:your_password@localhost:5432/plexichat
+
+# Initialize database
+python -m plexichat db init
+```
+
+#### MySQL (Alternative)
+```bash
+# Install MySQL and create database
+sudo apt-get install mysql-server  # Ubuntu/Debian
+# or
+brew install mysql  # macOS
+
+# Create database and user
+mysql -u root -p
+CREATE DATABASE plexichat;
+CREATE USER 'plexichat_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON plexichat.* TO 'plexichat_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+# Update .env file with MySQL URL
+PLEXICHAT_DATABASE_URL=mysql://plexichat_user:your_password@localhost:3306/plexichat
+
+# Initialize database
+python -m plexichat db init
+```
+
+### 3. Redis Setup (Optional but Recommended)
+
+```bash
+# Install Redis
+sudo apt-get install redis-server  # Ubuntu/Debian
+# or
+brew install redis  # macOS
+
+# Start Redis service
+sudo systemctl start redis-server  # Linux
+# or
+brew services start redis  # macOS
+
+# Test Redis connection
+redis-cli ping
+# Should return: PONG
+```
+
+## First Run Setup
+
+### 1. Initialize PlexiChat
+
+```bash
+# Run the setup wizard
+python -m plexichat setup
+
+# Or initialize manually
+python -m plexichat init --admin-user admin --admin-email admin@example.com
+```
+
+### 2. Start the Server
+
+```bash
+# Development mode (with auto-reload)
+python run.py --dev
+
+# Production mode
 python run.py
+
+# With custom configuration
+python run.py --config config/production.yaml
+
+# With specific host and port
+python run.py --host 0.0.0.0 --port 8080
 ```
 
-That's it! PlexiChat will automatically:
-- ✅ Check your Python version (3.8+ required)
-- ✅ Install missing dependencies
-- ✅ Validate system configuration
-- ✅ Start the web server
-- ✅ Launch the CLI interface
-- ✅ Open in split-screen mode
+### 3. Access the Web Interface
 
-### Step 3: Access Your Platform
+1. Open your browser and navigate to: `http://localhost:8000`
+2. You should see the PlexiChat login page
+3. Use the default admin credentials:
+   - **Username**: `admin`
+   - **Password**: `admin123`
+4. **Important**: Change the default password immediately after first login
 
-Once started, you'll see output like this:
+### 4. Complete the Setup Wizard
 
-```
-============================================================
-                    PLEXICHAT v1.0.0
-============================================================
-ℹ️  Starting in SPLIT mode...
-ℹ️  Timestamp: 2024-01-01 12:00:00
+The setup wizard will guide you through:
 
-✅ System validation passed
-✅ Single instance lock acquired
-✅ Web server started successfully
-ℹ️  Access at: http://localhost:8000
-ℹ️  API Docs: http://localhost:8000/docs
-ℹ️  Admin: http://localhost:8000/web/admin
-ℹ️  Web CLI: http://localhost:8000/web/cli
+1. **Admin Account Setup**: Change default credentials
+2. **Security Configuration**: Set up encryption keys and security policies
+3. **Database Configuration**: Verify database connection
+4. **AI Integration**: Configure AI providers (optional)
+5. **Email Settings**: Set up email notifications (optional)
+6. **Backup Configuration**: Configure backup settings
 
-──────────────────────────────────────────────────────────
-WEB SERVER RUNNING - Starting CLI Interface
-──────────────────────────────────────────────────────────
-
-✅ CLI interface ready
-ℹ️  Type 'help' for available commands
-ℹ️  Type 'exit' or Ctrl+C to shutdown
-
-plexichat>
-```
-
-## 🌐 Access Points
+## Basic Usage
 
 ### Web Interface
-Open your browser and go to: **http://localhost:8000**
 
-**Default Login:**
-- Username: `admin`
-- Password: `admin123`
+1. **Dashboard**: Overview of system status and recent activity
+2. **Messages**: Send and receive messages in channels
+3. **Files**: Upload, share, and manage files
+4. **Users**: Manage user accounts and permissions
+5. **Settings**: Configure system settings and preferences
+6. **Admin Panel**: Administrative functions and system management
 
-### Available Interfaces
-- **Main Dashboard**: http://localhost:8000
-- **Admin Panel**: http://localhost:8000/web/admin
-- **API Documentation**: http://localhost:8000/docs
-- **Web CLI**: http://localhost:8000/web/cli
+### Command Line Interface
 
-### Desktop GUI (Optional)
 ```bash
-python plexichat_gui.py
+# Show system status
+plexichat status
+
+# User management
+plexichat user create username --email user@example.com
+plexichat user list
+plexichat user delete username
+
+# Channel management
+plexichat channel create general --description "General discussion"
+plexichat channel list
+
+# Backup operations
+plexichat backup create
+plexichat backup list
+plexichat backup restore backup_id
+
+# System maintenance
+plexichat db migrate
+plexichat cache clear
+plexichat logs --tail 100
 ```
 
-## 🎮 Startup Options
+### API Usage
 
-### Default Mode (Recommended)
-```bash
-python run.py
+```python
+# Python SDK example
+from plexichat import PlexiChatClient
+
+# Initialize client
+client = PlexiChatClient(
+    base_url="http://localhost:8000",
+    api_key="your-api-key"
+)
+
+# Send a message
+response = client.messages.send(
+    channel="general",
+    content="Hello, PlexiChat!",
+    user_id="user123"
+)
+
+# Upload a file
+with open("document.pdf", "rb") as f:
+    file_response = client.files.upload(
+        file=f,
+        filename="document.pdf",
+        channel="general"
+    )
 ```
-- Starts web server + CLI in split-screen
-- Perfect for development and administration
 
-### Web Server Only
-```bash
-python run.py --web-only
+## Configuration Options
+
+### Core Settings
+
+```yaml
+# config/settings.yaml
+app:
+  name: "PlexiChat"
+  version: "a.1.1-1"
+  debug: false
+  host: "0.0.0.0"
+  port: 8000
+
+security:
+  encryption:
+    algorithm: "AES-256-GCM"
+    key_rotation_hours: 24
+  authentication:
+    require_2fa: true
+    session_timeout_minutes: 30
+    max_failed_attempts: 3
+
+database:
+  url: "postgresql://user:pass@localhost:5432/plexichat"
+  pool_size: 10
+  max_overflow: 20
+  echo: false
+
+ai:
+  providers:
+    openai:
+      enabled: true
+      model: "gpt-4"
+    anthropic:
+      enabled: true
+      model: "claude-3-sonnet"
 ```
-- Production mode
-- Only starts the web server
-- No CLI interface
-
-### CLI Only
-```bash
-python run.py --cli-only
-```
-- Administration mode
-- Only starts the CLI
-- No web server
-
-### Force Start
-```bash
-python run.py --force
-```
-- Terminates any existing PlexiChat instance
-- Useful if previous shutdown was unclean
-
-### System Validation
-```bash
-python run.py --validate
-```
-- Checks system without starting services
-- Useful for troubleshooting
-
-## 🔧 Configuration
-
-PlexiChat works out of the box with sensible defaults, but you can customize it:
 
 ### Environment Variables
-Create a `.env` file in the PlexiChat directory:
+
+All configuration can be overridden with environment variables:
 
 ```bash
-# Server Configuration
-HOST=0.0.0.0                    # Server host (default: 0.0.0.0)
-PORT=8000                       # Server port (default: 8000)
-WORKERS=4                       # Worker processes (default: 4)
+# App configuration
+export PLEXICHAT_APP_NAME="My PlexiChat"
+export PLEXICHAT_APP_DEBUG=false
+export PLEXICHAT_APP_HOST=0.0.0.0
+export PLEXICHAT_APP_PORT=8000
 
-# Database
-DATABASE_URL=sqlite:///./data/plexichat.db  # Database URL
+# Security configuration
+export PLEXICHAT_SECURITY_ENCRYPTION_ALGORITHM="AES-256-GCM"
+export PLEXICHAT_SECURITY_AUTHENTICATION_REQUIRE_2FA=true
 
-# Security
-SECRET_KEY=your-secret-key-here  # JWT signing key (auto-generated)
-
-# Logging
-LOG_LEVEL=INFO                  # Logging level (DEBUG, INFO, WARNING, ERROR)
-LOG_TO_FILE=true               # Enable file logging
-LOG_DIR=./logs                 # Log directory
-
-# Features
-CLUSTER_ENABLED=true           # Enable clustering
-DEBUG=false                    # Debug mode
+# Database configuration
+export PLEXICHAT_DATABASE_URL="postgresql://user:pass@localhost:5432/plexichat"
+export PLEXICHAT_DATABASE_POOL_SIZE=10
 ```
 
-### Quick Configuration
-```bash
-# Change port
-echo "PORT=8080" > .env
-python run.py
-
-# Enable debug mode
-echo "DEBUG=true" >> .env
-python run.py
-```
-
-## 🖥️ Using the CLI
-
-The CLI provides full control over PlexiChat:
-
-### Basic Commands
-```bash
-plexichat> help              # Show all commands
-plexichat> status             # System status
-plexichat> info               # Detailed information
-plexichat> version            # Version information
-```
-
-### System Management
-```bash
-plexichat> restart            # Restart server
-plexichat> shutdown           # Shutdown server
-plexichat> test               # Run system tests
-plexichat> performance        # Performance metrics
-```
-
-### User Management
-```bash
-plexichat> users list         # List all users
-plexichat> users create       # Create new user
-plexichat> users delete       # Delete user
-```
-
-### Analytics & Monitoring
-```bash
-plexichat> analytics          # View analytics
-plexichat> monitor status     # Monitor system
-plexichat> monitor logs 50    # View recent logs
-```
-
-### Updates
-```bash
-plexichat> update check       # Check for updates
-plexichat> update start       # Start update process
-plexichat> update status      # Update status
-```
-
-### Clustering
-```bash
-plexichat> cluster status     # Cluster status
-plexichat> cluster nodes      # List nodes
-plexichat> cluster join <url> # Join cluster
-```
-
-## 🌐 Web Interface Tour
-
-### 1. Login Page
-- Clean, modern interface
-- Default credentials: admin/admin123
-- Remember me option
-- Responsive design
-
-### 2. Main Dashboard
-- System overview
-- Real-time metrics
-- Quick actions
-- Navigation menu
-
-### 3. Admin Panel
-- User management
-- System configuration
-- Update management
-- Cluster monitoring
-- Analytics dashboard
-
-### 4. API Documentation
-- Interactive API explorer
-- Try endpoints directly
-- Authentication built-in
-- Complete reference
-
-## 🔄 Hot Updates
-
-PlexiChat supports zero-downtime updates:
-
-### Via Web Interface
-1. Go to **Admin Panel** → **Updates**
-2. Click **Check for Updates**
-3. If available, click **Start Hot Update**
-4. Updates apply instantly without downtime!
-
-### Via CLI
-```bash
-plexichat> update check
-plexichat> update start
-```
-
-### What Gets Updated
-- **Hot Updates**: Web interface, templates, non-core components
-- **Staged Updates**: Core components (applied on restart)
-- **Automatic Rollback**: Failed updates are automatically rolled back
-
-## 🌐 Multi-Server Setup
-
-PlexiChat automatically discovers and coordinates with other instances:
-
-### Automatic Discovery
-1. Start PlexiChat on multiple machines
-2. They automatically find each other on the local network
-3. Form a cluster with leader election
-4. Share load and provide redundancy
-
-### Manual Clustering
-```bash
-# On second machine
-plexichat> cluster join http://first-machine:8000
-```
-
-### Load Balancing
-```bash
-# Get recommended server for new connections
-curl http://localhost:8000/api/cluster/load-balance
-```
-
-## 🛑 Shutdown
-
-### Graceful Shutdown
-- **From CLI**: Type `exit` or press `Ctrl+C`
-- **From Web**: Close browser (server keeps running)
-- **Desktop GUI**: Click stop button
-
-### Force Shutdown
-```bash
-python shutdown.py --force
-```
-
-### Clean Shutdown Script
-```bash
-python shutdown.py          # Interactive
-python shutdown.py --list   # List processes
-```
-
-## 🧪 Testing Your Installation
-
-### Quick Test
-```bash
-python quick_test.py
-```
-
-### Comprehensive Test
-```bash
-python final_validation.py
-```
-
-### Startup System Test
-```bash
-python test_startup_system.py
-```
-
-### From CLI
-```bash
-plexichat> test               # Run all tests
-plexichat> test_health        # Quick health check
-```
-
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-#### Port Already in Use
-```bash
-# Check what's using the port
-python shutdown.py --list
+#### 1. Database Connection Errors
 
-# Use different port
-echo "PORT=8001" > .env
-python run.py
+```bash
+# Check database status
+python -m plexichat db status
+
+# Test database connection
+python -m plexichat db test-connection
+
+# Reinitialize database
+python -m plexichat db reset --confirm
 ```
 
-#### Dependencies Missing
-```bash
-# Manual installation
-pip install -r requirements.txt
+#### 2. Permission Errors
 
-# Or let PlexiChat handle it
-python run.py  # Auto-installs dependencies
+```bash
+# Fix file permissions
+chmod +x run.py
+chmod -R 755 data/
+
+# Check user permissions
+python -m plexichat user check-permissions admin
 ```
 
-#### Permission Errors
-```bash
-# Linux/macOS: Make scripts executable
-chmod +x run.sh
+#### 3. Port Already in Use
 
-# Windows: Run as Administrator if needed
+```bash
+# Find process using port 8000
+lsof -i :8000  # Linux/macOS
+netstat -ano | findstr :8000  # Windows
+
+# Kill process or use different port
+python run.py --port 8080
 ```
 
-#### Can't Access Web Interface
-```bash
-# Check if server is running
-plexichat> status
+#### 4. Missing Dependencies
 
-# Check firewall settings
-# Make sure port 8000 is open
+```bash
+# Reinstall dependencies
+pip install -r requirements.txt --force-reinstall
+
+# Check for missing packages
+python -m plexichat check-dependencies
 ```
 
 ### Getting Help
 
-#### Built-in Help
-```bash
-python run.py --help        # Startup options
-python cli.py               # CLI help
-plexichat> help               # All commands
-plexichat> help <command>     # Specific command help
-```
+1. **Documentation**: Check the [docs/](../docs/) directory
+2. **Logs**: Check application logs in `logs/` directory
+3. **Debug Mode**: Run with `--debug` flag for verbose output
+4. **Community**: Visit our [GitHub Discussions](https://github.com/linux-of-user/plexichat/discussions)
+5. **Issues**: Report bugs on [GitHub Issues](https://github.com/linux-of-user/plexichat/issues)
 
-#### System Validation
-```bash
-python run.py --validate    # Check system
-python quick_test.py        # Quick test
-```
+### Next Steps
 
-#### Documentation
-- **Troubleshooting Guide**: `TROUBLESHOOTING.md`
-- **API Reference**: `docs/plexichat_api.md`
-- **Interactive Docs**: http://localhost:8000/docs
-
-## 🎯 Next Steps
-
-### For Users
-1. **Explore the Web Interface** - Try all the features
-2. **Create Additional Users** - Set up your team
-3. **Customize Settings** - Configure to your needs
-4. **Set Up Clustering** - Add more servers for redundancy
-
-### For Developers
-1. **Read the API Docs** - http://localhost:8000/docs
-2. **Try the Examples** - Use the interactive API explorer
-3. **Check the Code** - Explore the `app/` directory
-4. **Run Tests** - `python final_validation.py`
-
-### For Administrators
-1. **Monitor System** - Use the admin dashboard
-2. **Set Up Backups** - Configure data backup
-3. **Plan Updates** - Use the hot update system
-4. **Scale Out** - Add more servers to the cluster
-
-## 🎉 You're Ready!
-
-Congratulations! You now have PlexiChat running. Here's what you can do:
-
-- ✅ **Web Interface**: Modern, responsive dashboard
-- ✅ **API Access**: Complete REST API with documentation
-- ✅ **CLI Control**: Full command-line administration
-- ✅ **Hot Updates**: Zero-downtime updates
-- ✅ **Clustering**: Multi-server coordination
-- ✅ **Desktop GUI**: Native desktop application
-
-**Happy networking with PlexiChat!** 🚀
+- [Architecture Overview](ARCHITECTURE.md) - Understand the system design
+- [Security Guide](SECURITY.md) - Learn about security features
+- [API Reference](API.md) - Explore the API endpoints
+- [Deployment Guide](DEPLOYMENT.md) - Deploy to production
+- [Plugin Development](PLUGINS.md) - Create custom plugins
 
 ---
 
-Need help? Check the [Troubleshooting Guide](TROUBLESHOOTING.md) or run `python cli.py` and type `help`.
+**Congratulations!** You now have PlexiChat up and running. Explore the features and customize it to your needs.

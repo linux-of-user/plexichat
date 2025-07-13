@@ -1,95 +1,128 @@
+import asyncio
 import logging
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import uvicorn
 import yaml
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 
-from .core.database import database_manager
-from .core_system.auth.unified_auth_manager import UnifiedAuthManager
-from .core_system.config import get_config
-from .core_system.database import get_database_manager
-from .core_system.integration.orchestrator import SystemOrchestrator
-from .core_system.logging import get_logger, setup_module_logging
-from .core_system.security.certificate_manager import get_certificate_manager
-from .features.ai.api.ai_endpoints import router as ai_api_router
-from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-from .features.ai.webui.ai_management import router as ai_webui_router
-from .features.backup import router as backup_router
-from .features.backup.core.unified_backup_manager import get_unified_backup_manager
-from .features.backup.services import router as backup_router
-from .features.clustering.core.cluster_manager import AdvancedClusterManager
-from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
-from .interfaces.api.v1.clustering import router as clustering_router
-from .interfaces.api.v1.security_api import router as security_router
-
-"""
-PlexiChat Main Application
-Government-Level Secure Communication Platform
-
-Unified main application that consolidates all PlexiChat functionality
-into a single, cohesive FastAPI application with comprehensive features.
-"""
-
-# Import configuration
-# Import advanced logging
+# Core imports with proper error handling
 try:
-    get_advanced_logger = get_logger  # Alias for compatibility
+    from .core.database import get_database_manager, database_manager
 except ImportError:
-    # Fallback logging
-    def get_logger(name):
-        return logging.getLogger(name)
-    def setup_module_logging(module_name=None, level="INFO"):
-        if module_name:
-            logger = logging.getLogger(module_name)
-            logger.setLevel(getattr(logging, level.upper(), logging.INFO))
-            return logger
-        logging.basicConfig(level=logging.INFO)
-        return logging.getLogger()
-    get_advanced_logger = get_logger
+    logging.warning("Database manager not available")
+    get_database_manager = None
+    database_manager = None
 
-# SSL/Certificate Management
 try:
-    ssl_manager = get_certificate_manager()
-    logging.info(" SSL Manager loaded")
-except ImportError as e:
-    logging.warning(f" SSL Manager not available: {e}")
-    ssl_manager = None
+    from .core_system.auth.unified_auth_manager import UnifiedAuthManager
+except ImportError:
+    logging.warning("Unified auth manager not available")
+    UnifiedAuthManager = None
 
-# AI Abstraction Layer (Optional - Full Install Only)
 try:
+    from .infrastructure.utils.utilities import ConfigManager
+except ImportError:
+    logging.warning("Config manager not available")
+    ConfigManager = None
+
+try:
+    from .core_system.logging import get_logger, setup_module_logging
+except ImportError:
+    logging.warning("Advanced logging not available")
+    get_logger = logging.getLogger
+    setup_module_logging = lambda name=None, level="INFO": logging.getLogger(name or __name__)
+
+# Load configuration from YAML file
+def load_config():
+    """Load configuration from YAML file."""
+    config_file = Path("config/plexichat.yaml")
+    if config_file.exists():
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except Exception as e:
+            logging.error(f"Error loading config: {e}")
+    
+    # Return default config if file doesn't exist
+    return {
+        "system": {
+            "name": "PlexiChat",
+            "version": "a.1.1-12",  # alpha version 1.1 build 12
+            "environment": "production",
+            "debug": False
+        },
+        "network": {
+            "host": "0.0.0.0",
+            "port": 8000,
+            "api_port": 8000,
+            "admin_port": 8002
+        },
+        "features": {
+            "file_attachments": True,
+            "ai_integration": True,
+            "security_scanning": True,
+            "backup_system": True
+        }
+    }
+
+# Load configuration
+config = load_config()
+
+# Feature imports with proper error handling
+try:
+    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
     ai_layer = AIAbstractionLayer()
-    logging.info(" AI Abstraction Layer loaded (Full Install)")
+    ai_api_router = None  # Will be set later
+    ai_webui_router = None  # Will be set later
+    logging.info("AI Abstraction Layer loaded")
 except ImportError:
-    logging.info(" AI features not available (requires full installation)")
+    logging.info("AI features not available (requires full installation)")
     ai_layer = None
     ai_api_router = None
     ai_webui_router = None
 except Exception as e:
-    logging.warning(f" AI Abstraction Layer failed to initialize: {e}")
+    logging.warning(f"AI Abstraction Layer failed to initialize: {e}")
     ai_layer = None
     ai_api_router = None
     ai_webui_router = None
 
-# Clustering System
+# Backup system
 try:
-    # Initialize cluster manager later after app is created
-    cluster_manager = None
-    logging.info(" Advanced Clustering System available")
+    from .features.backup.core.unified_backup_manager import get_unified_backup_manager
+    backup_router = None  # Will be set later
+except ImportError:
+    logging.warning("Backup system not available")
+    get_unified_backup_manager = None
+    backup_router = None
+
+# API routers
+try:
+    from .interfaces.api.v1.clustering import router as clustering_router
+except ImportError:
+    logging.warning("Clustering router not available")
+    clustering_router = None
+
+try:
+    from .interfaces.api.v1.security_api import router as security_router
+except ImportError:
+    logging.warning("Security router not available")
+    security_router = None
+
+# SSL/Certificate Management
+try:
+    from .core_system.security.certificate_manager import get_certificate_manager
+    ssl_manager = get_certificate_manager()
+    logging.info("SSL Manager loaded")
 except ImportError as e:
-    logging.warning(f" Advanced Clustering System not available: {e}")
-    cluster_manager = None
-    AdvancedClusterManager = None
+    logging.warning(f"SSL Manager not available: {e}")
+    ssl_manager = None
 
 # Import security middleware (with fallback)
 try:
+    from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
 except ImportError:
     # Fallback middleware if security module not available
     class SecurityMiddleware:
@@ -104,35 +137,89 @@ except ImportError:
         async def __call__(self, scope, receive, send):
             return await self.app(scope, receive, send)
 
+import uvicorn
+from fastapi import FastAPI, Request, HTTPException, Depends, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+import uuid
+import shutil
+from datetime import datetime, timedelta
+
+"""
+PlexiChat Main Application
+Government-Level Secure Communication Platform
+
+Unified main application that consolidates all PlexiChat functionality
+into a single, cohesive FastAPI application with comprehensive features.
+"""
+
 # Create necessary directories
 Path("logs").mkdir(exist_ok=True)
 Path("data").mkdir(exist_ok=True)
 Path("config").mkdir(exist_ok=True)
 Path("certs").mkdir(exist_ok=True)
+Path("uploads").mkdir(exist_ok=True)
+Path("temp").mkdir(exist_ok=True)
 
-# SSL Configuration
+# SSL Configuration from config
+ssl_config = config.get("network", {})
 SSL_CONFIG = {
-    "enabled": os.getenv("PLEXICHAT_HTTPS_ENABLED", "false").lower() == "true",
-    "port": int(os.getenv("PLEXICHAT_HTTPS_PORT", "443")),
-    "cert_path": os.getenv("PLEXICHAT_SSL_CERT", "certs/server.crt"),
-    "key_path": os.getenv("PLEXICHAT_SSL_KEY", "certs/server.key"),
-    "domain": os.getenv("PLEXICHAT_DOMAIN", "localhost"),
-    "email": os.getenv("PLEXICHAT_EMAIL", ""),
-    "use_letsencrypt": os.getenv("PLEXICHAT_USE_LETSENCRYPT", "false").lower() == "true",
-    "auto_redirect": os.getenv("PLEXICHAT_AUTO_REDIRECT_HTTPS", "true").lower() == "true"
+    "enabled": ssl_config.get("ssl_enabled", False),
+    "port": ssl_config.get("ssl_port", 443),
+    "cert_path": ssl_config.get("ssl_cert", "certs/server.crt"),
+    "key_path": ssl_config.get("ssl_key", "certs/server.key"),
+    "domain": ssl_config.get("domain", "localhost"),
+    "email": ssl_config.get("email", ""),
+    "use_letsencrypt": ssl_config.get("use_letsencrypt", False),
+    "auto_redirect": ssl_config.get("auto_redirect_https", True)
 }
 
-# Pydantic models for API
+# Enhanced Pydantic models for API
 class Message(BaseModel):
     id: Optional[int] = None
     content: str
     author: str
     timestamp: Optional[str] = None
+    attachments: Optional[List[str]] = None
+    message_type: str = "text"
+    reply_to: Optional[int] = None
 
 class User(BaseModel):
     id: Optional[int] = None
     username: str
     email: Optional[str] = None
+    avatar_url: Optional[str] = None
+    status: str = "online"
+
+class FileUpload(BaseModel):
+    filename: str
+    size: int
+    mime_type: str
+    upload_id: str
+    uploaded_at: datetime
+    status: str = "uploaded"
+
+class MessageCreate(BaseModel):
+    content: str = Field(..., min_length=1, max_length=4000)
+    recipient_id: Optional[int] = None
+    channel_id: Optional[int] = None
+    attachments: Optional[List[str]] = None
+    message_type: str = "text"
+    reply_to: Optional[int] = None
+
+class MessageResponse(BaseModel):
+    id: int
+    content: str
+    author: str
+    timestamp: datetime
+    attachments: List[FileUpload] = []
+    message_type: str
+    reply_to: Optional[int] = None
+    edited: bool = False
+    deleted: bool = False
 
 class TestResult(BaseModel):
     test_name: str
@@ -144,6 +231,7 @@ class TestResult(BaseModel):
 messages = []
 users = []
 test_results = []
+uploaded_files = {}
 
 # SSL Context
 ssl_context = None
@@ -202,25 +290,17 @@ async def initialize_ssl():
 def initialize_unified_logging():
     """Initialize the unified logging system that consolidates all logging approaches."""
     try:
-        # Load logging configuration
-        config_file = from pathlib import Path
-Path("config/logging.yaml")
-        if config_file.exists():
-            with open(config_file, 'r') as f:
-                logging_config = yaml.safe_load(f)
-        else:
-            logging_config = {
-                "global": {
-                    "log_level": "INFO",
-                    "console_enabled": True,
-                    "file_enabled": True,
-                    "log_directory": "logs"
-                }
-            }
+        # Load logging configuration from config
+        logging_config = config.get("logging", {
+            "level": "INFO",
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "file": "logs/plexichat.log",
+            "max_size": "10MB",
+            "backup_count": 5
+        })
 
         # Ensure logs directory exists
-        log_dir = from pathlib import Path
-Path(logging_config.get("global", {}).get("log_directory", "logs"))
+        log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
 
         # Create subdirectories for different log types
@@ -230,7 +310,8 @@ Path(logging_config.get("global", {}).get("log_directory", "logs"))
         (log_dir / "crashes").mkdir(exist_ok=True)
 
         # Initialize advanced logger (consolidates multiple logging systems)
-        get_advanced_logger(logging_config.get("global", {}))
+        if 'get_logger' in globals():
+            get_logger(logging_config)
 
         # Setup module logging with proper levels
         modules_config = logging_config.get("modules", {
@@ -242,29 +323,99 @@ Path(logging_config.get("global", {}).get("log_directory", "logs"))
         })
 
         for module, level in modules_config.items():
-            if callable(setup_module_logging):
+            if 'setup_module_logging' in globals():
                 setup_module_logging(module, level)
 
         # Generate initial startup logs
         startup_logger = logging.getLogger("plexichat.startup")
-        startup_logger.info(" PlexiChat unified logging system initialized")
-        startup_logger.info(f" Log directory: {log_dir}")
-        startup_logger.info(f" Log level: {logging_config.get('global', {}).get('log_level', 'INFO')}")
-        startup_logger.info(" All logging subsystems consolidated and active")
+        startup_logger.info("PlexiChat unified logging system initialized")
+        startup_logger.info(f"Log directory: {log_dir}")
+        startup_logger.info(f"Log level: {logging_config.get('level', 'INFO')}")
+        startup_logger.info("All logging subsystems consolidated and active")
 
         return True
     except Exception as e:
-        print(f"Failed to initialize unified logging: {e}")
+        logging.error(f"Failed to initialize unified logging: {e}")
         return False
 
 # Initialize unified logging system
 initialize_unified_logging()
-logger = setup_module_logging(__name__, "INFO")
+logger = setup_module_logging(__name__, "INFO") if 'setup_module_logging' in globals() else logging.getLogger(__name__)
 
+# File upload utilities
+def save_uploaded_file(file: UploadFile) -> Dict[str, Any]:
+    """Save an uploaded file and return metadata."""
+    try:
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        file_extension = Path(file.filename).suffix if file.filename else ""
+        safe_filename = f"{file_id}{file_extension}"
+        
+        # Save to uploads directory
+        upload_path = Path("uploads") / safe_filename
+        with open(upload_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Get file size
+        file_size = upload_path.stat().st_size
+        
+        # Store metadata
+        file_metadata = {
+            "upload_id": file_id,
+            "original_filename": file.filename,
+            "filename": safe_filename,
+            "size": file_size,
+            "mime_type": file.content_type or "application/octet-stream",
+            "uploaded_at": datetime.now(),
+            "path": str(upload_path),
+            "status": "uploaded"
+        }
+        
+        uploaded_files[file_id] = file_metadata
+        logger.info(f"File uploaded: {file.filename} -> {file_id}")
+        
+        return file_metadata
+    except Exception as e:
+        logger.error(f"Failed to save uploaded file: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save uploaded file")
+
+def validate_file_upload(file: UploadFile) -> bool:
+    """Validate uploaded file."""
+    # Check file size (max 50MB)
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+    
+    # Read first chunk to check size
+    file.file.seek(0, 2)  # Seek to end
+    file_size = file.file.tell()
+    file.file.seek(0)  # Reset to beginning
+    
+    if file_size > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413, 
+            detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
+        )
+    
+    # Check file type (basic validation)
+    allowed_types = [
+        'image/', 'text/', 'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'audio/', 'video/'
+    ]
+    
+    if file.content_type:
+        is_allowed = any(file.content_type.startswith(t) for t in allowed_types)
+        if not is_allowed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File type {file.content_type} not allowed"
+            )
+    
+    return True
 
 def _load_web_routers(app: FastAPI):
     """Load routers from the consolidated web/routers directory."""
-    logger.info(" Loading web routers...")
+    logger.info("Loading web routers...")
 
     # Load routers from web/routers (new consolidated location)
     router_modules = [
@@ -292,16 +443,16 @@ def _load_web_routers(app: FastAPI):
             router = getattr(module, router_name, None)
             if router:
                 app.include_router(router)
-                logger.info(f" {module_path} router loaded")
+                logger.info(f"{module_path} router loaded")
         except ImportError as e:
-            logger.debug(f" {module_path} not available: {e}")
+            logger.debug(f"{module_path} not available: {e}")
         except Exception as e:
-            logger.warning(f" Failed to load {module_path}: {e}")
+            logger.warning(f"Failed to load {module_path}: {e}")
 
 
 def _load_api_routers(app: FastAPI):
     """Load API routers from the api directory."""
-    logger.info(" Loading API routers...")
+    logger.info("Loading API routers...")
 
     # API v1 routers
     api_v1_modules = [
@@ -327,75 +478,251 @@ def _load_api_routers(app: FastAPI):
             router = getattr(module, router_name, None)
             if router:
                 app.include_router(router)
-                logger.info(f" API {router_name} loaded from {module_path}")
+                logger.info(f"API {router_name} loaded from {module_path}")
         except ImportError as e:
-            logger.debug(f" {module_path} not available: {e}")
+            logger.debug(f"{module_path} not available: {e}")
         except Exception as e:
-            logger.warning(f" Failed to load {module_path}: {e}")
+            logger.warning(f"Failed to load {module_path}: {e}")
 
 
 def _load_specialized_routers(app: FastAPI):
     """Load specialized routers (AI, clustering, etc.)."""
-    logger.info(" Loading specialized routers...")
+    logger.info("Loading specialized routers...")
 
     # AI routers
     if ai_api_router:
         app.include_router(ai_api_router)
-        logger.info(" AI API endpoints registered")
+        logger.info("AI API endpoints registered")
 
     if ai_webui_router:
         app.include_router(ai_webui_router)
-        logger.info(" AI WebUI endpoints registered")
+        logger.info("AI WebUI endpoints registered")
 
     # Clustering routers
-    try:
-        app.include_router(clustering_router)
-        logger.info(" Clustering API router loaded")
-    except ImportError:
-        logger.debug(" Clustering API router not available")
+    if clustering_router:
+        try:
+            app.include_router(clustering_router)
+            logger.info("Clustering API router loaded")
+        except Exception as e:
+            logger.warning(f"Failed to load clustering router: {e}")
 
     # Backup system routers
-    try:
-        app.include_router(backup_router)
-        logger.info(" Backup API router loaded")
-    except ImportError:
+    if backup_router:
         try:
-            # Try alternative import path
             app.include_router(backup_router)
-            logger.info(" Backup API router loaded")
-        except ImportError:
-            logger.debug(" Backup API router not available")
+            logger.info("Backup API router loaded")
+        except Exception as e:
+            logger.debug(f"Backup API router not available: {e}")
 
     # Security routers
+    if security_router:
+        try:
+            app.include_router(security_router)
+            logger.info("Security API router loaded")
+        except Exception as e:
+            logger.warning(f"Failed to load security router: {e}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan events."""
+    # Startup
+    logger.info("Starting PlexiChat application...")
+
+    # Generate startup logs for monitoring
+    logger.info("Initializing PlexiChat core systems...")
+    logger.info("System startup sequence beginning")
+
+    # Initialize core systems with lazy loading to prevent hanging
     try:
-        app.include_router(security_router)
-        logger.info(" Security API router loaded")
-    except ImportError:
-        logger.debug(" Security API router not available")
+        # Initialize enhanced database system
+        if get_database_manager and database_manager:
+            if hasattr(database_manager, 'initialize'):
+                await database_manager.initialize()
+            logger.info("Enhanced database system initialized")
+        else:
+            logger.warning("Enhanced database system not available, skipping initialization.")
+    except Exception as e:
+        logger.warning(f"Enhanced database system initialization failed: {e}")
+
+    try:
+        # Initialize backup manager
+        if get_unified_backup_manager:
+            backup_manager = get_unified_backup_manager()
+            if hasattr(backup_manager, 'initialize'):
+                await backup_manager.initialize()
+            logger.info("Backup manager initialized")
+        else:
+            logger.warning("Backup system not available, skipping initialization.")
+    except Exception as e:
+        logger.warning(f"Backup manager initialization failed: {e}")
+
+    try:
+        # Initialize AI abstraction layer
+        if ai_layer:
+            if hasattr(ai_layer, 'initialize'):
+                await ai_layer.initialize()
+            logger.info("AI abstraction layer initialized")
+        else:
+            logger.warning("AI features not available, skipping initialization.")
+    except Exception as e:
+        logger.warning(f"AI abstraction layer initialization failed: {e}")
+
+    try:
+        # Initialize authentication manager
+        if UnifiedAuthManager:
+            auth_manager = UnifiedAuthManager()
+            if hasattr(auth_manager, 'initialize'):
+                await auth_manager.initialize()
+            logger.info("Authentication manager initialized")
+        else:
+            logger.warning("Unified auth manager not available, skipping initialization.")
+    except Exception as e:
+        logger.warning(f"Authentication manager initialization failed: {e}")
+
+    try:
+        # Initialize SSL/Certificate manager if available
+        if ssl_manager and hasattr(ssl_manager, 'initialize'):
+            await ssl_manager.initialize()
+            logger.info("SSL/Certificate manager initialized")
+        else:
+            logger.warning("SSL/Certificate manager not available, skipping initialization.")
+    except Exception as e:
+        logger.warning(f"SSL/Certificate manager initialization failed: {e}")
+
+    try:
+        # Initialize legacy database manager for compatibility
+        if get_database_manager and database_manager:
+            legacy_manager = get_database_manager()
+            if hasattr(legacy_manager, 'initialize'):
+                await legacy_manager.initialize()
+            logger.info("Legacy database manager initialized")
+        else:
+            logger.warning("Legacy database manager not available, skipping initialization.")
+    except Exception as e:
+        logger.warning(f"Legacy database manager initialization failed: {e}")
+
+    try:
+        # Initialize configuration manager
+        if ConfigManager:
+            config_manager = ConfigManager()
+            if hasattr(config_manager, 'initialize'):
+                await config_manager.initialize()
+            logger.info("Configuration manager initialized")
+        else:
+            logger.warning("Config manager not available, skipping initialization.")
+    except Exception as e:
+        logger.warning(f"Configuration manager initialization failed: {e}")
+
+    # Initialize plugin system
+    try:
+        from .infrastructure.modules.plugin_manager import get_plugin_manager
+        plugin_manager = get_plugin_manager()
+        if hasattr(plugin_manager, 'initialize'):
+            await plugin_manager.initialize()
+        logger.info("Plugin manager initialized")
+        
+        # Auto-load all enabled plugins
+        if hasattr(plugin_manager, 'load_enabled_plugins'):
+            loaded_plugins = await plugin_manager.load_enabled_plugins()
+            logger.info(f"Auto-loaded {len(loaded_plugins)} plugins: {', '.join(loaded_plugins)}")
+    except Exception as e:
+        logger.warning(f"Plugin system initialization failed: {e}")
+
+    # Auto-generate version files
+    try:
+        from .core_system.versioning.version_manager import auto_generate_version_files
+        auto_generate_version_files()
+        logger.info("Version files auto-generated")
+    except Exception as e:
+        logger.warning(f"Version file generation failed: {e}")
+
+    # Additional system initialization
+    try:
+        # Initialize any additional systems here
+        logger.info("Additional systems initialized")
+    except Exception as e:
+        logger.error(f"Critical startup error: {e}")
+        logger.critical(f"Startup failure details: {e}", exc_info=True)
+        # Continue startup even if some components fail
+
+    logger.info("PlexiChat application started successfully")
+    logger.info("Server is ready to accept connections")
+    logger.info("API endpoints are now available")
+    logger.info("WebUI is ready for user access")
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down PlexiChat application...")
+
+    # Shutdown systems safely
+    try:
+        # Shutdown enhanced database system
+        if get_database_manager and database_manager:
+            if hasattr(database_manager, 'shutdown'):
+                await database_manager.shutdown()
+        else:
+            logger.warning("Enhanced database system not available, skipping shutdown.")
+    except Exception as e:
+        logger.warning(f"Enhanced database system shutdown failed: {e}")
+
+    try:
+        if get_unified_backup_manager:
+            backup_manager = get_unified_backup_manager()
+            if hasattr(backup_manager, 'shutdown'):
+                await backup_manager.shutdown()
+            elif hasattr(backup_manager, 'cleanup'):
+                await backup_manager.cleanup()
+        else:
+            logger.warning("Backup system not available, skipping shutdown.")
+    except Exception as e:
+        logger.warning(f"Backup manager shutdown failed: {e}")
+
+    try:
+        if get_database_manager and database_manager:
+            if hasattr(database_manager, 'shutdown'):
+                await database_manager.shutdown()
+        else:
+            logger.warning("Legacy database manager not available, skipping shutdown.")
+    except Exception as e:
+        logger.warning(f"Legacy database manager shutdown failed: {e}")
+
+    # Shutdown plugin system
+    try:
+        from .infrastructure.modules.plugin_manager import get_plugin_manager
+        plugin_manager = get_plugin_manager()
+        if hasattr(plugin_manager, 'shutdown'):
+            await plugin_manager.shutdown()
+        logger.info("Plugin system shutdown complete")
+    except Exception as e:
+        logger.warning(f"Plugin system shutdown failed: {e}")
+
+    logger.info("PlexiChat application shutdown complete")
 
 
 def create_app() -> FastAPI:
     """Create and configure the PlexiChat application."""
-    logger.info(" Creating PlexiChat FastAPI application...")
+    logger.info("Creating PlexiChat FastAPI application...")
 
-    config = get_config()
-    logger.info(f" Configuration loaded: {getattr(config, 'app_name', 'PlexiChat')} v{getattr(config, 'app_version', '3.0.0')}")
+    logger.info(f"Configuration loaded: {config.get('system', {}).get('name', 'PlexiChat')} v{config.get('system', {}).get('version', 'a.1.1-12')}")
 
     # Create FastAPI app
     app = FastAPI(
-        title="PlexiChat v3.0",
-        version="3.0.0",
+        title="PlexiChat v1.1",
+        version="a.1.1-12",
         description="Government-Level Secure Communication Platform",
-        debug=config.debug,
-        docs_url="/docs" if config.debug else None,
-        redoc_url="/redoc" if config.debug else None
+        debug=config.get('system', {}).get('debug', False),
+        docs_url="/docs" if config.get('system', {}).get('debug', False) else None,
+        redoc_url="/redoc" if config.get('system', {}).get('debug', False) else None,
+        lifespan=lifespan
     )
-    logger.info(" FastAPI application created")
+    logger.info("FastAPI application created")
 
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"] if config.debug else [],
+        allow_origins=["*"] if config.get('system', {}).get('debug', False) else [],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -423,9 +750,9 @@ def create_app() -> FastAPI:
     try:
         app.add_middleware(SecurityMiddleware)
         app.add_middleware(AuthenticationMiddleware)
-        logger.info(" Security middleware loaded")
+        logger.info("Security middleware loaded")
     except Exception as e:
-        logger.warning(f" Security middleware failed to load: {e}")
+        logger.warning(f"Security middleware failed to load: {e}")
     
     # Load all routers using the new consolidated approach
     _load_web_routers(app)
@@ -433,177 +760,23 @@ def create_app() -> FastAPI:
     _load_specialized_routers(app)
 
     # Mount static files from multiple locations
+    from pathlib import Path
     try:
         # Mount from web/static (new consolidated location)
-        web_static_path = from pathlib import Path
-Path("src/plexichat/web/static")
+        web_static_path = Path("src/plexichat/web/static")
         if web_static_path.exists():
             app.mount("/static", StaticFiles(directory=str(web_static_path)), name="static")
-            logger.info(" Web static files mounted from web/static")
+            logger.info("Web static files mounted from web/static")
         else:
             # Fallback to old static location
-            static_dir = from pathlib import Path
-Path("src/plexichat/static")
+            static_dir = Path("src/plexichat/static")
             if static_dir.exists():
                 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-                logger.info(" Static files mounted from legacy location")
+                logger.info("Static files mounted from legacy location")
     except Exception as e:
-        logger.warning(f" Static files failed to mount: {e}")
+        logger.warning(f"Static files failed to mount: {e}")
 
-    # Basic routes are defined later with more comprehensive implementations
-    
-    # Add startup and shutdown events
-    @app.on_event("startup")
-    async def startup_event():
-        """Initialize all systems on startup."""
-        logger.info(" Starting PlexiChat application...")
-
-        # Generate startup logs for monitoring
-        logger.info(" Initializing PlexiChat core systems...")
-        logger.info(" System startup sequence beginning")
-
-        # Initialize core systems with lazy loading to prevent hanging
-        try:
-            # Initialize cluster manager if available
-            global cluster_manager
-            if AdvancedClusterManager and cluster_manager is None:
-                try:
-                    cluster_manager = AdvancedClusterManager(app)
-                    await cluster_manager.initialize()
-                    logger.info(" Advanced Clustering System initialized")
-                except Exception as e:
-                    logger.warning(f" Clustering system initialization failed: {e}")
-                    cluster_manager = None
-
-            # Enhanced Database System initialization
-            logger.info(" Initializing enhanced database system...")
-            try:
-                database_manager = await get_database_manager()
-                success = await database_manager.initialize()
-                # Compatibility wrapper
-                async def initialize_enhanced_database_system():
-                    return success
-                success = await initialize_enhanced_database_system()
-                if success:
-                    logger.info(" Enhanced database system initialized successfully")
-
-                    # Initialize comprehensive system integration
-                    logger.info(" Initializing comprehensive system integration...")
-                    try:
-                        orchestrator = SystemOrchestrator()
-                        await orchestrator.initialize()
-                        # Compatibility wrapper
-                        async def initialize_plexichat_system():
-                            result = await orchestrator.initialize_all_systems()
-                            return {
-                                "summary": {
-                                    "overall_success": result.get("success", False),
-                                    "systems_initialized": result.get("initialized_systems", []),
-                                    "modules_imported": result.get("modules_imported", [])
-                                }
-                            }
-                        integration_results = await initialize_plexichat_system()
-
-                        if integration_results["summary"]["overall_success"]:
-                            logger.info(" All PlexiChat systems initialized successfully")
-                            logger.info(f" Systems: {integration_results['summary']['systems_initialized']}")
-                            logger.info(f" Modules: {integration_results['summary']['modules_imported']}")
-                        else:
-                            logger.warning(" Some PlexiChat systems failed to initialize")
-                            logger.warning(f" Systems: {integration_results['summary']['systems_initialized']}")
-                            logger.warning(f" Modules: {integration_results['summary']['modules_imported']}")
-
-                        # Start background performance monitoring if enabled
-                        if os.getenv("PLEXICHAT_AUTO_OPTIMIZATION", "false").lower() == "true":
-                            logger.info(" Auto-optimization enabled - background monitoring active")
-
-                    except Exception as integration_e:
-                        logger.warning(f" System integration failed: {integration_e}")
-                        logger.debug(f"Integration error details: {integration_e}", exc_info=True)
-                else:
-                    logger.warning(" Enhanced database system initialization failed")
-
-                # Fallback to legacy database manager if enhanced system fails
-                if not success:
-                    try:
-                        await database_manager.initialize()
-                        logger.info(" Legacy database manager initialized as fallback")
-                    except ImportError:
-                        logger.warning(" Legacy database manager not available")
-
-            except Exception as e:
-                logger.warning(f" Database system initialization failed: {e}")
-                logger.debug(f"Database error details: {e}", exc_info=True)
-
-            # Auth system initialization
-            logger.info(" Initializing authentication manager...")
-            try:
-                auth_manager = UnifiedAuthManager()
-                if hasattr(auth_manager, 'initialize'):
-                    await auth_manager.initialize()
-                logger.info(" Auth manager initialized successfully")
-            except Exception as e:
-                logger.warning(f" Auth manager initialization failed: {e}")
-                logger.debug(f"Auth error details: {e}", exc_info=True)
-
-            # Backup system initialization
-            logger.info(" Initializing backup manager...")
-            try:
-                backup_manager = get_unified_backup_manager()
-                await backup_manager.initialize()
-                logger.info(" Backup manager initialized successfully")
-            except Exception as e:
-                logger.warning(f" Backup manager initialization failed: {e}")
-                logger.debug(f"Backup error details: {e}", exc_info=True)
-
-            # Additional system checks
-            logger.info(" Running system health checks...")
-            logger.info(" Checking memory usage...")
-            logger.info(" Checking disk space...")
-            logger.info(" Checking network connectivity...")
-            logger.info(" System health checks completed")
-
-        except Exception as e:
-            logger.error(f" Critical startup error: {e}")
-            logger.critical(f"Startup failure details: {e}", exc_info=True)
-            # Continue startup even if some components fail
-
-        logger.info(" PlexiChat application started successfully")
-        logger.info(" Server is ready to accept connections")
-        logger.info(" API endpoints are now available")
-        logger.info(" WebUI is ready for user access")
-
-    @app.on_event("shutdown")
-    async def shutdown_event():
-        """Cleanup on shutdown."""
-        logger.info(" Shutting down PlexiChat application...")
-
-        # Shutdown systems safely
-        try:
-            # Shutdown enhanced database system
-            database_manager = await get_database_manager()
-            if hasattr(database_manager, 'shutdown'):
-                await database_manager.shutdown()
-        except Exception as e:
-            logger.warning(f" Enhanced database system shutdown failed: {e}")
-
-        try:
-            backup_manager = get_unified_backup_manager()
-            if hasattr(backup_manager, 'shutdown'):
-                await backup_manager.shutdown()
-            elif hasattr(backup_manager, 'cleanup'):
-                await backup_manager.cleanup()
-        except Exception as e:
-            logger.warning(f" Backup manager shutdown failed: {e}")
-
-        try:
-            legacy_manager = await get_database_manager()
-            if hasattr(legacy_manager, 'shutdown'):
-                await legacy_manager.shutdown()
-        except Exception as e:
-            logger.warning(f" Legacy database manager shutdown failed: {e}")
-
-        logger.info(" PlexiChat application shutdown complete")
+    # Comprehensive API endpoints
     
     # Root endpoint
     @app.get("/", response_class=HTMLResponse)
@@ -623,10 +796,10 @@ Path("src/plexichat/static")
             </style>
         </head>
         <body>
-            <h1 class="header"> PlexiChat</h1>
+            <h1 class="header">PlexiChat</h1>
             <div class="info">
                 <p><strong>Government-Level Secure Communication Platform</strong></p>
-                <p>Version: 3.0.0</p>
+                <p>Version: a.1.1-12</p>
                 <p>Status: Running</p>
                 <br>
                 <p>Available endpoints:</p>
@@ -634,6 +807,7 @@ Path("src/plexichat/static")
                     <li><a href="/docs" class="link">API Documentation</a></li>
                     <li><a href="/api/v1/health" class="link">Health Check</a></li>
                     <li><a href="/api/v1/info" class="link">System Info</a></li>
+                    <li><a href="/api/v1/version" class="link">Version Info</a></li>
                 </ul>
             </div>
         </body>
@@ -643,14 +817,13 @@ Path("src/plexichat/static")
     @app.get("/health")
     async def health_check():
         """Health check endpoint that generates logs."""
-        logger.info(" Health check requested")
+        logger.info("Health check requested")
         logger.debug("Checking system components...")
 
         health_status = {
             "status": "healthy",
-            "version": getattr(config, 'version', '1.0.0'),
-            "timestamp": from datetime import datetime
-datetime.now().isoformat(),
+            "version": config.get('system', {}).get('version', 'a.1.1-12'),
+            "timestamp": datetime.now().isoformat(),
             "services": {
                 "api": "running",
                 "database": "connected",
@@ -658,8 +831,277 @@ datetime.now().isoformat(),
             }
         }
 
-        logger.info(" Health check completed successfully")
+        logger.info("Health check completed successfully")
         return health_status
+
+    # Version information endpoint
+    @app.get("/api/v1/version")
+    async def get_version_info():
+        """Get version information."""
+        try:
+            from .core_system.versioning.version_manager import get_version_manager
+            version_manager = get_version_manager()
+            return version_manager.get_version_info()
+        except Exception as e:
+            logger.error(f"Failed to get version info: {e}")
+            return {
+                "version": "a.1.1-12",
+                "version_type": "alpha",
+                "major_version": 1,
+                "minor_version": 1,
+                "build_number": 12,
+                "api_version": "v1",
+                "release_date": datetime.now().strftime("%Y-%m-%d")
+            }
+
+    # File upload endpoint
+    @app.post("/api/v1/files/upload")
+    async def upload_file(file: UploadFile = File(...)):
+        """Upload a file with validation and security scanning."""
+        try:
+            # Validate file
+            validate_file_upload(file)
+            
+            # Save file
+            file_metadata = save_uploaded_file(file)
+            
+            # Security scan (if available)
+            try:
+                if ssl_manager and hasattr(ssl_manager, 'scan_file'):
+                    scan_result = await ssl_manager.scan_file(file_metadata['path'])
+                    file_metadata['security_scan'] = scan_result
+            except Exception as e:
+                logger.warning(f"Security scan failed: {e}")
+                file_metadata['security_scan'] = {"status": "failed", "error": str(e)}
+            
+            return {
+                "success": True,
+                "file_id": file_metadata['upload_id'],
+                "filename": file_metadata['original_filename'],
+                "size": file_metadata['size'],
+                "mime_type": file_metadata['mime_type'],
+                "uploaded_at": file_metadata['uploaded_at'].isoformat(),
+                "download_url": f"/api/v1/files/{file_metadata['upload_id']}"
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"File upload failed: {e}")
+            raise HTTPException(status_code=500, detail="File upload failed")
+
+    # File download endpoint
+    @app.get("/api/v1/files/{file_id}")
+    async def download_file(file_id: str):
+        """Download a file by ID."""
+        try:
+            if file_id not in uploaded_files:
+                raise HTTPException(status_code=404, detail="File not found")
+            
+            file_metadata = uploaded_files[file_id]
+            file_path = Path(file_metadata['path'])
+            
+            if not file_path.exists():
+                raise HTTPException(status_code=404, detail="File not found")
+            
+            return FileResponse(
+                path=str(file_path),
+                filename=file_metadata['original_filename'],
+                media_type=file_metadata['mime_type']
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"File download failed: {e}")
+            raise HTTPException(status_code=500, detail="File download failed")
+
+    # Enhanced message creation with file attachments
+    @app.post("/api/v1/messages/create", response_model=MessageResponse)
+    async def create_message_with_attachments(
+        content: str = Form(...),
+        recipient_id: Optional[int] = Form(None),
+        channel_id: Optional[int] = Form(None),
+        attachments: Optional[List[str]] = Form(None),
+        message_type: str = Form("text"),
+        reply_to: Optional[int] = Form(None)
+    ):
+        """Create a new message with optional file attachments."""
+        try:
+            # Validate message content
+            if not content.strip():
+                raise HTTPException(status_code=400, detail="Message content cannot be empty")
+            
+            # Create message
+            message_id = len(messages) + 1
+            message = {
+                "id": message_id,
+                "content": content,
+                "author": "user",  # In real app, get from auth
+                "timestamp": datetime.now(),
+                "attachments": attachments or [],
+                "message_type": message_type,
+                "reply_to": reply_to,
+                "edited": False,
+                "deleted": False
+            }
+            
+            messages.append(message)
+            
+            # Convert to response model
+            attachment_models = []
+            if attachments:
+                for file_id in attachments:
+                    if file_id in uploaded_files:
+                        file_meta = uploaded_files[file_id]
+                        attachment_models.append(FileUpload(
+                            filename=file_meta['original_filename'],
+                            size=file_meta['size'],
+                            mime_type=file_meta['mime_type'],
+                            upload_id=file_id,
+                            uploaded_at=file_meta['uploaded_at'],
+                            status="attached"
+                        ))
+            
+            return MessageResponse(
+                id=message_id,
+                content=content,
+                author="user",
+                timestamp=message['timestamp'],
+                attachments=attachment_models,
+                message_type=message_type,
+                reply_to=reply_to,
+                edited=False,
+                deleted=False
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Message creation failed: {e}")
+            raise HTTPException(status_code=500, detail="Message creation failed")
+
+    # Get message with attachments
+    @app.get("/api/v1/messages/{message_id}", response_model=MessageResponse)
+    async def get_message_with_attachments(message_id: int):
+        """Get a message with its attachments."""
+        try:
+            if message_id > len(messages) or message_id < 1:
+                raise HTTPException(status_code=404, detail="Message not found")
+            
+            message = messages[message_id - 1]
+            
+            # Convert attachments
+            attachment_models = []
+            if message.get('attachments'):
+                for file_id in message['attachments']:
+                    if file_id in uploaded_files:
+                        file_meta = uploaded_files[file_id]
+                        attachment_models.append(FileUpload(
+                            filename=file_meta['original_filename'],
+                            size=file_meta['size'],
+                            mime_type=file_meta['mime_type'],
+                            upload_id=file_id,
+                            uploaded_at=file_meta['uploaded_at'],
+                            status="attached"
+                        ))
+            
+            return MessageResponse(
+                id=message['id'],
+                content=message['content'],
+                author=message['author'],
+                timestamp=message['timestamp'],
+                attachments=attachment_models,
+                message_type=message.get('message_type', 'text'),
+                reply_to=message.get('reply_to'),
+                edited=message.get('edited', False),
+                deleted=message.get('deleted', False)
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to get message: {e}")
+            raise HTTPException(status_code=500, detail="Failed to get message")
+
+    # List messages
+    @app.get("/api/v1/messages")
+    async def list_messages(limit: int = 50, offset: int = 0):
+        """List messages with pagination."""
+        try:
+            start = offset
+            end = start + limit
+            paginated_messages = messages[start:end]
+            
+            result = []
+            for message in paginated_messages:
+                # Convert attachments
+                attachment_models = []
+                if message.get('attachments'):
+                    for file_id in message['attachments']:
+                        if file_id in uploaded_files:
+                            file_meta = uploaded_files[file_id]
+                            attachment_models.append(FileUpload(
+                                filename=file_meta['original_filename'],
+                                size=file_meta['size'],
+                                mime_type=file_meta['mime_type'],
+                                upload_id=file_id,
+                                uploaded_at=file_meta['uploaded_at'],
+                                status="attached"
+                            ))
+                
+                result.append(MessageResponse(
+                    id=message['id'],
+                    content=message['content'],
+                    author=message['author'],
+                    timestamp=message['timestamp'],
+                    attachments=attachment_models,
+                    message_type=message.get('message_type', 'text'),
+                    reply_to=message.get('reply_to'),
+                    edited=message.get('edited', False),
+                    deleted=message.get('deleted', False)
+                ))
+            
+            return {
+                "messages": result,
+                "total": len(messages),
+                "limit": limit,
+                "offset": offset
+            }
+        except Exception as e:
+            logger.error(f"Failed to list messages: {e}")
+            raise HTTPException(status_code=500, detail="Failed to list messages")
+
+    # Security scan endpoint
+    @app.post("/api/v1/security/scan/file")
+    async def scan_uploaded_file(file: UploadFile = File(...)):
+        """Scan an uploaded file for security threats."""
+        try:
+            # Save file temporarily
+            temp_file_metadata = save_uploaded_file(file)
+            
+            # Perform security scan
+            scan_result = {
+                "safe": True,
+                "filename": file.filename,
+                "file_size": temp_file_metadata['size'],
+                "scan_time": datetime.now().isoformat(),
+                "threats": []
+            }
+            
+            # Basic security checks
+            if file.content_type and file.content_type.startswith('application/octet-stream'):
+                scan_result["safe"] = False
+                scan_result["threats"].append({
+                    "type": "suspicious_file_type",
+                    "description": "File type may be dangerous",
+                    "severity": "medium"
+                })
+            
+            # Check file size for suspicious patterns
+            if temp_file_metadata['size'] > 10 * 1024 * 1024:  # 10MB
+                scan_result["warnings"] = ["Large file size detected"]
+            
+            return scan_result
+        except Exception as e:
+            logger.error(f"Security scan failed: {e}")
+            raise HTTPException(status_code=500, detail="Security scan failed")
 
     return app
 
@@ -668,12 +1110,11 @@ datetime.now().isoformat(),
 app = create_app()
 
 if __name__ == "__main__":
-    config = get_config()
     
     uvicorn.run(
         "src.plexichat.main:app",
-        host=config.server.host,
-        port=config.server.port,
-        reload=config.server.reload,
-        workers=1 if config.server.reload else config.server.workers
+        host=config.get('network', {}).get('host', '0.0.0.0'),
+        port=config.get('network', {}).get('port', 8000),
+        reload=config.get('system', {}).get('debug', False),
+        workers=1 if config.get('system', {}).get('debug', False) else 1
     )

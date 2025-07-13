@@ -1,4 +1,7 @@
+import logging
+
 from typing import Any, Dict, List, Optional
+
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -19,6 +22,7 @@ templates = Jinja2Templates(directory="src/plexichat/app/web/templates")
 
 class DocumentModel(BaseModel):
     """Document model for API operations."""
+
     title: str
     content: str
     category: str
@@ -29,6 +33,7 @@ class DocumentModel(BaseModel):
 
 class DocumentUpdateModel(BaseModel):
     """Document update model."""
+
     content: str
     version: Optional[str] = None
 
@@ -109,7 +114,7 @@ python -m plexichat.cli.admin_cli --help
         "category": "setup",
         "tags": ["installation", "setup", "configuration"],
         "author": "PlexiChat Team",
-        "version": "1.0"
+        "version": "1.0",
     },
     "security": {
         "title": "Security Configuration",
@@ -197,7 +202,7 @@ PlexiChat includes features designed for regulatory compliance:
         "category": "security",
         "tags": ["security", "authentication", "encryption", "compliance"],
         "author": "Security Team",
-        "version": "1.0"
+        "version": "1.0",
     },
     "api-reference": {
         "title": "API Reference",
@@ -297,8 +302,8 @@ Real-time communication endpoints:
         "category": "api",
         "tags": ["api", "reference", "endpoints", "authentication"],
         "author": "Development Team",
-        "version": "1.0"
-    }
+        "version": "1.0",
+    },
 }
 
 
@@ -307,8 +312,7 @@ async def enhanced_docs_page(request: Request):
     """Serve enhanced documentation page."""
     try:
         return templates.TemplateResponse(
-            "docs/enhanced_docs.html",
-            {"request": request}
+            "docs/enhanced_docs.html", {"request": request}
         )
     except Exception as e:
         logger.error(f"Error serving enhanced docs: {e}")
@@ -321,20 +325,18 @@ async def list_documents():
     try:
         documents = []
         for doc_id, doc_data in DOCS_STORAGE.items():
-            documents.append({
-                "id": doc_id,
-                "title": doc_data["title"],
-                "category": doc_data["category"],
-                "tags": doc_data["tags"],
-                "author": doc_data["author"],
-                "version": doc_data["version"]
-            })
-        
-        return {
-            "success": True,
-            "documents": documents,
-            "total": len(documents)
-        }
+            documents.append(
+                {
+                    "id": doc_id,
+                    "title": doc_data["title"],
+                    "category": doc_data["category"],
+                    "tags": doc_data["tags"],
+                    "author": doc_data["author"],
+                    "version": doc_data["version"],
+                }
+            )
+
+        return {"success": True, "documents": documents, "total": len(documents)}
     except Exception as e:
         logger.error(f"Error listing documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to list documents")
@@ -348,13 +350,7 @@ async def get_document(document_id: str):
             raise HTTPException(status_code=404, detail="Document not found")
 
         document = DOCS_STORAGE[document_id]
-        return {
-            "success": True,
-            "document": {
-                "id": document_id,
-                **document
-            }
-        }
+        return {"success": True, "document": {"id": document_id, **document}}
     except HTTPException:
         raise
     except Exception as e:
@@ -366,7 +362,7 @@ async def get_document(document_id: str):
 async def update_document(
     document_id: str,
     update_data: DocumentUpdateModel,
-    current_admin: Dict[str, Any] = Depends(get_current_admin)
+    current_admin: Dict[str, Any] = Depends(get_current_admin),
 ):
     """Update document content (requires admin authentication)."""
     try:
@@ -384,10 +380,7 @@ async def update_document(
         return {
             "success": True,
             "message": "Document updated successfully",
-            "document": {
-                "id": document_id,
-                **DOCS_STORAGE[document_id]
-            }
+            "document": {"id": document_id, **DOCS_STORAGE[document_id]},
         }
     except HTTPException:
         raise
@@ -398,8 +391,7 @@ async def update_document(
 
 @router.post("/api/documents")
 async def create_document(
-    document: DocumentModel,
-    current_admin: Dict[str, Any] = Depends(get_current_admin)
+    document: DocumentModel, current_admin: Dict[str, Any] = Depends(get_current_admin)
 ):
     """Create new document (requires admin authentication)."""
     try:
@@ -415,8 +407,8 @@ async def create_document(
             "content": document.content,
             "category": document.category,
             "tags": document.tags,
-            "author": document.author or current_admin['username'],
-            "version": document.version
+            "author": document.author or current_admin["username"],
+            "version": document.version,
         }
 
         # Log the creation
@@ -425,10 +417,7 @@ async def create_document(
         return {
             "success": True,
             "message": "Document created successfully",
-            "document": {
-                "id": doc_id,
-                **DOCS_STORAGE[doc_id]
-            }
+            "document": {"id": doc_id, **DOCS_STORAGE[doc_id]},
         }
     except HTTPException:
         raise
@@ -439,8 +428,7 @@ async def create_document(
 
 @router.delete("/api/documents/{document_id}")
 async def delete_document(
-    document_id: str,
-    current_admin: Dict[str, Any] = Depends(get_current_admin)
+    document_id: str, current_admin: Dict[str, Any] = Depends(get_current_admin)
 ):
     """Delete document (requires admin authentication)."""
     try:
@@ -456,10 +444,7 @@ async def delete_document(
         return {
             "success": True,
             "message": "Document deleted successfully",
-            "deleted_document": {
-                "id": document_id,
-                "title": deleted_doc["title"]
-            }
+            "deleted_document": {"id": document_id, "title": deleted_doc["title"]},
         }
     except HTTPException:
         raise
@@ -480,9 +465,11 @@ async def search_documents(q: str, category: Optional[str] = None):
             matches = False
 
             # Search in title, content, and tags
-            if (query in doc_data["title"].lower() or
-                query in doc_data["content"].lower() or
-                any(query in tag.lower() for tag in doc_data["tags"])):
+            if (
+                query in doc_data["title"].lower()
+                or query in doc_data["content"].lower()
+                or any(query in tag.lower() for tag in doc_data["tags"])
+            ):
                 matches = True
 
             # Filter by category if specified
@@ -500,14 +487,20 @@ async def search_documents(q: str, category: Optional[str] = None):
                     if query in tag.lower():
                         score += 3
 
-                results.append({
-                    "id": doc_id,
-                    "title": doc_data["title"],
-                    "category": doc_data["category"],
-                    "tags": doc_data["tags"],
-                    "score": score,
-                    "excerpt": doc_data["content"][:200] + "..." if len(doc_data["content"]) > 200 else doc_data["content"]
-                })
+                results.append(
+                    {
+                        "id": doc_id,
+                        "title": doc_data["title"],
+                        "category": doc_data["category"],
+                        "tags": doc_data["tags"],
+                        "score": score,
+                        "excerpt": (
+                            doc_data["content"][:200] + "..."
+                            if len(doc_data["content"]) > 200
+                            else doc_data["content"]
+                        ),
+                    }
+                )
 
         # Sort by relevance score
         results.sort(key=lambda x: x["score"], reverse=True)
@@ -517,7 +510,7 @@ async def search_documents(q: str, category: Optional[str] = None):
             "query": q,
             "category": category,
             "results": results,
-            "total": len(results)
+            "total": len(results),
         }
     except Exception as e:
         logger.error(f"Error searching documents: {e}")
@@ -532,10 +525,7 @@ async def get_categories():
         for doc_data in DOCS_STORAGE.values():
             categories.add(doc_data["category"])
 
-        return {
-            "success": True,
-            "categories": sorted(list(categories))
-        }
+        return {"success": True, "categories": sorted(list(categories))}
     except Exception as e:
         logger.error(f"Error getting categories: {e}")
         raise HTTPException(status_code=500, detail="Failed to get categories")
@@ -549,10 +539,7 @@ async def get_tags():
         for doc_data in DOCS_STORAGE.values():
             tags.update(doc_data["tags"])
 
-        return {
-            "success": True,
-            "tags": sorted(list(tags))
-        }
+        return {"success": True, "tags": sorted(list(tags))}
     except Exception as e:
         logger.error(f"Error getting tags: {e}")
         raise HTTPException(status_code=500, detail="Failed to get tags")
@@ -578,8 +565,10 @@ async def get_documentation_stats():
                 "total_documents": len(DOCS_STORAGE),
                 "categories": categories,
                 "total_content_length": total_content_length,
-                "average_document_length": total_content_length // len(DOCS_STORAGE) if DOCS_STORAGE else 0
-            }
+                "average_document_length": (
+                    total_content_length // len(DOCS_STORAGE) if DOCS_STORAGE else 0
+                ),
+            },
         }
     except Exception as e:
         logger.error(f"Error getting documentation stats: {e}")

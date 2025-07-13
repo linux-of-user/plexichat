@@ -1,0 +1,186 @@
+{
+  "name": "api_integration_layer",
+  "version": "1.0.0",
+  "description": "Comprehensive API integration layer providing unified access to all v1 API endpoints for plugins",
+  "author": "PlexiChat Team",
+  "type": "integration",
+  "enabled": true,
+  "priority": 1,
+  "dependencies": [],
+  "permissions": [
+    "api_access",
+    "network_access",
+    "file_system_access",
+    "webui_access",
+    "gui_access",
+    "database_access",
+    "websocket_access",
+    "notification_access"
+  ],
+  "capabilities": [
+    "unified_api_access",
+    "endpoint_discovery",
+    "request_routing",
+    "response_caching",
+    "rate_limiting",
+    "error_handling",
+    "authentication_management",
+    "webhook_integration",
+    "real_time_subscriptions",
+    "batch_operations"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "api_base_url": {
+      "type": "string",
+      "default": "http://localhost:8000/api/v1",
+      "description": "Base URL for v1 API endpoints"
+    },
+    "cache_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable response caching"
+    },
+    "cache_ttl": {
+      "type": "integer",
+      "default": 300,
+      "description": "Cache TTL in seconds"
+    },
+    "rate_limit": {
+      "type": "object",
+      "default": {
+        "requests_per_minute": 1000,
+        "burst_limit": 100
+      },
+      "description": "Rate limiting configuration"
+    },
+    "retry_config": {
+      "type": "object",
+      "default": {
+        "max_retries": 3,
+        "backoff_factor": 2,
+        "retry_statuses": [429, 500, 502, 503, 504]
+      },
+      "description": "Request retry configuration"
+    },
+    "webhook_endpoints": {
+      "type": "array",
+      "default": [],
+      "description": "Webhook endpoints to register"
+    }
+  },
+  "api_endpoints": {
+    "auth": [
+      "/auth/login",
+      "/auth/logout", 
+      "/auth/register",
+      "/auth/refresh",
+      "/auth/verify",
+      "/auth/reset-password",
+      "/auth/change-password",
+      "/auth/2fa/enable",
+      "/auth/2fa/disable",
+      "/auth/2fa/verify"
+    ],
+    "users": [
+      "/users/me",
+      "/users/profile",
+      "/users/update",
+      "/users/search",
+      "/users/preferences",
+      "/users/activity",
+      "/users/sessions"
+    ],
+    "messages": [
+      "/messages",
+      "/messages/send",
+      "/messages/search",
+      "/messages/reactions",
+      "/messages/threads",
+      "/messages/history",
+      "/messages/stats"
+    ],
+    "files": [
+      "/files/upload",
+      "/files/download",
+      "/files/list",
+      "/files/metadata",
+      "/files/share",
+      "/files/delete",
+      "/files/search"
+    ],
+    "collaboration": [
+      "/collaboration/sessions",
+      "/collaboration/join",
+      "/collaboration/leave",
+      "/collaboration/operations",
+      "/collaboration/cursor",
+      "/collaboration/stats"
+    ],
+    "ai": [
+      "/ai/chat",
+      "/ai/models",
+      "/ai/providers",
+      "/ai/analytics/usage",
+      "/ai/analytics/performance",
+      "/ai/moderation",
+      "/ai/health"
+    ],
+    "performance": [
+      "/performance/metrics",
+      "/performance/alerts",
+      "/performance/dashboard/data",
+      "/performance/health",
+      "/performance/trends"
+    ],
+    "analytics": [
+      "/analytics/usage",
+      "/analytics/performance", 
+      "/analytics/trends",
+      "/analytics/reports"
+    ],
+    "system": [
+      "/system/info",
+      "/system/health",
+      "/system/metrics",
+      "/system/status"
+    ],
+    "backup": [
+      "/backup/create",
+      "/backup/list",
+      "/backup/status",
+      "/backup/restore",
+      "/backup/download"
+    ],
+    "webhooks": [
+      "/webhooks/register",
+      "/webhooks/list",
+      "/webhooks/test",
+      "/webhooks/delete"
+    ]
+  },
+  "websocket_endpoints": [
+    "/ws/messaging",
+    "/ws/collaboration/{session_id}",
+    "/ws/notifications",
+    "/ws/presence",
+    "/ws/performance"
+  ],
+  "self_tests": [
+    "test_endpoint_discovery",
+    "test_authentication",
+    "test_request_routing",
+    "test_caching",
+    "test_rate_limiting",
+    "test_error_handling",
+    "test_websocket_connections",
+    "test_batch_operations"
+  ],
+  "requirements": [
+    "aiohttp>=3.8.0",
+    "httpx>=0.24.0",
+    "websockets>=10.0",
+    "cachetools>=5.0.0",
+    "tenacity>=8.0.0"
+  ]
+}

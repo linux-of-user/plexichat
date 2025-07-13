@@ -1,0 +1,1735 @@
+# PlexiChat Comprehensive Codebase Test Report
+Generated: 2025-07-13T12:49:20.311657
+
+## Overall Statistics
+- Total files analyzed: 527
+- Syntax errors: 326
+- Import errors: 527
+- Import issues: 351
+- Success rate: -61.9%
+
+## Critical Issues
+- **syntax_error**: src\plexichat\main.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 92 at line 93
+- **import_error**: src\plexichat\main.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\__main__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\cli\integrated_cli.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\launcher.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\integration\master_coordinator.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\tests\test_api_endpoints.py
+  - Error: SyntaxError: invalid syntax at line 40
+- **import_error**: src\plexichat\tests\test_api_endpoints.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\tests\test_base.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\tests\test_config.py
+  - Error: SyntaxError: invalid syntax at line 30
+- **import_error**: src\plexichat\tests\test_config.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\tests\test_database.py
+  - Error: SyntaxError: invalid syntax at line 26
+- **import_error**: src\plexichat\tests\test_database.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\tests\test_runner.py
+  - Error: SyntaxError: invalid syntax at line 25
+- **import_error**: src\plexichat\tests\test_runner.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\tests\test_ssl.py
+  - Error: SyntaxError: invalid syntax at line 31
+- **import_error**: src\plexichat\tests\test_ssl.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\tests\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\console_manager.py
+  - Error: SyntaxError: invalid syntax at line 78
+- **import_error**: src\plexichat\interfaces\cli\console_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\gui\launch_gui.py
+  - Error: SyntaxError: invalid syntax at line 42
+- **import_error**: src\plexichat\interfaces\gui\launch_gui.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\gui\plexichat_admin_gui.py
+  - Error: SyntaxError: f-string: expecting a valid expression after '{' at line 217
+- **import_error**: src\plexichat\interfaces\gui\plexichat_admin_gui.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\admin_interface.py
+  - Error: SyntaxError: invalid syntax at line 80
+- **import_error**: src\plexichat\interfaces\web\admin_interface.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\docs_system.py
+  - Error: SyntaxError: invalid syntax at line 31
+- **import_error**: src\plexichat\interfaces\web\docs_system.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\__init__.py
+  - Error: SyntaxError: invalid syntax at line 87
+- **import_error**: src\plexichat\interfaces\web\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\core\auth_storage.py
+  - Error: SyntaxError: invalid syntax at line 71
+- **import_error**: src\plexichat\interfaces\web\core\auth_storage.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\core\config_manager.py
+  - Error: SyntaxError: invalid syntax at line 109
+- **import_error**: src\plexichat\interfaces\web\core\config_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\core\enhanced_router.py
+  - Error: SyntaxError: invalid syntax at line 73
+- **import_error**: src\plexichat\interfaces\web\core\enhanced_router.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\core\mfa_manager.py
+  - Error: SyntaxError: invalid syntax at line 41
+- **import_error**: src\plexichat\interfaces\web\core\mfa_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\core\self_test_manager.py
+  - Error: SyntaxError: invalid syntax at line 136
+- **import_error**: src\plexichat\interfaces\web\core\self_test_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\middleware\government_security.py
+  - Error: SyntaxError: invalid syntax at line 496
+- **import_error**: src\plexichat\interfaces\web\middleware\government_security.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\middleware\unified_security_middleware.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 850) at line 838
+- **import_error**: src\plexichat\interfaces\web\middleware\unified_security_middleware.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\middleware\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\admin.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 437) at line 431
+- **import_error**: src\plexichat\interfaces\web\routers\admin.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\auth.py
+  - Error: SyntaxError: invalid syntax at line 61
+- **import_error**: src\plexichat\interfaces\web\routers\auth.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\cluster.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 15 at line 16
+- **import_error**: src\plexichat\interfaces\web\routers\cluster.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\database_setup.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 530) at line 495
+- **import_error**: src\plexichat\interfaces\web\routers\database_setup.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\files.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 421) at line 412
+- **import_error**: src\plexichat\interfaces\web\routers\files.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\file_management.py
+  - Error: SyntaxError: invalid syntax at line 55
+- **import_error**: src\plexichat\interfaces\web\routers\file_management.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\login.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 17 at line 18
+- **import_error**: src\plexichat\interfaces\web\routers\login.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\messages.py
+  - Error: SyntaxError: invalid syntax at line 13
+- **import_error**: src\plexichat\interfaces\web\routers\messages.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\messaging_websocket_router.py
+  - Error: SyntaxError: invalid syntax at line 11
+- **import_error**: src\plexichat\interfaces\web\routers\messaging_websocket_router.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\server_management.py
+  - Error: SyntaxError: f-string: expecting a valid expression after '{' at line 131
+- **import_error**: src\plexichat\interfaces\web\routers\server_management.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\status.py
+  - Error: SyntaxError: invalid syntax at line 20
+- **import_error**: src\plexichat\interfaces\web\routers\status.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\system.py
+  - Error: SyntaxError: invalid syntax at line 21
+- **import_error**: src\plexichat\interfaces\web\routers\system.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\routers\updates.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\users.py
+  - Error: SyntaxError: invalid syntax at line 10
+- **import_error**: src\plexichat\interfaces\web\routers\users.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\web.py
+  - Error: SyntaxError: unterminated string literal (detected at line 318) at line 318
+- **import_error**: src\plexichat\interfaces\web\routers\web.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\webhooks.py
+  - Error: SyntaxError: invalid syntax at line 20
+- **import_error**: src\plexichat\interfaces\web\routers\webhooks.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\websocket.py
+  - Error: SyntaxError: invalid syntax at line 55
+- **import_error**: src\plexichat\interfaces\web\routers\websocket.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\routers\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routes\collaboration_routes.py
+  - Error: SyntaxError: invalid syntax at line 22
+- **import_error**: src\plexichat\interfaces\web\routes\collaboration_routes.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - Error: SyntaxError: invalid syntax at line 9
+- **import_error**: src\plexichat\interfaces\web\routes\dashboard_routes.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routes\performance_routes.py
+  - Error: SyntaxError: invalid syntax at line 9
+- **import_error**: src\plexichat\interfaces\web\routes\performance_routes.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\routes\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\schemas\auth.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\schemas\error.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\schemas\files.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\schemas\message.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\schemas\status.py
+  - Error: SyntaxError: f-string: expecting a valid expression after '{' at line 19
+- **import_error**: src\plexichat\interfaces\web\schemas\status.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\schemas\user.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\web\schemas\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - Error: SyntaxError: invalid syntax at line 9
+- **import_error**: src\plexichat\interfaces\web\routes\admin\ai_features_routes.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routes\admin\communication_admin_routes.py
+  - Error: SyntaxError: invalid syntax at line 7
+- **import_error**: src\plexichat\interfaces\web\routes\admin\communication_admin_routes.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 659) at line 640
+- **import_error**: src\plexichat\interfaces\web\routes\admin\zero_knowledge_security_routes.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\web\routers\v2\auth.py
+  - Error: SyntaxError: invalid syntax at line 358
+- **import_error**: src\plexichat\interfaces\web\routers\v2\auth.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\gui\components\backup_management_widget.py
+  - Error: SyntaxError: invalid syntax at line 71
+- **import_error**: src\plexichat\interfaces\gui\components\backup_management_widget.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\gui\components\clustering_management_widget.py
+  - Error: SyntaxError: invalid syntax at line 61
+- **import_error**: src\plexichat\interfaces\gui\components\clustering_management_widget.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\gui\components\enhanced_base_widget.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\admin.py
+  - Error: SyntaxError: invalid syntax at line 19
+- **import_error**: src\plexichat\interfaces\cli\commands\admin.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\ai.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 454) at line 373
+- **import_error**: src\plexichat\interfaces\cli\commands\ai.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\antivirus.py
+  - Error: SyntaxError: invalid syntax at line 113
+- **import_error**: src\plexichat\interfaces\cli\commands\antivirus.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\automation.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 473) at line 469
+- **import_error**: src\plexichat\interfaces\cli\commands\automation.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\cli\commands\cluster.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\database.py
+  - Error: SyntaxError: invalid syntax at line 28
+- **import_error**: src\plexichat\interfaces\cli\commands\database.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\logs.py
+  - Error: SyntaxError: invalid syntax at line 17
+- **import_error**: src\plexichat\interfaces\cli\commands\logs.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\plugins.py
+  - Error: SyntaxError: invalid syntax at line 61
+- **import_error**: src\plexichat\interfaces\cli\commands\plugins.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\security.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 438) at line 368
+- **import_error**: src\plexichat\interfaces\cli\commands\security.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\commands\updates.py
+  - Error: SyntaxError: invalid decimal literal at line 79
+- **import_error**: src\plexichat\interfaces\cli\commands\updates.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\core\cli_manager.py
+  - Error: SyntaxError: invalid syntax at line 217
+- **import_error**: src\plexichat\interfaces\cli\core\cli_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\ultimate\cli_coordinator.py
+  - Error: SyntaxError: invalid syntax at line 316
+- **import_error**: src\plexichat\interfaces\cli\ultimate\cli_coordinator.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\ultimate\main.py
+  - Error: SyntaxError: expected an indented block after 'if' statement on line 95 at line 96
+- **import_error**: src\plexichat\interfaces\cli\ultimate\main.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\ultimate\commands\core_commands.py
+  - Error: SyntaxError: invalid syntax at line 43
+- **import_error**: src\plexichat\interfaces\cli\ultimate\commands\core_commands.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\ultimate\commands\security_commands.py
+  - Error: SyntaxError: invalid syntax at line 142
+- **import_error**: src\plexichat\interfaces\cli\ultimate\commands\security_commands.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\cli\ultimate\commands\system_commands.py
+  - Error: SyntaxError: invalid syntax at line 35
+- **import_error**: src\plexichat\interfaces\cli\ultimate\commands\system_commands.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\beta\__init__.py
+  - Error: SyntaxError: invalid syntax at line 11
+- **import_error**: src\plexichat\interfaces\api\beta\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\schemas\user.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\admin_endpoints.py
+  - Error: SyntaxError: invalid syntax at line 113
+- **import_error**: src\plexichat\interfaces\api\v1\admin_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\ai_endpoints.py
+  - Error: SyntaxError: invalid syntax at line 151
+- **import_error**: src\plexichat\interfaces\api\v1\ai_endpoints.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\ai_features.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\archive.py
+  - Error: SyntaxError: invalid syntax at line 14
+- **import_error**: src\plexichat\interfaces\api\v1\archive.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\auth_endpoints.py
+  - Error: SyntaxError: invalid syntax at line 273
+- **import_error**: src\plexichat\interfaces\api\v1\auth_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\bots.py
+  - Error: SyntaxError: invalid syntax at line 9
+- **import_error**: src\plexichat\interfaces\api\v1\bots.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\calling.py
+  - Error: SyntaxError: invalid syntax at line 184
+- **import_error**: src\plexichat\interfaces\api\v1\calling.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\channels.py
+  - Error: SyntaxError: invalid syntax at line 7
+- **import_error**: src\plexichat\interfaces\api\v1\channels.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\clustering.py
+  - Error: SyntaxError: invalid syntax at line 200
+- **import_error**: src\plexichat\interfaces\api\v1\clustering.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\clustering_endpoints.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 976) at line 958
+- **import_error**: src\plexichat\interfaces\api\v1\clustering_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\collaboration_endpoints.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 578) at line 518
+- **import_error**: src\plexichat\interfaces\api\v1\collaboration_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\communication_endpoints.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 555) at line 537
+- **import_error**: src\plexichat\interfaces\api\v1\communication_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\device_management.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 595) at line 586
+- **import_error**: src\plexichat\interfaces\api\v1\device_management.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\docs.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\documentation.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\enhanced_antivirus.py
+  - Error: SyntaxError: invalid syntax at line 135
+- **import_error**: src\plexichat\interfaces\api\v1\enhanced_antivirus.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\individual_testing.py
+  - Error: SyntaxError: invalid decimal literal at line 376
+- **import_error**: src\plexichat\interfaces\api\v1\individual_testing.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\moderation.py
+  - Error: SyntaxError: invalid syntax at line 14
+- **import_error**: src\plexichat\interfaces\api\v1\moderation.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\moderation_enhanced.py
+  - Error: SyntaxError: invalid syntax at line 7
+- **import_error**: src\plexichat\interfaces\api\v1\moderation_enhanced.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\p2p_messaging.py
+  - Error: SyntaxError: invalid syntax at line 128
+- **import_error**: src\plexichat\interfaces\api\v1\p2p_messaging.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\performance_endpoints.py
+  - Error: SyntaxError: invalid syntax at line 9
+- **import_error**: src\plexichat\interfaces\api\v1\performance_endpoints.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\permissions.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\plugin_marketplace.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 424) at line 400
+- **import_error**: src\plexichat\interfaces\api\v1\plugin_marketplace.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\rate_limits.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 411) at line 400
+- **import_error**: src\plexichat\interfaces\api\v1\rate_limits.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\router.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\security_api.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\servers.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 307) at line 302
+- **import_error**: src\plexichat\interfaces\api\v1\servers.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\social.py
+  - Error: SyntaxError: invalid syntax at line 149
+- **import_error**: src\plexichat\interfaces\api\v1\social.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\subscription_endpoints.py
+  - Error: SyntaxError: unterminated string literal (detected at line 380) at line 380
+- **import_error**: src\plexichat\interfaces\api\v1\subscription_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\testing.py
+  - Error: SyntaxError: invalid syntax at line 13
+- **import_error**: src\plexichat\interfaces\api\v1\testing.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\theming.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\user_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\__init__.py
+  - Error: SyntaxError: invalid syntax at line 11
+- **import_error**: src\plexichat\interfaces\api\v1\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\collaboration\presence.py
+  - Error: SyntaxError: invalid syntax at line 10
+- **import_error**: src\plexichat\interfaces\api\v1\collaboration\presence.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\collaboration\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\edge\edge_analytics.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\edge\edge_computing.py
+  - Error: SyntaxError: invalid syntax at line 8
+- **import_error**: src\plexichat\interfaces\api\v1\edge\edge_computing.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\edge\edge_nodes.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 348) at line 314
+- **import_error**: src\plexichat\interfaces\api\v1\edge\edge_nodes.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\edge\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\expanded\api_expansion_coordinator.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\expanded\channels.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\expanded\safety.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\expanded\search.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\expanded\user_profiles.py
+  - Error: SyntaxError: invalid syntax at line 110
+- **import_error**: src\plexichat\interfaces\api\v1\expanded\user_profiles.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\files\files_enhanced.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 445) at line 406
+- **import_error**: src\plexichat\interfaces\api\v1\files\files_enhanced.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\files\__init__.py
+  - Error: SyntaxError: unexpected indent at line 1
+- **import_error**: src\plexichat\interfaces\api\v1\files\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\messages\enhanced_messaging.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 643) at line 618
+- **import_error**: src\plexichat\interfaces\api\v1\messages\enhanced_messaging.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\messages\messages_enhanced.py
+  - Error: SyntaxError: invalid syntax at line 14
+- **import_error**: src\plexichat\interfaces\api\v1\messages\messages_enhanced.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\messages\__init__.py
+  - Error: SyntaxError: unexpected indent at line 1
+- **import_error**: src\plexichat\interfaces\api\v1\messages\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\plugins\enhanced_plugins.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 360) at line 326
+- **import_error**: src\plexichat\interfaces\api\v1\plugins\enhanced_plugins.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\interfaces\api\v1\plugins\plugins.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\plugins\__init__.py
+  - Error: SyntaxError: unexpected indent at line 1
+- **import_error**: src\plexichat\interfaces\api\v1\plugins\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\system\backup.py
+  - Error: SyntaxError: invalid decimal literal at line 245
+- **import_error**: src\plexichat\interfaces\api\v1\system\backup.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\system\backup_endpoints.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 783) at line 770
+- **import_error**: src\plexichat\interfaces\api\v1\system\backup_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\system\database.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 457) at line 407
+- **import_error**: src\plexichat\interfaces\api\v1\system\database.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\system\database_setup.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 347) at line 317
+- **import_error**: src\plexichat\interfaces\api\v1\system\database_setup.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\system\enhanced_backup.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 582) at line 544
+- **import_error**: src\plexichat\interfaces\api\v1\system\enhanced_backup.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\system\__init__.py
+  - Error: SyntaxError: unexpected indent at line 1
+- **import_error**: src\plexichat\interfaces\api\v1\system\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\users\users_enhanced.py
+  - Error: SyntaxError: invalid syntax at line 13
+- **import_error**: src\plexichat\interfaces\api\v1\users\users_enhanced.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\interfaces\api\v1\users\__init__.py
+  - Error: SyntaxError: unexpected indent at line 1
+- **import_error**: src\plexichat\interfaces\api\v1\users\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\analytics\analytics_service.py
+  - Error: SyntaxError: invalid syntax at line 91
+- **import_error**: src\plexichat\infrastructure\analytics\analytics_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\analytics\engine.py
+  - Error: SyntaxError: invalid syntax at line 230
+- **import_error**: src\plexichat\infrastructure\analytics\engine.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\containerization\orchestrator.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\events\bus.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\installer\enhanced_installer.py
+  - Error: SyntaxError: invalid syntax at line 240
+- **import_error**: src\plexichat\infrastructure\installer\enhanced_installer.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\installer\install.py
+  - Error: SyntaxError: invalid syntax at line 94
+- **import_error**: src\plexichat\infrastructure\installer\install.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\integration\coordinator.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\messaging\async_task_queue.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\microservices\decomposition.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\microservices\service_registry.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\modules\config_manager.py
+  - Error: SyntaxError: invalid syntax at line 69
+- **import_error**: src\plexichat\infrastructure\modules\config_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\modules\contracts.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 520) at line 507
+- **import_error**: src\plexichat\infrastructure\modules\contracts.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\modules\enhanced_config_manager.py
+  - Error: SyntaxError: invalid syntax at line 108
+- **import_error**: src\plexichat\infrastructure\modules\enhanced_config_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\modules\interfaces.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\modules\isolation.py
+  - Error: SyntaxError: invalid syntax at line 171
+- **import_error**: src\plexichat\infrastructure\modules\isolation.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\modules\plugin_manager.py
+  - Error: SyntaxError: invalid syntax at line 324
+- **import_error**: src\plexichat\infrastructure\modules\plugin_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\modules\__init__.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 31 at line 32
+- **import_error**: src\plexichat\infrastructure\modules\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\performance\cache_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\performance\distributed_cache.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\performance\edge_computing_manager.py
+  - Error: SyntaxError: invalid syntax at line 398
+- **import_error**: src\plexichat\infrastructure\performance\edge_computing_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\performance\message_queue.py
+  - Error: SyntaxError: unexpected indent at line 4
+- **import_error**: src\plexichat\infrastructure\performance\message_queue.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\performance\message_queue_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\performance\multi_tier_cache.py
+  - Error: SyntaxError: invalid syntax at line 8
+- **import_error**: src\plexichat\infrastructure\performance\multi_tier_cache.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\performance\multi_tier_cache_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\performance\optimization_engine.py
+  - Error: SyntaxError: invalid syntax at line 179
+- **import_error**: src\plexichat\infrastructure\performance\optimization_engine.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\performance\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 92) at line 31
+- **import_error**: src\plexichat\infrastructure\performance\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\scalability\phase2_integration.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\scripts\auto_setup.py
+  - Error: SyntaxError: invalid syntax at line 16
+- **import_error**: src\plexichat\infrastructure\scripts\auto_setup.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\scripts\setup_database.py
+  - Error: SyntaxError: invalid syntax at line 15
+- **import_error**: src\plexichat\infrastructure\scripts\setup_database.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\scripts\startup_validation.py
+  - Error: SyntaxError: invalid syntax at line 13
+- **import_error**: src\plexichat\infrastructure\scripts\startup_validation.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 567) at line 550
+- **import_error**: src\plexichat\infrastructure\services\advanced_recovery_system.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\ai_features_integration.py
+  - Error: SyntaxError: invalid syntax at line 146
+- **import_error**: src\plexichat\infrastructure\services\ai_features_integration.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\analytics_service.py
+  - Error: SyntaxError: invalid syntax at line 91
+- **import_error**: src\plexichat\infrastructure\services\analytics_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\background_tasks.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\backup_status_monitor.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 507) at line 503
+- **import_error**: src\plexichat\infrastructure\services\backup_status_monitor.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\base_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\calling_service.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 473) at line 467
+- **import_error**: src\plexichat\infrastructure\services\calling_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\collaboration_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\communication_service.py
+  - Error: SyntaxError: invalid syntax at line 134
+- **import_error**: src\plexichat\infrastructure\services\communication_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\data_ingestion_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\enhanced_backup_service.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 770) at line 711
+- **import_error**: src\plexichat\infrastructure\services\enhanced_backup_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\enhanced_ddos_service.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 535) at line 501
+- **import_error**: src\plexichat\infrastructure\services\enhanced_ddos_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\enhanced_messaging_service.py
+  - Error: SyntaxError: invalid syntax at line 521
+- **import_error**: src\plexichat\infrastructure\services\enhanced_messaging_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\etl_pipeline_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\file_permissions.py
+  - Error: SyntaxError: unterminated string literal (detected at line 313) at line 313
+- **import_error**: src\plexichat\infrastructure\services\file_permissions.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\health.py
+  - Error: SyntaxError: invalid syntax at line 70
+- **import_error**: src\plexichat\infrastructure\services\health.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\human_review_service.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 594) at line 593
+- **import_error**: src\plexichat\infrastructure\services\human_review_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 458) at line 446
+- **import_error**: src\plexichat\infrastructure\services\intelligent_shard_distribution.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\loader.py
+  - Error: SyntaxError: invalid syntax at line 108
+- **import_error**: src\plexichat\infrastructure\services\loader.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\log_management.py
+  - Error: SyntaxError: invalid syntax at line 103
+- **import_error**: src\plexichat\infrastructure\services\log_management.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\message_service.py
+  - Error: SyntaxError: invalid syntax at line 88
+- **import_error**: src\plexichat\infrastructure\services\message_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\moderation_service.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 1117) at line 1066
+- **import_error**: src\plexichat\infrastructure\services\moderation_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\p2p_messaging.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\performance_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\plugin_marketplace_service.py
+  - Error: SyntaxError: invalid syntax at line 179
+- **import_error**: src\plexichat\infrastructure\services\plugin_marketplace_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\plugin_oauth_provider.py
+  - Error: SyntaxError: invalid syntax at line 99
+- **import_error**: src\plexichat\infrastructure\services\plugin_oauth_provider.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\plugin_validator.py
+  - Error: SyntaxError: invalid syntax at line 128
+- **import_error**: src\plexichat\infrastructure\services\plugin_validator.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\security_service.py
+  - Error: SyntaxError: invalid syntax at line 240
+- **import_error**: src\plexichat\infrastructure\services\security_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\service_manager.py
+  - Error: SyntaxError: invalid syntax at line 40
+- **import_error**: src\plexichat\infrastructure\services\service_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\social_service.py
+  - Error: SyntaxError: invalid syntax at line 78
+- **import_error**: src\plexichat\infrastructure\services\social_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\theming_service.py
+  - Error: SyntaxError: invalid syntax at line 73
+- **import_error**: src\plexichat\infrastructure\services\theming_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\unified_security_service.py
+  - Error: SyntaxError: invalid syntax at line 194
+- **import_error**: src\plexichat\infrastructure\services\unified_security_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\universal_backup_service.py
+  - Error: SyntaxError: invalid syntax at line 73
+- **import_error**: src\plexichat\infrastructure\services\universal_backup_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\user_management.py
+  - Error: SyntaxError: unterminated string literal (detected at line 805) at line 805
+- **import_error**: src\plexichat\infrastructure\services\user_management.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\zero_knowledge_security_service.py
+  - Error: SyntaxError: invalid syntax at line 118
+- **import_error**: src\plexichat\infrastructure\services\zero_knowledge_security_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\services\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\auth.py
+  - Error: SyntaxError: invalid syntax at line 20
+- **import_error**: src\plexichat\infrastructure\utils\auth.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\common_utils.py
+  - Error: SyntaxError: invalid syntax at line 139
+- **import_error**: src\plexichat\infrastructure\utils\common_utils.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\enhanced_logging.py
+  - Error: SyntaxError: invalid syntax at line 25
+- **import_error**: src\plexichat\infrastructure\utils\enhanced_logging.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\ip_security.py
+  - Error: SyntaxError: invalid syntax at line 22
+- **import_error**: src\plexichat\infrastructure\utils\ip_security.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\performance.py
+  - Error: SyntaxError: invalid syntax at line 40
+- **import_error**: src\plexichat\infrastructure\utils\performance.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\rate_limiting.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 23 at line 24
+- **import_error**: src\plexichat\infrastructure\utils\rate_limiting.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\scheduling.py
+  - Error: SyntaxError: invalid syntax at line 31
+- **import_error**: src\plexichat\infrastructure\utils\scheduling.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\security.py
+  - Error: SyntaxError: invalid syntax at line 64
+- **import_error**: src\plexichat\infrastructure\utils\security.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\shutdown.py
+  - Error: SyntaxError: invalid syntax at line 69
+- **import_error**: src\plexichat\infrastructure\utils\shutdown.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\infrastructure\utils\snowflake.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\utilities.py
+  - Error: SyntaxError: invalid syntax at line 45
+- **import_error**: src\plexichat\infrastructure\utils\utilities.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\__init__.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 23 at line 24
+- **import_error**: src\plexichat\infrastructure\utils\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\monitoring\error_handler.py
+  - Error: SyntaxError: invalid syntax at line 44
+- **import_error**: src\plexichat\infrastructure\utils\monitoring\error_handler.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\utils\monitoring\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 29) at line 9
+- **import_error**: src\plexichat\infrastructure\utils\monitoring\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\modules\logging_service.py
+  - Error: SyntaxError: invalid syntax at line 65
+- **import_error**: src\plexichat\infrastructure\services\modules\logging_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\infrastructure\services\modules\metrics_service.py
+  - Error: SyntaxError: invalid syntax at line 147
+- **import_error**: src\plexichat\infrastructure\services\modules\metrics_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\advanced_ai_system.py
+  - Error: SyntaxError: f-string: expecting '=', or '!', or ':', or '}' at line 360
+- **import_error**: src\plexichat\features\ai\advanced_ai_system.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\advanced_moderation.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\ai_coordinator.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 409) at line 385
+- **import_error**: src\plexichat\features\ai\ai_coordinator.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\multilingual_chatbot.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\phase3_integration.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 600) at line 582
+- **import_error**: src\plexichat\features\ai\phase3_integration.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\recommendation_engine.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\semantic_search.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\__init__.py
+  - Error: SyntaxError: invalid syntax at line 15
+- **import_error**: src\plexichat\features\ai\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\antivirus\enhanced_antivirus_manager.py
+  - Error: SyntaxError: invalid syntax at line 51
+- **import_error**: src\plexichat\features\antivirus\enhanced_antivirus_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\antivirus\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\quantum_backup_system.py
+  - Error: SyntaxError: invalid syntax at line 113
+- **import_error**: src\plexichat\features\backup\quantum_backup_system.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\standalone_backup_node.py
+  - Error: SyntaxError: invalid syntax at line 24
+- **import_error**: src\plexichat\features\backup\standalone_backup_node.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\user_message_backup.py
+  - Error: SyntaxError: invalid syntax at line 75
+- **import_error**: src\plexichat\features\backup\user_message_backup.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 231) at line 48
+- **import_error**: src\plexichat\features\backup\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\channels\__init__.py
+  - Error: SyntaxError: '[' was never closed at line 12
+- **import_error**: src\plexichat\features\channels\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\node_manager.py
+  - Error: SyntaxError: invalid syntax at line 141
+- **import_error**: src\plexichat\features\clustering\node_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\clustering\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\identity\manager.py
+  - Error: SyntaxError: invalid syntax at line 132
+- **import_error**: src\plexichat\features\identity\manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\knowledge\graphs.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\messaging\advanced_user_system.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\messaging\business_automation.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\messaging\group_management.py
+  - Error: SyntaxError: invalid syntax at line 335
+- **import_error**: src\plexichat\features\messaging\group_management.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\messaging\messaging_coordinator.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 372) at line 344
+- **import_error**: src\plexichat\features\messaging\messaging_coordinator.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\messaging\voice_video_channels.py
+  - Error: SyntaxError: invalid syntax at line 254
+- **import_error**: src\plexichat\features\messaging\voice_video_channels.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\plugins\plugin_sdk.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\plugins\plugin_testing.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\plugins\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\advanced_behavioral_analyzer.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\bug_bounty.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\cicd_security.py
+  - Error: SyntaxError: f-string: expecting '=', or '!', or ':', or '}' at line 203
+- **import_error**: src\plexichat\features\security\cicd_security.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\csp.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\database_encryption.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\decentralized_security.py
+  - Error: SyntaxError: invalid syntax at line 193
+- **import_error**: src\plexichat\features\security\decentralized_security.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\decorators.py
+  - Error: SyntaxError: invalid syntax at line 54
+- **import_error**: src\plexichat\features\security\decorators.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\default_admin.py
+  - Error: SyntaxError: invalid syntax at line 23
+- **import_error**: src\plexichat\features\security\default_admin.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\distributed_key_manager.py
+  - Error: SyntaxError: invalid syntax at line 98
+- **import_error**: src\plexichat\features\security\distributed_key_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\e2e_encryption.py
+  - Error: SyntaxError: invalid syntax at line 109
+- **import_error**: src\plexichat\features\security\e2e_encryption.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\enhanced_security.py
+  - Error: SyntaxError: invalid syntax at line 440
+- **import_error**: src\plexichat\features\security\enhanced_security.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\exceptions.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\middleware.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\mitm_protection.py
+  - Error: SyntaxError: invalid syntax at line 72
+- **import_error**: src\plexichat\features\security\mitm_protection.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\network_protection.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\permissions.py
+  - Error: SyntaxError: invalid syntax at line 132
+- **import_error**: src\plexichat\features\security\permissions.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\phase1_integration.py
+  - Error: SyntaxError: f-string: expecting '=', or '!', or ':', or '}' at line 86
+- **import_error**: src\plexichat\features\security\phase1_integration.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\protection.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\quantum_encryption.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 30 at line 31
+- **import_error**: src\plexichat\features\security\quantum_encryption.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\quantum_security.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\rate_limiter.py
+  - Error: SyntaxError: invalid syntax at line 140
+- **import_error**: src\plexichat\features\security\rate_limiter.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\security_headers.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\siem_integration.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\unified_security_coordinator.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\waf.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\__init__.py
+  - Error: SyntaxError: unterminated string literal (detected at line 213) at line 213
+- **import_error**: src\plexichat\features\security\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\spaces\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\updates\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\advanced_moderation.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\calling.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\channel.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\device_management.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\enhanced_backup.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\files.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\guild.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\message.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\models.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\moderation.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\user.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\users\user_service.py
+  - Error: SyntaxError: invalid syntax at line 27
+- **import_error**: src\plexichat\features\users\user_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\users\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\updates\models\status_update.py
+  - Error: SyntaxError: invalid syntax at line 111
+- **import_error**: src\plexichat\features\updates\models\status_update.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\updates\models\status_view.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\updates\models\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\updates\repositories\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\spaces\models\comment.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\spaces\models\post.py
+  - Error: SyntaxError: invalid syntax at line 205
+- **import_error**: src\plexichat\features\spaces\models\post.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\spaces\models\space.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\spaces\models\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\spaces\repositories\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\core\behavioral_analysis.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\core\integrated_security.py
+  - Error: SyntaxError: invalid syntax at line 200
+- **import_error**: src\plexichat\features\security\core\integrated_security.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\core\oauth_provider.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\core\quantum_encryption.py
+  - Error: SyntaxError: invalid syntax at line 117
+- **import_error**: src\plexichat\features\security\core\quantum_encryption.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\core\rate_limiting.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\security\core\security_monitoring.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\security\core\__init__.py
+  - Error: SyntaxError: invalid decimal literal at line 2
+- **import_error**: src\plexichat\features\security\core\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\plugins\archive\plugin.py
+  - Error: SyntaxError: invalid syntax at line 31
+- **import_error**: src\plexichat\features\plugins\archive\plugin.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\plugins\archive_system\archive_plugin.py
+  - Error: SyntaxError: invalid syntax at line 89
+- **import_error**: src\plexichat\features\plugins\archive_system\archive_plugin.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\core\cluster_manager.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 1251) at line 1207
+- **import_error**: src\plexichat\features\clustering\core\cluster_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\core\cluster_update_manager.py
+  - Error: SyntaxError: f-string: expecting a valid expression after '{' at line 159
+- **import_error**: src\plexichat\features\clustering\core\cluster_update_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\core\encrypted_communication.py
+  - Error: SyntaxError: invalid syntax at line 31
+- **import_error**: src\plexichat\features\clustering\core\encrypted_communication.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\core\failover_manager.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 713) at line 692
+- **import_error**: src\plexichat\features\clustering\core\failover_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\core\hot_update_manager.py
+  - Error: SyntaxError: invalid syntax at line 101
+- **import_error**: src\plexichat\features\clustering\core\hot_update_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\clustering\core\load_balancer.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\core\node_manager.py
+  - Error: SyntaxError: invalid syntax at line 494
+- **import_error**: src\plexichat\features\clustering\core\node_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\core\performance_monitor.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 1735) at line 1697
+- **import_error**: src\plexichat\features\clustering\core\performance_monitor.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\clustering\core\task_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\clustering\core\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\hybrid_cloud\cloud_orchestrator.py
+  - Error: SyntaxError: invalid syntax at line 577
+- **import_error**: src\plexichat\features\clustering\hybrid_cloud\cloud_orchestrator.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\predictive_scaling\ml_scaler.py
+  - Error: SyntaxError: f-string: expecting '=', or '!', or ':', or '}' at line 466
+- **import_error**: src\plexichat\features\clustering\predictive_scaling\ml_scaler.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\serverless\faas_manager.py
+  - Error: SyntaxError: invalid syntax at line 205
+- **import_error**: src\plexichat\features\clustering\serverless\faas_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\service_mesh\mesh_manager.py
+  - Error: SyntaxError: invalid syntax at line 174
+- **import_error**: src\plexichat\features\clustering\service_mesh\mesh_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\specialized\antivirus_node.py
+  - Error: SyntaxError: invalid syntax at line 26
+- **import_error**: src\plexichat\features\clustering\specialized\antivirus_node.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\specialized\gateway_node.py
+  - Error: SyntaxError: invalid syntax at line 26
+- **import_error**: src\plexichat\features\clustering\specialized\gateway_node.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\specialized\main_node.py
+  - Error: SyntaxError: invalid syntax at line 25
+- **import_error**: src\plexichat\features\clustering\specialized\main_node.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\clustering\specialized\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\clustering\storage\distributed_storage_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\clustering\storage\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 56) at line 17
+- **import_error**: src\plexichat\features\clustering\storage\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\models\channel.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\models\message.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\models\permission_overwrite.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\models\reaction.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\models\role.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\models\server.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\channels\models\server_member.py
+  - Error: SyntaxError: invalid syntax at line 159
+- **import_error**: src\plexichat\features\channels\models\server_member.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\models\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\channels\repositories\channel_repository.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 231) at line 224
+- **import_error**: src\plexichat\features\channels\repositories\channel_repository.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\repositories\permission_overwrite_repository.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\channels\repositories\role_repository.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 242) at line 228
+- **import_error**: src\plexichat\features\channels\repositories\role_repository.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\channels\repositories\server_repository.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 169) at line 162
+- **import_error**: src\plexichat\features\channels\repositories\server_repository.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\repositories\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\services\permission_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\services\server_service.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\channels\services\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup_node_auth.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup_node_client.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\core\backup_node_server.py
+  - Error: SyntaxError: invalid syntax at line 97
+- **import_error**: src\plexichat\features\backup\core\backup_node_server.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\integrity_checker.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\core\profile_backup.py
+  - Error: SyntaxError: f-string: expecting '=', or '!', or ':', or '}' at line 289
+- **import_error**: src\plexichat\features\backup\core\profile_backup.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\core\shard_location_database.py
+  - Error: SyntaxError: invalid syntax at line 60
+- **import_error**: src\plexichat\features\backup\core\shard_location_database.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\unified_analytics_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\core\unified_backup_manager.py
+  - Error: SyntaxError: invalid syntax at line 224
+- **import_error**: src\plexichat\features\backup\core\unified_backup_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\unified_distribution_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\unified_encryption_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\unified_node_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\core\unified_recovery_manager.py
+  - Error: SyntaxError: invalid syntax at line 55
+- **import_error**: src\plexichat\features\backup\core\unified_recovery_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\unified_shard_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\user_message_backup.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\user_preferences.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\core\verification.py
+  - Error: SyntaxError: expected 'except' or 'finally' block at line 463
+- **import_error**: src\plexichat\features\backup\core\verification.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\nodes\backup_node_client.py
+  - Error: SyntaxError: unexpected indent at line 8
+- **import_error**: src\plexichat\features\backup\nodes\backup_node_client.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\nodes\backup_node_main.py
+  - Error: SyntaxError: invalid syntax at line 35
+- **import_error**: src\plexichat\features\backup\nodes\backup_node_main.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\nodes\start_backup_node.py
+  - Error: SyntaxError: expected an indented block after 'for' statement on line 53 at line 54
+- **import_error**: src\plexichat\features\backup\nodes\start_backup_node.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\nodes\test_backup_node.py
+  - Error: SyntaxError: invalid syntax at line 19
+- **import_error**: src\plexichat\features\backup\nodes\test_backup_node.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\plugins\archive_system.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\plugins\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\services\status_monitor.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\services\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 50) at line 18
+- **import_error**: src\plexichat\features\backup\services\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\advanced_recovery_system.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\backup_analytics_monitor.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\backup_node_auth.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\backup_node_client.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\backup_node_network.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\distributed_shard_system.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\immutable_shard_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\backup\core\backup\multi_node_network.py
+  - Error: SyntaxError: invalid syntax at line 452
+- **import_error**: src\plexichat\features\backup\core\backup\multi_node_network.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\shard_distribution.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\user_message_backup.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\zero_knowledge_protocol.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\backup\core\backup\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\antivirus\core\antivirus_engine.py
+  - Error: SyntaxError: invalid syntax at line 43
+- **import_error**: src\plexichat\features\antivirus\core\antivirus_engine.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\antivirus\core\behavioral_analyzer.py
+  - Error: SyntaxError: invalid syntax at line 39
+- **import_error**: src\plexichat\features\antivirus\core\behavioral_analyzer.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\antivirus\core\filename_analyzer.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 298) at line 293
+- **import_error**: src\plexichat\features\antivirus\core\filename_analyzer.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\antivirus\core\hash_scanner.py
+  - Error: SyntaxError: invalid syntax at line 29
+- **import_error**: src\plexichat\features\antivirus\core\hash_scanner.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\antivirus\core\link_scanner.py
+  - Error: SyntaxError: invalid syntax at line 36
+- **import_error**: src\plexichat\features\antivirus\core\link_scanner.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\antivirus\core\message_scanner.py
+  - Error: SyntaxError: invalid syntax at line 70
+- **import_error**: src\plexichat\features\antivirus\core\message_scanner.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\antivirus\core\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\api\ai_endpoints.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 378) at line 360
+- **import_error**: src\plexichat\features\ai\api\ai_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\api\moderation_endpoints.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 280) at line 262
+- **import_error**: src\plexichat\features\ai\api\moderation_endpoints.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\api\monitoring_endpoints.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\api\provider_endpoints.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 383) at line 376
+- **import_error**: src\plexichat\features\ai\api\provider_endpoints.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\api\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\cli\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - Error: SyntaxError: invalid syntax at line 96
+- **import_error**: src\plexichat\features\ai\core\ai_abstraction_layer.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\core\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 28) at line 13
+- **import_error**: src\plexichat\features\ai\core\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\features\ai_powered_features_service.py
+  - Error: SyntaxError: invalid syntax at line 130
+- **import_error**: src\plexichat\features\ai\features\ai_powered_features_service.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\features\__init__.py
+  - Error: SyntaxError: unterminated string literal (detected at line 16) at line 16
+- **import_error**: src\plexichat\features\ai\features\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\moderation\feedback_collector.py
+  - Error: SyntaxError: invalid syntax at line 74
+- **import_error**: src\plexichat\features\ai\moderation\feedback_collector.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\moderation\moderation_engine.py
+  - Error: SyntaxError: invalid syntax at line 111
+- **import_error**: src\plexichat\features\ai\moderation\moderation_engine.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\moderation\training_system.py
+  - Error: SyntaxError: invalid syntax at line 89
+- **import_error**: src\plexichat\features\ai\moderation\training_system.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\moderation\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 50) at line 15
+- **import_error**: src\plexichat\features\ai\moderation\__init__.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\monitoring\analytics_engine.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\providers\anthropic_provider.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\providers\base_provider.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\providers\ollama_provider.py
+  - Error: SyntaxError: invalid syntax at line 48
+- **import_error**: src\plexichat\features\ai\providers\ollama_provider.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\providers\openai_provider.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\providers\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\webui\ai_management.py
+  - Error: SyntaxError: invalid syntax at line 26
+- **import_error**: src\plexichat\features\ai\webui\ai_management.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\webui\monitoring_dashboard.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\features\ai\webui\provider_management.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 339) at line 338
+- **import_error**: src\plexichat\features\ai\webui\provider_management.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\features\ai\webui\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\admin_credentials.py
+  - Error: SyntaxError: invalid syntax at line 24
+- **import_error**: src\plexichat\core_system\auth\admin_credentials.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\admin_manager.py
+  - Error: SyntaxError: invalid syntax at line 23
+- **import_error**: src\plexichat\core_system\auth\admin_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\audit_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\auth.py
+  - Error: SyntaxError: invalid syntax at line 86
+- **import_error**: src\plexichat\core_system\auth\auth.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\auth_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\biometric_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\decorators.py
+  - Error: SyntaxError: invalid syntax at line 80
+- **import_error**: src\plexichat\core_system\auth\decorators.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\device_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\exceptions.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\mfa_manager.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 25 at line 26
+- **import_error**: src\plexichat\core_system\auth\mfa_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\middleware.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 111 at line 112
+- **import_error**: src\plexichat\core_system\auth\middleware.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\oauth_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\password_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\session_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\token_manager.py
+  - Error: SyntaxError: invalid syntax at line 273
+- **import_error**: src\plexichat\core_system\auth\token_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\unified_auth_manager.py
+  - Error: SyntaxError: invalid syntax at line 225
+- **import_error**: src\plexichat\core_system\auth\unified_auth_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\auth\validators.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\auth\__init__.py
+  - Error: SyntaxError: invalid decimal literal at line 7
+- **import_error**: src\plexichat\core_system\auth\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\analytics_clients.py
+  - Error: SyntaxError: invalid syntax at line 12
+- **import_error**: src\plexichat\core_system\database\analytics_clients.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\database_factory.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 455) at line 431
+- **import_error**: src\plexichat\core_system\database\database_factory.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\engines.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 45 at line 46
+- **import_error**: src\plexichat\core_system\database\engines.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\database\global_data_distribution.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\database\indexing_strategy.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\lakehouse.py
+  - Error: SyntaxError: invalid syntax at line 17
+- **import_error**: src\plexichat\core_system\database\lakehouse.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\manager.py
+  - Error: SyntaxError: invalid syntax at line 28
+- **import_error**: src\plexichat\core_system\database\manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\migrations.py
+  - Error: SyntaxError: invalid syntax at line 74
+- **import_error**: src\plexichat\core_system\database\migrations.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\nosql_clients.py
+  - Error: SyntaxError: invalid syntax at line 17
+- **import_error**: src\plexichat\core_system\database\nosql_clients.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\partitioning_strategy.py
+  - Error: SyntaxError: unexpected indent at line 9
+- **import_error**: src\plexichat\core_system\database\partitioning_strategy.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\performance_integration.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 603) at line 578
+- **import_error**: src\plexichat\core_system\database\performance_integration.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\database\query_optimizer.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\schema_optimizer.py
+  - Error: SyntaxError: unexpected indent at line 8
+- **import_error**: src\plexichat\core_system\database\schema_optimizer.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\setup_wizard.py
+  - Error: SyntaxError: invalid syntax at line 126
+- **import_error**: src\plexichat\core_system\database\setup_wizard.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\sql_clients.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 505) at line 466
+- **import_error**: src\plexichat\core_system\database\sql_clients.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\stored_procedures.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 683) at line 650
+- **import_error**: src\plexichat\core_system\database\stored_procedures.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\zero_downtime_migration.py
+  - Error: SyntaxError: invalid syntax at line 430
+- **import_error**: src\plexichat\core_system\database\zero_downtime_migration.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\__init__.py
+  - Error: SyntaxError: invalid syntax at line 4
+- **import_error**: src\plexichat\core_system\database\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\beautiful_error_handler.py
+  - Error: SyntaxError: invalid syntax at line 50
+- **import_error**: src\plexichat\core_system\error_handling\beautiful_error_handler.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\error_handling\circuit_breaker.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\error_handling\context.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\crash_reporter.py
+  - Error: SyntaxError: invalid syntax at line 62
+- **import_error**: src\plexichat\core_system\error_handling\crash_reporter.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\error_handling\decorators.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\enhanced_error_handler.py
+  - Error: SyntaxError: invalid syntax at line 35
+- **import_error**: src\plexichat\core_system\error_handling\enhanced_error_handler.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\error_analytics.py
+  - Error: SyntaxError: invalid syntax at line 92
+- **import_error**: src\plexichat\core_system\error_handling\error_analytics.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\error_manager.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 25 at line 26
+- **import_error**: src\plexichat\core_system\error_handling\error_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\error_monitor.py
+  - Error: SyntaxError: invalid syntax at line 76
+- **import_error**: src\plexichat\core_system\error_handling\error_monitor.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\error_recovery.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 369) at line 355
+- **import_error**: src\plexichat\core_system\error_handling\error_recovery.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\exceptions.py
+  - Error: SyntaxError: invalid syntax at line 46
+- **import_error**: src\plexichat\core_system\error_handling\exceptions.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\middleware.py
+  - Error: SyntaxError: invalid syntax at line 115
+- **import_error**: src\plexichat\core_system\error_handling\middleware.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\reporting.py
+  - Error: SyntaxError: invalid syntax at line 131
+- **import_error**: src\plexichat\core_system\error_handling\reporting.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\error_handling\__init__.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 584) at line 559
+- **import_error**: src\plexichat\core_system\error_handling\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\integration\orchestrator.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 484) at line 483
+- **import_error**: src\plexichat\core_system\integration\orchestrator.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\logging\advanced_logger.py
+  - Error: SyntaxError: invalid syntax at line 122
+- **import_error**: src\plexichat\core_system\logging\advanced_logger.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\logging\config.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\logging\log_api.py
+  - Error: SyntaxError: invalid syntax at line 13
+- **import_error**: src\plexichat\core_system\logging\log_api.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\logging\performance_logger.py
+  - Error: SyntaxError: invalid syntax at line 137
+- **import_error**: src\plexichat\core_system\logging\performance_logger.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\logging\__init__.py
+  - Error: SyntaxError: invalid syntax at line 345
+- **import_error**: src\plexichat\core_system\logging\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\maintenance\bug_fixes.py
+  - Error: SyntaxError: invalid syntax at line 167
+- **import_error**: src\plexichat\core_system\maintenance\bug_fixes.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\resilience\manager.py
+  - Error: SyntaxError: invalid syntax at line 88
+- **import_error**: src\plexichat\core_system\resilience\manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\security\automated_security_testing.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 921) at line 905
+- **import_error**: src\plexichat\core_system\security\automated_security_testing.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\security\certificate_manager.py
+  - Error: SyntaxError: invalid syntax at line 94
+- **import_error**: src\plexichat\core_system\security\certificate_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\security\input_validation.py
+  - Error: SyntaxError: invalid syntax at line 605
+- **import_error**: src\plexichat\core_system\security\input_validation.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\security\unified_audit_system.py
+  - Error: SyntaxError: invalid syntax at line 487
+- **import_error**: src\plexichat\core_system\security\unified_audit_system.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\security\unified_hsm_manager.py
+  - Error: SyntaxError: invalid syntax at line 24
+- **import_error**: src\plexichat\core_system\security\unified_hsm_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\security\unified_security_manager.py
+  - Error: SyntaxError: invalid syntax at line 16
+- **import_error**: src\plexichat\core_system\security\unified_security_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\security\unified_threat_intelligence.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 1056) at line 1039
+- **import_error**: src\plexichat\core_system\security\unified_threat_intelligence.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\updates\git_update_manager.py
+  - Error: SyntaxError: invalid syntax at line 50
+- **import_error**: src\plexichat\core_system\updates\git_update_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\updates\updater.py
+  - Error: SyntaxError: expected an indented block after 'try' statement on line 22 at line 23
+- **import_error**: src\plexichat\core_system\updates\updater.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\versioning\api_version_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\versioning\canary_deployment_manager.py
+  - Error: SyntaxError: f-string: expecting '=', or '!', or ':', or '}' at line 193
+- **import_error**: src\plexichat\core_system\versioning\canary_deployment_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\versioning\canary_health_monitor.py
+  - Error: SyntaxError: f-string: expecting '=', or '!', or ':', or '}' at line 166
+- **import_error**: src\plexichat\core_system\versioning\canary_health_monitor.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\versioning\canary_node_selector.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\versioning\changelog_manager.py
+  - Error: SyntaxError: invalid syntax at line 166
+- **import_error**: src\plexichat\core_system\versioning\changelog_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\versioning\update_system.py
+  - Error: SyntaxError: invalid syntax at line 356
+- **import_error**: src\plexichat\core_system\versioning\update_system.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\versioning\version_manager.py
+  - Error: SyntaxError: invalid syntax at line 200
+- **import_error**: src\plexichat\core_system\versioning\version_manager.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\versioning\__init__.py
+  - Error: SyntaxError: unmatched ')' at line 60
+- **import_error**: src\plexichat\core_system\versioning\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\updates\github\github_updater.py
+  - Error: SyntaxError: invalid syntax at line 315
+- **import_error**: src\plexichat\core_system\updates\github\github_updater.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\database\abstraction\phase4_integration.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\database\dao\base_dao.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core_system\database\orm\advanced_orm.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core_system\database\repository\base_repository.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 589) at line 565
+- **import_error**: src\plexichat\core_system\database\repository\base_repository.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\auth_core.py
+  - Error: SyntaxError: invalid syntax at line 86
+- **import_error**: src\plexichat\core\auth\auth_core.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\credentials_admin.py
+  - Error: SyntaxError: invalid syntax at line 24
+- **import_error**: src\plexichat\core\auth\credentials_admin.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\decorators_auth.py
+  - Error: SyntaxError: invalid syntax at line 68
+- **import_error**: src\plexichat\core\auth\decorators_auth.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\dependencies.py
+  - Error: SyntaxError: invalid syntax at line 19
+- **import_error**: src\plexichat\core\auth\dependencies.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\exceptions_auth.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\manager_admin.py
+  - Error: SyntaxError: invalid syntax at line 23
+- **import_error**: src\plexichat\core\auth\manager_admin.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\manager_audit.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\manager_auth.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\manager_biometric.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\manager_device.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\manager_mfa.py
+  - Error: SyntaxError: invalid syntax at line 128
+- **import_error**: src\plexichat\core\auth\manager_mfa.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\manager_oauth.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\manager_password.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\manager_session.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\manager_token.py
+  - Error: SyntaxError: invalid syntax at line 273
+- **import_error**: src\plexichat\core\auth\manager_token.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\manager_unified.py
+  - Error: SyntaxError: invalid syntax at line 225
+- **import_error**: src\plexichat\core\auth\manager_unified.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\middleware_auth.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\auth\validators_auth.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\auth\__init__.py
+  - Error: SyntaxError: unexpected indent at line 1
+- **import_error**: src\plexichat\core\auth\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\database\client_analytics.py
+  - Error: SyntaxError: invalid syntax at line 11
+- **import_error**: src\plexichat\core\database\client_analytics.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\database\manager_database.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\database\__init__.py
+  - Error: SyntaxError: invalid syntax at line 17
+- **import_error**: src\plexichat\core\database\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\integration\orchestrator_core.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 485) at line 484
+- **import_error**: src\plexichat\core\integration\orchestrator_core.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\integration\__init__.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\versioning\version_manager.py
+  - Error: SyntaxError: invalid syntax at line 83
+- **import_error**: src\plexichat\core\versioning\version_manager.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\database\abstraction\phase4_integration.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\database\dao\base_dao.py
+  - Error: No module named 'plexichat'
+- **import_error**: src\plexichat\core\database\orm\advanced_orm.py
+  - Error: No module named 'plexichat'
+- **syntax_error**: src\plexichat\core\database\repository\base_repository.py
+  - Error: SyntaxError: unterminated triple-quoted string literal (detected at line 542) at line 518
+- **import_error**: src\plexichat\core\database\repository\base_repository.py
+  - Error: No module named 'plexichat'
+
+## Recommendations
+- Fix syntax errors before proceeding with other tests
+- Resolve import errors to ensure module functionality
+- Convert absolute imports to relative imports where appropriate
+
+## Detailed Analysis
+### src\plexichat
+- Files analyzed: 527
+- Syntax errors: 326
+- Import errors: 527
+- Import issues: 351
+
+### docs
+- Files analyzed: 0
+- Syntax errors: 0
+- Import errors: 0
+- Import issues: 0

@@ -3,273 +3,213 @@
 [![Version](https://img.shields.io/badge/version-a.1.1--1-blue.svg)](https://github.com/linux-of-user/plexichat)
 [![License](https://img.shields.io/badge/license-CC0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
+[![Security](https://img.shields.io/badge/security-quantum--resistant-green.svg)](docs/SECURITY.md)
+[![Architecture](https://img.shields.io/badge/architecture-enterprise-blue.svg)](docs/ARCHITECTURE.md)
 
-PlexiChat is a comprehensive, government-level secure communication platform designed for organizations requiring the highest levels of security, reliability, and performance. Built with quantum-resistant encryption, advanced clustering capabilities, and seamless update management.
+PlexiChat is a comprehensive, government-level secure communication platform designed for organizations requiring the highest levels of security, reliability, and performance. Built with quantum-resistant encryption, advanced clustering capabilities, AI integration, and enterprise-grade features.
 
 ## 🚀 Quick Start
 
+### Prerequisites
+- Python 3.8 or higher
+- PostgreSQL 12+ (recommended) or SQLite for development
+- Redis 6+ for caching and real-time features
+- Node.js 16+ for web interface development (optional)
+
 ### Installation
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/linux-of-user/plexichat.git
-   cd plexichat
-   ```
-
-2. **Run PlexiChat**:
-   ```bash
-   python run.py
-   ```
-   
-   The `run.py` script automatically:
-   - Detects your operating system
-   - Sets up virtual environment
-   - Installs dependencies
-   - Configures the system
-   - Starts PlexiChat
-
-3. **Access the interfaces**:
-   - **WebUI**: http://localhost:8000
-   - **API**: http://localhost:8000/api/v1
-   - **Documentation**: http://localhost:8000/docs
-   - **CLI**: `plexichat --help`
-
-### Default Credentials
-- **Username**: `admin`
-- **Password**: `admin123`
-
-⚠️ **Change the default password immediately**: `plexichat admin password --change`
-
-## 🌟 Key Features
-
-### 🔒 Government-Level Security
-- **Quantum-resistant encryption** with post-quantum cryptography
-- **Zero-knowledge architecture** with end-to-end encryption
-- **Advanced DDoS protection** with behavioral analysis
-- **Comprehensive penetration testing** with automated vulnerability scanning
-- **Multi-factor authentication** with biometric support
-
-### 🏗️ Enterprise Architecture
-- **Multi-node clustering** with automatic load balancing
-- **Seamless zero-downtime updates** with automatic rollback
-- **Intelligent backup system** with encrypted shard distribution
-- **Service mesh architecture** with hybrid cloud support
-- **Microservices design** with containerization support
-
-### 💬 Advanced Communication
-- **Real-time messaging** with presence indicators
-- **Voice and video calling** with encrypted channels
-- **File sharing** with virus scanning and encryption
-- **Collaboration tools** with shared workspaces
-- **AI-powered moderation** with content analysis
-
-### 🔧 Developer Experience
-- **Comprehensive API** with versioning (/api, /api/v1, /api/beta)
-- **Interactive documentation** with Swagger UI
-- **Plugin architecture** with marketplace
-- **CLI tools** for administration and automation
-- **GitHub-based updates** with automatic deployment
-
-## 📋 System Requirements
-
-### Minimum Requirements
-- **OS**: Windows 10+, macOS 10.15+, Linux (Ubuntu 18.04+)
-- **Python**: 3.8 or higher
-- **RAM**: 4GB minimum, 8GB recommended
-- **Storage**: 10GB available space
-- **Network**: Internet connection for updates
-
-### Recommended for Production
-- **OS**: Linux (Ubuntu 20.04+ LTS)
-- **Python**: 3.11+
-- **RAM**: 16GB+
-- **Storage**: 100GB+ SSD
-- **Network**: Dedicated network interface
-- **CPU**: 4+ cores
-
-## 🏃‍♂️ Installation Types
-
-PlexiChat supports multiple installation types:
-
-### Minimal Installation
 ```bash
-python run.py --minimal
-```
-- Core functionality only
-- Reduced dependencies
-- Faster startup
-- Suitable for testing
+# Clone the repository
+git clone https://github.com/linux-of-user/plexichat.git
+cd plexichat
 
-### Full Installation (Default)
-```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Initialize the application
+python -m plexichat setup
+
+# Start the server
 python run.py
 ```
-- All features enabled
-- Complete dependency set
-- Production-ready
-- Recommended for deployment
 
-### Development Installation
-```bash
-python run.py --dev
-```
-- Development tools included
-- Debug mode enabled
-- Hot reload support
-- Testing frameworks
-
-## 🔧 Configuration
-
-PlexiChat uses YAML configuration files in the `config/` directory:
-
-- `plexichat.yaml` - Main configuration
-- `security.yaml` - Security settings
-- `clustering.yaml` - Cluster configuration
-- `backup.yaml` - Backup settings
-
-### Environment Variables
-```bash
-export PLEXICHAT_ENV=production
-export PLEXICHAT_SECRET_KEY=your-secret-key
-export PLEXICHAT_DB_URL=postgresql://user:pass@host/db
-```
-
-## 🌐 API Endpoints
-
-PlexiChat provides three API versions:
-
-### Stable API (`/api`)
-- Production-ready endpoints
-- Backward compatibility guaranteed
-- Rate limiting: 1000 req/hour
-
-### Current API (`/api/v1`)
-- Latest features
-- Active development
-- Rate limiting: 5000 req/hour
-
-### Beta API (`/api/beta`)
-- Experimental features
-- May have breaking changes
-- Rate limiting: 10000 req/hour
-
-### Key Endpoints
-```bash
-# Authentication
-POST /api/v1/auth/login
-GET  /api/v1/auth/me
-
-# Messages
-GET  /api/v1/messages
-POST /api/v1/messages
-GET  /api/v1/messages/search
-
-# Files
-POST /api/v1/files/upload
-GET  /api/v1/files/{file_id}
-
-# Updates
-GET  /api/v1/updates/check
-POST /api/v1/updates/install
-```
-
-## 🛠️ CLI Commands
+### Docker Installation
 
 ```bash
-# Server management
-plexichat server start
-plexichat server stop
-plexichat server status
+# Using Docker Compose (recommended)
+docker-compose up -d
 
-# User management
-plexichat users list
-plexichat users create username
-
-# Admin management
-plexichat admin password --change
-plexichat admin password --reset username
-
-# System testing
-plexichat test run
-plexichat test health
-plexichat test security
-
-# Updates
-plexichat version update
-plexichat version history
-
-# Backup and recovery
-plexichat backup create
-plexichat backup restore backup-id
-
-# Documentation
-plexichat docs list
-plexichat docs view api_reference
-```
-
-## 🔄 Updates and Versioning
-
-PlexiChat uses semantic versioning with a special format: `letter.major.minor-build`
-
-- **Alpha**: `a.1.1-1` (Development)
-- **Beta**: `b.1.1-1` (Pre-release)
-- **Release**: `r.1.1-1` (Stable)
-
-### Automatic Updates
-```bash
-# Enable auto-updates
-plexichat version update --auto --channel stable
-
-# Check for updates
-plexichat version update --check-only
-
-# Manual update
-plexichat version update
-```
-
-## 🏢 Deployment
-
-### Docker Deployment
-```bash
+# Or build from source
 docker build -t plexichat .
 docker run -p 8000:8000 plexichat
 ```
 
-### Production Deployment
-```bash
-# Using gunicorn
-gunicorn src.plexichat.app.main:app -w 4 -k uvicorn.workers.UvicornWorker
+### First Run
 
-# Using systemd
-sudo systemctl enable plexichat
-sudo systemctl start plexichat
+1. **Access the web interface**: Open http://localhost:8000
+2. **Default admin credentials**:
+   - Username: `admin`
+   - Password: `admin123` (change immediately)
+3. **Complete setup wizard**: Follow the guided setup process
+
+## 🏗️ Architecture
+
+PlexiChat follows a modern, modular enterprise architecture:
+
+```
+PlexiChat/
+├── Core System/           # Fundamental infrastructure
+│   ├── Authentication    # Unified auth with MFA, OAuth, biometrics
+│   ├── Security          # Quantum encryption, threat detection
+│   ├── Database          # Multi-database support with encryption
+│   ├── Configuration     # Dynamic config management
+│   └── Logging           # Structured logging and monitoring
+├── Features/             # Business logic modules
+│   ├── AI Integration    # Multi-provider AI with local models
+│   ├── Backup System     # Distributed quantum backup
+│   ├── Clustering        # Multi-node clustering and load balancing
+│   └── Security          # Advanced security features
+├── Interfaces/           # User-facing interfaces
+│   ├── API              # RESTful API with versioning
+│   ├── Web              # Modern responsive web interface
+│   └── CLI              # Command-line administration
+└── Infrastructure/       # Supporting services
+    ├── Services         # Microservices architecture
+    ├── Modules          # Plugin system
+    └── Performance      # Optimization and caching
 ```
 
-### Clustering
-```bash
-# Join cluster
-plexichat cluster join --node-id node-2 --host 192.168.1.100
+## 🔐 Security Features
 
-# Check cluster status
-plexichat cluster status
+- **Quantum-Resistant Encryption**: Future-proof cryptographic algorithms
+- **Zero-Knowledge Architecture**: End-to-end encryption for all communications
+- **Multi-Factor Authentication**: Support for TOTP, hardware keys, biometrics
+- **Behavioral Analysis**: AI-powered threat detection and anomaly detection
+- **Distributed Key Management**: Secure key distribution across multiple vaults
+- **Real-time Monitoring**: Continuous security monitoring and alerting
+- **Compliance Ready**: GDPR, HIPAA, SOX, ISO 27001 compliance support
+
+## 🤖 AI Integration
+
+- **Multi-Provider Support**: OpenAI, Anthropic, Google, local models
+- **Intelligent Search**: Semantic search across messages and files
+- **Content Moderation**: AI-powered content filtering and safety
+- **Smart Suggestions**: Context-aware message and response suggestions
+- **Document Analysis**: Automated document processing and insights
+- **Translation**: Real-time multi-language translation
+
+## 📊 Enterprise Features
+
+- **Multi-Node Clustering**: Horizontal scaling with automatic load balancing
+- **Distributed Backup**: Quantum-encrypted backup with intelligent sharding
+- **Plugin Marketplace**: Extensible functionality with secure plugin system
+- **Advanced Analytics**: Comprehensive metrics and reporting
+- **Audit Logging**: Complete audit trail for compliance
+- **Role-Based Access**: Granular permissions and access control
+
+## 🛠️ Development
+
+### Project Structure
+
+```bash
+src/plexichat/
+├── __init__.py           # Main package initialization
+├── main.py              # FastAPI application entry point
+├── cli/                 # Command-line interface
+├── core/                # Legacy core components
+├── core_system/         # New unified core system
+├── features/            # Feature modules
+├── infrastructure/      # Infrastructure services
+└── interfaces/          # User interfaces (API, Web, CLI)
 ```
+
+### Running in Development Mode
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run with auto-reload
+python run.py --dev
+
+# Run tests
+pytest
+
+# Run with specific configuration
+python run.py --config config/development.yaml
+```
+
+### API Documentation
+
+- **Interactive API Docs**: http://localhost:8000/docs
+- **ReDoc Documentation**: http://localhost:8000/redoc
+- **API Reference**: [docs/API.md](docs/API.md)
 
 ## 📚 Documentation
 
-- [Installation Guide](docs/installation.md)
-- [User Manual](docs/user-guide.md)
-- [API Reference](docs/api_reference.md)
-- [Admin Guide](docs/admin_deployment_guide.md)
-- [Clustering Guide](docs/clustering-system.md)
-- [Backup System](docs/backup-system.md)
+- [**Getting Started Guide**](docs/GETTING_STARTED.md) - Complete setup and configuration
+- [**Architecture Overview**](docs/ARCHITECTURE.md) - System design and components
+- [**Security Guide**](docs/SECURITY.md) - Security features and best practices
+- [**API Reference**](docs/API.md) - Complete API documentation
+- [**Deployment Guide**](docs/DEPLOYMENT.md) - Production deployment instructions
+- [**Plugin Development**](docs/PLUGINS.md) - Creating custom plugins
+- [**Troubleshooting**](docs/TROUBLESHOOTING.md) - Common issues and solutions
+
+## 🚀 Deployment
+
+### Production Deployment
+
+```bash
+# Using Docker Compose (recommended)
+docker-compose -f docker-compose.prod.yml up -d
+
+# Manual deployment
+python -m plexichat deploy --environment production
+
+# Kubernetes deployment
+kubectl apply -f k8s/
+```
+
+### Environment Variables
+
+```bash
+# Core configuration
+PLEXICHAT_ENV=production
+PLEXICHAT_SECRET_KEY=your-secret-key
+PLEXICHAT_DATABASE_URL=postgresql://user:pass@host:5432/plexichat
+
+# Security configuration
+PLEXICHAT_ENCRYPTION_KEY=your-encryption-key
+PLEXICHAT_JWT_SECRET=your-jwt-secret
+
+# AI configuration
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+```
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/your-username/plexichat.git
+cd plexichat
+
+# Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest
+
+# Submit a pull request
+```
 
 ## 📄 License
 
@@ -280,34 +220,21 @@ This project is licensed under the CC0 License - see the [LICENSE](LICENSE) file
 - **Documentation**: [docs/](docs/)
 - **Issues**: [GitHub Issues](https://github.com/linux-of-user/plexichat/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/linux-of-user/plexichat/discussions)
+- **Security Issues**: security@plexichat.com
 
-## 🔒 Security
+## 🏆 Features Highlights
 
-For security vulnerabilities, please email security@plexichat.local instead of using the issue tracker.
-
-## 🏆 Features Roadmap
-
-### Phase 1 (Current - a.1.x)
-- ✅ Core messaging and file sharing
-- ✅ Government-level security
-- ✅ Multi-node clustering
-- ✅ Seamless updates
-- ✅ Comprehensive API
-
-### Phase 2 (b.1.x - b.2.x)
-- 🔄 Discord/Telegram feature parity
-- 🔄 Advanced AI integration
-- 🔄 Mobile applications
-- 🔄 Advanced analytics
-
-### Phase 3 (r.2.x+)
-- 📋 Quantum security implementation
-- 📋 Blockchain audit trails
-- 📋 Decentralized identity
-- 📋 Hardware security modules
+- ✅ **Government-Level Security** - Quantum-resistant encryption
+- ✅ **Enterprise Architecture** - Microservices with clustering
+- ✅ **AI Integration** - Multi-provider AI support
+- ✅ **Real-time Communication** - WebSocket-based messaging
+- ✅ **Plugin System** - Extensible functionality
+- ✅ **Multi-Database Support** - PostgreSQL, MySQL, SQLite
+- ✅ **Comprehensive API** - RESTful API with versioning
+- ✅ **Modern Web Interface** - Responsive and accessible
+- ✅ **Command-Line Tools** - Full CLI administration
+- ✅ **Distributed Backup** - Quantum-encrypted backups
 
 ---
 
-**PlexiChat** - Secure. Scalable. Seamless.
-
-*Built with ❤️ for organizations that demand the highest levels of security and reliability.*
+**PlexiChat** - Secure. Scalable. Intelligent.

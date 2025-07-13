@@ -1,6 +1,7 @@
+from typing import Dict, List, Optional, Any
+
 import logging
 
-from fastapi import APIRouter
 
 from ...ai import ai_router, moderation_router, monitoring_router, provider_router
 from ...backups.manager import backup_manager
@@ -8,6 +9,9 @@ from ...clustering import cluster_manager
 from ...plugins.router import router as plugins_router
 from ...security.auth import auth_manager
 from ...users.router import router as users_router
+
+
+from fastapi import APIRouter
 
 """
 PlexiChat API v1 Router
@@ -38,16 +42,20 @@ try:
     logger.info(" Auth manager loaded")
 except ImportError as e:
     logger.warning(f" Auth manager not available: {e}")
+
     class MockAuthManager:
         initialized = False
+
     auth_manager = MockAuthManager()
 
 try:
     logger.info(" Backup manager loaded")
 except ImportError as e:
     logger.warning(f" Backup manager not available: {e}")
+
     class MockBackupManager:
         initialized = False
+
     backup_manager = MockBackupManager()
 
 try:
@@ -98,14 +106,18 @@ if ai_router:
 
 if moderation_router:
     try:
-        router.include_router(moderation_router, prefix="/moderation", tags=["moderation"])
+        router.include_router(
+            moderation_router, prefix="/moderation", tags=["moderation"]
+        )
         logger.info(" Moderation router included")
     except Exception as e:
         logger.warning(f" Failed to include moderation router: {e}")
 
 if monitoring_router:
     try:
-        router.include_router(monitoring_router, prefix="/monitoring", tags=["monitoring"])
+        router.include_router(
+            monitoring_router, prefix="/monitoring", tags=["monitoring"]
+        )
         logger.info(" Monitoring router included")
     except Exception as e:
         logger.warning(f" Failed to include monitoring router: {e}")
@@ -117,6 +129,7 @@ if provider_router:
     except Exception as e:
         logger.warning(f" Failed to include provider router: {e}")
 
+
 # Health check endpoint
 @router.get("/health")
 async def health_check():
@@ -125,13 +138,26 @@ async def health_check():
         "status": "healthy",
         "version": "a.1.0-1",
         "services": {
-            "auth": "initialized" if auth_manager and hasattr(auth_manager, 'initialized') and auth_manager.initialized else "not_initialized",
-            "backup": "initialized" if backup_manager and hasattr(backup_manager, 'initialized') and backup_manager.initialized else "not_initialized",
+            "auth": (
+                "initialized"
+                if auth_manager
+                and hasattr(auth_manager, "initialized")
+                and auth_manager.initialized
+                else "not_initialized"
+            ),
+            "backup": (
+                "initialized"
+                if backup_manager
+                and hasattr(backup_manager, "initialized")
+                and backup_manager.initialized
+                else "not_initialized"
+            ),
             "clustering": "available" if cluster_manager else "not_available",
             "ai": "available" if ai_router else "not_available",
-            "plugins": "available" if plugins_router else "not_available"
-        }
+            "plugins": "available" if plugins_router else "not_available",
+        },
     }
+
 
 # System info endpoint
 @router.get("/info")
@@ -147,6 +173,6 @@ async def system_info():
             "backups": backup_manager is not None,
             "clustering": cluster_manager is not None,
             "ai": ai_router is not None,
-            "plugins": plugins_router is not None
-        }
+            "plugins": plugins_router is not None,
+        },
     }

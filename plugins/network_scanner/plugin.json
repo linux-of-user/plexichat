@@ -1,0 +1,88 @@
+{
+  "name": "network_scanner",
+  "version": "1.0.0",
+  "description": "Network security scanner with port scanning, vulnerability detection, and security reporting",
+  "author": "PlexiChat Team",
+  "type": "security",
+  "enabled": true,
+  "priority": 3,
+  "dependencies": [],
+  "permissions": [
+    "network_access",
+    "webui_access",
+    "gui_access",
+    "file_system_access"
+  ],
+  "capabilities": [
+    "port_scanning",
+    "vulnerability_detection",
+    "network_discovery",
+    "ssl_analysis",
+    "dns_enumeration",
+    "service_detection",
+    "security_reporting"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "scan_timeout": {
+      "type": "integer",
+      "default": 5,
+      "description": "Timeout for individual port scans (seconds)"
+    },
+    "max_threads": {
+      "type": "integer",
+      "default": 100,
+      "description": "Maximum number of concurrent scan threads"
+    },
+    "common_ports": {
+      "type": "array",
+      "default": [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 3389, 5432, 3306],
+      "description": "List of commonly scanned ports"
+    },
+    "enable_service_detection": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable service version detection"
+    },
+    "enable_vulnerability_scan": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable vulnerability scanning"
+    },
+    "scan_rate_limit": {
+      "type": "integer",
+      "default": 1000,
+      "description": "Maximum packets per second"
+    },
+    "report_format": {
+      "type": "string",
+      "default": "json",
+      "description": "Default report format (json, xml, html)"
+    }
+  },
+  "webui": {
+    "enabled": true,
+    "routes": [
+      {
+        "path": "/network-scanner",
+        "component": "NetworkScannerPanel",
+        "title": "Network Scanner",
+        "icon": "shield-alt"
+      }
+    ]
+  },
+  "self_tests": [
+    "test_port_scanning",
+    "test_service_detection",
+    "test_vulnerability_scan",
+    "test_network_discovery",
+    "test_reporting"
+  ],
+  "requirements": [
+    "python-nmap>=0.7.1",
+    "scapy>=2.4.5",
+    "requests>=2.25.0",
+    "dnspython>=2.1.0",
+    "cryptography>=3.4.0"
+  ]
+}

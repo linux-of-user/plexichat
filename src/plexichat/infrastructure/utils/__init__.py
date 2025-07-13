@@ -1,3 +1,5 @@
+import logging
+
 from .common_utils import *
 from .enhanced_logging import *
 from .enhanced_logging import setup_logging
@@ -17,12 +19,6 @@ PlexiChat Infrastructure Utilities
 Consolidated utility functions from common and utils modules.
 This module provides centralized access to all utility functions used throughout the application.
 """
-
-# Import all utility modules
-# Import monitoring utilities
-try:
-except ImportError:
-    pass
 
 # Re-export for backward compatibility
 __all__ = [

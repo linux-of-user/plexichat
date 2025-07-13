@@ -1,12 +1,18 @@
 import logging
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, List
+
+from ....core_system.auth.auth_manager import AuthManager
+from ....features.security.api_security_decorators import (
+    enhanced_security, SecurityLevel, require_permission,
+    require_role, audit_log, ValidationLevel
+)
+from ....features.security.enhanced_input_validation import get_input_validator
+from ....features.security.enhanced_auth_system import get_auth_system
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, EmailStr, Field
-
-from ....core_system.auth.auth_manager import AuthManager
+from pydantic import BaseModel, EmailStr, Field, validator
 
 """
 PlexiChat Authentication API Endpoints
@@ -33,21 +39,79 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 # Security scheme
 security = HTTPBearer()
 
-# API Models
+# API Models with Enhanced Validation
 class LoginRequest(BaseModel):
-    """Login request model."""
-    username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=1)
+    """Enhanced login request model with security validation."""
+    username: str = Field(..., min_length=3, max_length=50, regex="^[a-zA-Z0-9_.-]+$")
+    password: str = Field(..., min_length=1, max_length=128)
     remember_me: bool = False
-    mfa_code: Optional[str] = Field(None, min_length=6, max_length=6)
+    mfa_code: Optional[str] = Field(None, min_length=6, max_length=8, regex="^[0-9]+$")
+    device_fingerprint: Optional[str] = Field(None, max_length=64)
+
+    @validator('username')
+    def validate_username(cls, v):
+        """Validate username for security."""
+        validator = get_input_validator()
+        result = validator.validate_input(v, ValidationLevel.STRICT)
+        if not result.is_valid:
+            raise ValueError(f"Invalid username: {', '.join(result.warnings)}")
+        return result.sanitized_value
+
+    @validator('password')
+    def validate_password(cls, v):
+        """Validate password for security."""
+        if len(v) > 128:  # Prevent DoS
+            raise ValueError("Password too long")
+        return v
 
 class RegisterRequest(BaseModel):
-    """Registration request model."""
-    username: str = Field(..., min_length=3, max_length=50)
+    """Enhanced registration request model with security validation."""
+    username: str = Field(..., min_length=3, max_length=50, regex="^[a-zA-Z0-9_.-]+$")
     email: EmailStr
-    password: str = Field(..., min_length=8)
-    confirm_password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=12, max_length=128)
+    confirm_password: str = Field(..., min_length=12, max_length=128)
     display_name: Optional[str] = Field(None, max_length=100)
+    terms_accepted: bool = Field(..., description="Must accept terms and conditions")
+
+    @validator('username')
+    def validate_username(cls, v):
+        """Validate username for security."""
+        validator = get_input_validator()
+        result = validator.validate_input(v, ValidationLevel.STRICT)
+        if not result.is_valid:
+            raise ValueError(f"Invalid username: {', '.join(result.warnings)}")
+
+        # Check for reserved usernames
+        reserved = ['admin', 'root', 'system', 'api', 'www', 'mail', 'ftp']
+        if v.lower() in reserved:
+            raise ValueError("Username is reserved")
+
+        return result.sanitized_value
+
+    @validator('display_name')
+    def validate_display_name(cls, v):
+        """Validate display name for security."""
+        if v is None:
+            return v
+        validator = get_input_validator()
+        result = validator.validate_input(v, ValidationLevel.STANDARD)
+        if not result.is_valid:
+            raise ValueError(f"Invalid display name: {', '.join(result.warnings)}")
+        return result.sanitized_value
+
+    @validator('confirm_password')
+    def passwords_match(cls, v, values):
+        """Ensure passwords match."""
+        if 'password' in values and v != values['password']:
+            raise ValueError('Passwords do not match')
+        return v
+
+    @validator('terms_accepted')
+    def terms_must_be_accepted(cls, v):
+        """Ensure terms are accepted."""
+        if not v:
+            raise ValueError('Terms and conditions must be accepted')
+        return v
 
 class PasswordResetRequest(BaseModel):
     """Password reset request model."""
@@ -98,32 +162,47 @@ class UserInfo(BaseModel):
 
 # Authentication Endpoints
 @router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest, response: Response):
-    """Authenticate user and return tokens."""
+@enhanced_security(
+    level=SecurityLevel.PUBLIC,
+    rate_limit={"requests": 5, "window": 300},  # 5 attempts per 5 minutes
+    require_csrf=False,  # API endpoint
+    validate_input=True,
+    validation_level=ValidationLevel.STRICT,
+    log_requests=True,
+    max_request_size=1024  # 1KB max for login
+)
+@audit_log("user_login", "authentication")
+async def enhanced_login(http_request: Request, request: LoginRequest, response: Response):
+    """Enhanced user authentication with comprehensive security."""
     try:
-        auth_manager = AuthManager()
-        
+        # Get client information for security logging
+        client_ip = http_request.client.host
+        user_agent = http_request.headers.get("user-agent", "")
+
+        # Get enhanced auth system
+        auth_system = get_auth_system()
+
         # Validate credentials
         auth_result = await auth_manager.authenticate(
             username=request.username,
             password=request.password,
             mfa_code=request.mfa_code
         )
-        
+
         if not auth_result.get("success", False):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=auth_result.get("message", "Invalid credentials")
             )
-        
+
         user = auth_result["user"]
-        
+
         # Generate tokens
         tokens = await auth_manager.generate_tokens(
             user_id=user["id"],
             remember_me=request.remember_me
         )
-        
+
         # Set secure cookie for refresh token
         response.set_cookie(
             key="refresh_token",
@@ -133,10 +212,10 @@ async def login(request: LoginRequest, response: Response):
             samesite="strict",
             max_age=tokens.get("refresh_expires_in", 604800)  # 7 days default
         )
-        
+
         # Update last login
         await auth_manager.update_last_login(user["id"])
-        
+
         return TokenResponse(
             access_token=tokens["access_token"],
             refresh_token=tokens["refresh_token"],
@@ -145,7 +224,7 @@ async def login(request: LoginRequest, response: Response):
             username=user["username"],
             role=user["role"]
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -165,9 +244,9 @@ async def register(request: RegisterRequest):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Passwords do not match"
             )
-        
+
         auth_manager = AuthManager()
-        
+
         # Register user
         result = await auth_manager.register_user(
             username=request.username,
@@ -175,18 +254,18 @@ async def register(request: RegisterRequest):
             password=request.password,
             display_name=request.display_name
         )
-        
+
         if not result.get("success", False):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=result.get("message", "Registration failed")
             )
-        
+
         return {
             "message": "Registration successful",
             "user_id": result["user_id"]
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -204,10 +283,10 @@ async def logout(
     """Logout user and invalidate tokens."""
     try:
         auth_manager = AuthManager()
-        
+
         # Invalidate access token
         await auth_manager.invalidate_token(credentials.credentials)
-        
+
         # Clear refresh token cookie
         response.delete_cookie(
             key="refresh_token",
@@ -215,9 +294,9 @@ async def logout(
             secure=True,
             samesite="strict"
         )
-        
+
         return {"message": "Logout successful"}
-        
+
     except Exception as e:
         logger.error(f"Logout failed: {e}")
         raise HTTPException(
@@ -236,21 +315,21 @@ async def refresh_token(request: Request):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Refresh token not found"
             )
-        
+
         auth_manager = AuthManager()
-        
+
         # Refresh tokens
         result = await auth_manager.refresh_tokens(refresh_token)
-        
+
         if not result.get("success", False):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid refresh token"
             )
-        
+
         tokens = result["tokens"]
         user = result["user"]
-        
+
         return TokenResponse(
             access_token=tokens["access_token"],
             refresh_token=tokens["refresh_token"],
@@ -259,7 +338,7 @@ async def refresh_token(request: Request):
             username=user["username"],
             role=user["role"]
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -270,22 +349,22 @@ async def refresh_token(request: Request):
         )
 
 @router.get("/me", response_model=UserInfo)
-async def from plexichat.infrastructure.utils.auth import get_current_user(
+async def get_current_user from plexichat.infrastructure.utils.auth import get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     """Get current user information."""
     try:
         auth_manager = AuthManager()
-        
+
         # Validate token and get user
         user = await auth_manager.get_user_from_token(credentials.credentials)
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token"
             )
-        
+
         return UserInfo(
             id=user["id"],
             username=user["username"],
@@ -297,7 +376,7 @@ async def from plexichat.infrastructure.utils.auth import get_current_user(
             created_at=user["created_at"],
             last_login=user.get("last_login")
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -313,13 +392,13 @@ async def request_password_reset(request: PasswordResetRequest):
     """Request password reset."""
     try:
         auth_manager = AuthManager()
-        
+
         # Send password reset email
         await auth_manager.request_password_reset(request.email)
-        
+
         # Always return success to prevent email enumeration
         return {"message": "If the email exists, a password reset link has been sent"}
-        
+
     except Exception as e:
         logger.error(f"Password reset request failed: {e}")
         # Still return success to prevent information disclosure
@@ -335,23 +414,23 @@ async def confirm_password_reset(request: PasswordResetConfirm):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Passwords do not match"
             )
-        
+
         auth_manager = AuthManager()
-        
+
         # Reset password
         result = await auth_manager.reset_password(
             token=request.token,
             new_password=request.new_password
         )
-        
+
         if not result.get("success", False):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=result.get("message", "Invalid or expired token")
             )
-        
+
         return {"message": "Password reset successful"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -374,9 +453,9 @@ async def change_password(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Passwords do not match"
             )
-        
+
         auth_manager = AuthManager()
-        
+
         # Get current user
         user = await auth_manager.get_user_from_token(credentials.credentials)
         if not user:
@@ -384,22 +463,22 @@ async def change_password(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token"
             )
-        
+
         # Change password
         result = await auth_manager.change_password(
             user_id=user["id"],
             current_password=request.current_password,
             new_password=request.new_password
         )
-        
+
         if not result.get("success", False):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=result.get("message", "Password change failed")
             )
-        
+
         return {"message": "Password changed successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:

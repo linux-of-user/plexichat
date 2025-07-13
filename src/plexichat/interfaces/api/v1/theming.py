@@ -1,4 +1,7 @@
+import logging
+
 from typing import Any, Dict, Optional
+
 
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
@@ -10,6 +13,7 @@ from plexichat.app.services.theming_service import theming_service
 Theming API endpoints.
 Provides comprehensive theming capabilities for all interfaces.
 """
+
 
 # Pydantic models for API
 class ThemeCreateRequest(BaseModel):
@@ -41,14 +45,14 @@ async def get_all_themes():
     """Get list of all available themes."""
     try:
         themes = theming_service.get_theme_list()
-        
+
         return {
             "themes": themes,
             "total": len(themes),
             "built_in_count": len([t for t in themes if not t["is_custom"]]),
-            "custom_count": len([t for t in themes if t["is_custom"]])
+            "custom_count": len([t for t in themes if t["is_custom"]]),
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get themes: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -59,10 +63,10 @@ async def get_theme(theme_id: str):
     """Get a specific theme by ID."""
     try:
         theme = theming_service.get_theme(theme_id)
-        
+
         if not theme:
             raise HTTPException(status_code=404, detail="Theme not found")
-        
+
         return {
             "theme": {
                 "id": theme.id,
@@ -73,10 +77,10 @@ async def get_theme(theme_id: str):
                 "effects": theme.effects.__dict__,
                 "is_dark": theme.is_dark,
                 "created_at": theme.created_at,
-                "updated_at": theme.updated_at
+                "updated_at": theme.updated_at,
             }
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -89,16 +93,16 @@ async def get_theme_css(theme_id: str):
     """Get CSS for a specific theme."""
     try:
         css = theming_service.generate_css(theme_id)
-        
+
         return Response(
             content=css,
             media_type="text/css",
             headers={
                 "Cache-Control": "public, max-age=3600",
-                "Content-Disposition": f"inline; filename={theme_id}.css"
-            }
+                "Content-Disposition": f"inline; filename={theme_id}.css",
+            },
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to generate CSS for theme {theme_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -114,15 +118,15 @@ async def create_custom_theme(request: ThemeCreateRequest):
             base_theme_id=request.base_theme_id,
             colors=request.colors,
             layout=request.layout,
-            effects=request.effects
+            effects=request.effects,
         )
-        
+
         return {
             "success": True,
             "theme_id": theme.id,
-            "message": f"Custom theme '{request.name}' created successfully"
+            "message": f"Custom theme '{request.name}' created successfully",
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to create custom theme: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -136,10 +140,10 @@ async def update_custom_theme(theme_id: str, request: ThemeUpdateRequest):
         theme = theming_service.get_theme(theme_id)
         if not theme:
             raise HTTPException(status_code=404, detail="Theme not found")
-        
+
         if theme_id not in theming_service.custom_themes:
             raise HTTPException(status_code=400, detail="Cannot modify built-in themes")
-        
+
         # Prepare updates
         updates = {}
         if request.name is not None:
@@ -161,17 +165,17 @@ async def update_custom_theme(theme_id: str, request: ThemeUpdateRequest):
             for key, value in request.effects.items():
                 if hasattr(theme.effects, key):
                     setattr(theme.effects, key, value)
-        
+
         success = theming_service.update_custom_theme(theme_id, updates)
-        
+
         if success:
             return {
                 "success": True,
-                "message": f"Theme '{theme_id}' updated successfully"
+                "message": f"Theme '{theme_id}' updated successfully",
             }
         else:
             raise HTTPException(status_code=400, detail="Failed to update theme")
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -187,20 +191,20 @@ async def delete_custom_theme(theme_id: str):
         theme = theming_service.get_theme(theme_id)
         if not theme:
             raise HTTPException(status_code=404, detail="Theme not found")
-        
+
         if theme_id not in theming_service.custom_themes:
             raise HTTPException(status_code=400, detail="Cannot delete built-in themes")
-        
+
         success = theming_service.delete_custom_theme(theme_id)
-        
+
         if success:
             return {
                 "success": True,
-                "message": f"Theme '{theme_id}' deleted successfully"
+                "message": f"Theme '{theme_id}' deleted successfully",
             }
         else:
             raise HTTPException(status_code=400, detail="Failed to delete theme")
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -213,15 +217,17 @@ async def export_theme(theme_id: str):
     """Export a theme as JSON."""
     try:
         theme_data = theming_service.export_theme(theme_id)
-        
+
         if not theme_data:
             raise HTTPException(status_code=404, detail="Theme not found")
-        
+
         return {
             "theme_data": theme_data,
-            "export_timestamp": theming_service.user_preferences.get("export_timestamp")
+            "export_timestamp": theming_service.user_preferences.get(
+                "export_timestamp"
+            ),
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -234,16 +240,16 @@ async def import_theme(theme_data: Dict[str, Any]):
     """Import a theme from JSON data."""
     try:
         theme = theming_service.import_theme(theme_data)
-        
+
         if not theme:
             raise HTTPException(status_code=400, detail="Invalid theme data")
-        
+
         return {
             "success": True,
             "theme_id": theme.id,
-            "message": f"Theme '{theme.name}' imported successfully"
+            "message": f"Theme '{theme.name}' imported successfully",
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -257,14 +263,14 @@ async def get_user_theme(user_id: int):
     try:
         theme_id = theming_service.get_user_theme(user_id)
         theme = theming_service.get_theme(theme_id)
-        
+
         return {
             "user_id": user_id,
             "theme_id": theme_id,
             "theme_name": theme.name if theme else "Unknown",
-            "is_dark": theme.is_dark if theme else False
+            "is_dark": theme.is_dark if theme else False,
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get user theme for {user_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -275,17 +281,17 @@ async def set_user_theme(user_id: int, request: UserThemeRequest):
     """Set theme for a user."""
     try:
         success = theming_service.set_user_theme(user_id, request.theme_id)
-        
+
         if success:
             return {
                 "success": True,
                 "user_id": user_id,
                 "theme_id": request.theme_id,
-                "message": f"Theme set to '{request.theme_id}' for user {user_id}"
+                "message": f"Theme set to '{request.theme_id}' for user {user_id}",
             }
         else:
             raise HTTPException(status_code=400, detail="Invalid theme ID")
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -300,9 +306,9 @@ async def get_theming_preferences():
         return {
             "preferences": theming_service.user_preferences,
             "available_themes": len(theming_service.get_all_themes()),
-            "custom_themes": len(theming_service.custom_themes)
+            "custom_themes": len(theming_service.custom_themes),
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get theming preferences: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -314,18 +320,15 @@ async def update_theming_preferences(preferences: Dict[str, Any]):
     try:
         # Update allowed preferences
         allowed_keys = ["default_theme", "auto_dark_mode", "dark_mode_schedule"]
-        
+
         for key, value in preferences.items():
             if key in allowed_keys:
                 theming_service.user_preferences[key] = value
-        
+
         theming_service._save_user_preferences()
-        
-        return {
-            "success": True,
-            "message": "Theming preferences updated successfully"
-        }
-        
+
+        return {"success": True, "message": "Theming preferences updated successfully"}
+
     except Exception as e:
         logger.error(f"Failed to update theming preferences: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -342,7 +345,7 @@ async def get_theme_preview():
                 "cards": ["default", "elevated", "outlined"],
                 "forms": ["input", "textarea", "select"],
                 "navigation": ["sidebar", "header", "breadcrumb"],
-                "feedback": ["alert", "toast", "modal"]
+                "feedback": ["alert", "toast", "modal"],
             },
             "sample_content": {
                 "title": "Sample Dashboard",
@@ -350,11 +353,11 @@ async def get_theme_preview():
                 "stats": [
                     {"label": "Users", "value": "1,234"},
                     {"label": "Messages", "value": "5,678"},
-                    {"label": "Files", "value": "910"}
-                ]
-            }
+                    {"label": "Files", "value": "910"},
+                ],
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get theme preview: {e}")
         raise HTTPException(status_code=500, detail=str(e))

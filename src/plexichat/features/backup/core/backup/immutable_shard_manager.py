@@ -1,3 +1,5 @@
+import logging
+
 import asyncio
 import hashlib
 import json
@@ -12,9 +14,10 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
 from ...core.config import get_config
-from ...core.logging import get_logger
+from plexichat.core.logging import get_logger
 from ..security.quantum_encryption import QuantumEncryptionEngine
 from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
+
 
 """
 PlexiChat Immutable Shard Management System
@@ -28,6 +31,7 @@ logger = get_logger(__name__)
 
 class ShardState(Enum):
     """Shard lifecycle states."""
+
     CREATED = "created"
     VERIFIED = "verified"
     SEALED = "sealed"
@@ -39,15 +43,17 @@ class ShardState(Enum):
 
 class IntegrityLevel(Enum):
     """Integrity verification levels."""
-    BASIC = "basic"          # Simple hash verification
-    ENHANCED = "enhanced"    # Merkle tree verification
+
+    BASIC = "basic"  # Simple hash verification
+    ENHANCED = "enhanced"  # Merkle tree verification
     CRYPTOGRAPHIC = "cryptographic"  # Digital signatures
-    BLOCKCHAIN = "blockchain"        # Blockchain-inspired audit trail
+    BLOCKCHAIN = "blockchain"  # Blockchain-inspired audit trail
 
 
 @dataclass
 class ShardMetadata:
     """Metadata for immutable shards."""
+
     shard_id: str
     content_hash: str
     size: int
@@ -59,16 +65,16 @@ class ShardMetadata:
     compression_algorithm: str = "none"
     integrity_level: IntegrityLevel = IntegrityLevel.ENHANCED
     state: ShardState = ShardState.CREATED
-    
+
     # Blockchain-inspired fields
     previous_hash: str = ""
     merkle_root: str = ""
     nonce: int = 0
     difficulty: int = 0
-    
+
     # Audit trail
     audit_trail: List[Dict[str, Any]] = field(default_factory=list)
-    
+
     # Replication info
     replica_nodes: Set[str] = field(default_factory=set)
     min_replicas: int = 3
@@ -78,18 +84,21 @@ class ShardMetadata:
 @dataclass
 class ImmutableShard:
     """Immutable shard with cryptographic integrity."""
+
     metadata: ShardMetadata
     data: bytes
     signature: bytes
     merkle_proof: List[str]
     integrity_hash: str
     tamper_seal: bytes
-    
+
     # Blockchain-inspired proof of work
     proof_of_work: Optional[Dict[str, Any]] = None
-    
+
     # Verification data
-    verification_timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    verification_timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
     last_verified: Optional[datetime] = None
     verification_count: int = 0
 
@@ -97,6 +106,7 @@ class ImmutableShard:
 @dataclass
 class AuditLogEntry:
     """Audit log entry for shard operations."""
+
     entry_id: str
     shard_id: str
     operation: str
@@ -111,7 +121,7 @@ class AuditLogEntry:
 class ImmutableShardManager:
     """
     Immutable shard management system with cryptographic integrity.
-    
+
     Features:
     - Immutable shard storage with tamper detection
     - Cryptographic integrity verification
@@ -122,57 +132,59 @@ class ImmutableShardManager:
     - Automatic replication management
     - Tamper-evident sealing
     """
-    
+
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
-        
+
         # Core components
         self.quantum_engine = QuantumEncryptionEngine()
         self.zero_knowledge_protocol = ZeroKnowledgeBackupProtocol()
-        
+
         # Shard storage
         self.shards: Dict[str, ImmutableShard] = {}
         self.shard_index: Dict[str, ShardMetadata] = {}
-        
+
         # Blockchain-inspired chain
         self.shard_chain: List[str] = []  # Ordered list of shard IDs
         self.chain_head: Optional[str] = None
-        
+
         # Audit system
         self.audit_log: List[AuditLogEntry] = []
         self.audit_index: Dict[str, List[str]] = {}  # shard_id -> entry_ids
-        
+
         # Integrity verification
-        self.integrity_level = IntegrityLevel(self.config.get("integrity_level", "enhanced"))
+        self.integrity_level = IntegrityLevel(
+            self.config.get("integrity_level", "enhanced")
+        )
         self.verification_interval = self.config.get("verification_interval_hours", 24)
         self.auto_repair = self.config.get("auto_repair_enabled", True)
-        
+
         # Replication settings
         self.min_replicas = self.config.get("min_replicas", 3)
         self.max_replicas = self.config.get("max_replicas", 7)
         self.replication_factor = self.config.get("replication_factor", 0.8)
-        
+
         # Proof of work settings
         self.enable_proof_of_work = self.config.get("enable_proof_of_work", False)
         self.pow_difficulty = self.config.get("pow_difficulty", 4)
-        
+
         # Performance tracking
         self.stats = {
             "shards_created": 0,
             "shards_verified": 0,
             "integrity_violations": 0,
             "repairs_performed": 0,
-            "replications_completed": 0
+            "replications_completed": 0,
         }
-        
+
         # Signing keys
         self.signing_key: Optional[ed25519.Ed25519PrivateKey] = None
         self.verify_key: Optional[ed25519.Ed25519PublicKey] = None
-        
+
         self.initialized = False
-        
+
         logger.info(" Immutable Shard Manager initialized")
-    
+
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default immutable shard configuration."""
         return {
@@ -189,65 +201,65 @@ class ImmutableShardManager:
             "tamper_detection_enabled": True,
             "automatic_sealing": True,
             "compression_enabled": True,
-            "encryption_required": True
+            "encryption_required": True,
         }
-    
+
     async def initialize(self) -> Dict[str, Any]:
         """Initialize the immutable shard management system."""
         try:
             if self.initialized:
                 return {"success": True, "message": "Already initialized"}
-            
+
             logger.info(" Initializing immutable shard management system...")
-            
+
             # Initialize quantum encryption
             await self.quantum_engine.initialize_key_system()
-            
+
             # Initialize zero-knowledge protocol
             await self.zero_knowledge_protocol.initialize()
-            
+
             # Generate signing keys
             await self._generate_signing_keys()
-            
+
             # Initialize audit system
             await self._initialize_audit_system()
-            
+
             # Load existing shards
             await self._load_existing_shards()
-            
+
             # Start background verification
             asyncio.create_task(self._background_verification_loop())
-            
+
             self.initialized = True
-            
+
             logger.info(" Immutable shard management system initialized")
-            
+
             return {
                 "success": True,
                 "integrity_level": self.integrity_level.value,
                 "min_replicas": self.min_replicas,
                 "max_replicas": self.max_replicas,
                 "proof_of_work_enabled": self.enable_proof_of_work,
-                "shards_loaded": len(self.shards)
+                "shards_loaded": len(self.shards),
             }
-            
+
         except Exception as e:
             logger.error(f" Failed to initialize immutable shard manager: {e}")
             return {"success": False, "error": str(e)}
-    
+
     async def _generate_signing_keys(self):
         """Generate Ed25519 signing keys for shard authentication."""
         try:
             # Generate new signing key pair
             self.signing_key = ed25519.Ed25519PrivateKey.generate()
             self.verify_key = self.signing_key.public_key()
-            
+
             logger.info(" Signing keys generated for shard authentication")
-            
+
         except Exception as e:
             logger.error(f" Failed to generate signing keys: {e}")
             raise
-    
+
     async def _initialize_audit_system(self):
         """Initialize the audit trail system."""
         try:
@@ -261,31 +273,32 @@ class ImmutableShardManager:
                 user_id=None,
                 details={"action": "audit_system_initialized"},
                 signature=b"genesis_signature",
-                previous_entry_hash=""
+                previous_entry_hash="",
             )
-            
+
             self.audit_log.append(genesis_entry)
-            
+
             logger.info(" Audit system initialized with genesis entry")
-            
+
         except Exception as e:
             logger.error(f" Failed to initialize audit system: {e}")
             raise
-    
+
     async def _load_existing_shards(self):
         """Load existing shards from storage."""
         try:
             # TODO: Implement persistent storage loading
             # For now, start with empty shard storage
-            
+
             logger.info(f" Loaded {len(self.shards)} existing shards")
-            
+
         except Exception as e:
             logger.error(f" Failed to load existing shards: {e}")
             raise
 
-    async def create_immutable_shard(self, data: bytes, creator_id: str,
-                                   parent_shard_id: str = None) -> ImmutableShard:
+    async def create_immutable_shard(
+        self, data: bytes, creator_id: str, parent_shard_id: str = None
+    ) -> ImmutableShard:
         """Create a new immutable shard with cryptographic integrity."""
         try:
             if not self.initialized:
@@ -318,7 +331,7 @@ class ImmutableShardManager:
                 previous_hash=previous_hash,
                 min_replicas=self.min_replicas,
                 max_replicas=self.max_replicas,
-                integrity_level=self.integrity_level
+                integrity_level=self.integrity_level,
             )
 
             # Generate Merkle tree and proof
@@ -349,7 +362,7 @@ class ImmutableShardManager:
                 merkle_proof=merkle_proof,
                 integrity_hash=integrity_hash,
                 tamper_seal=tamper_seal,
-                proof_of_work=proof_of_work
+                proof_of_work=proof_of_work,
             )
 
             # Store shard
@@ -373,8 +386,8 @@ class ImmutableShardManager:
                     "size": len(data),
                     "content_hash": content_hash,
                     "integrity_level": self.integrity_level.value,
-                    "proof_of_work": self.enable_proof_of_work
-                }
+                    "proof_of_work": self.enable_proof_of_work,
+                },
             )
 
             # Update statistics
@@ -402,7 +415,7 @@ class ImmutableShardManager:
                 "shard_id": shard_id,
                 "valid": True,
                 "checks": {},
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             # 1. Content hash verification
@@ -411,7 +424,7 @@ class ImmutableShardManager:
             verification_results["checks"]["content_hash"] = {
                 "valid": hash_valid,
                 "expected": shard.metadata.content_hash,
-                "calculated": calculated_hash
+                "calculated": calculated_hash,
             }
 
             # 2. Digital signature verification
@@ -424,7 +437,7 @@ class ImmutableShardManager:
             merkle_valid = await self._verify_merkle_proof(shard)
             verification_results["checks"]["merkle_proof"] = {
                 "valid": merkle_valid,
-                "root": shard.metadata.merkle_root
+                "root": shard.metadata.merkle_root,
             }
 
             # 4. Integrity hash verification
@@ -435,9 +448,7 @@ class ImmutableShardManager:
 
             # 5. Tamper seal verification
             tamper_valid = await self._verify_tamper_seal(shard)
-            verification_results["checks"]["tamper_seal"] = {
-                "valid": tamper_valid
-            }
+            verification_results["checks"]["tamper_seal"] = {"valid": tamper_valid}
 
             # 6. Proof of work verification (if enabled)
             if shard.proof_of_work:
@@ -445,7 +456,7 @@ class ImmutableShardManager:
                 verification_results["checks"]["proof_of_work"] = {
                     "valid": pow_valid,
                     "difficulty": shard.metadata.difficulty,
-                    "nonce": shard.metadata.nonce
+                    "nonce": shard.metadata.nonce,
                 }
 
             # Overall validity
@@ -471,7 +482,7 @@ class ImmutableShardManager:
                     operation="integrity_violation",
                     node_id="local",
                     user_id=None,
-                    details=verification_results
+                    details=verification_results,
                 )
 
                 logger.warning(f" Integrity violation detected in shard {shard_id}")
@@ -492,10 +503,10 @@ class ImmutableShardManager:
         try:
             # Split data into chunks for Merkle tree
             chunk_size = 1024  # 1KB chunks
-            chunks = [data[i:i+chunk_size] for i in range(0, len(data), chunk_size)]
+            chunks = [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
 
             if not chunks:
-                chunks = [b'']  # Handle empty data
+                chunks = [b""]  # Handle empty data
 
             # Calculate leaf hashes
             leaf_hashes = [hashlib.sha256(chunk).hexdigest() for chunk in chunks]
@@ -540,10 +551,10 @@ class ImmutableShardManager:
 
             # Create signature payload
             signature_data = (
-                data +
-                metadata.shard_id.encode() +
-                metadata.content_hash.encode() +
-                str(metadata.created_at.timestamp()).encode()
+                data
+                + metadata.shard_id.encode()
+                + metadata.content_hash.encode()
+                + str(metadata.created_at.timestamp()).encode()
             )
 
             # Sign with Ed25519
@@ -555,17 +566,19 @@ class ImmutableShardManager:
             logger.error(f" Failed to sign shard data: {e}")
             raise
 
-    async def _calculate_integrity_hash(self, data: bytes, metadata: ShardMetadata) -> str:
+    async def _calculate_integrity_hash(
+        self, data: bytes, metadata: ShardMetadata
+    ) -> str:
         """Calculate comprehensive integrity hash."""
         try:
             # Combine data with metadata for integrity hash
             integrity_data = (
-                data +
-                metadata.shard_id.encode() +
-                metadata.content_hash.encode() +
-                metadata.creator_id.encode() +
-                str(metadata.size).encode() +
-                str(metadata.created_at.timestamp()).encode()
+                data
+                + metadata.shard_id.encode()
+                + metadata.content_hash.encode()
+                + metadata.creator_id.encode()
+                + str(metadata.size).encode()
+                + str(metadata.created_at.timestamp()).encode()
             )
 
             # Use SHA-512 for strong integrity verification
@@ -577,17 +590,18 @@ class ImmutableShardManager:
             logger.error(f" Failed to calculate integrity hash: {e}")
             raise
 
-    async def _create_tamper_seal(self, data: bytes, metadata: ShardMetadata,
-                                signature: bytes) -> bytes:
+    async def _create_tamper_seal(
+        self, data: bytes, metadata: ShardMetadata, signature: bytes
+    ) -> bytes:
         """Create tamper-evident seal for the shard."""
         try:
             # Create seal data combining all critical components
             seal_data = (
-                data +
-                signature +
-                metadata.content_hash.encode() +
-                metadata.merkle_root.encode() +
-                str(metadata.created_at.timestamp()).encode()
+                data
+                + signature
+                + metadata.content_hash.encode()
+                + metadata.merkle_root.encode()
+                + str(metadata.created_at.timestamp()).encode()
             )
 
             # Generate tamper seal using HMAC
@@ -603,13 +617,17 @@ class ImmutableShardManager:
             logger.error(f" Failed to create tamper seal: {e}")
             raise
 
-    async def _generate_proof_of_work(self, data: bytes, metadata: ShardMetadata) -> Dict[str, Any]:
+    async def _generate_proof_of_work(
+        self, data: bytes, metadata: ShardMetadata
+    ) -> Dict[str, Any]:
         """Generate proof of work for critical shards."""
         try:
             if not self.enable_proof_of_work:
                 return {}
 
-            logger.info(f" Generating proof of work (difficulty: {self.pow_difficulty})...")
+            logger.info(
+                f" Generating proof of work (difficulty: {self.pow_difficulty})..."
+            )
 
             # Create challenge from shard data
             challenge = hashlib.sha256(
@@ -624,7 +642,7 @@ class ImmutableShardManager:
 
             while True:
                 # Create proof hash
-                proof_data = challenge + struct.pack('>Q', nonce)
+                proof_data = challenge + struct.pack(">Q", nonce)
                 proof_hash = hashlib.sha256(proof_data).hexdigest()
 
                 # Check if it meets difficulty requirement
@@ -645,10 +663,12 @@ class ImmutableShardManager:
                 "difficulty": self.pow_difficulty,
                 "challenge": challenge.hex(),
                 "proof_hash": proof_hash,
-                "computation_time": elapsed_time
+                "computation_time": elapsed_time,
             }
 
-            logger.info(f" Proof of work generated (nonce: {nonce}, time: {elapsed_time:.2f}s)")
+            logger.info(
+                f" Proof of work generated (nonce: {nonce}, time: {elapsed_time:.2f}s)"
+            )
 
             return proof_of_work
 
@@ -664,10 +684,10 @@ class ImmutableShardManager:
 
             # Recreate signature payload
             signature_data = (
-                shard.data +
-                shard.metadata.shard_id.encode() +
-                shard.metadata.content_hash.encode() +
-                str(shard.metadata.created_at.timestamp()).encode()
+                shard.data
+                + shard.metadata.shard_id.encode()
+                + shard.metadata.content_hash.encode()
+                + str(shard.metadata.created_at.timestamp()).encode()
             )
 
             # Verify signature
@@ -698,7 +718,9 @@ class ImmutableShardManager:
         """Verify integrity hash of shard."""
         try:
             # Recalculate integrity hash
-            calculated_hash = await self._calculate_integrity_hash(shard.data, shard.metadata)
+            calculated_hash = await self._calculate_integrity_hash(
+                shard.data, shard.metadata
+            )
 
             # Compare with stored hash
             return calculated_hash == shard.integrity_hash
@@ -731,27 +753,34 @@ class ImmutableShardManager:
 
             # Recreate challenge
             challenge = hashlib.sha256(
-                shard.data +
-                shard.metadata.shard_id.encode() +
-                shard.metadata.content_hash.encode()
+                shard.data
+                + shard.metadata.shard_id.encode()
+                + shard.metadata.content_hash.encode()
             ).digest()
 
             # Verify proof hash
-            proof_data = challenge + struct.pack('>Q', shard.metadata.nonce)
+            proof_data = challenge + struct.pack(">Q", shard.metadata.nonce)
             proof_hash = hashlib.sha256(proof_data).hexdigest()
 
             # Check difficulty requirement
             target = "0" * shard.metadata.difficulty
 
-            return (proof_hash.startswith(target) and
-                   proof_hash == shard.proof_of_work.get("proof_hash", ""))
+            return proof_hash.startswith(
+                target
+            ) and proof_hash == shard.proof_of_work.get("proof_hash", "")
 
         except Exception as e:
             logger.error(f" Failed to verify proof of work: {e}")
             return False
 
-    async def _create_audit_entry(self, shard_id: str, operation: str, node_id: str,
-                                user_id: Optional[str], details: Dict[str, Any]):
+    async def _create_audit_entry(
+        self,
+        shard_id: str,
+        operation: str,
+        node_id: str,
+        user_id: Optional[str],
+        details: Dict[str, Any],
+    ):
         """Create an audit log entry for shard operations."""
         try:
             # Generate entry ID
@@ -762,8 +791,11 @@ class ImmutableShardManager:
             if self.audit_log:
                 last_entry = self.audit_log[-1]
                 previous_entry_hash = hashlib.sha256(
-                    (last_entry.entry_id + last_entry.operation +
-                     str(last_entry.timestamp.timestamp())).encode()
+                    (
+                        last_entry.entry_id
+                        + last_entry.operation
+                        + str(last_entry.timestamp.timestamp())
+                    ).encode()
                 ).hexdigest()
 
             # Create audit entry
@@ -776,17 +808,17 @@ class ImmutableShardManager:
                 user_id=user_id,
                 details=details,
                 signature=b"",  # Will be set after signing
-                previous_entry_hash=previous_entry_hash
+                previous_entry_hash=previous_entry_hash,
             )
 
             # Sign the audit entry
             if self.signing_key:
                 signature_data = (
-                    entry_id.encode() +
-                    shard_id.encode() +
-                    operation.encode() +
-                    str(audit_entry.timestamp.timestamp()).encode() +
-                    json.dumps(details, sort_keys=True).encode()
+                    entry_id.encode()
+                    + shard_id.encode()
+                    + operation.encode()
+                    + str(audit_entry.timestamp.timestamp()).encode()
+                    + json.dumps(details, sort_keys=True).encode()
                 )
                 audit_entry.signature = self.signing_key.sign(signature_data)
 
@@ -816,15 +848,17 @@ class ImmutableShardManager:
                 # Find entry in audit log
                 for entry in self.audit_log:
                     if entry.entry_id == entry_id:
-                        audit_trail.append({
-                            "entry_id": entry.entry_id,
-                            "operation": entry.operation,
-                            "timestamp": entry.timestamp.isoformat(),
-                            "node_id": entry.node_id,
-                            "user_id": entry.user_id,
-                            "details": entry.details,
-                            "previous_entry_hash": entry.previous_entry_hash
-                        })
+                        audit_trail.append(
+                            {
+                                "entry_id": entry.entry_id,
+                                "operation": entry.operation,
+                                "timestamp": entry.timestamp.isoformat(),
+                                "node_id": entry.node_id,
+                                "user_id": entry.user_id,
+                                "details": entry.details,
+                                "previous_entry_hash": entry.previous_entry_hash,
+                            }
+                        )
                         break
 
             return audit_trail
@@ -841,12 +875,16 @@ class ImmutableShardManager:
             while True:
                 try:
                     # Wait for verification interval
-                    await asyncio.sleep(self.verification_interval * 3600)  # Convert hours to seconds
+                    await asyncio.sleep(
+                        self.verification_interval * 3600
+                    )  # Convert hours to seconds
 
                     if not self.shards:
                         continue
 
-                    logger.info(f" Starting periodic verification of {len(self.shards)} shards...")
+                    logger.info(
+                        f" Starting periodic verification of {len(self.shards)} shards..."
+                    )
 
                     verification_results = []
 
@@ -868,7 +906,9 @@ class ImmutableShardManager:
                     valid_shards = sum(1 for r in verification_results if r["valid"])
                     invalid_shards = len(verification_results) - valid_shards
 
-                    logger.info(f" Verification complete: {valid_shards} valid, {invalid_shards} invalid")
+                    logger.info(
+                        f" Verification complete: {valid_shards} valid, {invalid_shards} invalid"
+                    )
 
                     # Create audit entry for verification cycle
                     await self._create_audit_entry(
@@ -879,8 +919,8 @@ class ImmutableShardManager:
                         details={
                             "total_shards": len(verification_results),
                             "valid_shards": valid_shards,
-                            "invalid_shards": invalid_shards
-                        }
+                            "invalid_shards": invalid_shards,
+                        },
                     )
 
                 except Exception as e:
@@ -914,12 +954,14 @@ class ImmutableShardManager:
                 operation="repair_attempted",
                 node_id="local",
                 user_id=None,
-                details={"success": False, "reason": "no_replicas_available"}
+                details={"success": False, "reason": "no_replicas_available"},
             )
 
             self.stats["repairs_performed"] += 1
 
-            logger.warning(f" Shard repair failed for {shard_id} - no replicas available")
+            logger.warning(
+                f" Shard repair failed for {shard_id} - no replicas available"
+            )
 
             return False
 
@@ -949,7 +991,7 @@ class ImmutableShardManager:
                 operation="shard_sealed",
                 node_id="local",
                 user_id=None,
-                details={"sealed_at": datetime.now(timezone.utc).isoformat()}
+                details={"sealed_at": datetime.now(timezone.utc).isoformat()},
             )
 
             logger.info(f" Shard sealed: {shard_id}")
@@ -985,9 +1027,9 @@ class ImmutableShardManager:
                 "replication_settings": {
                     "min_replicas": self.min_replicas,
                     "max_replicas": self.max_replicas,
-                    "replication_factor": self.replication_factor
+                    "replication_factor": self.replication_factor,
                 },
-                "performance_stats": self.stats.copy()
+                "performance_stats": self.stats.copy(),
             }
 
         except Exception as e:
