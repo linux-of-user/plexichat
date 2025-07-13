@@ -202,11 +202,11 @@ class VersionManager:
     """Manages version information and auto-generates version files."""
     
     def __init__(self):
-        self.current_version = "a.1.1-15"
+        self.current_version = "a.1.1-16"
         self.version_type = "alpha"
         self.major_version = 1
         self.minor_version = 1
-        self.build_number = 15
+        self.build_number = 16
         self.api_version = "v1"
         self.release_date = datetime.now().strftime("%Y-%m-%d")
         

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "plexichat"
-version = "3.0.15"
+version = "3.0.16"
 description = "Government-Level Secure Communication Platform"
 readme = "README.md"
 license = {text = "MIT"}
