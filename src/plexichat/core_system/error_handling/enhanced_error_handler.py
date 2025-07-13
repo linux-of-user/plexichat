@@ -7,14 +7,13 @@ and comprehensive logging capabilities.
 
 import asyncio
 import logging
-import traceback
-from typing import Optional, Dict, Any, List, Callable, Type
-from datetime import datetime, timedelta
 from collections import defaultdict, deque
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional, Type
 
-from .exceptions import ErrorSeverity, ErrorCategory, BaseAPIException
-from .crash_reporter import CrashReporter
 from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
+from .crash_reporter import CrashReporter
+from .exceptions import ErrorCategory, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +168,7 @@ class EnhancedErrorHandler:
         """Detect error patterns and trigger alerts."""
         exception_type = error_info['exception_type']
         category = error_info['category']
-        component = error_info['component']
+        error_info['component']
         
         # Check for specific patterns
         pattern_checks = {

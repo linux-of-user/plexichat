@@ -17,20 +17,20 @@ Features:
 - Bottleneck detection
 """
 
-import time
-import threading
-import psutil
+import json
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Callable, Union
-from dataclasses import dataclass, field
+import statistics
+import threading
+import time
 from collections import defaultdict, deque
 from contextlib import contextmanager
-import json
-import statistics
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
-from . import LogEntry, LogContext, LogCategory, LogLevel
+import psutil
+
 
 @dataclass
 class PerformanceMetric:

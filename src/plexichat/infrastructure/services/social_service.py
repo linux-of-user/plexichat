@@ -3,13 +3,11 @@ Comprehensive Social & Friends System for PlexiChat.
 Implements friend requests, friend lists, social features, and peer-to-peer messaging.
 """
 
-import json
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Set, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
-import logging
+from typing import Any, Dict, List, Optional, Set
 
 from plexichat.app.logger_config import logger
 

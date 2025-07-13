@@ -8,13 +8,12 @@ publish-subscribe pattern with async support.
 
 import asyncio
 import logging
-import weakref
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Callable, Union, Set
-from dataclasses import dataclass, field
-from enum import Enum
-import inspect
 import traceback
+import weakref
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

@@ -4,18 +4,18 @@ Handles user moderation, message moderation, moderator roles, and appeals.
 """
 
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Query
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
-from sqlmodel import Session
 from pydantic import BaseModel
+from sqlmodel import Session
 
 from plexichat.app.db import get_session
-from plexichat.app.models.moderation import ModerationAction, ModerationSeverity
 from plexichat.app.models.enhanced_models import EnhancedUser
+from plexichat.app.models.moderation import ModerationAction, ModerationSeverity
 from plexichat.app.services.moderation_service import ModerationService
 from plexichat.app.utils.auth import get_current_user
-from plexichat.app.logger_config import logger
 
 
 # Pydantic models for API

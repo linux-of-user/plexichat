@@ -3,12 +3,10 @@ Anthropic Provider for PlexiChat AI Abstraction Layer
 Enhanced Anthropic Claude integration with advanced features.
 """
 
-import asyncio
 import json
 import logging
-from typing import Dict, List, Optional, Any, AsyncGenerator
 from dataclasses import dataclass
-import aiohttp
+from typing import Any, Dict, List, Optional
 
 try:
     import anthropic
@@ -19,7 +17,7 @@ except ImportError:
     anthropic = None
     AsyncAnthropic = None
 
-from .base_provider import BaseAIProvider, AIRequest, AIResponse, ProviderConfig, ProviderStatus
+from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +76,7 @@ class AnthropicProvider(BaseAIProvider):
                 return False
             
             # Simple test request
-            response = await self.client.messages.create(
+            await self.client.messages.create(
                 model=self.config.default_model,
                 max_tokens=1,
                 messages=[{"role": "user", "content": "Hello"}]

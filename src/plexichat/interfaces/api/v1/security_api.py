@@ -15,16 +15,17 @@ Features:
 - Real-time threat intelligence
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request
-from pydantic import BaseModel
 import base64
 from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from pydantic import BaseModel
 
 from plexichat.core.logging import get_logger
+from plexichat.core_system.security.certificate_manager import get_certificate_manager
 from plexichat.core_system.security.unified_security_manager import get_unified_security_manager
 from plexichat.features.security.network_protection import get_network_protection
-from plexichat.core_system.security.certificate_manager import get_certificate_manager
 
 logger = get_logger(__name__)
 

@@ -3,14 +3,17 @@ Database Management API endpoints for PlexiChat.
 Provides database administration, migration, and monitoring capabilities.
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from pydantic import BaseModel
 import os
 from datetime import datetime
+from typing import Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pydantic import BaseModel
 
 from plexichat.app.database.database_manager import (
-    get_database_manager, DatabaseManager, DatabaseConfig, DatabaseType
+    DatabaseConfig,
+    DatabaseType,
+    get_database_manager,
 )
 from plexichat.app.logger_config import logger
 

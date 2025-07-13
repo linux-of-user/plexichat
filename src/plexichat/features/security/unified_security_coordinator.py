@@ -15,13 +15,11 @@ This module coordinates all security systems including:
 This coordinator ensures all security systems work together seamlessly.
 """
 
-import asyncio
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple, Any, Union
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

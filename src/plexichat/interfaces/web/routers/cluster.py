@@ -3,10 +3,11 @@ PlexiChat Cluster Router
 Handles cluster coordination API endpoints.
 """
 
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 # Import cluster manager
 try:

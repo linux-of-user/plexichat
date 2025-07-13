@@ -3,16 +3,13 @@ Advanced log management service with filtering, search, and archiving.
 Provides comprehensive log viewing and management capabilities.
 """
 
-import os
-import re
-import gzip
-import zipfile
 import json
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional, Tuple
-from pathlib import Path
+import re
+import zipfile
 from dataclasses import dataclass
-import glob
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from plexichat.app.logger_config import logger
 

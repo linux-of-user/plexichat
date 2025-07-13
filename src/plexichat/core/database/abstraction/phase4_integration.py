@@ -5,14 +5,14 @@ Coordinates all Phase IV database enhancements into a unified system
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Type, TypeVar
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
-from ..dao.base_dao import BaseDAO, QueryOptions, FilterCriteria, SortCriteria, PaginationParams
-from ..repository.base_repository import BaseRepository, RepositoryConfig, CacheStrategy
+from ..dao.base_dao import BaseDAO, FilterCriteria
+from ..manager import database_manager
 from ..orm.advanced_orm import AdvancedORM, ORMConfig
-from ..manager import ConsolidatedDatabaseManager, database_manager
+from ..repository.base_repository import BaseRepository, CacheStrategy, RepositoryConfig
 
 logger = logging.getLogger(__name__)
 
@@ -439,7 +439,7 @@ class Phase4DatabaseCoordinator:
         """Perform health checks on database components."""
         try:
             # Check database manager health
-            db_status = self.database_manager.get_status()
+            self.database_manager.get_status()
             
             # Check ORM health
             orm_health = None

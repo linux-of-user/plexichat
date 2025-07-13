@@ -3,17 +3,16 @@ PlexiChat Advanced GUI Application
 Sophisticated Python GUI with same login system and full feature parity with WebUI.
 """
 
-import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
-import customtkinter as ctk
-import requests
-import json
+import os
+import sys
 import threading
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
-import sys
-import os
+from tkinter import messagebox, simpledialog
+from typing import Any, Dict, Optional
+
+import customtkinter as ctk
+import requests
 
 # Add src to path for imports
 current_dir = os.path.dirname(__file__)
@@ -26,8 +25,8 @@ for path in [src_dir, root_dir]:
         sys.path.insert(0, abs_path)
 
 try:
-    from plexichat.core.security.government_auth import government_auth
     from plexichat.app.logger_config import logger
+    from plexichat.core.security.government_auth import government_auth
     PLEXICHAT_MODULES_AVAILABLE = True
 except ImportError as e:
     # Fallback for development/standalone mode

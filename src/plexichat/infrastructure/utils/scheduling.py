@@ -6,16 +6,16 @@ configurable intervals, and detailed reporting.
 
 import traceback
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, Optional
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
+from typing import Any, Dict, Optional
 
-from app.logger_config import logger, settings, selftest_logger, monitoring_logger
-from app.utils.self_tests.test_executor import test_executor
+from app.logger_config import logger, monitoring_logger, selftest_logger, settings
 from app.utils.self_tests.connectivity import run_connectivity_tests
 from app.utils.self_tests.database import run_database_tests
-from app.utils.self_tests.users import run_user_tests
 from app.utils.self_tests.endpoints import run_endpoint_tests
+from app.utils.self_tests.test_executor import test_executor
+from app.utils.self_tests.users import run_user_tests
+from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
+from apscheduler.schedulers.background import BackgroundScheduler
 
 _scheduler: Optional[BackgroundScheduler] = None
 _failure_count = 0

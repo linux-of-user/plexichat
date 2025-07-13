@@ -3,14 +3,12 @@ Database Migration System
 Automatic database migrations with version control and rollback support.
 """
 
-import asyncio
-import json
-from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
-from pathlib import Path
-from sqlalchemy import text, MetaData, Table, Column, Integer, String, DateTime, Text
-from sqlalchemy.exc import SQLAlchemyError
 import logging
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import text
 
 try:
     from plexichat.core.database.multi_backend import db_manager  # type: ignore

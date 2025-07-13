@@ -11,20 +11,19 @@ Central coordinator for all AI-powered features:
 """
 
 import asyncio
-import json
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone, timedelta
 import logging
+from datetime import datetime
+from typing import Any, Dict, List
 
 from .advanced_ai_system import (
+    AICapability,
+    ModerationAction,
     ai_provider_manager,
     content_moderation_engine,
     intelligent_assistant,
-    translation_engine,
     sentiment_analyzer,
     smart_summarizer,
-    AICapability,
-    ModerationAction
+    translation_engine,
 )
 
 logger = logging.getLogger(__name__)
@@ -357,7 +356,7 @@ class AICoordinator:
                     if model.is_available:
                         # Test model with simple prompt
                         try:
-                            test_result = await self.provider_manager.call_model(
+                            await self.provider_manager.call_model(
                                 model_id, "Test prompt", max_tokens=10
                             )
                             logger.debug(f"Model {model_id} health check: OK")

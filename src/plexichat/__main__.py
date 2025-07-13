@@ -4,8 +4,10 @@ Allows running PlexiChat as a module: python -m src.plexichat
 """
 
 import uvicorn
-from .main import app
+
 from .core_system.config import get_config
+from .main import app
+
 
 def main():
     """Main entry point for module execution."""

@@ -5,29 +5,24 @@ Client-side encryption where backup nodes never see unencrypted data,
 with proof-of-storage verification and privacy-preserving deduplication.
 """
 
-import asyncio
 import hashlib
-import secrets
 import hmac
-import struct
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union
-from dataclasses import dataclass, field
-from enum import Enum
 import json
-import numpy as np
-from pathlib import Path
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.backends import default_backend
 
-from ...core.logging import get_logger
 from ...core.config import get_config
-from ..security.quantum_encryption import QuantumEncryptionEngine, EncryptedData as QuantumEncryptedData
+from ...core.logging import get_logger
+from ..security.quantum_encryption import QuantumEncryptionEngine
 
 logger = get_logger(__name__)
 
@@ -242,13 +237,13 @@ class ZeroKnowledgeBackupProtocol:
             await self.quantum_engine.initialize_key_system()
 
             # Generate protocol keys
-            protocol_keys = await self._generate_protocol_keys()
+            await self._generate_protocol_keys()
 
             # Initialize deduplication system
-            dedup_system = await self._initialize_deduplication_system()
+            await self._initialize_deduplication_system()
 
             # Initialize proof system
-            proof_system = await self._initialize_proof_system()
+            await self._initialize_proof_system()
 
             # Load existing keys and proofs (legacy compatibility)
             await self._load_encryption_metadata()
@@ -406,7 +401,7 @@ class ZeroKnowledgeBackupProtocol:
 
             # Convert to legacy format for compatibility
             if encrypted_chunks:
-                first_chunk = encrypted_chunks[0]
+                encrypted_chunks[0]
 
                 # Combine all chunk data (simplified for legacy compatibility)
                 combined_encrypted_data = b''.join(chunk.encrypted_data for chunk in encrypted_chunks)

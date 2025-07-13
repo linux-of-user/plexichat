@@ -22,13 +22,13 @@ Features:
 
 import asyncio
 import json
+import logging
 import time
 import uuid
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Callable, Union
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import logging
+from typing import Any, Callable, Dict, List, Optional
 
 # Optional dependencies - graceful degradation
 try:
@@ -38,7 +38,7 @@ except ImportError:
     RABBITMQ_AVAILABLE = False
 
 try:
-    from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
+    from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
     KAFKA_AVAILABLE = True
 except ImportError:
     KAFKA_AVAILABLE = False
@@ -679,9 +679,9 @@ class MessageQueueManager:
 
             # Call handler
             if asyncio.iscoroutinefunction(handler):
-                result = await handler(message)
+                await handler(message)
             else:
-                result = handler(message)
+                handler(message)
 
             # Update success statistics
             processing_time = (time.time() - start_time) * 1000

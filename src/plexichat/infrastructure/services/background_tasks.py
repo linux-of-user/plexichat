@@ -4,15 +4,15 @@ Handles disappearing messages, expired moderation actions, and cleanup tasks.
 """
 
 import asyncio
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any
-from sqlmodel import Session, select
-import logging
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
+
+from sqlmodel import select
 
 from plexichat.app.db import get_session
-from plexichat.app.models.message import Message
-from plexichat.app.models.moderation import ModerationLog, UserModerationStatus, ModerationStatus
 from plexichat.app.logger_config import logger
+from plexichat.app.models.message import Message
+from plexichat.app.models.moderation import ModerationLog, ModerationStatus, UserModerationStatus
 
 
 class BackgroundTaskService:
@@ -68,7 +68,7 @@ class BackgroundTaskService:
                     statement = select(Message).where(
                         (Message.expires_at.is_not(None)) &
                         (Message.expires_at <= now) &
-                        (Message.is_deleted == False)
+                        (not Message.is_deleted)
                     )
                     
                     expired_messages = session.exec(statement).all()
@@ -192,7 +192,7 @@ class BackgroundTaskService:
         """Update user activity metrics and statistics."""
         while self.running:
             try:
-                async with get_session() as session:
+                async with get_session():
                     # This could include updating user statistics, calculating metrics, etc.
                     # For now, we'll just log that the task is running
                     logger.debug("User activity update task running")
@@ -286,7 +286,7 @@ class BackgroundTaskService:
                         (Message.expires_at.is_not(None)) &
                         (Message.expires_at >= yesterday) &
                         (Message.expires_at <= now) &
-                        (Message.is_deleted == True)
+                        (Message.is_deleted)
                     )
                 ).all()
                 
@@ -305,7 +305,7 @@ class BackgroundTaskService:
                     select(Message).where(
                         (Message.expires_at.is_not(None)) &
                         (Message.expires_at > now) &
-                        (Message.is_deleted == False)
+                        (not Message.is_deleted)
                     )
                 ).all()
                 

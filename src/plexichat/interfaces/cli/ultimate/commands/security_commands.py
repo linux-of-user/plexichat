@@ -4,21 +4,19 @@ Comprehensive security management and monitoring commands
 """
 
 import asyncio
-import logging
-import hashlib
-import secrets
 import base64
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone, timedelta
+import hashlib
+import logging
+import secrets
+from datetime import datetime, timedelta
+from typing import Optional
 
-import typer
 from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Prompt
+from rich.table import Table
 
-from ..cli_coordinator import ultimate_cli, UltimateCommand, CommandCategory
+from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -93,13 +91,6 @@ async def cmd_security_scan(target: str = "all", deep: bool = False):
             table.add_column("Issue", style="yellow")
             table.add_column("Details", style="white")
             
-            severity_colors = {
-                "critical": "red",
-                "high": "red",
-                "medium": "yellow",
-                "low": "green",
-                "info": "blue"
-            }
             
             for result in results:
                 severity = result["severity"]
@@ -221,7 +212,7 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
         console.print(table)
         
         # Statistics
-        console.print(f"\n📊 Statistics:")
+        console.print("\n📊 Statistics:")
         console.print(f"  Total entries: {len(filtered_entries)}")
         console.print(f"  Successful actions: {len([e for e in filtered_entries if e['status'] == 'success'])}")
         console.print(f"  Failed actions: {len([e for e in filtered_entries if e['status'] == 'failed'])}")
@@ -327,29 +318,29 @@ async def cmd_generate_key(key_type: str = "api", length: int = 32):
             prefix = "plx_"
             full_key = f"{prefix}{key}"
             
-            console.print(f"🔑 Generated API Key:")
+            console.print("🔑 Generated API Key:")
             console.print(f"  Key: [green]{full_key}[/green]")
             console.print(f"  Length: {len(full_key)} characters")
-            console.print(f"  Type: API Key")
+            console.print("  Type: API Key")
             
         elif key_type == "session":
             # Generate session token
             token = secrets.token_hex(length)
             
-            console.print(f"🎫 Generated Session Token:")
+            console.print("🎫 Generated Session Token:")
             console.print(f"  Token: [green]{token}[/green]")
             console.print(f"  Length: {len(token)} characters")
-            console.print(f"  Type: Session Token")
+            console.print("  Type: Session Token")
             
         elif key_type == "encryption":
             # Generate encryption key
             key = secrets.token_bytes(length)
             b64_key = base64.b64encode(key).decode()
             
-            console.print(f"🔐 Generated Encryption Key:")
+            console.print("🔐 Generated Encryption Key:")
             console.print(f"  Key (Base64): [green]{b64_key}[/green]")
             console.print(f"  Length: {length} bytes ({len(b64_key)} base64 chars)")
-            console.print(f"  Type: Encryption Key")
+            console.print("  Type: Encryption Key")
             
         elif key_type == "password":
             # Generate secure password
@@ -357,10 +348,10 @@ async def cmd_generate_key(key_type: str = "api", length: int = 32):
             alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
             password = ''.join(secrets.choice(alphabet) for _ in range(length))
             
-            console.print(f"🔒 Generated Password:")
+            console.print("🔒 Generated Password:")
             console.print(f"  Password: [green]{password}[/green]")
             console.print(f"  Length: {len(password)} characters")
-            console.print(f"  Type: Secure Password")
+            console.print("  Type: Secure Password")
             
         else:
             console.print(f"[red]❌ Unknown key type: {key_type}[/red]")
@@ -396,8 +387,8 @@ async def cmd_hash_password(password: Optional[str] = None):
         console.print("✅ Password hashed successfully:")
         console.print(f"  Salt: [cyan]{salt}[/cyan]")
         console.print(f"  Hash: [green]{hash_b64}[/green]")
-        console.print(f"  Algorithm: PBKDF2-SHA256")
-        console.print(f"  Iterations: 100,000")
+        console.print("  Algorithm: PBKDF2-SHA256")
+        console.print("  Iterations: 100,000")
         
         # Password strength analysis
         strength_score = 0

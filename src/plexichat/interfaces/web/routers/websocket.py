@@ -5,26 +5,21 @@ Includes log streaming, CLI interface, and system monitoring.
 
 import asyncio
 import json
+import logging
 import queue
+import shlex
 import threading
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Set
-import subprocess
-import shlex
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from fastapi.websockets import WebSocketState
-from sqlmodel import Session
 import jwt
-
-from plexichat.core.database import get_session
-import logging
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)
 logging_manager = logging.getLogger(f"{__name__}.manager")
 # settings import will be added when needed
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import get_user_from_token
 from plexichat.infrastructure.utils.security import InputSanitizer
 
 router = APIRouter()
@@ -239,7 +234,7 @@ Examples:
         """Show system status."""
         try:
             import psutil
-            
+
             # Get basic system info
             cpu_percent = psutil.cpu_percent(interval=0.1)
             memory = psutil.virtual_memory()
@@ -330,6 +325,7 @@ WebSocket Connections: {manager.get_channel_stats()['total_connections']}
         if info_type == 'info':
             try:
                 import platform
+
                 import psutil
                 
                 boot_time = datetime.fromtimestamp(psutil.boot_time())

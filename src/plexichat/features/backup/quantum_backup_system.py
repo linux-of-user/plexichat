@@ -7,25 +7,22 @@ security architecture for maximum protection.
 """
 
 import asyncio
-import secrets
 import hashlib
-import logging
 import json
-import base64
+import logging
+import secrets
 import zlib
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set, Union
-from pathlib import Path
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import aiosqlite
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import aiofiles
+import aiosqlite
 
 # Import security systems
-from ..security import (
-    security_manager, quantum_encryption, distributed_key_manager, 
-    database_encryption, KeyDomain, DataClassification
-)
+from ..security import KeyDomain, distributed_key_manager, quantum_encryption
 
 logger = logging.getLogger(__name__)
 
@@ -406,8 +403,8 @@ class QuantumBackupSystem:
 
     async def _archive_directory(self, dir_path: str) -> bytes:
         """Create compressed archive of directory."""
-        import tarfile
         import io
+        import tarfile
 
         archive_buffer = io.BytesIO()
 
@@ -626,7 +623,7 @@ class QuantumBackupSystem:
                     else:
                         logger.warning(f"Failed to decrypt shard {i}")
                         if len(shard_data) < backup.minimum_shards:
-                            logger.error(f"Insufficient shards for recovery")
+                            logger.error("Insufficient shards for recovery")
                             return False
 
             # Reconstruct data
@@ -711,8 +708,8 @@ class QuantumBackupSystem:
 
     async def _restore_directory(self, data: bytes, restore_path: str):
         """Restore directory from archive data."""
-        import tarfile
         import io
+        import tarfile
 
         archive_buffer = io.BytesIO(data)
 

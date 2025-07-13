@@ -3,12 +3,11 @@ PlexiChat Integrated CLI
 Comprehensive command-line interface for PlexiChat management and operations.
 """
 
+import argparse
 import asyncio
 import logging
 import sys
-from typing import Optional, Dict, Any, List
-from pathlib import Path
-import argparse
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +135,7 @@ class PlexiChatCLI:
     async def start_server(self, args):
         """Start the PlexiChat server."""
         try:
-            from plexichat.core.launcher import PlexiChatLauncher, LaunchConfig
+            from plexichat.core.launcher import LaunchConfig, PlexiChatLauncher
             
             config = LaunchConfig(
                 host=args.host,

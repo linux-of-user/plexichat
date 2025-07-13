@@ -4,18 +4,17 @@ Comprehensive system testing, error recovery, and resilience management.
 """
 
 import asyncio
-import sys
-import traceback
-import time
-import psutil
-import json
 import subprocess
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Callable
-from dataclasses import dataclass, asdict
+import sys
+import time
+import traceback
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
-import logging
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
+import psutil
 
 from plexichat.app.logger_config import logger
 
@@ -380,7 +379,6 @@ class SystemResilienceManager:
         try:
             # Check if WebSocket router is available
             try:
-                from plexichat.app.websockets.messaging_websocket import MessagingWebSocketHandler
                 websocket_available = True
             except ImportError:
                 websocket_available = False
@@ -658,11 +656,10 @@ class SystemResilienceManager:
             # Check if plugin manager is available
             try:
                 from plexichat.plugins.plugin_manager import PluginManager
-                plugin_manager = PluginManager()
+                PluginManager()
                 plugins_available = True
             except ImportError:
                 plugins_available = False
-                plugin_manager = None
 
             if not plugins_available:
                 return SystemCheck(
@@ -707,7 +704,6 @@ class SystemResilienceManager:
         try:
             # Check if backup system is available
             try:
-                from plexichat.backup.backup_manager import BackupManager
                 backup_available = True
             except ImportError:
                 backup_available = False
@@ -755,7 +751,6 @@ class SystemResilienceManager:
         try:
             # Check if clustering system is available
             try:
-                from plexichat.clustering.cluster_manager import AdvancedClusterManager
                 clustering_available = True
             except ImportError:
                 clustering_available = False
@@ -994,8 +989,8 @@ class SystemResilienceManager:
     async def _cleanup_temp_files(self) -> bool:
         """Clean up temporary files."""
         try:
-            import tempfile
             import shutil
+            import tempfile
             temp_dir = Path(tempfile.gettempdir())
             for temp_file in temp_dir.glob("plexichat_*"):
                 if temp_file.is_file():

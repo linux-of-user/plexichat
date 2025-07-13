@@ -5,15 +5,16 @@ Coordinates all Phase IV database enhancements into a unified system
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Type, TypeVar, Callable
-from sqlmodel import SQLModel
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
-from ..dao.base_dao import BaseDAO, QueryOptions, FilterCriteria, SortCriteria, PaginationParams, FilterOperator
-from ..repository.base_repository import BaseRepository, RepositoryConfig, CacheStrategy
+from sqlmodel import SQLModel
+
+from ..dao.base_dao import BaseDAO, FilterCriteria, FilterOperator
+from ..manager import database_manager
 from ..orm.advanced_orm import AdvancedORM, ORMConfig
-from ..manager import ConsolidatedDatabaseManager, database_manager
+from ..repository.base_repository import BaseRepository, CacheStrategy, RepositoryConfig
 
 logger = logging.getLogger(__name__)
 

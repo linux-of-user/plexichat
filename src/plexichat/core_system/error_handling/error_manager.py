@@ -7,18 +7,16 @@ functionality into a single, comprehensive manager.
 
 import asyncio
 import logging
-import time
 import threading
-from typing import Dict, List, Optional, Any, Callable, Type
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict, deque
+import time
 import traceback
 import uuid
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Callable, Dict, List, Optional, Type
 
-from .context import ErrorContext, ErrorSeverity, ErrorCategory
-from .exceptions import BaseAPIException
+from .context import ErrorCategory, ErrorContext, ErrorSeverity
 
 # Import with error handling
 try:
@@ -245,7 +243,7 @@ class ErrorManager:
                 return crash_id
             
             # Also handle as regular error for tracking
-            error_context = self.handle_error(
+            self.handle_error(
                 exception=exception,
                 context=context,
                 severity=severity,
@@ -382,7 +380,6 @@ class ErrorManager:
     def _load_default_recovery_strategies(self):
         """Load default recovery strategies."""
         # Add default recovery strategies here
-        pass
     
     def _update_error_metrics(self, error_context: ErrorContext):
         """Update error metrics."""
@@ -396,12 +393,10 @@ class ErrorManager:
     def _detect_error_patterns(self, error_context: ErrorContext):
         """Detect error patterns."""
         # Pattern detection logic here
-        pass
     
     def _check_alert_thresholds(self, error_context: ErrorContext):
         """Check if error triggers any alerts."""
         # Alert threshold checking logic here
-        pass
     
     def _notify_error_callbacks(self, error_context: ErrorContext):
         """Notify registered error callbacks."""
@@ -486,12 +481,10 @@ class ErrorManager:
     async def _analyze_patterns(self):
         """Analyze error patterns."""
         # Pattern analysis logic here
-        pass
     
     async def _check_system_health(self):
         """Check overall system health."""
         # Health checking logic here
-        pass
     
     async def _cleanup_old_data(self):
         """Clean up old error data."""

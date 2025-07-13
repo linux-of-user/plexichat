@@ -5,18 +5,15 @@ FastAPI router for AI-powered features including summarization,
 content suggestions, sentiment analysis, semantic search, and moderation.
 """
 
-import asyncio
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List
-from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.responses import JSONResponse, HTMLResponse
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-import logging
 
 from ....ai.features.ai_powered_features_service import AIPoweredFeaturesService
 from ....core.logging import get_logger
-from ....core.auth.decorators import require_admin
 
 logger = get_logger(__name__)
 

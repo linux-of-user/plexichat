@@ -3,25 +3,24 @@ AI Moderation API Endpoints
 RESTful API endpoints for AI moderation, training, and feedback collection.
 """
 
-import asyncio
-import json
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from pydantic import BaseModel, Field
 import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pydantic import BaseModel, Field
 
 from ..moderation import (
-    ModerationEngine,
-    ModerationAction,
-    ModerationSeverity,
-    ModerationCategory,
-    ModerationTrainingSystem,
     FeedbackCollector,
-    FeedbackType,
     FeedbackSource,
-    TrainingDataSource
+    FeedbackType,
+    ModerationAction,
+    ModerationCategory,
+    ModerationEngine,
+    ModerationSeverity,
+    ModerationTrainingSystem,
+    TrainingDataSource,
 )
 
 logger = logging.getLogger(__name__)

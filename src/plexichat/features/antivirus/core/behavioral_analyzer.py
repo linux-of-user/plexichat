@@ -5,22 +5,19 @@ Analyzes file behavior and characteristics to detect suspicious patterns
 and potential malware through heuristic analysis.
 """
 
-import asyncio
-import logging
-import os
-import stat
 import hashlib
 import json
-import aiosqlite
-from datetime import datetime, timezone, timedelta
+import logging
+import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Any, Tuple
+from typing import Any, Dict, List, Optional
+
+import aiosqlite
 import magic
 import pefile
-import zipfile
-import tarfile
 
-from . import ThreatLevel, ScanType, ThreatType, ScanResult, ThreatSignature
+from . import ScanResult, ScanType, ThreatLevel, ThreatType
 
 logger = logging.getLogger(__name__)
 

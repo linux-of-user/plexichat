@@ -5,26 +5,20 @@ REST API endpoints for advanced communication features including
 voice messages, reactions, threads, translations, and smart notifications.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Form
+from datetime import datetime
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-from datetime import datetime
-import uuid
 
-from ...core.auth.dependencies import require_auth, require_admin_auth
+from ...core.auth.dependencies import require_admin_auth, require_auth
 from ...core.logging import get_logger
 from ...services.communication_service import (
-    get_communication_service,
-    MessageType,
-    ReactionType,
     NotificationPriority,
+    ReactionType,
     ThreadStatus,
-    VoiceMessage,
-    MessageReaction,
-    MessageThread,
-    TranslationRequest,
-    SmartNotification
+    get_communication_service,
 )
 
 # Initialize router and logger

@@ -4,16 +4,16 @@ Provides comprehensive security features including authentication, authorization
 """
 
 import hashlib
+import ipaddress
+import logging
+import re
 import secrets
 import time
-import re
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
-import logging
 from functools import wraps
-import ipaddress
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import bcrypt
@@ -22,7 +22,6 @@ except ImportError:
     BCRYPT_AVAILABLE = False
 
 try:
-    from cryptography.fernet import Fernet
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False

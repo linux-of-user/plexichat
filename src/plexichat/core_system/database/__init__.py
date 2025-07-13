@@ -24,10 +24,17 @@ from typing import Optional
 
 # Import consolidated database components
 from .manager import (
-    ConsolidatedDatabaseManager, database_manager, DatabaseType, DatabaseRole,
-    DatabaseConfig, DatabaseMetrics, ConnectionStatus, initialize_database_system,
-    get_database_manager
+    ConnectionStatus,
+    ConsolidatedDatabaseManager,
+    DatabaseConfig,
+    DatabaseMetrics,
+    DatabaseRole,
+    DatabaseType,
+    database_manager,
+    get_database_manager,
+    initialize_database_system,
 )
+
 # Note: Consolidated from database_manager.py, unified_database_manager.py, enhanced_abstraction.py
 # Legacy imports maintained for backward compatibility
 DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibility
@@ -70,7 +77,12 @@ except ImportError:
         pass
 
 try:
-    from .exceptions import DatabaseError, ConnectionError, MigrationError, EncryptionError  # type: ignore
+    from .exceptions import (  # type: ignore
+        ConnectionError,
+        DatabaseError,
+        EncryptionError,
+        MigrationError,
+    )
 except ImportError:
     # Create placeholder exception classes
     class DatabaseError(Exception):

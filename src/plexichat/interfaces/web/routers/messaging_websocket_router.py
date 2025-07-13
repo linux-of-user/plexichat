@@ -4,15 +4,16 @@ FastAPI router for real-time messaging WebSocket endpoints.
 """
 
 import json
+import logging
 from datetime import datetime
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 from typing import Optional
 
-from plexichat.websockets.messaging_websocket import messaging_websocket_manager
-from plexichat.infrastructure.utils.auth import get_current_user_from_token
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi.responses import JSONResponse
+
 from plexichat.features.users.user import User
-import logging
+from plexichat.infrastructure.utils.auth import get_current_user_from_token
+from plexichat.websockets.messaging_websocket import messaging_websocket_manager
 
 logger = logging.getLogger(__name__)
 

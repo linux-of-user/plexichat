@@ -6,25 +6,20 @@ intelligent dependency resolution, and adaptive resource management.
 """
 
 import asyncio
-import logging
-import json
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Type
-from pathlib import Path
 import importlib
 import inspect
+import logging
 from collections import defaultdict, deque
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Type
 
-from . import SecureService, ServiceMetadata, ServicePriority, ServiceStatus, ServiceType
-from ..security import security_manager
-from ..optimization import optimization_manager
+from . import SecureService, ServiceMetadata, ServiceStatus
 
 logger = logging.getLogger(__name__)
 
 
 class ServiceDependencyError(Exception):
     """Raised when service dependencies cannot be resolved."""
-    pass
 
 
 class ServiceManager:

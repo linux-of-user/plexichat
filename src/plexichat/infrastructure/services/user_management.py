@@ -3,23 +3,29 @@ Comprehensive user management service for PlexiChat.
 Handles user profiles, account management, friends, and user operations.
 """
 
-from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any, Tuple
-from sqlmodel import Session, select
-from fastapi import HTTPException, status
 import hashlib
-import secrets
-import bcrypt
-from PIL import Image
 import io
 import os
+import secrets
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
+import bcrypt
+from fastapi import HTTPException, status
+from PIL import Image
+from sqlmodel import Session, select
+
+from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import (
-    EnhancedUser, UserStatus, UserTag, Friendship, FriendshipStatus,
-    BotAccount, AccountType, BotType, PermissionLevel
+    AccountType,
+    BotAccount,
+    BotType,
+    EnhancedUser,
+    Friendship,
+    FriendshipStatus,
+    UserStatus,
 )
 from plexichat.app.models.files import FileRecord
-from plexichat.app.logger_config import logger
 
 
 class UserManagementService:

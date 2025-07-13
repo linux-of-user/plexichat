@@ -4,22 +4,25 @@ PlexiChat AI CLI Tool
 Command-line interface for managing AI providers and models.
 """
 
+import argparse
 import asyncio
 import json
-import sys
-import argparse
 import logging
-from datetime import datetime
+import sys
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Optional
+
 import tabulate
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from plexichat.ai.core.ai_abstraction_layer import (
-    AIAbstractionLayer, AIRequest, AIModel, AIProvider,
-    ModelCapability, ModelStatus
+    AIAbstractionLayer,
+    AIModel,
+    AIProvider,
+    AIRequest,
+    ModelCapability,
 )
 from plexichat.ai.providers import ProviderStatus
 
@@ -122,7 +125,7 @@ class AICommandLineInterface:
                 print(f"✗ Failed to configure provider {provider.value}")
                 return 1
 
-        except ValueError as e:
+        except ValueError:
             print(f"Error: Invalid provider '{provider_name}'. Valid providers: {[p.value for p in AIProvider]}")
             return 1
         except Exception as e:
@@ -178,7 +181,7 @@ class AICommandLineInterface:
         try:
             usage_stats = self.ai_layer.get_usage_stats()
 
-            print(f"\nAI System Statistics")
+            print("\nAI System Statistics")
             print(f"Total Models: {len(self.ai_layer.models)}")
             print(f"Total Providers: {len(self.ai_layer.providers)}")
             print(f"Active Providers: {len(self.ai_layer.provider_instances)}")
@@ -187,7 +190,7 @@ class AICommandLineInterface:
             print(f"Response History: {len(self.ai_layer.response_history)}")
 
             if verbose and usage_stats:
-                print(f"\nUser Usage Statistics:")
+                print("\nUser Usage Statistics:")
                 for user_id, user_stats in usage_stats.items():
                     print(f"  User: {user_id}")
                     total_tokens = sum(model_stats.get('total_tokens', 0) for model_stats in user_stats.values())
@@ -207,17 +210,17 @@ class AICommandLineInterface:
         """Perform health check."""
         health = await self.ai_layer.health_check()
         
-        print(f"\n🏥 AI System Health Check")
+        print("\n🏥 AI System Health Check")
         print(f"Overall Status: {health['overall_status'].upper()}")
         print(f"Total Models: {health['total_models']}")
         print(f"Available Models: {health['available_models']}")
         print(f"Unavailable Models: {health['unavailable_models']}")
         
-        print(f"\n📊 Provider Status:")
+        print("\n📊 Provider Status:")
         for provider, stats in health['providers'].items():
             print(f"  {provider}: {stats['available']}/{stats['total']} available")
             
-        print(f"\n🧠 Model Health:")
+        print("\n🧠 Model Health:")
         for model_id, model_info in health['models'].items():
             health_info = model_info.get('health', {})
             total_requests = health_info.get('total_requests', 0)
@@ -245,7 +248,7 @@ class AICommandLineInterface:
             response = await self.ai_layer.process_request(request)
             
             if response.success:
-                print(f"✅ Success!")
+                print("✅ Success!")
                 print(f"Response: {response.content}")
                 print(f"Latency: {response.latency_ms}ms")
                 print(f"Cost: ${response.cost:.6f}")
@@ -335,7 +338,7 @@ class AICommandLineInterface:
                 print(f"    Last Request: {usage['last_request']}")
         else:
             all_stats = self.ai_layer.get_usage_stats()
-            print(f"\n📊 System Usage Statistics:")
+            print("\n📊 System Usage Statistics:")
             print(f"Total Users: {len(all_stats)}")
             
             total_tokens = 0

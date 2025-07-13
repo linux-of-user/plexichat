@@ -3,18 +3,17 @@ Presence and activity tracking endpoints.
 Handles user presence, typing indicators, and activity status.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel, Field
-from typing import Dict, List, Optional, Any
+import json
 from datetime import datetime, timezone
 from enum import Enum
-import asyncio
-import json
-import logging
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from pydantic import BaseModel, Field
 
 from ....core.auth.dependencies import get_current_user
-from ....core.security.rate_limiting import rate_limiter
 from ....core.logging import get_logger
+from ....core.security.rate_limiting import rate_limiter
 
 logger = get_logger(__name__)
 

@@ -3,25 +3,23 @@ Advanced recovery and redundancy system for PlexiChat.
 Handles multiple storage location failures with intelligent recovery algorithms.
 """
 
-import asyncio
-import hashlib
-import gzip
-import json
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Set
-from dataclasses import dataclass
-from pathlib import Path
-from sqlmodel import Session, select, func
 import concurrent.futures
+import gzip
+import hashlib
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
+from sqlmodel import Session, func, select
+
+from plexichat.app.logger_config import logger
 from plexichat.app.models.device_management import (
-    StorageDevice, DeviceShardAssignment, DeviceStatus
+    DeviceShardAssignment,
+    DeviceStatus,
+    StorageDevice,
 )
 from plexichat.app.models.enhanced_backup import EnhancedBackup, EnhancedBackupShard
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.models.message import Message
-from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
-from plexichat.app.logger_config import logger
 
 
 @dataclass
@@ -106,7 +104,7 @@ class AdvancedRecoverySystem:
                     .join(StorageDevice, DeviceShardAssignment.device_id == StorageDevice.id)
                     .where(
                         (DeviceShardAssignment.shard_id == shard.id) &
-                        (DeviceShardAssignment.is_active == True)
+                        (DeviceShardAssignment.is_active)
                     )
                 ).all()
                 
@@ -130,7 +128,7 @@ class AdvancedRecoverySystem:
                         select(func.count(DeviceShardAssignment.id))
                         .where(
                             (DeviceShardAssignment.device_id == device.id) &
-                            (DeviceShardAssignment.is_active == True)
+                            (DeviceShardAssignment.is_active)
                         )
                     ).first()
                     
@@ -193,7 +191,7 @@ class AdvancedRecoverySystem:
                     .join(StorageDevice, DeviceShardAssignment.device_id == StorageDevice.id)
                     .where(
                         (DeviceShardAssignment.shard_id == shard.id) &
-                        (DeviceShardAssignment.is_active == True)
+                        (DeviceShardAssignment.is_active)
                     )
                 ).all()
                 
@@ -376,7 +374,7 @@ class AdvancedRecoverySystem:
                     select(DeviceShardAssignment).where(
                         (DeviceShardAssignment.shard_id == shard_id) &
                         (DeviceShardAssignment.device_id == device_id) &
-                        (DeviceShardAssignment.is_active == True)
+                        (DeviceShardAssignment.is_active)
                     )
                 ).first()
                 

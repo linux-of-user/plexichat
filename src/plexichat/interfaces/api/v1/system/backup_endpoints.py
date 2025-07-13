@@ -10,18 +10,28 @@ ENHANCED SECURITY FEATURES:
 - Rate limiting and DDoS protection
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
-from fastapi.security import HTTPBearer
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
-from pydantic import BaseModel, Field
 import logging
+from datetime import datetime, timezone
+from typing import List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel, Field
 
 from ....backup import government_backup_manager
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
-from ....core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
-from ....core.exceptions import PlexiChatException
+from ....core_system.security.input_validation import (
+    InputType,
+    ValidationLevel,
+    get_input_validator,
+)
+from ....core_system.security.unified_audit_system import (
+    SecurityEventType,
+    SecuritySeverity,
+    ThreatLevel,
+    get_unified_audit_system,
+)
+from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backup", tags=["backup"])
@@ -73,7 +83,7 @@ async def require_backup_admin_auth(request: Request, token: str = Depends(secur
         # Log successful authentication
         audit_system.log_security_event(
             SecurityEventType.AUTHENTICATION_SUCCESS,
-            f"Successful backup admin authentication",
+            "Successful backup admin authentication",
             SecuritySeverity.INFO,
             ThreatLevel.LOW,
             user_id=auth_result.get('user_id'),
@@ -284,7 +294,7 @@ async def list_backup_operations(
             await government_backup_manager.initialize()
         
         from ....backup.core.backup_manager import BackupStatus
-        
+
         # Convert string filter to enum
         status_enum = None
         if status_filter:

@@ -3,16 +3,11 @@ Base test class with common utilities for PlexiChat tests.
 Provides test data generation, authentication helpers, and result tracking.
 """
 
-import asyncio
+import logging
 import random
 import string
-import secrets
-import hashlib
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
-import json
-import logging
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -110,11 +105,9 @@ class BaseTest:
     
     async def setup(self):
         """Setup test environment."""
-        pass
     
     async def teardown(self):
         """Cleanup test environment."""
-        pass
     
     async def run_all_tests(self):
         """Run all tests in this test class."""

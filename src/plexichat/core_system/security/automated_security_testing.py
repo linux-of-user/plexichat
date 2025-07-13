@@ -18,22 +18,25 @@ Features:
 """
 
 import asyncio
-import aiohttp
 import hashlib
 import json
-import logging
 import subprocess
 import time
-from datetime import datetime, timezone, timedelta
-from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
 import requests
 
-from ...core_system.logging import get_logger
 from ...core_system.config import get_config
-from .unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
+from ...core_system.logging import get_logger
+from .unified_audit_system import (
+    SecurityEventType,
+    SecuritySeverity,
+    ThreatLevel,
+    get_unified_audit_system,
+)
 
 logger = get_logger(__name__)
 
@@ -353,7 +356,7 @@ class AutomatedSecurityTester:
                 # Log critical security failure
                 self.audit_system.log_security_event(
                     SecurityEventType.SECURITY_ALERT,
-                    f"CI/CD pipeline blocked due to critical security vulnerabilities",
+                    "CI/CD pipeline blocked due to critical security vulnerabilities",
                     SecuritySeverity.CRITICAL,
                     ThreatLevel.CRITICAL,
                     user_id="ci_cd_system",
@@ -601,7 +604,7 @@ class AutomatedSecurityTester:
             session = requests.Session()
 
             # Get initial session
-            response1 = session.get(f"{self.base_url}/api/v1/auth/login", timeout=5)
+            session.get(f"{self.base_url}/api/v1/auth/login", timeout=5)
             initial_cookies = session.cookies.get_dict()
 
             # Attempt login
@@ -786,8 +789,8 @@ class AutomatedSecurityTester:
 
         try:
             # Test SSL/TLS configuration
-            import ssl
             import socket
+            import ssl
 
             hostname = self.base_url.replace("https://", "").replace("http://", "").split("/")[0]
 

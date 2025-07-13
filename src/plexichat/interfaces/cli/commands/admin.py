@@ -4,22 +4,20 @@ Comprehensive administrative interface with government-level security,
 password management, system control, and advanced admin operations.
 """
 
-import sys
-import getpass
 import argparse
+import getpass
 import json
-import os
-import time
-from typing import Dict, Any, Optional, List
-from pathlib import Path
+import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
-    from plexichat.core_system.auth.government_auth import get_government_auth
     import logging
+
+    from plexichat.core_system.auth.government_auth import get_government_auth
     logger = logging.getLogger(__name__)
     government_auth = None  # Will be initialized lazily
 except ImportError as e:
@@ -107,7 +105,7 @@ Examples:
         create_user_parser.add_argument('--role', '-r', choices=['super_admin', 'admin', 'operator', 'viewer'],
                                        default='admin', help='User role')
 
-        list_users_parser = subparsers.add_parser('list-users', help='List all admin users')
+        subparsers.add_parser('list-users', help='List all admin users')
 
         user_info_parser = subparsers.add_parser('user-info', help='Show detailed user information')
         user_info_parser.add_argument('username', help='Username to show info for')
@@ -130,7 +128,7 @@ Examples:
         backup_codes_parser.add_argument('--username', '-u', help='Username (will prompt if not provided)')
 
         # System management commands
-        status_parser = subparsers.add_parser('status', help='Show comprehensive system status')
+        subparsers.add_parser('status', help='Show comprehensive system status')
 
         server_control_parser = subparsers.add_parser('server-control', help='Control server operations')
         server_control_parser.add_argument('action', choices=['start', 'stop', 'restart', 'status'],
@@ -167,7 +165,7 @@ Examples:
         setup_2fa_parser.add_argument('--username', '-u', help='Username (will prompt if not provided)')
         
         # List users command
-        list_users_parser = subparsers.add_parser('list-users', help='List all admin users')
+        subparsers.add_parser('list-users', help='List all admin users')
         
         args = parser.parse_args()
 
@@ -266,7 +264,7 @@ Examples:
                 self.force_password_change(username)
             
             # Show session info
-            print(f"\n📊 Session Information:")
+            print("\n📊 Session Information:")
             print(f"   Username: {username}")
             print(f"   2FA Enabled: {'Yes' if result.get('two_factor_enabled') else 'No'}")
             print(f"   Session Token: {result['session_token'][:16]}...")
@@ -348,9 +346,9 @@ Examples:
         
         # System information
         print("🖥️  System Information:")
-        print(f"   Authentication System: Active")
-        print(f"   Security Level: Government-Grade")
-        print(f"   Encryption: AES-256 (Fernet)")
+        print("   Authentication System: Active")
+        print("   Security Level: Government-Grade")
+        print("   Encryption: AES-256 (Fernet)")
         
         # User information
         auth_system = self._get_auth_system()
@@ -358,13 +356,13 @@ Examples:
             admin_count = len(auth_system.admin_credentials)
             active_sessions = len(auth_system.active_sessions)
 
-            print(f"\n👥 User Information:")
+            print("\n👥 User Information:")
             print(f"   Admin Users: {admin_count}")
             print(f"   Active Sessions: {active_sessions}")
 
             # Security policy
             policy = auth_system.security_policy
-        print(f"\n🔒 Security Policy:")
+        print("\n🔒 Security Policy:")
         print(f"   Min Password Length: {policy.min_password_length}")
         print(f"   Max Failed Attempts: {policy.max_failed_attempts}")
         print(f"   Lockout Duration: {policy.lockout_duration_minutes} minutes")
@@ -374,8 +372,8 @@ Examples:
         # Check for default credentials file
         default_creds = Path("DEFAULT_ADMIN_CREDENTIALS.txt")
         if default_creds.exists():
-            print(f"\n⚠️  WARNING: Default credentials file still exists!")
-            print(f"   Please change the default password and delete the file.")
+            print("\n⚠️  WARNING: Default credentials file still exists!")
+            print("   Please change the default password and delete the file.")
     
     def handle_create_user(self, args):
         """Handle create user command."""
@@ -383,7 +381,7 @@ Examples:
         print("=" * 50)
         
         username = args.username
-        email = args.email or input("Email (optional): ")
+        args.email or input("Email (optional): ")
         
         # Generate secure password
         password = self.auth_system._generate_secure_password()
@@ -691,7 +689,7 @@ Examples:
             with open(config_file, 'w') as f:
                 json.dump(config, f, indent=2)
 
-            print(f"SUCCESS: Configuration updated")
+            print("SUCCESS: Configuration updated")
         else:
             print("ERROR: Configuration file not found")
 

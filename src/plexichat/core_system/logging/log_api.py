@@ -15,22 +15,21 @@ Features:
 - Log integrity verification
 """
 
-import json
 import asyncio
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union
-from pathlib import Path
-import logging
+import json
+from datetime import datetime
+from typing import Dict, List, Optional
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Query, Depends
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from starlette.websockets import WebSocketState
 
-from . import LogLevel, LogCategory, LogEntry, get_logging_manager
-from .security_logger import SecurityEventType, SecuritySeverity, get_security_logger
+from ...services.auth import require_admin
+from . import LogCategory, LogEntry, LogLevel, get_logging_manager
 from .performance_logger import get_performance_logger
-from ...services.auth import require_admin, get_current_user
+from .security_logger import SecurityEventType, SecuritySeverity, get_security_logger
+
 
 # Pydantic models for API
 class LogFilterRequest(BaseModel):

@@ -3,13 +3,14 @@ PlexiChat Update API Endpoints
 Provides API access to the GitHub-based update system.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+import logging
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 
 from plexichat.interfaces.web.routers.auth import get_current_admin_user
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -3,17 +3,15 @@ PlexiChat Advanced AI-Powered Content Moderation
 Real-time proactive content moderation with multi-modal analysis
 """
 
-import asyncio
-import logging
-import json
 import hashlib
+import logging
 import time
-from typing import Dict, List, Optional, Any, Union, Tuple
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
 import aiohttp
-import base64
 
 logger = logging.getLogger(__name__)
 
@@ -409,7 +407,7 @@ class ProactiveContentModerator:
         # Map provider-specific results to our violation types
         if provider == "openai" and "results" in ai_result:
             openai_result = ai_result["results"][0] if ai_result["results"] else {}
-            categories = openai_result.get("categories", {})
+            openai_result.get("categories", {})
             category_scores = openai_result.get("category_scores", {})
             
             # Map OpenAI categories to our violation types
@@ -595,7 +593,6 @@ class ProactiveContentModerator:
     async def _apply_custom_image_rules(self, image_data: bytes, result: ModerationResult):
         """Apply custom image analysis rules."""
         # Placeholder for custom image analysis
-        pass
     
     async def _detect_language(self, text: str) -> Optional[str]:
         """Detect language of text."""

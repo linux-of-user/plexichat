@@ -4,13 +4,13 @@ PlexiChat Channel API Endpoints
 Discord-like channel management endpoints.
 """
 
-from typing import List, Optional
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from ....features.channels.models.channel import Channel, ChannelType
-from ....features.channels.services.permission_service import PermissionService
 from ....core_system.auth.auth_manager import get_current_user
+from ....features.channels.models.channel import ChannelType
 
 router = APIRouter(prefix="/channels", tags=["channels"])
 

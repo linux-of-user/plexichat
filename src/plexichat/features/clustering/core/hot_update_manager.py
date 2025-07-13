@@ -10,17 +10,16 @@ Provides hot update capabilities for cluster nodes with:
 """
 
 import asyncio
-import logging
-import json
-import hashlib
-import shutil
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from pathlib import Path
-from dataclasses import dataclass
-from enum import Enum
 import importlib
+import json
+import logging
+import shutil
 import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -307,7 +306,7 @@ class HotUpdateManager:
         """Restore configuration from backup."""
         backup_path = self.backup_dir / f"{backup_id}.json"
         if backup_path.exists():
-            backup_data = json.loads(backup_path.read_text())
+            json.loads(backup_path.read_text())
             # Implementation would restore configuration
             logger.info(f"Configuration restored from backup {backup_id}")
     

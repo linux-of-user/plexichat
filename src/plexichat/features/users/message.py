@@ -4,10 +4,12 @@ Includes reactions, embeds, attachments, threads, and rich content.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
 from enum import Enum
-from sqlmodel import SQLModel, Field, Relationship, JSON, Column
-from sqlalchemy import Text, DateTime, Index
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import DateTime, Index, Text
+from sqlmodel import JSON, Column, Field, SQLModel
+
 
 class MessageType(int, Enum):
     """Message types matching Discord API."""

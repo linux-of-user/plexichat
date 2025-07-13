@@ -21,25 +21,18 @@ Provides comprehensive database management with:
 """
 
 import asyncio
-import logging
-from typing import Dict, List, Optional, Any, Union, Type, AsyncGenerator
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from contextlib import asynccontextmanager
 import time
-import hashlib
-import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 # SQLAlchemy imports
-from sqlalchemy import create_engine, text, MetaData, inspect, Engine
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import QueuePool, NullPool, StaticPool
-from sqlmodel import SQLModel, Session, select
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.pool import StaticPool
 
 # Database-specific imports
-import aiosqlite
 try:
     import redis.asyncio as redis  # type: ignore
     REDIS_AVAILABLE = True
@@ -54,11 +47,11 @@ except ImportError:
     MOTOR_AVAILABLE = False
     AsyncIOMotorClient = None
 
+from ...core_system.config import get_config
+
 # PlexiChat imports
 from ...core_system.logging import get_logger
-from ...core_system.config import get_config
-from ...core_system.auth import auth_manager
-from ...features.security import quantum_encryption, distributed_key_manager
+from ...features.security import distributed_key_manager, quantum_encryption
 
 logger = get_logger(__name__)
 
@@ -226,8 +219,10 @@ class ConsolidatedDatabaseManager:
         try:
             # Import repository classes
             from ...features.channels.repositories.channel_repository import ChannelRepository
+            from ...features.channels.repositories.permission_overwrite_repository import (
+                PermissionOverwriteRepository,
+            )
             from ...features.channels.repositories.role_repository import RoleRepository
-            from ...features.channels.repositories.permission_overwrite_repository import PermissionOverwriteRepository
 
             # Register channel system repositories
             self.register_repository("channel", ChannelRepository)
@@ -327,7 +322,7 @@ class ConsolidatedDatabaseManager:
     async def _load_environment_configurations(self) -> None:
         """Load database configurations from environment variables."""
         import os
-        
+
         # PostgreSQL configuration
         if os.getenv("PLEXICHAT_POSTGRES_URL"):
             postgres_config = DatabaseConfig(

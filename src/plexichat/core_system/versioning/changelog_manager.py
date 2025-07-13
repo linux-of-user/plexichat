@@ -5,16 +5,16 @@ Manages changelog generation, parsing, and integration with the version system.
 Supports multiple formats and automatic changelog generation from commits.
 """
 
-import re
 import json
-from enum import Enum
-from typing import Dict, List, Optional, Any
+import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
-import logging
+from typing import Any, Dict, List, Optional
 
-from .version_manager import Version, VersionType, VersionInfo
+from .version_manager import Version
 
 logger = logging.getLogger(__name__)
 

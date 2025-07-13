@@ -4,12 +4,11 @@ PlexiChat Password Manager
 Comprehensive password management with strength validation and policies.
 """
 
-import asyncio
 import logging
-import bcrypt
-from typing import Dict, Optional, Any
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+import bcrypt
 
 logger = logging.getLogger(__name__)
 

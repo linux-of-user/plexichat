@@ -3,12 +3,10 @@ Database connectivity and functionality tests for PlexiChat.
 Tests database connections, queries, and data integrity.
 """
 
-import asyncio
-import sqlite3
-from pathlib import Path
-from typing import Dict, Any
 import logging
+import sqlite3
 from datetime import datetime
+from pathlib import Path
 
 from .test_base import BaseTest, TestResult
 

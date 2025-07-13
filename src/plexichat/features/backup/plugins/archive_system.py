@@ -4,15 +4,14 @@ Provides versioning and archival capabilities through the shard system.
 """
 
 import asyncio
-import json
-import hashlib
 import gzip
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Set, Any, Union
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from enum import Enum
+import hashlib
+import json
 import logging
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Union
 
 logger = logging.getLogger(__name__)
 
@@ -394,7 +393,7 @@ class ArchiveSystemPlugin:
             raise RuntimeError("Shard manager not available")
         
         # Use backup system's shard manager
-        shard_manager = self.backup_manager.shard_manager
+        self.backup_manager.shard_manager
         
         # Create shards with archive-specific naming
         shard_id = f"archive_{archive_id}_{hashlib.sha256(data).hexdigest()[:16]}"

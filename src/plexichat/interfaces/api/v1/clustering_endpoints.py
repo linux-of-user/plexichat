@@ -3,16 +3,16 @@ Clustering Management API Endpoints
 Comprehensive API for cluster management, load balancing, and failover.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
-from fastapi.security import HTTPBearer
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
-from pydantic import BaseModel, Field
 import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel, Field
+
+from ....auth.dependencies import require_admin_auth
 from ....clustering import cluster_manager
-from ....auth.dependencies import require_admin_auth, get_current_user
-from ....core.exceptions import PlexiChatException
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/clustering", tags=["clustering"])
@@ -185,7 +185,7 @@ async def list_cluster_nodes(
             await cluster_manager.initialize()
         
         from ....clustering.core.cluster_manager import NodeStatus, NodeType
-        
+
         # Convert filters to enums
         status_enum = None
         if status_filter:
@@ -239,7 +239,7 @@ async def add_cluster_node(
             await cluster_manager.initialize()
         
         from ....clustering.core.cluster_manager import NodeType
-        
+
         # Convert node type to enum
         try:
             node_type_enum = NodeType(request.node_type.upper())
@@ -366,7 +366,7 @@ async def update_load_balancer_config(
             await cluster_manager.initialize()
         
         from ....clustering.core.load_balancer import LoadBalancingAlgorithm
-        
+
         # Convert algorithm to enum
         try:
             algorithm_enum = LoadBalancingAlgorithm(config.algorithm.upper())
@@ -596,9 +596,12 @@ async def plan_cluster_update(
             await cluster_manager.initialize()
 
         # Import update system components
-        from ....clustering.core.cluster_update_manager import ClusterUpdateManager, ClusterUpdateStrategy
-        from ....core.versioning.version_manager import Version
+        from ....clustering.core.cluster_update_manager import (
+            ClusterUpdateManager,
+            ClusterUpdateStrategy,
+        )
         from ....core.versioning.update_system import UpdateType
+        from ....core.versioning.version_manager import Version
 
         # Initialize cluster update manager if not exists
         if not hasattr(cluster_manager, 'update_manager'):

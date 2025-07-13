@@ -10,13 +10,11 @@ Coordinates all security systems including:
 - Security metrics and monitoring
 """
 
-import asyncio
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple, Any, Union
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -186,8 +184,9 @@ class UnifiedSecurityService:
             self.security_service = None
         
         try:
-            from plexichat.antivirus.core.message_scanner import MessageAntivirusScanner
             from pathlib import Path
+
+            from plexichat.antivirus.core.message_scanner import MessageAntivirusScanner
             self.message_scanner = MessageAntivirusScanner(Path("data"))
         except ImportError:
             logger.warning("Message antivirus scanner not available")
@@ -227,7 +226,7 @@ class UnifiedSecurityService:
         user_id = request_data.get('user_id')
         endpoint = request_data.get('endpoint', '/')
         method = request_data.get('method', 'GET')
-        user_agent = request_data.get('user_agent', '')
+        request_data.get('user_agent', '')
         
         # Create assessment object
         assessment = SecurityAssessment(

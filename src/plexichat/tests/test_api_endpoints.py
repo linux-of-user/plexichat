@@ -3,9 +3,6 @@ API endpoint tests for PlexiChat.
 Tests authentication, user management, and core API functionality.
 """
 
-import asyncio
-import json
-from typing import Dict, Any
 import logging
 from datetime import datetime
 

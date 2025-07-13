@@ -3,15 +3,14 @@ Enhanced Antivirus CLI
 Command-line interface for the enhanced antivirus system.
 """
 
-import asyncio
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from plexichat.features.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager
-from plexichat.features.antivirus.core import ScanType, ThreatLevel
 from plexichat.core.logging import logger
+from plexichat.features.antivirus.core import ScanType, ThreatLevel
+from plexichat.features.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager
+
 
 class AntivirusCLI:
     """CLI for enhanced antivirus management."""
@@ -179,11 +178,11 @@ class AntivirusCLI:
             
             # Overall assessment
             if overall_threat_level == ThreatLevel.CLEAN:
-                self.print_colored(f"\n✅ Overall Assessment: CLEAN", "green")
+                self.print_colored("\n✅ Overall Assessment: CLEAN", "green")
             elif overall_threat_level == ThreatLevel.SUSPICIOUS:
-                self.print_colored(f"\n⚠️ Overall Assessment: SUSPICIOUS", "yellow")
+                self.print_colored("\n⚠️ Overall Assessment: SUSPICIOUS", "yellow")
             else:
-                self.print_colored(f"\n🚨 Overall Assessment: THREAT DETECTED", "red")
+                self.print_colored("\n🚨 Overall Assessment: THREAT DETECTED", "red")
             
         except Exception as e:
             self.print_colored(f"❌ Scan failed: {e}", "red")
@@ -233,7 +232,7 @@ class AntivirusCLI:
             
             # Plugin assessment
             if threat_count == 0:
-                self.print_colored(f"\n✅ Plugin Assessment: SAFE TO INSTALL", "green")
+                self.print_colored("\n✅ Plugin Assessment: SAFE TO INSTALL", "green")
             elif threat_count <= 2:
                 self.print_colored(f"\n⚠️ Plugin Assessment: REVIEW REQUIRED ({threat_count} issues)", "yellow")
             else:
@@ -321,7 +320,7 @@ class AntivirusCLI:
             if success:
                 self.print_colored(f"✅ File restored from quarantine: {file_hash[:16]}...", "green")
             else:
-                self.print_colored(f"❌ Failed to restore file from quarantine", "red")
+                self.print_colored("❌ Failed to restore file from quarantine", "red")
             
         except Exception as e:
             self.print_colored(f"❌ Restore failed: {e}", "red")
@@ -336,7 +335,7 @@ class AntivirusCLI:
             if success:
                 self.print_colored(f"✅ Quarantined file deleted permanently: {file_hash[:16]}...", "green")
             else:
-                self.print_colored(f"❌ Failed to delete quarantined file", "red")
+                self.print_colored("❌ Failed to delete quarantined file", "red")
             
         except Exception as e:
             self.print_colored(f"❌ Delete failed: {e}", "red")

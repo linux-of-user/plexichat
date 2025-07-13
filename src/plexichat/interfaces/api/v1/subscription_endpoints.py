@@ -11,24 +11,24 @@ This API provides comprehensive subscription and tier management for external pa
 - Webhook support for payment events
 """
 
-import asyncio
-import json
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass, field
-from enum import Enum
-from fastapi import APIRouter, HTTPException, Depends, Request, BackgroundTasks
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field
-import hmac
 import hashlib
+import hmac
+import json
 import secrets
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from app.logger_config import logger
 from app.profiles.advanced_profile_system import (
-    advanced_profile_system, UserTier, SubscriptionStatus, UserSubscription
+    SubscriptionStatus,
+    UserSubscription,
+    UserTier,
+    advanced_profile_system,
 )
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field
 
 # Security
 security = HTTPBearer()

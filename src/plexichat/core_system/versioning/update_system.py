@@ -17,30 +17,24 @@ Revolutionary update system with government-level security and reliability:
 - Changelog integration
 """
 
-import os
-import sys
-import json
-import shutil
-import subprocess
 import asyncio
 import hashlib
-import hmac
-import tempfile
-import threading
-from enum import Enum
-from typing import Dict, List, Optional, Any, Tuple, Set, Callable
+import logging
+import shutil
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
-import logging
-import aiohttp
-import aiofiles
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+from typing import Any, Dict, List, Optional, Set
 
-from .version_manager import Version, VersionType, VersionInfo, version_manager
-from .changelog_manager import ChangelogManager, VersionChangelog, ChangeType, ChangeEntry
+import aiohttp
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+from .changelog_manager import ChangelogManager, ChangeType
+from .version_manager import Version, VersionType, version_manager
 
 logger = logging.getLogger(__name__)
 
@@ -335,7 +329,7 @@ class P2PUpdateDistributor:
                 if response.status != 200:
                     return False
 
-                identity_data = await response.json()
+                await response.json()
 
                 # Verify cryptographic identity
                 # Implementation would include certificate chain validation
@@ -1075,7 +1069,7 @@ class UpdateSystem:
             raise ValueError(f"Cannot rollback update {update_id}")
         
         # Create rollback plan
-        current_version = self.version_manager.get_current_version()
+        self.version_manager.get_current_version()
         # This would need to be stored from the original update
         target_version = Version.parse("0a1")  # Placeholder
         

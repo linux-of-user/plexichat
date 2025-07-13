@@ -12,11 +12,10 @@ Real-time backup status monitoring integrated with government-level backup syste
 
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import json
+from typing import List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

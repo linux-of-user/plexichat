@@ -5,18 +5,19 @@ Supports PostgreSQL, MySQL, SQLite, and MongoDB with clustering.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Union
-from enum import Enum
-from dataclasses import dataclass
-from contextlib import asynccontextmanager
-import time
 import random
+import time
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import create_engine, event, pool
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import QueuePool, NullPool
+from sqlalchemy.pool import NullPool, QueuePool
 from sqlmodel import Session
+
 try:
     import redis.asyncio as redis  # type: ignore
     REDIS_AVAILABLE = True
@@ -52,7 +53,6 @@ except ImportError:
             self.DB_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "30"))
             self.DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
     settings = Settings()
-import logging
 
 logger = logging.getLogger(__name__)
 

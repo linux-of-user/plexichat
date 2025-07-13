@@ -13,30 +13,25 @@ Features:
 """
 
 import asyncio
+import json
 import logging
 import threading
-import json
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union, Callable
 from dataclasses import dataclass, field
-from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 # GUI imports with proper fallbacks
 GUI_AVAILABLE = False
 try:
     import tkinter as tk
-    from tkinter import ttk, messagebox, simpledialog, filedialog
+    from tkinter import filedialog, messagebox, simpledialog, ttk
     GUI_AVAILABLE = True
 except ImportError:
     pass
 
 MATPLOTLIB_AVAILABLE = False
 try:
-    import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-    from matplotlib.figure import Figure
-    import numpy as np
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     pass
@@ -46,19 +41,7 @@ BACKUP_AVAILABLE = False
 backup_manager = None
 
 try:
-    from ...features.backup import (
-        UnifiedBackupManager,
-        get_unified_backup_manager,
-        BackupOperation,
-        UnifiedShard,
-        SystemHealth,
-        BackupPriority,
-        BackupType,
-        BackupStatus,
-        SecurityLevel,
-        DistributionStrategy,
-        backup_status_monitor
-    )
+    from ...features.backup import get_unified_backup_manager
     backup_manager = get_unified_backup_manager()
     BACKUP_AVAILABLE = True
 except ImportError:

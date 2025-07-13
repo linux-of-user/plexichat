@@ -1,7 +1,10 @@
 """User API schemas."""
-from typing import Optional, Dict, Any
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr
+
 from .models import UserRole, UserStatus
+
 
 class UserCreate(BaseModel):
     """Schema for creating a user."""

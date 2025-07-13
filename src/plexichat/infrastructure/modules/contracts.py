@@ -6,16 +6,20 @@ for all modules to ensure they meet interface requirements and security standard
 """
 
 import inspect
-import json
-import jsonschema
-from typing import Dict, List, Any, Type, Optional, get_type_hints
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Type, get_type_hints
+
+import jsonschema
 
 from ...core_system.logging import get_logger
 from .interfaces import (
-    BaseModule, ModuleCapability, ModulePermissions, ModuleState,
-    IModuleLifecycle, IModuleConfiguration, IModuleAPI, IModuleSecurity
+    BaseModule,
+    IModuleAPI,
+    IModuleConfiguration,
+    IModuleLifecycle,
+    IModuleSecurity,
+    ModulePermissions,
 )
 
 logger = get_logger(__name__)

@@ -4,16 +4,14 @@ Implements file scanning, link safety checking, SQL injection detection,
 and multi-layer input sanitization with witty responses.
 """
 
-import re
 import hashlib
+import re
 import time
-import json
 import urllib.parse
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Set
-from dataclasses import dataclass, asdict
 from enum import Enum
-import logging
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from plexichat.app.logger_config import logger
 
@@ -341,7 +339,7 @@ class SecurityService:
                         threat_type=ThreatType.MALICIOUS_LINK,
                         threat_level=ThreatLevel.MEDIUM,
                         source=url,
-                        description=f"Suspicious URL pattern detected",
+                        description="Suspicious URL pattern detected",
                         detected_at=datetime.now(),
                         witty_response="Suspicious link detected! We don't click on sketchy links here! 🔗❌"
                     )

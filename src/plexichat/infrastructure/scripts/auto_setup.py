@@ -5,13 +5,10 @@ Automatically creates necessary directories and files on first install.
 This ensures only source code stays in /src while everything else is auto-created.
 """
 
-import os
-import sys
 import json
-import shutil
+import sys
 from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Any
+
 
 def create_directory_structure():
     """Create the complete directory structure for PlexiChat."""

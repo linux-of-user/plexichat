@@ -14,15 +14,14 @@ Features:
 - Configuration migration support
 """
 
-import re
 import json
-import yaml
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any
+import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
-import logging
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -338,7 +337,7 @@ class VersionManager:
     
     def get_upgrade_path(self, target_version: Version) -> List[Version]:
         """Get upgrade path from current to target version."""
-        current = self.current_version
+        self.current_version
         path = []
         
         # Simple path for now - direct upgrade

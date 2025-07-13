@@ -9,33 +9,24 @@ Integrates multiple DDoS protection systems with:
 - Real-time monitoring and adaptation
 """
 
-import time
-import asyncio
 import logging
-import hmac
-import secrets
-import hashlib
-import json
-import numpy as np
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
+import time
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
 import psutil
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import base64
 
 logger = logging.getLogger(__name__)
 
 # Import advanced behavioral analyzer
 try:
     from app.security.advanced_behavioral_analyzer import (
-        advanced_behavioral_analyzer,
+        BehavioralAssessment,
         BehavioralThreatType,
-        BehavioralAssessment
+        advanced_behavioral_analyzer,
     )
     BEHAVIORAL_ANALYZER_AVAILABLE = True
 except ImportError:

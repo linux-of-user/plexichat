@@ -31,7 +31,7 @@ __url__ = "https://github.com/linux-of-user/plexichat"
 
 # Import version management system
 try:
-    from .core.versioning.version_manager import version_manager, Version, VersionType
+    from .core.versioning.version_manager import Version, VersionType, version_manager
 
     # Ensure version consistency
     version_manager.set_current_version(__version__)

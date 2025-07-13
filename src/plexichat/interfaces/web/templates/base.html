@@ -19,10 +19,11 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='images/favicon.ico') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', path='images/apple-touch-icon.png') }}">
     
-    <!-- CSS -->
+    <!-- Enhanced CSS Framework -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/themes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/modern-ui.css') }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,15 +44,17 @@
         </div>
     </div>
     
-    <!-- Navigation -->
+    <!-- Enhanced Navigation -->
     {% if not hide_nav %}
-    <nav class="navbar" id="navbar">
-        <div class="navbar-container">
+    <nav class="navbar-enhanced" id="navbar">
+        <div class="container">
             <!-- Logo -->
-            <div class="navbar-brand">
+            <div class="navbar-brand-enhanced">
+                <div class="navbar-brand-logo">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
                 <a href="{{ url_for('dashboard') }}" class="brand-link">
-                    <img src="{{ url_for('static', path='images/logo.svg') }}" alt="Chat API" class="brand-logo">
-                    <span class="brand-text">Chat API</span>
+                    <span class="brand-text">PlexiChat</span>
                 </a>
             </div>
             
@@ -258,10 +261,12 @@
         };
     </script>
     
-    <!-- Core JavaScript -->
+    <!-- Enhanced JavaScript Framework -->
     <script src="{{ url_for('static', path='js/utils.js') }}"></script>
     <script src="{{ url_for('static', path='js/api.js') }}"></script>
     <script src="{{ url_for('static', path='js/websocket.js') }}"></script>
+    <script src="{{ url_for('static', path='js/components.js') }}"></script>
+    <script src="{{ url_for('static', path='js/enhanced-ui.js') }}"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
     <script src="{{ url_for('static', path='js/ui.js') }}"></script>
     <script src="{{ url_for('static', path='js/main.js') }}"></script>

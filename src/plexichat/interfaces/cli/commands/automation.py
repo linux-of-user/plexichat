@@ -3,18 +3,21 @@ CLI Automation Commands
 Enhanced CLI commands for automation, scripting, and logic engine management.
 """
 
-import asyncio
-import json
-import yaml
 import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Optional
-from pathlib import Path
+from typing import List
+
+import yaml
 
 from .enhanced_logic_engine import (
-    EnhancedLogicEngine, AutomationRule, Condition, Action,
-    ConditionType, TaskStatus
+    Action,
+    AutomationRule,
+    Condition,
+    ConditionType,
+    EnhancedLogicEngine,
+    TaskStatus,
 )
+
 
 class AutomationCLI:
     """CLI interface for automation and logic engine."""

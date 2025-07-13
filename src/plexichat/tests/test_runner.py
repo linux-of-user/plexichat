@@ -10,20 +10,19 @@ Comprehensive test runner for all PlexiChat functionality including:
 """
 
 import asyncio
+import logging
 import sys
 import time
 from pathlib import Path
-from typing import Dict, Any, List
-import logging
+from typing import Any, Dict
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from .test_base import BaseTest, TestResult
+from .test_api_endpoints import APIEndpointTest
 from .test_config import ConfigTest
 from .test_database import DatabaseTest
 from .test_ssl import SSLTest
-from .test_api_endpoints import APIEndpointTest
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ class PlexiChatTestRunner:
                 self.all_results.extend(test_instance.test_results)
                 
                 # Print summary
-                total = summary['total_tests']
+                summary['total_tests']
                 passed = summary['passed']
                 failed = summary['failed']
                 warnings = summary['warnings']

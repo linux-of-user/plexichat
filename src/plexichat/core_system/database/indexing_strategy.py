@@ -21,18 +21,15 @@ Features:
 - Performance impact analysis
 """
 
-import asyncio
 import logging
-import time
-from typing import Dict, List, Optional, Any, Set, Tuple
-from datetime import datetime, timezone, timedelta
+from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-from collections import defaultdict, Counter
-import json
+from typing import Any, Dict, List, Optional
 
 try:
-    from .enhanced_abstraction import DatabaseType, AbstractDatabaseClient  # type: ignore
+    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     # Create placeholder classes if enhanced_abstraction is not available
@@ -74,7 +71,7 @@ except ImportError:
                     self.count = 0
                     self.error = None
             return MockResult()
-from .query_optimizer import sql_analyzer, performance_monitor
+from .query_optimizer import performance_monitor, sql_analyzer
 
 logger = logging.getLogger(__name__)
 

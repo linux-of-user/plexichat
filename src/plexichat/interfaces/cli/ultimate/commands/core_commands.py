@@ -5,22 +5,20 @@ Essential system operations and management commands
 
 import asyncio
 import logging
-import sys
 import os
 import platform
-import psutil
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
-import typer
+import psutil
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Confirm
+from rich.table import Table
 
-from ..cli_coordinator import ultimate_cli, UltimateCommand, CommandCategory
+from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -387,7 +385,7 @@ async def cmd_info():
         
         # PlexiChat info
         console.print("\n🚀 PlexiChat:")
-        console.print(f"  Version: 3.0.0")
+        console.print("  Version: 3.0.0")
         console.print(f"  Installation: {Path.cwd()}")
         console.print(f"  Process ID: {os.getpid()}")
         console.print(f"  Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

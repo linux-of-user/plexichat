@@ -3,16 +3,14 @@ Backup Node Authentication and Authorization System
 Government-level security for backup node API access with restricted shard collection.
 """
 
-import hashlib
-import secrets
-import json
 import asyncio
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Set, Any
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from enum import Enum
+import hashlib
 import logging
+import secrets
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 

@@ -7,17 +7,16 @@ Tests the backup node functionality and API endpoints.
 import asyncio
 import base64
 import hashlib
-import json
+import sys
 import time
 from pathlib import Path
-import sys
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
 try:
     import httpx
-    from backup_node.backup_node_client import BackupNodeClient, BackupNodeManager
+    from backup_node.backup_node_client import BackupNodeClient
 except ImportError as e:
     print(f"❌ Missing dependencies: {e}")
     print("Install with: pip install httpx")
@@ -175,7 +174,7 @@ class BackupNodeTester:
                 
                 if response.status_code == 200:
                     data = response.json()
-                    shards = data.get("shards", [])
+                    data.get("shards", [])
                     total_count = data.get("total_count", 0)
                     
                     self.log_test("List Shards", True, f"Found {total_count} shards")

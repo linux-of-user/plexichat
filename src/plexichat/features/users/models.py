@@ -5,17 +5,16 @@ Consolidated user models from models.py and enhanced_models.py.
 Includes both Pydantic models for API validation and SQLModel for database operations.
 """
 
-from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
-from enum import Enum
 import uuid
-import json
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, EmailStr, Field
-from sqlmodel import SQLModel, Field as SQLField, Relationship, Column, Index, Text, JSON
-from sqlalchemy import DateTime, String, Boolean, Integer, Float, LargeBinary
-from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
+from sqlmodel import JSON, Column
+from sqlmodel import Field as SQLField
+from sqlmodel import Index, SQLModel
 
 
 # Enums

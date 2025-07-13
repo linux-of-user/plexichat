@@ -15,18 +15,20 @@ Features in v1:
 - Administrative functions
 """
 
-import logging
-from typing import Dict, List, Optional, Any, Union
-from fastapi import APIRouter, Depends, HTTPException, status, WebSocket
-from fastapi.security import HTTPBearer
-from datetime import datetime
 import asyncio
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
+from fastapi.security import HTTPBearer
+
+from ...ai import get_ai_manager
 
 # Import core systems
 from ...core.auth import get_current_user, verify_permissions
 from ...core.security import security_manager
 from ...services import get_service
-from ...ai import get_ai_manager
 
 logger = logging.getLogger(__name__)
 

@@ -5,19 +5,19 @@ Analyzes URLs and links for safety, checking against known malicious domains,
 suspicious patterns, and using threat intelligence feeds.
 """
 
-import asyncio
-import logging
+import hashlib
 import json
+import logging
+import re
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+from urllib.parse import parse_qs, urlparse
+
 import aiohttp
 import aiosqlite
-import re
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Set, Any
-from urllib.parse import urlparse, parse_qs
-import hashlib
 
-from . import ThreatLevel, ScanType, ThreatType, ScanResult
+from . import ScanResult, ScanType, ThreatLevel, ThreatType
 
 logger = logging.getLogger(__name__)
 

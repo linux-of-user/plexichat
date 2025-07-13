@@ -5,10 +5,11 @@ WhatsApp-like status update model with 24-hour expiry.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
 from enum import Enum
-from sqlmodel import SQLModel, Field, Column
-from sqlalchemy import Text, DateTime, Index
+from typing import Any, Dict, Optional
+
+from sqlalchemy import DateTime, Index, Text
+from sqlmodel import Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 

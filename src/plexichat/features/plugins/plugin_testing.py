@@ -12,15 +12,13 @@ Comprehensive testing framework for plugins:
 
 import asyncio
 import json
+import logging
 import time
 import traceback
-from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-import logging
-import unittest
-from unittest.mock import Mock, AsyncMock
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +125,6 @@ class MockPlexiChatAPI:
     
     def emit_event(self, event_name: str, data: Any):
         """Mock emit event."""
-        pass
     
     def log(self, level: str, message: str):
         """Mock logging."""
@@ -333,7 +330,7 @@ class PluginTestFramework:
         """Test plugin API usage."""
         # Test basic API calls
         result = await api.send_message("test_user", "test message")
-        assert result == True, "Should be able to send messages"
+        assert result, "Should be able to send messages"
         
         user_info = await api.get_user_info("test_user")
         assert user_info is not None, "Should be able to get user info"

@@ -3,18 +3,14 @@ PlexiChat Web Application Firewall (WAF)
 Integrates ModSecurity with OWASP Core Rule Set for comprehensive protection
 """
 
-import asyncio
 import logging
 import re
-import json
-import time
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)

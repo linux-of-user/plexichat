@@ -10,18 +10,19 @@ Usage:
     python standalone_backup_node.py --config backup_node_config.yaml
 """
 
-import asyncio
-import sys
 import argparse
-import yaml
+import asyncio
 import json
+import sys
 from pathlib import Path
+
+import yaml
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 try:
-    from plexichat.app.backup.backup_node_system import BackupNodeSystem, BackupNodeConfig, NodeMode
+    from plexichat.app.backup.backup_node_system import BackupNodeConfig, BackupNodeSystem, NodeMode
 except ImportError:
     print("❌ Error: Could not import PlexiChat backup system.")
     print("Make sure you're running this from the PlexiChat root directory.")
@@ -158,7 +159,7 @@ Examples:
     else:
         # Create configuration from command line arguments
         config = BackupNodeConfig(
-            node_id=args.node_id or f"backup_node_standalone",
+            node_id=args.node_id or "backup_node_standalone",
             node_mode=NodeMode.STANDALONE,
             host=args.host,
             port=args.port,

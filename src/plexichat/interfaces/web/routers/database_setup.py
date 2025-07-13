@@ -3,14 +3,20 @@ PlexiChat Database Setup API
 Comprehensive database configuration and setup endpoints.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from fastapi.security import HTTPBearer
-from typing import Dict, List, Any, Optional
-from pydantic import BaseModel
 import logging
+from typing import Optional
 
-from plexichat.core.database_setup_wizard import database_wizard, DatabaseType, SetupStep
-from plexichat.core.external_database import external_db_manager, DatabaseProvider, DatabaseEngine, ExternalDatabaseConfig
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel
+
+from plexichat.core.database_setup_wizard import database_wizard
+from plexichat.core.external_database import (
+    DatabaseEngine,
+    DatabaseProvider,
+    ExternalDatabaseConfig,
+    external_db_manager,
+)
 from plexichat.infrastructure.utils.auth import verify_admin_token
 
 logger = logging.getLogger(__name__)

@@ -16,15 +16,15 @@ Provides a unified command-line interface for PlexiChat administration and opera
 import asyncio
 import logging
 import sys
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable, Dict, List, Optional
+
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Prompt, Confirm
+from rich.table import Table
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -280,6 +280,7 @@ def start(
     try:
         # This would start the actual server
         import uvicorn
+
         from ....main import app as fastapi_app
         
         uvicorn.run(

@@ -4,15 +4,15 @@ Enables messaging when database is unavailable using server as proxy.
 """
 
 import asyncio
-import json
-import time
-import hashlib
-import secrets
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, Set
-from dataclasses import dataclass, asdict
-from cryptography.fernet import Fernet
 import base64
+import hashlib
+import json
+import secrets
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+from cryptography.fernet import Fernet
 
 from plexichat.core.logging import logger
 

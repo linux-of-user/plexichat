@@ -4,17 +4,17 @@ Multi-level distributed caching with Redis clustering and intelligent routing
 """
 
 import asyncio
-import logging
-import json
-import pickle
 import hashlib
+import logging
+import pickle
 import time
-from typing import Dict, List, Optional, Any, Union, Tuple
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-import aioredis
 import zlib
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import aioredis
 
 logger = logging.getLogger(__name__)
 

@@ -11,22 +11,35 @@ ENHANCED SECURITY FEATURES:
 - Rate limiting and DDoS protection
 """
 
-from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Query, BackgroundTasks
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
-from sqlmodel import Session, select
 from pydantic import BaseModel
+from sqlmodel import Session, select
 
 from plexichat.app.db import get_session
 from plexichat.app.models.enhanced_backup import (
-    EnhancedBackup, BackupType, BackupStatus, SecurityLevel,
-    BackupNode, UserBackupQuota, BackupRecoveryLog
+    BackupNode,
+    BackupRecoveryLog,
+    BackupStatus,
+    BackupType,
+    EnhancedBackup,
+    SecurityLevel,
+    UserBackupQuota,
 )
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
-from ....core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
+
+from ....core_system.security.input_validation import get_input_validator
+from ....core_system.security.unified_audit_system import (
+    SecurityEventType,
+    SecuritySeverity,
+    ThreatLevel,
+    get_unified_audit_system,
+)
+from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager
 
 # Initialize security components
 auth_manager = get_unified_auth_manager()
@@ -79,10 +92,10 @@ async def require_enhanced_backup_auth(request: Request, token: str = Depends(se
     except Exception as e:
         logger.error(f"Enhanced backup authentication error: {e}")
         raise HTTPException(status_code=500, detail="Authentication system error")
+from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.services.enhanced_backup_service import EnhancedBackupService
 from plexichat.app.utils.auth import get_current_user
-from plexichat.app.logger_config import logger
 
 
 # Pydantic models for API

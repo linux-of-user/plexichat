@@ -3,21 +3,18 @@ Decentralized Security Architecture for PlexiChat.
 Implements distributed consensus, security validation, and resilient network topology.
 """
 
-import os
-import json
 import hashlib
-import hmac
-import time
+import json
 import secrets
-from typing import Dict, List, Any, Optional, Set
+import time
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from dataclasses import dataclass, asdict
 from enum import Enum
-import asyncio
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from typing import Any, Dict, List, Optional
+
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 from plexichat.app.logger_config import logger
 
@@ -203,7 +200,7 @@ class DecentralizedSecurityManager:
             self.trust_network[node_id] = {}
             
             # Create registration proposal for consensus
-            proposal = self._create_proposal(
+            self._create_proposal(
                 "node_registration",
                 {"node_id": node_id, "public_key": public_key, "capabilities": capabilities},
                 ConsensusType.SIMPLE_MAJORITY
@@ -439,7 +436,7 @@ class DecentralizedSecurityManager:
             
             # Create proposal for critical events
             if severity == SecurityLevel.CRITICAL:
-                proposal = self._create_proposal(
+                self._create_proposal(
                     "security_response",
                     {"event_id": event_id, "response": "immediate_action"},
                     ConsensusType.SUPER_MAJORITY

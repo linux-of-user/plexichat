@@ -4,18 +4,18 @@ Handles message creation, editing, deletion with proper file access validation.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Query
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
-from sqlmodel import Session, select
 from pydantic import BaseModel
+from sqlmodel import Session, select
 
 from plexichat.app.db import get_session
 from plexichat.app.models.message import Message, MessageType
 from plexichat.app.models.user import User
 from plexichat.app.services.message_service import MessageService
 from plexichat.app.utils.auth import get_current_user
-from plexichat.app.logger_config import logger
 
 
 # Pydantic models for API
@@ -281,7 +281,7 @@ async def list_messages(
         )
     
     if not include_deleted:
-        statement = statement.where(Message.is_deleted == False)
+        statement = statement.where(not Message.is_deleted)
     
     statement = statement.order_by(Message.timestamp.desc()).offset(offset).limit(limit)
     

@@ -3,17 +3,18 @@ PlexiChat Web Interface
 Provides HTML pages and web-based interfaces.
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException, BackgroundTasks
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from pathlib import Path
-import os
 import asyncio
+import os
+from pathlib import Path
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 
 # Import authentication (with fallback)
 try:
-    from plexichat.interfaces.web.routers.login import get_current_user
     from plexichat.core.auth.manager_auth import login_manager
+    from plexichat.interfaces.web.routers.login import get_current_user
     AUTH_AVAILABLE = True
 except ImportError:
     AUTH_AVAILABLE = False
@@ -22,7 +23,10 @@ except ImportError:
 
 # Import settings
 try:
-    import logging import settings
+    import logging
+
+    import import
+    import settings
 except ImportError:
     class MockSettings:
         APP_NAME = "PlexiChat"

@@ -5,22 +5,15 @@ PlexiChat Ultimate CLI - Main Entry Point
 
 import asyncio
 import logging
-from typing import Optional, List
 from pathlib import Path
+from typing import List, Optional
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.tree import Tree
 
-from .cli_coordinator import ultimate_cli, CommandCategory
-from .commands import (
-    core_commands,
-    system_commands,
-    security_commands,
-    # Additional command modules would be imported here
-)
+from .cli_coordinator import CommandCategory, ultimate_cli
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -412,10 +405,10 @@ def main():
         register_all_commands()
         
         # Show final statistics
-        console.print(f"\n🎉 [bold green]PlexiChat Ultimate CLI Ready![/bold green]")
+        console.print("\n🎉 [bold green]PlexiChat Ultimate CLI Ready![/bold green]")
         console.print(f"📊 Total Commands: {ultimate_cli.stats['total_commands']}")
         console.print(f"📁 Categories: {len([cat for cat in ultimate_cli.categories if ultimate_cli.categories[cat]])}")
-        console.print(f"🚀 Ready for operation!")
+        console.print("🚀 Ready for operation!")
         
         # Run the Typer app
         app()

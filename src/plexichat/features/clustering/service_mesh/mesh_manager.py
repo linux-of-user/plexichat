@@ -12,14 +12,14 @@ Advanced service mesh implementation with:
 """
 
 import asyncio
-import json
-import yaml
-from enum import Enum
-from typing import Dict, List, Optional, Any, Set
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
-import logging
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -269,7 +269,7 @@ class ServiceMeshManager:
         """Create mesh configuration for service."""
         if self.mesh_type == ServiceMeshType.ISTIO:
             # Create Istio ServiceEntry
-            service_entry = {
+            {
                 "apiVersion": "networking.istio.io/v1beta1",
                 "kind": "ServiceEntry",
                 "metadata": {

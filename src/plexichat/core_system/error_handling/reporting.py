@@ -4,16 +4,12 @@ PlexiChat Error Reporting System
 Comprehensive error reporting with multiple backends and intelligent routing.
 """
 
-import asyncio
-import logging
 import json
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timezone
+import logging
 from pathlib import Path
-import traceback
+from typing import Any, Dict, Optional
 
-from .context import ErrorContext, ErrorSeverity, ErrorCategory
-from .exceptions import PlexiChatError
+from .context import ErrorContext, ErrorSeverity
 
 
 class ErrorReporter:

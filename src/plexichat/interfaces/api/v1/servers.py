@@ -5,12 +5,17 @@ Discord-like server management endpoints.
 """
 
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from ....features.channels.models.server import Server, VerificationLevel, DefaultMessageNotifications, ExplicitContentFilter
-from ....features.channels.services.permission_service import PermissionService
 from ....core_system.auth.auth_manager import get_current_user
+from ....features.channels.models.server import (
+    DefaultMessageNotifications,
+    ExplicitContentFilter,
+    Server,
+    VerificationLevel,
+)
 
 router = APIRouter(prefix="/servers", tags=["servers"])
 

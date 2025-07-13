@@ -4,10 +4,12 @@ Includes text channels, voice channels, categories, threads, and permissions.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
 from enum import Enum
-from sqlmodel import SQLModel, Field, Relationship, JSON, Column
-from sqlalchemy import Text, DateTime, Index
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import DateTime, Index, Text
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel
+
 
 class ChannelType(int, Enum):
     """Channel types matching Discord API."""

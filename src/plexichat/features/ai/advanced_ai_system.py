@@ -11,13 +11,12 @@ Comprehensive AI-powered features with multiple provider support:
 """
 
 import asyncio
-import json
-from enum import Enum
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import logging
 import re
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -425,7 +424,7 @@ class ContentModerationEngine:
             
             # Parse AI response (simplified)
             # In production, this would parse structured AI output
-            ai_response = response.get("response", "")
+            response.get("response", "")
             
             # Simulate AI scores
             result.toxicity_score = max(result.toxicity_score, 0.2)

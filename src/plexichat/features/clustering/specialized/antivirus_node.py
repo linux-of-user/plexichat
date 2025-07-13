@@ -11,22 +11,20 @@ Dedicated cluster node for antivirus scanning operations with:
 
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from pathlib import Path
-from dataclasses import dataclass
-from enum import Enum
-import aiosqlite
-import json
 
 # Import PlexiChat components
 import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
+from plexichat.antivirus.core import ScanResult, ScanType
 from plexichat.antivirus.core.antivirus_engine import AdvancedAntivirusEngine
-from plexichat.antivirus.core import ThreatLevel, ScanType, ScanResult
 from plexichat.clustering.core.cluster_node import ClusterNode
-from plexichat.clustering.core.encrypted_communication import EncryptedCommunicationManager, MessageType
 
 logger = logging.getLogger(__name__)
 

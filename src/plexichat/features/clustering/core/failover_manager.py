@@ -8,18 +8,17 @@ automatic recovery, and seamless service continuity.
 import asyncio
 import logging
 import secrets
-import json
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from pathlib import Path
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-import aiosqlite
+from typing import Any, Dict, List, Optional
 
 from . import (
-    ClusterRole, NodeStatus, FAILOVER_TIMEOUT_SECONDS, MAX_FAILOVER_ATTEMPTS,
-    RECOVERY_VERIFICATION_TIME
+    FAILOVER_TIMEOUT_SECONDS,
+    MAX_FAILOVER_ATTEMPTS,
+    RECOVERY_VERIFICATION_TIME,
+    NodeStatus,
 )
 
 logger = logging.getLogger(__name__)
@@ -539,7 +538,7 @@ class AutomaticFailoverManager:
     async def _prepare_target_node(self, node_id: str) -> bool:
         """Prepare target node for failover."""
         if node_id in self.cluster_manager.cluster_nodes:
-            node = self.cluster_manager.cluster_nodes[node_id]
+            self.cluster_manager.cluster_nodes[node_id]
             # In a real implementation, this would prepare the node for additional load
             logger.info(f"Prepared target node {node_id} for failover")
             return True

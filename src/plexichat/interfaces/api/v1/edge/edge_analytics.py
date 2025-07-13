@@ -3,19 +3,15 @@ PlexiChat Edge Analytics API
 Advanced analytics, monitoring, and insights for edge computing infrastructure.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone, timedelta
-from pydantic import BaseModel, Field
-import asyncio
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
-from ....core.performance.edge_computing_manager import (
-    get_edge_computing_manager, 
-    NodeType,
-    LoadLevel
-)
-from ....core.auth import require_auth, require_admin
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from ....core.auth import require_auth
 from ....core.logging import get_logger
+from ....core.performance.edge_computing_manager import get_edge_computing_manager
 
 logger = get_logger(__name__)
 

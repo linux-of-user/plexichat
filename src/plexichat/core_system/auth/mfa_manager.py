@@ -3,21 +3,21 @@ Advanced 2FA System for PlexiChat
 Comprehensive two-factor authentication with multiple methods and security features.
 """
 
-import pyotp # type: ignore
-import qrcode
-import secrets
-import hashlib
 import base64
+import hashlib
 import io
+import os
+import secrets
 import smtplib
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Tuple
-from email.mime.text import MIMEText as MimeText
 from email.mime.multipart import MIMEMultipart as MimeMultipart
+from email.mime.text import MIMEText as MimeText
+from typing import Any, Dict, List, Optional
+
+import pyotp  # type: ignore
+import qrcode
 from cryptography.fernet import Fernet
 from pydantic import BaseModel
-import json
-import os
 
 try:
     from plexichat.app.logger_config import logger  # type: ignore

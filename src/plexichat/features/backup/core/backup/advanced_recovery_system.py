@@ -6,23 +6,18 @@ with minimal data loss even with multiple node failures.
 """
 
 import asyncio
-import hashlib
-import json
 import secrets
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set, Union
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
-import numpy as np
+from typing import Any, Dict, List, Optional
 
-from ...core.logging import get_logger
 from ...core.config import get_config
+from ...core.logging import get_logger
 from ..security.quantum_encryption import QuantumEncryptionEngine
-from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol, BackupChunk
-from .immutable_shard_manager import ImmutableShardManager, ImmutableShard, ShardState
+from .immutable_shard_manager import ImmutableShard, ImmutableShardManager, ShardState
 from .multi_node_network import MultiNodeBackupNetwork
+from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
 
 logger = get_logger(__name__)
 
@@ -634,7 +629,7 @@ class AdvancedRecoverySystem:
                 try:
                     step = procedure["step"]
                     action = procedure["action"]
-                    timeout = procedure.get("timeout", 300)
+                    procedure.get("timeout", 300)
 
                     logger.info(f"🚨 DR Step {step}: {action}")
 
@@ -715,7 +710,7 @@ class AdvancedRecoverySystem:
                                         progress: RecoveryProgress) -> bool:
         """Perform selective recovery based on patterns."""
         try:
-            logger.info(f"🎯 Performing selective recovery...")
+            logger.info("🎯 Performing selective recovery...")
 
             # TODO: Implement pattern matching for selective recovery
             # For now, treat as full recovery

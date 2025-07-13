@@ -8,20 +8,21 @@ predictive analytics, and performance optimization recommendations.
 import asyncio
 import logging
 import secrets
-import json
-import time
 import statistics
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from pathlib import Path
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import aiosqlite
+from typing import Any, Dict, List, Optional
+
 import psutil
 
 from . import (
-    PerformanceMetric, METRICS_COLLECTION_INTERVAL, PERFORMANCE_HISTORY_DAYS,
-    ALERT_THRESHOLD_CPU, ALERT_THRESHOLD_MEMORY, ALERT_THRESHOLD_DISK
+    ALERT_THRESHOLD_CPU,
+    ALERT_THRESHOLD_DISK,
+    ALERT_THRESHOLD_MEMORY,
+    METRICS_COLLECTION_INTERVAL,
+    PERFORMANCE_HISTORY_DAYS,
+    PerformanceMetric,
 )
 
 logger = logging.getLogger(__name__)

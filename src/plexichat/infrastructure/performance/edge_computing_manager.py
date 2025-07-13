@@ -6,19 +6,19 @@ based on load and intelligent traffic routing for optimal performance.
 """
 
 import asyncio
-import json
-import time
-import psutil
 import statistics
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from dataclasses import dataclass, field
-from enum import Enum
-import numpy as np
+import time
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from ...core.logging import get_logger
+import numpy as np
+import psutil
+
 from ...core.config import get_config
+from ...core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -679,7 +679,7 @@ class EdgeComputingManager:
             if len(self.load_history) < 3:
                 return None
 
-            current_metrics = self.load_history[-1]
+            self.load_history[-1]
             recent_metrics = list(self.load_history)[-5:]
 
             # Calculate average metrics over recent period
@@ -1190,7 +1190,7 @@ class EdgeComputingManager:
             if len(same_hour_metrics) >= 5:
                 # Calculate average load for this hour
                 avg_cpu = statistics.mean([m.cpu_usage_percent for m in same_hour_metrics])
-                avg_memory = statistics.mean([m.memory_usage_percent for m in same_hour_metrics])
+                statistics.mean([m.memory_usage_percent for m in same_hour_metrics])
                 avg_response_time = statistics.mean([m.average_response_time_ms for m in same_hour_metrics])
 
                 # Predict if scaling will be needed

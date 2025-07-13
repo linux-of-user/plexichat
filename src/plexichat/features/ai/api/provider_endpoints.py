@@ -3,16 +3,20 @@ AI Provider Management API Endpoints
 RESTful API endpoints for managing AI providers, models, and configurations.
 """
 
-import asyncio
-import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from pydantic import BaseModel, Field
-import uuid
+from typing import Any, Dict, List, Optional
 
-from ..core.ai_abstraction_layer import AIAbstractionLayer, AIProvider, AIModel, ModelCapability, ModelStatus
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pydantic import BaseModel, Field
+
+from ..core.ai_abstraction_layer import (
+    AIAbstractionLayer,
+    AIModel,
+    AIProvider,
+    ModelCapability,
+    ModelStatus,
+)
 from ..providers import ProviderStatus
 
 logger = logging.getLogger(__name__)

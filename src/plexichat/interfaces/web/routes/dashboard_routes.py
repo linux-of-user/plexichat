@@ -5,13 +5,14 @@ Main dashboard web routes providing overview of system status, quick access
 to key features, and navigation to specialized dashboards.
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from datetime import datetime, timezone
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
-from datetime import datetime, timezone
 
-from ...core.auth.dependencies import require_auth, require_admin_auth
+from ...core.auth.dependencies import require_admin_auth, require_auth
 from ...core.logging import get_logger
 from ...services.performance_service import get_performance_service
 

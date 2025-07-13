@@ -15,13 +15,12 @@ Merged from:
 - features/ai/api/provider_endpoints.py
 """
 
-import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
-from enum import Enum
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +206,7 @@ async def configure_provider(
         from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
         
         ai_layer = AIAbstractionLayer()
-        result = await ai_layer.configure_provider(provider_name, config.dict())
+        await ai_layer.configure_provider(provider_name, config.dict())
         
         return {"success": True, "message": f"Provider {provider_name} configured successfully"}
         

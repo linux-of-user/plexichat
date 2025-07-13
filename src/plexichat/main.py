@@ -6,21 +6,19 @@ Unified main application that consolidates all PlexiChat functionality
 into a single, cohesive FastAPI application with comprehensive features.
 """
 
-import asyncio
-import time
-import ssl
-import os
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import Optional
+
 import uvicorn
 import yaml
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 # Import configuration
 from .core_system.config import get_config
@@ -54,12 +52,12 @@ except ImportError as e:
 
 # AI Abstraction Layer (Optional - Full Install Only)
 try:
-    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
     from .features.ai.api.ai_endpoints import router as ai_api_router
+    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
     from .features.ai.webui.ai_management import router as ai_webui_router
     ai_layer = AIAbstractionLayer()
     logging.info("✅ AI Abstraction Layer loaded (Full Install)")
-except ImportError as e:
+except ImportError:
     logging.info("ℹ️ AI features not available (requires full installation)")
     ai_layer = None
     ai_api_router = None
@@ -73,6 +71,7 @@ except Exception as e:
 # Clustering System
 try:
     from .features.clustering.core.cluster_manager import AdvancedClusterManager
+
     # Initialize cluster manager later after app is created
     cluster_manager = None
     logging.info("✅ Advanced Clustering System available")
@@ -83,7 +82,7 @@ except ImportError as e:
 
 # Import security middleware (with fallback)
 try:
-    from .features.security.middleware import SecurityMiddleware, AuthenticationMiddleware
+    from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
 except ImportError:
     # Fallback middleware if security module not available
     class SecurityMiddleware:
@@ -222,7 +221,7 @@ def initialize_unified_logging():
         (log_dir / "crashes").mkdir(exist_ok=True)
 
         # Initialize advanced logger (consolidates multiple logging systems)
-        advanced_logger = get_advanced_logger(logging_config.get("global", {}))
+        get_advanced_logger(logging_config.get("global", {}))
 
         # Setup module logging with proper levels
         modules_config = logging_config.get("modules", {
@@ -402,7 +401,7 @@ def create_app() -> FastAPI:
     async def https_redirect_middleware(request: Request, call_next):
         """Redirect HTTP to HTTPS if auto_redirect is enabled."""
         if (SSL_CONFIG["enabled"] and SSL_CONFIG["auto_redirect"] and
-            request.url.scheme == "http" and not request.url.hostname in ["localhost", "127.0.0.1"]):
+            request.url.scheme == "http" and request.url.hostname not in ["localhost", "127.0.0.1"]):
 
             # Redirect to HTTPS
             https_url = request.url.replace(scheme="https", port=SSL_CONFIG["port"])

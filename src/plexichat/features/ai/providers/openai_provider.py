@@ -3,12 +3,9 @@ OpenAI Provider for PlexiChat AI Abstraction Layer
 Enhanced OpenAI integration with advanced features and error handling.
 """
 
-import asyncio
-import json
 import logging
-from typing import Dict, List, Optional, Any, AsyncGenerator
 from dataclasses import dataclass
-import aiohttp
+from typing import Any, Dict, List, Optional
 
 try:
     import openai
@@ -19,7 +16,7 @@ except ImportError:
     openai = None
     AsyncOpenAI = None
 
-from .base_provider import BaseAIProvider, AIRequest, AIResponse, ProviderConfig, ProviderStatus
+from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +76,7 @@ class OpenAIProvider(BaseAIProvider):
                 return False
             
             # Simple test request
-            response = await self.client.chat.completions.create(
+            await self.client.chat.completions.create(
                 model=self.config.default_model,
                 messages=[{"role": "user", "content": "Hello"}],
                 max_tokens=1

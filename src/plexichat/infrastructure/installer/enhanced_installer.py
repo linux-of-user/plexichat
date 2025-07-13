@@ -18,17 +18,15 @@ Features:
 - Installation verification
 """
 
-import os
-import sys
-import subprocess
+import logging
 import platform
 import shutil
-import json
-import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+import subprocess
+import sys
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -396,11 +394,11 @@ class EnhancedInstaller:
             print(f"\n❌ Failed to install: {len(self.failed_packages)} packages")
             for pkg in self.failed_packages:
                 print(f"   - {pkg}")
-            print(f"\n⚠️  Some required packages failed to install.")
+            print("\n⚠️  Some required packages failed to install.")
             print("The application may not work correctly.")
             return False
         else:
-            print(f"\n🎉 All packages installed successfully!")
+            print("\n🎉 All packages installed successfully!")
             return True
 
 

@@ -6,19 +6,19 @@ intelligent dependency resolution, and seamless service integration.
 """
 
 import asyncio
-import logging
-import json
+import hashlib
 import importlib
 import importlib.util
+import json
+import logging
 import sys
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Type, Union, Callable
+import tempfile
+import zipfile
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-import hashlib
-import zipfile
-import tempfile
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 # Import security and services (with fallbacks for missing modules)
 try:
@@ -29,8 +29,8 @@ except ImportError:
     distributed_key_manager = None
 
 try:
+    from ..services import SecureService, ServiceMetadata, ServicePriority, ServiceType
     from ..services.loader import ServiceLoader
-    from ..services import ServiceMetadata, ServiceType, ServicePriority, SecureService
 except ImportError:
     ServiceLoader = None
     ServiceMetadata = None
@@ -350,7 +350,6 @@ class SecureModule:
     async def _load_dependencies(self):
         """Load module dependencies."""
         # This would integrate with the module manager to load dependencies
-        pass
     
     async def _load_module_code(self):
         """Load the actual module code."""

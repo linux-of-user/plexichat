@@ -3,32 +3,46 @@ File management endpoints with comprehensive upload, download, and management ca
 Includes security features, virus scanning, and file type validation.
 """
 
-import os
-import shutil
-import mimetypes
 import hashlib
-from datetime import datetime, timedelta
+import logging
+import mimetypes
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 import aiofiles
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query, BackgroundTasks
-from fastapi.responses import FileResponse, StreamingResponse
-from sqlmodel import Session, select
-import bleach
-from PIL import Image
 import magic
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+)
+from fastapi.responses import FileResponse
+from PIL import Image
+from sqlmodel import Session, select
 
 from plexichat.core.database import get_session
-import logging
 
 logger = logging.getLogger(__name__)
 logging_manager = logging.getLogger(f"{__name__}.manager")
+from plexichat.features.users.files import FileRecord, FileShare
 from plexichat.features.users.user import User
-from plexichat.features.users.files import FileRecord, FileShare, FileVersion
-from plexichat.interfaces.web.schemas.files import FileUploadResponse, FileListResponse, FileInfoResponse
-from plexichat.infrastructure.utils.auth import get_current_user, require_permissions
-from plexichat.infrastructure.utils.security import sanitize_filename, validate_file_type, scan_file_content
-from plexichat.infrastructure.utils.monitoring import track_performance
+from plexichat.infrastructure.utils.auth import get_current_user
+from plexichat.infrastructure.utils.security import (
+    sanitize_filename,
+    scan_file_content,
+    validate_file_type,
+)
+from plexichat.interfaces.web.schemas.files import (
+    FileInfoResponse,
+    FileListResponse,
+    FileUploadResponse,
+)
 
 router = APIRouter()
 
@@ -193,7 +207,7 @@ async def list_files(
         else:
             # Show public files or user's own files
             query = query.where(
-                (FileRecord.is_public == True) | 
+                (FileRecord.is_public) | 
                 (FileRecord.uploaded_by == current_user.id)
             )
         

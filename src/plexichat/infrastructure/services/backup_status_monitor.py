@@ -4,20 +4,19 @@ Tracks device availability, shard distribution, and database backup coverage.
 """
 
 import asyncio
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
-from sqlmodel import Session, select, func
-import json
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from plexichat.app.models.device_management import (
-    StorageDevice, DeviceShardAssignment, DeviceCapabilityReport,
-    DeviceStatus
-)
-from plexichat.app.models.enhanced_backup import EnhancedBackup, EnhancedBackupShard
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.models.message import Message
+from sqlmodel import Session, func, select
+
 from plexichat.app.logger_config import logger
+from plexichat.app.models.device_management import (
+    DeviceShardAssignment,
+    DeviceStatus,
+    StorageDevice,
+)
+from plexichat.app.models.enhanced_backup import EnhancedBackupShard
 
 
 @dataclass
@@ -139,10 +138,10 @@ class BackupStatusMonitor:
             shard_counts = self.session.exec(
                 select(
                     func.count(DeviceShardAssignment.id).label("total"),
-                    func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified == True).label("verified")
+                    func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified).label("verified")
                 ).where(
                     (DeviceShardAssignment.device_id == device.id) &
-                    (DeviceShardAssignment.is_active == True)
+                    (DeviceShardAssignment.is_active)
                 )
             ).first()
             
@@ -188,7 +187,7 @@ class BackupStatusMonitor:
                 .join(StorageDevice, DeviceShardAssignment.device_id == StorageDevice.id)
                 .where(
                     (DeviceShardAssignment.shard_id == shard.id) &
-                    (DeviceShardAssignment.is_active == True)
+                    (DeviceShardAssignment.is_active)
                 )
             ).all()
             
@@ -441,7 +440,7 @@ class BackupStatusMonitor:
                     select(DeviceShardAssignment)
                     .where(
                         (DeviceShardAssignment.shard_id == shard.shard_id) &
-                        (DeviceShardAssignment.is_active == True)
+                        (DeviceShardAssignment.is_active)
                     )
                 ).all()
                 

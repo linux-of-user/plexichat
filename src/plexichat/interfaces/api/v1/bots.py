@@ -4,17 +4,16 @@ Handles bot creation, management, permissions, and monitoring.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Query
-from fastapi.responses import JSONResponse
-from sqlmodel import Session, select
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Optional
 
 from app.db import get_session
-from app.models.enhanced_models import EnhancedUser, BotAccount, AccountType, BotType, PermissionLevel
+from app.logger_config import logger
+from app.models.enhanced_models import BotAccount, BotType, EnhancedUser
 from app.services.user_management import UserManagementService
 from app.utils.auth import get_current_user
-from app.logger_config import logger
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+from sqlmodel import Session, select
 
 
 # Pydantic models for API

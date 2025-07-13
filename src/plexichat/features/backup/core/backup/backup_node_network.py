@@ -7,14 +7,13 @@ automatic failover, and consensus-based shard verification.
 
 import asyncio
 import logging
-import json
 import secrets
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
 import aiohttp
-import aiosqlite
 
 logger = logging.getLogger(__name__)
 

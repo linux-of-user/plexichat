@@ -3,14 +3,17 @@ Security Management CLI
 Command-line interface for rate limiting and permissions management.
 """
 
-import asyncio
-import json
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
 
-from plexichat.app.security.rate_limiter import ComprehensiveRateLimiter, RateLimitType, RateLimitAction
-from plexichat.app.security.permissions import PermissionManager, Permission, PermissionScope, Role
 from plexichat.app.logger_config import logger
+from plexichat.app.security.permissions import Permission, PermissionManager, PermissionScope, Role
+from plexichat.app.security.rate_limiter import (
+    ComprehensiveRateLimiter,
+    RateLimitAction,
+    RateLimitType,
+)
+
 
 class SecurityCLI:
     """CLI for security management."""
@@ -271,7 +274,7 @@ class SecurityCLI:
         if success:
             self.print_colored(f"✅ Assigned role '{role_name}' to user '{user_id}' in scope '{scope}'", "green")
         else:
-            self.print_colored(f"❌ Failed to assign role", "red")
+            self.print_colored("❌ Failed to assign role", "red")
     
     async def revoke_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
         """Revoke a role from a user."""
@@ -285,7 +288,7 @@ class SecurityCLI:
         if success:
             self.print_colored(f"✅ Revoked role '{role_name}' from user '{user_id}' in scope '{scope}'", "green")
         else:
-            self.print_colored(f"❌ Failed to revoke role", "red")
+            self.print_colored("❌ Failed to revoke role", "red")
     
     async def check_permission(self, user_id: str, permission: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
         """Check if a user has a specific permission."""

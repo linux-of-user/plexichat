@@ -4,8 +4,9 @@ PlexiChat API v1 Router
 Consolidated router that includes all feature-based API endpoints.
 """
 
-from fastapi import APIRouter
 import logging
+
+from fastapi import APIRouter
 
 logger = logging.getLogger(__name__)
 

@@ -11,14 +11,13 @@ Comprehensive user preference management for backup operations:
 Integrated with the government-level backup system.
 """
 
-import asyncio
 import json
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import aiosqlite
 
 logger = logging.getLogger(__name__)

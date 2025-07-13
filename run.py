@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: ascii -*-
+# -*- coding: utf-8 -*-
 """
 PlexiChat Application Runner - Enhanced Edition with Bootstrap Installer
 
@@ -18,23 +18,22 @@ Features:
 - Standalone installer capability
 """
 
-import sys
+import json
 import os
-import subprocess
 import platform
+import secrets
 import shutil
+import string
+import subprocess
+import sys
+import tempfile
 import threading
 import time
-import json
-import secrets
-import string
-import tempfile
-import zipfile
-import urllib.request
 import urllib.error
+import urllib.request
+import zipfile
 from pathlib import Path
-from typing import Optional, Dict, Any, List
-import json
+from typing import Any, Dict, List, Optional
 
 # Platform-specific imports with error handling
 try:
@@ -44,7 +43,8 @@ except ImportError:
     HAS_MSVCRT = False
 
 try:
-    import termios, tty  # Unix key detection
+    import termios  # Unix key detection
+    import tty
     HAS_TERMIOS = True
 except ImportError:
     HAS_TERMIOS = False
@@ -57,10 +57,9 @@ except ImportError:
     yaml = None
 
 try:
-    from tqdm import tqdm # type: ignore
+    from tqdm import tqdm  # type: ignore
 except ImportError:
     tqdm = None
-from datetime import datetime
 
 # ============================================================================
 # BOOTSTRAP CONFIGURATION
@@ -179,14 +178,14 @@ def install_with_progress(packages, desc="Installing packages"):
                 progress.set_description(f"Installing {package}")
 
             # Install package
-            result = subprocess.run([
+            subprocess.run([
                 sys.executable, "-m", "pip", "install", package, "--quiet"
             ], capture_output=True, text=True, check=True)
 
             success_count += 1
             progress.update(1)
 
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             failed_packages.append(package)
             progress.update(1)
             continue
@@ -203,7 +202,7 @@ def install_with_progress(packages, desc="Installing packages"):
             print(f"[ERROR] Failed to install: {', '.join(failed_packages)}")
         return True
     else:
-        print(f"[ERROR] Failed to install all packages")
+        print("[ERROR] Failed to install all packages")
         return False
 
 # Set up paths
@@ -384,8 +383,9 @@ def get_system_info():
 
 class DualProgressBar:
     """
-    Dual progress bar system with overall and current package progress.
-    Updates multiple times per second with proper line clearing.
+    Enhanced dual progress bar system with proper terminal handling.
+    Features two progress bars: overall installation progress and current package progress.
+    Uses proper terminal control sequences to avoid screen movement issues.
     """
 
     def __init__(self, total_packages: int, width: int = 50):
@@ -395,26 +395,22 @@ class DualProgressBar:
         self.width = width
         self.start_time = time.time()
         self.last_update = 0
-        self.terminal_width = shutil.get_terminal_size().columns
         self.package_start_time = time.time()
+        self.terminal_width = self.get_terminal_width()
+        self.lines_printed = 0
+        self.overall_progress = 0.0
+        self.current_package_name = ""
+        self.current_status = "Preparing..."
 
     def get_terminal_width(self):
-        """Get current terminal width."""
+        """Get current terminal width with fallback."""
         try:
             return shutil.get_terminal_size().columns
         except:
-            return 80  # Fallback
-
-    def clear_lines(self, num_lines: int = 2):
-        """Clear multiple lines properly without moving up the screen."""
-        # Move cursor up to the start of our progress bars
-        for _ in range(num_lines):
-            print("\033[A", end='')  # Move cursor up one line
-        # Clear from cursor to end of screen
-        print("\033[J", end='')  # Clear from cursor down
+            return 80
 
     def format_time(self, seconds):
-        """Format time duration."""
+        """Format time duration in a readable way."""
         if seconds < 60:
             return f"{seconds:.0f}s"
         elif seconds < 3600:
@@ -422,82 +418,160 @@ class DualProgressBar:
         else:
             return f"{seconds//3600:.0f}h {(seconds%3600)//60:.0f}m"
 
-    def update_overall(self, current_package: int, package_name: str = ""):
-        """Update overall progress."""
-        self.current_package = current_package
-        self.package_start_time = time.time()
+    def clear_current_lines(self):
+        """Clear the current progress bar lines without moving cursor up."""
+        if self.lines_printed > 0:
+            # Move cursor up to the start of our progress bars
+            for _ in range(self.lines_printed):
+                print("\033[A", end='', flush=True)
+            # Clear from cursor to end of screen
+            print("\033[J", end='', flush=True)
 
+    def print_progress_bars(self):
+        """Print both progress bars with proper formatting."""
         # Calculate overall progress
         if self.total_packages > 0:
-            progress = min(current_package / self.total_packages, 1.0)
+            self.overall_progress = min(self.current_package / self.total_packages, 1.0)
         else:
-            progress = 0
+            self.overall_progress = 0
 
         # Calculate timing
         elapsed = time.time() - self.start_time
-        if progress > 0 and progress < 1.0:
-            eta = (elapsed / progress) * (1 - progress)
+        if self.overall_progress > 0 and self.overall_progress < 1.0:
+            eta = (elapsed / self.overall_progress) * (1 - self.overall_progress)
         else:
             eta = 0
 
-        # Build progress bar
-        filled = int(progress * self.width)
-        bar = '#' * filled + '-' * (self.width - filled)
+        # Check if terminal supports Unicode (fallback for basic terminals)
+        try:
+            # Test Unicode support
+            test_char = '█'
+            print(test_char, end='', flush=True)
+            print('\b', end='', flush=True)  # Move back
+            unicode_supported = True
+        except:
+            unicode_supported = False
 
-        # Build overall status line
-        overall_line = f"Overall: [{bar}] {progress*100:.1f}% ({current_package}/{self.total_packages})"
+        # Build overall progress bar
+        filled = int(self.overall_progress * self.width)
+        if unicode_supported:
+            bar = '█' * filled + '░' * (self.width - filled)
+            overall_line = f"📦 Overall Progress: [{bar}] {self.overall_progress*100:.1f}% ({self.current_package}/{self.total_packages})"
+        else:
+            bar = '#' * filled + '-' * (self.width - filled)
+            overall_line = f"Overall Progress: [{bar}] {self.overall_progress*100:.1f}% ({self.current_package}/{self.total_packages})"
 
         if elapsed > 1:
-            overall_line += f" | Elapsed: {self.format_time(elapsed)}"
-            if eta > 1:
-                overall_line += f" | ETA: {self.format_time(eta)}"
+            if unicode_supported:
+                overall_line += f" | ⏱️  Elapsed: {self.format_time(elapsed)}"
+                if eta > 1:
+                    overall_line += f" | ⏳ ETA: {self.format_time(eta)}"
+            else:
+                overall_line += f" | Elapsed: {self.format_time(elapsed)}"
+                if eta > 1:
+                    overall_line += f" | ETA: {self.format_time(eta)}"
 
-        # Build current package line
-        package_line = f"Current: {package_name}" if package_name else "Preparing..."
-
-        # If this is the first update, just print the lines
-        if not hasattr(self, '_lines_printed'):
-            print(overall_line)
-            print(package_line, end='', flush=True)
-            self._lines_printed = True
+        # Build current package line with animated indicator
+        package_elapsed = time.time() - self.package_start_time
+        if unicode_supported:
+            dots = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[int(package_elapsed * 2) % 10]  # Spinning animation
+            status_indicator = f" {dots} " if self.current_status == "Installing" else " ✓ " if self.current_status == "Installed" else " ✗ " if self.current_status == "Failed" else " ⚙️  "
+            package_line = f"🔧 Current Package: {status_indicator}{self.current_package_name}"
         else:
-            # Clear our lines and reprint
-            self.clear_lines(2)
-            print(overall_line)
-            print(package_line, end='', flush=True)
+            dots = "." * (int(package_elapsed * 2) % 4)  # Simple dots
+            status_indicator = f" {dots} " if self.current_status == "Installing" else " [OK] " if self.current_status == "Installed" else " [FAIL] " if self.current_status == "Failed" else " [PREP] "
+            package_line = f"Current Package: {status_indicator}{self.current_package_name}"
+        
+        if package_elapsed > 1 and self.current_status == "Installing":
+            package_line += f" ({self.format_time(package_elapsed)})"
+
+        # Print both lines
+        print(overall_line)
+        print(package_line, end='', flush=True)
+        
+        # Track that we've printed 2 lines
+        self.lines_printed = 2
+
+    def update_overall(self, current_package: int, package_name: str = ""):
+        """Update overall progress and current package."""
+        self.current_package = current_package
+        self.current_package_name = package_name
+        self.package_start_time = time.time()
+        self.current_status = "Installing"
+
+        # Clear previous lines and print new ones
+        self.clear_current_lines()
+        self.print_progress_bars()
 
         self.last_update = time.time()
 
     def update_package(self, package_name: str, status: str = "Installing"):
-        """Update current package progress multiple times per second."""
+        """Update current package progress with status."""
         # Throttle updates to avoid overwhelming the terminal
         current_time = time.time()
-        if current_time - self.last_update < 0.1:  # Update max 10 times per second
+        if current_time - self.last_update < 0.2:  # Update max 5 times per second
             return
 
-        package_elapsed = time.time() - self.package_start_time
+        self.current_package_name = package_name
+        self.current_status = status
 
-        # Build current package line with timing and status indicator
-        dots = "." * (int(package_elapsed * 2) % 4)  # Animated dots
-        package_line = f"Current: {status} {package_name}{dots}"
-        if package_elapsed > 1:
-            package_line += f" ({self.format_time(package_elapsed)})"
-
-        # Move cursor up one line, clear it, and print new package line
-        print("\033[A", end='')  # Move cursor up
-        print(f"\r{' ' * self.get_terminal_width()}", end='')  # Clear line
-        print(f"\r{package_line}", end='', flush=True)
-        print()  # Move cursor back down
+        # Only update the current package line (second line)
+        if self.lines_printed >= 2:
+            # Move cursor up one line to the current package line
+            print("\033[A", end='', flush=True)
+            
+            # Clear the current package line
+            print(f"\r{' ' * self.terminal_width}", end='', flush=True)
+            
+            # Recalculate and print the current package line
+            package_elapsed = time.time() - self.package_start_time
+            
+            # Check Unicode support (same logic as print_progress_bars)
+            try:
+                test_char = '█'
+                print(test_char, end='', flush=True)
+                print('\b', end='', flush=True)
+                unicode_supported = True
+            except:
+                unicode_supported = False
+            
+            if unicode_supported:
+                dots = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[int(package_elapsed * 2) % 10]
+                status_indicator = f" {dots} " if status == "Installing" else " ✓ " if status == "Installed" else " ✗ " if status == "Failed" else " ⚙️  "
+                package_line = f"🔧 Current Package: {status_indicator}{package_name}"
+            else:
+                dots = "." * (int(package_elapsed * 2) % 4)
+                status_indicator = f" {dots} " if status == "Installing" else " [OK] " if status == "Installed" else " [FAIL] " if status == "Failed" else " [PREP] "
+                package_line = f"Current Package: {status_indicator}{package_name}"
+            
+            if package_elapsed > 1 and status == "Installing":
+                package_line += f" ({self.format_time(package_elapsed)})"
+            
+            print(f"\r{package_line}", end='', flush=True)
 
         self.last_update = current_time
 
     def finish(self, message: str = "All packages installed"):
-        """Finish progress bars."""
-        self.clear_lines(2)
+        """Finish progress bars with completion message."""
+        # Clear the progress bars
+        self.clear_current_lines()
 
         elapsed = time.time() - self.start_time
-        final_line = f"[COMPLETE] {message} - {self.total_packages} packages in {self.format_time(elapsed)}"
-
+        
+        # Check Unicode support for completion message
+        try:
+            test_char = '🎉'
+            print(test_char, end='', flush=True)
+            print('\b', end='', flush=True)
+            unicode_supported = True
+        except:
+            unicode_supported = False
+        
+        if unicode_supported:
+            final_line = f"🎉 {message} - {self.total_packages} packages in {self.format_time(elapsed)}"
+        else:
+            final_line = f"[COMPLETE] {message} - {self.total_packages} packages in {self.format_time(elapsed)}"
+        
         print(final_line)
         print()  # Extra newline for spacing
 
@@ -2904,21 +2978,21 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
 
     failed_packages = []
 
-    # Create dual progress bar system
+    # Create enhanced dual progress bar system
     progress = DualProgressBar(len(packages))
 
     for i, package in enumerate(packages):
-        # Extract package name for display
-        package_name = package.split('>=')[0].split('==')[0].split('[')[0]
+        # Extract package name for display (cleaner version)
+        package_name = package.split('>=')[0].split('==')[0].split('[')[0].split('{')[0].strip()
 
-        # Update overall progress
+        # Update overall progress with current package
         progress.update_overall(i + 1, package_name)
 
-        # Update package progress
-        progress.update_package(package_name, "Installing")
+        # Install the package with detailed progress updates
+        def package_progress_callback(status):
+            progress.update_package(package_name, status)
 
-        # Install the package
-        success = install_single_package(venv_python, package, use_fallbacks, verbose=False, progress_callback=progress)
+        success = install_single_package(venv_python, package, use_fallbacks, verbose=False, progress_callback=package_progress_callback)
 
         if success:
             progress.update_package(package_name, "Installed")
@@ -2930,30 +3004,31 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
 
     progress.finish("All packages processed")
 
+    # Report results with better formatting
     if failed_packages:
-        print(f"\n[WARN]  {len(failed_packages)} packages failed to install:")
+        print(f"\n⚠️  {len(failed_packages)} packages failed to install:")
         for pkg in failed_packages:
-            print(f"   - {pkg}")
+            print(f"   ❌ {pkg}")
 
         # Check if any critical packages failed
         critical_packages = ['fastapi', 'uvicorn', 'sqlalchemy', 'pydantic']
         critical_failed = [pkg for pkg in failed_packages if any(crit in pkg.lower() for crit in critical_packages)]
 
         if critical_failed:
-            print(f"\n[ERROR] Critical packages failed: {critical_failed}")
-            print("[INFO] Try installing manually or check system dependencies")
+            print(f"\n🚨 Critical packages failed: {critical_failed}")
+            print("💡 Try installing manually or check system dependencies")
             return False
         else:
-            print(f"\n[WARN]  Some optional packages failed, but core functionality should work.")
-            print(f"[OK] Successfully installed {len(packages) - len(failed_packages)}/{len(packages)} packages")
+            print("\n⚠️  Some optional packages failed, but core functionality should work.")
+            print(f"✅ Successfully installed {len(packages) - len(failed_packages)}/{len(packages)} packages")
             return True
     else:
-        print(f"[OK] All {len(packages)} packages installed successfully")
+        print(f"✅ All {len(packages)} packages installed successfully")
         return True
 
 
 def install_single_package(python_exe, package, use_fallbacks=True, verbose=False, progress_callback=None):
-    """Install a single package with fallback strategies."""
+    """Install a single package with fallback strategies and enhanced progress tracking."""
     install_methods = [
         # Primary method
         {
@@ -2979,18 +3054,43 @@ def install_single_package(python_exe, package, use_fallbacks=True, verbose=Fals
             }
         ])
 
-    for method in install_methods:
+    for method_idx, method in enumerate(install_methods):
         try:
+            # Update progress callback with method information
+            if progress_callback:
+                if method_idx == 0:
+                    progress_callback("Installing")
+                else:
+                    progress_callback(f"Retrying via {method['name']}")
+
             # Only print verbose messages if requested (not during progress bar)
             if verbose:
                 print(f"   [*] Trying {method['name']} for {package}...")
-            subprocess.check_call(
+
+            # Start the installation process
+            process = subprocess.Popen(
                 method['cmd'],
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-                timeout=180
+                stderr=subprocess.PIPE
             )
-            return True
+
+            # Update progress while waiting for completion
+            start_time = time.time()
+            while process.poll() is None:
+                if progress_callback:
+                    time.time() - start_time
+                    if method_idx == 0:
+                        progress_callback("Installing")
+                    else:
+                        progress_callback(f"Retrying via {method['name']}")
+                time.sleep(0.3)  # Update 3 times per second
+
+            # Check if installation succeeded
+            if process.returncode == 0:
+                return True
+            else:
+                raise subprocess.CalledProcessError(process.returncode, method['cmd'])
+
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             if verbose:
                 print(f"   [WARN]  {method['name']} failed: {e}")
@@ -3232,8 +3332,8 @@ def run_plexichat_server():
     print("=" * 50)
 
     # Start log monitoring and generation
-    log_thread = start_log_monitor()
-    log_gen_thread = start_log_generator()
+    start_log_monitor()
+    start_log_generator()
 
     # Set up environment
     env = os.environ.copy()
@@ -3281,13 +3381,10 @@ def run_plexichat_server():
             terminal_width = shutil.get_terminal_size().columns
             if terminal_width >= 120:
                 print("[*] Split-screen mode enabled - CLI commands will appear separately from logs")
-                use_split_screen = True
             else:
                 print("[*] Standard mode - CLI and logs will be mixed")
-                use_split_screen = False
         except:
             print("[*] Standard mode - CLI and logs will be mixed")
-            use_split_screen = False
 
         print("Commands: 'status', 'logs', 'stop', 'help'")
         print("=" * 50)
@@ -3409,7 +3506,7 @@ def clean_environment(deep_clean=False):
                     try:
                         print("[*] Trying PowerShell removal...")
                         ps_command = f'Remove-Item -Path "{VENV_DIR}" -Recurse -Force -ErrorAction SilentlyContinue'
-                        result = subprocess.run([
+                        subprocess.run([
                             "powershell", "-Command", ps_command
                         ], capture_output=True, timeout=30, check=False)
 
@@ -3613,9 +3710,9 @@ def export_plexichat_config(filename=None, options=None):
     print(f"[*] Exporting PlexiChat configuration to: {export_path}")
 
     try:
+        import hashlib
         import tempfile
         import zipfile
-        import hashlib
 
         # Create temporary directory for staging
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -3750,7 +3847,7 @@ def export_plexichat_config(filename=None, options=None):
 
             file_size = export_path.stat().st_size / (1024 * 1024)  # MB
 
-            print(f"\n[OK] Export completed successfully!")
+            print("\n[OK] Export completed successfully!")
             print(f"[*] File: {export_path}")
             print(f"[*] Size: {file_size:.2f} MB")
             print(f"[*] MD5: {file_hash}")
@@ -3786,9 +3883,9 @@ def import_plexichat_config(filename, options=None):
     print(f"[*] Importing PlexiChat configuration from: {import_path}")
 
     try:
+        import hashlib
         import tempfile
         import zipfile
-        import hashlib
 
         # Verify checksum if available
         checksum_file = import_path.with_suffix('.md5')
@@ -3806,7 +3903,7 @@ def import_plexichat_config(filename, options=None):
             actual_hash = hash_md5.hexdigest()
 
             if actual_hash != expected_hash:
-                print(f"[ERROR] File integrity check failed!")
+                print("[ERROR] File integrity check failed!")
                 print(f"Expected: {expected_hash}")
                 print(f"Actual:   {actual_hash}")
                 if not input("Continue anyway? (y/N): ").lower().startswith('y'):
@@ -3842,7 +3939,7 @@ def import_plexichat_config(filename, options=None):
                 with open(metadata_file, 'r') as f:
                     metadata = json.load(f)
 
-                print(f"[*] Import Information:")
+                print("[*] Import Information:")
                 print(f"   Export Version: {metadata.get('export_version', 'Unknown')}")
                 print(f"   PlexiChat Version: {metadata.get('plexichat_version', 'Unknown')}")
                 print(f"   Export Date: {metadata.get('export_date', 'Unknown')}")
@@ -3852,7 +3949,7 @@ def import_plexichat_config(filename, options=None):
                 current_version = get_version_info()
                 export_version = metadata.get('plexichat_version', '')
                 if export_version != current_version:
-                    print(f"[WARN]  Version mismatch!")
+                    print("[WARN]  Version mismatch!")
                     print(f"   Current: {current_version}")
                     print(f"   Import:  {export_version}")
                     if not input("Continue with import? (y/N): ").lower().startswith('y'):
@@ -3954,15 +4051,15 @@ def import_plexichat_config(filename, options=None):
                     except Exception as e:
                         print(f"   [ERROR] Failed to import {description}: {e}")
 
-            print(f"\n[OK] Import completed!")
+            print("\n[OK] Import completed!")
             print(f"[*] Imported components: {len(imported_components)}")
             for component in imported_components:
                 print(f"   * {component}")
 
-            print(f"\n[INFO] Next steps:")
-            print(f"   1. Review imported configuration")
-            print(f"   2. Run 'python run.py info' to verify setup")
-            print(f"   3. Test PlexiChat functionality")
+            print("\n[INFO] Next steps:")
+            print("   1. Review imported configuration")
+            print("   2. Run 'python run.py info' to verify setup")
+            print("   3. Test PlexiChat functionality")
 
             if options.get('decrypt', False):
                 print("\n[*] Decryption requested but not yet implemented")
@@ -4381,7 +4478,7 @@ def show_help():
         if config.get("performance_monitoring"):
             print("[*] Performance Monitoring: Enabled")
 
-    print(f"""
+    print("""
 Usage: python run.py [command] [options]
 
 [*] Main Commands:
@@ -4562,7 +4659,7 @@ def show_service_status():
                 status = f"[WARN] Response: {response.status_code}"
         except ImportError:
             status = "[WARN] requests not installed"
-        except Exception as e:
+        except Exception:
             status = "[ERROR] Not responding"
 
         print(f"{emoji} {name:15} {url:35} {status}")
@@ -5133,17 +5230,17 @@ def print_setup_summary(config: Dict[str, Any]):
         print(f"\nEnabled Features: {', '.join(enabled_features)}")
 
     # Show next steps
-    print(f"\nNext Steps:")
-    print(f"1. python run.py run              # Start PlexiChat")
+    print("\nNext Steps:")
+    print("1. python run.py run              # Start PlexiChat")
 
     port = config.get('port', 8080)
     protocol = 'https' if config.get('ssl_enabled', False) else 'http'
     print(f"2. Open {protocol}://localhost:{port}  # Access web interface")
 
     if config.get('debug_enabled', False):
-        print(f"3. python run.py debug            # Debug mode tools")
+        print("3. python run.py debug            # Debug mode tools")
 
-    print(f"\nConfiguration saved to: plexichat_config.json")
+    print("\nConfiguration saved to: plexichat_config.json")
     print(f"Setup completed at: {config.get('setup_date', 'Unknown')}")
 
 def main():
@@ -5172,7 +5269,7 @@ def main():
 
             if install_dependencies(setup_style):
                 print("[OK] Setup complete!")
-                print(f"[*] Configuration saved for future runs")
+                print("[*] Configuration saved for future runs")
                 print("[*] Run 'python run.py run' to start PlexiChat.")
                 print("[*] Default admin credentials will be generated on first run.")
 
@@ -5642,13 +5739,13 @@ Examples:
         install_type = detect_installation_type()
         config = load_setup_config()
 
-        print(f"\n[*] Installation Details:")
+        print("\n[*] Installation Details:")
         print(f"   Type: {install_type.upper()}")
         print(f"   Root Directory: {ROOT}")
         print(f"   Virtual Environment: {'Present' if VENV_DIR.exists() else 'Missing'}")
 
         if config:
-            print(f"\n[*]  Configuration:")
+            print("\n[*]  Configuration:")
             print(f"   Setup Style: {SETUP_STYLES.get(config.get('setup_style', ''), {}).get('name', 'Unknown')}")
             print(f"   Terminal Style: {TERMINAL_STYLES.get(config.get('terminal_style', ''), {}).get('name', 'Unknown')}")
             print(f"   Debug Mode: {'Enabled' if config.get('debug_mode') else 'Disabled'}")
@@ -5656,14 +5753,14 @@ Examples:
             print(f"   Setup Date: {config.get('setup_date', 'Unknown')}")
 
         # Check for important files
-        print(f"\n[*] Important Files:")
+        print("\n[*] Important Files:")
         print(f"   Requirements: {'Present' if REQUIREMENTS.exists() else 'Missing'}")
         print(f"   Version File: {'Present' if VERSION_FILE.exists() else 'Missing'}")
         print(f"   Default Credentials: {'Present' if DEFAULT_CREDS.exists() else 'Not Generated'}")
 
         # Port configuration
         ports = get_port_configuration()
-        print(f"\n[*] Service Ports:")
+        print("\n[*] Service Ports:")
         for service, port in ports.items():
             print(f"   {service}: {port}")
 
@@ -5680,9 +5777,9 @@ Examples:
                         package_count = len([line for line in result.stdout.strip().split('\n') if '==' in line])
                         print(f"\n[*] Installed Packages: {package_count}")
                     else:
-                        print(f"\n[*] Installed Packages: Unable to determine")
+                        print("\n[*] Installed Packages: Unable to determine")
                 except Exception:
-                    print(f"\n[*] Installed Packages: Check failed")
+                    print("\n[*] Installed Packages: Check failed")
 
     elif command == "run":
         # Check for debug flag
@@ -5918,8 +6015,8 @@ def start_classic_terminal():
         )
 
         # Start a thread to handle user input
-        import threading
         import queue
+        import threading
 
         input_queue = queue.Queue()
 
@@ -6509,8 +6606,6 @@ def run_robust_update():
         verification_passed = True
         try:
             # Test basic Python imports (sys, json, os already imported globally)
-            import yaml  # Optional dependency for version verification
-
 
             # Test if we can read the version file
             if (ROOT / "version.json").exists():

@@ -5,15 +5,15 @@ Implements verifiable credentials, decentralized identifiers (DIDs),
 and Zero-Trust Network Access (ZTNA) for all PlexiChat resources.
 """
 
-import json
-import uuid
 import hashlib
-import secrets
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from enum import Enum
+import json
 import logging
+import secrets
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 

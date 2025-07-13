@@ -4,14 +4,13 @@ Government-level backup system with opt-out capabilities and intelligent shard d
 """
 
 import asyncio
-import json
 import hashlib
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Set, Any, Union
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from enum import Enum
+import json
 import logging
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -469,4 +468,4 @@ class UniversalBackupManager:
     async def _process_user_backup(self, user_backup):
         """Process a user backup entry."""
         # Implementation would handle user data backup
-        logger.debug(f"Processing user backup")
+        logger.debug("Processing user backup")

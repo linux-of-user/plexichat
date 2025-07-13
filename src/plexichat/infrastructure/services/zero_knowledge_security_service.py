@@ -12,27 +12,22 @@ Comprehensive zero-knowledge security implementation with:
 
 import asyncio
 import hashlib
-import secrets
 import json
-import base64
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union
+import logging
+import secrets
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-import logging
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
-from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-from ..core.services.base_service import BaseService
-from ..security import quantum_encryption, e2e_encryption
-from ..core.auth.biometric_manager import BiometricManager
 from ..core.auth.audit_manager import AuditManager
+from ..core.auth.biometric_manager import BiometricManager
+from ..core.services.base_service import BaseService
+from ..security import e2e_encryption, quantum_encryption
 
 logger = logging.getLogger(__name__)
 

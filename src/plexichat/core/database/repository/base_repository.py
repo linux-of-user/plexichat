@@ -3,17 +3,22 @@ PlexiChat Repository Pattern Implementation
 Provides domain-specific data access with business logic encapsulation
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Type, TypeVar, Generic, Union, Callable
-from datetime import datetime, timezone, timedelta
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-import uuid
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
-from ..dao.base_dao import BaseDAO, QueryOptions, FilterCriteria, SortCriteria, PaginationParams, QueryResult
-from ...events.event_bus import event_bus, DomainEvent
+from ...events.event_bus import DomainEvent, event_bus
+from ..dao.base_dao import (
+    BaseDAO,
+    FilterCriteria,
+    PaginationParams,
+    QueryOptions,
+    QueryResult,
+    SortCriteria,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -464,22 +469,18 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     @abstractmethod
     async def _to_domain_entity(self, dao_entity) -> T:
         """Transform DAO entity to domain entity."""
-        pass
     
     @abstractmethod
     async def _to_dao_create(self, create_data: CreateT) -> Any:
         """Transform create data to DAO format."""
-        pass
     
     @abstractmethod
     async def _to_dao_update(self, update_data: UpdateT) -> Any:
         """Transform update data to DAO format."""
-        pass
     
     @abstractmethod
     async def _criteria_to_filters(self, criteria: Dict[str, Any]) -> List[FilterCriteria]:
         """Convert business criteria to filter criteria."""
-        pass
     
     # Statistics and Monitoring
     

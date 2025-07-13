@@ -6,30 +6,23 @@ automatic failover, and consensus-based shard verification.
 """
 
 import asyncio
+import hashlib
 import json
 import secrets
 import socket
 import ssl
-import struct
-import time
-import hashlib
-import hmac
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Set, Callable
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-import aiohttp
-import websockets
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ...core.logging import get_logger
+import websockets
+
 from ...core.config import get_config
-from ..security.quantum_encryption import QuantumEncryptionEngine, EncryptedData
-from .shard_distribution import BackupNode, DataShard, NodeCapabilities
+from ...core.logging import get_logger
+from ..security.quantum_encryption import QuantumEncryptionEngine
+from .shard_distribution import BackupNode, NodeCapabilities
 
 logger = get_logger(__name__)
 
@@ -756,7 +749,7 @@ class MultiNodeBackupNetwork:
         try:
             if consensus_type == ConsensusType.NODE_ADMISSION.value:
                 # Check if node should be admitted
-                node_info = proposal.get("node_info", {})
+                proposal.get("node_info", {})
 
                 # Basic admission criteria
                 has_required_capabilities = True  # Simplified check

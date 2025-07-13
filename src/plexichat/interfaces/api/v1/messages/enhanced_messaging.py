@@ -4,21 +4,19 @@ Comprehensive messaging API with emoji support, reactions, replies, and resilien
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Query, status
-from fastapi.responses import JSONResponse
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from plexichat.app.services.enhanced_messaging_service import (
-    enhanced_messaging_service, 
-    EmojiService, 
-    ReactionService, 
-    ReplyService
-)
-from plexichat.app.models.message import MessageType
-from plexichat.app.utils.auth import get_current_user
-from plexichat.app.models.user import User
 from plexichat.app.logger_config import logger
+from plexichat.app.models.message import MessageType
+from plexichat.app.models.user import User
+from plexichat.app.services.enhanced_messaging_service import (
+    EmojiService,
+    enhanced_messaging_service,
+)
+from plexichat.app.utils.auth import get_current_user
 
 
 # Pydantic models for API requests/responses

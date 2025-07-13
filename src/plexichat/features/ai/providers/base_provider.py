@@ -3,13 +3,13 @@ Base AI Provider Interface
 Common interface for all AI providers with standardized methods and error handling.
 """
 
-import asyncio
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, AsyncGenerator
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
 import aiohttp
 
 logger = logging.getLogger(__name__)
@@ -128,22 +128,18 @@ class BaseAIProvider(ABC):
     @abstractmethod
     async def _test_connection(self) -> bool:
         """Test provider connection."""
-        pass
     
     @abstractmethod
     async def generate(self, request: AIRequest) -> AIResponse:
         """Generate AI response."""
-        pass
     
     @abstractmethod
     async def stream_generate(self, request: AIRequest) -> AsyncGenerator[str, None]:
         """Generate streaming AI response."""
-        pass
     
     @abstractmethod
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available models."""
-        pass
     
     async def check_rate_limit(self, model_id: str) -> bool:
         """Check if request is within rate limits."""

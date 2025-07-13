@@ -4,16 +4,17 @@ Handles background tasks, job scheduling, and message processing
 """
 
 import asyncio
-import logging
 import json
-import uuid
+import logging
 import time
-from typing import Dict, List, Optional, Any, Callable, Union
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-import aioredis
+import uuid
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+import aioredis
 
 logger = logging.getLogger(__name__)
 

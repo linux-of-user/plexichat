@@ -3,12 +3,13 @@ Documentation API endpoints for PlexiChat.
 Provides comprehensive documentation management and viewing capabilities.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from plexichat.app.services.documentation_service import documentation_service
 from plexichat.app.logger_config import logger
+from plexichat.app.services.documentation_service import documentation_service
 
 
 # Pydantic models for API

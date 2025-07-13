@@ -17,14 +17,14 @@ Endpoints:
 - POST /api/cache/invalidate - Invalidate cache patterns
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query, Body
-from fastapi.responses import JSONResponse
-from typing import Dict, List, Optional, Any, Union
-from pydantic import BaseModel, Field
 import logging
+from typing import Any, Dict, List, Optional
 
-from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager, MessagePriority
-from plexichat.core.auth.dependencies import require_auth, require_admin
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from plexichat.core.auth.dependencies import require_admin, require_auth
+from plexichat.core.performance.multi_tier_cache_manager import MessagePriority, get_cache_manager
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +206,7 @@ async def set_cached_value(
             "critical": MessagePriority.CRITICAL
         }
         
-        priority = priority_map.get(request.priority, MessagePriority.NORMAL)
+        priority_map.get(request.priority, MessagePriority.NORMAL)
         
         success = await cache_manager.set(
             key=key,

@@ -9,19 +9,17 @@ import asyncio
 import importlib
 import importlib.util
 import inspect
-import json
 import logging
 import sys
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Type, Callable, Set
-from datetime import datetime, timezone
-from dataclasses import dataclass, field
-from enum import Enum
-import weakref
-import threading
 import time
-from watchdog.observers import Observer
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 logger = logging.getLogger(__name__)
 

@@ -3,17 +3,14 @@ Ollama Provider Implementation
 Comprehensive Ollama integration with model management and local inference.
 """
 
-import asyncio
 import json
 import logging
 import time
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, AsyncGenerator
 from dataclasses import dataclass
-import aiohttp
-import aiofiles
+from datetime import datetime, timezone
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
-from .base_provider import BaseAIProvider, ProviderConfig, AIRequest, AIResponse, ProviderStatus
+from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
 logger = logging.getLogger(__name__)
 

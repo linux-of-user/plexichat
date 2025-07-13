@@ -6,11 +6,10 @@ with centralized management and monitoring.
 """
 
 import asyncio
-import json
-from typing import Dict, List, Optional, Any
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-import logging
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -415,7 +414,7 @@ class SystemIntegrationCoordinator:
         """Check quantum security system health."""
         try:
             from ..security.quantum_security import quantum_security_manager
-            
+
             # Test encryption/decryption
             test_data = "health_check_test"
             encrypted = quantum_security_manager.encrypt_sensitive_data(test_data)
@@ -441,7 +440,7 @@ class SystemIntegrationCoordinator:
         """Check threat intelligence system health."""
         try:
             from ..security.threat_intelligence import threat_intelligence_manager
-            
+
             # Check if feeds are updating
             feed_status = threat_intelligence_manager.get_threat_intelligence_status()
             threat_intel = feed_status.get("threat_intelligence", {})
@@ -462,7 +461,7 @@ class SystemIntegrationCoordinator:
         """Check performance optimization system health."""
         try:
             from ..performance.optimization_engine import performance_optimization_engine
-            
+
             # Get performance report
             report = performance_optimization_engine.get_comprehensive_performance_report()
             

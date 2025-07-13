@@ -5,15 +5,13 @@ Advanced semantic search with vector embeddings and AI-powered relevance
 
 import asyncio
 import logging
-import json
 import time
-import numpy as np
-from typing import Dict, List, Optional, Any, Tuple, Union
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import hashlib
-import pickle
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -522,7 +520,7 @@ class SemanticSearchEngine:
         """Extract keywords from text."""
         # Simple keyword extraction (in production, use NLP libraries)
         import re
-        
+
         # Remove punctuation and convert to lowercase
         text = re.sub(r'[^\w\s]', '', text.lower())
         

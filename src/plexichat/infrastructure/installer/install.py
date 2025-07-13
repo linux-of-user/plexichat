@@ -4,16 +4,17 @@ PlexiChat GitHub Installer
 Downloads and installs PlexiChat from GitHub repository.
 """
 
-import os
-import sys
 import json
+import os
 import shutil
-import zipfile
-import tempfile
 import subprocess
+import sys
+import tempfile
+import zipfile
 from pathlib import Path
-from urllib.request import urlopen, urlretrieve
 from urllib.error import URLError
+from urllib.request import urlopen, urlretrieve
+
 
 class PlexiChatInstaller:
     """GitHub-based PlexiChat installer."""

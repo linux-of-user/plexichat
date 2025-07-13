@@ -4,9 +4,10 @@ FastAPI dependency functions for authentication and authorization.
 """
 
 import logging
-from typing import Optional, Dict, Any
-from fastapi import HTTPException, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any, Dict, Optional
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 logger = logging.getLogger(__name__)
 

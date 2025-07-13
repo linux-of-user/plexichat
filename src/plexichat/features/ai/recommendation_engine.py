@@ -5,15 +5,14 @@ Intelligent content and connection recommendations using machine learning
 
 import asyncio
 import logging
-import json
-import time
-import numpy as np
-from typing import Dict, List, Optional, Any, Tuple, Set
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict, Counter
 import math
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -304,7 +303,7 @@ class AIRecommendationEngine:
                         confidence_score=score,
                         relevance_score=score,
                         algorithm_used=RecommendationAlgorithm.COLLABORATIVE_FILTERING,
-                        explanation=f"Users with similar interests also liked this content",
+                        explanation="Users with similar interests also liked this content",
                         reasoning=[f"Based on preferences of {len(similar_users)} similar users"],
                         metadata={"item": item},
                         author_id=item.author_id,
@@ -344,7 +343,7 @@ class AIRecommendationEngine:
                     relevance_score=similarity_score,
                     algorithm_used=RecommendationAlgorithm.CONTENT_BASED,
                     explanation=f"Matches your interests in {', '.join(item.categories[:3])}",
-                    reasoning=[f"Similar to content you've liked before"],
+                    reasoning=["Similar to content you've liked before"],
                     metadata={"item": item},
                     author_id=item.author_id,
                     channel_id=item.channel_id
@@ -683,7 +682,6 @@ class AIRecommendationEngine:
         """Update user and item similarity matrices."""
         # Placeholder for similarity matrix updates
         # In production, this would use more sophisticated algorithms
-        pass
     
     async def _update_popular_items_cache(self):
         """Update cache of popular items."""

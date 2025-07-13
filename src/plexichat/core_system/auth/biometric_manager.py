@@ -4,9 +4,8 @@ PlexiChat Biometric Manager
 Biometric authentication management for fingerprint, face, and voice recognition.
 """
 
-import asyncio
 import logging
-from typing import Dict, Optional, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 

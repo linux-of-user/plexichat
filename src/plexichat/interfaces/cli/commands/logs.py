@@ -3,20 +3,17 @@ Advanced CLI log management commands.
 Provides comprehensive log viewing, filtering, and management from command line.
 """
 
-import os
-import sys
 import argparse
 import json
-from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
+import sys
+from datetime import datetime
 from pathlib import Path
-import subprocess
+from typing import List
 
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
-from services.log_management import log_manager, LogEntry
-from logger_config import logger
+from services.log_management import LogEntry, log_manager
 
 
 class LogCLI:

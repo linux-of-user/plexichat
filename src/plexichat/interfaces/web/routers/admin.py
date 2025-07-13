@@ -5,28 +5,36 @@ with comprehensive system management capabilities.
 """
 
 import json
+import logging
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Depends, Request, Response
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+import import
+import logger
+import monitoring_logger
+import selftest_logger
+import settings
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
-from sqlmodel import Session, select, func
+from sqlmodel import Session, func, select
 
+from plexichat.core.config import config_manager
 from plexichat.core.database import get_session
-from plexichat.features.users.user import User
 from plexichat.features.users.message import Message
-import logging import settings, logger, selftest_logger, monitoring_logger
-from plexichat.infrastructure.utils.monitoring import system_monitor, error_handler
-from plexichat.utils.self_tests.test_executor import test_executor
+from plexichat.features.users.user import User
+from plexichat.infrastructure.utils.monitoring import error_handler, system_monitor
+from plexichat.infrastructure.utils.scheduling import (
+    get_scheduler_status,
+    run_comprehensive_self_tests,
+)
 from plexichat.utils.self_tests.connectivity import run_connectivity_tests
 from plexichat.utils.self_tests.database import run_database_tests
-from plexichat.utils.self_tests.users import run_user_tests
 from plexichat.utils.self_tests.endpoints import run_endpoint_tests
-from plexichat.infrastructure.utils.scheduling import run_comprehensive_self_tests, get_scheduler_status
-from plexichat.core.config import config_manager
+from plexichat.utils.self_tests.test_executor import test_executor
+from plexichat.utils.self_tests.users import run_user_tests
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 security = HTTPBearer()

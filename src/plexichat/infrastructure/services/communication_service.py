@@ -6,19 +6,18 @@ thread management, translation, and AI-powered smart notifications.
 """
 
 import asyncio
-import json
 import uuid
-import yaml
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Union
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import logging
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
-from .base_service import BaseService, ServiceState
-from ..core.logging import get_logger
+import yaml
+
 from ..ai import get_ai_manager
+from ..core.logging import get_logger
+from .base_service import BaseService, ServiceState
 
 logger = get_logger(__name__)
 

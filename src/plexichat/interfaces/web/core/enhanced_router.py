@@ -5,22 +5,21 @@ Enhanced WebUI routing system with configurable ports, MFA authentication,
 distributed storage, self-tests, and feature toggles.
 """
 
-import asyncio
-import json
-from typing import Dict, List, Optional, Any
-from datetime import datetime
 import logging
-from fastapi import FastAPI, Request, Response, HTTPException, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-import uvicorn
+from datetime import datetime
+from typing import Any, Dict, List
 
+import uvicorn
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from .auth_storage import get_auth_storage
 from .config_manager import get_webui_config
 from .mfa_manager import get_mfa_manager
-from .auth_storage import get_auth_storage
 from .self_test_manager import get_self_test_manager
 
 logger = logging.getLogger(__name__)
@@ -127,7 +126,7 @@ class EnhancedWebUIRouter:
                 data = await request.json()
                 username = data.get("username")
                 password = data.get("password")
-                mfa_code = data.get("mfa_code")
+                data.get("mfa_code")
                 
                 if not username or not password:
                     raise HTTPException(
@@ -270,7 +269,7 @@ class EnhancedWebUIRouter:
         @self.app.get("/admin", response_class=HTMLResponse)
         async def admin_panel(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Admin panel."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             if not self.config.is_feature_enabled("admin_panel", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")
@@ -284,7 +283,7 @@ class EnhancedWebUIRouter:
         @self.app.get("/api/admin/config")
         async def get_admin_config(credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Get admin configuration."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             if not self.config.is_feature_enabled("system_configuration", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")
@@ -294,7 +293,7 @@ class EnhancedWebUIRouter:
         @self.app.post("/api/admin/config")
         async def update_admin_config(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Update admin configuration."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             if not self.config.is_feature_enabled("system_configuration", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")
@@ -328,7 +327,7 @@ class EnhancedWebUIRouter:
         @self.app.get("/admin/tests", response_class=HTMLResponse)
         async def self_tests_page(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Self-tests page."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")
@@ -342,7 +341,7 @@ class EnhancedWebUIRouter:
         @self.app.post("/api/admin/tests/run")
         async def run_self_tests(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Run self-tests."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")
@@ -377,7 +376,7 @@ class EnhancedWebUIRouter:
         @self.app.get("/api/admin/tests/results/{suite_id}")
         async def get_test_results(suite_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Get test results."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             results = self.self_test_manager.get_test_results(suite_id)
             if not results:
@@ -391,7 +390,7 @@ class EnhancedWebUIRouter:
         @self.app.get("/api/admin/features")
         async def get_features(credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Get feature configuration."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             return JSONResponse(content={
                 "enabled_features": self.config.feature_toggle_config.enabled_features,
@@ -403,7 +402,7 @@ class EnhancedWebUIRouter:
         @self.app.post("/api/admin/features/toggle")
         async def toggle_feature(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
             """Toggle a feature."""
-            session = self._verify_session(credentials.credentials)
+            self._verify_session(credentials.credentials)
             
             if not self.config.is_feature_enabled("system_configuration", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")

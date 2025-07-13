@@ -3,14 +3,15 @@ PlexiChat Server Management API
 Comprehensive server management endpoints for hot reload, updates, and monitoring.
 """
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
-from fastapi.security import HTTPBearer
-from typing import Dict, List, Any, Optional
-from pydantic import BaseModel
 import logging
 from datetime import datetime
+from typing import List, Optional
 
-from plexichat.core.server_manager import server_manager, ServerState, UpdateType, UpdateInfo
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel
+
+from plexichat.core.server_manager import ServerState, UpdateInfo, UpdateType, server_manager
 from plexichat.infrastructure.utils.auth import verify_admin_token
 
 logger = logging.getLogger(__name__)

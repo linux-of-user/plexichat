@@ -3,15 +3,13 @@ PlexiChat Phase V API Expansion Coordinator
 Manages the massive expansion of API endpoints with comprehensive functionality
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter
 
 logger = logging.getLogger(__name__)
 
@@ -284,57 +282,46 @@ class Phase5APIExpansionCoordinator:
     async def _register_message_interaction_endpoints(self):
         """Register message interaction endpoints."""
         # Implementation for message interaction endpoints
-        pass
     
     async def _register_file_management_endpoints(self):
         """Register file management endpoints."""
         # Implementation for file management endpoints
-        pass
     
     async def _register_notification_endpoints(self):
         """Register notification endpoints."""
         # Implementation for notification endpoints
-        pass
     
     async def _register_oauth2_endpoints(self):
         """Register OAuth2 endpoints."""
         # Implementation for OAuth2 endpoints
-        pass
     
     async def _register_webhook_endpoints(self):
         """Register webhook endpoints."""
         # Implementation for webhook endpoints
-        pass
     
     async def _register_api_key_endpoints(self):
         """Register API key management endpoints."""
         # Implementation for API key endpoints
-        pass
     
     async def _register_analytics_endpoints(self):
         """Register analytics endpoints."""
         # Implementation for analytics endpoints
-        pass
     
     async def _register_audit_log_endpoints(self):
         """Register audit log endpoints."""
         # Implementation for audit log endpoints
-        pass
     
     async def _register_health_check_endpoints(self):
         """Register health check endpoints."""
         # Implementation for health check endpoints
-        pass
     
     async def _register_presence_endpoints(self):
         """Register presence system endpoints."""
         # Implementation for presence endpoints
-        pass
     
     async def _register_emoji_management_endpoints(self):
         """Register emoji management endpoints."""
         # Implementation for emoji management endpoints
-        pass
     
     async def _setup_middleware(self):
         """Setup API middleware."""
@@ -358,7 +345,6 @@ class Phase5APIExpansionCoordinator:
         # Health monitoring setup
         # Performance tracking setup
         # Error tracking setup
-        pass
     
     def _update_endpoint_statistics(self):
         """Update endpoint statistics."""

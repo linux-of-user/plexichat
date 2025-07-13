@@ -3,17 +3,15 @@ Permissions Management API Endpoints
 Comprehensive API for managing roles and permissions.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any, Set
 from datetime import datetime
+from typing import Dict, List, Optional
 
-from plexichat.app.security.permissions import (
-    PermissionManager, Role, Permission, PermissionScope, 
-    UserPermissions, PermissionCheck
-)
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field
+
 from plexichat.app.logger_config import logger
+from plexichat.app.security.permissions import Permission, PermissionManager, PermissionScope, Role
 
 router = APIRouter(prefix="/api/v1/permissions", tags=["Permissions"])
 security = HTTPBearer()
@@ -109,7 +107,7 @@ async def verify_admin_permission(credentials: HTTPAuthorizationCredentials = De
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         
         return user_id
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid authentication")
 
 @router.get("/permissions", response_model=List[str])

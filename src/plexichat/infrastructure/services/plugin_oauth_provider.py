@@ -6,21 +6,19 @@ to publish and manage their plugins in the PlexiChat marketplace.
 """
 
 import asyncio
+import base64
+import hashlib
 import json
 import secrets
-import hashlib
-import base64
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-import jwt
+from typing import Any, Dict, List, Optional
+
 import aiofiles
 
 from ..core.logging import get_logger
-from ..core.config import get_config
-from ..core.security import generate_secure_token, verify_password, hash_password
 
 logger = get_logger(__name__)
 

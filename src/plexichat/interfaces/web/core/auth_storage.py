@@ -5,19 +5,16 @@ Advanced distributed authentication storage system with multiple backends,
 automatic failover, data replication, and encryption.
 """
 
-import os
 import json
-import asyncio
-import hashlib
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timedelta
-from abc import ABC, abstractmethod
 import logging
-from dataclasses import dataclass, asdict
-from cryptography.fernet import Fernet
 import sqlite3
-import redis
+from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from cryptography.fernet import Fernet
 
 from .config_manager import get_webui_config
 
@@ -46,32 +43,26 @@ class AuthStorageBackend(ABC):
     @abstractmethod
     async def store_auth_record(self, record: AuthRecord) -> bool:
         """Store an authentication record."""
-        pass
     
     @abstractmethod
     async def get_auth_record(self, user_id: str) -> Optional[AuthRecord]:
         """Get an authentication record."""
-        pass
     
     @abstractmethod
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        pass
     
     @abstractmethod
     async def delete_auth_record(self, user_id: str) -> bool:
         """Delete an authentication record."""
-        pass
     
     @abstractmethod
     async def list_auth_records(self) -> List[AuthRecord]:
         """List all authentication records."""
-        pass
     
     @abstractmethod
     async def is_healthy(self) -> bool:
         """Check if the backend is healthy."""
-        pass
 
 class DatabaseAuthStorage(AuthStorageBackend):
     """Database-based authentication storage."""
@@ -367,7 +358,7 @@ class DistributedAuthStorage:
                 try:
                     record = await backend.get_auth_record(user_id)
                     if record:
-                        logger.info(f"Retrieved record from backup backend")
+                        logger.info("Retrieved record from backup backend")
                         return record
                 except Exception as e:
                     logger.warning(f"Backup backend failed: {e}")

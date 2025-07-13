@@ -15,20 +15,22 @@ Features:
 - Session management and permissions
 """
 
-import asyncio
 import json
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Set
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, Query
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ValidationError
+from typing import Any, Dict, List, Optional, Set
 
-from ...core.auth.dependencies import require_auth, require_admin_auth
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
+
+from ...core.auth.dependencies import require_admin_auth, require_auth
 from ...core.logging import get_logger
 from ...services.collaboration_service import (
-    get_collaboration_service, CollaborationType, OperationType, UserRole,
-    Operation, CollaborationUser, CollaborationSession
+    CollaborationType,
+    Operation,
+    OperationType,
+    UserRole,
+    get_collaboration_service,
 )
 
 # Initialize router and logger

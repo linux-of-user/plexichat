@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Request, HTTPException, status
-from sqlmodel import Session, select
-from sqlalchemy import func
+import logging
 from datetime import datetime, timezone
 
-import logging
+from fastapi import APIRouter, HTTPException, Request
+from sqlalchemy import func
+from sqlmodel import Session, select
 
 logger = logging.getLogger(__name__)
 # settings import will be added when needed
 from plexichat.core.database import engine
-from plexichat.features.users.user import User
 from plexichat.features.users.message import Message
+from plexichat.features.users.user import User
 
 server_start_time = datetime.now(timezone.utc)
 router = APIRouter()

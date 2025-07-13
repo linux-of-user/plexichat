@@ -5,22 +5,18 @@ Enhanced MFA system with TOTP, backup codes, SMS, email, and biometric support.
 Provides distributed authentication storage and advanced security features.
 """
 
-import os
-import json
-import secrets
-import qrcode
-import io
 import base64
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime, timedelta
+import io
+import json
 import logging
-from dataclasses import dataclass, asdict
+import secrets
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import pyotp
-import hashlib
+import qrcode
 from cryptography.fernet import Fernet
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
-import smtplib
 
 from .config_manager import get_webui_config
 

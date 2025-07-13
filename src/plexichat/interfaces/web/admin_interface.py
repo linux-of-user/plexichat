@@ -3,22 +3,22 @@ Enhanced Web Admin Interface for PlexiChat
 Provides comprehensive web-based administration with console access, log viewing, and user management.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request, Form, File, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
-import os
-import json
 import asyncio
+import hashlib
+import io
+import json
 import logging
+import os
+import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
-import secrets
-import hashlib
-import zipfile
-import io
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 # Admin authentication
 security = HTTPBasic()
@@ -38,7 +38,7 @@ ADMIN_USERS = {
 }
 
 # Templates
-import os
+
 template_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=template_dir)
 
@@ -317,9 +317,9 @@ async def execute_console_command(
     try:
         # Import CLI app
         from plexichat.cli.app import PlexiChatCLI
-        
+
         # Create CLI instance
-        cli = PlexiChatCLI()
+        PlexiChatCLI()
         
         # Execute command (simplified - in real implementation would capture output)
         result = f"Command executed: {command.command}"

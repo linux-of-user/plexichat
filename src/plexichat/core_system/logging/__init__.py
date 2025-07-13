@@ -17,25 +17,26 @@ Features:
 - Dashboard visualization
 """
 
+import asyncio
+import gzip
+import json
 import logging
 import logging.handlers
-import json
-import time
+import os
+import sys
 import threading
-import asyncio
+import time
+import traceback
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field, asdict
 from enum import Enum
 from pathlib import Path
-from collections import deque, defaultdict
-import gzip
-import traceback
-import sys
-import os
+from typing import Any, Callable, Dict, List, Optional, Union
 
 # Import configuration and utilities
 from ..config import get_config
+
 # from ...services import get_service  # Commented out for now
 
 # Log levels with custom additions

@@ -3,17 +3,17 @@ PlexiChat Enhanced Documentation System
 Comprehensive documentation interface with advanced search, navigation, and modern UI.
 """
 
+import logging
 import os
 import re
-import json
-import markdown
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
-from fastapi import APIRouter, Request, HTTPException, Query
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import markdown
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import logging
 
 logger = logging.getLogger(__name__)
 

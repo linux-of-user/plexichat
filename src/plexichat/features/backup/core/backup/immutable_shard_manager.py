@@ -11,21 +11,17 @@ import json
 import secrets
 import struct
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set, Union
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
-import numpy as np
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding, ed25519
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ...core.logging import get_logger
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
 from ...core.config import get_config
+from ...core.logging import get_logger
 from ..security.quantum_encryption import QuantumEncryptionEngine
-from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol, BackupChunk
+from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
 
 logger = get_logger(__name__)
 

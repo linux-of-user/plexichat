@@ -4,17 +4,17 @@ Handles user creation, profile management, account operations, and social featur
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Query, UploadFile, File
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import JSONResponse
-from sqlmodel import Session
 from pydantic import BaseModel, EmailStr
+from sqlmodel import Session
 
 from plexichat.app.db import get_session
-from plexichat.app.models.enhanced_models import EnhancedUser, UserStatus, BotType, AccountType
+from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.services.user_management import UserManagementService
 from plexichat.app.utils.auth import get_current_user, get_optional_current_user
-from plexichat.app.logger_config import logger
 
 
 # Pydantic models for API

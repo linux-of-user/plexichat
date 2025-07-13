@@ -7,22 +7,16 @@ and performance optimization for tangible performance gains.
 
 import asyncio
 import logging
-import secrets
-import json
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from pathlib import Path
-from dataclasses import dataclass, field
-from enum import Enum
-import aiosqlite
-import psutil
 import random
+import secrets
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from . import (
-    ClusterRole, NodeStatus, LoadBalancingStrategy, PerformanceMetric,
-    MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, MAXIMUM_CLUSTER_SIZE
-)
+import psutil
+
+from . import MAXIMUM_CLUSTER_SIZE, MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, NodeStatus
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +205,7 @@ class IntelligentNodeManager:
         }
         
         # Analyze current workload distribution
-        workload_analysis = await self._analyze_workload_distribution()
+        await self._analyze_workload_distribution()
         
         # Identify optimization opportunities
         for node_id, node in self.cluster_manager.cluster_nodes.items():

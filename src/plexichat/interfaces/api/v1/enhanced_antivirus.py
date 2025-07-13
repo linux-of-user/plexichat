@@ -3,16 +3,15 @@ Enhanced Antivirus API Endpoints
 REST API for managing the enhanced antivirus system.
 """
 
-import asyncio
-import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, Depends
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
+from plexichat.antivirus.core import ScanType
 from plexichat.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager
-from plexichat.antivirus.core import ScanType, ThreatLevel
 from plexichat.app.logger_config import logger
 
 # Initialize router

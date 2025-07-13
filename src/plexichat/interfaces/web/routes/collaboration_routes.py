@@ -5,16 +5,17 @@ Web routes for collaboration dashboard and interfaces providing
 access to real-time collaboration features through web interface.
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException, Query
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from pathlib import Path
-from datetime import datetime, timezone
-from typing import Optional
 
 from ...core.auth.dependencies import require_auth
 from ...core.logging import get_logger
-from ...services.collaboration_service import get_collaboration_service, CollaborationType
+from ...services.collaboration_service import CollaborationType, get_collaboration_service
 
 # Initialize router and templates
 router = APIRouter(prefix="/collaboration", tags=["Collaboration Web"])

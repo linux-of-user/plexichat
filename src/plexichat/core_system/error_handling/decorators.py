@@ -9,12 +9,12 @@ import asyncio
 import functools
 import logging
 import time
-from typing import Optional, Dict, Any, List, Type, Callable, Union
+from typing import Any, Callable, List, Type
 
-from .exceptions import ErrorSeverity, ErrorCategory
 from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 from .crash_reporter import crash_reporter
-from .error_recovery import recovery_manager, RecoveryStrategy
+from .error_recovery import RecoveryStrategy, recovery_manager
+from .exceptions import ErrorCategory, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def error_handler(severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                 }
                 
                 # Handle the error
-                error_context = await error_manager.handle_error(
+                await error_manager.handle_error(
                     exception=e,
                     context=context,
                     severity=severity,
@@ -331,7 +331,6 @@ def rate_limit(calls_per_second: float = 1.0,
         burst_size: Maximum burst size
     """
     def decorator(func: Callable):
-        last_called = [0.0]
         call_times = []
         
         @functools.wraps(func)

@@ -14,41 +14,35 @@ Provides military-grade secure communication between cluster nodes with:
 """
 
 import asyncio
-import secrets
-import hashlib
-import hmac
-import logging
-import struct
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union
-from pathlib import Path
-from dataclasses import dataclass, field
-from enum import Enum
-import aiosqlite
 import json
-import base64
+import logging
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
+
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec, rsa, x25519
 
 # Enhanced cryptography imports
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
-from cryptography.hazmat.primitives import hashes, serialization, constant_time
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives.asymmetric import rsa, padding, ec, x25519, ed25519
-from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature, decode_dss_signature
-from cryptography.hazmat.backends import default_backend
-from cryptography import x509
-from cryptography.x509.oid import NameOID, ExtensionOID
+from cryptography.x509.oid import NameOID
 
-# Import unified security architecture
-from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
 from ....core_system.security.certificate_manager import get_certificate_manager
 from ....core_system.security.hardware_security import get_hsm_manager
 
-from . import (
-    INTER_NODE_ENCRYPTION, ENCRYPTION_ALGORITHM, KEY_ROTATION_INTERVAL,
-    HEARTBEAT_ENCRYPTION, HOT_UPDATE_SUPPORT
+# Import unified security architecture
+from ....core_system.security.unified_audit_system import (
+    SecurityEventType,
+    SecuritySeverity,
+    ThreatLevel,
+    get_unified_audit_system,
 )
+from . import HEARTBEAT_ENCRYPTION, HOT_UPDATE_SUPPORT, INTER_NODE_ENCRYPTION
 
 logger = logging.getLogger(__name__)
 

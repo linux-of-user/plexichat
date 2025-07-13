@@ -4,11 +4,10 @@ Provides comprehensive theming capabilities across all interfaces.
 """
 
 import json
-import os
-from typing import Dict, Any, List, Optional
-from pathlib import Path
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from plexichat.app.logger_config import logger
 

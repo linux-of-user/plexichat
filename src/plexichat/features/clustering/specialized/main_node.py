@@ -12,20 +12,18 @@ Dedicated cluster node for core application operations with:
 
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from pathlib import Path
-from dataclasses import dataclass
-from enum import Enum
-import aiosqlite
-import json
 
 # Import PlexiChat components
 import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from plexichat.clustering.core.base_node import BaseClusterNode
-from plexichat.clustering.core.encrypted_communication import EncryptedCommunicationManager
 
 logger = logging.getLogger(__name__)
 

@@ -4,15 +4,16 @@ Protects all endpoints except /docs with ultra-secure authentication.
 """
 
 import json
+import logging
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from fastapi import Request, Response, HTTPException
-from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
+from typing import Any, Dict
+
+from fastapi import Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from plexichat.core.security.government_auth import government_auth
-import logging
 
 logger = logging.getLogger(__name__)
 

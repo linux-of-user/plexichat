@@ -5,17 +5,14 @@ Scans files using hash-based detection against public virus databases
 and PlexiChat's internal threat intelligence database.
 """
 
-import asyncio
-import hashlib
 import logging
-import json
-import aiohttp
-import aiosqlite
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Any
+from typing import Any, Dict, Optional, Set
 
-from . import ThreatLevel, ScanType, ThreatType, ScanResult, ThreatSignature
+import aiosqlite
+
+from . import ScanResult, ScanType, ThreatLevel, ThreatSignature, ThreatType
 
 logger = logging.getLogger(__name__)
 

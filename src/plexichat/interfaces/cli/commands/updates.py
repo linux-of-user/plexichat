@@ -5,20 +5,20 @@ Command-line interface for the advanced update system with new versioning scheme
 Supports upgrades, downgrades, rollbacks, changelog viewing, and dependency management.
 """
 
-import asyncio
 import argparse
-import sys
-from typing import Optional
-from pathlib import Path
+import asyncio
 import logging
+import sys
 
-from ..core.versioning.version_manager import Version, VersionType, version_manager
+from ..core.versioning.canary_deployment_manager import CanaryStrategy, canary_deployment_manager
 from ..core.versioning.changelog_manager import changelog_manager
 from ..core.versioning.update_system import (
-    UpdateSystem, UpdateType, update_system,
-    UpdateDistributionMethod, UpdateDeploymentStrategy, UpdateVerificationLevel
+    UpdateDeploymentStrategy,
+    UpdateDistributionMethod,
+    UpdateType,
+    update_system,
 )
-from ..core.versioning.canary_deployment_manager import CanaryStrategy, canary_deployment_manager
+from ..core.versioning.version_manager import Version, version_manager
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +116,7 @@ Examples:
                                     default='text', help='Output format')
         
         # Reinstall dependencies command
-        reinstall_parser = subparsers.add_parser('reinstall-deps',
+        subparsers.add_parser('reinstall-deps',
                                                help='Reinstall all dependencies')
         
         # Upgrade database command
@@ -138,7 +138,7 @@ Examples:
                                    help='Force rollback without confirmation')
         
         # Status command
-        status_parser = subparsers.add_parser('status', help='Show update system status')
+        subparsers.add_parser('status', help='Show update system status')
 
         # Enhanced atomic upgrade command
         atomic_upgrade_parser = subparsers.add_parser('atomic-upgrade',
@@ -186,10 +186,10 @@ Examples:
         p2p_subparsers = p2p_parser.add_subparsers(dest='p2p_command', help='P2P commands')
 
         # P2P discover
-        p2p_discover_parser = p2p_subparsers.add_parser('discover', help='Discover P2P nodes')
+        p2p_subparsers.add_parser('discover', help='Discover P2P nodes')
 
         # P2P status
-        p2p_status_parser = p2p_subparsers.add_parser('status', help='Show P2P distribution status')
+        p2p_subparsers.add_parser('status', help='Show P2P distribution status')
 
         # Signature management command
         signature_parser = subparsers.add_parser('signature', help='Manage update signatures')
@@ -241,7 +241,7 @@ Examples:
                 elif action == 'upgrade_to_release':
                     print("\n🎉 Release version available!")
                 
-                print(f"\n💡 Run 'plexichat update upgrade' to update")
+                print("\n💡 Run 'plexichat update upgrade' to update")
             else:
                 print("✅ PlexiChat is up to date!")
                 
@@ -314,23 +314,23 @@ Examples:
             plan = await self.update_system.create_update_plan(target_version, UpdateType.UPGRADE)
             
             # Show plan details
-            print(f"\n📋 Update Plan:")
+            print("\n📋 Update Plan:")
             print(f"   Update ID: {plan.update_id}")
             print(f"   Estimated Duration: {plan.estimated_duration_minutes} minutes")
             print(f"   Requires Restart: {'Yes' if plan.requires_restart else 'No'}")
             print(f"   Cluster Coordination: {'Yes' if plan.requires_cluster_coordination else 'No'}")
             
             if plan.breaking_changes:
-                print(f"\n⚠️  Breaking Changes:")
+                print("\n⚠️  Breaking Changes:")
                 for change in plan.breaking_changes:
                     print(f"   • {change}")
             
             if plan.dependency_updates:
-                print(f"\n📦 Dependency Updates:")
+                print("\n📦 Dependency Updates:")
                 for dep, version in plan.dependency_updates.items():
                     print(f"   • {dep}: {version}")
             
-            print(f"\n🔧 Execution Steps:")
+            print("\n🔧 Execution Steps:")
             for i, step in enumerate(plan.steps, 1):
                 print(f"   {i}. {step}")
             
@@ -341,19 +341,19 @@ Examples:
             # Confirm upgrade
             if not args.force:
                 if plan.breaking_changes:
-                    print(f"\n⚠️  This upgrade contains breaking changes!")
+                    print("\n⚠️  This upgrade contains breaking changes!")
                 
-                confirm = input(f"\n❓ Proceed with upgrade? [y/N]: ").lower().strip()
+                confirm = input("\n❓ Proceed with upgrade? [y/N]: ").lower().strip()
                 if confirm != 'y':
                     print("❌ Upgrade cancelled")
                     return False
             
             # Execute upgrade
-            print(f"\n🚀 Starting upgrade...")
+            print("\n🚀 Starting upgrade...")
             result = await self.update_system.execute_update(plan)
             
             if result.success:
-                print(f"✅ Upgrade completed successfully!")
+                print("✅ Upgrade completed successfully!")
                 print(f"📦 Updated to version {target_version}")
                 
                 if result.rollback_available:
@@ -390,28 +390,28 @@ Examples:
             
             # Show warnings
             if plan.breaking_changes:
-                print(f"\n⚠️  Warning: Downgrading past breaking changes!")
+                print("\n⚠️  Warning: Downgrading past breaking changes!")
                 for change in plan.breaking_changes:
                     print(f"   • {change}")
             
             if args.dry_run:
-                print(f"\n🔍 Dry run - downgrade plan created successfully")
+                print("\n🔍 Dry run - downgrade plan created successfully")
                 return True
             
             # Confirm downgrade
             if not args.force:
-                print(f"\n⚠️  Downgrading may cause data loss or compatibility issues!")
-                confirm = input(f"❓ Proceed with downgrade? [y/N]: ").lower().strip()
+                print("\n⚠️  Downgrading may cause data loss or compatibility issues!")
+                confirm = input("❓ Proceed with downgrade? [y/N]: ").lower().strip()
                 if confirm != 'y':
                     print("❌ Downgrade cancelled")
                     return False
             
             # Execute downgrade
-            print(f"\n⬇️  Starting downgrade...")
+            print("\n⬇️  Starting downgrade...")
             result = await self.update_system.execute_update(plan)
             
             if result.success:
-                print(f"✅ Downgrade completed successfully!")
+                print("✅ Downgrade completed successfully!")
                 print(f"📦 Downgraded to version {target_version}")
             else:
                 print(f"❌ Downgrade failed: {result.message}")
@@ -608,12 +608,6 @@ Examples:
                 'rolling': UpdateDeploymentStrategy.ROLLING
             }
 
-            verification_map = {
-                'basic': UpdateVerificationLevel.BASIC,
-                'standard': UpdateVerificationLevel.STANDARD,
-                'government': UpdateVerificationLevel.GOVERNMENT,
-                'military': UpdateVerificationLevel.MILITARY
-            }
 
             # Create enhanced update plan
             plan = await self.update_system.create_atomic_update_plan(
@@ -638,11 +632,11 @@ Examples:
                 print("⚡ Live patching enabled")
 
             # Execute atomic update
-            print(f"\n🚀 Executing atomic update...")
+            print("\n🚀 Executing atomic update...")
             result = await self.update_system.execute_atomic_update(plan)
 
             if result.success:
-                print(f"✅ Atomic update completed successfully!")
+                print("✅ Atomic update completed successfully!")
                 print(f"📦 Updated to version {target_version}")
 
                 if result.p2p_efficiency > 0:
@@ -712,7 +706,7 @@ Examples:
             result = await canary_deployment_manager.execute_canary_deployment(plan)
 
             if result.success:
-                print(f"✅ Canary deployment completed successfully!")
+                print("✅ Canary deployment completed successfully!")
                 print(f"📊 Deployed to {len(result.deployed_nodes)} nodes")
             else:
                 print(f"❌ Canary deployment failed: {result.message}")
@@ -844,7 +838,7 @@ Examples:
 
             # Read update data
             with open(update_file, 'rb') as f:
-                update_data = f.read()
+                f.read()
 
             # For demonstration, we'll simulate signature verification
             # In a real implementation, this would load signatures from a .sig file

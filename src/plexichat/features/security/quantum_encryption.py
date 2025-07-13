@@ -6,41 +6,34 @@ distributed key management, and quantum-resistant algorithms.
 Breaking one key doesn't compromise the entire system.
 """
 
-import asyncio
-import secrets
-import hashlib
-import logging
-import json
 import base64
-import os
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union
-from pathlib import Path
+import json
+import logging
+import secrets
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import aiosqlite
-import aiofiles
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-# Standard cryptography
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305, AESGCM
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.backends import default_backend
+import aiosqlite
 
 # Post-quantum cryptography (using pycryptodome for now, will add real PQC libraries)
 from Crypto.Cipher import AES, ChaCha20_Poly1305
-from Crypto.Random import get_random_bytes
 from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Random import get_random_bytes
+from cryptography.hazmat.backends import default_backend
+
+# Standard cryptography
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
 try:
     from Crypto.Protocol.KDF import Argon2d
 except ImportError:
     # Fallback to argon2-cffi if Argon2d not available in pycryptodome
-    import argon2
     Argon2d = None
-from Crypto.Hash import SHA3_512, BLAKE2b
+from Crypto.Hash import BLAKE2b
 
 logger = logging.getLogger(__name__)
 
@@ -418,7 +411,7 @@ class QuantumEncryptionSystem:
 
         for layer_meta in reversed(metadata["layers"]):
             key_id = layer_meta["key_id"]
-            algorithm = QuantumAlgorithm(layer_meta["algorithm"])
+            QuantumAlgorithm(layer_meta["algorithm"])
 
             # Find the key
             key = await self._find_key(key_id)

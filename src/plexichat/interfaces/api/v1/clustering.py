@@ -3,19 +3,18 @@ Clustering API endpoints for PlexiChat.
 Provides cluster management, task distribution, and node coordination.
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from pydantic import BaseModel
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from plexichat.clustering import (
-    AdvancedClusterManager, AdvancedTaskManager, TaskStatus, TaskPriority, TaskType, ClusterTask
-)
-from plexichat.clustering.core.node_manager import NodeStatus
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pydantic import BaseModel
+
 from plexichat.app.logger_config import logger
 
 # Import global cluster manager
 from plexichat.app.main import cluster_manager
+from plexichat.clustering import ClusterTask, TaskStatus
+from plexichat.clustering.core.node_manager import NodeStatus
 
 
 # Pydantic models for API

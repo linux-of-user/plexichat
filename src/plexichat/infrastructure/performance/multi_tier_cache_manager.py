@@ -19,16 +19,15 @@ Features:
 """
 
 import asyncio
-import json
-import time
-import hashlib
 import gzip
-import pickle
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union, Tuple
-from dataclasses import dataclass, asdict
-from enum import Enum
+import json
 import logging
+import pickle
+import time
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 # Optional dependencies - graceful degradation if not available
 try:
@@ -378,7 +377,7 @@ class MultiTierCacheManager:
             target_tiers = self._select_cache_tiers(key, value, ttl_seconds)
 
             success_count = 0
-            total_tiers = len(target_tiers)
+            len(target_tiers)
 
             # Set in selected tiers
             for tier in target_tiers:

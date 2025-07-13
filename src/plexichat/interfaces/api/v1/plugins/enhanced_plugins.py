@@ -4,15 +4,20 @@ Provides comprehensive plugin management with zip installation, security scannin
 auto-updates, and dashboard functionality.
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, Form
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 import tempfile
 from pathlib import Path
+from typing import Optional
 
-from plexichat.app.plugins.enhanced_plugin_manager import get_enhanced_plugin_manager, PluginSource, PluginStatus
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
+from pydantic import BaseModel
+
 from plexichat.app.logger_config import logger
+from plexichat.app.plugins.enhanced_plugin_manager import (
+    PluginSource,
+    PluginStatus,
+    get_enhanced_plugin_manager,
+)
+
 
 # Pydantic models for API
 class PluginInstallRequest(BaseModel):

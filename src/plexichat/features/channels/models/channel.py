@@ -5,11 +5,11 @@ Discord-like channel model with comprehensive features for text, voice, and spec
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
 from enum import IntEnum
-from sqlmodel import SQLModel, Field, Relationship, JSON, Column
-from sqlalchemy import Text, DateTime, Index
-import uuid
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import DateTime, Index, Text
+from sqlmodel import JSON, Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 

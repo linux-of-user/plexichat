@@ -6,11 +6,11 @@ Authentication and authorization decorators for API endpoints.
 
 import functools
 import logging
-from typing import Optional, List, Callable, Any
-from fastapi import HTTPException, Depends, Request
+from typing import Callable
 
-from .auth import auth_manager, session_manager, SecurityLevel
-from .exceptions import AuthenticationError, AuthorizationError
+from fastapi import HTTPException, Request
+
+from .auth import SecurityLevel, session_manager
 
 logger = logging.getLogger(__name__)
 

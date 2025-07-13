@@ -4,9 +4,8 @@ PlexiChat Device Manager
 Device fingerprinting and trusted device management.
 """
 
-import asyncio
 import logging
-from typing import Dict, Optional, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 

@@ -7,25 +7,25 @@ monitoring database performance across all supported database types.
 """
 
 import asyncio
-import click
 import json
-import yaml
-import sys
 import logging
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, Any, List, Optional
-from tabulate import tabulate
+import sys
 import time
+from datetime import datetime
+from pathlib import Path
+
+import click
+import yaml
+from tabulate import tabulate
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from plexichat.core.config.config_manager import ConfigManager
 from plexichat.core.database.enhanced_abstraction import enhanced_db_manager
+from plexichat.core.database.indexing_strategy import index_manager
 from plexichat.core.database.performance_integration import performance_optimizer
 from plexichat.core.database.query_optimizer import performance_monitor
-from plexichat.core.database.indexing_strategy import index_manager
-from plexichat.core.config.config_manager import ConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -216,8 +216,8 @@ def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool
                     failed_tasks = len(tasks) - len(successful_tasks)
                     click.echo(f"⚠️ {failed_tasks} optimizations failed or require manual intervention")
             else:
-                click.echo(f"\n💡 Use --auto-apply to automatically apply safe optimizations")
-                click.echo(f"💡 Use 'plexichat db-perf apply-task <task_id>' to apply specific optimizations")
+                click.echo("\n💡 Use --auto-apply to automatically apply safe optimizations")
+                click.echo("💡 Use 'plexichat db-perf apply-task <task_id>' to apply specific optimizations")
         
         except Exception as e:
             click.echo(f"❌ Optimization failed: {e}")
@@ -234,7 +234,7 @@ def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool
 @click.pass_context
 def monitor(ctx, database: str, interval: int, duration: int, threshold: float):
     """Monitor database performance in real-time."""
-    click.echo(f"📊 Starting real-time performance monitoring...")
+    click.echo("📊 Starting real-time performance monitoring...")
     click.echo(f"⏱️ Interval: {interval}s, Duration: {duration}s, Threshold: {threshold}ms")
     
     async def run_monitoring():
@@ -263,7 +263,7 @@ def monitor(ctx, database: str, interval: int, duration: int, threshold: float):
                     for query in slow_queries[-5:]:  # Show last 5
                         click.echo(f"  • {query['execution_time_ms']:.1f}ms - {query['query'][:60]}...")
                 
-                click.echo(f"\nPress Ctrl+C to stop monitoring...")
+                click.echo("\nPress Ctrl+C to stop monitoring...")
                 
                 await asyncio.sleep(interval)
         
@@ -417,7 +417,6 @@ def status(ctx):
             for db_name, report in reports.items():
                 score = report.get('performance_score', 0)
                 priority = report.get('optimization_priority', 'unknown')
-                score_color = "green" if score >= 80 else "yellow" if score >= 60 else "red"
                 score_data.append([
                     db_name,
                     f"{score:.1f}/100",

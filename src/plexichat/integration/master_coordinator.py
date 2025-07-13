@@ -5,21 +5,21 @@ Orchestrates all phases and provides unified system management
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+# Phase IV: Database
+from ..core_system.database.abstraction.phase4_integration import phase4_database
+
+# Phase III: AI
+from ..features.ai.phase3_integration import phase3_ai
 
 # Phase I: Security
 from ..features.security.phase1_integration import phase1_security
 
 # Phase II: Scalability
 from ..infrastructure.scalability.phase2_integration import phase2_scalability
-
-# Phase III: AI
-from ..features.ai.phase3_integration import phase3_ai
-
-# Phase IV: Database
-from ..core_system.database.abstraction.phase4_integration import phase4_database
 
 logger = logging.getLogger(__name__)
 
@@ -320,23 +320,23 @@ class PlexiChatMasterCoordinator:
     async def _display_system_status(self):
         """Display comprehensive system status."""
         status_lines = [
-            f"",
+            "",
             f"🎉 {self.system_name} v{self.version} - System Status",
             f"{'='*60}",
             f"🔒 Phase I: Security Infrastructure - {'✅ Active' if self.config['enable_phase1_security'] else '❌ Disabled'}",
             f"📈 Phase II: Scalability & Modularity - {'✅ Active' if self.config['enable_phase2_scalability'] else '❌ Disabled'}",
             f"🤖 Phase III: Artificial Intelligence - {'✅ Active' if self.config['enable_phase3_ai'] else '❌ Disabled'}",
             f"🗄️ Phase IV: Database Abstraction - {'✅ Active' if self.config['enable_phase4_database'] else '❌ Disabled'}",
-            f"",
-            f"📊 System Metrics:",
+            "",
+            "📊 System Metrics:",
             f"   • Uptime: {self.metrics.system_uptime:.2f} seconds",
             f"   • Total Requests: {self.metrics.total_requests}",
             f"   • Success Rate: {(self.metrics.successful_requests/max(self.metrics.total_requests,1)*100):.1f}%",
             f"   • Avg Response Time: {self.metrics.average_response_time:.2f}ms",
-            f"",
-            f"🚀 System ready for operation!",
+            "",
+            "🚀 System ready for operation!",
             f"{'='*60}",
-            f""
+            ""
         ]
         
         for line in status_lines:

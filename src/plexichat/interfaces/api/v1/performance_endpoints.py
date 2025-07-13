@@ -16,17 +16,16 @@ Features:
 - Trend analysis
 """
 
-from fastapi import APIRouter, HTTPException, Query, Depends, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timezone, timedelta
-import json
 import asyncio
-import logging
+import json
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from plexichat.infrastructure.services.performance_service import get_performance_service, PerformanceService
-from plexichat.core.auth.dependencies import require_auth, require_admin_auth
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+
+from plexichat.core.auth.dependencies import require_admin_auth, require_auth
 from plexichat.core.logging import get_logger
+from plexichat.infrastructure.services.performance_service import get_performance_service
 
 # Initialize router and logger
 router = APIRouter(prefix="/performance", tags=["Performance Monitoring"])

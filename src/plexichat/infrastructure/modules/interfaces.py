@@ -10,13 +10,11 @@ Defines strict interfaces and contracts for all modules/plugins to ensure:
 - Performance monitoring and resource management
 """
 
-import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional, Any, Callable, Union, Protocol, runtime_checkable
-import logging
+from typing import Any, Callable, Dict, List, Optional, Protocol, runtime_checkable
 
 from ...core_system.logging import get_logger
 
@@ -286,17 +284,14 @@ class BaseModule(ABC):
     @abstractmethod
     async def initialize(self) -> bool:
         """Initialize the module."""
-        pass
     
     @abstractmethod
     def get_metadata(self) -> Dict[str, Any]:
         """Get module metadata."""
-        pass
     
     @abstractmethod
     def get_required_permissions(self) -> ModulePermissions:
         """Get required permissions."""
-        pass
     
     # Default implementations
     async def start(self) -> bool:

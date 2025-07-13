@@ -5,10 +5,10 @@ Unified exception classes and error codes for the PlexiChat error handling syste
 Consolidates all error types into a single, comprehensive module.
 """
 
-from typing import Optional, Dict, Any, List
-from enum import Enum
 import uuid
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class ErrorSeverity(Enum):

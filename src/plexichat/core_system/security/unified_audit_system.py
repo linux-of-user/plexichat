@@ -21,19 +21,18 @@ import asyncio
 import hashlib
 import hmac
 import json
-import logging
-import time
+import secrets
 import threading
+import time
 import uuid
-from datetime import datetime, timezone, timedelta
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set, Tuple
-from dataclasses import dataclass, field
-import secrets
+from typing import Any, Dict, List, Optional
 
-from ...core_system.logging import get_logger
 from ...core_system.config import get_config
+from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -692,7 +691,7 @@ class UnifiedAuditSystem:
             self._trigger_alert(event, "Critical security event detected")
 
         # Check for threshold violations
-        current_time = datetime.now(timezone.utc)
+        datetime.now(timezone.utc)
 
         # Check failed login threshold
         if event.event_type == SecurityEventType.LOGIN_FAILURE:

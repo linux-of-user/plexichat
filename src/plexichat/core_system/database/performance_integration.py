@@ -15,16 +15,18 @@ unified system that automatically optimizes database performance across
 all supported database types.
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional
 
 try:
-    from .enhanced_abstraction import enhanced_db_manager, AbstractDatabaseClient, DatabaseType  # type: ignore
+    from .enhanced_abstraction import (  # type: ignore
+        AbstractDatabaseClient,
+        DatabaseType,
+        enhanced_db_manager,
+    )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     ENHANCED_ABSTRACTION_AVAILABLE = False
@@ -47,10 +49,10 @@ except ImportError:
         async def execute_query(self, query, params=None):
             return {"success": True, "data": []}
     enhanced_db_manager = MockEnhancedDBManager()
-from .query_optimizer import sql_analyzer, nosql_optimizer, performance_monitor
-from .indexing_strategy import index_manager, IndexRecommendation
-from .schema_optimizer import schema_optimizer, DataTypeRecommendation
-from .stored_procedures import procedure_manager, prepared_statement_manager
+from .indexing_strategy import IndexRecommendation, index_manager
+from .query_optimizer import performance_monitor
+from .schema_optimizer import DataTypeRecommendation, schema_optimizer
+from .stored_procedures import procedure_manager
 
 logger = logging.getLogger(__name__)
 
@@ -467,7 +469,7 @@ class DatabasePerformanceOptimizer:
             task_id=task_id,
             database_name=database_name,
             optimization_type="procedure_optimization",
-            description=f"Create stored procedures for performance",
+            description="Create stored procedures for performance",
             priority=2
         )
         

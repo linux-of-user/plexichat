@@ -3,16 +3,14 @@ PlexiChat Safety and Moderation API
 Comprehensive safety features including reporting, moderation, and automated content filtering
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 

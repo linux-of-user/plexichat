@@ -4,12 +4,11 @@ Handles API versioning, routing, and compatibility between different API version
 """
 
 import json
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, Request, HTTPException, status
-from fastapi.responses import JSONResponse
-from datetime import datetime, timezone
 import logging
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -205,8 +204,8 @@ class APIRouterFactory:
         
         # Add stable endpoints here
         from ..v1.auth import auth_router_stable
-        from ..v1.messages import messages_router_stable
         from ..v1.files import files_router_stable
+        from ..v1.messages import messages_router_stable
         from ..v1.users import users_router_stable
         
         router.include_router(auth_router_stable, prefix="/auth")
@@ -221,13 +220,13 @@ class APIRouterFactory:
         router = APIRouter(prefix="/api/v1", tags=["Current API"])
         
         # Add current endpoints here
-        from ..v1.auth import auth_router
-        from ..v1.messages import messages_router
-        from ..v1.files import files_router
-        from ..v1.users import users_router
-        from ..v1.collaboration import collaboration_router
-        from ..v1.updates import updates_router
         from ..v1.analytics import analytics_router
+        from ..v1.auth import auth_router
+        from ..v1.collaboration import collaboration_router
+        from ..v1.files import files_router
+        from ..v1.messages import messages_router
+        from ..v1.updates import updates_router
+        from ..v1.users import users_router
         
         router.include_router(auth_router, prefix="/auth")
         router.include_router(messages_router, prefix="/messages")
@@ -244,15 +243,15 @@ class APIRouterFactory:
         router = APIRouter(prefix="/api/beta", tags=["Beta API"])
         
         # Add beta endpoints here (includes all current + experimental)
-        from ..v1.auth import auth_router
-        from ..v1.messages import messages_router
-        from ..v1.files import files_router
-        from ..v1.users import users_router
-        from ..v1.collaboration import collaboration_router
-        from ..v1.updates import updates_router
-        from ..v1.analytics import analytics_router
         from ..beta.ai import ai_router
         from ..beta.quantum import quantum_router
+        from ..v1.analytics import analytics_router
+        from ..v1.auth import auth_router
+        from ..v1.collaboration import collaboration_router
+        from ..v1.files import files_router
+        from ..v1.messages import messages_router
+        from ..v1.updates import updates_router
+        from ..v1.users import users_router
         
         router.include_router(auth_router, prefix="/auth")
         router.include_router(messages_router, prefix="/messages")

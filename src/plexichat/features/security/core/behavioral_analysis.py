@@ -5,22 +5,20 @@ AI-powered behavioral threat detection with machine learning models,
 anomaly detection, and adaptive security responses.
 """
 
-import asyncio
-import logging
-import time
-import json
 import hashlib
-from typing import Dict, List, Optional, Any, Set, Tuple
+import logging
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
-from collections import defaultdict, deque
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 # Optional import for advanced behavioral analysis
 try:
     import numpy as np
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger(__name__)
 

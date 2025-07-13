@@ -4,16 +4,12 @@ Integrates vulnerability scanning into CI/CD pipeline
 """
 
 import asyncio
-import logging
 import json
-import subprocess
-import tempfile
-import os
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime, timezone
+import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -216,7 +212,7 @@ class CICDSecurityScanner:
             if not await self.check_scanner_availability(scanner):
                 raise Exception(f"Scanner {scanner.value} not available")
             
-            config = self.scanners[scanner]
+            self.scanners[scanner]
             
             if scanner == ScannerType.SNYK:
                 vulnerabilities = await self._run_snyk_dependency_scan(project_path)

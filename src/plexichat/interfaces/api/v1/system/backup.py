@@ -11,17 +11,23 @@ ENHANCED SECURITY FEATURES:
 - Rate limiting and DDoS protection
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel, Field
-import asyncio
 import logging
+from typing import Any, Dict, List, Optional
 
 from app.core.backup.distributed_backup import distributed_backup
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_audit_system import get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
-from ....core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel, Field
+
+from ....core_system.security.input_validation import get_input_validator
+from ....core_system.security.unified_audit_system import (
+    SecurityEventType,
+    SecuritySeverity,
+    ThreatLevel,
+    get_unified_audit_system,
+)
+from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backup", tags=["backup"])
@@ -217,7 +223,7 @@ async def create_backup(
         
         return BackupResponse(
             success=True,
-            message=f"Backup created successfully",
+            message="Backup created successfully",
             data={
                 "backup_id": backup_id,
                 "description": request.description
@@ -759,7 +765,12 @@ async def set_user_backup_preferences(
     - complete_opt_out: No backup at all
     """
     try:
-        from ..services.universal_backup_service import UniversalBackupService, UserBackupPreferences, BackupOptOutLevel, BackupDataType
+        from ..services.universal_backup_service import (
+            BackupDataType,
+            BackupOptOutLevel,
+            UniversalBackupService,
+            UserBackupPreferences,
+        )
 
         # Initialize service (in production, this would be a singleton)
         backup_service = UniversalBackupService(Path("data"))
@@ -812,8 +823,9 @@ async def get_user_backup_preferences(
 ):
     """Get current user's backup preferences."""
     try:
-        from ..services.universal_backup_service import UniversalBackupService
         from pathlib import Path
+
+        from ..services.universal_backup_service import UniversalBackupService
 
         backup_service = UniversalBackupService(Path("data"))
         await backup_service.initialize()
@@ -852,15 +864,15 @@ async def backup_user_data(
     data that users have consented to backup.
     """
     try:
-        from ..services.universal_backup_service import UniversalBackupService, BackupDataType
         from pathlib import Path
+
+        from ..services.universal_backup_service import BackupDataType, UniversalBackupService
 
         backup_service = UniversalBackupService(Path("data"))
         await backup_service.initialize()
 
         # Get users to backup (implementation depends on your user model)
         # This is a placeholder - you'd need to implement user retrieval
-        users_to_backup = []  # Get users by IDs
 
         backup_results = []
 
@@ -912,8 +924,9 @@ async def backup_message_data(
     only metadata backed up based on their preferences.
     """
     try:
-        from ..services.universal_backup_service import UniversalBackupService
         from pathlib import Path
+
+        from ..services.universal_backup_service import UniversalBackupService
 
         backup_service = UniversalBackupService(Path("data"))
         await backup_service.initialize()
@@ -956,8 +969,9 @@ async def get_backup_statistics(
     **Admin only endpoint**
     """
     try:
-        from ..services.universal_backup_service import UniversalBackupService
         from pathlib import Path
+
+        from ..services.universal_backup_service import UniversalBackupService
 
         backup_service = UniversalBackupService(Path("data"))
         await backup_service.initialize()

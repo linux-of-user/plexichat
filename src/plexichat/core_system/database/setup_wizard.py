@@ -3,21 +3,16 @@ PlexiChat Database Setup Wizard
 Comprehensive database configuration and setup system with support for external databases.
 """
 
-import os
-import json
-import yaml
 import asyncio
+import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from enum import Enum
-import sqlalchemy
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
 from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
-import psycopg2
-import pymysql
-import sqlite3
 
 logger = logging.getLogger(__name__)
 
@@ -429,7 +424,7 @@ class DatabaseSetupWizard:
 
         try:
             config = self.progress.connection_config
-            connection_string = config.get_connection_string()
+            config.get_connection_string()
 
             # Test connection based on database type
             test_results = {
@@ -532,7 +527,7 @@ class DatabaseSetupWizard:
                 # Check if database exists
                 result = conn.execute(text("SELECT current_database()"))
                 row = result.fetchone()
-                current_db = row[0] if row else "Unknown"
+                row[0] if row else "Unknown"
 
                 # Test permissions
                 conn.execute(text("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY)"))
@@ -566,7 +561,7 @@ class DatabaseSetupWizard:
                 # Check database
                 result = conn.execute(text("SELECT DATABASE()"))
                 row = result.fetchone()
-                current_db = row[0] if row else "Unknown"
+                row[0] if row else "Unknown"
 
                 # Test permissions
                 conn.execute(text("CREATE TABLE IF NOT EXISTS test_table (id INT AUTO_INCREMENT PRIMARY KEY)"))
@@ -648,12 +643,10 @@ class DatabaseSetupWizard:
 
             # Import models to ensure they're registered
             try:
-                from plexichat.app.models.user import User  # type: ignore
-                from plexichat.app.models.message import Message  # type: ignore
                 from plexichat.app.models.guild import Guild  # type: ignore
-                MODELS_AVAILABLE = True
+                from plexichat.app.models.message import Message  # type: ignore
+                from plexichat.app.models.user import User  # type: ignore
             except ImportError:
-                MODELS_AVAILABLE = False
                 logger.warning("PlexiChat models not available, skipping model registration")
 
             # Create all tables

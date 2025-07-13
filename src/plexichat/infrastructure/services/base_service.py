@@ -15,17 +15,16 @@ Features:
 """
 
 import asyncio
-import logging
-import time
-from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List
-from enum import Enum
 import signal
 import sys
+from abc import ABC, abstractmethod
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from ..core.logging import get_logger
 from ..core.config import get_config
+from ..core.logging import get_logger
+
 
 class ServiceState(Enum):
     """Service state enumeration."""
@@ -266,12 +265,10 @@ class BaseService(ABC):
     @abstractmethod
     async def _initialize(self):
         """Initialize the service. Must be implemented by subclasses."""
-        pass
     
     @abstractmethod
     async def _cleanup(self):
         """Cleanup the service. Must be implemented by subclasses."""
-        pass
     
     async def _perform_health_check(self) -> Dict[str, Any]:
         """Perform service-specific health check. Can be overridden by subclasses."""

@@ -6,19 +6,19 @@ Prevents non-backup nodes from accessing all shard locations for security.
 """
 
 import asyncio
-import logging
-import secrets
 import hashlib
 import json
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from pathlib import Path
+import logging
+import secrets
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import aiosqlite
-import aiofiles
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
-from .encryption_manager import QuantumResistantEncryptionManager, EncryptionAlgorithm
+import aiosqlite
+
+from .encryption_manager import EncryptionAlgorithm, QuantumResistantEncryptionManager
 
 logger = logging.getLogger(__name__)
 
@@ -417,7 +417,6 @@ class EnhancedShardLocationDatabase:
     async def _sync_databases(self):
         """Synchronize all database replicas."""
         # Implementation for database synchronization
-        pass
 
     async def _cleanup_old_logs(self):
         """Clean up old access logs."""

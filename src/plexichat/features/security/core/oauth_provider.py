@@ -5,22 +5,19 @@ Comprehensive OAuth 2.0 and OpenID Connect provider with PKCE support,
 JWT tokens, and enterprise-grade security features.
 """
 
-import asyncio
+import base64
+import hashlib
 import logging
 import secrets
-import hashlib
-import base64
-import json
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 import jwt
+from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
-import bcrypt
 
 logger = logging.getLogger(__name__)
 
@@ -621,7 +618,7 @@ class OAuthProvider:
 
     async def cleanup_expired_tokens(self):
         """Clean up expired tokens and codes."""
-        now = datetime.now(timezone.utc)
+        datetime.now(timezone.utc)
 
         # Clean up expired authorization codes
         expired_codes = [code for code, code_obj in self.authorization_codes.items() if code_obj.is_expired]

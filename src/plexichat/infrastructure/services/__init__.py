@@ -6,20 +6,21 @@ intelligent resource management, and adaptive performance optimization.
 """
 
 import asyncio
-import logging
-import weakref
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Callable, Union, Type
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
-import json
 import importlib
 import inspect
+import json
+import logging
+import weakref
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Type, Union
+
+from ..optimization import CacheLevel, optimization_manager, secure_cache
 
 # Import security and optimization systems
-from ..security import security_manager, quantum_encryption, distributed_key_manager, KeyDomain
-from ..optimization import optimization_manager, secure_cache, CacheLevel
+from ..security import KeyDomain, distributed_key_manager, quantum_encryption, security_manager
 
 logger = logging.getLogger(__name__)
 
@@ -195,7 +196,7 @@ class SecureService:
             
             # Setup service-specific cache if enabled
             if self.cache_enabled:
-                cache_level = self._get_cache_level()
+                self._get_cache_level()
                 self.service_cache = secure_cache  # Use global secure cache
                 
         except Exception as e:
@@ -336,11 +337,9 @@ class SecureService:
     
     async def _on_start(self):
         """Override this method to implement service startup logic."""
-        pass
     
     async def _on_stop(self):
         """Override this method to implement service shutdown logic."""
-        pass
     
     async def _emit_event(self, event_name: str, data: Optional[Dict[str, Any]] = None):
         """Emit service event to registered handlers."""

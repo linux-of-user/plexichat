@@ -4,26 +4,25 @@ Enhanced Authentication API v2 with improved security, performance, and features
 Includes rate limiting, advanced validation, and comprehensive error handling.
 """
 
+import logging
 import secrets
-import hashlib
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional, List
-from fastapi import APIRouter, HTTPException, Depends, Request, Response, BackgroundTasks
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError
+from pydantic import BaseModel, Field, validator
 from sqlmodel import Session, select
-from pydantic import BaseModel, EmailStr, Field, validator
-import bcrypt
-from jose import JWTError, jwt
 
 from plexichat.core.database import get_session
 from plexichat.features.users.user import User
-import logging
 
 logger = logging.getLogger(__name__)
 # settings import will be added when needed
 from plexichat.infrastructure.utils.monitoring import error_handler, monitor_performance
-from plexichat.infrastructure.utils.security import SecurityManager, InputSanitizer
 from plexichat.infrastructure.utils.rate_limiting import RateLimiter
+from plexichat.infrastructure.utils.security import InputSanitizer, SecurityManager
 
 router = APIRouter(prefix="/v2/auth", tags=["auth-v2"])
 security = HTTPBearer()

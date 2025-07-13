@@ -1,5 +1,7 @@
 import time
-from app.logger_config import settings, logger
+
+from app.logger_config import logger
+
 
 class SnowflakeGenerator:
     def __init__(self, datacenter_id: int, worker_id: int):

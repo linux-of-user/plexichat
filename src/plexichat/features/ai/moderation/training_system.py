@@ -3,24 +3,22 @@ AI Moderation Training System
 Progressive learning system that improves moderation accuracy based on user feedback.
 """
 
-import asyncio
 import json
 import logging
 import sqlite3
-import pickle
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-import numpy as np
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
-import joblib
+from sklearn.model_selection import train_test_split
 
-from .moderation_engine import ModerationAction, ModerationSeverity, ModerationCategory
+from .moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity
 
 logger = logging.getLogger(__name__)
 

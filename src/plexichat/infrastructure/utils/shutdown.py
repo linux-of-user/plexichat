@@ -4,13 +4,13 @@ Enhanced Chat API v2.0.0 - Clean Shutdown Script
 Safely shutdown all running components.
 """
 
-import sys
 import os
+import sys
 import time
-import signal
-import subprocess
-import psutil
 from pathlib import Path
+
+import psutil
+
 
 # Colors for output
 class Colors:
@@ -63,15 +63,6 @@ class CleanShutdown:
         processes = []
 
         # Look for processes by name patterns
-        name_patterns = [
-            'uvicorn',
-            'python.*run.py',
-            'python.*plexichat_launch.py',
-            'python.*cli.py',
-            'python.*app.main',
-            'plexichat',
-            'plexichat-api'
-        ]
         
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             try:

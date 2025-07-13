@@ -3,18 +3,17 @@ PlexiChat Base Data Access Object (DAO) Pattern
 Provides a standardized interface for database operations with advanced features
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Type, TypeVar, Generic, Union
-from datetime import datetime, timezone
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-import uuid
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
-from sqlalchemy import select, insert, update, delete, and_, or_, func, text
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import selectinload
 from sqlmodel import SQLModel
 
 logger = logging.getLogger(__name__)
@@ -536,9 +535,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT], ABC):
     @abstractmethod
     async def find_by_criteria(self, criteria: Dict[str, Any]) -> List[T]:
         """Find records by custom criteria."""
-        pass
     
     @abstractmethod
     async def get_statistics(self) -> Dict[str, Any]:
         """Get DAO statistics."""
-        pass

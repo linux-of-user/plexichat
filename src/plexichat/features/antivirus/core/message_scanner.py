@@ -9,15 +9,14 @@ Specialized antivirus scanner for message content with:
 - Integration with threat intelligence
 """
 
-import re
 import hashlib
 import logging
-import asyncio
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple, Any
-from pathlib import Path
+import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

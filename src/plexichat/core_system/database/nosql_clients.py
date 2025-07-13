@@ -9,16 +9,18 @@ Implementations for various NoSQL databases:
 - CouchDB (Document store)
 """
 
-import asyncio
-import logging
-from typing import Dict, List, Optional, Any, AsyncGenerator
-from datetime import datetime
 import json
+import logging
 import time
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 try:
     from .enhanced_abstraction import (  # type: ignore
-        AbstractDatabaseClient, DatabaseConfig, QueryResult, QueryType, DatabaseType
+        AbstractDatabaseClient,
+        DatabaseConfig,
+        DatabaseType,
+        QueryResult,
+        QueryType,
     )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
@@ -103,7 +105,7 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
         """Connect to MongoDB."""
         try:
             from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
-            
+
             # Build connection string
             if self.config.username and self.config.password:
                 connection_string = (
@@ -390,7 +392,7 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
         """Connect to Redis."""
         try:
             import aioredis  # type: ignore
-            
+
             # Build connection URL
             if self.config.password:
                 url = f"redis://:{self.config.password}@{self.config.host}:{self.config.port or 6379}/{self.config.database or 0}"

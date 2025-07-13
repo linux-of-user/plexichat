@@ -3,19 +3,24 @@ Enhanced file management API with comprehensive permissions and access control.
 Supports file embedding in messages with proper permission validation.
 """
 
-from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Query
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
-from sqlmodel import Session, select
 from pydantic import BaseModel
+from sqlmodel import Session, select
 
 from plexichat.app.db import get_session
-from plexichat.app.models.files import FileRecord, FilePermission, FileShare, FilePermissionType, FileAccessLevel
+from plexichat.app.models.files import (
+    FileAccessLevel,
+    FilePermission,
+    FilePermissionType,
+    FileRecord,
+)
 from plexichat.app.models.user import User
 from plexichat.app.services.file_permissions import FilePermissionService
 from plexichat.app.utils.auth import get_current_user, get_optional_current_user
-from plexichat.app.logger_config import logger
 
 
 # Pydantic models for API
@@ -247,7 +252,7 @@ async def list_file_permissions(
     # Get all active permissions for the file
     statement = select(FilePermission).where(
         FilePermission.file_id == file_id,
-        FilePermission.is_active == True
+        FilePermission.is_active
     )
     permissions = session.exec(statement).all()
     

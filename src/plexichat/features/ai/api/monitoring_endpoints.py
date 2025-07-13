@@ -5,11 +5,12 @@ RESTful API endpoints for AI system monitoring, analytics, and alerting.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Query, Depends
+from typing import List, Optional
+
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..monitoring.analytics_engine import analytics_engine, AlertRule, UsageMetric, PerformanceMetric
+from ..monitoring.analytics_engine import AlertRule, analytics_engine
 
 logger = logging.getLogger(__name__)
 

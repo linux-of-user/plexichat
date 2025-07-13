@@ -5,16 +5,20 @@ Provides comprehensive database configuration, external hosting setup, and encry
 
 import os
 import secrets
-from typing import Dict, Any, Optional, List
-from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.responses import JSONResponse
-from sqlmodel import Session
-from pydantic import BaseModel, Field
+from typing import Any, Dict, Optional
 
 from app.db import get_session
 from app.logger_config import logger
 from app.security.database_encryption import EncryptedDatabaseManager, get_encryption_manager
-from core.external_database import ExternalDatabaseManager, DatabaseProvider, DatabaseEngine, ExternalDatabaseConfig
+from core.external_database import (
+    DatabaseEngine,
+    DatabaseProvider,
+    ExternalDatabaseConfig,
+    ExternalDatabaseManager,
+)
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlmodel import Session
 
 
 # Pydantic models for API
@@ -249,7 +253,7 @@ async def create_encrypted_backup(
 ) -> Dict[str, Any]:
     """Create encrypted database backup."""
     try:
-        encryption_manager = get_encryption_manager()
+        get_encryption_manager()
         
         # Create backup (placeholder implementation)
         backup_info = {

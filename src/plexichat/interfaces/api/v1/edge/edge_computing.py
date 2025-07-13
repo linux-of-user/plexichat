@@ -4,20 +4,14 @@ PlexiChat Edge Computing API Endpoints
 Provides REST API endpoints for managing edge computing and auto-scaling functionality.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
-import asyncio
+from typing import Any, Dict, Optional
 
-from ....core.performance.edge_computing_manager import (
-    get_edge_computing_manager,
-    EdgeComputingManager,
-    EdgeNode,
-    NodeType,
-    ScalingAction
-)
-from ....core.auth import require_auth, require_admin
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from ....core.auth import require_admin, require_auth
 from ....core.logging import get_logger
+from ....core.performance.edge_computing_manager import get_edge_computing_manager
 
 logger = get_logger(__name__)
 

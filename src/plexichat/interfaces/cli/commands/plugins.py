@@ -3,14 +3,11 @@ Enhanced Plugin CLI Interface for PlexiChat
 Command-line interface for comprehensive plugin management.
 """
 
-import asyncio
-import json
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
+from typing import List
 
-from plexichat.app.plugins.enhanced_plugin_manager import get_enhanced_plugin_manager, PluginSource, PluginStatus
-from plexichat.app.logger_config import logger
+from plexichat.app.plugins.enhanced_plugin_manager import PluginSource, get_enhanced_plugin_manager
+
 
 class PluginCLI:
     """Command-line interface for plugin management."""
@@ -172,7 +169,7 @@ class PluginCLI:
             # Security information
             security = plugin_data.get("security", {})
             if security:
-                print(f"\n🛡️ Security:")
+                print("\n🛡️ Security:")
                 print(f"Risk Level:   {security.get('risk_level', 'Unknown')}")
                 print(f"Virus Clean:  {'✅' if security.get('virus_scan_clean') else '❌'}")
                 print(f"Signed:       {'✅' if security.get('signature_valid') else '❌'}")
@@ -182,7 +179,7 @@ class PluginCLI:
             # Update information
             update_info = plugin_data.get("update_info", {})
             if update_info:
-                print(f"\n🔄 Updates:")
+                print("\n🔄 Updates:")
                 print(f"Available:    {'✅' if update_info.get('update_available') else '❌'}")
                 if update_info.get("latest_version"):
                     print(f"Latest:       v{update_info['latest_version']}")
@@ -191,7 +188,7 @@ class PluginCLI:
             # Plugin metadata
             if plugin_name in self.plugin_manager.plugin_metadata:
                 metadata = self.plugin_manager.plugin_metadata[plugin_name]
-                print(f"\n📝 Details:")
+                print("\n📝 Details:")
                 print(f"Description:  {metadata.description}")
                 print(f"Author:       {metadata.author}")
                 if metadata.dependencies:
@@ -258,7 +255,7 @@ class PluginCLI:
                 if result["success"]:
                     security_result = result.get("security_result", {})
                     if security_result.get("passed"):
-                        print(f"✅ Security scan passed")
+                        print("✅ Security scan passed")
                         print(f"   Risk Level: {security_result.get('risk_level', 'low')}")
                     else:
                         print(f"❌ Security scan failed: {security_result.get('reason')}")
@@ -287,7 +284,7 @@ class PluginCLI:
                         high_risk.append(plugin)
                 
                 if high_risk:
-                    print(f"\n🚨 High Risk Plugins:")
+                    print("\n🚨 High Risk Plugins:")
                     for plugin in high_risk:
                         risk_level = plugin["security"]["risk_level"]
                         print(f"   • {plugin['name']} ({risk_level} risk)")

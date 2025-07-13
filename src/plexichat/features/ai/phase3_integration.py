@@ -5,15 +5,20 @@ Coordinates all Phase III AI enhancements into a unified intelligent system
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List
 
-from .advanced_moderation import advanced_moderator, ProactiveContentModerator, ContentType as ModerationContentType
-from .multilingual_chatbot import multilingual_chatbot, MultilingualChatbot, ConversationMode, ResponseStyle
-from .semantic_search import semantic_search_engine, SemanticSearchEngine, SearchQuery, SearchType, SearchMode
-from .recommendation_engine import recommendation_engine, AIRecommendationEngine, RecommendationType, RecommendationAlgorithm
+from .advanced_moderation import ContentType as ModerationContentType
+from .advanced_moderation import advanced_moderator
 from .ai_coordinator import ai_coordinator
+from .multilingual_chatbot import ConversationMode, ResponseStyle, multilingual_chatbot
+from .recommendation_engine import (
+    RecommendationAlgorithm,
+    RecommendationType,
+    recommendation_engine,
+)
+from .semantic_search import SearchMode, SearchQuery, SearchType, semantic_search_engine
 
 logger = logging.getLogger(__name__)
 
@@ -479,7 +484,7 @@ class Phase3AICoordinator:
             
             # Get chatbot metrics
             if self.components["multilingual_chatbot"]:
-                bot_stats = self.multilingual_chatbot.get_chatbot_statistics()
+                self.multilingual_chatbot.get_chatbot_statistics()
                 self.metrics.chatbot_satisfaction = 0.9  # Placeholder
             
             # Get search metrics

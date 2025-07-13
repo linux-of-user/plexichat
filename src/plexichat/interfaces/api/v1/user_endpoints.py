@@ -1,7 +1,9 @@
 """User API router."""
 from typing import List
-from fastapi import APIRouter, HTTPException, Depends
-from .schemas import UserCreate, UserUpdate, UserResponse
+
+from fastapi import APIRouter, HTTPException
+
+from .schemas import UserCreate, UserResponse, UserUpdate
 from .service import user_service
 
 router = APIRouter(prefix="/users", tags=["users"])

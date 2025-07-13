@@ -4,15 +4,16 @@ Validates file access when creating messages with embedded files.
 """
 
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
-from sqlmodel import Session, select
-from fastapi import HTTPException, status
+from typing import Any, Dict, List, Optional
 
+from fastapi import HTTPException, status
+from sqlmodel import Session
+
+from plexichat.app.logger_config import logger
+from plexichat.app.models.files import FilePermissionType, FileRecord
 from plexichat.app.models.message import Message, MessageType
-from plexichat.app.models.files import FileRecord, FilePermissionType
 from plexichat.app.models.user import User
 from plexichat.app.services.file_permissions import FilePermissionService
-from plexichat.app.logger_config import logger
 
 
 class MessageService:

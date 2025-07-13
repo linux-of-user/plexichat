@@ -22,17 +22,14 @@ Key Optimization Strategies:
 - Implement stored procedures for complex queries
 """
 
-import asyncio
+import hashlib
 import logging
 import re
-import time
-import hashlib
-from typing import Dict, List, Optional, Any, Tuple, Set, Union
-from datetime import datetime, timezone, timedelta
+from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import json
-from collections import defaultdict, Counter
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -343,7 +340,7 @@ class SQLQueryAnalyzer:
         def replace_with_exists(match):
             column, sub_column, sub_table, sub_where = match.groups()
             exists_query = f"EXISTS (SELECT 1 FROM {sub_table} WHERE {sub_column} = {column}{sub_where})"
-            optimizations.append(f"Converted IN subquery to EXISTS for better performance")
+            optimizations.append("Converted IN subquery to EXISTS for better performance")
             return exists_query
         
         optimized_query = in_subquery_pattern.sub(replace_with_exists, optimized_query)

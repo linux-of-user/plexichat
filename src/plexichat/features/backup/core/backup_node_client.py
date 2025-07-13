@@ -11,17 +11,15 @@ A comprehensive client library for interacting with PlexiChat backup nodes with:
 """
 
 import asyncio
-import aiohttp
-import json
 import hashlib
-import secrets
+import json
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from pathlib import Path
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-import aiosqlite
+from typing import Any, Dict, List, Optional, Tuple
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 

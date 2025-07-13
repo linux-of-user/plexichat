@@ -11,13 +11,13 @@ Provides distributed storage capabilities for the clustering system with:
 """
 
 from .distributed_storage_manager import (
+    DataConsistency,
     DistributedStorageManager,
     StorageNode,
-    StoredData,
     StorageNodeType,
     StorageStrategy,
-    DataConsistency,
-    distributed_storage_manager
+    StoredData,
+    distributed_storage_manager,
 )
 
 __version__ = "1.0.0"

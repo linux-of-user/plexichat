@@ -3,19 +3,17 @@ Advanced Analytics Engine
 Comprehensive analytics, reporting, and monitoring system.
 """
 
-import asyncio
-import json
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Union
-from collections import defaultdict, deque
 import statistics
-import time
-from dataclasses import dataclass, field
-from enum import Enum
 import threading
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
-from app.logger_config import logger
 from app.core.config.settings import settings
+from app.logger_config import logger
+
 
 class EventType(Enum):
     """Analytics event types."""

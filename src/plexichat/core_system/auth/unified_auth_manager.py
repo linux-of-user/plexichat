@@ -20,21 +20,19 @@ Features:
 """
 
 import asyncio
-import logging
+import json
+import secrets
 import time
 import uuid
-import secrets
-import hashlib
-import json
-from datetime import datetime, timezone, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from ...core_system.logging import get_logger
 from ...core_system.config import get_config
-from ...core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
+from ...core_system.logging import get_logger
+from ...core_system.security.input_validation import InputType, ValidationLevel, get_input_validator
 
 logger = get_logger(__name__)
 
@@ -333,7 +331,7 @@ class UnifiedAuthManager:
             )
 
             if mfa_required and not request.mfa_code:
-                available_methods = await self._get_available_mfa_methods(user_id or "unknown")
+                await self._get_available_mfa_methods(user_id or "unknown")
                 return AuthenticationResponse(
                     result=AuthenticationResult.MFA_REQUIRED,
                     success=False,
@@ -522,7 +520,7 @@ class UnifiedAuthManager:
 
             if token and token in self.tokens:
                 self.tokens[token].is_revoked = True
-                logger.info(f"Token revoked")
+                logger.info("Token revoked")
 
             return success
 
@@ -637,8 +635,8 @@ class UnifiedAuthManager:
 
     def _generate_secure_password(self) -> str:
         """Generate a secure random password."""
-        import string
         import random
+        import string
 
         # Generate 16-character password with mixed case, numbers, and symbols
         chars = string.ascii_letters + string.digits + "!@#$%^&*"
@@ -686,15 +684,12 @@ class UnifiedAuthManager:
     # Private helper methods (stubs for now)
     async def _load_persistent_data(self):
         """Load persistent authentication data."""
-        pass
 
     async def _cleanup_expired_sessions(self):
         """Clean up expired sessions."""
-        pass
 
     async def _cleanup_expired_tokens(self):
         """Clean up expired tokens."""
-        pass
 
     async def _is_rate_limited(self, request: AuthenticationRequest) -> bool:
         """Check if request is rate limited."""
@@ -719,7 +714,6 @@ class UnifiedAuthManager:
 
     async def _record_failed_attempt(self, request: AuthenticationRequest):
         """Record failed authentication attempt."""
-        pass
 
     async def _get_user_required_security_level(self, user_id: str) -> SecurityLevel:
         """Get required security level for user."""
@@ -751,15 +745,12 @@ class UnifiedAuthManager:
 
     async def _handle_device_trust(self, request: AuthenticationRequest):
         """Handle device trust logic."""
-        pass
 
     async def _clear_failed_attempts(self, username: str):
         """Clear failed authentication attempts."""
-        pass
 
     async def _log_auth_success(self, user_id: str, session_id: str, request: AuthenticationRequest):
         """Log successful authentication."""
-        pass
 
     async def _get_user_info(self, user_id: str) -> Dict[str, Any]:
         """Get user information."""
@@ -771,7 +762,6 @@ class UnifiedAuthManager:
 
     async def _log_auth_error(self, audit_id: str, request: AuthenticationRequest, error: str):
         """Log authentication error."""
-        pass
 
 
 # Global instance - SINGLE SOURCE OF TRUTH

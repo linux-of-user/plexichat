@@ -3,16 +3,17 @@ Beautiful Error Handler System
 Comprehensive error handling with attractive error pages and detailed logging.
 """
 
+import json
 import logging
 import traceback
 import uuid
 from datetime import datetime
-from typing import Dict, Any, Optional, Tuple
 from pathlib import Path
-from fastapi import Request, HTTPException
+from typing import Any, Dict, Optional
+
+from fastapi import Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import json
 
 logger = logging.getLogger(__name__)
 

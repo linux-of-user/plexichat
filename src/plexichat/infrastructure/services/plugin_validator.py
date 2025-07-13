@@ -5,23 +5,20 @@ Comprehensive validation system for plugins including security scanning,
 code quality checks, compatibility validation, and metadata verification.
 """
 
-import asyncio
-import json
-import zipfile
-import tempfile
-import shutil
 import ast
+import json
 import re
-import hashlib
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, Tuple
+import tempfile
+import zipfile
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import aiofiles
 
 from ..core.logging import get_logger
-from ..core.config import get_config
 
 logger = get_logger(__name__)
 

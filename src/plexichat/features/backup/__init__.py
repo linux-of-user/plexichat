@@ -16,53 +16,65 @@ comprehensive solution that provides:
 
 # Import unified backup system
 from .core.unified_backup_manager import (
-    UnifiedBackupManager,
-    get_unified_backup_manager,
     BackupOperation,
-    UnifiedShard,
-    SystemHealth,
     BackupPriority,
-    BackupType,
     BackupStatus,
+    BackupType,
+    DistributionStrategy,
     SecurityLevel,
-    DistributionStrategy
+    SystemHealth,
+    UnifiedBackupManager,
+    UnifiedShard,
+    get_unified_backup_manager,
 )
-
-from .core.unified_shard_manager import (
-    UnifiedShardManager,
-    ShardMetadata,
-    ShardState,
-    ShardType
-)
+from .core.unified_shard_manager import ShardMetadata, ShardState, ShardType, UnifiedShardManager
 
 # Legacy compatibility - redirect to unified system
 government_backup_manager = get_unified_backup_manager()
 
 # Import legacy managers for backward compatibility (deprecated)
 from .core.backup_manager import government_backup_manager as legacy_government_backup_manager
-from .core.shard_manager import ImmutableShardManager
-from .core.encryption_manager import QuantumEncryptionManager
-from .core.distribution_manager import IntelligentDistributionManager
-from .core.recovery_manager import AdvancedRecoveryManager
-from .core.proxy_manager import DatabaseProxyManager
-from .core.backup_node_auth import BackupNodeAuthManager, NodePermissionLevel, APIKeyStatus
-from .core.user_message_backup import UniversalBackupManager, BackupOptStatus, BackupDataType
-from .core.backup_node_client import BackupNodeClient, BackupNodeManager, BackupNodeInfo, ShardInfo, NodeStatus, ShardStatus
-from .core.backup_node_server import BackupNodeServer, BackupNodeConfig, create_backup_node_server
-from .core.user_preferences import UserPreferencesManager, UserBackupPreferences, BackupOptOutLevel, user_preferences_manager
-from .core.profile_backup import ProfileBackupManager, ProfileBackupMetadata, ProfileRestoreRequest, profile_backup_manager
-from .plugins.archive_system import ArchiveSystemPlugin, ArchiveType, ArchiveStatus
-from .services import (
-    BackupStatusMonitor, BackupCoverageReport, DeviceStatus, ShardStatus,
-    PerformanceMetrics, BackupHealthStatus, RedundancyLevel, backup_status_monitor
+from .core.backup_node_auth import APIKeyStatus, BackupNodeAuthManager, NodePermissionLevel
+from .core.backup_node_client import (
+    BackupNodeClient,
+    BackupNodeInfo,
+    BackupNodeManager,
+    NodeStatus,
+    ShardInfo,
+    ShardStatus,
 )
+from .core.backup_node_server import BackupNodeConfig, BackupNodeServer, create_backup_node_server
+from .core.distribution_manager import IntelligentDistributionManager
+from .core.encryption_manager import QuantumEncryptionManager
+from .core.profile_backup import (
+    ProfileBackupManager,
+    ProfileBackupMetadata,
+    ProfileRestoreRequest,
+    profile_backup_manager,
+)
+from .core.proxy_manager import DatabaseProxyManager
+from .core.recovery_manager import AdvancedRecoveryManager
+from .core.shard_manager import ImmutableShardManager
+from .core.user_message_backup import BackupDataType, BackupOptStatus, UniversalBackupManager
+from .core.user_preferences import (
+    BackupOptOutLevel,
+    UserBackupPreferences,
+    UserPreferencesManager,
+    user_preferences_manager,
+)
+from .plugins.archive_system import ArchiveStatus, ArchiveSystemPlugin, ArchiveType
 
 # Import quantum backup system for compatibility
-from .quantum_backup_system import (
-    QuantumBackupSystem,
-    BackupSecurity,
-    QuantumShard,
-    QuantumBackup
+from .quantum_backup_system import BackupSecurity, QuantumBackup, QuantumBackupSystem, QuantumShard
+from .services import (
+    BackupCoverageReport,
+    BackupHealthStatus,
+    BackupStatusMonitor,
+    DeviceStatus,
+    PerformanceMetrics,
+    RedundancyLevel,
+    ShardStatus,
+    backup_status_monitor,
 )
 
 # Alias quantum system to unified system

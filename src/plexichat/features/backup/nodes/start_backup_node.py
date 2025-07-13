@@ -4,11 +4,11 @@ PlexiChat Backup Node Startup Script
 Provides easy startup and management for the backup node.
 """
 
-import os
-import sys
-import json
 import argparse
+import json
+import os
 import subprocess
+import sys
 from pathlib import Path
 
 

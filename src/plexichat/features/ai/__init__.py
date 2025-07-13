@@ -14,23 +14,6 @@ Comprehensive AI abstraction layer with multi-provider support, featuring:
 - API endpoints for AI features
 """
 
-# Core AI components
-from .core.ai_abstraction_layer import (
-    AIAbstractionLayer,
-    AIRequest,
-    AIResponse,
-    AIModel,
-    AIProvider,
-    ModelCapability,
-    ModelStatus,
-    AIAccessControl
-)
-
-# AI features and services
-from .features.ai_powered_features_service import AIPoweredFeaturesService
-from .moderation.moderation_engine import ModerationEngine
-from .monitoring.analytics_engine import AnalyticsEngine
-from .providers.base_provider import BaseProvider
 from .ai_coordinator import AICoordinator
 
 # API components
@@ -38,6 +21,24 @@ from .api.ai_endpoints import router as ai_router
 from .api.moderation_endpoints import router as moderation_router
 from .api.monitoring_endpoints import router as monitoring_router
 from .api.provider_endpoints import router as provider_router
+
+# Core AI components
+from .core.ai_abstraction_layer import (
+    AIAbstractionLayer,
+    AIAccessControl,
+    AIModel,
+    AIProvider,
+    AIRequest,
+    AIResponse,
+    ModelCapability,
+    ModelStatus,
+)
+
+# AI features and services
+from .features.ai_powered_features_service import AIPoweredFeaturesService
+from .moderation.moderation_engine import ModerationEngine
+from .monitoring.analytics_engine import AnalyticsEngine
+from .providers.base_provider import BaseProvider
 
 __version__ = "2.0.0"
 __all__ = [

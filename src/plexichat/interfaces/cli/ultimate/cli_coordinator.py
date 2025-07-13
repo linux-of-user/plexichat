@@ -5,14 +5,15 @@ Manages 200+ commands organized into logical groups for complete system control
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Callable
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Callable, Dict, List, Optional
+
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 from rich.tree import Tree
 
 logger = logging.getLogger(__name__)
@@ -303,7 +304,7 @@ class UltimateCLICoordinator:
         
         # Show warning for dangerous commands
         if command.dangerous:
-            if not typer.confirm(f"⚠️ This is a dangerous operation. Are you sure you want to continue?"):
+            if not typer.confirm("⚠️ This is a dangerous operation. Are you sure you want to continue?"):
                 console.print("[yellow]Operation cancelled.[/yellow]")
                 return False
         
@@ -369,7 +370,7 @@ class UltimateCLICoordinator:
                 suggestions.append(cmd_name)
         
         if suggestions:
-            console.print(f"[yellow]Did you mean one of these?[/yellow]")
+            console.print("[yellow]Did you mean one of these?[/yellow]")
             for suggestion in suggestions[:5]:
                 console.print(f"  [cyan]{suggestion}[/cyan]")
     
@@ -417,7 +418,7 @@ class UltimateCLICoordinator:
                     if command.examples:
                         lines.append("**Examples:**")
                         for example in command.examples:
-                            lines.append(f"```bash")
+                            lines.append("```bash")
                             lines.append(example)
                             lines.append("```")
                         lines.append("")

@@ -12,16 +12,14 @@ Advanced performance optimization with specific success metrics:
 """
 
 import asyncio
-import time
-import psutil
 import gc
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from collections import deque
 import logging
-import threading
-import weakref
+from collections import deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -564,8 +562,8 @@ class MemoryOptimizer:
     def take_memory_snapshot(self) -> Dict[str, Any]:
         """Take memory usage snapshot."""
         try:
-            import tracemalloc
             import gc
+            import tracemalloc
 
             # Get current memory usage
             memory = psutil.virtual_memory()

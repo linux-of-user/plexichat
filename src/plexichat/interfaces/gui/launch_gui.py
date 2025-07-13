@@ -4,10 +4,9 @@ PlexiChat GUI Launcher
 Launcher script for the PlexiChat Admin GUI application.
 """
 
-import sys
-import os
-import subprocess
 import importlib.util
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -25,7 +24,7 @@ def check_dependencies():
     for package in required_packages:
         try:
             if package == 'Pillow':
-                import PIL
+                pass
             else:
                 importlib.import_module(package)
         except ImportError:

@@ -6,21 +6,19 @@ doesn't compromise the entire system. Uses threshold cryptography,
 key sharding, and distributed consensus for maximum security.
 """
 
-import asyncio
-import secrets
 import hashlib
-import logging
 import json
-import base64
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from pathlib import Path
+import logging
+import secrets
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import aiosqlite
-import aiofiles
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
-from .quantum_encryption import QuantumEncryptionSystem, QuantumKey, SecurityTier, KeyHierarchy
+import aiosqlite
+
+from .quantum_encryption import SecurityTier
 
 logger = logging.getLogger(__name__)
 

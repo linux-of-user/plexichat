@@ -10,21 +10,20 @@ A dedicated backup node server with:
 - Government-level security standards
 """
 
-import os
-import json
-import hashlib
-import secrets
 import asyncio
+import hashlib
+import json
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+import secrets
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from dataclasses import dataclass, asdict
-from enum import Enum
+from typing import Any, Dict, Optional
+
 import aiosqlite
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, BackgroundTasks
-from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 
 logger = logging.getLogger(__name__)
 

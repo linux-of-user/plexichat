@@ -6,21 +6,16 @@ Advanced system administration and management commands
 import asyncio
 import logging
 import os
-import shutil
-import subprocess
-import tempfile
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
-import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
-from rich.prompt import Prompt, Confirm
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
+from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
-from ..cli_coordinator import ultimate_cli, UltimateCommand, CommandCategory
+from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -443,6 +438,7 @@ async def cmd_system_info():
     """Show detailed system information."""
     try:
         import platform
+
         import psutil
         
         console.print(Panel("💻 Detailed System Information", style="bold blue"))

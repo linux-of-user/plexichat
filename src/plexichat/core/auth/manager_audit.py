@@ -4,9 +4,8 @@ PlexiChat Authentication Audit Manager
 Comprehensive audit logging for authentication events and compliance.
 """
 
-import asyncio
 import logging
-from typing import Dict, Optional, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 

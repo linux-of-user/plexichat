@@ -4,16 +4,14 @@ Integrates with Security Information and Event Management systems
 """
 
 import asyncio
-import logging
 import json
-import time
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field, asdict
+import logging
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import aiohttp
-import socket
-import struct
 
 logger = logging.getLogger(__name__)
 
@@ -317,7 +315,7 @@ class SIEMIntegration:
                         else:
                             raise Exception(f"Splunk returned status {response.status}")
                 
-                except Exception as e:
+                except Exception:
                     if attempt == config.retry_attempts - 1:
                         raise
                     await asyncio.sleep(config.retry_delay * (attempt + 1))
@@ -363,7 +361,7 @@ class SIEMIntegration:
                         else:
                             raise Exception(f"Elasticsearch returned status {response.status}")
                 
-                except Exception as e:
+                except Exception:
                     if attempt == config.retry_attempts - 1:
                         raise
                     await asyncio.sleep(config.retry_delay * (attempt + 1))
@@ -401,7 +399,7 @@ class SIEMIntegration:
                         else:
                             raise Exception(f"HTTP endpoint returned status {response.status}")
                 
-                except Exception as e:
+                except Exception:
                     if attempt == config.retry_attempts - 1:
                         raise
                     await asyncio.sleep(config.retry_delay * (attempt + 1))

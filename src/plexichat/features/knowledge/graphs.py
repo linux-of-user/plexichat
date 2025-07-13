@@ -5,13 +5,12 @@ Advanced knowledge representation and reasoning system using
 semantic graphs for intelligent data relationships and AI-powered insights.
 """
 
-import json
+import logging
 import uuid
-from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-import logging
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +122,7 @@ class SemanticGraph:
                     weight: float = 1.0) -> Optional[KnowledgeRelation]:
         """Add a relationship between nodes."""
         if source_id not in self.nodes or target_id not in self.nodes:
-            logger.error(f"Cannot create relation: node not found")
+            logger.error("Cannot create relation: node not found")
             return None
         
         relation_id = str(uuid.uuid4())
@@ -431,7 +430,7 @@ class SemanticKnowledgeManager:
         # Create basic concept nodes
         user_concept = self.graph.add_node("User", NodeType.CONCEPT)
         admin_concept = self.graph.add_node("Administrator", NodeType.CONCEPT)
-        system_concept = self.graph.add_node("System", NodeType.CONCEPT)
+        self.graph.add_node("System", NodeType.CONCEPT)
         
         # Create hierarchical relationships
         self.graph.add_relation(admin_concept.id, user_concept.id, RelationType.IS_A)

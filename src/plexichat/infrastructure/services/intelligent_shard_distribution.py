@@ -3,23 +3,21 @@ Intelligent shard distribution service for NetLink.
 Implements device-based shard placement with smart algorithms and user preferences.
 """
 
-import asyncio
-import random
-import math
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional, Tuple
-from sqlmodel import Session, select, func
 from dataclasses import dataclass
+from typing import List, Optional
 
+from netlink.app.logger_config import logger
 from netlink.app.models.device_management import (
-    StorageDevice, DeviceShardAssignment, DeviceCapabilityReport,
-    ShardDistributionStrategy, DeviceNetworkTopology,
-    DeviceType, DeviceStatus
+    DeviceCapabilityReport,
+    DeviceShardAssignment,
+    DeviceStatus,
+    ShardDistributionStrategy,
+    StorageDevice,
 )
 from netlink.app.models.enhanced_backup import EnhancedBackup, EnhancedBackupShard
 from netlink.app.models.enhanced_models import EnhancedUser
 from netlink.app.models.message import Message
-from netlink.app.logger_config import logger
+from sqlmodel import Session, select
 
 
 @dataclass
@@ -431,7 +429,7 @@ class IntelligentShardDistribution:
             strategy = self.session.exec(
                 select(ShardDistributionStrategy).where(
                     (ShardDistributionStrategy.strategy_name == strategy_name) &
-                    (ShardDistributionStrategy.is_active == True)
+                    (ShardDistributionStrategy.is_active)
                 )
             ).first()
             

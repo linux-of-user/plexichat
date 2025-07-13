@@ -9,11 +9,7 @@ Command-line interface for managing PlexiChat's advanced clustering system with:
 - Predictive scaling control
 """
 
-import asyncio
 import argparse
-import json
-from typing import Dict, List, Optional, Any
-from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -255,7 +251,7 @@ class ClusterCLI:
             elif args.optimize:
                 optimization = await hybrid_cloud_orchestrator.optimize_placements()
                 
-                print(f"Optimization Results:")
+                print("Optimization Results:")
                 print(f"  Optimized Workloads: {optimization['optimized_workloads']}")
                 print(f"  Potential Cost Savings: ${optimization['cost_savings']:.2f}/hour")
                 

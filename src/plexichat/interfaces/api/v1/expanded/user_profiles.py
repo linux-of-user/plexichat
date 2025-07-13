@@ -3,15 +3,13 @@ PlexiChat Advanced User Profiles API
 Comprehensive user profile management with advanced features
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, EmailStr
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPBearer
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel, EmailStr, Field
 
 logger = logging.getLogger(__name__)
 

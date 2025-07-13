@@ -7,12 +7,12 @@ Handles node discovery, communication, and shard operations.
 
 import asyncio
 import logging
-import json
-import aiohttp
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Dict, List, Optional
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 

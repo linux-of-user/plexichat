@@ -5,26 +5,25 @@ Distributed architecture with load balancing and intelligent request routing.
 
 import asyncio
 import json
+import logging
+import socket
+import threading
 import time
 import uuid
-import hashlib
-import socket
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Set
-from dataclasses import dataclass, asdict
 from enum import Enum
-import logging
 from pathlib import Path
-import threading
+from typing import Any, Dict, List, Optional, Set
+
 import aiohttp
 import psutil
-
-from fastapi import HTTPException, Request, BackgroundTasks
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
-import redis
-from sqlalchemy import create_engine, Column, String, Integer, Float, DateTime, Boolean, Text, JSON
+from sqlalchemy import JSON, Column, DateTime, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
+
 
 class NodeRole(Enum):
     """Node roles in the cluster."""
@@ -627,8 +626,7 @@ async def get_node_manager():
     return node_manager
 
 # Clustering API Router
-from fastapi import APIRouter, Depends, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends
 
 cluster_router = APIRouter(prefix="/api/v1/cluster", tags=["Cluster Management"])
 

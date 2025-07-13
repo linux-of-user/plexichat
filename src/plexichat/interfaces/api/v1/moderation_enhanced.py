@@ -3,16 +3,17 @@ Enhanced Moderation API endpoints for PlexiChat.
 Provides comprehensive moderation capabilities with role-based permissions.
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, status
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlmodel import Session
 
-from plexichat.app.database import get_session
-from plexichat.app.services.moderation_service import ModerationService, UserRole, Permission
-from plexichat.app.models.moderation import ModerationAction, ModerationSeverity
 from plexichat.app.auth import get_current_user
+from plexichat.app.database import get_session
 from plexichat.app.logger_config import logger
+from plexichat.app.models.moderation import ModerationAction
+from plexichat.app.services.moderation_service import ModerationService, Permission, UserRole
 
 
 # Pydantic models for API

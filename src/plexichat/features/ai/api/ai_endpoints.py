@@ -3,17 +3,20 @@ AI Management API Endpoints
 Comprehensive API for managing AI providers, models, and requests.
 """
 
-import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from enum import Enum
 
 from ..core.ai_abstraction_layer import (
-    AIAbstractionLayer, AIRequest, AIResponse, AIModel, AIProvider, 
-    ModelCapability, ModelStatus
+    AIAbstractionLayer,
+    AIModel,
+    AIProvider,
+    AIRequest,
+    ModelCapability,
+    ModelStatus,
 )
 
 logger = logging.getLogger(__name__)

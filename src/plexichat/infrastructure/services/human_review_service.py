@@ -3,18 +3,21 @@ Human review service for moderation with comprehensive workflow management.
 Handles assignment, escalation, and reporting for human moderators.
 """
 
-import asyncio
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
-from sqlmodel import Session, select, func
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
+from sqlmodel import Session, func, select
+
+from plexichat.app.logger_config import logger
 from plexichat.app.models.advanced_moderation import (
-    ModerationItem, ModerationAppeal, ModerationWorkflow,
-    ModerationAction, ModerationSeverity, ModerationStatus, ModerationSource
+    ModerationAction,
+    ModerationItem,
+    ModerationSeverity,
+    ModerationSource,
+    ModerationStatus,
 )
 from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.logger_config import logger
 
 
 @dataclass
@@ -436,7 +439,7 @@ class HumanReviewService:
         moderators = self.session.exec(
             select(EnhancedUser).where(
                 # Assuming there's a role or permission field
-                EnhancedUser.is_active == True
+                EnhancedUser.is_active
             )
         ).all()
         

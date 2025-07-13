@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Header, Request
-
 import logging
+
+from fastapi import APIRouter, Header, HTTPException, Request
 
 logger = logging.getLogger(__name__)
 # settings import will be added when needed

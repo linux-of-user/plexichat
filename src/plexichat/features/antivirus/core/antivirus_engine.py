@@ -8,22 +8,19 @@ and provides comprehensive threat detection capabilities.
 import asyncio
 import hashlib
 import logging
-import os
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-import aiosqlite
-import aiofiles
+from typing import Any, Dict, List
 
-from . import (
-    ThreatLevel, ScanType, ThreatType, ScanResult, ThreatSignature,
-    MAX_FILE_SIZE_SCAN, SUSPICIOUS_EXTENSIONS
-)
-from .hash_scanner import HashBasedScanner
+import aiofiles
+import aiosqlite
+
+from . import MAX_FILE_SIZE_SCAN, SUSPICIOUS_EXTENSIONS, ScanResult, ScanType, ThreatLevel
 from .behavioral_analyzer import BehavioralAnalyzer
-from .link_scanner import LinkSafetyScanner
 from .filename_analyzer import FilenameAnalyzer
+from .hash_scanner import HashBasedScanner
+from .link_scanner import LinkSafetyScanner
 from .threat_intelligence import ThreatIntelligenceEngine
 
 logger = logging.getLogger(__name__)

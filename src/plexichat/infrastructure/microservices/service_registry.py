@@ -5,14 +5,13 @@ Manages service discovery, registration, and health monitoring
 
 import asyncio
 import logging
-import json
 import time
-from typing import Dict, List, Optional, Any, Set
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
 import aiohttp
-import socket
 
 logger = logging.getLogger(__name__)
 

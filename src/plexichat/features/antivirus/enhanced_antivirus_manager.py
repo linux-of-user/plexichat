@@ -5,18 +5,18 @@ and advanced threat detection capabilities.
 """
 
 import asyncio
-import logging
-import json
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Set, Callable
 import hashlib
-import mimetypes
-from dataclasses import dataclass, asdict
+import json
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Set
 
-from .core.antivirus_engine import AdvancedAntivirusEngine
-from .core import ThreatLevel, ScanType, ThreatType, ScanResult
 from plexichat.app.logger_config import logger
+
+from .core import ScanResult, ScanType, ThreatLevel, ThreatType
+from .core.antivirus_engine import AdvancedAntivirusEngine
+
 
 @dataclass
 class ScanRequest:
@@ -620,7 +620,7 @@ class EnhancedAntivirusManager:
             return
 
         # Determine overall threat level
-        max_threat_level = max((r.threat_level for r in results), default=ThreatLevel.CLEAN)
+        max((r.threat_level for r in results), default=ThreatLevel.CLEAN)
 
         # Count clean vs threat results
         threat_results = [r for r in results if r.threat_level.value > ThreatLevel.CLEAN.value]

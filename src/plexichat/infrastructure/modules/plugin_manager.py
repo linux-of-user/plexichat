@@ -22,38 +22,29 @@ import asyncio
 import importlib
 import importlib.util
 import json
-import logging
 import sys
 import threading
 import traceback
 import weakref
-from datetime import datetime, timezone, timedelta
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable, Set, Union
-from dataclasses import dataclass, field
-import hashlib
-import zipfile
-import tempfile
-import shutil
+from typing import Any, Callable, Dict, List, Optional, Set
 
-from ...core_system.logging import get_logger
 from ...core_system.config import get_config
-from .interfaces import (
-    BaseModule, ModuleCapability, ModulePermissions, ModuleState,
-    ModulePriority, ModuleConfiguration, ModuleMetrics,
-    IModuleLifecycle, IModuleConfiguration, IModuleAPI, IModuleSecurity
-)
+from ...core_system.database.abstraction.phase4_integration import phase4_database
+from ...core_system.logging import get_logger
+from ...features.ai.phase3_integration import phase3_ai
+from ...features.security.phase1_integration import phase1_security
+from ...infrastructure.scalability.phase2_integration import phase2_scalability
 
 # Import system coordinators for plugin access
 from ...integration.master_coordinator import master_coordinator
-from ...features.security.phase1_integration import phase1_security
-from ...infrastructure.scalability.phase2_integration import phase2_scalability
-from ...features.ai.phase3_integration import phase3_ai
-from ...core_system.database.abstraction.phase4_integration import phase4_database
-from .contracts import get_contract_validator, ContractValidationResult
-from .isolation import get_isolation_manager, IsolationConfig
 from .config_manager import get_plugin_config_manager
+from .contracts import get_contract_validator
+from .interfaces import BaseModule, ModuleCapability, ModulePermissions, ModuleState
+from .isolation import IsolationConfig, get_isolation_manager
 
 logger = get_logger(__name__)
 
@@ -954,9 +945,8 @@ class UnifiedPluginManager:
     async def _hot_reload_monitor(self):
         """Monitor plugin files for changes and trigger hot-reload."""
         try:
-            import watchdog
-            from watchdog.observers import Observer
             from watchdog.events import FileSystemEventHandler
+            from watchdog.observers import Observer
 
             class PluginFileHandler(FileSystemEventHandler):
                 def __init__(self, plugin_manager):

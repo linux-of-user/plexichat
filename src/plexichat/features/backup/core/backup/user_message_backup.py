@@ -5,14 +5,13 @@ Manages backup of user messages and data with opt-out capabilities
 and comprehensive data type support.
 """
 
-import asyncio
-import logging
 import json
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from pathlib import Path
+import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import aiosqlite
 
 logger = logging.getLogger(__name__)
@@ -245,7 +244,7 @@ class UniversalBackupManager:
         backup_id = f"user_{user_id}_{data_type.value}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         
         # Use the main backup manager to create the backup
-        operation = await self.backup_manager.create_backup(
+        await self.backup_manager.create_backup(
             backup_id=backup_id,
             data=serialized_data,
             backup_type="user_data",

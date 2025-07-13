@@ -4,18 +4,17 @@ Provides comprehensive testing capabilities accessible from WebUI and GUI.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
-from fastapi.responses import JSONResponse, FileResponse
-from sqlmodel import Session
-from pydantic import BaseModel
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from plexichat.app.db import get_session
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.utils.auth import get_current_user, get_optional_current_user
-from plexichat.app.testing.enhanced_test_suite import enhanced_test_suite
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel
+
 from plexichat.app.logger_config import logger
+from plexichat.app.models.enhanced_models import EnhancedUser
+from plexichat.app.testing.enhanced_test_suite import enhanced_test_suite
+from plexichat.app.utils.auth import get_current_user, get_optional_current_user
 
 
 # Pydantic models for API

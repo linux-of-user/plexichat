@@ -6,31 +6,27 @@ intelligent resource allocation, load distribution, and performance optimization
 """
 
 import asyncio
+import json
 import logging
 import secrets
-import json
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from pathlib import Path
+import socket
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import aiosqlite
 import psutil
-import socket
 
-from . import (
-    ClusterRole, NodeStatus, LoadBalancingStrategy, PerformanceMetric,
-    DEFAULT_CLUSTER_CONFIG, MINIMUM_PERFORMANCE_GAIN, TARGET_PERFORMANCE_GAIN,
-    MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, MAXIMUM_CLUSTER_SIZE
-)
+from . import DEFAULT_CLUSTER_CONFIG, ClusterRole, LoadBalancingStrategy, NodeStatus
 
 # Import enhanced clustering components
 try:
     from ..hybrid_cloud.cloud_orchestrator import hybrid_cloud_orchestrator
-    from ..service_mesh.mesh_manager import service_mesh_manager
-    from ..serverless.faas_manager import faas_manager
     from ..predictive_scaling.ml_scaler import predictive_scaler
+    from ..serverless.faas_manager import faas_manager
+    from ..service_mesh.mesh_manager import service_mesh_manager
     ENHANCED_CLUSTERING_AVAILABLE = True
 except ImportError:
     ENHANCED_CLUSTERING_AVAILABLE = False
@@ -168,12 +164,12 @@ class AdvancedClusterManager:
         await self._initialize_local_node()
         
         # Initialize component managers
-        from .node_manager import IntelligentNodeManager
-        from .load_balancer import SmartLoadBalancer
-        from .performance_monitor import RealTimePerformanceMonitor
+        from ..specialized import NODE_TYPES
         from .failover_manager import AutomaticFailoverManager
+        from .load_balancer import SmartLoadBalancer
+        from .node_manager import IntelligentNodeManager
+        from .performance_monitor import RealTimePerformanceMonitor
         from .task_manager import AdvancedTaskManager
-        from ..specialized import create_specialized_node, NODE_TYPES
 
         self.node_manager = IntelligentNodeManager(self)
         self.load_balancer = SmartLoadBalancer(self)
@@ -196,8 +192,8 @@ class AdvancedClusterManager:
         await self.task_manager.initialize()
 
         # Initialize update and storage managers
-        from .cluster_update_manager import ClusterUpdateManager
         from ..storage.distributed_storage_manager import DistributedStorageManager
+        from .cluster_update_manager import ClusterUpdateManager
 
         self.update_manager = ClusterUpdateManager(self)
         self.storage_manager = DistributedStorageManager(self)
@@ -1088,7 +1084,12 @@ class AdvancedClusterManager:
     async def _setup_hybrid_cloud_cluster(self):
         """Setup hybrid cloud cluster configuration."""
         try:
-            from ..hybrid_cloud.cloud_orchestrator import HybridClusterConfig, CloudRegion, CloudProvider, ComplianceRequirement
+            from ..hybrid_cloud.cloud_orchestrator import (
+                CloudProvider,
+                CloudRegion,
+                ComplianceRequirement,
+                HybridClusterConfig,
+            )
 
             # Create hybrid cluster configuration
             primary_region = CloudRegion(

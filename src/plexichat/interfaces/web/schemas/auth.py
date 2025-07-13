@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field
 from typing import List
 
-from plexichat.interfaces.web.schemas.error import ErrorDetail, FieldError, ValidationErrorResponse
+from pydantic import BaseModel, Field
+
 
 class TokenResponse(BaseModel):
     access_token: str = Field(..., description="Bearer token to authenticate subsequent requests")

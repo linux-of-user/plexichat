@@ -4,16 +4,17 @@ Handles automatic updates from GitHub repository.
 """
 
 import os
-import sys
-import json
 import shutil
-import zipfile
-import tempfile
 import subprocess
-from pathlib import Path
+import sys
+import tempfile
+import zipfile
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from pathlib import Path
+from typing import Any, Dict, List
+
 import requests
+
 try:
     from packaging import version
 except ImportError:

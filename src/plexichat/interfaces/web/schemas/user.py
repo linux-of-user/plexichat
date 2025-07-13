@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, field_validator
+import re
 from datetime import datetime
 from typing import Optional
-import re
+
+from pydantic import BaseModel, Field, field_validator
+
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=1)

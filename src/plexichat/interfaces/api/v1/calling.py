@@ -4,14 +4,14 @@ Provides WebRTC signaling, call management, and encryption.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from plexichat.app.models.calling import CallType, CallStatus
-from plexichat.app.services.calling_service import calling_service, CallOffer, CallAnswer
 from plexichat.app.logger_config import logger
+from plexichat.app.models.calling import CallType
+from plexichat.app.services.calling_service import calling_service
 
 
 # Pydantic models for API
@@ -195,7 +195,6 @@ async def update_call_settings(request: CallSettingsRequest):
     """Update call settings (mute, video, screen share)."""
     try:
         # In production, get user_id from authentication and update participant settings
-        user_id = 1  # Placeholder
         
         settings = {}
         if request.is_muted is not None:
@@ -251,7 +250,6 @@ async def get_call_history():
     """Get call history for user."""
     try:
         # In production, query database for user's call history
-        user_id = 1  # Placeholder
         
         # Placeholder call history
         call_history = [

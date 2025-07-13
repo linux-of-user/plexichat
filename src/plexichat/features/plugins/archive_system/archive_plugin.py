@@ -6,18 +6,19 @@ Provides server-by-server activation and premium user permissions.
 """
 
 import asyncio
-import logging
 import json
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set
-from pathlib import Path
+import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
 import aiosqlite
 
-from ...backup.core.shard_manager import ImmutableShardManager
 from ...backup.core.encryption_manager import QuantumResistantEncryptionManager
 from ...backup.core.shard_location_database import EnhancedShardLocationDatabase
+from ...backup.core.shard_manager import ImmutableShardManager
 
 logger = logging.getLogger(__name__)
 

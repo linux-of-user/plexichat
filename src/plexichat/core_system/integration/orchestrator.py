@@ -13,13 +13,11 @@ Features:
 - Performance optimization system integration
 """
 
-import logging
-import sys
 import importlib
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Set
-import asyncio
+import logging
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Set
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +33,7 @@ class SystemIntegrator:
     def get_all_python_modules(self) -> List[str]:
         """Get all Python modules in the PlexiChat codebase."""
         modules = []
-        src_path = Path(__file__).parent.parent
+        Path(__file__).parent.parent
         
         # Core modules
         core_modules = [
@@ -171,8 +169,8 @@ class SystemIntegrator:
             logger.info("📋 Initializing configuration system...")
             from plexichat.core.config.config_manager import ConfigManager
             config_manager = ConfigManager()
-            config = config_manager.load_config()
-            db_perf_config = config_manager.load_database_performance_config()
+            config_manager.load_config()
+            config_manager.load_database_performance_config()
             
             initialization_results["systems"]["configuration"] = {
                 "status": "success",
@@ -191,7 +189,9 @@ class SystemIntegrator:
         # 2. Initialize enhanced database system
         try:
             logger.info("🗄️ Initializing enhanced database system...")
-            from plexichat.core.database.enhanced_abstraction import initialize_enhanced_database_system
+            from plexichat.core.database.enhanced_abstraction import (
+                initialize_enhanced_database_system,
+            )
             db_success = await initialize_enhanced_database_system()
             
             initialization_results["systems"]["database"] = {
@@ -215,9 +215,7 @@ class SystemIntegrator:
         try:
             logger.info("🚀 Initializing performance optimization system...")
             from plexichat.core.database.performance_integration import performance_optimizer
-            from plexichat.core.database.query_optimizer import performance_monitor
-            from plexichat.core.database.indexing_strategy import index_manager
-            
+
             # Test performance system components
             summary = performance_optimizer.get_optimization_summary()
             
@@ -240,7 +238,6 @@ class SystemIntegrator:
         # 4. Initialize security system
         try:
             logger.info("🔒 Initializing security system...")
-            from plexichat.core.security.government_auth import auth_manager
             
             initialization_results["systems"]["security"] = {
                 "status": "success",
@@ -259,7 +256,6 @@ class SystemIntegrator:
         try:
             logger.info("💻 Initializing CLI system...")
             from plexichat.cli.integrated_cli import PlexiChatCLI
-            from plexichat.cli.database_performance_cli import database_performance_cli
             
             cli = PlexiChatCLI()
             

@@ -6,22 +6,22 @@ predictive failure detection, and comprehensive backup reporting.
 """
 
 import asyncio
-import json
 import statistics
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from dataclasses import dataclass, field
-from enum import Enum
-import numpy as np
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
-from ...core.logging import get_logger
+import numpy as np
+
 from ...core.config import get_config
-from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
+from ...core.logging import get_logger
+from .advanced_recovery_system import AdvancedRecoverySystem
 from .immutable_shard_manager import ImmutableShardManager, ShardState
 from .multi_node_network import MultiNodeBackupNetwork
-from .advanced_recovery_system import AdvancedRecoverySystem
+from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
 
 logger = get_logger(__name__)
 
@@ -271,7 +271,7 @@ class BackupAnalyticsMonitor:
     async def _collect_health_metrics(self):
         """Collect comprehensive health metrics."""
         try:
-            current_time = datetime.now(timezone.utc)
+            datetime.now(timezone.utc)
             
             # Node availability metrics
             available_nodes = await self.network_manager.get_available_nodes()

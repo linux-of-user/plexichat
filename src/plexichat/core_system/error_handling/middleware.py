@@ -10,16 +10,16 @@ import logging
 import time
 import traceback
 import uuid
-from typing import Dict, Any, Optional, Callable
 from datetime import datetime
+from typing import Any, Callable, Dict
 
-from fastapi import Request, Response, HTTPException
+from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from .exceptions import ErrorSeverity, ErrorCategory, BaseAPIException
 from .beautiful_error_handler import BeautifulErrorHandler
+from .exceptions import BaseAPIException, ErrorCategory, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 

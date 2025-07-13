@@ -5,20 +5,20 @@ Provides comprehensive file management capabilities for the WebUI file editor.
 Handles configuration files, module configs, templates, and other system files.
 """
 
-import os
 import json
-import yaml
-import aiofiles
-from pathlib import Path
-from typing import Dict, List, Any, Optional
+import logging
+import os
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.responses import JSONResponse
+from pathlib import Path
+from typing import Any, Dict, List
+
+import aiofiles
+import yaml
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from plexichat.core.auth.dependencies import get_current_admin_user
 from plexichat.features.users.user import User
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -373,7 +373,7 @@ async def restore_file_backup(
     """Restore file from backup."""
     try:
         backup_file = Path(backup_path)
-        target_file = Path(target_path)
+        Path(target_path)
         
         if not backup_file.exists():
             raise HTTPException(status_code=404, detail="Backup file not found")

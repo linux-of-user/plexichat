@@ -6,16 +6,14 @@ geolocation blocking, and advanced access control.
 
 import ipaddress
 import json
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Set, Optional, Tuple, Union
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-import requests
-from fastapi import Request, HTTPException
+from typing import Dict, List, Optional, Set, Tuple
+
 import geoip2.database
 import geoip2.errors
-
-from app.logger_config import settings, logger
+from app.logger_config import logger, settings
+from fastapi import Request
 
 
 class IPSecurityManager:

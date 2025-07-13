@@ -3,14 +3,13 @@ SSL/TLS functionality tests for PlexiChat.
 Tests certificate generation, validation, and secure connections.
 """
 
-import ssl
-import socket
-import tempfile
-from pathlib import Path
-from typing import Dict, Any
 import logging
-from datetime import datetime
+import socket
+import ssl
 import subprocess
+import tempfile
+from datetime import datetime
+from pathlib import Path
 
 from .test_base import BaseTest, TestResult
 

@@ -3,23 +3,26 @@ Device management API for intelligent shard distribution.
 Handles device registration, status reporting, and shard management.
 """
 
-from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Request, status, Query
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from sqlmodel import Session, select, func
 from pydantic import BaseModel
+from sqlmodel import Session, func, select
 
 from plexichat.app.db import get_session
+from plexichat.app.logger_config import logger
 from plexichat.app.models.device_management import (
-    StorageDevice, DeviceShardAssignment, DeviceCapabilityReport,
-    ShardDistributionStrategy, DeviceNetworkTopology,
-    DeviceType, DeviceStatus, ConnectionType
+    ConnectionType,
+    DeviceCapabilityReport,
+    DeviceShardAssignment,
+    DeviceStatus,
+    DeviceType,
+    StorageDevice,
 )
 from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.services.intelligent_shard_distribution import IntelligentShardDistribution
 from plexichat.app.utils.auth import get_current_user, get_optional_current_user
-from plexichat.app.logger_config import logger
 
 
 # Pydantic models for API
@@ -228,10 +231,10 @@ async def submit_capability_report(
         shard_counts = session.exec(
             select(
                 func.count(DeviceShardAssignment.id).label("total"),
-                func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified == True).label("verified")
+                func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified).label("verified")
             ).where(
                 (DeviceShardAssignment.device_id == device_id) &
-                (DeviceShardAssignment.is_active == True)
+                (DeviceShardAssignment.is_active)
             )
         ).first()
         
@@ -301,7 +304,7 @@ async def get_my_devices(
             shard_assignments = session.exec(
                 select(DeviceShardAssignment).where(
                     (DeviceShardAssignment.device_id == device.id) &
-                    (DeviceShardAssignment.is_active == True)
+                    (DeviceShardAssignment.is_active)
                 )
             ).all()
             
@@ -453,7 +456,7 @@ async def delete_device_shard(
             select(DeviceShardAssignment).where(
                 (DeviceShardAssignment.device_id == device_id) &
                 (DeviceShardAssignment.shard_id == shard_id) &
-                (DeviceShardAssignment.is_active == True)
+                (DeviceShardAssignment.is_active)
             )
         ).first()
         

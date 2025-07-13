@@ -7,37 +7,33 @@ and maintains government-level security standards with distributed redundancy.
 """
 
 import asyncio
-import os
-import sys
-import json
-import time
 import hashlib
+import json
+import logging
+import os
 import secrets
 import sqlite3
+import sys
 import threading
-import uuid
-import psutil
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Set, Tuple
-from dataclasses import dataclass, asdict, field
-import logging
+import time
 from contextlib import asynccontextmanager
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
+import psutil
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 # Add parent directory to path for shared imports
 sys.path.append(str(Path(__file__).parent.parent))
 
 try:
-    from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
-    from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import JSONResponse, FileResponse
-    from pydantic import BaseModel
-    import uvicorn
-    import httpx
     import aiofiles
+    import uvicorn
+    from fastapi import FastAPI, HTTPException
+    from fastapi.middleware.cors import CORSMiddleware
+    from pydantic import BaseModel
 except ImportError as e:
     print(f"❌ Missing required dependencies: {e}")
     print("Please install: pip install fastapi uvicorn httpx aiofiles")

@@ -4,14 +4,17 @@ PlexiChat Role Repository
 Data access layer for Discord-like roles with permission management.
 """
 
-from typing import List, Optional, Dict, Any
-from sqlmodel import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any, Dict, List, Optional
 
-from ....core_system.database.repository.base_repository import BaseRepository
-from ....core_system.database.dao.base_dao import BaseDAO, FilterCriteria, SortCriteria, PaginationParams
+from ....core_system.database.dao.base_dao import (
+    BaseDAO,
+    FilterCriteria,
+    PaginationParams,
+    SortCriteria,
+)
 from ....core_system.database.engines import get_session
-from ..models.role import Role, Permissions
+from ....core_system.database.repository.base_repository import BaseRepository
+from ..models.role import Permissions, Role
 
 
 class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):

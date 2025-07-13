@@ -7,14 +7,13 @@ and predictive error prevention.
 
 import asyncio
 import logging
-import json
-from typing import Dict, Any, List, Optional, Tuple
-from datetime import datetime, timedelta
-from collections import defaultdict, Counter
-from dataclasses import dataclass, asdict
 import statistics
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
-from .exceptions import ErrorSeverity, ErrorCategory
+from .exceptions import ErrorCategory, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +210,7 @@ class ErrorAnalytics:
         for component, count in component_counts.items():
             if count >= self.min_pattern_frequency:
                 # Find error types for this component
-                error_types = list(set(
+                list(set(
                     error['exception_type'] for error in errors
                     if error['component'] == component
                 ))

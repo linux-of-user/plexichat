@@ -19,20 +19,17 @@ Features:
 """
 
 import asyncio
-import time
-import threading
-import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field
-from collections import defaultdict, deque
-import json
 import statistics
-from pathlib import Path
+import threading
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Callable, Dict, List, Optional
 
-from ..core.logging.performance_logger import get_performance_logger, PerformanceMetric, PerformanceAlert
 from ..core.config import get_config
+from ..core.logging.performance_logger import get_performance_logger
 from .base_service import BaseService
+
 
 @dataclass
 class SystemMetrics:

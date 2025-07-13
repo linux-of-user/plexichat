@@ -4,22 +4,17 @@ PlexiChat Database Setup CLI Tool
 Command-line interface for database configuration and setup.
 """
 
-import os
-import sys
-import asyncio
 import argparse
-import json
-import yaml
+import asyncio
+import sys
 from pathlib import Path
-from typing import Dict, Any
 
 # Add the project root to the Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from src.plexichat.core.database_setup_wizard import database_wizard, DatabaseType
-    from src.plexichat.core.external_database import external_db_manager, DatabaseProvider, DatabaseEngine
+    from src.plexichat.core.database_setup_wizard import database_wizard
 except ImportError as e:
     print(f"❌ Failed to import PlexiChat modules: {e}")
     print("Make sure you're running this from the PlexiChat project directory")
@@ -56,7 +51,7 @@ async def interactive_setup():
     
     db_types = database_wizard.get_database_types()
     for i, db_info in enumerate(db_types["database_types"], 1):
-        db_type = db_info["type"]
+        db_info["type"]
         config = db_info["config"]
         recommended = " (Recommended)" if db_info.get("recommended") else ""
         print(f"{i}. {config['name']}{recommended}")

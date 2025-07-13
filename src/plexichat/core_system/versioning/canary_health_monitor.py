@@ -10,14 +10,14 @@ Real-time health monitoring for canary deployments with:
 """
 
 import asyncio
-import aiohttp
-import json
-from enum import Enum
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
 import logging
 import statistics
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+import aiohttp
 
 from .canary_deployment_manager import CanaryNode, HealthCheck, HealthCheckType
 

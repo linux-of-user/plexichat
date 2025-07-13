@@ -26,12 +26,12 @@ Components:
 from .edge_computing_manager import (
     EdgeComputingManager,
     EdgeNode,
-    NodeType,
     LoadLevel,
-    ScalingAction,
     LoadMetrics,
+    NodeType,
+    ScalingAction,
     ScalingDecision,
-    get_edge_computing_manager
+    get_edge_computing_manager,
 )
 
 __all__ = [

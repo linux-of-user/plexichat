@@ -4,25 +4,23 @@ Provides real-time metrics, historical data, and insights.
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Tuple
-from collections import defaultdict, deque
 import json
-import time
-from dataclasses import dataclass, asdict
+from collections import defaultdict, deque
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, select, func, and_, or_
-from sqlalchemy import text
 import redis.asyncio as redis
-
 from app.core.database.engines import db_cluster
-from app.models.user import User
-from app.models.guild import Guild, GuildMember
-from app.models.channel import Channel
-from app.models.message import Message
-from app.models.file import FileRecord
 from app.logger_config import logger
+from app.models.channel import Channel
+from app.models.file import FileRecord
+from app.models.guild import Guild, GuildMember
+from app.models.message import Message
+from app.models.user import User
+from sqlmodel import Session, and_, func, select
+
 
 class MetricType(str, Enum):
     """Types of metrics."""

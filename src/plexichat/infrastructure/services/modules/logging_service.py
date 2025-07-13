@@ -5,14 +5,14 @@ Small modular service for centralized logging with advanced features.
 """
 
 import asyncio
+import gzip
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from pathlib import Path
-import gzip
 import threading
 from collections import deque
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict
 
 # Service metadata
 SERVICE_METADATA = {
@@ -223,7 +223,6 @@ class LoggingService:
         """Send log entry to external logging systems."""
         # Placeholder for external integrations
         # Could send to ELK stack, Splunk, etc.
-        pass
     
     async def _flush_logs(self):
         """Flush remaining logs."""

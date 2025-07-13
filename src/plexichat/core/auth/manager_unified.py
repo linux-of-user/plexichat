@@ -20,21 +20,19 @@ Features:
 """
 
 import asyncio
-import logging
+import json
+import secrets
 import time
 import uuid
-import secrets
-import hashlib
-import json
-from datetime import datetime, timezone, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from ...core_system.logging import get_logger
 from ...core_system.config import get_config
-from ...core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
+from ...core_system.logging import get_logger
+from ...core_system.security.input_validation import InputType, ValidationLevel, get_input_validator
 
 logger = get_logger(__name__)
 
@@ -519,7 +517,7 @@ class UnifiedAuthManager:
 
             if token and token in self.tokens:
                 self.tokens[token].is_revoked = True
-                logger.info(f"Token revoked")
+                logger.info("Token revoked")
 
             return success
 
@@ -634,8 +632,8 @@ class UnifiedAuthManager:
 
     def _generate_secure_password(self) -> str:
         """Generate a secure random password."""
-        import string
         import random
+        import string
 
         # Generate 16-character password with mixed case, numbers, and symbols
         chars = string.ascii_letters + string.digits + "!@#$%^&*"

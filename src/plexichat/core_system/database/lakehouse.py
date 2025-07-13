@@ -20,19 +20,20 @@ Features:
 - Automatic compaction and optimization
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, AsyncGenerator, Union
-from datetime import datetime, timezone
-from pathlib import Path
-from dataclasses import dataclass, field
-from enum import Enum
-import json
 import time
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 try:
     from .enhanced_abstraction import (  # type: ignore
-        AbstractDatabaseClient, DatabaseConfig, QueryResult, QueryType, DatabaseType
+        AbstractDatabaseClient,
+        DatabaseConfig,
+        DatabaseType,
+        QueryResult,
+        QueryType,
     )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
@@ -214,9 +215,9 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
     async def _init_spark(self):
         """Initialize Spark session."""
         try:
-            from pyspark.sql import SparkSession  # type: ignore
             from pyspark.conf import SparkConf  # type: ignore
-            
+            from pyspark.sql import SparkSession  # type: ignore
+
             # Spark configuration for lakehouse
             conf = SparkConf()
             conf.set("spark.app.name", "PlexiChat-Lakehouse")

@@ -3,12 +3,13 @@ Social & Friends API endpoints for PlexiChat.
 Provides comprehensive social features including friends, profiles, and activities.
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, status
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from plexichat.app.services.social_service import social_service, UserStatus, FriendshipStatus
 from plexichat.app.logger_config import logger
+from plexichat.app.services.social_service import UserStatus, social_service
 
 
 # Pydantic models for API

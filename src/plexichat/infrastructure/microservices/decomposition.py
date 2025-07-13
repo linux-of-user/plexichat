@@ -3,15 +3,14 @@ PlexiChat Microservices Decomposition
 Breaks down monolithic application into microservices
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Type
-from datetime import datetime, timezone
-from dataclasses import dataclass, field
-from enum import Enum
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from .service_registry import ServiceRegistry, ServiceEndpoint, ServiceType, ServiceStatus
+from .service_registry import ServiceEndpoint, ServiceRegistry, ServiceType
 
 logger = logging.getLogger(__name__)
 
@@ -59,22 +58,18 @@ class BaseMicroservice(ABC):
     @abstractmethod
     async def initialize(self):
         """Initialize the microservice."""
-        pass
     
     @abstractmethod
     async def start(self):
         """Start the microservice."""
-        pass
     
     @abstractmethod
     async def stop(self):
         """Stop the microservice."""
-        pass
     
     @abstractmethod
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
-        pass
     
     async def register_with_registry(self):
         """Register this service with the service registry."""

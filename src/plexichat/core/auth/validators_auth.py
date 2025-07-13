@@ -5,13 +5,13 @@ ENHANCED to integrate with unified input validation framework.
 Provides specialized validation for authentication-specific data.
 """
 
-import re
 import logging
-from typing import Dict, List, Optional, Any, Tuple
+import re
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 # Import unified input validation
-from ..security.input_validation import get_input_validator, InputType, ValidationLevel
+from ..security.input_validation import get_input_validator
 
 logger = logging.getLogger(__name__)
 

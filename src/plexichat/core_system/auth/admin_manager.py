@@ -3,15 +3,15 @@ Default Admin Credentials System
 Creates secure default admin account on first startup.
 """
 
-import os
 import json
-import secrets
-import hashlib
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Optional
-import bcrypt
 import logging
+import os
+import secrets
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional
+
+import bcrypt
 
 logger = logging.getLogger("plexichat.auth.default_admin")
 
@@ -101,7 +101,7 @@ class DefaultAdminManager:
         """Generate a secure random password."""
         # Use a mix of characters for security
         import string
-        
+
         # Ensure password has at least one of each type
         lowercase = secrets.choice(string.ascii_lowercase)
         uppercase = secrets.choice(string.ascii_uppercase)

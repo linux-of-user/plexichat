@@ -5,9 +5,10 @@ Tracking who viewed status updates.
 """
 
 from datetime import datetime
-from typing import Optional, Dict, Any
-from sqlmodel import SQLModel, Field, Column
+from typing import Any, Dict
+
 from sqlalchemy import DateTime, Index
+from sqlmodel import Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 

@@ -3,19 +3,21 @@ Rate Limiting Management API Endpoints
 Comprehensive API for managing rate limits and DDoS protection.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request, BackgroundTasks
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any
 from datetime import datetime
-import asyncio
+from typing import Any, Dict, List, Optional
 
-from plexichat.app.security.rate_limiter import (
-    ComprehensiveRateLimiter, RateLimitRule, RateLimitType, 
-    RateLimitAction, RateLimitViolation
-)
-from plexichat.app.security.permissions import PermissionManager, Permission, PermissionScope
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field
+
 from plexichat.app.logger_config import logger
+from plexichat.app.security.permissions import Permission, PermissionManager
+from plexichat.app.security.rate_limiter import (
+    ComprehensiveRateLimiter,
+    RateLimitAction,
+    RateLimitRule,
+    RateLimitType,
+)
 
 router = APIRouter(prefix="/api/v1/rate-limits", tags=["Rate Limiting"])
 security = HTTPBearer()
@@ -99,7 +101,7 @@ async def verify_admin_permission(credentials: HTTPAuthorizationCredentials = De
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         
         return user_id
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid authentication")
 
 @router.get("/rules", response_model=List[Dict[str, Any]])

@@ -6,14 +6,13 @@ with PlexiChat's main application and service management framework.
 """
 
 import asyncio
-import logging
-from typing import Optional, Dict, Any
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 from ..ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from ..core.logging import get_logger
 from ..core.config import get_config
-from ..core.service_manager import ServiceManager, BaseService
+from ..core.logging import get_logger
+from ..core.service_manager import BaseService, ServiceManager
 
 logger = get_logger(__name__)
 

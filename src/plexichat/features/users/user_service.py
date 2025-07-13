@@ -1,8 +1,9 @@
 """User business logic service."""
 import logging
-from typing import List, Optional
 from datetime import datetime
-from .models import User, UserProfile, UserPreferences
+from typing import List, Optional
+
+from .models import User
 from .schemas import UserCreate, UserUpdate
 
 logger = logging.getLogger(__name__)

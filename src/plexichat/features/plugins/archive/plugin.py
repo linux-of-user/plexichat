@@ -18,19 +18,18 @@ Features:
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-import aiosqlite
 
 # Import PlexiChat backup system components
 import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from plexichat.backup.core.shard_manager import ImmutableShardManager, ShardType
-from plexichat.backup.core.encryption_manager import QuantumResistantEncryptionManager
+from plexichat.backup.core.shard_manager import ImmutableShardManager
 
 logger = logging.getLogger(__name__)
 

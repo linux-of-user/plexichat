@@ -3,12 +3,13 @@ PlexiChat Login Router
 Handles login/logout functionality for web UI and desktop app.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request, Response
+from pathlib import Path
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from typing import Optional
-from pathlib import Path
 
 # Import login manager
 try:

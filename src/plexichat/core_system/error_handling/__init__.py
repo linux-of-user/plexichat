@@ -21,18 +21,28 @@ Features:
 - Error boundary management for fault isolation
 """
 
-from typing import Dict, List, Optional, Any, Callable
+from typing import Any, Callable, Dict, List, Optional
+
+from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
+from .crash_reporter import CrashContext, CrashReporter, crash_reporter
+from .enhanced_error_handler import EnhancedErrorHandler
 
 # Import existing error handling components (consolidated)
 # Note: Import from existing modules and create missing ones
 from .exceptions import (
-    ErrorCode, ErrorDetails, error_code_manager,
-    BaseAPIException, ValidationError, AuthenticationError, AuthorizationError,
-    DatabaseError, NetworkError, ExternalServiceError, FileError, RateLimitError
+    AuthenticationError,
+    AuthorizationError,
+    BaseAPIException,
+    DatabaseError,
+    ErrorCode,
+    ErrorDetails,
+    ExternalServiceError,
+    FileError,
+    NetworkError,
+    RateLimitError,
+    ValidationError,
+    error_code_manager,
 )
-from .crash_reporter import CrashReporter, crash_reporter, CrashContext
-from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
-from .enhanced_error_handler import EnhancedErrorHandler
 
 # Import new unified components with error handling
 try:
@@ -64,7 +74,7 @@ except ImportError as e:
     error_analytics = None
 
 try:
-    from .decorators import error_handler, crash_handler, circuit_breaker, retry
+    from .decorators import circuit_breaker, crash_handler, error_handler, retry
 except ImportError as e:
     print(f"Warning: Could not import decorators: {e}")
     error_handler = None
@@ -79,7 +89,7 @@ except ImportError as e:
     ErrorHandlingMiddleware = None
 
 try:
-    from .context import ErrorContext, ErrorBoundary
+    from .context import ErrorBoundary, ErrorContext
 except ImportError as e:
     print(f"Warning: Could not import context: {e}")
     ErrorContext = None
@@ -437,7 +447,7 @@ async def shutdown_error_handling_system():
 def handle_error(exception: Exception, context: Optional[Dict[str, Any]] = None, severity: str = "MEDIUM") -> Optional['ErrorContext']:
     """Handle an error with comprehensive logging and recovery."""
     try:
-        from .context import ErrorSeverity, ErrorContext
+        from .context import ErrorContext, ErrorSeverity
 
         # Convert string severity to enum
         severity_map = {

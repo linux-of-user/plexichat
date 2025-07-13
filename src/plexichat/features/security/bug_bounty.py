@@ -5,11 +5,10 @@ Manages vulnerability reports, rewards, and researcher coordination
 
 import logging
 import uuid
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

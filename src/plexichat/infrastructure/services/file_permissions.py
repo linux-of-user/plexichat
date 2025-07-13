@@ -3,19 +3,23 @@ Comprehensive file permissions service for PlexiChat.
 Handles all file access control, permission validation, and audit logging.
 """
 
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any, Tuple
-from sqlmodel import Session, select
-from fastapi import HTTPException, status
 import hashlib
 import secrets
+from datetime import datetime
+from typing import Any, Dict, Optional, Tuple
 
-from plexichat.app.models.files import (
-    FileRecord, FilePermission, FileShare, FileAccessLog,
-    FilePermissionType, FileAccessLevel
-)
-from plexichat.app.models.user import User
+from fastapi import HTTPException, status
+from sqlmodel import Session, select
+
 from plexichat.app.logger_config import logger
+from plexichat.app.models.files import (
+    FileAccessLevel,
+    FileAccessLog,
+    FilePermission,
+    FilePermissionType,
+    FileRecord,
+    FileShare,
+)
 
 
 class FilePermissionService:
@@ -295,7 +299,7 @@ class FilePermissionService:
         statement = select(FilePermission).where(
             FilePermission.file_id == file_id,
             FilePermission.user_id == user_id,
-            FilePermission.is_active == True
+            FilePermission.is_active
         )
         return self.session.exec(statement).first()
     
@@ -304,7 +308,7 @@ class FilePermissionService:
         statement = select(FileShare).where(
             FileShare.file_id == file_id,
             FileShare.shared_with == user_id,
-            FileShare.is_active == True
+            FileShare.is_active
         )
         return self.session.exec(statement).first()
     

@@ -3,25 +3,25 @@ Encrypted voice and video calling service with WebRTC.
 Provides end-to-end encrypted calling with secure key exchange.
 """
 
-import asyncio
-import json
-import secrets
-import hashlib
-import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import base64
+import hashlib
+import secrets
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
-from plexichat.app.models.calling import (
-    CallSession, CallParticipant, CallInvitation, CallRecording,
-    CallType, CallStatus, EncryptionMethod
-)
-from plexichat.app.models.enhanced_models import EnhancedUser
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
 from plexichat.app.logger_config import logger
+from plexichat.app.models.calling import (
+    CallInvitation,
+    CallParticipant,
+    CallSession,
+    CallStatus,
+    CallType,
+    EncryptionMethod,
+)
 
 
 @dataclass
@@ -289,7 +289,7 @@ class CallingService:
             self.call_participants[call_id].append(participant)
             
             # Generate WebRTC offer
-            ice_config = self.webrtc_manager.get_ice_configuration()
+            self.webrtc_manager.get_ice_configuration()
             
             call_offer = CallOffer(
                 call_id=call_id,
@@ -412,7 +412,7 @@ class CallingService:
         invitee_id: int
     ):
         """Send call invitation to user."""
-        invitation = CallInvitation(
+        CallInvitation(
             call_session_id=call_session.id,
             inviter_id=inviter_id,
             invitee_id=invitee_id,

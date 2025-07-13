@@ -3,25 +3,23 @@ Advanced Per-User Rate Limiting System for PlexiChat
 Comprehensive rate limiting with granular controls for different resource types.
 """
 
-import time
-import json
 import asyncio
-import hashlib
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Union
-from dataclasses import dataclass, asdict
-from enum import Enum
+import json
 import logging
-from pathlib import Path
 import threading
+import time
 from collections import defaultdict, deque
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import HTTPException, Request, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import redis
-from sqlalchemy import create_engine, Column, String, Integer, Float, DateTime, Boolean, Text
+from fastapi import HTTPException, Request
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
+
 
 class LimitType(Enum):
     """Types of rate limits."""
@@ -582,7 +580,8 @@ class AdvancedRateLimiter:
 
 # Rate limiting decorators and middleware
 from functools import wraps
-from fastapi import Request, HTTPException
+
+
 
 def rate_limit(limit_type: LimitType, request_size: int = 1):
     """Decorator for rate limiting endpoints."""

@@ -6,11 +6,11 @@ Prevents cascading failures by temporarily disabling failing services.
 """
 
 import asyncio
-import time
-from enum import Enum
-from typing import Optional, Dict, Any, List, Callable, Type
-from dataclasses import dataclass
 import logging
+import time
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Type
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class CircuitBreaker:
         
         # Attempt the call
         self.stats.total_calls += 1
-        start_time = time.time()
+        time.time()
         
         try:
             if asyncio.iscoroutinefunction(func):

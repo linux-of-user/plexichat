@@ -5,11 +5,11 @@ Discord-like role model with comprehensive permission system.
 """
 
 from datetime import datetime
-from typing import Optional, Dict, Any
 from enum import IntFlag
-from sqlmodel import SQLModel, Field, Column
+from typing import Any, Dict, Optional
+
 from sqlalchemy import DateTime, Index
-import uuid
+from sqlmodel import Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 

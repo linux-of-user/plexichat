@@ -5,17 +5,16 @@ Real-time security monitoring with alerting, incident response,
 and comprehensive security event correlation.
 """
 
-import asyncio
-import logging
-import time
 import json
-from typing import Dict, List, Optional, Any, Set, Callable
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, timezone, timedelta
+import logging
 import smtplib
-from email.mime.text import MIMEText
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -424,7 +423,7 @@ Please investigate this security event immediately.
         try:
             import syslog
             
-            syslog_config = self.alert_channels["syslog"]
+            self.alert_channels["syslog"]
             
             # Map severity to syslog priority
             severity_map = {

@@ -5,17 +5,18 @@ Integrates all Phase I security enhancements into a unified system
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
-from fastapi import Request, Response
+from typing import Any, Dict, Optional
+
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from .waf import waf, waf_middleware
-from .csp import csp_manager
 from .bug_bounty import bug_bounty_manager
-from .siem_integration import siem_integration, SecurityEvent, EventSeverity, EventCategory
-from .security_headers import security_headers_manager
 from .cicd_security import cicd_scanner
+from .csp import csp_manager
+from .security_headers import security_headers_manager
+from .siem_integration import EventCategory, EventSeverity, SecurityEvent, siem_integration
+from .waf import waf
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +204,7 @@ class Phase1SecurityCoordinator:
             raise Exception("Bug bounty program is disabled")
         
         try:
-            from .bug_bounty import VulnerabilityType, SeverityLevel
+            from .bug_bounty import SeverityLevel, VulnerabilityType
             
             report_id = bug_bounty_manager.submit_report(
                 researcher_email=report_data["researcher_email"],

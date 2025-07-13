@@ -4,10 +4,11 @@ PlexiChat Antivirus Core Components
 Core antivirus scanning and detection engines.
 """
 
-from enum import Enum
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 
 class ThreatLevel(Enum):
     """Threat severity levels."""

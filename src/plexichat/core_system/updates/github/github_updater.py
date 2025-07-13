@@ -3,25 +3,22 @@ PlexiChat GitHub-Based Update System
 Handles version checking, downloading, and updating from GitHub releases.
 """
 
-import os
-import json
-import zipfile
-import shutil
-import tempfile
-import requests
-import subprocess
 import asyncio
-import signal
 import importlib
-import sys
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any, Callable
-from datetime import datetime, timezone
-from dataclasses import dataclass
+import json
 import logging
-import hashlib
+import os
 import re
-from contextlib import asynccontextmanager
+import shutil
+import subprocess
+import sys
+import zipfile
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import requests
 
 logger = logging.getLogger(__name__)
 

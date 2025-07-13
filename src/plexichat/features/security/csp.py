@@ -3,13 +3,13 @@ PlexiChat Content Security Policy (CSP) Manager
 Implements strict CSP to prevent XSS and other injection attacks
 """
 
-import logging
 import hashlib
+import logging
 import secrets
-from typing import Dict, List, Optional, Set, Any
-from datetime import datetime, timezone
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 

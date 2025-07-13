@@ -4,9 +4,10 @@ PlexiChat Authentication Decorators
 Decorators for protecting functions and endpoints with authentication requirements.
 """
 
-import functools
 import asyncio
-from typing import Callable, Optional, List, Any
+import functools
+from typing import Callable, List
+
 from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
 

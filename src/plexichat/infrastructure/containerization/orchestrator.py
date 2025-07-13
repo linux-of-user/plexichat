@@ -4,15 +4,14 @@ Manages Docker containers and Kubernetes deployments
 """
 
 import asyncio
-import logging
 import json
-import yaml
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timezone
+import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
-import subprocess
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ Advanced plugins that extend the backup system capabilities:
 - Additional plugins can be added here
 """
 
-from .archive_system import ArchiveSystemPlugin, ArchiveType, ArchiveStatus
+from .archive_system import ArchiveStatus, ArchiveSystemPlugin, ArchiveType
 
 __all__ = [
     'ArchiveSystemPlugin',

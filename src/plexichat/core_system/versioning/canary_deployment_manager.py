@@ -11,13 +11,11 @@ Advanced canary deployment system for staged rollouts with:
 """
 
 import asyncio
-import json
-from enum import Enum
-from typing import Dict, List, Optional, Any, Set, Callable
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
 import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

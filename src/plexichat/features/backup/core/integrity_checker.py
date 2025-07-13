@@ -32,18 +32,14 @@ Security Features:
 """
 
 import asyncio
-import hashlib
-import hmac
-import json
 import secrets
-import time
-from datetime import datetime, timezone, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ....core_system.logging import get_logger
 from ....core_system.config import get_config
+from ....core_system.logging import get_logger
 from .verification import ComprehensiveBackupVerifier, VerificationLevel, VerificationStatus
 
 logger = get_logger(__name__)
@@ -1065,22 +1061,18 @@ class AdvancedIntegrityChecker:
     async def _check_backup_metadata_consistency(self, session: IntegrityCheckSession) -> None:
         """Check backup metadata consistency."""
         # Placeholder implementation
-        pass
 
     async def _check_shard_metadata_consistency(self, session: IntegrityCheckSession) -> None:
         """Check shard metadata consistency."""
         # Placeholder implementation
-        pass
 
     async def _check_metadata_cross_references(self, session: IntegrityCheckSession) -> None:
         """Check metadata cross-references."""
         # Placeholder implementation
-        pass
 
     async def _check_specific_item(self, session: IntegrityCheckSession, item_id: str) -> None:
         """Check integrity of a specific item."""
         # Placeholder implementation
-        pass
 
     # Public API methods
 
@@ -1150,7 +1142,7 @@ class AdvancedIntegrityChecker:
             await self._update_system_health_score()
 
             # Log final statistics
-            logger.info(f"📊 Final integrity statistics:")
+            logger.info("📊 Final integrity statistics:")
             logger.info(f"   Total checks: {self.integrity_stats['total_checks_performed']}")
             logger.info(f"   Issues found: {self.integrity_stats['total_issues_found']}")
             logger.info(f"   Repairs successful: {self.integrity_stats['total_repairs_successful']}")

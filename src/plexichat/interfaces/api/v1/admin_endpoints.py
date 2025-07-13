@@ -17,10 +17,11 @@ Merged from:
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
-from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ async def manage_user(
         from ....features.users.user_service import UserService
         
         user_service = UserService()
-        result = await user_service.manage_user(
+        await user_service.manage_user(
             user_id=user_id,
             action=request.action.value,
             reason=request.reason,
@@ -248,7 +249,7 @@ async def update_configuration(
     """Update system configuration."""
     try:
         from ....core_system.config import set_setting
-        
+
         # Validate the configuration key
         allowed_sections = ["server", "database", "security", "logging"]
         if update.section not in allowed_sections:
@@ -320,7 +321,7 @@ async def resolve_security_event(
         from ....features.security.security_monitor import SecurityMonitor
         
         monitor = SecurityMonitor()
-        result = await monitor.resolve_security_event(event_id)
+        await monitor.resolve_security_event(event_id)
         
         # Log the action
         background_tasks.add_task(
@@ -365,7 +366,7 @@ async def toggle_maintenance_mode(
     """Toggle maintenance mode."""
     try:
         from ....core_system.config import set_setting
-        
+
         # Update maintenance mode setting
         set_setting("system.maintenance_mode", enabled)
         if message:
@@ -407,8 +408,9 @@ async def schedule_system_restart():
     """Schedule a graceful system restart."""
     try:
         import asyncio
+
         from ....infrastructure.utils.shutdown import GracefulShutdown
-        
+
         # Wait a bit to allow the response to be sent
         await asyncio.sleep(2)
         

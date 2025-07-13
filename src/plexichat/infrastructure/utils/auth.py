@@ -4,10 +4,11 @@ Provides common authentication functions and decorators.
 """
 
 import logging
-from typing import Optional, Dict, Any
 from functools import wraps
-from fastapi import HTTPException, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any, Dict, Optional
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 logger = logging.getLogger(__name__)
 

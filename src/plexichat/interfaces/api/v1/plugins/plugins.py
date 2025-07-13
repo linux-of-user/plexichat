@@ -3,12 +3,13 @@ Plugin Management API endpoints for PlexiChat.
 Provides comprehensive plugin management and monitoring capabilities.
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from typing import Any, Dict
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
-from plexichat.app.plugins.plugin_manager import get_plugin_manager
 from plexichat.app.logger_config import logger
+from plexichat.app.plugins.plugin_manager import get_plugin_manager
 
 
 # Pydantic models for API

@@ -6,21 +6,18 @@ Integrates with the unified security architecture for maximum protection.
 """
 
 import asyncio
-import secrets
 import hashlib
 import logging
-import json
 import pickle
+import secrets
 import zlib
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union, Callable, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-from pathlib import Path
-import weakref
+from typing import Any, Dict, List, Optional, Tuple
 
 # Import security systems
-from ..security import quantum_encryption, distributed_key_manager, KeyDomain
+from ..security import KeyDomain, distributed_key_manager, quantum_encryption
 
 logger = logging.getLogger(__name__)
 
@@ -331,7 +328,7 @@ class QuantumSecureCache:
             return encrypted_data
         
         elif encryption_type == "fernet":
-            from cryptography.fernet import Fernet
+            pass
             
             # In production, properly reconstruct the Fernet key
             # For now, this is a placeholder

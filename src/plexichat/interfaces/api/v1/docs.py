@@ -3,18 +3,15 @@ PlexiChat Documentation API
 Enhanced documentation system with interactive viewer and editor.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from typing import Dict, List, Optional, Any
-import os
-import json
-from pathlib import Path
 
 from plexichat.app.logger_config import logger
 from plexichat.core.security.government_auth import get_current_admin
-
 
 router = APIRouter(prefix="/docs", tags=["documentation"])
 templates = Jinja2Templates(directory="src/plexichat/app/web/templates")

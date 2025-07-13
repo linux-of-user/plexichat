@@ -10,23 +10,21 @@ import contextlib
 import importlib
 import importlib.util
 import multiprocessing
-import os
+import resource
 import signal
-import subprocess
 import sys
 import threading
 import time
 import traceback
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, TimeoutError
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable, Union
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, TimeoutError
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
 import psutil
-import resource
 
 from ...core_system.logging import get_logger
-from .interfaces import BaseModule, ModuleState, ModuleConfiguration
 
 logger = get_logger(__name__)
 
@@ -436,7 +434,6 @@ class ModuleIsolationManager:
         """Monitor thread-isolated module."""
         # Thread monitoring is more limited
         # This would track basic metrics and errors
-        pass
     
     def _record_error(self, module_name: str):
         """Record module error."""

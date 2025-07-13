@@ -5,20 +5,19 @@ Comprehensive logging with configurable levels, structured output, crash handlin
 performance monitoring, and real-time log streaming.
 """
 
+import json
 import logging
 import logging.handlers
-import json
-import sys
 import os
-import traceback
+import sys
 import threading
 import time
+import traceback
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
 from enum import Enum
-import queue
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 class LogLevel(Enum):

@@ -3,15 +3,15 @@ Bug Fixes and System Improvements for PlexiChat
 Addresses common issues and implements fixes for known problems.
 """
 
+import logging
 import os
+import signal
 import sys
 import threading
 import time
-import signal
-import logging
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-import functools
+from typing import Any, Dict
+
 
 class BugFixManager:
     """Manages bug fixes and system improvements."""
@@ -231,7 +231,7 @@ class BugFixManager:
         """Fix port binding issues."""
         try:
             import socket
-            
+
             # Check if default port is available
             default_port = 8000
             
@@ -281,7 +281,7 @@ class BugFixManager:
         try:
             # Implement memory leak detection and fixes
             import gc
-            
+
             # Force garbage collection
             collected = gc.collect()
             if collected > 0:
@@ -302,7 +302,7 @@ class BugFixManager:
         try:
             # Ensure proper UTF-8 encoding
             import locale
-            
+
             # Set locale to UTF-8 if possible
             try:
                 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')

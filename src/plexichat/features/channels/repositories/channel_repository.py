@@ -4,13 +4,16 @@ PlexiChat Channel Repository
 Data access layer for Discord-like channels with business logic.
 """
 
-from typing import List, Optional, Dict, Any
-from sqlmodel import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any, Dict, List, Optional
 
-from ....core_system.database.repository.base_repository import BaseRepository
-from ....core_system.database.dao.base_dao import BaseDAO, FilterCriteria, SortCriteria, PaginationParams
+from ....core_system.database.dao.base_dao import (
+    BaseDAO,
+    FilterCriteria,
+    PaginationParams,
+    SortCriteria,
+)
 from ....core_system.database.engines import get_session
+from ....core_system.database.repository.base_repository import BaseRepository
 from ..models.channel import Channel, ChannelType
 
 

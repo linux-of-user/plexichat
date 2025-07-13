@@ -5,15 +5,20 @@ Analyzes filenames for suspicious patterns, extensions, and characteristics
 that may indicate malicious content.
 """
 
-import re
 import logging
+import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict
 
 from . import (
-    ThreatLevel, ScanType, ThreatType, ScanResult,
-    SUSPICIOUS_EXTENSIONS, SUSPICIOUS_FILENAME_PATTERNS, MAX_FILENAME_LENGTH
+    MAX_FILENAME_LENGTH,
+    SUSPICIOUS_EXTENSIONS,
+    SUSPICIOUS_FILENAME_PATTERNS,
+    ScanResult,
+    ScanType,
+    ThreatLevel,
+    ThreatType,
 )
 
 logger = logging.getLogger(__name__)

@@ -11,14 +11,14 @@ Provides comprehensive task management with:
 
 import asyncio
 import json
-import time
-import hashlib
-import secrets
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
-from dataclasses import dataclass, asdict
+import secrets
+import time
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
 import aiosqlite
 
 logger = logging.getLogger(__name__)
@@ -372,7 +372,6 @@ class AdvancedTaskManager:
         """Send task to node for execution."""
         # This would be implemented based on the communication protocol
         # For now, we'll simulate the task execution
-        pass
 
     async def _task_monitor_loop(self):
         """Background task monitoring loop."""

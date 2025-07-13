@@ -5,9 +5,10 @@ Server membership model tracking user participation in servers.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
-from sqlmodel import SQLModel, Field, JSON, Column
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy import DateTime, Index
+from sqlmodel import JSON, Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 

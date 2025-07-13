@@ -8,18 +8,14 @@ Consolidates security protection functionality from:
 Provides comprehensive protection against various security threats.
 """
 
-import asyncio
-import time
-import re
-import ipaddress
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Tuple, Set
-from dataclasses import dataclass
-from enum import Enum
-from collections import defaultdict, deque
 import logging
-
-from .exceptions import DDoSError, ValidationError, SecurityError
+import re
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -313,19 +309,15 @@ class InputSanitizer:
 # Placeholder classes for additional protection components
 class PenetrationTester:
     """Automated penetration testing system."""
-    pass
 
 class VulnerabilityScanner:
     """Vulnerability scanning and assessment."""
-    pass
 
 class BehavioralAnalyzer:
     """Advanced behavioral analysis for threat detection."""
-    pass
 
 class MITMProtection:
     """Man-in-the-middle attack protection."""
-    pass
 
 # Create global instances
 ddos_protection = DDoSProtection()

@@ -4,29 +4,22 @@ Provides advanced split-screen functionality with real-time updates, interactive
 """
 
 import os
-import sys
-import time
-import threading
 import queue
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
+import threading
+import time
 from collections import deque
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
 try:
+    from rich.align import Align
     from rich.console import Console
     from rich.layout import Layout
+    from rich.live import Live
     from rich.panel import Panel
     from rich.table import Table
     from rich.text import Text
-    from rich.live import Live
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-    from rich.tree import Tree
-    from rich.columns import Columns
-    from rich.align import Align
-    from rich.rule import Rule
-    from rich.prompt import Prompt
-    from rich.syntax import Syntax
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -459,9 +452,9 @@ class EnhancedSplitScreen:
                 border_style="blue"
             ))
 
-        except Exception as e:
+        except Exception:
             self.layout["system"].update(Panel(
-                f"[dim]System info unavailable[/dim]",
+                "[dim]System info unavailable[/dim]",
                 title="System Info",
                 border_style="dim"
             ))
@@ -592,7 +585,7 @@ class EnhancedSplitScreen:
 
         try:
             with open(filename, 'w', encoding='utf-8') as f:
-                f.write(f"PlexiChat Console Logs Export\n")
+                f.write("PlexiChat Console Logs Export\n")
                 f.write(f"Generated: {datetime.now().isoformat()}\n")
                 f.write(f"Total Entries: {len(self.log_buffer)}\n")
                 f.write("=" * 80 + "\n\n")

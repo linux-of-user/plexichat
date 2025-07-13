@@ -4,14 +4,14 @@ Comprehensive permission management with granular access control.
 """
 
 import json
-from typing import Dict, List, Set, Optional, Any, Union
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from datetime import datetime
-import hashlib
+from typing import Any, Dict, List, Optional, Set
 
 from plexichat.app.logger_config import logger
+
 
 class Permission(Enum):
     """System permissions."""

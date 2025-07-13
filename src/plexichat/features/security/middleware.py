@@ -5,13 +5,14 @@ Unified middleware for authentication and security enforcement.
 """
 
 import logging
-from typing import Dict, Any, Optional, Callable
+from typing import Any, Dict
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from .auth import auth_manager, session_manager
-from .protection import ddos_protection, rate_limiter, input_sanitizer
-from .exceptions import SecurityError, AuthenticationError
+from .auth import session_manager
+from .exceptions import SecurityError
+from .protection import ddos_protection, rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +101,8 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         
         if auth_header and auth_header.startswith('Bearer '):
             # Validate token (placeholder)
-            token = auth_header[7:]
+            auth_header[7:]
             # Token validation would go here
-            pass
         
         # No valid authentication found
         if path.startswith('/api/'):

@@ -22,30 +22,28 @@ Features:
 - Backup and rollback system
 """
 
-from .version_manager import (
-    Version,
-    VersionType,
-    VersionStatus,
-    VersionInfo,
-    VersionManager,
-    version_manager
-)
-
 from .changelog_manager import (
-    ChangeType,
     ChangeEntry,
-    VersionChangelog,
     ChangelogManager,
-    changelog_manager
+    ChangeType,
+    VersionChangelog,
+    changelog_manager,
 )
-
 from .update_system import (
-    UpdateType,
-    UpdateStatus,
     UpdatePlan,
     UpdateResult,
+    UpdateStatus,
     UpdateSystem,
-    update_system
+    UpdateType,
+    update_system,
+)
+from .version_manager import (
+    Version,
+    VersionInfo,
+    VersionManager,
+    VersionStatus,
+    VersionType,
+    version_manager,
 )
 
 __version__ = "1.0.0"

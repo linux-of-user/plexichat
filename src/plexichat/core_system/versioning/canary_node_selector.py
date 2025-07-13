@@ -9,13 +9,11 @@ Intelligent node selection for canary deployments with:
 - Custom selection strategies
 """
 
-import asyncio
-import random
-from enum import Enum
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass
-from datetime import datetime, timezone
 import logging
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 from .canary_deployment_manager import CanaryNode, CanaryStrategy
 
@@ -302,13 +300,11 @@ class CanaryNodeSelector:
         """Load current node metrics."""
         # Placeholder for loading actual metrics
         # This would integrate with monitoring systems
-        pass
     
     async def _load_node_history(self):
         """Load node deployment history."""
         # Placeholder for loading deployment history
         # This would load from persistent storage
-        pass
     
     def blacklist_node(self, node_id: str, reason: str = ""):
         """Add node to blacklist."""
@@ -322,4 +318,3 @@ class CanaryNodeSelector:
     
     async def cleanup(self):
         """Cleanup node selector resources."""
-        pass

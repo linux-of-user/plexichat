@@ -3,19 +3,17 @@ Common Utilities Module for PlexiChat
 Provides shared functionality to reduce code duplication across the application.
 """
 
-import os
-import sys
-import json
-import time
 import hashlib
+import json
+import logging
 import secrets
 import threading
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Union, Callable, TypeVar, Generic
-from pathlib import Path
-from dataclasses import dataclass, asdict
+import time
+from dataclasses import dataclass
+from datetime import datetime
 from functools import wraps
-import logging
+from pathlib import Path
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
 
 T = TypeVar('T')
 
@@ -336,6 +334,7 @@ class StringUtils:
     def sanitize_filename(filename: str) -> str:
         """Sanitize filename for safe filesystem use."""
         import re
+
         # Remove or replace invalid characters
         sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
         # Remove leading/trailing spaces and dots
@@ -408,7 +407,7 @@ class RetryUtils:
         for attempt in range(max_attempts):
             try:
                 return func()
-            except exceptions as e:
+            except exceptions:
                 if attempt == max_attempts - 1:
                     raise
                 

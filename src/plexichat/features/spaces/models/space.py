@@ -5,10 +5,11 @@ Reddit-like community space model.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
 from enum import Enum
-from sqlmodel import SQLModel, Field, JSON, Column
-from sqlalchemy import Text, DateTime, Index
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import DateTime, Index, Text
+from sqlmodel import JSON, Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 

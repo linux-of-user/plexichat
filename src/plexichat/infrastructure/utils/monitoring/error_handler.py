@@ -4,17 +4,17 @@ Comprehensive error handling and monitoring system with alerting,
 diagnostics, and recovery mechanisms.
 """
 
-import sys
-import traceback
-import psutil
+import json
+import logging
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional, List, Callable
+import traceback
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
-import json
+from typing import Any, Callable, Dict, Optional
 
-import logging
+import psutil
+
 from plexichat.core.config.settings import settings
 
 logger = logging.getLogger(__name__)

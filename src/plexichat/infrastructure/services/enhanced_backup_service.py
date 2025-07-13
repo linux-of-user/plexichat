@@ -3,29 +3,36 @@ Enhanced government-level secure backup service.
 Handles automatic database backup, sharding, distribution, and recovery.
 """
 
-import os
+import base64
 import gzip
-import json
 import hashlib
+import json
+import os
 import secrets
-import asyncio
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any, Tuple
+from datetime import datetime, timezone
 from pathlib import Path
-from sqlmodel import Session, select
+from typing import Any, Dict, List, Optional, Tuple
+
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import base64
+from sqlmodel import Session, select
 
+from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_backup import (
-    EnhancedBackup, EnhancedBackupShard, ShardDistribution, BackupNode,
-    UserBackupQuota, BackupRecoveryLog, BackupType, BackupStatus, 
-    ShardStatus, SecurityLevel
+    BackupNode,
+    BackupRecoveryLog,
+    BackupStatus,
+    BackupType,
+    EnhancedBackup,
+    EnhancedBackupShard,
+    SecurityLevel,
+    ShardDistribution,
+    ShardStatus,
+    UserBackupQuota,
 )
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.models.message import Message
-from plexichat.app.logger_config import logger
 
 
 class EnhancedBackupService:
@@ -362,8 +369,8 @@ class EnhancedBackupService:
             # Get active backup nodes
             backup_nodes = self.session.exec(
                 select(BackupNode).where(
-                    (BackupNode.is_active == True) & 
-                    (BackupNode.is_online == True)
+                    (BackupNode.is_active) & 
+                    (BackupNode.is_online)
                 )
             ).all()
             
@@ -583,7 +590,7 @@ class EnhancedBackupService:
             distributions = self.session.exec(
                 select(ShardDistribution).where(
                     (ShardDistribution.shard_id == shard.id) &
-                    (ShardDistribution.is_active == True)
+                    (ShardDistribution.is_active)
                 )
             ).all()
 

@@ -5,18 +5,19 @@ Comprehensive crash reporting system with detailed context collection,
 automatic recovery suggestions, and integration with monitoring systems.
 """
 
+import json
+import platform
 import sys
 import traceback
-import platform
-import psutil
 import uuid
-import json
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional
 
-from .exceptions import ErrorSeverity, ErrorCategory
+import psutil
+
+from .exceptions import ErrorCategory, ErrorSeverity
 
 
 @dataclass

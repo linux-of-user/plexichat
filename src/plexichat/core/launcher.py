@@ -6,9 +6,8 @@ Provides centralized application launching and initialization.
 import asyncio
 import logging
 import sys
-from pathlib import Path
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 

@@ -3,21 +3,18 @@ Enhanced Messaging Service
 Comprehensive messaging service with emoji support, replies, reactions, and resilience features.
 """
 
-import asyncio
-import json
 import re
 import unicodedata
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any, Set, Tuple
-from sqlmodel import Session, select, and_, or_
-from sqlalchemy import func, desc
-from pydantic import BaseModel
+from typing import Any, Dict, List, Optional
 
-from plexichat.app.db import get_session, engine
-from plexichat.app.models.message import Message, MessageType, MessageReaction, MessageComponent
-from plexichat.app.models.guild import Emoji
-from plexichat.app.models.user import User
+from sqlalchemy import desc
+from sqlmodel import Session, and_, or_, select
+
+from plexichat.app.db import engine
 from plexichat.app.logger_config import logger
+from plexichat.app.models.guild import Emoji
+from plexichat.app.models.message import Message, MessageReaction, MessageType
 
 
 class EmojiService:
@@ -170,7 +167,7 @@ class EmojiService:
     async def get_custom_emojis(cls, guild_id: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get custom emojis for a guild."""
         with Session(engine) as session:
-            query = select(Emoji).where(Emoji.available == True)
+            query = select(Emoji).where(Emoji.available)
             if guild_id:
                 query = query.where(Emoji.guild_id == guild_id)
             
@@ -463,7 +460,7 @@ class EnhancedMessagingService:
         """Get messages with filters and caching."""
         try:
             with Session(engine) as session:
-                query = select(Message).where(Message.is_deleted == False)
+                query = select(Message).where(not Message.is_deleted)
                 
                 # Apply filters
                 if filters.get('channel_id'):
@@ -558,7 +555,7 @@ class EnhancedMessagingService:
             with Session(engine) as session:
                 search_query = select(Message).where(
                     and_(
-                        Message.is_deleted == False,
+                        not Message.is_deleted,
                         Message.content.contains(query)
                     )
                 )
@@ -651,7 +648,7 @@ class EnhancedMessagingService:
         """Get emoji usage statistics."""
         try:
             with Session(engine) as session:
-                query = select(Message).where(Message.is_deleted == False)
+                query = select(Message).where(not Message.is_deleted)
 
                 # Apply filters
                 if filters.get('channel_id'):

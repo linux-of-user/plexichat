@@ -4,9 +4,8 @@ PlexiChat OAuth Manager
 OAuth2/OpenID Connect integration for third-party authentication providers.
 """
 
-import asyncio
 import logging
-from typing import Dict, Optional, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 

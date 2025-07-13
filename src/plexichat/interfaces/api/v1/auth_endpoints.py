@@ -16,12 +16,12 @@ Merged from:
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, Depends, status, Request, Response
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from datetime import datetime
+from typing import Dict, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
-from enum import Enum
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +160,7 @@ async def register(request: RegisterRequest):
     """Register a new user."""
     try:
         from ....core_system.auth.auth_manager import AuthManager
-        
+
         # Validate password confirmation
         if request.password != request.confirm_password:
             raise HTTPException(
@@ -234,7 +234,7 @@ async def refresh_token(request: Request):
     """Refresh access token using refresh token."""
     try:
         from ....core_system.auth.auth_manager import AuthManager
-        
+
         # Get refresh token from cookie
         refresh_token = request.cookies.get("refresh_token")
         if not refresh_token:
@@ -325,7 +325,7 @@ async def request_password_reset(request: PasswordResetRequest):
         auth_manager = AuthManager()
         
         # Send password reset email
-        result = await auth_manager.request_password_reset(request.email)
+        await auth_manager.request_password_reset(request.email)
         
         # Always return success to prevent email enumeration
         return {"message": "If the email exists, a password reset link has been sent"}
@@ -340,7 +340,7 @@ async def confirm_password_reset(request: PasswordResetConfirm):
     """Confirm password reset with token."""
     try:
         from ....core_system.auth.auth_manager import AuthManager
-        
+
         # Validate password confirmation
         if request.new_password != request.confirm_password:
             raise HTTPException(
@@ -381,7 +381,7 @@ async def change_password(
     """Change user password."""
     try:
         from ....core_system.auth.auth_manager import AuthManager
-        
+
         # Validate password confirmation
         if request.new_password != request.confirm_password:
             raise HTTPException(

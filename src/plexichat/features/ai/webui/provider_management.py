@@ -4,17 +4,21 @@ Web interface for managing AI providers, models, and configurations.
 """
 
 import asyncio
-import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
-from fastapi import FastAPI, Request, Form, HTTPException, Depends
+from typing import Optional
+
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-import jinja2
 
-from ..core.ai_abstraction_layer import AIAbstractionLayer, AIProvider, AIModel, ModelCapability, ModelStatus
+from ..core.ai_abstraction_layer import (
+    AIAbstractionLayer,
+    AIModel,
+    AIProvider,
+    ModelCapability,
+    ModelStatus,
+)
 from ..providers import ProviderStatus
 
 logger = logging.getLogger(__name__)

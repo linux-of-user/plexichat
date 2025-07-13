@@ -4,25 +4,22 @@ Comprehensive security utilities including input sanitization,
 password management, session handling, and advanced security features.
 """
 
-import re
-import secrets
-import hashlib
-import hmac
 import base64
+import hashlib
 import json
 import os
-import mimetypes
+import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional, List, Set, Tuple
-from urllib.parse import quote, unquote
+from typing import Any, Dict, List, Optional, Set
+
 import bcrypt
-from jose import JWTError, jwt
-from fastapi import Request
 import bleach
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from fastapi import Request
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 # Additional imports for file security
@@ -40,7 +37,7 @@ except ImportError:
     PIL_AVAILABLE = False
     logger.warning("Pillow not available, image validation disabled")
 
-from plexichat.app.logger_config import settings, logger
+from plexichat.app.logger_config import logger, settings
 
 # Legacy support
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -171,8 +168,8 @@ class AdvancedEncryption:
     @staticmethod
     def generate_key_pair():
         """Generate RSA key pair for end-to-end encryption."""
-        from cryptography.hazmat.primitives.asymmetric import rsa
         from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
 
         # Generate private key
         private_key = rsa.generate_private_key(
@@ -201,9 +198,10 @@ class AdvancedEncryption:
     @staticmethod
     def encrypt_message(message: str, public_key_pem: str) -> str:
         """Encrypt message using RSA public key."""
-        from cryptography.hazmat.primitives.asymmetric import rsa, padding
-        from cryptography.hazmat.primitives import serialization, hashes
         import base64
+
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
 
         # Load public key
         public_key = serialization.load_pem_public_key(public_key_pem.encode('utf-8'))
@@ -223,9 +221,10 @@ class AdvancedEncryption:
     @staticmethod
     def decrypt_message(encrypted_message: str, private_key_pem: str) -> str:
         """Decrypt message using RSA private key."""
-        from cryptography.hazmat.primitives.asymmetric import rsa, padding
-        from cryptography.hazmat.primitives import serialization, hashes
         import base64
+
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
 
         # Load private key
         private_key = serialization.load_pem_private_key(
@@ -274,17 +273,18 @@ class TimeBasedSecurity:
     def generate_totp_secret() -> str:
         """Generate TOTP secret for 2FA."""
         import secrets
+
         import base32
         return base32.b32encode(secrets.token_bytes(20)).decode('utf-8')
 
     @staticmethod
     def generate_totp_code(secret: str, time_step: int = 30) -> str:
         """Generate TOTP code."""
-        import hmac
+        import base64
         import hashlib
+        import hmac
         import struct
         import time
-        import base64
 
         # Convert secret from base32
         key = base64.b32decode(secret.upper() + '=' * (8 - len(secret) % 8))
@@ -311,7 +311,7 @@ class TimeBasedSecurity:
 
         # Check current time and adjacent windows
         for i in range(-window, window + 1):
-            test_counter = current_time + i
+            current_time + i
             test_code = TimeBasedSecurity.generate_totp_code(secret)
             if test_code == code:
                 return True
@@ -321,9 +321,9 @@ class TimeBasedSecurity:
     @staticmethod
     def create_time_locked_message(message: str, unlock_time: datetime) -> Dict[str, Any]:
         """Create a message that can only be decrypted after a specific time."""
-        from cryptography.fernet import Fernet
-        import json
         import base64
+
+        from cryptography.fernet import Fernet
 
         # Generate encryption key
         key = Fernet.generate_key()
@@ -349,9 +349,9 @@ class TimeBasedSecurity:
     @staticmethod
     def unlock_time_locked_message(container: Dict[str, Any]) -> Optional[str]:
         """Unlock a time-locked message if the time has passed."""
-        from cryptography.fernet import Fernet
-        import json
         import base64
+
+        from cryptography.fernet import Fernet
 
         unlock_time = datetime.fromisoformat(container['unlock_time'])
         current_time = datetime.now(timezone.utc)
@@ -385,10 +385,10 @@ class TimeBasedSecurity:
     @staticmethod
     def _derive_time_key(unlock_time: datetime) -> str:
         """Derive encryption key based on unlock time."""
+        import base64
+
         from cryptography.hazmat.primitives import hashes
         from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-        from cryptography.fernet import Fernet
-        import base64
 
         # Use unlock time as salt
         salt = unlock_time.isoformat().encode('utf-8')
@@ -699,7 +699,7 @@ def scan_file_content(content: bytes, extension: str) -> bool:
         # Check for suspicious patterns
         for pattern in SUSPICIOUS_PATTERNS:
             if re.search(pattern, content, re.IGNORECASE):
-                logger.warning(f"Suspicious pattern found in file")
+                logger.warning("Suspicious pattern found in file")
                 return False
 
         # MIME type validation if magic is available

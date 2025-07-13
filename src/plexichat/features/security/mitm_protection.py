@@ -3,21 +3,17 @@ MITM (Man-in-the-Middle) Attack Protection for PlexiChat
 Comprehensive protection against various MITM attack vectors.
 """
 
+import base64
 import hashlib
 import hmac
-import secrets
-import time
-import base64
 import json
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-from fastapi import Request, HTTPException
-import ssl
+import secrets
 import socket
+import ssl
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Tuple
+
+from fastapi import HTTPException, Request
 
 from plexichat.app.logger_config import logger
 

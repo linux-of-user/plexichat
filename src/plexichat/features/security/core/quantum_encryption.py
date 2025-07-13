@@ -6,29 +6,24 @@ using lattice-based and hash-based algorithms. Breaking one key doesn't
 compromise the entire system through threshold cryptography.
 """
 
-import os
-import secrets
 import hashlib
-import hmac
-import struct
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Union
+import secrets
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import asyncio
-import json
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from cryptography.hazmat.backends import default_backend
 
 # Cryptographic libraries
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from ...core.logging import get_logger
 from ...core.config import get_config
+from ...core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -448,7 +443,7 @@ class QuantumEncryptionEngine:
             new_keys = await self._generate_master_keys()
             
             # Create new threshold shares
-            new_shares = await self._create_threshold_shares(new_keys)
+            await self._create_threshold_shares(new_keys)
             
             # Mark old keys as expired
             for key in self.keys.values():

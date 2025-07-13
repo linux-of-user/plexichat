@@ -2,12 +2,13 @@
 File management database models.
 """
 
-from datetime import datetime
-from typing import Optional, List, Dict, Any
-from enum import Enum
 import uuid
-from sqlmodel import SQLModel, Field, Relationship, JSON, Column
-from sqlalchemy import Text, DateTime, Index
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import DateTime, Index, Text
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 
 class FilePermissionType(str, Enum):

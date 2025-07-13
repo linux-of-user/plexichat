@@ -4,13 +4,13 @@ Provides P2P messaging with database fallback capabilities.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from plexichat.infrastructure.services.p2p_messaging import p2p_messaging_service, P2PMessage
 from plexichat.core.logging import logger
+from plexichat.infrastructure.services.p2p_messaging import p2p_messaging_service
 
 
 # Pydantic models for API

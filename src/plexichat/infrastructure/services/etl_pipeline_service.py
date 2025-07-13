@@ -28,15 +28,13 @@ Transformations:
 """
 
 import asyncio
-import logging
-from typing import Dict, List, Optional, Any, Callable, AsyncGenerator, Union
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
 import json
-import time
-from pathlib import Path
+import logging
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -567,7 +565,7 @@ class ETLPipelineService:
             
             analytics_client = enhanced_db_manager.clients.get("analytics")
             if analytics_client:
-                table_name = target_config.get("table", "processed_events")
+                target_config.get("table", "processed_events")
                 
                 # Convert data to INSERT statements (simplified)
                 for record in data:
@@ -590,7 +588,7 @@ class ETLPipelineService:
                 await asyncio.sleep(60)  # Check every minute
                 
                 # Check for scheduled pipelines
-                current_time = datetime.now(timezone.utc)
+                datetime.now(timezone.utc)
                 
                 for pipeline_name, config in self.pipelines.items():
                     if config.schedule_cron:

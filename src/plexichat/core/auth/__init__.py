@@ -81,25 +81,43 @@ except ImportError:
 
 # Import authentication utilities
 try:
-    from .decorators_auth import require_auth, require_admin, require_mfa, require_level, optional_auth
+    from .decorators_auth import (
+        optional_auth,
+        require_admin,
+        require_auth,
+        require_level,
+        require_mfa,
+    )
 except ImportError:
     require_auth = require_admin = require_mfa = require_level = optional_auth = None
 
 try:
-    from .middleware_auth import AuthenticationMiddleware, FlaskAuthMiddleware, FastAPIAuthMiddleware
+    from .middleware_auth import (
+        AuthenticationMiddleware,
+        FastAPIAuthMiddleware,
+        FlaskAuthMiddleware,
+    )
 except ImportError:
     AuthenticationMiddleware = FlaskAuthMiddleware = FastAPIAuthMiddleware = None
 
 try:
-    from .validators_auth import PasswordValidator, TokenValidator, BiometricValidator
+    from .validators_auth import BiometricValidator, PasswordValidator, TokenValidator
 except ImportError:
     PasswordValidator = TokenValidator = BiometricValidator = None
 
 try:
     from .exceptions_auth import (
-        AuthenticationError, AuthorizationError, MFAError, TokenError,
-        SessionError, PasswordError, BiometricError, DeviceError,
-        OAuthError, RateLimitError, AccountLockError
+        AccountLockError,
+        AuthenticationError,
+        AuthorizationError,
+        BiometricError,
+        DeviceError,
+        MFAError,
+        OAuthError,
+        PasswordError,
+        RateLimitError,
+        SessionError,
+        TokenError,
     )
 except ImportError:
     AuthenticationError = AuthorizationError = MFAError = TokenError = None

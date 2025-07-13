@@ -3,15 +3,14 @@ Common Utilities
 Shared utility functions to reduce code duplication across the codebase.
 """
 
-import re
-import json
-import hashlib
-import time
 import asyncio
-from typing import Any, Dict, List, Optional, Union, Callable
-from datetime import datetime, timedelta
-from pathlib import Path
+import hashlib
 import logging
+import re
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
 
 logger = logging.getLogger("plexichat.utils.common")
 

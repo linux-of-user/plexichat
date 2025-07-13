@@ -10,28 +10,26 @@ This system provides:
 """
 
 import asyncio
-import time
-import hmac
-import secrets
+import base64
 import hashlib
+import hmac
 import json
-import numpy as np
-import pickle
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Tuple, Any, Set
-from dataclasses import dataclass, field
+import secrets
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-import psutil
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+import numpy as np
+from app.logger_config import logger
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import base64
+from sklearn.cluster import DBSCAN
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import DBSCAN
 
-from app.logger_config import logger
 
 class BehavioralThreatType(Enum):
     """Types of behavioral threats."""
@@ -863,7 +861,7 @@ class AdvancedBehavioralAnalyzer:
 
             # Convert to numpy arrays
             X = np.array(features_list)
-            y = np.array(labels_list)
+            np.array(labels_list)
 
             # Fit scaler
             self.scaler.fit(X)

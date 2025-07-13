@@ -5,25 +5,23 @@ Central authentication manager that coordinates all authentication
 operations and provides a unified interface for the system.
 """
 
-import asyncio
 import logging
 import time
-import secrets
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-import hashlib
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from .token_manager import TokenManager
-from .session_manager import SessionManager
-from .password_manager import PasswordManager
-from .mfa_manager import Advanced2FASystem as MFAManager
+from .audit_manager import AuthAuditManager
 from .biometric_manager import BiometricManager
 from .device_manager import DeviceManager
-from .audit_manager import AuthAuditManager
-from .exceptions import AuthenticationError, AuthorizationError, MFAError
+from .exceptions import AuthenticationError, AuthorizationError
+from .mfa_manager import Advanced2FASystem as MFAManager
+from .password_manager import PasswordManager
+from .session_manager import SessionManager
+from .token_manager import TokenManager
+
 # Note: Removed import from deleted advanced_authentication.py - functionality now in unified system
 
 logger = logging.getLogger(__name__)
@@ -547,13 +545,11 @@ class AuthManager:
         """Record failed authentication attempt."""
         # Failed attempt recording logic here - using request for future implementation
         _ = request  # Mark as used
-        pass
 
     async def _clear_failed_attempts(self, username: str):
         """Clear failed attempts for user."""
         # Clear failed attempts logic here - using username for future implementation
         _ = username  # Mark as used
-        pass
 
 
 # Global instance

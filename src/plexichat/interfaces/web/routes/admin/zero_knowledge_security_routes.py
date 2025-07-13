@@ -7,15 +7,20 @@ Provides comprehensive configuration, testing, and monitoring interfaces.
 
 import asyncio
 import json
-from datetime import datetime, timezone
-from typing import Dict, Any, List
-from flask import Blueprint, render_template, request, jsonify, send_file
-from functools import wraps
 import logging
+from datetime import datetime, timezone
+from functools import wraps
 
-from ....services.zero_knowledge_security_service import zero_knowledge_security, PrivacyLevel, MessageType, AuditEventType
+from flask import Blueprint, render_template, request, send_file
+
 from ....core.auth.decorators import admin_required
-from ....core.utils.response_utils import success_response, error_response
+from ....core.utils.response_utils import error_response, success_response
+from ....services.zero_knowledge_security_service import (
+    AuditEventType,
+    MessageType,
+    PrivacyLevel,
+    zero_knowledge_security,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -450,7 +455,7 @@ async def rotate_encryption_keys():
 async def cleanup_expired_messages():
     """Manually trigger cleanup of expired messages."""
     try:
-        initial_count = len(zero_knowledge_security.encrypted_messages)
+        len(zero_knowledge_security.encrypted_messages)
         
         # Find and clean up expired messages
         now = datetime.now(timezone.utc)
@@ -468,7 +473,7 @@ async def cleanup_expired_messages():
         cleaned_count = len(expired_messages)
         
         return success_response(
-            message=f"Cleanup completed successfully",
+            message="Cleanup completed successfully",
             cleaned_count=cleaned_count,
             remaining_messages=len(zero_knowledge_security.encrypted_messages)
         )

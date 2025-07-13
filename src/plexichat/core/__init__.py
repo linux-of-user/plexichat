@@ -108,6 +108,7 @@ __all__ = [
 # These maintain compatibility with old import paths
 import warnings
 
+
 def _deprecated_import_warning(old_path, new_path):
     """Issue deprecation warning for old import paths."""
     warnings.warn(
@@ -143,6 +144,7 @@ class _LegacyImportHelper:
 
 # Install legacy import helper
 import sys
+
 sys.modules['plexichat.core_system'] = _LegacyImportHelper()
 
 # Core system information

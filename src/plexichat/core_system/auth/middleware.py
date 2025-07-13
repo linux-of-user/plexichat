@@ -5,7 +5,8 @@ Middleware for web frameworks to handle authentication automatically.
 """
 
 import logging
-from typing import Callable, Optional, Dict, Any
+from typing import Any, Callable, Dict, Optional
+
 from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
 
@@ -103,7 +104,7 @@ class FlaskAuthMiddleware:
     def before_request(self):
         """Flask before_request handler."""
         try:
-            from flask import request, g  # type: ignore
+            from flask import g, request  # type: ignore
         except ImportError:
             # Flask not available, skip Flask-specific functionality
             return

@@ -26,7 +26,38 @@ Features:
 - Audit logging and compliance reporting
 """
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+from .audit_manager import AuthAuditManager, auth_audit_manager
+
+# Import new unified components
+from .auth_manager import AuthManager, auth_manager
+from .biometric_manager import BiometricManager, biometric_manager
+
+# Import authentication utilities
+from .decorators import optional_auth, require_admin, require_auth, require_level, require_mfa
+from .device_manager import DeviceManager, device_manager
+from .exceptions import (
+    AccountLockError,
+    AuthenticationError,
+    AuthorizationError,
+    BiometricError,
+    DeviceError,
+    MFAError,
+    OAuthError,
+    PasswordError,
+    RateLimitError,
+    SessionError,
+    TokenError,
+)
+from .mfa_manager import Advanced2FASystem as MFAManager
+from .mfa_manager import tfa_system as mfa_manager
+from .middleware import AuthenticationMiddleware, FastAPIAuthMiddleware, FlaskAuthMiddleware
+from .oauth_manager import OAuthManager, oauth_manager
+from .password_manager import PasswordManager, password_manager
+from .session_manager import SessionManager, session_manager
+from .token_manager import TokenManager, token_manager
+from .validators import BiometricValidator, PasswordValidator, TokenValidator
 
 # Import existing authentication components (consolidated)
 # Note: Removed duplicate authentication systems - now using unified core system
@@ -35,26 +66,7 @@ from typing import Optional, Dict, Any
 # Removed: features/security/core/advanced_authentication.py (CONSOLIDATED)
 # Removed: features/security/login_manager.py (CONSOLIDATED)
 
-# Import new unified components
-from .auth_manager import AuthManager, auth_manager
-from .token_manager import TokenManager, token_manager
-from .session_manager import SessionManager, session_manager
-from .password_manager import PasswordManager, password_manager
-from .mfa_manager import Advanced2FASystem as MFAManager, tfa_system as mfa_manager
-from .biometric_manager import BiometricManager, biometric_manager
-from .oauth_manager import OAuthManager, oauth_manager
-from .device_manager import DeviceManager, device_manager
-from .audit_manager import AuthAuditManager, auth_audit_manager
 
-# Import authentication utilities
-from .decorators import require_auth, require_admin, require_mfa, require_level, optional_auth
-from .middleware import AuthenticationMiddleware, FlaskAuthMiddleware, FastAPIAuthMiddleware
-from .validators import PasswordValidator, TokenValidator, BiometricValidator
-from .exceptions import (
-    AuthenticationError, AuthorizationError, MFAError, TokenError,
-    SessionError, PasswordError, BiometricError, DeviceError,
-    OAuthError, RateLimitError, AccountLockError
-)
 
 __version__ = "3.0.0"
 __all__ = [

@@ -5,13 +5,12 @@ Small modular service for collecting and aggregating system metrics.
 """
 
 import asyncio
-import json
-import time
-import psutil
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Callable
-from collections import defaultdict, deque
 import logging
+from collections import defaultdict, deque
+from datetime import datetime, timedelta, timezone
+from typing import Any, Callable, Dict, List
+
+import psutil
 
 # Service metadata
 SERVICE_METADATA = {

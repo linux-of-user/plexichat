@@ -16,17 +16,14 @@ Features:
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set
-from pathlib import Path
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-import aiosqlite
-import hashlib
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 # Import PlexiChat backup components
 from .core.shard_manager import ImmutableShardManager, ShardType
-from .core.encryption_manager import QuantumResistantEncryptionManager
 
 logger = logging.getLogger(__name__)
 

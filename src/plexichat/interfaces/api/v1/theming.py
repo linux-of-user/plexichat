@@ -3,13 +3,13 @@ Theming API endpoints.
 Provides comprehensive theming capabilities for all interfaces.
 """
 
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, Depends, Response
-from fastapi.responses import JSONResponse
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 
-from plexichat.app.services.theming_service import theming_service, Theme
 from plexichat.app.logger_config import logger
+from plexichat.app.services.theming_service import theming_service
 
 
 # Pydantic models for API

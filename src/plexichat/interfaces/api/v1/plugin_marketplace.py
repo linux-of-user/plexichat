@@ -4,20 +4,20 @@ Provides comprehensive marketplace functionality including search, installation,
 reviews, and developer tools.
 """
 
-from typing import Dict, List, Any, Optional
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks, Depends
+from datetime import datetime, timezone
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from datetime import datetime, timezone
-import asyncio
 
-from plexichat.services.plugin_marketplace_service import (
-    get_plugin_marketplace_service,
-    PluginCategory,
-    PluginRating
-)
-from plexichat.core.logging import get_logger
 from plexichat.core.auth import get_current_user, require_permissions
+from plexichat.core.logging import get_logger
+from plexichat.services.plugin_marketplace_service import (
+    PluginCategory,
+    PluginRating,
+    get_plugin_marketplace_service,
+)
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/marketplace", tags=["Plugin Marketplace"])

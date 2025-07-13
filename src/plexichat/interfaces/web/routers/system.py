@@ -3,30 +3,27 @@ System monitoring and management endpoints.
 Provides comprehensive system health, performance metrics, and administrative controls.
 """
 
-import os
-import psutil
-import platform
-import subprocess
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
-from pathlib import Path
 import asyncio
-import json
+import logging
+import platform
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
-from sqlmodel import Session, select, func
+import psutil
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlmodel import Session, func, select
 
 from plexichat.core.database import get_session
-import logging
 
 logger = logging.getLogger(__name__)
 logging_manager = logging.getLogger(f"{__name__}.manager")
+from plexichat.features.users.files import FileRecord
+
 # settings import will be added when needed
 from plexichat.features.users.user import User
-from plexichat.features.users.files import FileRecord
 from plexichat.infrastructure.utils.auth import get_current_user, require_admin
-from plexichat.infrastructure.utils.monitoring import SystemMonitor, PerformanceTracker
 
 router = APIRouter()
 
@@ -668,10 +665,10 @@ async def execute_cli_command(
         logger.info(f"Web CLI command executed by user {current_user.id}: {command}")
 
         # Import CLI class
-        from cli import EnhancedChatCLI
         import io
-        import sys
-        from contextlib import redirect_stdout, redirect_stderr
+        from contextlib import redirect_stderr, redirect_stdout
+
+        from cli import EnhancedChatCLI
 
         # Create CLI instance
         cli = EnhancedChatCLI()

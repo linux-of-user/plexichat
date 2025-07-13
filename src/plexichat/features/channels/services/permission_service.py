@@ -4,9 +4,10 @@ PlexiChat Permission Service
 Core permission calculation service with Discord-like permission system.
 """
 
-from typing import List, Optional, Dict, Any
-from ..models.role import Role, Permissions
-from ..models.permission_overwrite import PermissionOverwrite, OverwriteType
+from typing import List, Optional
+
+from ..models.permission_overwrite import OverwriteType, PermissionOverwrite
+from ..models.role import Permissions, Role
 from ..models.server_member import ServerMember
 
 

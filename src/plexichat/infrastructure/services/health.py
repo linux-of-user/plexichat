@@ -8,13 +8,14 @@ external services, and application components.
 
 import asyncio
 import logging
-import psutil
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Any, Callable, Dict, Optional
+
 import aiohttp
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -323,7 +324,7 @@ async def database_health_check() -> Dict[str, Any]:
     """Check database connectivity."""
     try:
         from ...core_system.database import database_manager
-        
+
         # Test database connection
         is_connected = await database_manager.test_connection()
         

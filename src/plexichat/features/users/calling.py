@@ -3,12 +3,13 @@ Voice and video calling models with end-to-end encryption.
 Supports WebRTC, secure key exchange, and call management.
 """
 
-from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
-from enum import Enum
 import uuid
-from sqlmodel import SQLModel, Field, Relationship, JSON, Column
-from sqlalchemy import Text, DateTime, Index
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import DateTime, Index, Text
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 
 class CallType(str, Enum):

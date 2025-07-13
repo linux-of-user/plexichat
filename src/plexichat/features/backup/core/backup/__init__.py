@@ -27,8 +27,8 @@ Features:
 # Removed: distribution_manager.py, recovery_manager.py, proxy_manager.py
 # All functionality now provided by ../unified_backup_manager.py
 from .backup_node_auth import BackupNodeAuthManager
-from .user_message_backup import UniversalBackupManager
 from .backup_node_client import BackupNodeClient, BackupNodeManager
+from .user_message_backup import UniversalBackupManager
 
 __version__ = "3.0.0"
 __all__ = [

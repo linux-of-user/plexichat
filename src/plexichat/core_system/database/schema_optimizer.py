@@ -20,18 +20,15 @@ Key Optimization Areas:
 - Index-friendly schema design
 """
 
-import asyncio
+import json
 import logging
 import re
-from typing import Dict, List, Optional, Any, Tuple, Set, Union
-from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
-import json
-from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 try:
-    from .enhanced_abstraction import DatabaseType, AbstractDatabaseClient  # type: ignore
+    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     ENHANCED_ABSTRACTION_AVAILABLE = False
@@ -204,7 +201,7 @@ class DataTypeAnalyzer:
         
         for column_info in columns:
             column_name = column_info["column_name"]
-            current_type = column_info["data_type"]
+            column_info["data_type"]
             
             # Analyze the column
             analysis = await self.analyze_column(client, table_name, column_name)

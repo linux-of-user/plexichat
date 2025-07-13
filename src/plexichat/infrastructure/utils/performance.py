@@ -4,18 +4,17 @@ async optimizations, and monitoring.
 """
 
 import asyncio
-import time
 import functools
 import threading
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, Callable, Union, List
+import time
 from collections import defaultdict, deque
-import weakref
-import psutil
-import json
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
 
+import psutil
 from app.logger_config import logger, logging_manager
+
 
 class PerformanceCache:
     """High-performance in-memory cache with TTL and LRU eviction."""

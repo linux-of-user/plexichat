@@ -12,15 +12,11 @@ Advanced ML-powered auto-scaling system with:
 """
 
 import asyncio
-import json
-import numpy as np
-from enum import Enum
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
 import logging
-import pickle
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +170,7 @@ class TimeSeriesForecaster:
         """Create simple forecasting model."""
         # Convert timestamps to hours since start
         start_time = min(timestamps)
-        hours = [(ts - start_time).total_seconds() / 3600 for ts in timestamps]
+        [(ts - start_time).total_seconds() / 3600 for ts in timestamps]
         
         # Calculate moving averages and trends
         window_size = min(24, len(values) // 4)  # 24-hour window or 1/4 of data

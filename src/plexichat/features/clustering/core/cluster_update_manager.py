@@ -11,15 +11,14 @@ Manages coordinated updates across cluster nodes with:
 """
 
 import asyncio
-import json
-from enum import Enum
-from typing import Dict, List, Optional, Any, Set
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-import logging
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from ...core.versioning.version_manager import Version, VersionType, version_manager
-from ...core.versioning.update_system import UpdateSystem, UpdateType, UpdatePlan, UpdateResult, UpdateStatus
+from ...core.versioning.update_system import UpdateStatus, UpdateSystem, UpdateType
+from ...core.versioning.version_manager import Version
 from .encrypted_communication import EncryptedCommunication, MessageType
 
 logger = logging.getLogger(__name__)

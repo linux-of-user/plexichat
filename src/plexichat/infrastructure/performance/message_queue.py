@@ -16,14 +16,14 @@ Endpoints:
 - GET /api/queue/dead-letter - Get dead letter queue messages
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query, Body
-from fastapi.responses import JSONResponse
-from typing import Dict, List, Optional, Any, Union
-from pydantic import BaseModel, Field
 import logging
+from typing import Any, Dict, List, Optional
 
-from plexichat.core.performance.message_queue_manager import get_queue_manager, MessagePriority
-from plexichat.core.auth.dependencies import require_auth, require_admin
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from plexichat.core.auth.dependencies import require_admin, require_auth
+from plexichat.core.performance.message_queue_manager import MessagePriority, get_queue_manager
 
 logger = logging.getLogger(__name__)
 

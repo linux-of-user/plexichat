@@ -3,16 +3,14 @@ PlexiChat Advanced Channel Management API
 Comprehensive channel management with advanced features, permissions, and automation
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPBearer
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -605,7 +603,7 @@ async def _create_channel_webhook(
         name=name,
         avatar_url=avatar_url,
         token="webhook_token_123",
-        url=f"https://api.plexichat.com/webhooks/webhook_123",
+        url="https://api.plexichat.com/webhooks/webhook_123",
         created_by=creator_id,
         created_at=datetime.now(timezone.utc)
     )

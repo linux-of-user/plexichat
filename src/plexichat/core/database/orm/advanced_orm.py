@@ -3,19 +3,17 @@ PlexiChat Advanced ORM Layer
 Enhanced SQLModel integration with advanced features and optimizations
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Type, TypeVar, Generic, Union, Callable
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-import uuid
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
-from sqlalchemy import create_engine, MetaData, Table, Column, String, DateTime, Boolean, JSON, event
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship, selectinload, joinedload
-from sqlalchemy.pool import QueuePool, NullPool
-from sqlmodel import SQLModel, Field, Relationship, Session, select, and_, or_, func
+from sqlalchemy import MetaData, create_engine, event
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import selectinload, sessionmaker
+from sqlalchemy.pool import NullPool, QueuePool
+from sqlmodel import Session, SQLModel, select
 
 logger = logging.getLogger(__name__)
 

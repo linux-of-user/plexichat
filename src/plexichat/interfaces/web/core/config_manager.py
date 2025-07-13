@@ -5,17 +5,16 @@ Enhanced configuration system for WebUI with configurable ports,
 distributed authentication storage, and advanced security features.
 """
 
-import os
 import json
-import yaml
-import secrets
-from typing import Dict, List, Optional, Any, Union
-from pathlib import Path
-from datetime import datetime, timedelta
 import logging
-from dataclasses import dataclass, asdict
+import os
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
 from cryptography.fernet import Fernet
-import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +200,7 @@ class WebUIConfigManager:
         if 'encrypted_data' in auth_data:
             try:
                 decrypted_data = self.cipher.decrypt(auth_data['encrypted_data'].encode())
-                auth_config = json.loads(decrypted_data.decode())
+                json.loads(decrypted_data.decode())
                 # Process decrypted authentication configuration
                 logger.info("Encrypted authentication configuration loaded")
             except Exception as e:

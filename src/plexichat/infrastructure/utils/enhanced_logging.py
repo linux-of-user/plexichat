@@ -3,17 +3,17 @@ Enhanced Logging System for PlexiChat
 Provides comprehensive logging with structured output, performance tracking, and error handling.
 """
 
+import json
 import logging
 import logging.handlers
 import sys
-import os
-import json
-import time
 import threading
+import time
+import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional
-import traceback
+from typing import Any, Dict
+
 
 class EnhancedLogger:
     """Enhanced logging system with structured output and performance tracking."""
@@ -183,6 +183,7 @@ class EnhancedLogger:
         
         try:
             import platform
+
             import psutil
             
             logger.info(f"System: {platform.system()} {platform.release()}")

@@ -12,17 +12,18 @@ Centralizes all plugin configuration management with:
 
 import asyncio
 import json
-import yaml
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field
-import jsonschema
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from typing import Any, Callable, Dict, List, Optional
 
-from ...core_system.logging import get_logger
+import jsonschema
+import yaml
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 from ...core_system.config import get_config
+from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 

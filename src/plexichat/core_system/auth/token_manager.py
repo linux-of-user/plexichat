@@ -6,18 +6,17 @@ token rotation, blacklisting, and quantum-resistant algorithms.
 """
 
 import asyncio
-import logging
-import time
-import secrets
-import jwt
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
 import hashlib
+import logging
 import uuid
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import jwt
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
 logger = logging.getLogger(__name__)
 
@@ -283,7 +282,7 @@ class TokenManager:
                 )
             
             # Verify and decode token
-            payload = jwt.decode(
+            jwt.decode(
                 token,
                 self.public_key or b"",  # Provide default empty bytes if None
                 algorithms=[self.algorithm],

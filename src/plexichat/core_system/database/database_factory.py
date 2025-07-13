@@ -6,16 +6,17 @@ based on configuration. Supports automatic client selection, connection
 pooling, failover, and load balancing across multiple database types.
 """
 
-import logging
-from typing import Dict, Type, Optional, List, Any
-from enum import Enum
 import asyncio
+import logging
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Type
 
 try:
     from plexichat.core_system.database.enhanced_abstraction import (  # type: ignore
-        AbstractDatabaseClient, DatabaseConfig, DatabaseType,
-        EnhancedDatabaseManager
+        AbstractDatabaseClient,
+        DatabaseConfig,
+        DatabaseType,
+        EnhancedDatabaseManager,
     )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
@@ -75,10 +76,11 @@ except ImportError:
 
     # Import DatabaseType from manager since it's always available
     from .manager import DatabaseType
-from .sql_clients import PostgreSQLClient, MySQLClient, SQLiteClient
-from .nosql_clients import MongoDBClient, RedisClient
+
 from .analytics_clients import ClickHouseClient, TimescaleDBClient
 from .lakehouse import MinIOLakehouseClient
+from .nosql_clients import MongoDBClient, RedisClient
+from .sql_clients import MySQLClient, PostgreSQLClient, SQLiteClient
 
 logger = logging.getLogger(__name__)
 

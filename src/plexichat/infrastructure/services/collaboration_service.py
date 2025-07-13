@@ -19,19 +19,18 @@ Features:
 """
 
 import asyncio
-import json
-import time
-import uuid
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple, Union
-from dataclasses import dataclass, field, asdict
-from enum import Enum
 import hashlib
+import json
+import uuid
 from collections import defaultdict, deque
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .base_service import BaseService
-from ..core.logging import get_logger
 from ..core.config import get_config
+from .base_service import BaseService
+
 
 class CollaborationType(Enum):
     """Types of collaboration sessions."""
@@ -639,7 +638,6 @@ class CollaborationService(BaseService):
     async def _sync_sessions(self):
         """Synchronize sessions (placeholder for database sync)."""
         # This would sync sessions to database in a full implementation
-        pass
     
     # Public API methods
     def get_session(self, session_id: str) -> Optional[CollaborationSession]:

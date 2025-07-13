@@ -21,18 +21,14 @@ This unified system replaces:
 """
 
 import asyncio
-import logging
-from typing import Dict, List, Optional, Any, Union, Set
-from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-from contextlib import asynccontextmanager
-import ipaddress
-import hashlib
 import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
-from ...core_system.logging import get_logger
 from ...core_system.config import get_config
+from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -269,7 +265,11 @@ class UnifiedSecurityManager:
                 }
 
             # Create authentication request
-            from .unified_auth_manager import AuthenticationRequest, SecurityLevel, AuthenticationMethod
+            from .unified_auth_manager import (
+                AuthenticationMethod,
+                AuthenticationRequest,
+                SecurityLevel,
+            )
 
             auth_request = AuthenticationRequest(
                 username=username,
@@ -377,10 +377,10 @@ class UnifiedSecurityManager:
         """Initialize all security component managers."""
         try:
             # Import and initialize our consolidated components
-            from .unified_auth_manager import get_unified_auth_manager
-            from ..security.input_validation import get_input_validator
             from ...features.security.network_protection import get_network_protection
+            from ..security.input_validation import get_input_validator
             from .certificate_manager import get_certificate_manager
+            from .unified_auth_manager import get_unified_auth_manager
 
             # Initialize components with our consolidated systems
             self.auth_manager = get_unified_auth_manager()
@@ -556,7 +556,6 @@ class UnifiedSecurityManager:
         """Analyze behavioral patterns."""
         # Behavioral analysis logic
         # Check for unusual patterns, anomalies, etc.
-        pass
 
     async def _log_security_event(self, request: SecurityRequest, response: SecurityResponse) -> None:
         """Log security event."""
@@ -684,12 +683,10 @@ class UnifiedSecurityManager:
     async def _monitor_security_anomalies(self) -> None:
         """Monitor for security anomalies."""
         # Anomaly detection logic
-        pass
 
     async def _update_threat_intelligence(self) -> None:
         """Update threat intelligence feeds."""
         # Threat intelligence update logic
-        pass
 
     def _calculate_auth_success_rate(self, events: List[Dict[str, Any]]) -> float:
         """Calculate authentication success rate."""

@@ -4,22 +4,25 @@ Handles user moderation, message moderation, automated moderation rules,
 role-based permissions, and server-specific moderation capabilities.
 """
 
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any, Tuple, Set
-from sqlmodel import Session, select
-from fastapi import HTTPException, status
-from enum import Enum
-import re
-import json
 import time
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from plexichat.app.models.moderation import (
-    ModeratorRole, ModerationLog, UserModerationStatus, MessageModerationQueue,
-    AutoModerationRule, ModerationAction, ModerationSeverity, ModerationStatus
-)
-from plexichat.app.models.message import Message
-from plexichat.app.models.enhanced_models import EnhancedUser
+from fastapi import HTTPException, status
+from sqlmodel import Session, select
+
 from plexichat.app.logger_config import logger
+from plexichat.app.models.enhanced_models import EnhancedUser
+from plexichat.app.models.message import Message
+from plexichat.app.models.moderation import (
+    ModerationAction,
+    ModerationLog,
+    ModerationSeverity,
+    ModerationStatus,
+    ModeratorRole,
+    UserModerationStatus,
+)
 
 
 class UserRole(Enum):
@@ -129,7 +132,7 @@ class ModerationService:
             # Check for active moderation status
             statement = select(UserModerationStatus).where(
                 (UserModerationStatus.user_id == user_id) &
-                (UserModerationStatus.is_active == True)
+                (UserModerationStatus.is_active)
             )
 
             if guild_id:
@@ -150,7 +153,7 @@ class ModerationService:
                 # Check for moderator role
                 mod_statement = select(ModeratorRole).where(
                     (ModeratorRole.user_id == user_id) &
-                    (ModeratorRole.is_active == True)
+                    (ModeratorRole.is_active)
                 )
 
                 if guild_id:
@@ -238,7 +241,7 @@ class ModerationService:
                     select(UserModerationStatus).where(
                         (UserModerationStatus.user_id == user_id) &
                         (UserModerationStatus.guild_id == guild_id) &
-                        (UserModerationStatus.is_active == True)
+                        (UserModerationStatus.is_active)
                     )
                 ).first()
 
@@ -271,7 +274,7 @@ class ModerationService:
                     select(ModeratorRole).where(
                         (ModeratorRole.user_id == user_id) &
                         (ModeratorRole.guild_id == guild_id) &
-                        (ModeratorRole.is_active == True)
+                        (ModeratorRole.is_active)
                     )
                 ).first()
 
@@ -444,7 +447,7 @@ class ModerationService:
                     select(UserModerationStatus).where(
                         (UserModerationStatus.user_id == log_entry.target_user_id) &
                         (UserModerationStatus.guild_id == guild_id) &
-                        (UserModerationStatus.is_active == True)
+                        (UserModerationStatus.is_active)
                     )
                 ).first()
 
@@ -493,7 +496,7 @@ class ModerationService:
                 select(UserModerationStatus).where(
                     (UserModerationStatus.user_id == user_id) &
                     (UserModerationStatus.guild_id == guild_id) &
-                    (UserModerationStatus.is_active == True)
+                    (UserModerationStatus.is_active)
                 )
             ).first()
 
@@ -559,7 +562,7 @@ class ModerationService:
             # Check for moderator role
             statement = select(ModeratorRole).where(
                 (ModeratorRole.user_id == user_id) &
-                (ModeratorRole.is_active == True)
+                (ModeratorRole.is_active)
             )
             
             if guild_id:
@@ -844,7 +847,7 @@ class ModerationService:
                     (ModeratorRole.user_id == user_id) &
                     (ModeratorRole.guild_id == guild_id) &
                     (ModeratorRole.channel_id == channel_id) &
-                    (ModeratorRole.is_active == True)
+                    (ModeratorRole.is_active)
                 )
             ).first()
             

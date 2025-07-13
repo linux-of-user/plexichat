@@ -17,15 +17,16 @@ Features:
 - Compression and optimization
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, AsyncGenerator
-from datetime import datetime, timezone
 import time
-import json
+from typing import Any, AsyncGenerator, Dict, List
 
 from .enhanced_abstraction import (
-    AbstractDatabaseClient, DatabaseConfig, QueryResult, QueryType, DatabaseType
+    AbstractDatabaseClient,
+    DatabaseConfig,
+    DatabaseType,
+    QueryResult,
+    QueryType,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class ClickHouseClient(AbstractDatabaseClient):
         """Connect to ClickHouse."""
         try:
             from clickhouse_driver import Client
-            
+
             # Build connection parameters
             connection_params = {
                 "host": self.config.host,
@@ -361,7 +362,7 @@ class TimescaleDBClient(AbstractDatabaseClient):
         """Connect to TimescaleDB."""
         try:
             import asyncpg
-            
+
             # Build connection string
             connection_string = f"postgresql://{self.config.username}:{self.config.password}@{self.config.host}:{self.config.port or 5432}/{self.config.database}"
             

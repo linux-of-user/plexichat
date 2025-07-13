@@ -7,6 +7,7 @@ Ensures all required directories exist before starting the application.
 import sys
 from pathlib import Path
 
+
 def validate_directory_structure():
     """Validate that all required directories exist."""
 

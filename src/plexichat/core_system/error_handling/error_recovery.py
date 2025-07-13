@@ -8,12 +8,10 @@ automatic retry mechanisms, and intelligent fallback handling.
 import asyncio
 import logging
 import time
-from typing import Optional, Dict, Any, List, Callable, Type
-from enum import Enum
-from dataclasses import dataclass
 from collections import defaultdict
-
-from .exceptions import ErrorSeverity, ErrorCategory
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Type
 
 logger = logging.getLogger(__name__)
 
@@ -103,10 +101,13 @@ class ErrorRecoveryManager:
     def _initialize_default_strategies(self):
         """Initialize default recovery strategies for common exceptions."""
         from .exceptions import (
-            DatabaseError, NetworkError, ExternalServiceError, 
-            FileError, AuthenticationError
+            AuthenticationError,
+            DatabaseError,
+            ExternalServiceError,
+            FileError,
+            NetworkError,
         )
-        
+
         # Database errors: retry with exponential backoff
         self.recovery_strategies[DatabaseError] = [
             RecoveryStrategy.RETRY,
