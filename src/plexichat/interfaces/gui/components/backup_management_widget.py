@@ -1050,7 +1050,9 @@ class EnhancedBackupManagementWidget:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-            backup_id = await backup_manager.create_backup(source_path, backup_type, 'GOVERNMENT')
+            backup_id = loop.run_until_complete(
+                backup_manager.create_backup(source_path, backup_type, 'GOVERNMENT')
+            )
 
             if backup_id:
                 if GUI_AVAILABLE:
@@ -1115,7 +1117,7 @@ class EnhancedBackupManagementWidget:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-            success = await backup_manager.restore_backup(backup_id, target_path)
+            success = loop.run_until_complete(backup_manager.restore_backup(backup_id, target_path))
 
             if success:
                 if GUI_AVAILABLE:

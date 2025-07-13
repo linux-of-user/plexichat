@@ -21,10 +21,10 @@ from pydantic import BaseModel
 import base64
 from datetime import datetime, timezone
 
-from ...core_system.logging import get_logger
-from ...core_system.security.unified_security_manager import get_unified_security_manager
-from ...features.security.network_protection import get_network_protection
-from ...core_system.security.certificate_manager import get_certificate_manager
+from plexichat.core.logging import get_logger
+from plexichat.core_system.security.unified_security_manager import get_unified_security_manager
+from plexichat.features.security.network_protection import get_network_protection
+from plexichat.core_system.security.certificate_manager import get_certificate_manager
 
 logger = get_logger(__name__)
 

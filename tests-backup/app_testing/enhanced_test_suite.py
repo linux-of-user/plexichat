@@ -12,14 +12,15 @@ import psutil
 import sqlite3
 import gzip
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Optional, Callable, Union
 from pathlib import Path
 import traceback
 import subprocess
 import sys
 import os
 
-import logging import logger
+import logging
+from app.logger_config import logger
 
 
 class EnhancedTestResult:

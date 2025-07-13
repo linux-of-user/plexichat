@@ -11,7 +11,7 @@ plexichat:
     spaces: true
     status_updates: true
     voice_video: true
-  generated_at: '2025-07-12T11:06:21.741313'
+  generated_at: '2025-07-13T10:22:51.422868'
   logging:
     file: logs/plexichat.log
     level: INFO
@@ -20,7 +20,7 @@ plexichat:
     jwt_algorithm: HS256
     mfa_enabled: true
     password_min_length: 8
-    secret_key: 9b5dbd304df1b57cc44bae81d2400e784b53b73628ce0d5ef948cf8419a67331
+    secret_key: d7d09151a167841c4af9cb30fe1be6fafbbf4d7c70507d9f382167eb4b0aa750
   server:
     host: 0.0.0.0
     port: 8080

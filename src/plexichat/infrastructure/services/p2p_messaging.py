@@ -14,7 +14,7 @@ from dataclasses import dataclass, asdict
 from cryptography.fernet import Fernet
 import base64
 
-from plexichat.app.logger_config import logger
+from plexichat.core.logging import logger
 
 
 @dataclass

@@ -796,7 +796,7 @@ class EnhancedClusteringManagementWidget:
                 'auto_start': True
             }
 
-            success = await cluster_manager.add_node(node_config)
+            success = loop.run_until_complete(cluster_manager.add_node(node_config))
 
             if success:
                 if GUI_AVAILABLE:
@@ -837,7 +837,7 @@ class EnhancedClusteringManagementWidget:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-            success = await cluster_manager.remove_node(node_id)
+            success = loop.run_until_complete(cluster_manager.remove_node(node_id))
 
             if success:
                 if GUI_AVAILABLE:

@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
-    from plexichat.core.security.government_auth import get_government_auth
+    from plexichat.core_system.auth.government_auth import get_government_auth
     import logging
     logger = logging.getLogger(__name__)
     government_auth = None  # Will be initialized lazily

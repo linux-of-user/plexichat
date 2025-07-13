@@ -24,9 +24,9 @@ import json
 import asyncio
 import logging
 
-from ...services.performance_service import get_performance_service, PerformanceService
-from ...core.auth.dependencies import require_auth, require_admin_auth
-from ...core.logging import get_logger
+from plexichat.infrastructure.services.performance_service import get_performance_service, PerformanceService
+from plexichat.core.auth.dependencies import require_auth, require_admin_auth
+from plexichat.core.logging import get_logger
 
 # Initialize router and logger
 router = APIRouter(prefix="/performance", tags=["Performance Monitoring"])

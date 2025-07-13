@@ -9,9 +9,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from .enhanced_antivirus_manager import EnhancedAntivirusManager
-from .core import ScanType, ThreatLevel
-from plexichat.app.logger_config import logger
+from plexichat.features.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager
+from plexichat.features.antivirus.core import ScanType, ThreatLevel
+from plexichat.core.logging import logger
 
 class AntivirusCLI:
     """CLI for enhanced antivirus management."""

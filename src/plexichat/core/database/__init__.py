@@ -21,7 +21,7 @@ Features:
 """
 
 # Import consolidated database components
-from .manager import (
+from .manager_database import (  # <-- Add this line
     ConsolidatedDatabaseManager, database_manager, DatabaseType, DatabaseRole,
     DatabaseConfig, DatabaseMetrics, ConnectionStatus, initialize_database_system,
     get_database_manager
@@ -37,6 +37,9 @@ from .schemas import *
 # Import database utilities
 from .utils import DatabaseUtils, db_utils
 from .backup_integration import DatabaseBackupIntegration, db_backup
+from .monitor import DatabaseMonitor, database_monitor  # <-- Add this line
+from .migration import MigrationManager, migration_manager  # <-- Add this line
+from .cluster import DatabaseCluster, db_cluster  # <-- Add this line
 
 # Database configuration and types
 from .config import DatabaseConfig, DatabaseType, DatabaseRole, DatabaseProvider
@@ -329,7 +332,7 @@ async def shutdown_database_system():
         await db_backup.shutdown()
         await database_monitor.shutdown()
         await connection_pool.shutdown()
-        await database_encryption.shutdown()
+        # await database_encryption.shutdown()  # Removed: database_encryption is not defined
         await migration_manager.shutdown()
         await db_cluster.shutdown()
         await database_manager.shutdown()

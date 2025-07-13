@@ -9,8 +9,8 @@ from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisco
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from plexichat.app.services.p2p_messaging import p2p_messaging_service, P2PMessage
-from plexichat.app.logger_config import logger
+from plexichat.infrastructure.services.p2p_messaging import p2p_messaging_service, P2PMessage
+from plexichat.core.logging import logger
 
 
 # Pydantic models for API

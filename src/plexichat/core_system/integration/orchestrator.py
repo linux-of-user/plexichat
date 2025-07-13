@@ -140,11 +140,10 @@ class SystemIntegrator:
         
         # Test modules
         test_modules = [
-            "plexichat.tests.test_database_performance",
-            "plexichat.tests.test_security",
-            "plexichat.tests.test_backup",
-            "plexichat.tests.test_clustering_system",
-            "plexichat.tests.test_complete_system",
+            "plexichat.tests.test_database",
+            "plexichat.tests.test_ssl",
+            "plexichat.tests.test_config",
+            "plexichat.tests.test_api_endpoints",
         ]
         
         modules.extend(core_modules)

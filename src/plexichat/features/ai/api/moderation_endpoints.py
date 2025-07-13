@@ -163,7 +163,7 @@ async def add_training_data(request: TrainingRequest):
         raise HTTPException(status_code=500, detail=f"Training data addition failed: {str(e)}")
 
 @router.post("/training/train")
-async def train_model(min_samples: int = 100, background_tasks: BackgroundTasks):
+async def train_model(background_tasks: BackgroundTasks, min_samples: int = 100):
     """Train moderation model with available data."""
     try:
         # Run training in background

@@ -382,9 +382,129 @@ def get_system_info():
 # BOOTSTRAP INSTALLER CLASS
 # ============================================================================
 
+class DualProgressBar:
+    """
+    Dual progress bar system with overall and current package progress.
+    Updates multiple times per second with proper line clearing.
+    """
+
+    def __init__(self, total_packages: int, width: int = 50):
+        """Initialize dual progress bar."""
+        self.total_packages = total_packages
+        self.current_package = 0
+        self.width = width
+        self.start_time = time.time()
+        self.last_update = 0
+        self.terminal_width = shutil.get_terminal_size().columns
+        self.package_start_time = time.time()
+
+    def get_terminal_width(self):
+        """Get current terminal width."""
+        try:
+            return shutil.get_terminal_size().columns
+        except:
+            return 80  # Fallback
+
+    def clear_lines(self, num_lines: int = 2):
+        """Clear multiple lines properly without moving up the screen."""
+        # Move cursor up to the start of our progress bars
+        for _ in range(num_lines):
+            print("\033[A", end='')  # Move cursor up one line
+        # Clear from cursor to end of screen
+        print("\033[J", end='')  # Clear from cursor down
+
+    def format_time(self, seconds):
+        """Format time duration."""
+        if seconds < 60:
+            return f"{seconds:.0f}s"
+        elif seconds < 3600:
+            return f"{seconds//60:.0f}m {seconds%60:.0f}s"
+        else:
+            return f"{seconds//3600:.0f}h {(seconds%3600)//60:.0f}m"
+
+    def update_overall(self, current_package: int, package_name: str = ""):
+        """Update overall progress."""
+        self.current_package = current_package
+        self.package_start_time = time.time()
+
+        # Calculate overall progress
+        if self.total_packages > 0:
+            progress = min(current_package / self.total_packages, 1.0)
+        else:
+            progress = 0
+
+        # Calculate timing
+        elapsed = time.time() - self.start_time
+        if progress > 0 and progress < 1.0:
+            eta = (elapsed / progress) * (1 - progress)
+        else:
+            eta = 0
+
+        # Build progress bar
+        filled = int(progress * self.width)
+        bar = '#' * filled + '-' * (self.width - filled)
+
+        # Build overall status line
+        overall_line = f"Overall: [{bar}] {progress*100:.1f}% ({current_package}/{self.total_packages})"
+
+        if elapsed > 1:
+            overall_line += f" | Elapsed: {self.format_time(elapsed)}"
+            if eta > 1:
+                overall_line += f" | ETA: {self.format_time(eta)}"
+
+        # Build current package line
+        package_line = f"Current: {package_name}" if package_name else "Preparing..."
+
+        # If this is the first update, just print the lines
+        if not hasattr(self, '_lines_printed'):
+            print(overall_line)
+            print(package_line, end='', flush=True)
+            self._lines_printed = True
+        else:
+            # Clear our lines and reprint
+            self.clear_lines(2)
+            print(overall_line)
+            print(package_line, end='', flush=True)
+
+        self.last_update = time.time()
+
+    def update_package(self, package_name: str, status: str = "Installing"):
+        """Update current package progress multiple times per second."""
+        # Throttle updates to avoid overwhelming the terminal
+        current_time = time.time()
+        if current_time - self.last_update < 0.1:  # Update max 10 times per second
+            return
+
+        package_elapsed = time.time() - self.package_start_time
+
+        # Build current package line with timing and status indicator
+        dots = "." * (int(package_elapsed * 2) % 4)  # Animated dots
+        package_line = f"Current: {status} {package_name}{dots}"
+        if package_elapsed > 1:
+            package_line += f" ({self.format_time(package_elapsed)})"
+
+        # Move cursor up one line, clear it, and print new package line
+        print("\033[A", end='')  # Move cursor up
+        print(f"\r{' ' * self.get_terminal_width()}", end='')  # Clear line
+        print(f"\r{package_line}", end='', flush=True)
+        print()  # Move cursor back down
+
+        self.last_update = current_time
+
+    def finish(self, message: str = "All packages installed"):
+        """Finish progress bars."""
+        self.clear_lines(2)
+
+        elapsed = time.time() - self.start_time
+        final_line = f"[COMPLETE] {message} - {self.total_packages} packages in {self.format_time(elapsed)}"
+
+        print(final_line)
+        print()  # Extra newline for spacing
+
+
 class ProgressBar:
     """
-    Progress bar that redraws in place for clean terminal output.
+    Single progress bar for backward compatibility.
     """
 
     def __init__(self, total: int, width: int = 50, title: str = "Progress"):
@@ -427,7 +547,7 @@ class ProgressBar:
                 return f"{seconds//3600:.0f}h {(seconds%3600)//60:.0f}m"
 
         # Build status line
-        status_line = f"\r{self.title}: [{bar}] {progress*100:.1f}% ({current}/{self.total})"
+        status_line = f"{self.title}: [{bar}] {progress*100:.1f}% ({current}/{self.total})"
 
         if elapsed > 1:  # Only show timing after 1 second
             status_line += f" | Elapsed: {format_time(elapsed)}"
@@ -437,9 +557,10 @@ class ProgressBar:
         if message:
             status_line += f" | {message}"
 
-        # Clear line and print
-        print(f"\r{' ' * 100}", end='')  # Clear line
-        print(status_line, end='', flush=True)
+        # Clear line properly and print
+        terminal_width = shutil.get_terminal_size().columns
+        print(f"\r{' ' * terminal_width}", end='')
+        print(f"\r{status_line}", end='', flush=True)
 
         self.last_update = time.time()
 
@@ -449,99 +570,442 @@ class ProgressBar:
         print()  # New line after completion
 
 
-class InteractiveSetupWizard:
+class OSSpecificSetupWizard:
     """
-    Interactive setup wizard for PlexiChat configuration.
+    OS-specific interactive setup wizard for PlexiChat configuration.
+    Adapts interface and recommendations based on operating system.
     """
 
     def __init__(self):
         """Initialize the setup wizard."""
+        self.os_type = self.detect_os()
         self.config = {}
-        self.features = {
-            'database_type': {
-                'name': 'Database Type',
-                'options': ['SQLite (Default)', 'PostgreSQL', 'MySQL', 'MongoDB'],
-                'selected': 0,
-                'required': True
-            },
+        self.features = self.get_os_specific_features()
+        self.recommendations = self.get_os_recommendations()
+
+    def detect_os(self) -> str:
+        """Detect the operating system."""
+        import platform
+        system = platform.system().lower()
+
+        if system == "windows":
+            return "windows"
+        elif system == "darwin":
+            return "macos"
+        elif system == "linux":
+            # Try to detect specific Linux distributions
+            try:
+                with open('/etc/os-release', 'r') as f:
+                    content = f.read().lower()
+                    if 'ubuntu' in content:
+                        return "ubuntu"
+                    elif 'debian' in content:
+                        return "debian"
+                    elif 'centos' in content or 'rhel' in content:
+                        return "centos"
+                    elif 'fedora' in content:
+                        return "fedora"
+                    else:
+                        return "linux"
+            except:
+                return "linux"
+        elif 'bsd' in system:
+            return "bsd"
+        else:
+            return "unknown"
+
+    def get_os_specific_features(self) -> Dict[str, Dict[str, Any]]:
+        """Get features with OS-specific defaults and recommendations."""
+        base_features = {
             'installation_type': {
                 'name': 'Installation Type',
-                'options': ['Minimal', 'Standard', 'Full', 'Developer'],
-                'selected': 1,
-                'required': True
+                'options': ['minimal', 'standard', 'full', 'developer'],
+                'selected': 1,  # Default to standard
+                'required': True,
+                'description': 'Choose installation complexity level'
             },
-            'ai_features': {
-                'name': 'AI Features',
+            'database_type': {
+                'name': 'Database Type',
+                'options': ['sqlite', 'postgresql', 'mysql'],
+                'selected': 0,  # Will be adjusted per OS
+                'required': True,
+                'description': 'Select database backend'
+            },
+            'web_interface': {
+                'name': 'Web Interface',
                 'enabled': True,
-                'description': 'Enable AI chat capabilities and language models'
-            },
-            'security_features': {
-                'name': 'Enhanced Security',
-                'enabled': True,
-                'description': 'Zero-trust security, encryption, and advanced auth'
-            },
-            'clustering': {
-                'name': 'Clustering Support',
-                'enabled': False,
-                'description': 'Multi-node clustering and load balancing'
-            },
-            'monitoring': {
-                'name': 'Monitoring & Analytics',
-                'enabled': True,
-                'description': 'Error monitoring, performance analytics, and logging'
-            },
-            'backup_system': {
-                'name': 'Backup System',
-                'enabled': True,
-                'description': 'Automated backups and disaster recovery'
-            },
-            'ssl_setup': {
-                'name': 'SSL/TLS Setup',
-                'enabled': True,
-                'description': 'Automatic SSL certificate generation and management'
-            },
-            'webui': {
-                'name': 'Web UI',
-                'enabled': True,
-                'description': 'Modern web-based user interface'
+                'description': 'Enable web-based user interface'
             },
             'api_server': {
-                'name': 'API Server',
+                'name': 'REST API',
                 'enabled': True,
-                'description': 'RESTful API server for integrations'
+                'description': 'Enable REST API for integrations'
             },
-            'terminal_style': {
-                'name': 'Terminal Style',
-                'options': ['Classic Terminal', 'Split Screen', 'Tabbed Interface', 'Modern Dashboard'],
-                'selected': 1,  # Default to Split Screen
-                'required': True,
-                'description': 'Choose your preferred terminal interface style'
+            'ssl_security': {
+                'name': 'SSL/TLS Security',
+                'enabled': True,  # Will be adjusted per OS
+                'description': 'Set up SSL certificates for secure connections'
+            },
+            'monitoring': {
+                'name': 'System Monitoring',
+                'enabled': False,  # Will be adjusted per OS
+                'description': 'Monitor system performance and health'
+            },
+            'backup_system': {
+                'name': 'Automated Backups',
+                'enabled': False,
+                'description': 'Automatic backup of data and configurations'
+            },
+            'debug_mode': {
+                'name': 'Debug Mode',
+                'enabled': False,
+                'description': 'Enable debugging features for development'
             }
         }
 
-    def get_key_input(self):
-        """Get a single key input cross-platform with fallback."""
-        if IS_WINDOWS and HAS_MSVCRT:
-            try:
-                return msvcrt.getch().decode('utf-8', errors='ignore')
-            except:
-                return self._fallback_input()
-        elif not IS_WINDOWS and HAS_TERMIOS:
-            # Unix/Linux implementation
-            try:
-                fd = sys.stdin.fileno()
-                old_settings = termios.tcgetattr(fd)
-                try:
-                    tty.setraw(sys.stdin.fileno())
-                    ch = sys.stdin.read(1)
-                    return ch
-                finally:
-                    termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-            except:
-                return self._fallback_input()
+        # OS-specific adjustments
+        if self.os_type == "windows":
+            base_features['database_type']['selected'] = 0  # SQLite
+            base_features['ssl_security']['enabled'] = False  # Windows SSL setup is complex
+
+        elif self.os_type in ["ubuntu", "debian", "linux"]:
+            base_features['database_type']['selected'] = 1  # PostgreSQL
+            base_features['monitoring']['enabled'] = True
+
+        elif self.os_type == "macos":
+            base_features['database_type']['selected'] = 1  # PostgreSQL
+            base_features['ssl_security']['enabled'] = True
+
+        elif self.os_type == "bsd":
+            base_features['database_type']['selected'] = 1  # PostgreSQL
+            base_features['monitoring']['enabled'] = True
+            base_features['ssl_security']['enabled'] = True
+
+        return base_features
+
+    def get_os_recommendations(self) -> Dict[str, str]:
+        """Get OS-specific recommendations and setup notes."""
+        recommendations = {
+            "windows": {
+                "title": "Windows Setup Recommendations",
+                "notes": [
+                    "* SQLite is recommended for easy setup (no additional database installation)",
+                    "* SSL setup can be complex on Windows - consider disabling for local development",
+                    "* Windows Defender may flag the application - add to exclusions if needed",
+                    "* Use PowerShell or Command Prompt as administrator for best results",
+                    "* Consider using Windows Subsystem for Linux (WSL) for advanced features"
+                ],
+                "database_note": "SQLite requires no additional setup and works well on Windows",
+                "ssl_note": "SSL setup on Windows requires additional certificates - disable for local testing"
+            },
+            "ubuntu": {
+                "title": "Ubuntu Setup Recommendations",
+                "notes": [
+                    "* PostgreSQL is recommended and easily installed via apt",
+                    "* SSL certificates can be generated automatically",
+                    "* System monitoring works well with native Linux tools",
+                    "* Use 'sudo apt update && sudo apt install postgresql' for database setup",
+                    "* Consider using systemd for service management"
+                ],
+                "database_note": "PostgreSQL: sudo apt install postgresql postgresql-contrib",
+                "ssl_note": "SSL certificates can be auto-generated using Let's Encrypt"
+            },
+            "debian": {
+                "title": "Debian Setup Recommendations",
+                "notes": [
+                    "* PostgreSQL is recommended and available in repositories",
+                    "* SSL setup works well with certbot/Let's Encrypt",
+                    "* Monitoring integrates with systemd and standard Linux tools",
+                    "* Use 'apt-get install postgresql' for database setup",
+                    "* Consider using systemd for service management"
+                ],
+                "database_note": "PostgreSQL: apt-get install postgresql postgresql-contrib",
+                "ssl_note": "SSL: apt-get install certbot for Let's Encrypt certificates"
+            },
+            "macos": {
+                "title": "macOS Setup Recommendations",
+                "notes": [
+                    "* PostgreSQL is recommended and available via Homebrew",
+                    "* SSL certificates work well with macOS keychain integration",
+                    "* Use 'brew install postgresql' for easy database setup",
+                    "* macOS has excellent development tools and monitoring",
+                    "* Consider using launchd for service management"
+                ],
+                "database_note": "PostgreSQL: brew install postgresql && brew services start postgresql",
+                "ssl_note": "SSL certificates integrate well with macOS keychain"
+            },
+            "bsd": {
+                "title": "BSD Setup Recommendations",
+                "notes": [
+                    "* PostgreSQL is recommended and available in ports/packages",
+                    "* SSL setup works well with OpenSSL",
+                    "* BSD has excellent security and monitoring capabilities",
+                    "* Use pkg install postgresql for FreeBSD",
+                    "* Consider using rc.d for service management"
+                ],
+                "database_note": "PostgreSQL: pkg install postgresql13-server (FreeBSD)",
+                "ssl_note": "SSL works well with OpenSSL and BSD security features"
+            },
+            "linux": {
+                "title": "Linux Setup Recommendations",
+                "notes": [
+                    "* PostgreSQL is recommended for most Linux distributions",
+                    "* SSL certificates can be generated automatically",
+                    "* System monitoring works well with native tools",
+                    "* Check your distribution's package manager for PostgreSQL",
+                    "* Use systemd or your init system for service management"
+                ],
+                "database_note": "PostgreSQL: Check your package manager (yum, dnf, pacman, etc.)",
+                "ssl_note": "SSL certificates can be auto-generated on most Linux systems"
+            }
+        }
+
+        return recommendations.get(self.os_type, recommendations["linux"])
+
+    def get_input_method(self) -> str:
+        """Determine the best input method for this OS."""
+        if self.os_type == "windows":
+            return "numbers"  # Use number selection on Windows
         else:
-            # Fallback for systems without special key support
-            return self._fallback_input()
+            return "arrows"   # Use arrow keys on Unix-like systems
+
+    def run_setup_wizard(self) -> Dict[str, Any]:
+        """Run the OS-specific setup wizard."""
+        self.show_os_welcome()
+
+        if self.get_input_method() == "numbers":
+            return self.run_windows_setup()
+        else:
+            return self.run_unix_setup()
+
+    def show_os_welcome(self):
+        """Show OS-specific welcome message."""
+        self.clear_screen()
+        recommendations = self.recommendations
+
+        print("PlexiChat Setup Wizard")
+        print("=" * 50)
+        print(f"Detected OS: {self.os_type.title()}")
+        print()
+        print(recommendations["title"])
+        print("-" * len(recommendations["title"]))
+
+        for note in recommendations["notes"]:
+            print(note)
+
+        print()
+        print(f"Database: {recommendations['database_note']}")
+        print(f"SSL: {recommendations['ssl_note']}")
+        print()
+        input("Press ENTER to continue...")
+
+    def run_windows_setup(self) -> Dict[str, Any]:
+        """Run Windows-specific setup with number selection."""
+        print("\nWindows Setup Mode - Use numbers to select options")
+        print("=" * 50)
+
+        config = {}
+
+        # Installation type selection
+        print("\n1. Choose Installation Type:")
+        for i, option in enumerate(self.features['installation_type']['options']):
+            marker = " (Recommended)" if i == self.features['installation_type']['selected'] else ""
+            print(f"   {i+1}. {option.title()}{marker}")
+
+        while True:
+            try:
+                choice = input(f"\nSelect installation type (1-{len(self.features['installation_type']['options'])}) [2]: ").strip()
+                if not choice:
+                    choice = "2"  # Default to standard
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(self.features['installation_type']['options']):
+                    config['installation_type'] = self.features['installation_type']['options'][choice_idx]
+                    break
+                else:
+                    print("Invalid choice. Please try again.")
+            except ValueError:
+                print("Please enter a number.")
+
+        # Database type selection
+        print("\n2. Choose Database Type:")
+        for i, option in enumerate(self.features['database_type']['options']):
+            marker = " (Recommended for Windows)" if i == self.features['database_type']['selected'] else ""
+            print(f"   {i+1}. {option.title()}{marker}")
+
+        while True:
+            try:
+                choice = input(f"\nSelect database type (1-{len(self.features['database_type']['options'])}) [1]: ").strip()
+                if not choice:
+                    choice = "1"  # Default to SQLite on Windows
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(self.features['database_type']['options']):
+                    config['database_type'] = self.features['database_type']['options'][choice_idx]
+                    break
+                else:
+                    print("Invalid choice. Please try again.")
+            except ValueError:
+                print("Please enter a number.")
+
+        # Feature selection
+        print("\n3. Choose Features (y/n for each):")
+        for key, feature in self.features.items():
+            if key not in ['installation_type', 'database_type'] and 'enabled' in feature:
+                default = "y" if feature['enabled'] else "n"
+                choice = input(f"   Enable {feature['name']}? (y/n) [{default}]: ").strip().lower()
+                if not choice:
+                    choice = default
+                config[key] = choice.startswith('y')
+
+        # Add metadata (don't override setup_style - let interactive_setup_wizard handle it)
+        config.update({
+            'os_type': self.os_type,
+            'input_method': 'numbers',
+            'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'system_info': get_system_info()
+        })
+
+        return config
+
+    def run_unix_setup(self) -> Dict[str, Any]:
+        """Run Unix-like setup with arrow key navigation."""
+        print(f"\n{self.os_type.title()} Setup Mode - Use arrow keys or numbers to navigate")
+        print("=" * 60)
+
+        config = {}
+
+        # Installation type selection with arrow keys
+        print("\n1. Choose Installation Type:")
+        config['installation_type'] = self.select_from_options(
+            "Installation Type",
+            self.features['installation_type']['options'],
+            self.features['installation_type']['selected']
+        )
+
+        # Database type selection
+        print("\n2. Choose Database Type:")
+        config['database_type'] = self.select_from_options(
+            "Database Type",
+            self.features['database_type']['options'],
+            self.features['database_type']['selected']
+        )
+
+        # Feature selection
+        print("\n3. Configure Features:")
+        for key, feature in self.features.items():
+            if key not in ['installation_type', 'database_type'] and 'enabled' in feature:
+                config[key] = self.select_yes_no(
+                    f"Enable {feature['name']}?",
+                    feature['enabled'],
+                    feature['description']
+                )
+
+        # Add metadata (don't override setup_style - let interactive_setup_wizard handle it)
+        config.update({
+            'os_type': self.os_type,
+            'input_method': 'arrows',
+            'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'system_info': get_system_info()
+        })
+
+        return config
+
+    def select_from_options(self, title: str, options: List[str], default_idx: int = 0) -> str:
+        """Select from a list of options with arrow key support."""
+        current = default_idx
+
+        while True:
+            self.clear_screen()
+            print(f"{title}")
+            print("-" * (len(title) + 4))
+            print()
+
+            for i, option in enumerate(options):
+                marker = "-> " if i == current else "   "
+                recommended = " (Recommended)" if i == default_idx else ""
+                print(f"{marker}{i+1}. {option.title()}{recommended}")
+
+            print()
+            print("Use UP/DOWN arrow keys to navigate, ENTER to select, or type number:")
+
+            try:
+                if HAS_TERMIOS and not IS_WINDOWS:
+                    # Try arrow key input on Unix systems
+                    key = self.get_unix_key()
+                    if key == '\x1b[A':  # Up arrow
+                        current = (current - 1) % len(options)
+                        continue
+                    elif key == '\x1b[B':  # Down arrow
+                        current = (current + 1) % len(options)
+                        continue
+                    elif key == '\r' or key == '\n':  # Enter
+                        return options[current]
+                    elif key.isdigit():
+                        choice_idx = int(key) - 1
+                        if 0 <= choice_idx < len(options):
+                            return options[choice_idx]
+                else:
+                    # Fallback to number input
+                    choice = input().strip()
+                    if not choice:  # Enter pressed
+                        return options[current]
+                    elif choice.isdigit():
+                        choice_idx = int(choice) - 1
+                        if 0 <= choice_idx < len(options):
+                            return options[choice_idx]
+                        else:
+                            print(f"Invalid choice. Please select 1-{len(options)}")
+                            time.sleep(1)
+                    else:
+                        print("Please enter a number or use arrow keys")
+                        time.sleep(1)
+            except KeyboardInterrupt:
+                print("\nSetup cancelled.")
+                sys.exit(0)
+
+    def select_yes_no(self, question: str, default: bool, description: str = "") -> bool:
+        """Select yes/no with description."""
+        default_text = "Y/n" if default else "y/N"
+
+        print(f"\n? {question}")
+        if description:
+            print(f"   {description}")
+
+        while True:
+            choice = input(f"   ({default_text}): ").strip().lower()
+            if not choice:
+                return default
+            elif choice in ['y', 'yes']:
+                return True
+            elif choice in ['n', 'no']:
+                return False
+            else:
+                print("   Please enter 'y' or 'n'")
+
+    def get_unix_key(self) -> str:
+        """Get key input on Unix systems with arrow key support."""
+        if not HAS_TERMIOS:
+            return input().strip()
+
+        try:
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            try:
+                tty.setraw(sys.stdin.fileno())
+                key = sys.stdin.read(1)
+
+                # Check for escape sequences (arrow keys)
+                if key == '\x1b':
+                    key += sys.stdin.read(2)
+
+                return key
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        except:
+            return input().strip()
+
+    def clear_screen(self):
+        """Clear the terminal screen."""
+        os.system('cls' if IS_WINDOWS else 'clear')
 
     def _fallback_input(self):
         """Fallback input method when special key detection is not available."""
@@ -549,9 +1013,12 @@ class InteractiveSetupWizard:
         choice = input("Choice: ").strip()
         return choice[:1] if choice else '\r'
 
-    def clear_screen(self):
-        """Clear the terminal screen."""
-        os.system('cls' if IS_WINDOWS else 'clear')
+
+# Create alias for backward compatibility
+InteractiveSetupWizard = OSSpecificSetupWizard
+
+
+class LegacySetupWizard:
 
     def print_header(self, title):
         """Print a formatted header."""
@@ -920,14 +1387,24 @@ class PlexiChatBootstrapper:
 
             # Process releases (stable versions)
             for release in releases:
+                # Parse version to determine type (r.x.x-x, a.x.x-x, b.x.x-x)
+                version_name = release['tag_name']
+                version_type = 'release'
+                if version_name.startswith('a.'):
+                    version_type = 'alpha'
+                elif version_name.startswith('b.'):
+                    version_type = 'beta'
+                elif version_name.startswith('r.'):
+                    version_type = 'release'
+
                 versions.append({
-                    'name': release['tag_name'],
-                    'type': 'release',
+                    'name': version_name,
+                    'type': version_type,
                     'date': release['published_at'],
-                    'prerelease': release['prerelease'],
-                    'description': release['name'] or release['tag_name'],
+                    'prerelease': release['prerelease'] or version_type in ['alpha', 'beta'],
+                    'description': release['name'] or version_name,
                     'url': release['zipball_url'],
-                    'recommended': not release['prerelease']
+                    'recommended': version_type == 'release' and not release['prerelease']
                 })
 
             # Process tags (development versions)
@@ -1748,8 +2225,8 @@ def load_setup_config():
 
 def interactive_setup_wizard():
     """Enhanced interactive setup wizard for first-time users."""
-    # Use the new InteractiveSetupWizard class
-    wizard = InteractiveSetupWizard()
+    # Use the new OS-specific setup wizard
+    wizard = OSSpecificSetupWizard()
 
     # Check for existing setup
     existing_config = load_setup_config()
@@ -1761,19 +2238,17 @@ def interactive_setup_wizard():
             return existing_config
 
     # Run the enhanced setup wizard
-    if not wizard.run_setup_wizard():
+    config = wizard.run_setup_wizard()
+    if not config:
         return None
 
-    # Convert wizard config to legacy format for compatibility
-    config = wizard.config.copy()
-
     # Map installation type to setup style
-    install_type = config.get('installation_type', 'Standard')
-    if 'Minimal' in install_type:
+    install_type = config.get('installation_type', 'standard').lower()
+    if 'minimal' in install_type:
         config['setup_style'] = 'minimal'
-    elif 'Full' in install_type:
+    elif 'full' in install_type:
         config['setup_style'] = 'full'
-    elif 'Developer' in install_type:
+    elif 'developer' in install_type:
         config['setup_style'] = 'developer'
     else:
         config['setup_style'] = 'standard'
@@ -2423,27 +2898,37 @@ def install_developer_deps(venv_python):
 
 
 def install_package_list(venv_python, packages, use_fallbacks=True):
-    """Install a list of packages with enhanced error handling and fallback options."""
+    """Install a list of packages with enhanced error handling and dual progress bars."""
     if not packages:
         return True
 
     failed_packages = []
 
-    # Create progress bar that redraws in place
-    progress = ProgressBar(len(packages), title="Installing packages")
+    # Create dual progress bar system
+    progress = DualProgressBar(len(packages))
 
     for i, package in enumerate(packages):
         # Extract package name for display
         package_name = package.split('>=')[0].split('==')[0].split('[')[0]
 
-        success = install_single_package(venv_python, package, use_fallbacks, verbose=False)
+        # Update overall progress
+        progress.update_overall(i + 1, package_name)
+
+        # Update package progress
+        progress.update_package(package_name, "Installing")
+
+        # Install the package
+        success = install_single_package(venv_python, package, use_fallbacks, verbose=False, progress_callback=progress)
+
         if success:
-            progress.update(i + 1, f"Installed {package_name}")
+            progress.update_package(package_name, "Installed")
+            time.sleep(0.1)  # Brief pause to show completion
         else:
             failed_packages.append(package)
-            progress.update(i + 1, f"Failed {package_name}")
+            progress.update_package(package_name, "Failed")
+            time.sleep(0.2)  # Longer pause to show failure
 
-    progress.finish("Installation complete")
+    progress.finish("All packages processed")
 
     if failed_packages:
         print(f"\n[WARN]  {len(failed_packages)} packages failed to install:")
@@ -2467,7 +2952,7 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
         return True
 
 
-def install_single_package(python_exe, package, use_fallbacks=True, verbose=False):
+def install_single_package(python_exe, package, use_fallbacks=True, verbose=False, progress_callback=None):
     """Install a single package with fallback strategies."""
     install_methods = [
         # Primary method
@@ -4374,9 +4859,6 @@ def parse_setup_arguments(args: List[str]) -> Dict[str, Any]:
         '--api': 'api_enabled',
         '--websockets': 'websockets_enabled',
         '--real-time': 'realtime_enabled',
-        '--discord': 'discord_enabled',
-        '--slack': 'slack_enabled',
-        '--teams': 'teams_enabled',
         '--webhooks': 'webhooks_enabled',
         '--email': 'email_enabled',
         '--debug': 'debug_enabled',
@@ -4508,7 +4990,7 @@ def create_predefined_setup(setup_type: str, config: Dict[str, Any]) -> Dict[str
 def run_enhanced_setup_wizard(config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Run the enhanced interactive setup wizard."""
     try:
-        wizard = InteractiveSetupWizard()
+        wizard = OSSpecificSetupWizard()
 
         # Pre-populate with command line arguments
         for key, value in config.items():
@@ -4567,9 +5049,6 @@ def run_custom_setup_wizard(config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         'proxy_enabled': config.get('proxy_enabled', False),
 
         # Integrations
-        'discord_enabled': config.get('discord_enabled', False),
-        'slack_enabled': config.get('slack_enabled', False),
-        'teams_enabled': config.get('teams_enabled', False),
         'webhooks_enabled': config.get('webhooks_enabled', False),
         'email_enabled': config.get('email_enabled', False),
 
@@ -4923,9 +5402,6 @@ Feature Flags:
   --real-time           Real-time features
 
 Integration Options:
-  --discord             Discord bot integration
-  --slack               Slack integration
-  --teams               Microsoft Teams
   --webhooks            Webhook support
   --email               Email notifications
 
@@ -4936,14 +5412,88 @@ Development Options:
   --hot-reload          Enable hot reloading
   --dev-tools           Install development tools
 
+Configuration Options:
+  --import-config FILE  Import configuration from file (JSON/YAML)
+  --export-config FILE  Export current configuration to file
+  --config-format FMT   Format for config export (yaml/json, default: yaml)
+
 Examples:
   python run.py setup                           # Interactive wizard
   python run.py setup developer --debug        # Developer setup with debug
   python run.py setup enterprise --ssl --mfa   # Enterprise with SSL and MFA
   python run.py setup custom --ai --monitoring # Custom setup with specific features
   python run.py setup full --port 3000         # Full setup on custom port
+  python run.py setup --import-config config.yaml  # Setup from existing config
+  python run.py setup --export-config backup.yaml  # Export current config
 """)
             return
+
+        # Handle config import/export first
+        if "--import-config" in args:
+            try:
+                config_idx = args.index("--import-config") + 1
+                if config_idx < len(args):
+                    config_file = args[config_idx]
+                    print(f"[*] Importing configuration from {config_file}...")
+
+                    # Import using existing config system
+                    try:
+                        sys.path.insert(0, "src")
+                        from plexichat.core_system.config.manager import ConfigurationManager
+
+                        config_manager = ConfigurationManager()
+                        if config_manager.import_config_from_file(config_file):
+                            print("[SUCCESS] Configuration imported successfully!")
+                            print("PlexiChat is now configured. Run 'python run.py run' to start.")
+                            return
+                        else:
+                            print("[ERROR] Failed to import configuration")
+                            sys.exit(1)
+                    except ImportError as e:
+                        print(f"[ERROR] Could not import config system: {e}")
+                        sys.exit(1)
+                else:
+                    print("[ERROR] --import-config requires a filename argument")
+                    sys.exit(1)
+            except ValueError:
+                print("[ERROR] --import-config requires a filename argument")
+                sys.exit(1)
+
+        if "--export-config" in args:
+            try:
+                config_idx = args.index("--export-config") + 1
+                if config_idx < len(args):
+                    config_file = args[config_idx]
+                    config_format = "yaml"
+
+                    # Check for format option
+                    if "--config-format" in args:
+                        format_idx = args.index("--config-format") + 1
+                        if format_idx < len(args):
+                            config_format = args[format_idx]
+
+                    print(f"[*] Exporting configuration to {config_file} ({config_format} format)...")
+
+                    try:
+                        sys.path.insert(0, "src")
+                        from plexichat.core_system.config.manager import ConfigurationManager
+
+                        config_manager = ConfigurationManager()
+                        if config_manager.export_config_to_file(config_file, config_format):
+                            print("[SUCCESS] Configuration exported successfully!")
+                            return
+                        else:
+                            print("[ERROR] Failed to export configuration")
+                            sys.exit(1)
+                    except ImportError as e:
+                        print(f"[ERROR] Could not import config system: {e}")
+                        sys.exit(1)
+                else:
+                    print("[ERROR] --export-config requires a filename argument")
+                    sys.exit(1)
+            except ValueError:
+                print("[ERROR] --export-config requires a filename argument")
+                sys.exit(1)
 
         # Parse arguments for enhanced setup
         setup_config = parse_setup_arguments(args)
