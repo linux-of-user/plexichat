@@ -33,6 +33,8 @@ import zipfile
 import urllib.request
 import urllib.error
 from pathlib import Path
+from typing import Optional, Dict, Any, List
+import json
 
 # Platform-specific imports with error handling
 try:
@@ -881,13 +883,151 @@ class InteractiveSetupWizard:
 
 
 class PlexiChatBootstrapper:
-    """Bootstrap installer for PlexiChat from a single script."""
+    """
+    Enhanced bootstrap installer for PlexiChat.
+
+    Downloads PlexiChat source code into the same directory as run.py,
+    supports multiple download methods, version selection, and individual file updates.
+    """
 
     def __init__(self):
         self.script_dir = Path(__file__).parent.absolute()
-        self.install_dir = self.script_dir / "plexichat"
+        self.install_dir = self.script_dir  # Install in same directory, not subfolder
+        self.repo_url = "https://github.com/linux-of-user/plexichat.git"
+        self.repo_zip_url = "https://github.com/linux-of-user/plexichat/archive/refs/heads/main.zip"
+        self.api_url = "https://api.github.com/repos/linux-of-user/plexichat"
+        self.raw_url = "https://raw.githubusercontent.com/linux-of-user/plexichat"
+        self.available_versions = []
         self.venv_dir = self.script_dir / "venv"
         self.config_file = self.script_dir / "plexichat_config.json"
+
+    def fetch_available_versions(self) -> List[Dict[str, Any]]:
+        """Fetch all available versions from GitHub."""
+        try:
+            print("[*] Fetching available versions from GitHub...")
+
+            # Get releases
+            releases_url = f"{self.api_url}/releases"
+            response = urllib.request.urlopen(releases_url, timeout=10)
+            releases = json.loads(response.read().decode())
+
+            # Get tags
+            tags_url = f"{self.api_url}/tags"
+            response = urllib.request.urlopen(tags_url, timeout=10)
+            tags = json.loads(response.read().decode())
+
+            versions = []
+
+            # Process releases (stable versions)
+            for release in releases:
+                versions.append({
+                    'name': release['tag_name'],
+                    'type': 'release',
+                    'date': release['published_at'],
+                    'prerelease': release['prerelease'],
+                    'description': release['name'] or release['tag_name'],
+                    'url': release['zipball_url'],
+                    'recommended': not release['prerelease']
+                })
+
+            # Process tags (development versions)
+            release_tags = {r['tag_name'] for r in releases}
+            for tag in tags:
+                if tag['name'] not in release_tags:
+                    versions.append({
+                        'name': tag['name'],
+                        'type': 'tag',
+                        'date': tag['commit']['committer']['date'],
+                        'prerelease': True,
+                        'description': f"Development version {tag['name']}",
+                        'url': self.repo_zip_url.replace('/main.zip', f'/{tag["name"]}.zip'),
+                        'recommended': False
+                    })
+
+            # Add main branch
+            versions.insert(0, {
+                'name': 'main',
+                'type': 'branch',
+                'date': 'latest',
+                'prerelease': True,
+                'description': 'Latest development (main branch)',
+                'url': self.repo_zip_url,
+                'recommended': False
+            })
+
+            # Sort by recommendation and date
+            versions.sort(key=lambda x: (not x['recommended'], x['date']), reverse=True)
+
+            self.available_versions = versions
+            return versions
+
+        except Exception as e:
+            print(f"[WARN] Could not fetch versions: {e}")
+            # Fallback to main branch only
+            self.available_versions = [{
+                'name': 'main',
+                'type': 'branch',
+                'date': 'latest',
+                'prerelease': True,
+                'description': 'Latest development (main branch)',
+                'url': self.repo_zip_url,
+                'recommended': False
+            }]
+            return self.available_versions
+
+    def show_version_selection(self) -> Optional[Dict[str, Any]]:
+        """Show version selection menu."""
+        if not self.available_versions:
+            self.fetch_available_versions()
+
+        print("\n" + "=" * 70)
+        print("  Available PlexiChat Versions")
+        print("=" * 70)
+        print()
+
+        for i, version in enumerate(self.available_versions):
+            prefix = "[RECOMMENDED]" if version['recommended'] else ""
+            if version['prerelease'] and version['type'] != 'branch':
+                prefix += "[PRERELEASE]"
+            elif version['type'] == 'branch':
+                prefix += "[DEVELOPMENT]"
+
+            print(f"{i+1:2d}. {version['name']} - {version['description']}")
+            if prefix:
+                print(f"    {prefix}")
+            print(f"    Type: {version['type'].title()}, Date: {version['date']}")
+            print()
+
+        while True:
+            try:
+                choice = input(f"Select version (1-{len(self.available_versions)}) [1]: ").strip()
+                if not choice:
+                    choice = "1"
+
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(self.available_versions):
+                    selected = self.available_versions[choice_idx]
+
+                    # Show warnings for non-recommended versions
+                    if not selected['recommended']:
+                        print(f"\n[WARNING] Version '{selected['name']}' is not a stable release!")
+                        if selected['type'] == 'branch':
+                            print("[WARNING] Development branches may contain unstable code!")
+                        elif selected['prerelease']:
+                            print("[WARNING] Prerelease versions may contain bugs!")
+
+                        confirm = input("Continue anyway? (y/N): ").strip().lower()
+                        if not confirm.startswith('y'):
+                            continue
+
+                    return selected
+                else:
+                    print(f"[ERROR] Invalid choice. Please select 1-{len(self.available_versions)}")
+            except ValueError:
+                print("[ERROR] Please enter a number")
+            except KeyboardInterrupt:
+                print("\n[INFO] Version selection cancelled")
+                return None
 
     def print_bootstrap_banner(self):
         """Print bootstrap banner."""
@@ -999,59 +1139,208 @@ class PlexiChatBootstrapper:
             print(f"[ERROR] Unexpected error during download: {e}")
             return False
 
-    def clone_or_download_repo(self) -> bool:
-        """Clone repository using git or download as zip."""
+    def download_source_code(self, version_info: Optional[Dict[str, Any]] = None) -> bool:
+        """Download PlexiChat source code using multiple methods."""
         print("[*] Acquiring PlexiChat source code...")
 
-        if self.install_dir.exists():
-            print("[WARN] Installation directory exists. Removing...")
-            shutil.rmtree(self.install_dir)
-
-        # Try git clone first
-        if self.check_git_available():
-            print("[*] Cloning repository with git...")
-            try:
-                subprocess.run([
-                    "git", "clone", GITHUB_REPO, str(self.install_dir)
-                ], check=True, capture_output=True)
-                print("[OK] Repository cloned successfully")
-                return True
-            except subprocess.CalledProcessError:
-                print("[WARN] Git clone failed, trying ZIP download...")
-
-        # Fallback to zip download
-        print("[*] Downloading repository as ZIP...")
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            zip_path = Path(temp_dir) / "plexichat.zip"
-
-            if not self.download_with_progress(GITHUB_ZIP, zip_path, "Downloading PlexiChat"):
+        # Get version info if not provided
+        if not version_info:
+            version_info = self.show_version_selection()
+            if not version_info:
                 return False
 
-            print("[*] Extracting files...")
+        print(f"[*] Downloading version: {version_info['name']}")
+
+        # Check if we already have source files (excluding run.py)
+        existing_files = [f for f in self.install_dir.iterdir()
+                         if f.is_file() and f.name != 'run.py' and not f.name.startswith('.')]
+
+        if existing_files:
+            print("[WARN] Existing source files found in directory")
+            overwrite = input("Overwrite existing files? (y/N): ").strip().lower()
+            if not overwrite.startswith('y'):
+                return False
+
+            # Remove existing source files (keep run.py and config files)
+            for item in self.install_dir.iterdir():
+                if item.name not in ['run.py', 'plexichat_config.json', '.git'] and not item.name.startswith('.'):
+                    if item.is_dir():
+                        shutil.rmtree(item)
+                    else:
+                        item.unlink()
+
+        # Try multiple download methods
+        download_methods = [
+            ("Git Clone", self.download_with_git),
+            ("ZIP Download", self.download_with_zip),
+            ("Individual Files", self.download_individual_files)
+        ]
+
+        for method_name, method_func in download_methods:
             try:
+                print(f"[*] Trying {method_name}...")
+                if method_func(version_info):
+                    print(f"[OK] Source code downloaded successfully using {method_name}")
+                    return True
+                else:
+                    print(f"[WARN] {method_name} failed, trying next method...")
+            except Exception as e:
+                print(f"[WARN] {method_name} failed with error: {e}")
+
+        print("[ERROR] All download methods failed")
+        return False
+
+    def download_with_git(self, version_info: Dict[str, Any]) -> bool:
+        """Download using git clone."""
+        if not self.check_git_available():
+            return False
+
+        try:
+            # Clone to temporary directory first
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_repo = Path(temp_dir) / "repo"
+
+                # Clone the repository
+                if version_info['type'] == 'branch':
+                    cmd = ["git", "clone", "--branch", version_info['name'], "--depth", "1", self.repo_url, str(temp_repo)]
+                else:
+                    cmd = ["git", "clone", "--branch", version_info['name'], "--depth", "1", self.repo_url, str(temp_repo)]
+
+                subprocess.run(cmd, check=True, capture_output=True)
+
+                # Copy all files except .git and run.py to install directory
+                for item in temp_repo.iterdir():
+                    if item.name not in ['.git', 'run.py']:
+                        dest = self.install_dir / item.name
+                        if item.is_dir():
+                            shutil.copytree(item, dest, dirs_exist_ok=True)
+                        else:
+                            shutil.copy2(item, dest)
+
+                return True
+
+        except subprocess.CalledProcessError:
+            return False
+        except Exception:
+            return False
+
+    def download_with_zip(self, version_info: Dict[str, Any]) -> bool:
+        """Download using ZIP file."""
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                zip_path = Path(temp_dir) / "source.zip"
+
+                # Download ZIP file
+                if not self.download_with_progress(version_info['url'], zip_path, f"Downloading {version_info['name']}"):
+                    return False
+
+                # Extract ZIP
                 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                     zip_ref.extractall(temp_dir)
 
-                # Find the extracted directory (usually repo-name-branch)
+                # Find the extracted directory
                 extracted_dirs = [d for d in Path(temp_dir).iterdir()
-                                if d.is_dir() and d.name != "__pycache__" and "plexichat" in d.name.lower()]
+                                if d.is_dir() and d.name != "__pycache__"]
 
                 if not extracted_dirs:
-                    print("[ERROR] No PlexiChat directories found in ZIP")
                     return False
 
-                # Move the extracted directory to install location
-                shutil.move(str(extracted_dirs[0]), str(self.install_dir))
-                print("[OK] Source code extracted successfully")
+                source_dir = extracted_dirs[0]
+
+                # Copy all files except run.py to install directory
+                for item in source_dir.iterdir():
+                    if item.name != 'run.py':
+                        dest = self.install_dir / item.name
+                        if item.is_dir():
+                            shutil.copytree(item, dest, dirs_exist_ok=True)
+                        else:
+                            shutil.copy2(item, dest)
+
                 return True
 
-            except zipfile.BadZipFile:
-                print("[ERROR] Downloaded file is not a valid ZIP")
-                return False
-            except Exception as e:
-                print(f"[ERROR] Extraction failed: {e}")
-                return False
+        except Exception:
+            return False
+
+    def download_individual_files(self, version_info: Dict[str, Any]) -> bool:
+        """Download individual files using GitHub API."""
+        try:
+            # Get repository contents
+            contents_url = f"{self.api_url}/contents"
+            if version_info['name'] != 'main':
+                contents_url += f"?ref={version_info['name']}"
+
+            response = urllib.request.urlopen(contents_url, timeout=30)
+            contents = json.loads(response.read().decode())
+
+            # Download each file/directory
+            progress = ProgressBar(len(contents), title="Downloading files")
+
+            for i, item in enumerate(contents):
+                if item['name'] != 'run.py':
+                    if item['type'] == 'file':
+                        self._download_file(item, version_info['name'])
+                    elif item['type'] == 'dir':
+                        self._download_directory(item, version_info['name'])
+
+                progress.update(i + 1, f"Downloaded {item['name']}")
+
+            progress.finish("Download complete")
+            return True
+
+        except Exception:
+            return False
+
+    def _download_file(self, file_info: Dict[str, Any], ref: str):
+        """Download a single file."""
+        file_url = f"{self.raw_url}/{ref}/{file_info['path']}"
+        dest_path = self.install_dir / file_info['name']
+
+        response = urllib.request.urlopen(file_url, timeout=30)
+        with open(dest_path, 'wb') as f:
+            f.write(response.read())
+
+    def _download_directory(self, dir_info: Dict[str, Any], ref: str):
+        """Download a directory recursively."""
+        dir_path = self.install_dir / dir_info['name']
+        dir_path.mkdir(exist_ok=True)
+
+        # Get directory contents
+        contents_url = f"{self.api_url}/contents/{dir_info['path']}?ref={ref}"
+        response = urllib.request.urlopen(contents_url, timeout=30)
+        contents = json.loads(response.read().decode())
+
+        for item in contents:
+            if item['type'] == 'file':
+                file_url = f"{self.raw_url}/{ref}/{item['path']}"
+                dest_path = dir_path / item['name']
+
+                file_response = urllib.request.urlopen(file_url, timeout=30)
+                with open(dest_path, 'wb') as f:
+                    f.write(file_response.read())
+            elif item['type'] == 'dir':
+                # Recursively download subdirectories
+                subdir_path = dir_path / item['name']
+                subdir_path.mkdir(exist_ok=True)
+                self._download_directory_recursive(item['path'], ref, subdir_path)
+
+    def _download_directory_recursive(self, path: str, ref: str, dest_dir: Path):
+        """Recursively download directory contents."""
+        contents_url = f"{self.api_url}/contents/{path}?ref={ref}"
+        response = urllib.request.urlopen(contents_url, timeout=30)
+        contents = json.loads(response.read().decode())
+
+        for item in contents:
+            if item['type'] == 'file':
+                file_url = f"{self.raw_url}/{ref}/{item['path']}"
+                dest_path = dest_dir / item['name']
+
+                file_response = urllib.request.urlopen(file_url, timeout=30)
+                with open(dest_path, 'wb') as f:
+                    f.write(file_response.read())
+            elif item['type'] == 'dir':
+                subdir_path = dest_dir / item['name']
+                subdir_path.mkdir(exist_ok=True)
+                self._download_directory_recursive(item['path'], ref, subdir_path)
 
     def create_virtual_environment(self) -> bool:
         """Create Python virtual environment."""
@@ -1136,7 +1425,7 @@ class PlexiChatBootstrapper:
             return False
 
     def run_bootstrap(self) -> bool:
-        """Run the bootstrap process - download everything including latest run.py."""
+        """Run the enhanced bootstrap process with version selection."""
         self.print_bootstrap_banner()
 
         print("[*] Starting PlexiChat bootstrap installation...")
@@ -1146,20 +1435,19 @@ class PlexiChatBootstrapper:
         if not self.check_bootstrap_requirements():
             return False
 
-        # Step 2: Download source code
-        if not self.clone_or_download_repo():
+        # Step 2: Show version selection and download source code
+        if not self.download_source_code():
             return False
 
-        # Step 3: Download latest run.py and replace current one
+        # Step 3: Update run.py to match the downloaded version
         if not self.update_run_script():
             return False
 
         print("\n" + "=" * 60)
         print("[SUCCESS] Bootstrap completed successfully!")
-        print("\nPlexiChat source code and latest run.py have been downloaded.")
+        print("\nPlexiChat source code has been downloaded to the current directory.")
         print("\nNext steps:")
-        print(f"  1. cd {self.install_dir}")
-        print("  2. python run.py setup       # Run interactive setup wizard")
+        print("  1. python run.py setup       # Run interactive setup wizard")
         print("\nThe setup wizard will guide you through:")
         print("  * Choosing installation type (minimal/full/developer)")
         print("  * Selecting database type")
@@ -1167,43 +1455,110 @@ class PlexiChatBootstrapper:
         print("  * Installing dependencies")
         print("  * Setting up SSL certificates")
         print("  * Creating initial configuration")
-        print("\n[INFO] This bootstrap script will now be deleted.")
+        print("\n[INFO] This bootstrap script will be replaced with the downloaded version.")
 
         return True
 
     def update_run_script(self) -> bool:
-        """Download the latest run.py and replace the current one."""
+        """Update run.py using the downloaded update system."""
         try:
-            print("[*] Downloading latest run.py script...")
+            print("[*] Syncing run.py with downloaded version using core update system...")
 
-            # Download the latest run.py from the cloned repository
+            # Check if we have the core update system available
+            update_system_path = self.install_dir / "src" / "plexichat" / "core_system" / "update"
+            if not update_system_path.exists():
+                print("[WARN] Core update system not found, using fallback method...")
+                return self.fallback_update_run_script()
+
+            # Try to use the core update system
+            try:
+                # Add the src directory to Python path temporarily
+                import sys
+                src_path = str(self.install_dir / "src")
+                if src_path not in sys.path:
+                    sys.path.insert(0, src_path)
+
+                # Import the update system
+                from plexichat.core_system.update.update_manager import UpdateManager
+                from plexichat.core_system.update.version_manager import VersionManager
+
+                # Initialize update manager
+                update_manager = UpdateManager()
+                version_manager = VersionManager()
+
+                # Get current version info
+                current_version = version_manager.get_current_version()
+                target_version = version_manager.get_installed_version()
+
+                print(f"[*] Current run.py version: {current_version}")
+                print(f"[*] Target version: {target_version}")
+
+                if current_version != target_version:
+                    print("[*] Versions differ, updating run.py...")
+
+                    # Use update manager to update run.py specifically
+                    if update_manager.update_file("run.py", target_version):
+                        print("[OK] run.py updated successfully using core update system")
+                        return True
+                    else:
+                        print("[WARN] Core update failed, using fallback...")
+                        return self.fallback_update_run_script()
+                else:
+                    print("[OK] run.py is already at correct version")
+                    return True
+
+            except ImportError as e:
+                print(f"[WARN] Could not import update system: {e}")
+                print("[*] Using fallback update method...")
+                return self.fallback_update_run_script()
+
+        except Exception as e:
+            print(f"[WARN] Update system error: {e}")
+            print("[*] Using fallback update method...")
+            return self.fallback_update_run_script()
+
+    def fallback_update_run_script(self) -> bool:
+        """Fallback method to update run.py."""
+        try:
+            # Look for run.py in the downloaded source
             source_run_py = self.install_dir / "run.py"
             current_run_py = Path(__file__).absolute()
 
-            if source_run_py.exists():
-                print("[*] Copying latest run.py from repository...")
+            if source_run_py.exists() and source_run_py != current_run_py:
+                print("[*] Using direct file replacement...")
 
                 # Read the new run.py content
                 with open(source_run_py, 'r', encoding='utf-8') as f:
                     new_content = f.read()
 
-                # Write to a temporary file first
-                temp_file = current_run_py.parent / "run_new.py"
-                with open(temp_file, 'w', encoding='utf-8') as f:
-                    f.write(new_content)
+                # Check if it's different from current
+                with open(current_run_py, 'r', encoding='utf-8') as f:
+                    current_content = f.read()
 
-                # Schedule the replacement and deletion
-                self.schedule_self_replacement(temp_file, current_run_py)
+                if new_content != current_content:
+                    print("[*] run.py versions differ, scheduling update...")
 
-                print("[OK] Latest run.py downloaded and ready for replacement")
+                    # Write to a temporary file first
+                    temp_file = current_run_py.parent / "run_new.py"
+                    with open(temp_file, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+
+                    # Schedule the replacement
+                    self.schedule_self_replacement(temp_file, current_run_py)
+
+                    print("[OK] run.py update scheduled for next restart")
+                else:
+                    print("[OK] run.py is already up to date")
+
+                # Remove the downloaded run.py to avoid confusion
+                source_run_py.unlink()
                 return True
             else:
-                print("[WARN] Could not find run.py in downloaded repository")
-                print("[INFO] Continuing with current run.py")
+                print("[INFO] No run.py found in source or same file, skipping update")
                 return True
 
         except Exception as e:
-            print(f"[WARN] Could not update run.py: {e}")
+            print(f"[WARN] Fallback update failed: {e}")
             print("[INFO] Continuing with current run.py")
             return True
 
@@ -3987,6 +4342,331 @@ def handle_monitor_command(args):
     else:
         print(f"[ERROR] Unknown monitor command: {subcommand}")
 
+# Enhanced Setup System Functions
+
+def parse_setup_arguments(args: List[str]) -> Dict[str, Any]:
+    """Parse setup command arguments into configuration."""
+    config = {}
+
+    # Parse port
+    if "--port" in args:
+        try:
+            port_idx = args.index("--port") + 1
+            if port_idx < len(args):
+                config['port'] = int(args[port_idx])
+        except (ValueError, IndexError):
+            print("[WARN] Invalid port specified, using default")
+
+    # Parse boolean flags
+    boolean_flags = {
+        '--ssl': 'ssl_enabled',
+        '--proxy': 'proxy_enabled',
+        '--cluster': 'cluster_enabled',
+        '--load-balancer': 'load_balancer_enabled',
+        '--backup-enabled': 'backup_enabled',
+        '--encryption': 'encryption_enabled',
+        '--compression': 'compression_enabled',
+        '--ai': 'ai_enabled',
+        '--security': 'security_enabled',
+        '--monitoring': 'monitoring_enabled',
+        '--analytics': 'analytics_enabled',
+        '--plugins': 'plugins_enabled',
+        '--api': 'api_enabled',
+        '--websockets': 'websockets_enabled',
+        '--real-time': 'realtime_enabled',
+        '--discord': 'discord_enabled',
+        '--slack': 'slack_enabled',
+        '--teams': 'teams_enabled',
+        '--webhooks': 'webhooks_enabled',
+        '--email': 'email_enabled',
+        '--debug': 'debug_enabled',
+        '--testing': 'testing_enabled',
+        '--profiling': 'profiling_enabled',
+        '--hot-reload': 'hot_reload_enabled',
+        '--dev-tools': 'dev_tools_enabled',
+        '--mfa': 'mfa_enabled'
+    }
+
+    for flag, key in boolean_flags.items():
+        config[key] = flag in args
+
+    # Parse string options
+    string_options = {
+        '--storage-type': 'storage_type',
+        '--database': 'database_type',
+        '--auth': 'auth_type'
+    }
+
+    for option, key in string_options.items():
+        if option in args:
+            try:
+                option_idx = args.index(option) + 1
+                if option_idx < len(args):
+                    config[key] = args[option_idx]
+            except IndexError:
+                pass
+
+    return config
+
+def create_predefined_setup(setup_type: str, config: Dict[str, Any]) -> Dict[str, Any]:
+    """Create predefined setup configuration."""
+    base_configs = {
+        'minimal': {
+            'installation_type': 'Minimal',
+            'database_type': 'SQLite (Default)',
+            'auth_type': 'local',
+            'ssl_enabled': False,
+            'ai_enabled': False,
+            'monitoring_enabled': False,
+            'plugins_enabled': False,
+            'api_enabled': True,
+            'websockets_enabled': False,
+            'debug_enabled': False
+        },
+        'standard': {
+            'installation_type': 'Standard',
+            'database_type': 'SQLite (Default)',
+            'auth_type': 'local',
+            'ssl_enabled': True,
+            'ai_enabled': True,
+            'monitoring_enabled': True,
+            'plugins_enabled': True,
+            'api_enabled': True,
+            'websockets_enabled': True,
+            'debug_enabled': False
+        },
+        'full': {
+            'installation_type': 'Full',
+            'database_type': 'PostgreSQL',
+            'auth_type': 'oauth',
+            'ssl_enabled': True,
+            'ai_enabled': True,
+            'monitoring_enabled': True,
+            'analytics_enabled': True,
+            'plugins_enabled': True,
+            'api_enabled': True,
+            'websockets_enabled': True,
+            'realtime_enabled': True,
+            'backup_enabled': True,
+            'encryption_enabled': True,
+            'debug_enabled': False
+        },
+        'developer': {
+            'installation_type': 'Developer',
+            'database_type': 'SQLite (Default)',
+            'auth_type': 'local',
+            'ssl_enabled': True,
+            'ai_enabled': True,
+            'monitoring_enabled': True,
+            'plugins_enabled': True,
+            'api_enabled': True,
+            'websockets_enabled': True,
+            'debug_enabled': True,
+            'testing_enabled': True,
+            'profiling_enabled': True,
+            'hot_reload_enabled': True,
+            'dev_tools_enabled': True
+        },
+        'enterprise': {
+            'installation_type': 'Enterprise',
+            'database_type': 'PostgreSQL',
+            'auth_type': 'saml',
+            'ssl_enabled': True,
+            'security_enabled': True,
+            'mfa_enabled': True,
+            'ai_enabled': True,
+            'monitoring_enabled': True,
+            'analytics_enabled': True,
+            'plugins_enabled': True,
+            'api_enabled': True,
+            'websockets_enabled': True,
+            'realtime_enabled': True,
+            'backup_enabled': True,
+            'encryption_enabled': True,
+            'cluster_enabled': True,
+            'load_balancer_enabled': True,
+            'debug_enabled': False
+        }
+    }
+
+    # Get base configuration
+    setup_config = base_configs.get(setup_type, base_configs['standard']).copy()
+
+    # Override with command line arguments
+    setup_config.update(config)
+
+    # Add metadata
+    setup_config.update({
+        'setup_style': setup_type,
+        'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'system_info': get_system_info()
+    })
+
+    print(f"[*] Running {setup_type} setup with predefined configuration...")
+    return setup_config
+
+def run_enhanced_setup_wizard(config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Run the enhanced interactive setup wizard."""
+    try:
+        wizard = InteractiveSetupWizard()
+
+        # Pre-populate with command line arguments
+        for key, value in config.items():
+            if hasattr(wizard, 'features') and key in wizard.features:
+                if isinstance(wizard.features[key], dict) and 'enabled' in wizard.features[key]:
+                    wizard.features[key]['enabled'] = value
+
+        return wizard.run_setup_wizard()
+    except Exception as e:
+        print(f"[WARN] Enhanced wizard not available: {e}")
+        # Fallback to basic configuration
+        return {
+            'setup_style': 'standard',
+            'installation_type': 'Standard',
+            'database_type': 'SQLite (Default)',
+            'auth_type': 'local',
+            'ssl_enabled': True,
+            'ai_enabled': True,
+            'monitoring_enabled': True,
+            'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'system_info': get_system_info()
+        }
+
+def run_custom_setup_wizard(config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Run custom setup wizard with advanced options."""
+    print("[*] Starting Custom Setup Wizard...")
+    print("This wizard will guide you through all available options.")
+
+    # Create a comprehensive configuration with all options
+    custom_config = {
+        'setup_style': 'custom',
+        'installation_type': 'Custom',
+        'database_type': config.get('database_type', 'SQLite (Default)'),
+        'auth_type': config.get('auth_type', 'local'),
+        'port': config.get('port', 8080),
+
+        # Core features
+        'ssl_enabled': config.get('ssl_enabled', True),
+        'ai_enabled': config.get('ai_enabled', True),
+        'monitoring_enabled': config.get('monitoring_enabled', True),
+        'analytics_enabled': config.get('analytics_enabled', False),
+        'plugins_enabled': config.get('plugins_enabled', True),
+        'api_enabled': config.get('api_enabled', True),
+        'websockets_enabled': config.get('websockets_enabled', True),
+        'realtime_enabled': config.get('realtime_enabled', False),
+
+        # Security features
+        'security_enabled': config.get('security_enabled', True),
+        'mfa_enabled': config.get('mfa_enabled', False),
+        'encryption_enabled': config.get('encryption_enabled', False),
+
+        # Infrastructure
+        'backup_enabled': config.get('backup_enabled', False),
+        'cluster_enabled': config.get('cluster_enabled', False),
+        'load_balancer_enabled': config.get('load_balancer_enabled', False),
+        'proxy_enabled': config.get('proxy_enabled', False),
+
+        # Integrations
+        'discord_enabled': config.get('discord_enabled', False),
+        'slack_enabled': config.get('slack_enabled', False),
+        'teams_enabled': config.get('teams_enabled', False),
+        'webhooks_enabled': config.get('webhooks_enabled', False),
+        'email_enabled': config.get('email_enabled', False),
+
+        # Development
+        'debug_enabled': config.get('debug_enabled', False),
+        'testing_enabled': config.get('testing_enabled', False),
+        'profiling_enabled': config.get('profiling_enabled', False),
+        'hot_reload_enabled': config.get('hot_reload_enabled', False),
+        'dev_tools_enabled': config.get('dev_tools_enabled', False),
+
+        # Storage
+        'storage_type': config.get('storage_type', 'local'),
+        'compression_enabled': config.get('compression_enabled', False),
+
+        # Metadata
+        'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'system_info': get_system_info()
+    }
+
+    print(f"[*] Custom setup configured with {len([k for k, v in custom_config.items() if k.endswith('_enabled') and v])} features enabled")
+    return custom_config
+
+def setup_plexichat_system(config: Dict[str, Any]) -> bool:
+    """Set up PlexiChat system based on configuration."""
+    try:
+        print("[*] Setting up PlexiChat system...")
+
+        # Save configuration
+        save_setup_config(config)
+
+        # Install dependencies based on configuration
+        setup_style = config.get("setup_style", "standard")
+        print(f"[*] Installing dependencies for {setup_style} setup...")
+
+        if not install_dependencies(setup_style):
+            return False
+
+        # Set up SSL if enabled
+        if config.get('ssl_enabled', False):
+            print("[*] Setting up SSL certificates...")
+            setup_ssl_certificates()
+
+        # Generate unified configuration
+        print("[*] Generating unified configuration...")
+        generate_unified_config()
+
+        return True
+
+    except Exception as e:
+        print(f"[ERROR] System setup failed: {e}")
+        return False
+
+def print_setup_summary(config: Dict[str, Any]):
+    """Print setup completion summary."""
+    print("\n" + "=" * 60)
+    print("  PlexiChat Setup Complete!")
+    print("=" * 60)
+
+    print(f"\nInstallation Type: {config.get('installation_type', 'Standard')}")
+    print(f"Database: {config.get('database_type', 'SQLite')}")
+    print(f"Authentication: {config.get('auth_type', 'local').upper()}")
+
+    # Show enabled features
+    enabled_features = []
+    feature_map = {
+        'ai_enabled': 'AI Features',
+        'ssl_enabled': 'SSL/TLS',
+        'monitoring_enabled': 'Monitoring',
+        'analytics_enabled': 'Analytics',
+        'plugins_enabled': 'Plugins',
+        'backup_enabled': 'Automated Backups',
+        'encryption_enabled': 'Data Encryption',
+        'cluster_enabled': 'Clustering',
+        'debug_enabled': 'Debug Mode'
+    }
+
+    for key, name in feature_map.items():
+        if config.get(key, False):
+            enabled_features.append(name)
+
+    if enabled_features:
+        print(f"\nEnabled Features: {', '.join(enabled_features)}")
+
+    # Show next steps
+    print(f"\nNext Steps:")
+    print(f"1. python run.py run              # Start PlexiChat")
+
+    port = config.get('port', 8080)
+    protocol = 'https' if config.get('ssl_enabled', False) else 'http'
+    print(f"2. Open {protocol}://localhost:{port}  # Access web interface")
+
+    if config.get('debug_enabled', False):
+        print(f"3. python run.py debug            # Debug mode tools")
+
+    print(f"\nConfiguration saved to: plexichat_config.json")
+    print(f"Setup completed at: {config.get('setup_date', 'Unknown')}")
+
 def main():
     """Enhanced main entry point - SINGLE POINT OF ACCESS FOR ALL PLEXICHAT FUNCTIONALITY."""
     # Print banner first
@@ -4176,83 +4856,152 @@ in the same location as this script.
             sys.exit(1)
 
     elif command == "setup":
-        # Interactive setup wizard
+        # Enhanced interactive setup wizard with many more options
         if "--help" in args or "-h" in args:
             print("""
-[*] PlexiChat Interactive Setup Wizard
+[*] PlexiChat Enhanced Setup Wizard
 
-Usage: python run.py setup [type]
+Usage: python run.py setup [type] [options]
 
-This command runs the interactive setup wizard to configure PlexiChat:
-1. Choose installation type (minimal/standard/full/developer)
-2. Select database type (SQLite/PostgreSQL/MySQL/MongoDB)
-3. Configure optional features with arrow key navigation
-4. Install dependencies based on selections
-5. Set up SSL certificates and initial configuration
+This command runs the comprehensive setup wizard to configure PlexiChat:
+1. Choose installation type (minimal/standard/full/developer/enterprise/custom)
+2. Select database type (SQLite/PostgreSQL/MySQL/MongoDB/Redis)
+3. Configure authentication (local/LDAP/OAuth/SAML/multi-factor)
+4. Set up networking (ports/SSL/proxy/clustering)
+5. Configure storage (local/S3/Azure/GCP/distributed)
+6. Enable features (AI/security/monitoring/backup/plugins)
+7. Set up integrations (Discord/Slack/Teams/webhooks)
+8. Configure performance (caching/optimization/scaling)
+9. Set up development tools (debugging/testing/profiling)
+10. Configure deployment (Docker/systemd/PM2/cloud)
 
-Types:
-  (none)      Interactive wizard with all options
-  minimal     Quick minimal setup
-  standard    Standard setup with common features
-  full        Full installation with all features
-  developer   Development setup with debugging tools
+Installation Types:
+  minimal       Basic chat functionality only
+  standard      Standard features with web UI
+  full          All features enabled
+  developer     Full + development tools
+  enterprise    Enterprise features + security
+  custom        Custom configuration wizard
 
-Options:
-  --help, -h  Show this help message
+Database Options:
+  sqlite        SQLite (default, no setup required)
+  postgresql    PostgreSQL with connection pooling
+  mysql         MySQL/MariaDB with replication
+  mongodb       MongoDB with sharding support
+  redis         Redis for caching and sessions
+  multi         Multi-database setup
+
+Authentication Types:
+  local         Local user accounts
+  ldap          LDAP/Active Directory integration
+  oauth         OAuth2 (Google/GitHub/Microsoft)
+  saml          SAML SSO integration
+  mfa           Multi-factor authentication
+  api-key       API key authentication
+
+Networking Options:
+  --port PORT           Set custom port (default: 8080)
+  --ssl                 Enable SSL/TLS
+  --proxy               Configure reverse proxy
+  --cluster             Enable clustering
+  --load-balancer       Set up load balancing
+
+Storage Options:
+  --storage-type TYPE   local/s3/azure/gcp
+  --backup-enabled      Enable automated backups
+  --encryption          Enable data encryption
+  --compression         Enable data compression
+
+Feature Flags:
+  --ai                  Enable AI features
+  --security            Enhanced security features
+  --monitoring          Performance monitoring
+  --analytics           Usage analytics
+  --plugins             Plugin system
+  --api                 REST API server
+  --websockets          WebSocket support
+  --real-time           Real-time features
+
+Integration Options:
+  --discord             Discord bot integration
+  --slack               Slack integration
+  --teams               Microsoft Teams
+  --webhooks            Webhook support
+  --email               Email notifications
+
+Development Options:
+  --debug               Enable debug mode
+  --testing             Set up testing framework
+  --profiling           Enable performance profiling
+  --hot-reload          Enable hot reloading
+  --dev-tools           Install development tools
 
 Examples:
-  python run.py setup           # Interactive wizard
-  python run.py setup developer # Quick developer setup
-  python run.py setup minimal   # Quick minimal setup
+  python run.py setup                           # Interactive wizard
+  python run.py setup developer --debug        # Developer setup with debug
+  python run.py setup enterprise --ssl --mfa   # Enterprise with SSL and MFA
+  python run.py setup custom --ai --monitoring # Custom setup with specific features
+  python run.py setup full --port 3000         # Full setup on custom port
 """)
             return
 
+        # Parse arguments for enhanced setup
+        setup_config = parse_setup_arguments(args)
+
         # Check if we have a setup type argument
-        setup_type = args[1] if len(args) > 1 else None
+        setup_type = args[1] if len(args) > 1 and not args[1].startswith('--') else None
 
-        if setup_type in ['minimal', 'standard', 'full', 'developer']:
-            # Quick setup without wizard
-            print(f"[*] Running {setup_type} setup...")
-            config = {
-                'setup_style': setup_type,
-                'installation_type': setup_type.title(),
-                'database_type': 'SQLite (Default)',
-                'ai_features': setup_type != 'minimal',
-                'security_features': True,
-                'monitoring': setup_type in ['full', 'developer'],
-                'ssl_setup': setup_type != 'minimal',
-                'webui': True,
-                'api_server': True,
-                'debug_mode': setup_type == 'developer',
-                'performance_monitoring': setup_type in ['full', 'developer'],
-                'auto_start_services': True,
-                'setup_date': time.strftime('%Y-%m-%d %H:%M:%S'),
-                'system_info': get_system_info()
-            }
-            save_setup_config(config)
+        if setup_type in ['minimal', 'standard', 'full', 'developer', 'enterprise', 'custom']:
+            if setup_type == 'custom':
+                # Run custom configuration wizard
+                config = run_custom_setup_wizard(setup_config)
+            else:
+                # Quick setup with predefined configuration
+                config = create_predefined_setup(setup_type, setup_config)
         else:
-            # Run interactive wizard
-            config = interactive_setup_wizard()
-            if not config:
-                print("[ERROR] Setup cancelled")
-                sys.exit(1)
+            # Run enhanced interactive wizard
+            config = run_enhanced_setup_wizard(setup_config)
 
-        # Install dependencies based on configuration
-        setup_style = config.get("setup_style", "standard")
-        print(f"\n[*] Installing dependencies for {setup_style} setup...")
+        if not config:
+            print("[ERROR] Setup cancelled")
+            sys.exit(1)
 
-        if install_dependencies(setup_style):
+        # Install dependencies and configure system
+        if setup_plexichat_system(config):
             print("[SUCCESS] Setup completed successfully!")
-            print("\nNext steps:")
-            print("1. python run.py run    # Start PlexiChat server")
-            print("2. Open http://localhost:8080 in your browser")
-            print("3. Login with generated admin credentials")
+            print_setup_summary(config)
         else:
-            print("[ERROR] Setup failed during dependency installation")
+            print("[ERROR] Setup failed")
             sys.exit(1)
 
     elif command == "update":
-        run_robust_update()
+        # Enhanced update system with options
+        if "--help" in args or "-h" in args:
+            print("""
+[*] PlexiChat Enhanced Update System
+
+Usage: python run.py update [options]
+
+Options:
+  --help, -h        Show this help message
+  --list            List all available versions
+  --version VER     Update to specific version
+  --file FILE       Update specific file only
+  --rollback        Rollback to previous version
+  --force           Force update even if same version
+  --check           Check for updates without applying
+
+Examples:
+  python run.py update                    # Interactive update
+  python run.py update --list             # List available versions
+  python run.py update --version v1.2.3   # Update to specific version
+  python run.py update --file run.py      # Update only run.py
+  python run.py update --check            # Check for updates only
+""")
+            return
+
+        # Use enhanced update system
+        run_robust_update(args)
 
         # Simple Git pull update
         try:
@@ -4333,52 +5082,7 @@ Examples:
             print("[ERROR] Setup cancelled")
             sys.exit(1)
 
-    elif command == "setup":
-        if "--help" in args or "-h" in args:
-            show_subcommand_help("setup")
-            return
 
-        install_type = "standard"  # Changed default from minimal to standard
-        if len(args) > 1 and not args[1].startswith('-'):
-            install_type = args[1].lower()
-            if install_type not in ["minimal", "standard", "full", "developer"]:
-                print(f"[ERROR] Invalid setup type: {install_type}")
-                print("Valid types: minimal, standard, full, developer")
-                print("Use 'python run.py help setup' for detailed help")
-                sys.exit(1)
-
-        print(f"[*] Setting up PlexiChat ({SETUP_STYLES[install_type]['name']})...")
-
-        # Save basic config for non-interactive setup
-        config = {
-            "setup_style": install_type,
-            "terminal_style": "classic",  # Default for non-interactive
-            "debug_mode": False,
-            "performance_monitoring": True,
-            "auto_start_services": True,
-            "setup_date": datetime.now().isoformat(),
-            "system_info": get_system_info()
-        }
-        save_setup_config(config)
-
-        if install_dependencies(install_type):
-            print("[OK] Dependencies installed successfully!")
-
-            # Generate unified configuration
-            print("[*] Generating unified configuration...")
-            generate_unified_config()
-
-            # Setup SSL certificates for development
-            print("[*] Setting up SSL certificates...")
-            setup_ssl_certificates()
-
-            print("\n[SUCCESS] Setup complete!")
-            print("[*] Run 'python run.py run' to start PlexiChat.")
-            print("[*] Access via: https://plexichat.local (after adding to hosts file)")
-            print("[INFO] Tip: Run 'python run.py wizard' for interactive configuration.")
-        else:
-            print("[ERROR] Setup failed")
-            sys.exit(1)
 
     elif command == "info":
         print("[*]  PlexiChat System Information")

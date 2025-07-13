@@ -128,9 +128,11 @@ class ErrorManager:
             if config:
                 self.config.update(config)
             
-            # Initialize components
-            await self.enhanced_handler.initialize(self.config.get("enhanced_handler", {}))
-            await self.crash_reporter.initialize(self.config.get("crash_reporter", {}))
+            # Initialize components if available
+            if self.enhanced_handler:
+                await self.enhanced_handler.initialize(self.config.get("enhanced_handler", {}))
+            if self.crash_reporter:
+                await self.crash_reporter.initialize(self.config.get("crash_reporter", {}))
             
             # Load default circuit breaker configurations
             self._load_default_circuit_breakers()
@@ -179,22 +181,23 @@ class ErrorManager:
         )
         
         try:
-            # Use enhanced handler for detailed processing
-            enhanced_context = self.enhanced_handler.handle_error(
-                exception=exception,
-                severity=severity,
-                category=category,
-                component=component,
-                user_id=user_id,
-                request_id=request_id,
-                additional_data=context,
-                attempt_recovery=attempt_recovery
-            )
-            
-            # Update error context with enhanced details
-            error_context.recovery_attempted = enhanced_context.recovery_attempted
-            error_context.recovery_successful = enhanced_context.recovery_successful
-            error_context.additional_data = enhanced_context.additional_data
+            # Use enhanced handler for detailed processing if available
+            if self.enhanced_handler:
+                enhanced_context = self.enhanced_handler.handle_error(
+                    exception=exception,
+                    severity=severity,
+                    category=category,
+                    component=component,
+                    user_id=user_id,
+                    request_id=request_id,
+                    additional_data=context,
+                    attempt_recovery=attempt_recovery
+                )
+
+                # Update error context with enhanced details
+                error_context.recovery_attempted = enhanced_context.recovery_attempted
+                error_context.recovery_successful = enhanced_context.recovery_successful
+                error_context.additional_data = enhanced_context.additional_data
             
             # Update metrics
             self._update_error_metrics(error_context)
@@ -228,12 +231,18 @@ class ErrorManager:
                     severity: ErrorSeverity = ErrorSeverity.CRITICAL) -> str:
         """Report a crash with detailed context."""
         try:
-            crash_context = self.crash_reporter.report_crash(
-                exception=exception,
-                severity=severity,
-                category=ErrorCategory.SYSTEM,
-                additional_context=context
-            )
+            if self.crash_reporter:
+                crash_context = self.crash_reporter.report_crash(
+                    exception=exception,
+                    severity=severity,
+                    category=ErrorCategory.SYSTEM,
+                    additional_context=context
+                )
+            else:
+                # Fallback crash reporting
+                crash_id = f"crash_{int(time.time())}"
+                logger.critical(f"CRASH {crash_id}: {exception}", exc_info=True)
+                return crash_id
             
             # Also handle as regular error for tracking
             error_context = self.handle_error(
@@ -295,9 +304,10 @@ class ErrorManager:
     def register_severity_handler(self, severity: ErrorSeverity, handler: Callable):
         """Register a handler for specific error severity."""
         with self.lock:
-            self.severity_handlers[severity].append(handler)
-        
-        logger.info(f"⚠️ Severity handler registered for {severity.value}")
+            severity_key = severity.value if hasattr(severity, 'value') else str(severity)
+            self.severity_handlers[severity_key].append(handler)
+
+        logger.info(f"⚠️ Severity handler registered for {severity_key}")
     
     def get_error_metrics(self) -> ErrorMetrics:
         """Get current error metrics."""
@@ -346,9 +356,11 @@ class ErrorManager:
             if self.background_tasks:
                 await asyncio.gather(*self.background_tasks, return_exceptions=True)
             
-            # Shutdown components
-            await self.enhanced_handler.shutdown()
-            await self.crash_reporter.shutdown()
+            # Shutdown components if available
+            if self.enhanced_handler:
+                await self.enhanced_handler.shutdown()
+            if self.crash_reporter:
+                await self.crash_reporter.shutdown()
             
             logger.info("✅ Error Manager shutdown complete")
             
