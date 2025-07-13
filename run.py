@@ -33,8 +33,19 @@ import zipfile
 import urllib.request
 import urllib.error
 from pathlib import Path
-import msvcrt  # For Windows key detection
-import select  # For Unix key detection
+
+# Platform-specific imports with error handling
+try:
+    import msvcrt  # Windows key detection
+    HAS_MSVCRT = True
+except ImportError:
+    HAS_MSVCRT = False
+
+try:
+    import termios, tty  # Unix key detection
+    HAS_TERMIOS = True
+except ImportError:
+    HAS_TERMIOS = False
 from datetime import datetime
 
 # Try to import optional dependencies
@@ -433,16 +444,15 @@ class InteractiveSetupWizard:
         }
 
     def get_key_input(self):
-        """Get a single key input cross-platform."""
-        if IS_WINDOWS:
+        """Get a single key input cross-platform with fallback."""
+        if IS_WINDOWS and HAS_MSVCRT:
             try:
                 return msvcrt.getch().decode('utf-8', errors='ignore')
             except:
-                return input().strip()[:1]  # Fallback
-        else:
+                return self._fallback_input()
+        elif not IS_WINDOWS and HAS_TERMIOS:
             # Unix/Linux implementation
             try:
-                import termios, tty
                 fd = sys.stdin.fileno()
                 old_settings = termios.tcgetattr(fd)
                 try:
@@ -452,7 +462,16 @@ class InteractiveSetupWizard:
                 finally:
                     termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
             except:
-                return input().strip()[:1]  # Fallback
+                return self._fallback_input()
+        else:
+            # Fallback for systems without special key support
+            return self._fallback_input()
+
+    def _fallback_input(self):
+        """Fallback input method when special key detection is not available."""
+        print("(Press ENTER after your choice)")
+        choice = input("Choice: ").strip()
+        return choice[:1] if choice else '\r'
 
     def clear_screen(self):
         """Clear the terminal screen."""
@@ -478,8 +497,9 @@ class InteractiveSetupWizard:
             print(f"{prefix}{index + 1}. {text}")
 
     def show_selection_menu(self, title, options, current_selection=0):
-        """Show a selection menu with arrow key navigation."""
+        """Show a selection menu with arrow key navigation and fallback."""
         selection = current_selection
+        use_simple_mode = not (HAS_MSVCRT or HAS_TERMIOS)
 
         while True:
             self.clear_screen()
@@ -490,82 +510,144 @@ class InteractiveSetupWizard:
                 self.print_menu_item(i, option, selected=(i == selection))
 
             print()
-            print("Use UP/DOWN arrows to navigate, ENTER to select, ESC to cancel")
+            if use_simple_mode:
+                print("Enter number (1-{}), Q to quit:".format(len(options)))
+                key = self.get_key_input()
 
-            key = self.get_key_input()
-
-            if key == '\x1b':  # ESC key
-                # Check for arrow keys (ESC [ A/B)
-                try:
-                    next_key = self.get_key_input()
-                    if next_key == '[':
-                        arrow_key = self.get_key_input()
-                        if arrow_key == 'A':  # Up arrow
-                            selection = (selection - 1) % len(options)
-                        elif arrow_key == 'B':  # Down arrow
-                            selection = (selection + 1) % len(options)
+                if key.upper() == 'Q':
+                    return None
+                elif key.isdigit():
+                    num = int(key) - 1
+                    if 0 <= num < len(options):
+                        return num
                     else:
+                        print(f"Invalid choice. Please enter 1-{len(options)}")
+                        time.sleep(1)
+                else:
+                    print("Invalid input. Please enter a number or Q to quit.")
+                    time.sleep(1)
+            else:
+                print("Use UP/DOWN arrows to navigate, ENTER to select, Q to quit")
+                key = self.get_key_input()
+
+                if key == '\x1b':  # ESC key
+                    # Check for arrow keys (ESC [ A/B)
+                    try:
+                        next_key = self.get_key_input()
+                        if next_key == '[':
+                            arrow_key = self.get_key_input()
+                            if arrow_key == 'A':  # Up arrow
+                                selection = (selection - 1) % len(options)
+                            elif arrow_key == 'B':  # Down arrow
+                                selection = (selection + 1) % len(options)
+                        else:
+                            return None  # ESC pressed
+                    except:
                         return None  # ESC pressed
-                except:
-                    return None  # ESC pressed
-            elif key == '\r' or key == '\n':  # Enter key
-                return selection
-            elif key.upper() == 'Q':
-                return None
-            elif key.isdigit():
-                num = int(key) - 1
-                if 0 <= num < len(options):
-                    return num
+                elif key == '\r' or key == '\n':  # Enter key
+                    return selection
+                elif key.upper() == 'Q':
+                    return None
+                elif key.isdigit():
+                    num = int(key) - 1
+                    if 0 <= num < len(options):
+                        return num
 
     def show_features_menu(self):
-        """Show interactive features configuration menu."""
+        """Show interactive features configuration menu with fallback."""
         feature_keys = [k for k in self.features.keys() if not self.features[k].get('required', False)]
         selection = 0
+        use_simple_mode = not (HAS_MSVCRT or HAS_TERMIOS)
 
         while True:
             self.clear_screen()
             self.print_header("PlexiChat Features Configuration")
             print()
-            print("Configure optional features (use SPACE to toggle, ENTER to continue):")
-            print()
 
-            for i, key in enumerate(feature_keys):
-                feature = self.features[key]
-                selected = (i == selection)
-                enabled = feature.get('enabled', False)
+            if use_simple_mode:
+                print("Configure optional features:")
+                print()
 
-                self.print_menu_item(i, feature['name'], selected=selected, enabled=enabled)
-                if selected:
+                for i, key in enumerate(feature_keys):
+                    feature = self.features[key]
+                    enabled = feature.get('enabled', False)
+                    status = "[ON]" if enabled else "[OFF]"
+                    print(f"  {i+1}. {feature['name']} {status}")
                     print(f"     {feature.get('description', '')}")
+                    print()
 
-            print()
-            print("Controls: UP/DOWN arrows, SPACE to toggle, ENTER to continue, Q to quit")
+                print("Enter number to toggle (1-{}), C to continue, Q to quit:".format(len(feature_keys)))
+                key = self.get_key_input()
 
-            key = self.get_key_input()
+                if key.upper() == 'Q':
+                    return False
+                elif key.upper() == 'C':
+                    break
+                elif key.isdigit():
+                    num = int(key) - 1
+                    if 0 <= num < len(feature_keys):
+                        feature_key = feature_keys[num]
+                        self.features[feature_key]['enabled'] = not self.features[feature_key]['enabled']
+                    else:
+                        print(f"Invalid choice. Please enter 1-{len(feature_keys)}")
+                        time.sleep(1)
+                else:
+                    print("Invalid input. Enter number, C to continue, or Q to quit.")
+                    time.sleep(1)
+            else:
+                print("Configure optional features (use SPACE to toggle, ENTER to continue):")
+                print()
 
-            if key == '\x1b':  # ESC key for arrow keys
-                try:
-                    next_key = self.get_key_input()
-                    if next_key == '[':
-                        arrow_key = self.get_key_input()
-                        if arrow_key == 'A':  # Up arrow
-                            selection = (selection - 1) % len(feature_keys)
-                        elif arrow_key == 'B':  # Down arrow
-                            selection = (selection + 1) % len(feature_keys)
-                except:
-                    pass
-            elif key == ' ':  # Space to toggle
-                feature_key = feature_keys[selection]
-                self.features[feature_key]['enabled'] = not self.features[feature_key]['enabled']
-            elif key == '\r' or key == '\n':  # Enter to continue
-                break
-            elif key.upper() == 'Q':
-                return False
+                for i, key in enumerate(feature_keys):
+                    feature = self.features[key]
+                    selected = (i == selection)
+                    enabled = feature.get('enabled', False)
+
+                    self.print_menu_item(i, feature['name'], selected=selected, enabled=enabled)
+                    if selected:
+                        print(f"     {feature.get('description', '')}")
+
+                print()
+                print("Controls: UP/DOWN arrows, SPACE to toggle, ENTER to continue, Q to quit")
+
+                key = self.get_key_input()
+
+                if key == '\x1b':  # ESC key for arrow keys
+                    try:
+                        next_key = self.get_key_input()
+                        if next_key == '[':
+                            arrow_key = self.get_key_input()
+                            if arrow_key == 'A':  # Up arrow
+                                selection = (selection - 1) % len(feature_keys)
+                            elif arrow_key == 'B':  # Down arrow
+                                selection = (selection + 1) % len(feature_keys)
+                    except:
+                        pass
+                elif key == ' ':  # Space to toggle
+                    feature_key = feature_keys[selection]
+                    self.features[feature_key]['enabled'] = not self.features[feature_key]['enabled']
+                elif key == '\r' or key == '\n':  # Enter to continue
+                    break
+                elif key.upper() == 'Q':
+                    return False
 
         return True
 
     def run_setup_wizard(self):
-        """Run the complete interactive setup wizard."""
+        """Run the complete setup wizard (interactive or simple)."""
+        # Check if we can use interactive features
+        use_simple_mode = not (HAS_MSVCRT or HAS_TERMIOS)
+
+        if use_simple_mode:
+            print("=" * 70)
+            print("  PlexiChat Setup Wizard (Simple Mode)")
+            print("=" * 70)
+            print()
+            print("Interactive features not available on this system.")
+            print("Using simplified text-based setup.")
+            print()
+            return self.run_simple_setup()
+
         self.clear_screen()
         print("=" * 70)
         print("  Welcome to PlexiChat Interactive Setup Wizard")
@@ -612,6 +694,81 @@ class InteractiveSetupWizard:
         for key, feature in self.features.items():
             if not feature.get('required', False):
                 self.config[key] = feature.get('enabled', False)
+
+        return True
+
+    def run_simple_setup(self):
+        """Run a simple text-based setup for systems without interactive support."""
+        print("=" * 70)
+        print("  PlexiChat Simple Setup")
+        print("=" * 70)
+        print()
+        print("This system doesn't support interactive menus.")
+        print("Using simplified text-based setup.")
+        print()
+
+        # Installation type
+        print("Choose installation type:")
+        print("1. Minimal (basic features only)")
+        print("2. Standard (recommended)")
+        print("3. Full (all features)")
+        print("4. Developer (full + debugging)")
+
+        while True:
+            choice = input("Enter choice (1-4) [2]: ").strip()
+            if not choice:
+                choice = "2"
+
+            if choice in ['1', '2', '3', '4']:
+                install_types = ['Minimal', 'Standard', 'Full', 'Developer']
+                self.config['installation_type'] = install_types[int(choice) - 1]
+                self.features['installation_type']['selected'] = int(choice) - 1
+                break
+            else:
+                print("Invalid choice. Please enter 1-4.")
+
+        # Database type
+        print("\nChoose database type:")
+        print("1. SQLite (Default) - No setup required")
+        print("2. PostgreSQL - Requires PostgreSQL server")
+        print("3. MySQL - Requires MySQL server")
+        print("4. MongoDB - Requires MongoDB server")
+
+        while True:
+            choice = input("Enter choice (1-4) [1]: ").strip()
+            if not choice:
+                choice = "1"
+
+            if choice in ['1', '2', '3', '4']:
+                db_types = ['SQLite (Default)', 'PostgreSQL', 'MySQL', 'MongoDB']
+                self.config['database_type'] = db_types[int(choice) - 1]
+                self.features['database_type']['selected'] = int(choice) - 1
+                break
+            else:
+                print("Invalid choice. Please enter 1-4.")
+
+        # Simple yes/no for key features
+        features_to_ask = [
+            ('ai_features', 'Enable AI features?'),
+            ('security_features', 'Enable enhanced security?'),
+            ('monitoring', 'Enable monitoring and analytics?'),
+            ('ssl_setup', 'Enable SSL/TLS setup?'),
+            ('webui', 'Enable Web UI?')
+        ]
+
+        for feature_key, question in features_to_ask:
+            while True:
+                answer = input(f"\n{question} (Y/n): ").strip().lower()
+                if answer in ['', 'y', 'yes']:
+                    self.features[feature_key]['enabled'] = True
+                    self.config[feature_key] = True
+                    break
+                elif answer in ['n', 'no']:
+                    self.features[feature_key]['enabled'] = False
+                    self.config[feature_key] = False
+                    break
+                else:
+                    print("Please enter Y or N")
 
         return True
 

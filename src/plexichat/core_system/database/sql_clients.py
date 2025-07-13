@@ -12,17 +12,17 @@ from datetime import datetime, timezone
 import json
 
 try:
-    import asyncpg
+    import asyncpg #type: ignore
 except ImportError:
     asyncpg = None
 
 try:
-    import aiomysql
+    import aiomysql #type: ignore
 except ImportError:
     aiomysql = None
 
 try:
-    import aiosqlite
+    import aiosqlite #type: ignore
 except ImportError:
     aiosqlite = None
 
