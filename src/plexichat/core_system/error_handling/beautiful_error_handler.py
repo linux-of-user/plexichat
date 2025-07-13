@@ -82,8 +82,8 @@ class BeautifulErrorHandler:
         except Exception as e:
             logger.error(f"Failed to save error logs: {e}")
     
-    def _log_error(self, error_id: str, error_code: str, error_message: str, 
-                   request: Request = None, exception: Exception = None):
+    def _log_error(self, error_id: str, error_code: str, error_message: str,
+                   request: Optional[Request] = None, exception: Optional[Exception] = None):
         """Log error with comprehensive details."""
         error_entry = {
             'error_id': error_id,
@@ -132,8 +132,8 @@ class BeautifulErrorHandler:
             'args': exception.args if hasattr(exception, 'args') else None
         }
     
-    def _get_error_context(self, error_id: str, error_code: str, error_message: str, 
-                          status_code: int, request: Request = None) -> Dict[str, Any]:
+    def _get_error_context(self, error_id: str, error_code: str, error_message: str,
+                          status_code: int, request: Optional[Request] = None) -> Dict[str, Any]:
         """Get context for error template."""
         return {
             'error_id': error_id,
@@ -163,7 +163,7 @@ class BeautifulErrorHandler:
             {"request": request, **context}
         )
     
-    async def handle_500(self, request: Request, exception: Exception = None) -> HTMLResponse:
+    async def handle_500(self, request: Request, exception: Optional[Exception] = None) -> HTMLResponse:
         """Handle 500 Internal Server Error."""
         error_id = str(uuid.uuid4())[:8]
         error_code, error_message = ErrorCode.INTERNAL_ERROR
@@ -205,9 +205,9 @@ class BeautifulErrorHandler:
             {"request": request, **context}
         )
     
-    async def handle_api_error(self, request: Request, status_code: int, 
-                              error_code: str, error_message: str, 
-                              details: Dict[str, Any] = None) -> JSONResponse:
+    async def handle_api_error(self, request: Request, status_code: int,
+                              error_code: str, error_message: str,
+                              details: Optional[Dict[str, Any]] = None) -> JSONResponse:
         """Handle API errors with JSON response."""
         error_id = str(uuid.uuid4())[:8]
         
@@ -247,7 +247,7 @@ class BeautifulErrorHandler:
             'error_rate_24h': len(recent_24h) / 24 if recent_24h else 0  # Errors per hour
         }
     
-    def create_crash_report(self, exception: Exception, context: Dict[str, Any] = None) -> str:
+    def create_crash_report(self, exception: Exception, context: Optional[Dict[str, Any]] = None) -> str:
         """Create detailed crash report."""
         crash_id = str(uuid.uuid4())
         

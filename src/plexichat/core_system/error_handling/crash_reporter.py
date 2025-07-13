@@ -224,6 +224,23 @@ class CrashReporter:
         """Clear crash history."""
         self.crash_history.clear()
 
+    async def shutdown(self):
+        """Shutdown the crash reporter and cleanup resources."""
+        try:
+            # Save any pending crash data
+            if self.crash_history:
+                summary_file = self.crash_log_dir / "crash_summary.json"
+                with open(summary_file, 'w') as f:
+                    json.dump({
+                        'total_crashes': len(self.crash_history),
+                        'statistics': self.get_crash_statistics(),
+                        'shutdown_time': datetime.now().isoformat()
+                    }, f, indent=2, default=str)
+
+            self.initialized = False
+        except Exception as e:
+            print(f"Error during crash reporter shutdown: {e}")
+
 
 # Global crash reporter instance
 crash_reporter = CrashReporter()

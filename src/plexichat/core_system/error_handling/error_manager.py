@@ -17,37 +17,16 @@ from collections import defaultdict, deque
 import traceback
 import uuid
 
-from .context import ErrorContext
+from .context import ErrorContext, ErrorSeverity, ErrorCategory
 from .exceptions import BaseAPIException
-from ..app.core.error_handling.enhanced_error_handler import EnhancedErrorHandler
-from ..app.core.error_handling.circuit_breaker import CircuitBreaker, CircuitBreakerConfig
-from ..app.core.error_handling.crash_reporter import CrashReporter
+from .enhanced_error_handler import EnhancedErrorHandler
+from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
+from .crash_reporter import CrashReporter
 
 logger = logging.getLogger(__name__)
 
 
-class ErrorSeverity(Enum):
-    """Error severity levels."""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
-    EMERGENCY = "emergency"
 
-
-class ErrorCategory(Enum):
-    """Error categories."""
-    SYSTEM = "system"
-    AUTHENTICATION = "authentication"
-    AUTHORIZATION = "authorization"
-    VALIDATION = "validation"
-    DATABASE = "database"
-    NETWORK = "network"
-    EXTERNAL_SERVICE = "external_service"
-    FILE_OPERATION = "file_operation"
-    RATE_LIMITING = "rate_limiting"
-    BUSINESS_LOGIC = "business_logic"
-    UNKNOWN = "unknown"
 
 
 @dataclass
@@ -164,8 +143,8 @@ class ErrorManager:
     def handle_error(self, exception: Exception, context: Optional[Dict[str, Any]] = None,
                     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                     category: ErrorCategory = ErrorCategory.UNKNOWN,
-                    component: str = None, user_id: str = None,
-                    request_id: str = None, attempt_recovery: bool = True) -> ErrorContext:
+                    component: Optional[str] = None, user_id: Optional[str] = None,
+                    request_id: Optional[str] = None, attempt_recovery: bool = True) -> ErrorContext:
         """Handle an error with comprehensive processing."""
         
         error_id = str(uuid.uuid4())

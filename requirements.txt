@@ -75,6 +75,7 @@ pyotp>=2.8.0
 flask>=2.3.0
 clickhouse-driver>=0.2.6
 asyncpg>=0.28.0
+aiomysql>=0.2.0
 redis>=4.6.0
 motor>=3.3.0
 pymongo>=4.5.0

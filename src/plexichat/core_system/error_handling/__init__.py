@@ -21,6 +21,8 @@ Features:
 - Error boundary management for fault isolation
 """
 
+from typing import Dict, List, Optional, Any, Callable
+
 # Import existing error handling components (consolidated)
 # Note: Import from existing modules and create missing ones
 from .exceptions import (
@@ -323,7 +325,7 @@ EXTERNAL_INTEGRATIONS = {
     }
 }
 
-async def initialize_error_handling_system(config: dict = None) -> bool:
+async def initialize_error_handling_system(config: Optional[Dict[str, Any]] = None) -> bool:
     """
     Initialize the unified error handling system.
     
@@ -372,23 +374,33 @@ async def shutdown_error_handling_system():
         logger.error(f"❌ Error during error handling system shutdown: {e}")
 
 # Convenience functions for common operations
-def handle_error(exception: Exception, context: dict = None, severity: str = "MEDIUM") -> ErrorContext:
+def handle_error(exception: Exception, context: Optional[Dict[str, Any]] = None, severity: str = "MEDIUM") -> ErrorContext:
     """Handle an error with comprehensive logging and recovery."""
-    return error_manager.handle_error(exception, context, severity)
+    from .context import ErrorSeverity
+    # Convert string severity to enum
+    severity_map = {
+        "LOW": ErrorSeverity.LOW,
+        "MEDIUM": ErrorSeverity.MEDIUM,
+        "HIGH": ErrorSeverity.HIGH,
+        "CRITICAL": ErrorSeverity.CRITICAL
+    }
+    severity_enum = severity_map.get(severity.upper(), ErrorSeverity.MEDIUM)
+    return error_manager.handle_error(exception, context or {}, severity_enum)
 
-def report_crash(exception: Exception, context: dict = None) -> CrashContext:
+def report_crash(exception: Exception, context: Optional[Dict[str, Any]] = None):
     """Report a crash with detailed context."""
-    return crash_reporter.report_crash(exception, context)
+    from .context import ErrorSeverity
+    return crash_reporter.report_crash(exception, ErrorSeverity.CRITICAL, additional_context=context)
 
-def get_error_statistics() -> dict:
+def get_error_statistics() -> Dict[str, Any]:
     """Get current error statistics."""
     return error_monitor.get_statistics()
 
-def create_circuit_breaker(name: str, config: dict = None) -> CircuitBreaker:
+def create_circuit_breaker(name: str, config: Optional[Dict[str, Any]] = None) -> CircuitBreaker:
     """Create a circuit breaker with the specified configuration."""
     return error_manager.create_circuit_breaker(name, config)
 
-def register_recovery_strategy(error_type: type, strategy_func: callable):
+def register_recovery_strategy(error_type: type, strategy_func: Callable):
     """Register a custom error recovery strategy."""
     recovery_manager.register_strategy(error_type, strategy_func)
 

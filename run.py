@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- coding: ascii -*-
 """
 PlexiChat Application Runner - Enhanced Edition with Bootstrap Installer
 
 Advanced cross-platform entry point with comprehensive setup and monitoring.
 Features:
-- 🚀 BOOTSTRAP MODE: One-script installation from GitHub (--bootstrap)
+- [*] BOOTSTRAP MODE: One-script installation from GitHub (--bootstrap)
 - Interactive first-time setup wizard with style selection
 - Multiple terminal display modes (split, tabbed, classic)
 - Advanced dependency management with fallback options
@@ -76,7 +76,7 @@ class SimpleProgressBar:
                 import shutil
                 terminal_width = shutil.get_terminal_size().columns
                 # Use a conservative approach: ensure we have enough space
-                # Format: "Installing package: |████████████████████████████████████████| 100.0% (36/36) ETA: 123s"
+                # Format: "Installing package: |????????????????????????????????????????| 100.0% (36/36) ETA: 123s"
                 # Reserve space for: description (30) + " |" (2) + "| 100.0% (999/999) ETA: 999s" (25) = 57 chars
                 available_width = max(80, terminal_width)  # Ensure minimum 80 chars
                 self.width = min(50, available_width - 57)  # Cap bar width at 50, reserve 57 for other elements
@@ -104,7 +104,7 @@ class SimpleProgressBar:
 
         percent = (self.current / self.total) * 100
         filled = int((self.current / self.total) * self.width)
-        bar = "█" * filled + "░" * (self.width - filled)
+        bar = "#" * filled + "-" * (self.width - filled)
         elapsed = time.time() - self.start_time
 
         if self.current > 0 and self.current < self.total:
@@ -149,7 +149,7 @@ def install_with_progress(packages, desc="Installing packages"):
     if not packages:
         return True
 
-    print(f"📦 {desc}...")
+    print(f"[*] {desc}...")
 
     # Create progress bar
     progress = create_progress_bar(len(packages), desc)
@@ -180,15 +180,15 @@ def install_with_progress(packages, desc="Installing packages"):
 
     # Report results
     if success_count == len(packages):
-        print(f"✅ Successfully installed {success_count} packages")
+        print(f"[OK] Successfully installed {success_count} packages")
         return True
     elif success_count > 0:
-        print(f"⚠️ Installed {success_count}/{len(packages)} packages")
+        print(f"[WARN] Installed {success_count}/{len(packages)} packages")
         if failed_packages:
-            print(f"❌ Failed to install: {', '.join(failed_packages)}")
+            print(f"[ERROR] Failed to install: {', '.join(failed_packages)}")
         return True
     else:
-        print(f"❌ Failed to install all packages")
+        print(f"[ERROR] Failed to install all packages")
         return False
 
 # Set up paths
@@ -267,29 +267,12 @@ TERMINAL_STYLES = {
 
 
 def print_banner():
-    """Print enhanced PlexiChat banner."""
+    """Print enhanced PlexiChat banner with ASCII-only characters."""
     version = get_version_info()
     width = min(TERMINAL_WIDTH, 80)
 
-    # Try to print Unicode banner first, fallback to ASCII if encoding fails
-    try:
-        banner = f"""
-{'=' * width}
-    ██████╗ ██╗     ███████╗██╗  ██╗██╗ ██████╗██╗  ██╗ █████╗ ████████╗
-    ██╔══██╗██║     ██╔════╝╗██╗██╔╝██║██╔════╝██║  ██║██╔══██╗╚══██╔══╝
-    ██████╔╝██║     █████╗   ╚███╔╝ ██║██║     ███████║███████║   ██║
-    ██╔═══╝ ██║     ██╔══╝   ██╔██╗ ██║██║     ██╔══██║██╔══██║   ██║
-    ██║     ███████╗███████╗██╔╝ ██╗██║╚██████╗██║  ██║██║  ██║   ██║
-    ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
-
-    🔒 Government-Level Secure Communication Platform v{version}
-    🌐 Advanced AI • 🛡️ Zero-Trust Security • 🔄 Distributed Architecture
-{'=' * width}
-"""
-        print(banner)
-    except UnicodeEncodeError:
-        # Fallback to ASCII banner for systems with encoding issues
-        banner = f"""
+    # ASCII-only banner for maximum compatibility
+    banner = f"""
 {'=' * width}
     ########  ##       ######## ##     ## ####  ######  ##     ##    ###    ########
     ##     ## ##       ##        ##   ##   ##  ##    ## ##     ##   ## ##      ##
@@ -303,29 +286,26 @@ def print_banner():
     [*] Advanced AI * Zero-Trust Security * Distributed Architecture
 {'=' * width}
 """
-        print(banner)
+    print(banner)
 
 
 def check_python_version():
     """Check if Python version is compatible."""
     if sys.version_info < (3, 11):
-        print("❌ Error: Python 3.11 or higher is required")
+        print("[ERROR] Error: Python 3.11 or higher is required")
         print(f"Current version: {sys.version}")
-        print("\n💡 To install Python 3.11+:")
+        print("\n[INFO] To install Python 3.11+:")
         if IS_WINDOWS:
-            print("   • Download from https://python.org/downloads/")
-            print("   • Or use: winget install Python.Python.3.11")
+            print("   * Download from https://python.org/downloads/")
+            print("   * Or use: winget install Python.Python.3.11")
         elif IS_LINUX:
-            print("   • Ubuntu/Debian: sudo apt update && sudo apt install python3.11")
-            print("   • CentOS/RHEL: sudo dnf install python3.11")
+            print("   * Ubuntu/Debian: sudo apt update && sudo apt install python3.11")
+            print("   * CentOS/RHEL: sudo dnf install python3.11")
         elif IS_MACOS:
-            print("   • Homebrew: brew install python@3.11")
-            print("   • Or download from https://python.org/downloads/")
+            print("   * Homebrew: brew install python@3.11")
+            print("   * Or download from https://python.org/downloads/")
         sys.exit(1)
-    try:
-        print(f"✅ Python version: {sys.version.split()[0]}")
-    except UnicodeEncodeError:
-        print(f"[OK] Python version: {sys.version.split()[0]}")
+    print(f"[OK] Python version: {sys.version.split()[0]}")
 
 
 def get_system_info():
@@ -406,29 +386,43 @@ class PlexiChatBootstrapper:
 |  * One-script installation for PlexiChat Server              |
 |  * Automatic dependency management                           |
 |  * Development & production ready                            |
+|  * Enhanced cross-platform compatibility                     |
+|  * Improved error handling and recovery                      |
 +===============================================================+
 """)
 
     def check_bootstrap_requirements(self) -> bool:
         """Check if system meets bootstrap requirements."""
-        print("🔍 Checking bootstrap requirements...")
+        print("[*] Checking bootstrap requirements...")
 
         # Check Python version (more lenient for bootstrap)
         current_version = sys.version_info[:2]
         if current_version < REQUIRED_PYTHON_BOOTSTRAP:
-            print(f"❌ Python {REQUIRED_PYTHON_BOOTSTRAP[0]}.{REQUIRED_PYTHON_BOOTSTRAP[1]}+ required for bootstrap. "
+            print(f"[ERROR] Python {REQUIRED_PYTHON_BOOTSTRAP[0]}.{REQUIRED_PYTHON_BOOTSTRAP[1]}+ required for bootstrap. "
                   f"Current: {current_version[0]}.{current_version[1]}")
             return False
 
-        print(f"✅ Python {current_version[0]}.{current_version[1]} detected")
+        print(f"[OK] Python {current_version[0]}.{current_version[1]} detected")
 
         # Check internet connectivity
         try:
             urllib.request.urlopen('https://github.com', timeout=10)
-            print("✅ Internet connectivity verified")
+            print("[OK] Internet connectivity verified")
         except urllib.error.URLError:
-            print("❌ Internet connection required for bootstrap")
+            print("[ERROR] Internet connection required for bootstrap")
             return False
+
+        # Check available disk space
+        try:
+            import shutil
+            free_space = shutil.disk_usage('.').free / (1024**3)  # GB
+            if free_space < 1.0:  # Require at least 1GB free
+                print(f"[WARN] Low disk space: {free_space:.1f}GB available")
+                print("[INFO] PlexiChat requires at least 1GB free space")
+            else:
+                print(f"[OK] Disk space available: {free_space:.1f}GB")
+        except Exception:
+            print("[WARN] Could not check disk space")
 
         return True
 
@@ -443,13 +437,13 @@ class PlexiChatBootstrapper:
     def download_with_progress(self, url: str, destination: Path, description: str = "Downloading") -> bool:
         """Download file with progress bar."""
         try:
-            print(f"📥 {description}...")
+            print(f"[*] {description}...")
 
             with urllib.request.urlopen(url) as response:
                 total_size = int(response.headers.get('content-length', 0))
 
                 if total_size == 0:
-                    print("⚠️  Unknown file size")
+                    print("[WARN] Unknown file size")
                     with open(destination, 'wb') as f:
                         f.write(response.read())
                     return True
@@ -482,34 +476,38 @@ class PlexiChatBootstrapper:
 
                     progress.finish()
 
+                print(f"[OK] Download completed: {destination.name}")
                 return True
 
         except urllib.error.URLError as e:
-            print(f"❌ Download failed: {e}")
+            print(f"[ERROR] Download failed: {e}")
+            return False
+        except Exception as e:
+            print(f"[ERROR] Unexpected error during download: {e}")
             return False
 
     def clone_or_download_repo(self) -> bool:
         """Clone repository using git or download as zip."""
-        print("📥 Acquiring PlexiChat source code...")
+        print("[*] Acquiring PlexiChat source code...")
 
         if self.install_dir.exists():
-            print("⚠️  Installation directory exists. Removing...")
+            print("[WARN] Installation directory exists. Removing...")
             shutil.rmtree(self.install_dir)
 
         # Try git clone first
         if self.check_git_available():
-            print("🔄 Cloning repository with git...")
+            print("[*] Cloning repository with git...")
             try:
                 subprocess.run([
                     "git", "clone", GITHUB_REPO, str(self.install_dir)
                 ], check=True, capture_output=True)
-                print("✅ Repository cloned successfully")
+                print("[OK] Repository cloned successfully")
                 return True
             except subprocess.CalledProcessError:
-                print("⚠️  Git clone failed, trying ZIP download...")
+                print("[WARN] Git clone failed, trying ZIP download...")
 
         # Fallback to zip download
-        print("📦 Downloading repository as ZIP...")
+        print("[*] Downloading repository as ZIP...")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             zip_path = Path(temp_dir) / "plexichat.zip"
@@ -517,7 +515,7 @@ class PlexiChatBootstrapper:
             if not self.download_with_progress(GITHUB_ZIP, zip_path, "Downloading PlexiChat"):
                 return False
 
-            print("📂 Extracting files...")
+            print("[*] Extracting files...")
             try:
                 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                     zip_ref.extractall(temp_dir)
@@ -527,36 +525,43 @@ class PlexiChatBootstrapper:
                                 if d.is_dir() and d.name != "__pycache__" and "plexichat" in d.name.lower()]
 
                 if not extracted_dirs:
-                    print("❌ No PlexiChat directories found in ZIP")
+                    print("[ERROR] No PlexiChat directories found in ZIP")
                     return False
 
                 # Move the extracted directory to install location
                 shutil.move(str(extracted_dirs[0]), str(self.install_dir))
-                print("✅ Source code extracted successfully")
+                print("[OK] Source code extracted successfully")
                 return True
 
             except zipfile.BadZipFile:
-                print("❌ Downloaded file is not a valid ZIP")
+                print("[ERROR] Downloaded file is not a valid ZIP")
+                return False
+            except Exception as e:
+                print(f"[ERROR] Extraction failed: {e}")
                 return False
 
     def create_virtual_environment(self) -> bool:
         """Create Python virtual environment."""
-        print("🐍 Creating Python virtual environment...")
+        print("[*] Creating Python virtual environment...")
 
         if self.venv_dir.exists():
-            print("⚠️  Virtual environment exists. Recreating...")
-            shutil.rmtree(self.venv_dir)
+            print("[WARN] Virtual environment exists. Recreating...")
+            try:
+                shutil.rmtree(self.venv_dir)
+            except Exception as e:
+                print(f"[ERROR] Could not remove existing venv: {e}")
+                return False
 
         try:
             subprocess.run([
                 sys.executable, "-m", "venv", str(self.venv_dir)
             ], check=True, capture_output=True)
 
-            print("✅ Virtual environment created")
+            print("[OK] Virtual environment created")
             return True
 
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to create virtual environment: {e}")
+            print(f"[ERROR] Failed to create virtual environment: {e}")
             return False
 
     def get_venv_python(self) -> str:
@@ -575,13 +580,15 @@ class PlexiChatBootstrapper:
 
     def install_dependencies(self) -> bool:
         """Install PlexiChat dependencies."""
-        print("📦 Installing dependencies...")
+        print("[*] Installing dependencies...")
 
         # Check for requirements.txt
         requirements_file = self.install_dir / "requirements.txt"
         if not requirements_file.exists():
-            print("⚠️  No requirements.txt found, trying basic installation...")
-            return True
+            print("[WARN] No requirements.txt found, trying basic installation...")
+            # Try to install basic dependencies
+            basic_deps = ["flask", "requests", "pyyaml"]
+            return self.install_basic_dependencies(basic_deps)
 
         try:
             # Upgrade pip first
@@ -594,18 +601,32 @@ class PlexiChatBootstrapper:
                 self.get_venv_pip(), "install", "-r", str(requirements_file)
             ], check=True, capture_output=True)
 
-            print("✅ Dependencies installed successfully")
+            print("[OK] Dependencies installed successfully")
             return True
 
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to install dependencies: {e}")
+            print(f"[ERROR] Failed to install dependencies: {e}")
+            return False
+
+    def install_basic_dependencies(self, deps: list) -> bool:
+        """Install basic dependencies when requirements.txt is missing."""
+        try:
+            for dep in deps:
+                print(f"[*] Installing {dep}...")
+                subprocess.run([
+                    self.get_venv_pip(), "install", dep
+                ], check=True, capture_output=True)
+            print("[OK] Basic dependencies installed")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"[ERROR] Failed to install basic dependencies: {e}")
             return False
 
     def run_bootstrap(self) -> bool:
         """Run the complete bootstrap process."""
         self.print_bootstrap_banner()
 
-        print("🚀 Starting PlexiChat bootstrap installation...")
+        print("[*] Starting PlexiChat bootstrap installation...")
         print("=" * 60)
 
         # Step 1: Check requirements
@@ -624,22 +645,59 @@ class PlexiChatBootstrapper:
         if not self.install_dependencies():
             return False
 
+        # Step 5: Create initial configuration
+        self.create_initial_config()
+
         print("\n" + "=" * 60)
-        print("🎉 Bootstrap installation completed successfully!")
+        print("[SUCCESS] Bootstrap installation completed successfully!")
         print("\nNext steps:")
         print(f"  1. cd {self.script_dir}")
-        print("  2. python run.py --server    # Start the server")
-        print("  3. python run.py --dev       # Development mode")
-        print("  4. python run.py --help      # See all options")
+        print("  2. cd plexichat")
+        print("  3. python run.py setup       # Configure PlexiChat")
+        print("  4. python run.py run         # Start the server")
+        print("  5. python run.py --help      # See all options")
+        print("\nFor development:")
+        print("  python run.py setup developer  # Full development setup")
 
         return True
+
+    def create_initial_config(self):
+        """Create initial configuration files."""
+        try:
+            config_dir = self.install_dir / "config"
+            config_dir.mkdir(exist_ok=True)
+
+            # Create basic config if it doesn't exist
+            basic_config = config_dir / "plexichat.json"
+            if not basic_config.exists():
+                initial_config = {
+                    "installation": {
+                        "type": "bootstrap",
+                        "date": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "version": PLEXICHAT_VERSION
+                    },
+                    "server": {
+                        "host": "localhost",
+                        "ports": {
+                            "api": 8000,
+                            "webui": 8080
+                        }
+                    }
+                }
+
+                with open(basic_config, 'w') as f:
+                    json.dump(initial_config, f, indent=2)
+
+                print("[OK] Initial configuration created")
+        except Exception as e:
+            print(f"[WARN] Could not create initial config: {e}")
 
 
 def print_system_info():
     """Print detailed system information."""
     info = get_system_info()
 
-    print("🖥️  System Information:")
+    print("[*] System Information:")
     print(f"   Platform: {info['platform']} {info['platform_version']} ({info['architecture']})")
     print(f"   Python: {info['python_version']} ({info['python_executable']})")
     print(f"   CPU Cores: {info['cpu_count']}")
@@ -655,20 +713,20 @@ def print_system_info():
     print(f"   Terminal: {info['terminal_width']} columns, Color: {'Yes' if info['supports_color'] else 'No'}")
     print(f"   Performance Monitoring: {'Available' if info['has_psutil'] else 'Limited (install psutil for full metrics)'}")
 
-    print("\n🌍 Environment Variables:")
+    print("\n[*] Environment Variables:")
     for key, value in info['environment_variables'].items():
         print(f"   {key}: {value}")
 
 
 def show_environment_info():
     """Show detailed environment manager information."""
-    print("🐍 Python Environment Managers")
+    print("[*] Python Environment Managers")
     print("=" * 50)
 
     environments = detect_python_environments()
 
     for env_name, env_info in environments.items():
-        status = "✅ Available" if env_info['available'] else "❌ Not Available"
+        status = "[OK] Available" if env_info['available'] else "[ERROR] Not Available"
         print(f"{env_name.upper()}: {status}")
 
         if env_info['available']:
@@ -703,7 +761,7 @@ def show_environment_info():
         print()  # Empty line between environments
 
     # Show current active environment
-    print("🎯 Current Environment:")
+    print("[*] Current Environment:")
     current_venv = os.getenv("VIRTUAL_ENV")
     current_conda = os.getenv("CONDA_DEFAULT_ENV")
 
@@ -718,14 +776,14 @@ def show_environment_info():
     print(f"   Python version: {sys.version}")
 
     # Show recommendations
-    print("\n💡 Recommendations:")
+    print("\n[INFO] Recommendations:")
     if not any(env['available'] for env in environments.values()):
-        print("   ⚠️  No environment managers found!")
+        print("   [WARN]  No environment managers found!")
         print("   Install one of: conda, mamba, virtualenv, or use built-in venv")
     elif not environments['conda']['available'] and not environments['mamba']['available']:
         print("   Consider installing conda or mamba for better package management")
     else:
-        print("   ✅ Good environment manager setup detected")
+        print("   [OK] Good environment manager setup detected")
 
 
 def save_setup_config(config):
@@ -736,7 +794,7 @@ def save_setup_config(config):
             json.dump(config, f, indent=2)
         return True
     except Exception as e:
-        print(f"⚠️ Warning: Could not save setup config: {e}")
+        print(f"[WARN] Warning: Could not save setup config: {e}")
         return False
 
 
@@ -747,29 +805,29 @@ def load_setup_config():
             with open(SETUP_CONFIG, 'r') as f:
                 return json.load(f)
     except Exception as e:
-        print(f"⚠️ Warning: Could not load setup config: {e}")
+        print(f"[WARN] Warning: Could not load setup config: {e}")
     return {}
 
 
 def interactive_setup_wizard():
     """Interactive setup wizard for first-time users."""
-    print("\n🧙‍♂️ PlexiChat Setup Wizard")
+    print("\n[*] PlexiChat Setup Wizard")
     print("=" * 50)
 
     # System check
-    print("🔍 Checking system compatibility...")
+    print("[*] Checking system compatibility...")
     print_system_info()
 
     # Check for existing setup
     existing_config = load_setup_config()
     if existing_config:
-        print(f"\n📋 Found existing setup: {existing_config.get('setup_style', 'unknown')}")
-        if input("🔄 Reconfigure setup? (y/N): ").lower().startswith('y'):
+        print(f"\n[*] Found existing setup: {existing_config.get('setup_style', 'unknown')}")
+        if input("[*] Reconfigure setup? (y/N): ").lower().startswith('y'):
             pass  # Continue with wizard
         else:
             return existing_config
 
-    print("\n🎯 Choose your setup style:")
+    print("\n[*] Choose your setup style:")
     print("=" * 30)
 
     for i, (key, style) in enumerate(SETUP_STYLES.items(), 1):
@@ -790,14 +848,14 @@ def interactive_setup_wizard():
                 setup_style = list(SETUP_STYLES.keys())[choice_idx]
                 break
             else:
-                print("❌ Invalid choice. Please select 1-4.")
+                print("[ERROR] Invalid choice. Please select 1-4.")
         except ValueError:
-            print("❌ Please enter a number (1-4).")
+            print("[ERROR] Please enter a number (1-4).")
 
-    print(f"\n✅ Selected: {SETUP_STYLES[setup_style]['name']}")
+    print(f"\n[OK] Selected: {SETUP_STYLES[setup_style]['name']}")
 
     # Terminal style selection
-    print("\n🖥️  Choose your terminal style:")
+    print("\n[*]  Choose your terminal style:")
     print("=" * 30)
 
     for i, (key, style) in enumerate(TERMINAL_STYLES.items(), 1):
@@ -817,7 +875,7 @@ def interactive_setup_wizard():
         recommended = "1"  # Classic
         rec_name = "Classic Terminal"
 
-    print(f"💡 Recommended for your terminal ({TERMINAL_WIDTH} columns): {rec_name}")
+    print(f"[INFO] Recommended for your terminal ({TERMINAL_WIDTH} columns): {rec_name}")
 
     while True:
         try:
@@ -830,20 +888,20 @@ def interactive_setup_wizard():
                 terminal_style = list(TERMINAL_STYLES.keys())[choice_idx]
                 break
             else:
-                print("❌ Invalid choice. Please select 1-4.")
+                print("[ERROR] Invalid choice. Please select 1-4.")
         except ValueError:
-            print("❌ Please enter a number (1-4).")
+            print("[ERROR] Please enter a number (1-4).")
 
-    print(f"\n✅ Selected: {TERMINAL_STYLES[terminal_style]['name']}")
+    print(f"\n[OK] Selected: {TERMINAL_STYLES[terminal_style]['name']}")
 
     # Debug mode
-    debug_mode = input("\n🐛 Enable debug mode? (y/N): ").lower().startswith('y')
+    debug_mode = input("\n[DEBUG] Enable debug mode? (y/N): ").lower().startswith('y')
 
     # Performance monitoring
-    perf_monitoring = input("📊 Enable performance monitoring? (Y/n): ").lower() not in ['n', 'no']
+    perf_monitoring = input("[*] Enable performance monitoring? (Y/n): ").lower() not in ['n', 'no']
 
     # Auto-start services
-    auto_start = input("🚀 Auto-start all services? (Y/n): ").lower() not in ['n', 'no']
+    auto_start = input("[*] Auto-start all services? (Y/n): ").lower() not in ['n', 'no']
 
     config = {
         "setup_style": setup_style,
@@ -855,7 +913,7 @@ def interactive_setup_wizard():
         "system_info": get_system_info()
     }
 
-    print("\n📋 Configuration Summary:")
+    print("\n[*] Configuration Summary:")
     print("=" * 30)
     print(f"Setup Style: {SETUP_STYLES[setup_style]['name']}")
     print(f"Terminal Style: {TERMINAL_STYLES[terminal_style]['name']}")
@@ -863,11 +921,11 @@ def interactive_setup_wizard():
     print(f"Performance Monitoring: {'Enabled' if perf_monitoring else 'Disabled'}")
     print(f"Auto-start Services: {'Enabled' if auto_start else 'Disabled'}")
 
-    if input("\n✅ Proceed with this configuration? (Y/n): ").lower() not in ['n', 'no']:
+    if input("\n[OK] Proceed with this configuration? (Y/n): ").lower() not in ['n', 'no']:
         save_setup_config(config)
         return config
     else:
-        print("❌ Setup cancelled.")
+        print("[ERROR] Setup cancelled.")
         return None
 
 
@@ -919,7 +977,7 @@ def get_version_info():
         return "a.1.1-7"
 
     except Exception as e:
-        print(f"⚠️  Error reading version: {e}")
+        print(f"[WARN]  Error reading version: {e}")
         return "a.1.1-7"
 
 
@@ -941,16 +999,16 @@ def update_version_format():
                 with open(VERSION_FILE, 'w') as f:
                     json.dump(version_data, f, indent=2)
 
-                print("📝 Marked version.json as deprecated (now using Git-based versioning)")
+                print("[*] Marked version.json as deprecated (now using Git-based versioning)")
         except Exception as e:
-            print(f"⚠️ Warning: Could not update version format: {e}")
+            print(f"[WARN] Warning: Could not update version format: {e}")
 
 
 def check_for_updates():
     """Check for available updates from GitHub."""
     try:
-        print("🔍 Update checking now uses Git-based versioning")
-        print("💡 Updates are available through:")
+        print("[*] Update checking now uses Git-based versioning")
+        print("[INFO] Updates are available through:")
         print("   1. Git pull from repository")
         print("   2. GitHub releases download")
         print("   3. Admin panel update interface (when running)")
@@ -958,7 +1016,7 @@ def check_for_updates():
 
         return True
     except Exception as e:
-        print(f"⚠️ Update check information: {e}")
+        print(f"[WARN] Update check information: {e}")
         return False
 
 
@@ -983,10 +1041,10 @@ IMPORTANT: Change password after first login and delete this file.
     try:
         with open(DEFAULT_CREDS, 'w') as f:
             f.write(creds_content)
-        print(f"🔐 Default admin credentials generated: {DEFAULT_CREDS}")
-        print("⚠️  IMPORTANT: Change the default password immediately after first login!")
+        print(f"[*] Default admin credentials generated: {DEFAULT_CREDS}")
+        print("[WARN]  IMPORTANT: Change the default password immediately after first login!")
     except Exception as e:
-        print(f"❌ Failed to generate default credentials: {e}")
+        print(f"[ERROR] Failed to generate default credentials: {e}")
 
 
 def get_port_configuration():
@@ -1011,7 +1069,7 @@ def get_port_configuration():
                 if yaml is not None:
                     config = yaml.safe_load(f)
                 else:
-                    print("⚠️ Warning: PyYAML not installed, falling back to JSON config if available.")
+                    print("[WARN] Warning: PyYAML not installed, falling back to JSON config if available.")
                     raise ImportError("PyYAML not installed")
             ports = (
                 config.get("plexichat", {})
@@ -1028,7 +1086,7 @@ def get_port_configuration():
                 "admin": ports.get("admin", default_ports["admin"])
             }
         except Exception as e:
-            print(f"⚠️ Warning: Could not load YAML port configuration: {e}")
+            print(f"[WARN] Warning: Could not load YAML port configuration: {e}")
 
     # Try legacy JSON config
     json_config_file = ROOT / "config" / "plexichat.json"
@@ -1046,7 +1104,7 @@ def get_port_configuration():
                 "admin": ports.get("admin", default_ports["admin"])
             }
         except Exception as e:
-            print(f"⚠️ Warning: Could not load JSON port configuration: {e}")
+            print(f"[WARN] Warning: Could not load JSON port configuration: {e}")
 
     # Fallback to defaults
     return default_ports
@@ -1092,7 +1150,7 @@ def detect_installation_type():
             return "incomplete"
 
     except Exception as e:
-        print(f"⚠️ Warning: Could not detect installation type: {e}")
+        print(f"[WARN] Warning: Could not detect installation type: {e}")
         return "unknown"
 
 
@@ -1173,10 +1231,10 @@ def create_virtual_environment(env_type='auto'):
     if VENV_DIR.exists():
         venv_python = get_venv_python()
         if venv_python and venv_python.exists():
-            print("✅ Virtual environment already exists")
+            print("[OK] Virtual environment already exists")
             return True
         else:
-            print("🔄 Recreating corrupted virtual environment...")
+            print("[*] Recreating corrupted virtual environment...")
             clean_environment()
 
     environments = detect_python_environments()
@@ -1192,10 +1250,10 @@ def create_virtual_environment(env_type='auto'):
         elif environments['virtualenv']['available']:
             env_type = 'virtualenv'
         else:
-            print("❌ No suitable Python environment manager found")
+            print("[ERROR] No suitable Python environment manager found")
             return False
 
-    print(f"🔄 Creating virtual environment using {env_type}...")
+    print(f"[*] Creating virtual environment using {env_type}...")
 
     try:
         if env_type == 'conda':
@@ -1227,36 +1285,36 @@ def create_virtual_environment(env_type='auto'):
                 (VENV_DIR / "bin").mkdir(exist_ok=True)
                 (VENV_DIR / "bin" / "python").symlink_to(conda_python)
 
-            print(f"✅ Conda environment '{env_name}' created")
+            print(f"[OK] Conda environment '{env_name}' created")
 
         elif env_type == 'mamba':
             # Similar to conda but with mamba
             env_name = f"plexichat-{ROOT.name}"
             cmd = ['mamba', 'create', '-n', env_name, f'python={sys.version_info.major}.{sys.version_info.minor}', '-y']
             subprocess.check_call(cmd)
-            print(f"✅ Mamba environment '{env_name}' created")
+            print(f"[OK] Mamba environment '{env_name}' created")
 
         elif env_type == 'venv':
             # Standard venv
             subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)])
-            print("✅ Virtual environment created with venv")
+            print("[OK] Virtual environment created with venv")
 
         elif env_type == 'virtualenv':
             # virtualenv
             subprocess.check_call(["virtualenv", str(VENV_DIR)])
-            print("✅ Virtual environment created with virtualenv")
+            print("[OK] Virtual environment created with virtualenv")
 
         else:
-            print(f"❌ Unsupported environment type: {env_type}")
+            print(f"[ERROR] Unsupported environment type: {env_type}")
             return False
 
         return True
 
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to create virtual environment: {e}")
-        print("💡 Available environment managers:")
+        print(f"[ERROR] Failed to create virtual environment: {e}")
+        print("[INFO] Available environment managers:")
         for env, info in environments.items():
-            status = "✅" if info['available'] else "❌"
+            status = "[OK]" if info['available'] else "[ERROR]"
             version = info.get('version', 'Unknown version')
             print(f"   {status} {env}: {version if info['available'] else 'Not available'}")
         return False
@@ -1269,17 +1327,17 @@ def install_dependencies(install_type="minimal"):
 
     venv_python = get_venv_python()
     if not venv_python or not venv_python.exists():
-        print("❌ Virtual environment Python not found")
+        print("[ERROR] Virtual environment Python not found")
         return False
 
-    print(f"📦 Installing {install_type} dependencies...")
+    print(f"[*] Installing {install_type} dependencies...")
 
     # Upgrade pip first
     try:
-        print("📦 Upgrading pip...")
+        print("[*] Upgrading pip...")
         subprocess.check_call([str(venv_python), "-m", "pip", "install", "--upgrade", "pip"])
     except subprocess.CalledProcessError as e:
-        print(f"⚠️ Failed to upgrade pip: {e}")
+        print(f"[WARN] Failed to upgrade pip: {e}")
 
     # Install based on type
     if install_type == "minimal":
@@ -1291,14 +1349,14 @@ def install_dependencies(install_type="minimal"):
     elif install_type == "developer":
         return install_developer_deps(venv_python)
     else:
-        print(f"❌ Unknown install type: {install_type}")
+        print(f"[ERROR] Unknown install type: {install_type}")
         return False
 
 
 def parse_requirements_file():
     """Parse requirements.txt with Python version-specific handling."""
     if not REQUIREMENTS.exists():
-        print("❌ requirements.txt not found")
+        print("[ERROR] requirements.txt not found")
         return {"minimal": [], "full": []}
 
     minimal_deps = []
@@ -1375,7 +1433,7 @@ def process_version_specific_requirement(requirement, python_version):
 
     if python_version in incompatible_packages:
         if package_name in incompatible_packages[python_version]:
-            print(f"⚠️  Skipping {package_name} (not compatible with Python {python_version})")
+            print(f"[WARN]  Skipping {package_name} (not compatible with Python {python_version})")
             return None
 
     # Handle packages with different names on different Python versions
@@ -1399,10 +1457,10 @@ def install_minimal_deps(venv_python):
     minimal_deps = deps["minimal"]
 
     if not minimal_deps:
-        print("❌ No minimal dependencies found in requirements.txt")
+        print("[ERROR] No minimal dependencies found in requirements.txt")
         return False
 
-    print(f"📋 Installing {len(minimal_deps)} minimal dependencies...")
+    print(f"[*] Installing {len(minimal_deps)} minimal dependencies...")
     return install_package_list(venv_python, minimal_deps)
 
 
@@ -1423,10 +1481,10 @@ def install_standard_deps(venv_python):
     all_deps = minimal_deps + standard_packages
 
     if not all_deps:
-        print("❌ No dependencies found")
+        print("[ERROR] No dependencies found")
         return False
 
-    print(f"📋 Installing {len(all_deps)} standard dependencies...")
+    print(f"[*] Installing {len(all_deps)} standard dependencies...")
     return install_package_list(venv_python, all_deps)
 
 
@@ -1438,10 +1496,10 @@ def install_full_deps(venv_python):
     all_deps = minimal_deps + full_deps
 
     if not all_deps:
-        print("❌ No dependencies found in requirements.txt")
+        print("[ERROR] No dependencies found in requirements.txt")
         return False
 
-    print(f"📋 Installing {len(all_deps)} full dependencies...")
+    print(f"[*] Installing {len(all_deps)} full dependencies...")
     return install_package_list(venv_python, all_deps)
 
 
@@ -1471,10 +1529,10 @@ def install_developer_deps(venv_python):
     all_deps = minimal_deps + full_deps + dev_packages
 
     if not all_deps:
-        print("❌ No dependencies found")
+        print("[ERROR] No dependencies found")
         return False
 
-    print(f"📋 Installing {len(all_deps)} developer dependencies...")
+    print(f"[*] Installing {len(all_deps)} developer dependencies...")
     return install_package_list(venv_python, all_deps)
 
 
@@ -1505,7 +1563,7 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
     progress.close()
 
     if failed_packages:
-        print(f"\n⚠️  {len(failed_packages)} packages failed to install:")
+        print(f"\n[WARN]  {len(failed_packages)} packages failed to install:")
         for pkg in failed_packages:
             print(f"   - {pkg}")
 
@@ -1514,15 +1572,15 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
         critical_failed = [pkg for pkg in failed_packages if any(crit in pkg.lower() for crit in critical_packages)]
 
         if critical_failed:
-            print(f"\n❌ Critical packages failed: {critical_failed}")
-            print("💡 Try installing manually or check system dependencies")
+            print(f"\n[ERROR] Critical packages failed: {critical_failed}")
+            print("[INFO] Try installing manually or check system dependencies")
             return False
         else:
-            print(f"\n⚠️  Some optional packages failed, but core functionality should work.")
-            print(f"✅ Successfully installed {len(packages) - len(failed_packages)}/{len(packages)} packages")
+            print(f"\n[WARN]  Some optional packages failed, but core functionality should work.")
+            print(f"[OK] Successfully installed {len(packages) - len(failed_packages)}/{len(packages)} packages")
             return True
     else:
-        print(f"✅ All {len(packages)} packages installed successfully")
+        print(f"[OK] All {len(packages)} packages installed successfully")
         return True
 
 
@@ -1557,7 +1615,7 @@ def install_single_package(python_exe, package, use_fallbacks=True, verbose=Fals
         try:
             # Only print verbose messages if requested (not during progress bar)
             if verbose:
-                print(f"   🔄 Trying {method['name']} for {package}...")
+                print(f"   [*] Trying {method['name']} for {package}...")
             subprocess.check_call(
                 method['cmd'],
                 stdout=subprocess.DEVNULL,
@@ -1567,12 +1625,12 @@ def install_single_package(python_exe, package, use_fallbacks=True, verbose=Fals
             return True
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             if verbose:
-                print(f"   ⚠️  {method['name']} failed: {e}")
+                print(f"   [WARN]  {method['name']} failed: {e}")
             continue
 
     # Final fallback: try system package manager suggestions
     if use_fallbacks and verbose:
-        print(f"   💡 Consider installing {package} via system package manager:")
+        print(f"   [INFO] Consider installing {package} via system package manager:")
         system = platform.system().lower()
         if system == "linux":
             # Try to detect distribution
@@ -1608,9 +1666,9 @@ def start_log_monitor():
         if not log_file.exists():
             log_file.touch()
 
-        print("📊 Advanced Log Monitor Started (Left Panel)")
+        print("[*] Advanced Log Monitor Started (Left Panel)")
         print("=" * 50)
-        print("🔍 Monitoring: latest.log, plexichat.log, errors.log")
+        print("[*] Monitoring: latest.log, plexichat.log, errors.log")
         print("=" * 50)
 
         # Monitor multiple log files
@@ -1650,29 +1708,29 @@ def start_log_monitor():
                                     # Format log line with source
                                     timestamp = datetime.now().strftime('%H:%M:%S')
                                     source_emoji = {
-                                        "latest": "📝",
-                                        "main": "🔗",
-                                        "errors": "❌"
-                                    }.get(name, "📋")
+                                        "latest": "[*]",
+                                        "main": "[*]",
+                                        "errors": "[ERROR]"
+                                    }.get(name, "[*]")
 
                                     # Color code by log level
                                     if "ERROR" in line or "CRITICAL" in line:
-                                        print(f"[{timestamp}] {source_emoji} 🔴 {line}")
+                                        print(f"[{timestamp}] {source_emoji} [ERROR] {line}")
                                     elif "WARNING" in line:
-                                        print(f"[{timestamp}] {source_emoji} 🟡 {line}")
+                                        print(f"[{timestamp}] {source_emoji} [WARN] {line}")
                                     elif "INFO" in line:
-                                        print(f"[{timestamp}] {source_emoji} 🟢 {line}")
+                                        print(f"[{timestamp}] {source_emoji} [INFO] {line}")
                                     elif "DEBUG" in line:
-                                        print(f"[{timestamp}] {source_emoji} 🔵 {line}")
+                                        print(f"[{timestamp}] {source_emoji} [DEBUG] {line}")
                                     else:
-                                        print(f"[{timestamp}] {source_emoji} ⚪ {line}")
+                                        print(f"[{timestamp}] {source_emoji} [*] {line}")
 
                         file_positions[name] = current_size
 
                 time.sleep(0.2)  # Check every 200ms
 
         except Exception as e:
-            print(f"❌ Advanced log monitor error: {e}")
+            print(f"[ERROR] Advanced log monitor error: {e}")
             # Fallback to simple monitoring
             try:
                 with open(log_files["latest"], 'r') as f:
@@ -1684,7 +1742,7 @@ def start_log_monitor():
                         else:
                             time.sleep(0.1)
             except Exception as e2:
-                print(f"❌ Fallback log monitor also failed: {e2}")
+                print(f"[ERROR] Fallback log monitor also failed: {e2}")
 
     log_thread = threading.Thread(target=monitor_logs, daemon=True)
     log_thread.start()
@@ -1707,16 +1765,16 @@ def start_log_generator():
                 log_file.touch()
 
         log_messages = [
-            ("INFO", "plexichat.api", "📡 API endpoint /health accessed"),
-            ("INFO", "plexichat.auth", "🔐 User authentication successful"),
-            ("DEBUG", "plexichat.database", "🗄️ Database query executed in 45ms"),
-            ("INFO", "plexichat.backup", "💾 Backup process completed successfully"),
-            ("INFO", "plexichat.security", "🔒 Security scan completed successfully"),
-            ("INFO", "plexichat.performance", "📊 System performance metrics collected"),
-            ("DEBUG", "plexichat.cli", "🖥️ CLI command executed: status"),
-            ("INFO", "plexichat.websocket", "🔌 WebSocket connection established"),
-            ("INFO", "plexichat.ai", "🤖 AI model inference completed"),
-            ("DEBUG", "plexichat.clustering", "🌐 Cluster health check passed"),
+            ("INFO", "plexichat.api", "[*] API endpoint /health accessed"),
+            ("INFO", "plexichat.auth", "[*] User authentication successful"),
+            ("DEBUG", "plexichat.database", "[*] Database query executed in 45ms"),
+            ("INFO", "plexichat.backup", "[*] Backup process completed successfully"),
+            ("INFO", "plexichat.security", "[*] Security scan completed successfully"),
+            ("INFO", "plexichat.performance", "[*] System performance metrics collected"),
+            ("DEBUG", "plexichat.cli", "[*] CLI command executed: status"),
+            ("INFO", "plexichat.websocket", "[*] WebSocket connection established"),
+            ("INFO", "plexichat.ai", "[*] AI model inference completed"),
+            ("DEBUG", "plexichat.clustering", "[*] Cluster health check passed"),
         ]
 
         counter = 0
@@ -1746,7 +1804,7 @@ def start_log_generator():
 
                 # Occasionally generate an error for demonstration
                 if counter % 20 == 0:
-                    error_entry = f"[{timestamp}] [ERROR   ] plexichat.test: ❌ Simulated error for demonstration\n"
+                    error_entry = f"[{timestamp}] [ERROR   ] plexichat.test: [ERROR] Simulated error for demonstration\n"
                     with open(log_files["latest"], 'a', encoding='utf-8') as f:
                         f.write(error_entry)
                     with open(log_files["errors"], 'a', encoding='utf-8') as f:
@@ -1764,45 +1822,45 @@ def start_log_generator():
 def run_plexichat_server():
     """Run PlexiChat server with multiplexed terminal."""
     if not VENV_DIR.exists():
-        print("❌ Virtual environment not found. Run setup first.")
+        print("[ERROR] Virtual environment not found. Run setup first.")
         return False
 
     venv_python = get_venv_python()
     if not venv_python or not venv_python.exists():
-        print("❌ Virtual environment Python not found")
+        print("[ERROR] Virtual environment Python not found")
         return False
 
     # Check if this is first time setup
     is_first_time = not DEFAULT_CREDS.exists()
     if is_first_time:
-        print("🎉 First-time setup detected!")
+        print("[SUCCESS] First-time setup detected!")
         generate_default_admin_creds()
-        print(f"📋 Admin credentials saved to: {DEFAULT_CREDS}")
+        print(f"[*] Admin credentials saved to: {DEFAULT_CREDS}")
 
     # Detect and report installation type
     install_type = detect_installation_type()
     version = get_version_info()
     ports = get_port_configuration()
 
-    print(f"💬 PlexiChat v{version}")
-    print(f"📦 Installation Type: {install_type.upper()}")
+    print(f"[*] PlexiChat v{version}")
+    print(f"[*] Installation Type: {install_type.upper()}")
     print("=" * 50)
-    print("🌐 Service Ports:")
-    print(f"   📡 API Server:    http://localhost:{ports['api_http']} | https://localhost:{ports['api_https']}")
-    print(f"   🖥️  WebUI:        http://localhost:{ports['webui_http']} | https://localhost:{ports['webui_https']}")
-    print(f"   🔌 WebSocket:     ws://localhost:{ports['websocket']}")
-    print(f"   ⚙️  Admin Panel:   http://localhost:{ports['admin']}")
+    print("[*] Service Ports:")
+    print(f"   [*] API Server:    http://localhost:{ports['api_http']} | https://localhost:{ports['api_https']}")
+    print(f"   [*]  WebUI:        http://localhost:{ports['webui_http']} | https://localhost:{ports['webui_https']}")
+    print(f"   [*] WebSocket:     ws://localhost:{ports['websocket']}")
+    print(f"   [*]  Admin Panel:   http://localhost:{ports['admin']}")
     print("=" * 50)
 
     if install_type == "partial":
-        print("⚠️  Partial installation detected. Some features may be unavailable.")
+        print("[WARN]  Partial installation detected. Some features may be unavailable.")
         print("   Run 'python run.py setup full' for complete functionality.")
     elif install_type == "incomplete":
-        print("❌ Incomplete installation detected. Please run setup again.")
+        print("[ERROR] Incomplete installation detected. Please run setup again.")
         return False
 
-    print("🚀 Starting PlexiChat server with multiplexed terminal...")
-    print("📊 Logs will appear on the left, CLI on the right")
+    print("[*] Starting PlexiChat server with multiplexed terminal...")
+    print("[*] Logs will appear on the left, CLI on the right")
     print("=" * 50)
 
     # Start log monitoring and generation
@@ -1816,7 +1874,7 @@ def run_plexichat_server():
 
     try:
         # Start server with better error handling
-        print("🔄 Initializing PlexiChat core systems...")
+        print("[*] Initializing PlexiChat core systems...")
 
         # Generate some initial logs to ensure log files exist
         logs_dir = ROOT / "logs"
@@ -1826,10 +1884,10 @@ def run_plexichat_server():
         latest_log = logs_dir / "latest.log"
         with open(latest_log, 'a', encoding='utf-8') as f:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            f.write(f"[{timestamp}] [INFO] plexichat.startup: 🚀 PlexiChat server starting up...\n")
-            f.write(f"[{timestamp}] [INFO] plexichat.startup: 📊 Initializing logging system\n")
-            f.write(f"[{timestamp}] [INFO] plexichat.startup: 🔧 Loading configuration\n")
-            f.write(f"[{timestamp}] [INFO] plexichat.startup: 🌐 Starting web server\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: [*] PlexiChat server starting up...\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: [*] Initializing logging system\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: [*] Loading configuration\n")
+            f.write(f"[{timestamp}] [INFO] plexichat.startup: [*] Starting web server\n")
 
         process = subprocess.Popen(
             [str(venv_python), "-m", "src.plexichat.main"],
@@ -1842,25 +1900,25 @@ def run_plexichat_server():
             universal_newlines=True
         )
 
-        print("✅ PlexiChat server process started")
-        print("🌐 Services are now available:")
-        print(f"   📡 API:     http://localhost:{ports['api_http']}")
-        print(f"   🖥️  WebUI:   http://localhost:{ports['webui_http']}")
+        print("[OK] PlexiChat server process started")
+        print("[*] Services are now available:")
+        print(f"   [*] API:     http://localhost:{ports['api_http']}")
+        print(f"   [*]  WebUI:   http://localhost:{ports['webui_http']}")
         if is_first_time:
-            print(f"🔐 Default admin credentials: {DEFAULT_CREDS}")
+            print(f"[*] Default admin credentials: {DEFAULT_CREDS}")
         print("=" * 50)
 
         # Check if terminal supports split screen
         try:
             terminal_width = shutil.get_terminal_size().columns
             if terminal_width >= 120:
-                print("📱 Split-screen mode enabled - CLI commands will appear separately from logs")
+                print("[*] Split-screen mode enabled - CLI commands will appear separately from logs")
                 use_split_screen = True
             else:
-                print("📱 Standard mode - CLI and logs will be mixed")
+                print("[*] Standard mode - CLI and logs will be mixed")
                 use_split_screen = False
         except:
-            print("📱 Standard mode - CLI and logs will be mixed")
+            print("[*] Standard mode - CLI and logs will be mixed")
             use_split_screen = False
 
         print("Commands: 'status', 'logs', 'stop', 'help'")
@@ -1874,9 +1932,9 @@ def run_plexichat_server():
             except ImportError:
                 from src.plexichat.cli.integrated_cli import PlexiChatCLI
             cli = PlexiChatCLI()
-            print("✅ Integrated CLI loaded")
+            print("[OK] Integrated CLI loaded")
         except Exception as e:
-            print(f"⚠️ Failed to load integrated CLI: {e}")
+            print(f"[WARN] Failed to load integrated CLI: {e}")
             cli = None
 
         # Enhanced CLI loop
@@ -1902,30 +1960,30 @@ def run_plexichat_server():
 
                         # Check if CLI wants to stop
                         if not cli.running:
-                            print("🛑 Stopping PlexiChat server...")
+                            print("[STOP] Stopping PlexiChat server...")
                             process.terminate()
                             break
 
                     except Exception as e:
-                        print(f"❌ CLI error: {e}")
+                        print(f"[ERROR] CLI error: {e}")
                 else:
                     # Fallback simple CLI
                     cmd_lower = cmd.lower()
                     if cmd_lower == "stop":
-                        print("🛑 Stopping PlexiChat server...")
+                        print("[STOP] Stopping PlexiChat server...")
                         process.terminate()
                         break
                     elif cmd_lower == "status":
-                        print(f"📊 Server Status: {'Running' if process.poll() is None else 'Stopped'}")
-                        print(f"📦 Installation: {install_type.upper()}")
-                        print(f"🔗 Version: {version}")
+                        print(f"[*] Server Status: {'Running' if process.poll() is None else 'Stopped'}")
+                        print(f"[*] Installation: {install_type.upper()}")
+                        print(f"[*] Version: {version}")
                     elif cmd_lower == "help":
                         print("Available commands: status, stop, help")
                     else:
-                        print(f"❓ Unknown command: {cmd}")
+                        print(f"[?] Unknown command: {cmd}")
 
             except (EOFError, KeyboardInterrupt):
-                print("\n🛑 Stopping PlexiChat server...")
+                print("\n[STOP] Stopping PlexiChat server...")
                 process.terminate()
                 break
 
@@ -1934,21 +1992,21 @@ def run_plexichat_server():
         return True
 
     except Exception as e:
-        print(f"❌ PlexiChat server failed to start: {e}")
-        print("🔍 Check the logs for more details")
+        print(f"[ERROR] PlexiChat server failed to start: {e}")
+        print("[*] Check the logs for more details")
         return False
 
 
 def clean_environment(deep_clean=False):
     """Clean up virtual environment and cache with Windows compatibility."""
-    print("🧹 Cleaning PlexiChat environment...")
+    print("[*] Cleaning PlexiChat environment...")
 
     # Stop any running processes first
     stop_running_processes()
 
     # Clean virtual environment with improved Windows handling
     if VENV_DIR.exists():
-        print("🗑️ Removing virtual environment...")
+        print("[*] Removing virtual environment...")
         try:
             if platform.system() == "Windows":
                 # Windows-specific approach with multiple fallbacks
@@ -1958,7 +2016,7 @@ def clean_environment(deep_clean=False):
                 try:
                     backup_name = VENV_DIR.parent / f".venv_backup_{int(time.time())}"
                     VENV_DIR.rename(backup_name)
-                    print("🔄 Renamed virtual environment, attempting deletion...")
+                    print("[*] Renamed virtual environment, attempting deletion...")
 
                     # Try to delete the renamed directory
                     for attempt in range(3):
@@ -1971,17 +2029,17 @@ def clean_environment(deep_clean=False):
                             time.sleep(1)
 
                     if not success:
-                        print(f"⚠️  Could not delete renamed directory: {backup_name}")
-                        print("💡 You may need to manually delete it later")
+                        print(f"[WARN]  Could not delete renamed directory: {backup_name}")
+                        print("[INFO] You may need to manually delete it later")
                         success = True  # Consider rename as success
 
                 except Exception as e:
-                    print(f"⚠️  Rename method failed: {e}")
+                    print(f"[WARN]  Rename method failed: {e}")
 
                 # Method 2: Try PowerShell removal if rename failed
                 if not success:
                     try:
-                        print("🔄 Trying PowerShell removal...")
+                        print("[*] Trying PowerShell removal...")
                         ps_command = f'Remove-Item -Path "{VENV_DIR}" -Recurse -Force -ErrorAction SilentlyContinue'
                         result = subprocess.run([
                             "powershell", "-Command", ps_command
@@ -1990,13 +2048,13 @@ def clean_environment(deep_clean=False):
                         if not VENV_DIR.exists():
                             success = True
                         else:
-                            print("⚠️  PowerShell removal incomplete")
+                            print("[WARN]  PowerShell removal incomplete")
                     except Exception as e:
-                        print(f"⚠️  PowerShell method failed: {e}")
+                        print(f"[WARN]  PowerShell method failed: {e}")
 
                 # Method 3: Final fallback with ignore_errors
                 if not success:
-                    print("🔄 Using fallback removal method...")
+                    print("[*] Using fallback removal method...")
                     try:
                         shutil.rmtree(VENV_DIR, ignore_errors=True)
                         if not VENV_DIR.exists():
@@ -2005,19 +2063,19 @@ def clean_environment(deep_clean=False):
                         pass
 
                 if success:
-                    print("✅ Virtual environment removed")
+                    print("[OK] Virtual environment removed")
                 else:
-                    print("⚠️  Virtual environment removal incomplete")
-                    print(f"💡 You may need to manually delete: {VENV_DIR}")
+                    print("[WARN]  Virtual environment removal incomplete")
+                    print(f"[INFO] You may need to manually delete: {VENV_DIR}")
 
             else:
                 # Unix/Linux/macOS - standard removal
                 shutil.rmtree(VENV_DIR)
-                print("✅ Virtual environment removed")
+                print("[OK] Virtual environment removed")
 
         except Exception as e:
-            print(f"⚠️  Could not remove virtual environment: {e}")
-            print("💡 Try running as administrator or manually delete the .venv folder")
+            print(f"[WARN]  Could not remove virtual environment: {e}")
+            print("[INFO] Try running as administrator or manually delete the .venv folder")
 
     # Remove Python cache with enhanced cleanup
     cache_dirs_removed = 0
@@ -2026,16 +2084,16 @@ def clean_environment(deep_clean=False):
             if dir_name in ["__pycache__", ".pytest_cache", ".mypy_cache", ".coverage"]:
                 cache_dir = Path(root) / dir_name
                 try:
-                    print(f"🗑️ Removing cache: {cache_dir}")
+                    print(f"[*] Removing cache: {cache_dir}")
                     shutil.rmtree(cache_dir, ignore_errors=True)
                     cache_dirs_removed += 1
                     dirs.remove(dir_name)
                 except Exception as e:
-                    print(f"⚠️  Could not remove {cache_dir}: {e}")
+                    print(f"[WARN]  Could not remove {cache_dir}: {e}")
 
     # Deep clean additional items
     if deep_clean:
-        print("🧹 Performing deep clean...")
+        print("[*] Performing deep clean...")
         deep_clean_items = [
             "logs/*.log",
             "logs/**/*.log",
@@ -2062,16 +2120,16 @@ def clean_environment(deep_clean=False):
                             item_path.unlink(missing_ok=True)
                         else:
                             shutil.rmtree(item_path, ignore_errors=True)
-                        print(f"🗑️ Removed: {item_path}")
+                        print(f"[*] Removed: {item_path}")
             except Exception as e:
-                print(f"⚠️  Could not clean {pattern}: {e}")
+                print(f"[WARN]  Could not clean {pattern}: {e}")
 
-    print(f"✅ Environment cleaned ({cache_dirs_removed} cache directories removed)")
+    print(f"[OK] Environment cleaned ({cache_dirs_removed} cache directories removed)")
 
 
 def stop_running_processes():
     """Stop any running PlexiChat processes with timeout protection."""
-    print("🔍 Checking for running PlexiChat processes...")
+    print("[*] Checking for running PlexiChat processes...")
 
     try:
         if platform.system() == "Windows":
@@ -2092,15 +2150,15 @@ def stop_running_processes():
                         try:
                             subprocess.run(["taskkill", "/F", "/PID", pid],
                                          capture_output=True, timeout=5, check=False)
-                            print(f"🛑 Stopped process PID: {pid}")
+                            print(f"[STOP] Stopped process PID: {pid}")
                         except:
                             pass
                 elif result.stdout.strip():
-                    print("🔍 No PlexiChat processes found")
+                    print("[*] No PlexiChat processes found")
 
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 # Fallback to tasklist approach
-                print("🔄 Trying alternative process detection...")
+                print("[*] Trying alternative process detection...")
                 try:
                     result = subprocess.run([
                         "tasklist", "/FI", "IMAGENAME eq python.exe", "/FO", "CSV"
@@ -2108,11 +2166,11 @@ def stop_running_processes():
 
                     if result.returncode == 0:
                         # Simple approach: kill all python.exe processes (be careful!)
-                        print("⚠️  Using broad process termination - this may affect other Python processes")
+                        print("[WARN]  Using broad process termination - this may affect other Python processes")
                         subprocess.run(["taskkill", "/F", "/IM", "python.exe"],
                                      capture_output=True, timeout=5, check=False)
                 except:
-                    print("⚠️  Could not stop processes using Windows methods")
+                    print("[WARN]  Could not stop processes using Windows methods")
 
         else:
             # Unix/Linux/macOS
@@ -2129,7 +2187,7 @@ def stop_running_processes():
                             try:
                                 subprocess.run(["kill", "-TERM", pid.strip()],
                                              capture_output=True, timeout=5, check=False)
-                                print(f"🛑 Stopped process PID: {pid.strip()}")
+                                print(f"[STOP] Stopped process PID: {pid.strip()}")
                             except:
                                 pass
 
@@ -2148,21 +2206,21 @@ def stop_running_processes():
                                 try:
                                     subprocess.run(["kill", "-KILL", pid.strip()],
                                                  capture_output=True, timeout=5, check=False)
-                                    print(f"🛑 Force killed process PID: {pid.strip()}")
+                                    print(f"[STOP] Force killed process PID: {pid.strip()}")
                                 except:
                                     pass
                 else:
-                    print("🔍 No PlexiChat processes found")
+                    print("[*] No PlexiChat processes found")
 
             except subprocess.TimeoutExpired:
-                print("⚠️  Process detection timed out")
+                print("[WARN]  Process detection timed out")
             except FileNotFoundError:
-                print("⚠️  Process management tools not available")
+                print("[WARN]  Process management tools not available")
 
     except Exception as e:
-        print(f"⚠️  Could not stop processes: {e}")
+        print(f"[WARN]  Could not stop processes: {e}")
 
-    print("✅ Process cleanup completed")
+    print("[OK] Process cleanup completed")
 
 
 def export_plexichat_config(filename=None, options=None):
@@ -2184,7 +2242,7 @@ def export_plexichat_config(filename=None, options=None):
     if not export_path.is_absolute():
         export_path = ROOT / filename
 
-    print(f"📦 Exporting PlexiChat configuration to: {export_path}")
+    print(f"[*] Exporting PlexiChat configuration to: {export_path}")
 
     try:
         import tempfile
@@ -2226,9 +2284,9 @@ def export_plexichat_config(filename=None, options=None):
                             dest_path.parent.mkdir(parents=True, exist_ok=True)
                             shutil.copy2(source_path, dest_path)
                         metadata["exported_components"].append(description)
-                        print(f"   ✅ {description}")
+                        print(f"   [OK] {description}")
                     except Exception as e:
-                        print(f"   ⚠️  Partial export of {description}: {e}")
+                        print(f"   [WARN]  Partial export of {description}: {e}")
                         metadata["exported_components"].append(f"{description} (partial)")
 
             # Export data directory
@@ -2238,9 +2296,9 @@ def export_plexichat_config(filename=None, options=None):
                     dest_data = export_staging / "data"
                     shutil.copytree(data_dir, dest_data)
                     metadata["exported_components"].append("Database and data files")
-                    print("   ✅ Database and data files")
+                    print("   [OK] Database and data files")
                 except Exception as e:
-                    print(f"   ⚠️  Partial export of database: {e}")
+                    print(f"   [WARN]  Partial export of database: {e}")
                     metadata["exported_components"].append("Database and data files (partial)")
 
             # Export certificates
@@ -2250,9 +2308,9 @@ def export_plexichat_config(filename=None, options=None):
                     dest_certs = export_staging / "certs"
                     shutil.copytree(certs_dir, dest_certs)
                     metadata["exported_components"].append("Certificates and keys")
-                    print("   ✅ Certificates and keys")
+                    print("   [OK] Certificates and keys")
                 except Exception as e:
-                    print(f"   ⚠️  Partial export of certificates: {e}")
+                    print(f"   [WARN]  Partial export of certificates: {e}")
                     metadata["exported_components"].append("Certificates and keys (partial)")
 
             # Export plugins
@@ -2262,9 +2320,9 @@ def export_plexichat_config(filename=None, options=None):
                     dest_plugins = export_staging / "plugins"
                     shutil.copytree(plugins_dir, dest_plugins)
                     metadata["exported_components"].append("Plugin configurations")
-                    print("   ✅ Plugin configurations")
+                    print("   [OK] Plugin configurations")
                 except Exception as e:
-                    print(f"   ⚠️  Partial export of plugins: {e}")
+                    print(f"   [WARN]  Partial export of plugins: {e}")
                     metadata["exported_components"].append("Plugin configurations (partial)")
 
             # Export logs if requested
@@ -2275,9 +2333,9 @@ def export_plexichat_config(filename=None, options=None):
                         dest_logs = export_staging / "logs"
                         shutil.copytree(logs_dir, dest_logs)
                         metadata["exported_components"].append("Log files")
-                        print("   ✅ Log files")
+                        print("   [OK] Log files")
                     except Exception as e:
-                        print(f"   ⚠️  Partial export of logs: {e}")
+                        print(f"   [WARN]  Partial export of logs: {e}")
                         metadata["exported_components"].append("Log files (partial)")
 
             # Export requirements and environment info
@@ -2287,7 +2345,7 @@ def export_plexichat_config(filename=None, options=None):
                 if req_path.exists():
                     shutil.copy2(req_path, export_staging / req_file)
                     metadata["exported_components"].append(f"Requirements ({req_file})")
-                    print(f"   ✅ Requirements ({req_file})")
+                    print(f"   [OK] Requirements ({req_file})")
 
             # Save metadata
             with open(export_staging / "export_metadata.json", 'w') as f:
@@ -2295,7 +2353,7 @@ def export_plexichat_config(filename=None, options=None):
 
             # Create archive
             if options.get('compress', True):
-                print("🗜️  Creating compressed archive...")
+                print("[*]?  Creating compressed archive...")
                 with zipfile.ZipFile(export_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     for root, dirs, files in os.walk(export_staging):
                         for file in files:
@@ -2324,19 +2382,19 @@ def export_plexichat_config(filename=None, options=None):
 
             file_size = export_path.stat().st_size / (1024 * 1024)  # MB
 
-            print(f"\n✅ Export completed successfully!")
-            print(f"📁 File: {export_path}")
-            print(f"📊 Size: {file_size:.2f} MB")
-            print(f"🔐 MD5: {file_hash}")
-            print(f"📋 Components: {len(metadata['exported_components'])}")
-            print(f"🔍 Checksum: {checksum_file}")
+            print(f"\n[OK] Export completed successfully!")
+            print(f"[*] File: {export_path}")
+            print(f"[*] Size: {file_size:.2f} MB")
+            print(f"[*] MD5: {file_hash}")
+            print(f"[*] Components: {len(metadata['exported_components'])}")
+            print(f"[*] Checksum: {checksum_file}")
 
             if options.get('encrypt', False):
-                print("\n🔒 Encryption requested but not yet implemented")
-                print("💡 Consider using system-level encryption for sensitive data")
+                print("\n[*] Encryption requested but not yet implemented")
+                print("[INFO] Consider using system-level encryption for sensitive data")
 
     except Exception as e:
-        print(f"❌ Export failed: {e}")
+        print(f"[ERROR] Export failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -2354,10 +2412,10 @@ def import_plexichat_config(filename, options=None):
         import_path = ROOT / filename
 
     if not import_path.exists():
-        print(f"❌ Import file not found: {import_path}")
+        print(f"[ERROR] Import file not found: {import_path}")
         return False
 
-    print(f"📥 Importing PlexiChat configuration from: {import_path}")
+    print(f"[*] Importing PlexiChat configuration from: {import_path}")
 
     try:
         import tempfile
@@ -2367,7 +2425,7 @@ def import_plexichat_config(filename, options=None):
         # Verify checksum if available
         checksum_file = import_path.with_suffix('.md5')
         if checksum_file.exists():
-            print("🔍 Verifying file integrity...")
+            print("[*] Verifying file integrity...")
             with open(checksum_file, 'r') as f:
                 expected_hash = f.read().strip().split()[0]
 
@@ -2380,17 +2438,17 @@ def import_plexichat_config(filename, options=None):
             actual_hash = hash_md5.hexdigest()
 
             if actual_hash != expected_hash:
-                print(f"❌ File integrity check failed!")
+                print(f"[ERROR] File integrity check failed!")
                 print(f"Expected: {expected_hash}")
                 print(f"Actual:   {actual_hash}")
                 if not input("Continue anyway? (y/N): ").lower().startswith('y'):
                     return False
             else:
-                print("✅ File integrity verified")
+                print("[OK] File integrity verified")
 
         # Create backup if requested
         if options.get('backup', True):
-            print("💾 Creating backup of current configuration...")
+            print("[*] Creating backup of current configuration...")
             backup_options = {'compress': True}
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_filename = f"plexichat_backup_before_import_{timestamp}.plx"
@@ -2403,11 +2461,11 @@ def import_plexichat_config(filename, options=None):
 
             # Check if it's a zip file or directory
             if zipfile.is_zipfile(import_path):
-                print("📦 Extracting compressed archive...")
+                print("[*] Extracting compressed archive...")
                 with zipfile.ZipFile(import_path, 'r') as zipf:
                     zipf.extractall(import_staging)
             else:
-                print("📁 Reading directory structure...")
+                print("[*] Reading directory structure...")
                 shutil.copytree(import_path, import_staging)
 
             # Read metadata
@@ -2416,7 +2474,7 @@ def import_plexichat_config(filename, options=None):
                 with open(metadata_file, 'r') as f:
                     metadata = json.load(f)
 
-                print(f"📋 Import Information:")
+                print(f"[*] Import Information:")
                 print(f"   Export Version: {metadata.get('export_version', 'Unknown')}")
                 print(f"   PlexiChat Version: {metadata.get('plexichat_version', 'Unknown')}")
                 print(f"   Export Date: {metadata.get('export_date', 'Unknown')}")
@@ -2426,13 +2484,13 @@ def import_plexichat_config(filename, options=None):
                 current_version = get_version_info()
                 export_version = metadata.get('plexichat_version', '')
                 if export_version != current_version:
-                    print(f"⚠️  Version mismatch!")
+                    print(f"[WARN]  Version mismatch!")
                     print(f"   Current: {current_version}")
                     print(f"   Import:  {export_version}")
                     if not input("Continue with import? (y/N): ").lower().startswith('y'):
                         return False
             else:
-                print("⚠️  No metadata found, proceeding with basic import...")
+                print("[WARN]  No metadata found, proceeding with basic import...")
 
             # Import components
             imported_components = []
@@ -2471,11 +2529,11 @@ def import_plexichat_config(filename, options=None):
                                 shutil.copy2(source_path, dest_path)
 
                             imported_components.append(description)
-                            print(f"   ✅ {description}")
+                            print(f"   [OK] {description}")
                         except Exception as e:
-                            print(f"   ❌ Failed to import {description}: {e}")
+                            print(f"   [ERROR] Failed to import {description}: {e}")
                     else:
-                        print(f"   ⏭️  Skipped {description} (already exists)")
+                        print(f"   ??  Skipped {description} (already exists)")
 
             # Import data directory
             data_source = import_staging / "data"
@@ -2487,11 +2545,11 @@ def import_plexichat_config(filename, options=None):
                             shutil.rmtree(data_dest)
                         shutil.copytree(data_source, data_dest)
                         imported_components.append("Database and data files")
-                        print("   ✅ Database and data files")
+                        print("   [OK] Database and data files")
                     else:
-                        print("   ⏭️  Skipped database (already exists, use --overwrite to replace)")
+                        print("   ??  Skipped database (already exists, use --overwrite to replace)")
                 except Exception as e:
-                    print(f"   ❌ Failed to import database: {e}")
+                    print(f"   [ERROR] Failed to import database: {e}")
 
             # Import other directories
             other_dirs = [
@@ -2511,7 +2569,7 @@ def import_plexichat_config(filename, options=None):
                                 shutil.rmtree(dest_dir)
                             shutil.copytree(source_dir, dest_dir)
                             imported_components.append(description)
-                            print(f"   ✅ {description}")
+                            print(f"   [OK] {description}")
                         elif options.get('merge', False):
                             # Merge directories
                             for root, dirs, files in os.walk(source_dir):
@@ -2522,28 +2580,28 @@ def import_plexichat_config(filename, options=None):
                                     dst_file.parent.mkdir(parents=True, exist_ok=True)
                                     shutil.copy2(src_file, dst_file)
                             imported_components.append(f"{description} (merged)")
-                            print(f"   ✅ {description} (merged)")
+                            print(f"   [OK] {description} (merged)")
                         else:
-                            print(f"   ⏭️  Skipped {description} (already exists)")
+                            print(f"   ??  Skipped {description} (already exists)")
                     except Exception as e:
-                        print(f"   ❌ Failed to import {description}: {e}")
+                        print(f"   [ERROR] Failed to import {description}: {e}")
 
-            print(f"\n✅ Import completed!")
-            print(f"📋 Imported components: {len(imported_components)}")
+            print(f"\n[OK] Import completed!")
+            print(f"[*] Imported components: {len(imported_components)}")
             for component in imported_components:
-                print(f"   • {component}")
+                print(f"   * {component}")
 
-            print(f"\n💡 Next steps:")
+            print(f"\n[INFO] Next steps:")
             print(f"   1. Review imported configuration")
             print(f"   2. Run 'python run.py info' to verify setup")
             print(f"   3. Test PlexiChat functionality")
 
             if options.get('decrypt', False):
-                print("\n🔒 Decryption requested but not yet implemented")
-                print("💡 Consider using system-level decryption tools")
+                print("\n[*] Decryption requested but not yet implemented")
+                print("[INFO] Consider using system-level decryption tools")
 
     except Exception as e:
-        print(f"❌ Import failed: {e}")
+        print(f"[ERROR] Import failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -2555,7 +2613,7 @@ def show_subcommand_help(subcommand):
     """Show help for specific subcommands."""
     help_text = {
         "setup": """
-🔧 Setup Command Help
+[*] Setup Command Help
 
 Usage: python run.py setup [style] [options]
 
@@ -2575,7 +2633,7 @@ Examples:
   python run.py setup full --env-type conda  # Full setup with conda
 """,
         "clean": """
-🧹 Clean Command Help
+[*] Clean Command Help
 
 Usage: python run.py clean [options]
 
@@ -2591,7 +2649,7 @@ Examples:
   python run.py clean --all              # Deep cleanup
 """,
         "run": """
-🚀 Run Command Help
+[*] Run Command Help
 
 Usage: python run.py run [options]
 
@@ -2610,7 +2668,7 @@ Examples:
   python run.py run --debug              # Start with debug logging
 """,
         "env": """
-🐍 Environment Command Help
+[*] Environment Command Help
 
 Usage: python run.py env [options]
 
@@ -2624,7 +2682,7 @@ Examples:
   python run.py env                      # Show environment info
 """,
         "info": """
-🖥️ Info Command Help
+[*] Info Command Help
 
 Usage: python run.py info
 
@@ -2640,7 +2698,7 @@ Examples:
   python run.py info                     # Show system information
 """,
         "test": """
-🧪 Test Command Help
+[*] Test Command Help
 
 Usage: python run.py test [options]
 
@@ -2655,7 +2713,7 @@ Examples:
   python run.py test --security          # Security tests only
 """,
         "version": """
-📋 Version Command Help
+[*] Version Command Help
 
 Usage: python run.py version [options]
 
@@ -2669,7 +2727,7 @@ Examples:
   python run.py version                  # Show version info
 """,
         "update": """
-🔄 Update Command Help
+[*] Update Command Help
 
 Usage: python run.py update [options] [version]
 
@@ -2688,7 +2746,7 @@ Examples:
   python run.py update --rollback        # Rollback to previous version
 """,
         "wizard": """
-🧙 Wizard Command Help
+? Wizard Command Help
 
 Usage: python run.py wizard
 
@@ -2702,7 +2760,7 @@ Examples:
   python run.py wizard                   # Run interactive setup
 """,
         "export": """
-📦 Export Command Help
+[*] Export Command Help
 
 Usage: python run.py export [filename] [options]
 
@@ -2728,7 +2786,7 @@ Examples:
   python run.py export --encrypt        # Encrypt with password
 """,
         "import": """
-📥 Import Command Help
+[*] Import Command Help
 
 Usage: python run.py import [filename] [options]
 
@@ -2754,7 +2812,7 @@ Examples:
   python run.py import --decrypt        # Decrypt with password
 """,
         "admin": """
-⚙️ Admin Command Help
+[*] Admin Command Help
 
 Usage: python run.py admin
 
@@ -2774,7 +2832,7 @@ Examples:
   python run.py admin                   # Open admin panel
 """,
         "webui": """
-🌐 WebUI Command Help
+[*] WebUI Command Help
 
 Usage: python run.py webui
 
@@ -2794,7 +2852,7 @@ Examples:
   python run.py webui                   # Open main interface
 """,
         "gui": """
-🖥️ GUI Command Help
+[*] GUI Command Help
 
 Usage: python run.py gui
 
@@ -2810,7 +2868,7 @@ Examples:
   python run.py gui                     # Interactive GUI launcher
 """,
         "status": """
-🔍 Status Command Help
+[*] Status Command Help
 
 Usage: python run.py status
 
@@ -2831,7 +2889,7 @@ Examples:
   python run.py status                  # Show service status
 """,
         "config": """
-🔧 Config Command Help
+[*] Config Command Help
 
 Usage: python run.py config [subcommand]
 
@@ -2851,7 +2909,7 @@ Examples:
   python run.py config show             # Display current config
 """,
         "ssl": """
-🔒 SSL Command Help
+[*] SSL Command Help
 
 Usage: python run.py ssl [subcommand]
 
@@ -2867,7 +2925,7 @@ Examples:
   python run.py ssl status             # Check certificate status
 """,
         "migrate": """
-🗃️ Migration Command Help
+[*] Migration Command Help
 
 Usage: python run.py migrate [subcommand]
 
@@ -2884,7 +2942,7 @@ Examples:
   python run.py migrate status          # Check migration status
 """,
         "backup": """
-💾 Backup Command Help
+[*] Backup Command Help
 
 Usage: python run.py backup [subcommand]
 
@@ -2901,7 +2959,7 @@ Examples:
   python run.py backup list             # Show all backups
 """,
         "plugin": """
-🔌 Plugin Command Help
+[*] Plugin Command Help
 
 Usage: python run.py plugin [subcommand]
 
@@ -2924,7 +2982,7 @@ Examples:
     if subcommand in help_text:
         print(help_text[subcommand])
     else:
-        print(f"❌ No help available for '{subcommand}'")
+        print(f"[ERROR] No help available for '{subcommand}'")
         print("Available commands: setup, clean, run, env, info, test, version, update, wizard")
         print("                   admin, webui, gui, status, config, ssl, migrate, backup, restore")
         print("                   plugin, cluster, security, monitor")
@@ -2938,28 +2996,28 @@ def show_help():
     config = load_setup_config()
 
     print(f"""
-💬 PlexiChat v{version} - Government-Level Secure Communication Platform
-📦 Current Installation: {install_type.upper()}
+[*] PlexiChat v{version} - Government-Level Secure Communication Platform
+[*] Current Installation: {install_type.upper()}
 
-⚡ SINGLE ENTRY POINT - ALL functionality accessible through run.py ONLY
-🚫 NO scattered scripts, NO .env files, NO multiple config files
+[*] SINGLE ENTRY POINT - ALL functionality accessible through run.py ONLY
+[*] NO scattered scripts, NO .env files, NO multiple config files
 """)
 
     if config:
         setup_style = config.get("setup_style", "unknown")
         terminal_style = config.get("terminal_style", "unknown")
-        print(f"🎯 Setup Style: {SETUP_STYLES.get(setup_style, {}).get('name', setup_style)}")
-        print(f"🖥️  Terminal Style: {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)}")
+        print(f"[*] Setup Style: {SETUP_STYLES.get(setup_style, {}).get('name', setup_style)}")
+        print(f"[*]  Terminal Style: {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)}")
         if config.get("debug_mode"):
-            print("🐛 Debug Mode: Enabled")
+            print("[DEBUG] Debug Mode: Enabled")
         if config.get("performance_monitoring"):
-            print("📊 Performance Monitoring: Enabled")
+            print("[*] Performance Monitoring: Enabled")
 
     print(f"""
 Usage: python run.py [command] [options]
 
-🚀 Main Commands:
-  bootstrap         🚀 ONE-SCRIPT INSTALLER: Complete PlexiChat installation from GitHub
+[*] Main Commands:
+  bootstrap         [*] ONE-SCRIPT INSTALLER: Complete PlexiChat installation from GitHub
                     Downloads source, creates venv, installs dependencies
   setup [style]     Interactive setup wizard or direct setup
                     Styles: minimal, standard, full, developer
@@ -2975,45 +3033,45 @@ Usage: python run.py [command] [options]
   import [file]     Import PlexiChat configuration and data
   help              Show this help message
 
-🌐 Interface Commands:
+[*] Interface Commands:
   admin             Open admin panel in browser
   webui             Open main WebUI in browser
   gui               Interactive GUI launcher (admin + webui)
   status            Show service status and health
 
-🔧 System Management:
+[*] System Management:
   config            Configuration management (generate, validate, show, edit, reset)
   ssl               SSL certificate management (setup, renew, status)
   migrate           Database migration management (run, rollback, status, create)
   backup            Backup management (create, list, schedule, verify)
   restore           Restore operations (from, list, verify)
 
-🔌 Advanced Features:
+[*] Advanced Features:
   plugin            Plugin management (list, install, remove, enable, disable, update)
   cluster           Cluster management (status, join, leave, nodes)
   security          Security management (audit, scan, keys, users)
   monitor           System monitoring (status, metrics, logs, alerts)
 
-🎯 Setup Styles:
+[*] Setup Styles:
   minimal          Core functionality only (~2 min install)
   standard         Recommended for most users (~5 min install)
   full             All features including advanced security (~10 min install)
   developer        Full setup plus development tools (~15 min install)
 
-🖥️  Terminal Styles:
+[*]  Terminal Styles:
   classic          Traditional single-pane output
   split            Logs on left, CLI on right (wide terminals)
   tabbed           Switch between logs and CLI with tabs
   dashboard        Live system monitoring with metrics
 
-🚀 First-Time Installation:
+[*] First-Time Installation:
   If you only have this run.py file, use:
   python run.py bootstrap    # Downloads and installs everything automatically
 
   Requirements: Python 3.8+, internet connection
   Creates: plexichat/ directory, venv/ directory, dependencies
 
-📊 Installation Status:
+[*] Installation Status:
   not_installed    No virtual environment found
   minimal         Core features only
   standard        Standard feature set
@@ -3022,7 +3080,7 @@ Usage: python run.py [command] [options]
   developer       Full features plus dev tools
   incomplete      Installation corrupted, needs repair
 
-💡 Examples:
+[INFO] Examples:
   python run.py                    # First-time interactive setup
   python run.py setup developer    # Developer setup without wizard
   python run.py wizard             # Re-run setup wizard
@@ -3035,14 +3093,14 @@ Usage: python run.py [command] [options]
   python run.py clean --all        # Complete cleanup
   python run.py test --verbose     # Verbose test output
 
-🔐 First-time Setup:
+[*] First-time Setup:
   - Interactive wizard guides you through configuration
   - Default admin credentials generated in default_creds.txt
   - Change password immediately after first login
   - WebUI available at http://localhost:8080
   - API available at http://localhost:8000
 
-🛠️  Development Features:
+[*]  Development Features:
   - Real-time log monitoring with color coding
   - Performance metrics and system monitoring
   - Integrated CLI with advanced commands
@@ -3052,28 +3110,28 @@ Usage: python run.py [command] [options]
 
     # Show recommendations based on current state
     if install_type == "partial":
-        print("⚠️  Recommendation: Run 'python run.py setup full' for complete functionality.")
+        print("[WARN]  Recommendation: Run 'python run.py setup full' for complete functionality.")
     elif install_type == "incomplete":
-        print("❌ Recommendation: Run 'python run.py clean && python run.py setup' to repair.")
+        print("[ERROR] Recommendation: Run 'python run.py clean && python run.py setup' to repair.")
     elif install_type == "not_installed":
-        print("🎯 Recommendation: Run 'python run.py' to start interactive setup wizard.")
+        print("[*] Recommendation: Run 'python run.py' to start interactive setup wizard.")
 
     # Show system-specific tips
-    print(f"\n💻 Platform-Specific Tips ({platform.system()}):")
+    print(f"\n[*] Platform-Specific Tips ({platform.system()}):")
     if IS_WINDOWS:
-        print("  • Use Windows Terminal or PowerShell for best experience")
-        print("  • Consider enabling Windows Subsystem for Linux (WSL)")
+        print("  * Use Windows Terminal or PowerShell for best experience")
+        print("  * Consider enabling Windows Subsystem for Linux (WSL)")
     elif IS_LINUX:
-        print("  • Ensure you have python3.11-dev installed for full functionality")
-        print("  • Use a modern terminal emulator for best display")
+        print("  * Ensure you have python3.11-dev installed for full functionality")
+        print("  * Use a modern terminal emulator for best display")
     elif IS_MACOS:
-        print("  • Use iTerm2 or Terminal.app for optimal experience")
-        print("  • Consider installing Homebrew for easier dependency management")
+        print("  * Use iTerm2 or Terminal.app for optimal experience")
+        print("  * Consider installing Homebrew for easier dependency management")
 
     if install_type == "partial":
-        print("⚠️  Note: Partial installation detected. Run 'python run.py setup full' for all features.")
+        print("[WARN]  Note: Partial installation detected. Run 'python run.py setup full' for all features.")
     elif install_type == "incomplete":
-        print("❌ Note: Installation is incomplete. Run 'python run.py setup' to repair.")
+        print("[ERROR] Note: Installation is incomplete. Run 'python run.py setup' to repair.")
 
 
 def open_admin_gui():
@@ -3081,16 +3139,16 @@ def open_admin_gui():
     ports = get_port_configuration()
     admin_url = f"http://localhost:{ports.get('admin', 8002)}"
 
-    print(f"🔧 Opening Admin GUI: {admin_url}")
+    print(f"[*] Opening Admin GUI: {admin_url}")
 
     try:
         import webbrowser
         webbrowser.open(admin_url)
-        print("✅ Admin GUI opened in browser")
+        print("[OK] Admin GUI opened in browser")
         return True
     except Exception as e:
-        print(f"❌ Failed to open admin GUI: {e}")
-        print(f"💡 Manually open: {admin_url}")
+        print(f"[ERROR] Failed to open admin GUI: {e}")
+        print(f"[INFO] Manually open: {admin_url}")
         return False
 
 
@@ -3099,16 +3157,16 @@ def open_webui():
     ports = get_port_configuration()
     webui_url = f"http://localhost:{ports.get('webui_http', 8080)}"
 
-    print(f"🌐 Opening WebUI: {webui_url}")
+    print(f"[*] Opening WebUI: {webui_url}")
 
     try:
         import webbrowser
         webbrowser.open(webui_url)
-        print("✅ WebUI opened in browser")
+        print("[OK] WebUI opened in browser")
         return True
     except Exception as e:
-        print(f"❌ Failed to open WebUI: {e}")
-        print(f"💡 Manually open: {webui_url}")
+        print(f"[ERROR] Failed to open WebUI: {e}")
+        print(f"[INFO] Manually open: {webui_url}")
         return False
 
 
@@ -3116,14 +3174,14 @@ def show_service_status():
     """Show status of all PlexiChat services."""
     ports = get_port_configuration()
 
-    print("🔍 PlexiChat Service Status")
+    print("[*] PlexiChat Service Status")
     print("=" * 50)
 
     services = [
-        ("API Server", f"http://localhost:{ports.get('api_http', 8000)}", "📡"),
-        ("WebUI", f"http://localhost:{ports.get('webui_http', 8080)}", "🌐"),
-        ("Admin Panel", f"http://localhost:{ports.get('admin', 8002)}", "⚙️"),
-        ("WebSocket", f"ws://localhost:{ports.get('websocket', 8001)}", "🔌")
+        ("API Server", f"http://localhost:{ports.get('api_http', 8000)}", "[*]"),
+        ("WebUI", f"http://localhost:{ports.get('webui_http', 8080)}", "[*]"),
+        ("Admin Panel", f"http://localhost:{ports.get('admin', 8002)}", "[*]"),
+        ("WebSocket", f"ws://localhost:{ports.get('websocket', 8001)}", "[*]")
     ]
 
     for name, url, emoji in services:
@@ -3131,18 +3189,18 @@ def show_service_status():
             import requests
             response = requests.get(url.replace('ws://', 'http://'), timeout=2)
             if response.status_code == 200:
-                status = "🟢 Running"
+                status = "[INFO] Running"
             else:
-                status = f"🟡 Response: {response.status_code}"
+                status = f"[WARN] Response: {response.status_code}"
         except ImportError:
-            status = "⚠️ requests not installed"
+            status = "[WARN] requests not installed"
         except Exception as e:
-            status = "🔴 Not responding"
+            status = "[ERROR] Not responding"
 
         print(f"{emoji} {name:15} {url:35} {status}")
 
     print("=" * 50)
-    print("💡 Note: Services show as 'Not responding' when not running")
+    print("[INFO] Note: Services show as 'Not responding' when not running")
     print("   Use 'python run.py run' to start all services")
 
 
@@ -3153,7 +3211,7 @@ def show_service_status():
 def handle_config_command(args):
     """Handle configuration management commands."""
     if not args:
-        print("🔧 PlexiChat Configuration Management")
+        print("[*] PlexiChat Configuration Management")
         print("=" * 40)
         print("Available config commands:")
         print("  generate    Generate unified configuration")
@@ -3166,27 +3224,27 @@ def handle_config_command(args):
     subcommand = args[0].lower()
 
     if subcommand == "generate":
-        print("🔧 Generating unified configuration...")
+        print("[*] Generating unified configuration...")
         generate_unified_config()
     elif subcommand == "validate":
-        print("✅ Validating configuration...")
+        print("[OK] Validating configuration...")
         validate_configuration()
     elif subcommand == "show":
-        print("📋 Current configuration:")
+        print("[*] Current configuration:")
         show_current_config()
     elif subcommand == "edit":
-        print("✏️ Interactive configuration editor...")
+        print("[*] Interactive configuration editor...")
         edit_config_interactive()
     elif subcommand == "reset":
-        print("🔄 Resetting to default configuration...")
+        print("[*] Resetting to default configuration...")
         reset_to_default_config()
     else:
-        print(f"❌ Unknown config command: {subcommand}")
+        print(f"[ERROR] Unknown config command: {subcommand}")
 
 def handle_ssl_command(args):
     """Handle SSL certificate management."""
     if not args:
-        print("🔒 PlexiChat SSL Management")
+        print("[*] PlexiChat SSL Management")
         print("=" * 30)
         print("Available SSL commands:")
         print("  setup       Generate SSL certificates and configure domain")
@@ -3197,21 +3255,21 @@ def handle_ssl_command(args):
     subcommand = args[0].lower()
 
     if subcommand == "setup":
-        print("🔒 Setting up SSL certificates...")
+        print("[*] Setting up SSL certificates...")
         setup_ssl_certificates()
     elif subcommand == "renew":
-        print("🔄 Renewing SSL certificates...")
+        print("[*] Renewing SSL certificates...")
         renew_ssl_certificates()
     elif subcommand == "status":
-        print("📋 SSL certificate status:")
+        print("[*] SSL certificate status:")
         show_ssl_status()
     else:
-        print(f"❌ Unknown SSL command: {subcommand}")
+        print(f"[ERROR] Unknown SSL command: {subcommand}")
 
 def handle_migration_command(args):
     """Handle database migration commands."""
     if not args:
-        print("🗃️ PlexiChat Database Migration")
+        print("[*] PlexiChat Database Migration")
         print("=" * 35)
         print("Available migration commands:")
         print("  run         Run pending migrations")
@@ -3223,24 +3281,24 @@ def handle_migration_command(args):
     subcommand = args[0].lower()
 
     if subcommand == "run":
-        print("🗃️ Running database migrations...")
+        print("[*] Running database migrations...")
         run_database_migrations()
     elif subcommand == "rollback":
-        print("↩️ Rolling back migrations...")
+        print("[*] Rolling back migrations...")
         rollback_migrations()
     elif subcommand == "status":
-        print("📋 Migration status:")
+        print("[*] Migration status:")
         show_migration_status()
     elif subcommand == "create":
         name = args[1] if len(args) > 1 else input("Migration name: ")
         create_migration(name)
     else:
-        print(f"❌ Unknown migration command: {subcommand}")
+        print(f"[ERROR] Unknown migration command: {subcommand}")
 
 def handle_backup_command(args):
     """Handle backup management commands."""
     if not args:
-        print("💾 PlexiChat Backup Management")
+        print("[*] PlexiChat Backup Management")
         print("=" * 32)
         print("Available backup commands:")
         print("  create      Create new backup")
@@ -3262,12 +3320,12 @@ def handle_backup_command(args):
         backup_name = args[1] if len(args) > 1 else None
         verify_backup(backup_name)
     else:
-        print(f"❌ Unknown backup command: {subcommand}")
+        print(f"[ERROR] Unknown backup command: {subcommand}")
 
 def handle_restore_command(args):
     """Handle restore operations."""
     if not args:
-        print("🔄 PlexiChat Restore Management")
+        print("[*] PlexiChat Restore Management")
         print("=" * 32)
         print("Available restore commands:")
         print("  from        Restore from specific backup")
@@ -3288,12 +3346,12 @@ def handle_restore_command(args):
         backup_name = args[1] if len(args) > 1 else None
         verify_restore_point(backup_name)
     else:
-        print(f"❌ Unknown restore command: {subcommand}")
+        print(f"[ERROR] Unknown restore command: {subcommand}")
 
 def handle_plugin_command(args):
     """Handle plugin management commands."""
     if not args:
-        print("🔌 PlexiChat Plugin Management")
+        print("[*] PlexiChat Plugin Management")
         print("=" * 31)
         print("Available plugin commands:")
         print("  list        List installed plugins")
@@ -3323,12 +3381,12 @@ def handle_plugin_command(args):
     elif subcommand == "update":
         update_plugins()
     else:
-        print(f"❌ Unknown plugin command: {subcommand}")
+        print(f"[ERROR] Unknown plugin command: {subcommand}")
 
 def handle_cluster_command(args):
     """Handle cluster management commands."""
     if not args:
-        print("🌐 PlexiChat Cluster Management")
+        print("[*] PlexiChat Cluster Management")
         print("=" * 32)
         print("Available cluster commands:")
         print("  status      Show cluster status")
@@ -3349,12 +3407,12 @@ def handle_cluster_command(args):
     elif subcommand == "nodes":
         list_cluster_nodes()
     else:
-        print(f"❌ Unknown cluster command: {subcommand}")
+        print(f"[ERROR] Unknown cluster command: {subcommand}")
 
 def handle_security_command(args):
     """Handle security management commands."""
     if not args:
-        print("🛡️ PlexiChat Security Management")
+        print("[*] PlexiChat Security Management")
         print("=" * 33)
         print("Available security commands:")
         print("  audit       Run security audit")
@@ -3374,12 +3432,12 @@ def handle_security_command(args):
     elif subcommand == "users":
         manage_user_security(args[1:])
     else:
-        print(f"❌ Unknown security command: {subcommand}")
+        print(f"[ERROR] Unknown security command: {subcommand}")
 
 def handle_monitor_command(args):
     """Handle monitoring commands."""
     if not args:
-        print("📊 PlexiChat Monitoring")
+        print("[*] PlexiChat Monitoring")
         print("=" * 24)
         print("Available monitor commands:")
         print("  status      Show system status")
@@ -3399,7 +3457,7 @@ def handle_monitor_command(args):
     elif subcommand == "alerts":
         manage_alerts(args[1:])
     else:
-        print(f"❌ Unknown monitor command: {subcommand}")
+        print(f"[ERROR] Unknown monitor command: {subcommand}")
 
 def main():
     """Enhanced main entry point - SINGLE POINT OF ACCESS FOR ALL PLEXICHAT FUNCTIONALITY."""
@@ -3413,51 +3471,51 @@ def main():
 
     if not args:
         if not VENV_DIR.exists():
-            print("🎉 Welcome to PlexiChat!")
-            print("🔧 First-time setup detected...")
+            print("[SUCCESS] Welcome to PlexiChat!")
+            print("[*] First-time setup detected...")
 
             # Run interactive setup wizard
             config = interactive_setup_wizard()
             if not config:
-                print("❌ Setup cancelled")
+                print("[ERROR] Setup cancelled")
                 sys.exit(1)
 
             setup_style = config.get("setup_style", "minimal")
-            print(f"\n🚀 Starting {SETUP_STYLES[setup_style]['name']}...")
+            print(f"\n[*] Starting {SETUP_STYLES[setup_style]['name']}...")
 
             if install_dependencies(setup_style):
-                print("✅ Setup complete!")
-                print(f"🎯 Configuration saved for future runs")
-                print("🚀 Run 'python run.py run' to start PlexiChat.")
-                print("📋 Default admin credentials will be generated on first run.")
+                print("[OK] Setup complete!")
+                print(f"[*] Configuration saved for future runs")
+                print("[*] Run 'python run.py run' to start PlexiChat.")
+                print("[*] Default admin credentials will be generated on first run.")
 
                 # Show next steps
-                print("\n📋 Next Steps:")
+                print("\n[*] Next Steps:")
                 print("1. python run.py run    # Start PlexiChat server")
                 print("2. Open http://localhost:8080 in your browser")
                 print("3. Login with generated admin credentials")
                 print("4. Change default password immediately")
 
                 if config.get("debug_mode"):
-                    print("\n🐛 Debug mode enabled - detailed logging will be available")
+                    print("\n[DEBUG] Debug mode enabled - detailed logging will be available")
 
                 if config.get("performance_monitoring"):
-                    print("📊 Performance monitoring enabled - metrics will be collected")
+                    print("[*] Performance monitoring enabled - metrics will be collected")
 
             else:
-                print("❌ Setup failed")
+                print("[ERROR] Setup failed")
                 sys.exit(1)
         else:
             # Show status and help for existing installations
             install_type = detect_installation_type()
             config = load_setup_config()
 
-            print(f"📦 Current Installation: {install_type.upper()}")
+            print(f"[*] Current Installation: {install_type.upper()}")
             if config:
                 setup_style = config.get("setup_style", "unknown")
                 terminal_style = config.get("terminal_style", "unknown")
-                print(f"🎯 Setup Style: {SETUP_STYLES.get(setup_style, {}).get('name', setup_style)}")
-                print(f"🖥️  Terminal Style: {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)}")
+                print(f"[*] Setup Style: {SETUP_STYLES.get(setup_style, {}).get('name', setup_style)}")
+                print(f"[*]  Terminal Style: {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)}")
 
             show_help()
         return
@@ -3475,7 +3533,7 @@ def main():
         install_type = detect_installation_type()
 
         print(f"""
-💬 PlexiChat Version Information
+[*] PlexiChat Version Information
 Current Version: {version}
 Installation Type: {install_type.upper()}
 Python Version: {sys.version.split()[0]}
@@ -3512,14 +3570,14 @@ Versioning: Git-based (GitHub releases)
                 print(f"Last Commit: {commit_info}")
 
         except Exception as e:
-            print(f"⚠️ Could not read Git information: {e}")
+            print(f"[WARN] Could not read Git information: {e}")
 
     elif command == "bootstrap":
         # Bootstrap installation from scratch
         if "--help" in args or "-h" in args:
             try:
                 print("""
-🚀 PlexiChat Bootstrap Installer
+[*] PlexiChat Bootstrap Installer
 
 Usage: python run.py bootstrap [options]
 
@@ -3573,7 +3631,7 @@ in the same location as this script.
 
         # Check if we're already in a PlexiChat installation
         if (Path(__file__).parent / "src" / "plexichat").exists():
-            print("⚠️  You appear to already be in a PlexiChat installation directory.")
+            print("[WARN]  You appear to already be in a PlexiChat installation directory.")
             print("The bootstrap command is for installing PlexiChat from a standalone run.py file.")
             print("Use 'python run.py setup' instead to configure this installation.")
             return
@@ -3583,10 +3641,10 @@ in the same location as this script.
         success = bootstrapper.run_bootstrap()
 
         if success:
-            print("\n🎉 Bootstrap completed! PlexiChat is ready to use.")
+            print("\n[SUCCESS] Bootstrap completed! PlexiChat is ready to use.")
             sys.exit(0)
         else:
-            print("\n❌ Bootstrap failed. Please check the errors above.")
+            print("\n[ERROR] Bootstrap failed. Please check the errors above.")
             sys.exit(1)
 
     elif command == "update":
@@ -3594,7 +3652,7 @@ in the same location as this script.
 
         # Simple Git pull update
         try:
-            print("🔍 Checking for updates...")
+            print("[*] Checking for updates...")
 
             # Fetch latest changes
             result = subprocess.run(
@@ -3606,7 +3664,7 @@ in the same location as this script.
             )
 
             if result.returncode != 0:
-                print(f"❌ Failed to fetch updates: {result.stderr}")
+                print(f"[ERROR] Failed to fetch updates: {result.stderr}")
                 sys.exit(1)
 
             # Check if updates are available
@@ -3619,9 +3677,9 @@ in the same location as this script.
             )
 
             if "behind" in result.stdout:
-                print("📦 Updates available!")
+                print("[*] Updates available!")
 
-                if input("🔄 Apply updates? (y/N): ").lower().startswith('y'):
+                if input("[*] Apply updates? (y/N): ").lower().startswith('y'):
                     # Pull updates
                     result = subprocess.run(
                         ["git", "pull", "origin"],
@@ -3632,27 +3690,27 @@ in the same location as this script.
                     )
 
                     if result.returncode == 0:
-                        print("✅ Updates applied successfully!")
-                        print("🔄 Restart PlexiChat to use the new version")
+                        print("[OK] Updates applied successfully!")
+                        print("[*] Restart PlexiChat to use the new version")
 
                         # Update dependencies
                         if REQUIREMENTS.exists():
-                            print("📦 Updating dependencies...")
+                            print("[*] Updating dependencies...")
                             venv_python = get_venv_python()
                             if venv_python and venv_python.exists():
                                 subprocess.run([
                                     str(venv_python), "-m", "pip", "install", "-r", str(REQUIREMENTS)
                                 ], cwd=ROOT)
                     else:
-                        print(f"❌ Update failed: {result.stderr}")
+                        print(f"[ERROR] Update failed: {result.stderr}")
                         sys.exit(1)
                 else:
-                    print("❌ Update cancelled")
+                    print("[ERROR] Update cancelled")
             else:
-                print("✅ Already up to date!")
+                print("[OK] Already up to date!")
 
         except Exception as e:
-            print(f"❌ Update check failed: {e}")
+            print(f"[ERROR] Update check failed: {e}")
             sys.exit(1)
 
     elif command == "wizard":
@@ -3660,15 +3718,15 @@ in the same location as this script.
         config = interactive_setup_wizard()
         if config:
             setup_style = config.get("setup_style", "minimal")
-            print(f"\n🚀 Installing {SETUP_STYLES[setup_style]['name']}...")
+            print(f"\n[*] Installing {SETUP_STYLES[setup_style]['name']}...")
             if install_dependencies(setup_style):
-                print("✅ Setup complete!")
-                print("🚀 Run 'python run.py run' to start PlexiChat.")
+                print("[OK] Setup complete!")
+                print("[*] Run 'python run.py run' to start PlexiChat.")
             else:
-                print("❌ Setup failed")
+                print("[ERROR] Setup failed")
                 sys.exit(1)
         else:
-            print("❌ Setup cancelled")
+            print("[ERROR] Setup cancelled")
             sys.exit(1)
 
     elif command == "setup":
@@ -3680,12 +3738,12 @@ in the same location as this script.
         if len(args) > 1 and not args[1].startswith('-'):
             install_type = args[1].lower()
             if install_type not in ["minimal", "standard", "full", "developer"]:
-                print(f"❌ Invalid setup type: {install_type}")
+                print(f"[ERROR] Invalid setup type: {install_type}")
                 print("Valid types: minimal, standard, full, developer")
                 print("Use 'python run.py help setup' for detailed help")
                 sys.exit(1)
 
-        print(f"🔧 Setting up PlexiChat ({SETUP_STYLES[install_type]['name']})...")
+        print(f"[*] Setting up PlexiChat ({SETUP_STYLES[install_type]['name']})...")
 
         # Save basic config for non-interactive setup
         config = {
@@ -3700,39 +3758,39 @@ in the same location as this script.
         save_setup_config(config)
 
         if install_dependencies(install_type):
-            print("✅ Dependencies installed successfully!")
+            print("[OK] Dependencies installed successfully!")
 
             # Generate unified configuration
-            print("🔧 Generating unified configuration...")
+            print("[*] Generating unified configuration...")
             generate_unified_config()
 
             # Setup SSL certificates for development
-            print("🔒 Setting up SSL certificates...")
+            print("[*] Setting up SSL certificates...")
             setup_ssl_certificates()
 
-            print("\n🎉 Setup complete!")
-            print("🚀 Run 'python run.py run' to start PlexiChat.")
-            print("🌐 Access via: https://plexichat.local (after adding to hosts file)")
-            print("💡 Tip: Run 'python run.py wizard' for interactive configuration.")
+            print("\n[SUCCESS] Setup complete!")
+            print("[*] Run 'python run.py run' to start PlexiChat.")
+            print("[*] Access via: https://plexichat.local (after adding to hosts file)")
+            print("[INFO] Tip: Run 'python run.py wizard' for interactive configuration.")
         else:
-            print("❌ Setup failed")
+            print("[ERROR] Setup failed")
             sys.exit(1)
 
     elif command == "info":
-        print("🖥️  PlexiChat System Information")
+        print("[*]  PlexiChat System Information")
         print("=" * 50)
         print_system_info()
 
         install_type = detect_installation_type()
         config = load_setup_config()
 
-        print(f"\n📦 Installation Details:")
+        print(f"\n[*] Installation Details:")
         print(f"   Type: {install_type.upper()}")
         print(f"   Root Directory: {ROOT}")
         print(f"   Virtual Environment: {'Present' if VENV_DIR.exists() else 'Missing'}")
 
         if config:
-            print(f"\n⚙️  Configuration:")
+            print(f"\n[*]  Configuration:")
             print(f"   Setup Style: {SETUP_STYLES.get(config.get('setup_style', ''), {}).get('name', 'Unknown')}")
             print(f"   Terminal Style: {TERMINAL_STYLES.get(config.get('terminal_style', ''), {}).get('name', 'Unknown')}")
             print(f"   Debug Mode: {'Enabled' if config.get('debug_mode') else 'Disabled'}")
@@ -3740,14 +3798,14 @@ in the same location as this script.
             print(f"   Setup Date: {config.get('setup_date', 'Unknown')}")
 
         # Check for important files
-        print(f"\n📁 Important Files:")
+        print(f"\n[*] Important Files:")
         print(f"   Requirements: {'Present' if REQUIREMENTS.exists() else 'Missing'}")
         print(f"   Version File: {'Present' if VERSION_FILE.exists() else 'Missing'}")
         print(f"   Default Credentials: {'Present' if DEFAULT_CREDS.exists() else 'Not Generated'}")
 
         # Port configuration
         ports = get_port_configuration()
-        print(f"\n🌐 Service Ports:")
+        print(f"\n[*] Service Ports:")
         for service, port in ports.items():
             print(f"   {service}: {port}")
 
@@ -3762,19 +3820,19 @@ in the same location as this script.
                     )
                     if result.returncode == 0:
                         package_count = len([line for line in result.stdout.strip().split('\n') if '==' in line])
-                        print(f"\n📦 Installed Packages: {package_count}")
+                        print(f"\n[*] Installed Packages: {package_count}")
                     else:
-                        print(f"\n📦 Installed Packages: Unable to determine")
+                        print(f"\n[*] Installed Packages: Unable to determine")
                 except Exception:
-                    print(f"\n📦 Installed Packages: Check failed")
+                    print(f"\n[*] Installed Packages: Check failed")
 
     elif command == "run":
         # Check for debug flag
         debug_mode = "--debug" in args
 
-        print("🚀 Starting PlexiChat server...")
+        print("[*] Starting PlexiChat server...")
         if not VENV_DIR.exists():
-            print("❌ Environment not set up. Run 'python run.py setup' first.")
+            print("[ERROR] Environment not set up. Run 'python run.py setup' first.")
             sys.exit(1)
 
         # Load configuration
@@ -3782,10 +3840,10 @@ in the same location as this script.
         terminal_style = config.get("terminal_style", "classic") if config else "classic"
 
         if debug_mode or (config and config.get("debug_mode")):
-            print("🐛 Debug mode enabled")
+            print("[DEBUG] Debug mode enabled")
             terminal_style = "dashboard"  # Force dashboard for debug mode
 
-        print(f"🖥️  Using {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)} terminal style")
+        print(f"[*]  Using {TERMINAL_STYLES.get(terminal_style, {}).get('name', terminal_style)} terminal style")
 
         # Generate default credentials if they don't exist
         generate_default_admin_creds()
@@ -3837,7 +3895,7 @@ in the same location as this script.
             return
 
         if len(args) < 2:
-            print("❌ Import filename required")
+            print("[ERROR] Import filename required")
             print("Usage: python run.py import <filename>")
             sys.exit(1)
 
@@ -3853,11 +3911,11 @@ in the same location as this script.
 
     elif command == "test":
         if not VENV_DIR.exists():
-            print("❌ Environment not set up. Run 'python run.py setup' first.")
+            print("[ERROR] Environment not set up. Run 'python run.py setup' first.")
             sys.exit(1)
 
         install_type = detect_installation_type()
-        print(f"🧪 Running tests with {install_type} installation...")
+        print(f"[*] Running tests with {install_type} installation...")
 
         venv_python = get_venv_python()
         if venv_python and venv_python.exists():
@@ -3865,9 +3923,9 @@ in the same location as this script.
             env["PYTHONPATH"] = str(SRC)
             try:
                 subprocess.run([str(venv_python), "-m", "pytest", "src/plexichat/tests/", "-v"], env=env, check=True)
-                print("✅ All tests passed!")
+                print("[OK] All tests passed!")
             except subprocess.CalledProcessError:
-                print("❌ Some tests failed. Check output above.")
+                print("[ERROR] Some tests failed. Check output above.")
                 sys.exit(1)
 
     elif command == "admin":
@@ -3893,7 +3951,7 @@ in the same location as this script.
             show_subcommand_help("gui")
             return
 
-        print("🖥️  PlexiChat GUI Options")
+        print("[*]  PlexiChat GUI Options")
         print("=" * 30)
         print("1. Admin Panel - Server management and configuration")
         print("2. WebUI - Main user interface")
@@ -3912,7 +3970,7 @@ in the same location as this script.
             open_admin_gui()
             open_webui()
         else:
-            print("❌ Invalid choice")
+            print("[ERROR] Invalid choice")
 
     elif command == "config":
         handle_config_command(args[1:])
@@ -3942,7 +4000,7 @@ in the same location as this script.
         handle_monitor_command(args[1:])
 
     else:
-        print(f"❌ Unknown command: {command}")
+        print(f"[ERROR] Unknown command: {command}")
         show_help()
         sys.exit(1)
 
@@ -3952,7 +4010,7 @@ def start_classic_terminal():
     try:
         venv_python = get_venv_python()
         if not venv_python or not venv_python.exists():
-            print("❌ Python executable not found in virtual environment")
+            print("[ERROR] Python executable not found in virtual environment")
             sys.exit(1)
 
         # Get port configuration
@@ -3965,21 +4023,21 @@ def start_classic_terminal():
 
         cmd = [str(venv_python), "-m", "src.plexichat.main"]
 
-        print("🚀 Starting PlexiChat server (Enhanced Classic Mode)...")
-        print("💡 Press Ctrl+C to stop the server")
+        print("[*] Starting PlexiChat server (Enhanced Classic Mode)...")
+        print("[INFO] Press Ctrl+C to stop the server")
         print("=" * 60)
-        print("🌐 Service URLs:")
-        print(f"   📱 WebUI:        http://localhost:{ports['webui_http']}")
-        print(f"   📡 API:          http://localhost:{ports['api_http']}")
-        print(f"   ⚙️  Admin Panel:  http://localhost:{ports['admin']}")
-        print(f"   🔌 WebSocket:    ws://localhost:{ports['websocket']}")
+        print("[*] Service URLs:")
+        print(f"   [*] WebUI:        http://localhost:{ports['webui_http']}")
+        print(f"   [*] API:          http://localhost:{ports['api_http']}")
+        print(f"   [*]  Admin Panel:  http://localhost:{ports['admin']}")
+        print(f"   [*] WebSocket:    ws://localhost:{ports['websocket']}")
 
         if is_first_time:
-            print(f"🔐 Admin credentials: {DEFAULT_CREDS}")
-            print("⚠️  IMPORTANT: Change default password after first login!")
+            print(f"[*] Admin credentials: {DEFAULT_CREDS}")
+            print("[WARN]  IMPORTANT: Change default password after first login!")
 
         print("=" * 60)
-        print("💡 Commands while running:")
+        print("[INFO] Commands while running:")
         print("   Ctrl+C: Stop server")
         print("   Type 'admin' + Enter: Open admin panel")
         print("   Type 'webui' + Enter: Open main interface")
@@ -4024,19 +4082,19 @@ def start_classic_terminal():
                 try:
                     user_input = input_queue.get_nowait()
                     if user_input == 'admin':
-                        print("🔧 Opening admin panel...")
+                        print("[*] Opening admin panel...")
                         open_admin_gui()
                     elif user_input == 'webui':
-                        print("🌐 Opening WebUI...")
+                        print("[*] Opening WebUI...")
                         open_webui()
                     elif user_input == 'status':
-                        print("🔍 Service status:")
+                        print("[*] Service status:")
                         show_service_status()
                     elif user_input in ['quit', 'exit', 'stop']:
-                        print("🛑 Stopping server...")
+                        print("[STOP] Stopping server...")
                         break
                     else:
-                        print(f"❓ Unknown command: {user_input}")
+                        print(f"[?] Unknown command: {user_input}")
                         print("Available: admin, webui, status, quit")
                 except queue.Empty:
                     pass
@@ -4050,7 +4108,7 @@ def start_classic_terminal():
                 except:
                     pass
         except KeyboardInterrupt:
-            print("\n🛑 Stopping PlexiChat server...")
+            print("\n[STOP] Stopping PlexiChat server...")
 
         # Clean shutdown
         process.terminate()
@@ -4059,36 +4117,36 @@ def start_classic_terminal():
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
-        print("✅ Server stopped")
+        print("[OK] Server stopped")
 
     except Exception as e:
-        print(f"❌ Failed to start PlexiChat: {e}")
+        print(f"[ERROR] Failed to start PlexiChat: {e}")
         sys.exit(1)
 
 
 def start_split_terminal():
     """Start PlexiChat with split-screen terminal (logs left, CLI right)."""
-    print("🖥️  Split-screen terminal mode")
-    print("📊 This would show logs on left, CLI on right")
-    print("💡 For now, falling back to classic mode")
+    print("[*]  Split-screen terminal mode")
+    print("[*] This would show logs on left, CLI on right")
+    print("[INFO] For now, falling back to classic mode")
     start_classic_terminal()
 
 
 def start_tabbed_terminal():
     """Start PlexiChat with tabbed interface."""
-    print("🖥️  Tabbed terminal mode")
-    print("📊 This would allow switching between logs and CLI")
-    print("💡 For now, falling back to classic mode")
+    print("[*]  Tabbed terminal mode")
+    print("[*] This would allow switching between logs and CLI")
+    print("[INFO] For now, falling back to classic mode")
     start_classic_terminal()
 
 
 def start_dashboard_terminal(debug_mode=False):
     """Start PlexiChat with live dashboard and metrics."""
-    print("📊 Dashboard terminal mode")
+    print("[*] Dashboard terminal mode")
     if debug_mode:
-        print("🐛 Debug mode active - detailed logging enabled")
-    print("📈 This would show real-time metrics and system monitoring")
-    print("💡 For now, falling back to classic mode with enhanced logging")
+        print("[DEBUG] Debug mode active - detailed logging enabled")
+    print("[*] This would show real-time metrics and system monitoring")
+    print("[INFO] For now, falling back to classic mode with enhanced logging")
     start_classic_terminal()
 
 
@@ -4101,21 +4159,21 @@ def start_dashboard_terminal(debug_mode=False):
 
 def generate_unified_config():
     """Generate unified YAML configuration - replaces all scattered config files."""
-    print("🔧 Generating unified PlexiChat configuration...")
+    print("[*] Generating unified PlexiChat configuration...")
 
     # Check if yaml is available
     yaml_module = None
     try:
         import yaml as yaml_module
     except ImportError:
-        print("⚠️ PyYAML not installed. Installing...")
+        print("[WARN] PyYAML not installed. Installing...")
         try:
             subprocess.run([sys.executable, "-m", "pip", "install", "PyYAML"], check=True, capture_output=True)
             import yaml as yaml_module
-            print("✅ PyYAML installed successfully")
+            print("[OK] PyYAML installed successfully")
         except Exception as e:
-            print(f"❌ Failed to install PyYAML: {e}")
-            print("💡 Generating JSON configuration instead...")
+            print(f"[ERROR] Failed to install PyYAML: {e}")
+            print("[INFO] Generating JSON configuration instead...")
             generate_json_config()
             return
 
@@ -4177,8 +4235,8 @@ def generate_unified_config():
     with open(config_file, 'w') as f:
         yaml_module.dump(config, f, default_flow_style=False, indent=2)
 
-    print(f"✅ Unified configuration saved to: {config_file}")
-    print("🗑️ You can now remove old .env files and scattered configs")
+    print(f"[OK] Unified configuration saved to: {config_file}")
+    print("[*] You can now remove old .env files and scattered configs")
 
 def generate_json_config():
     """Generate JSON configuration as fallback when YAML is not available."""
@@ -4227,14 +4285,14 @@ def generate_json_config():
     with open(config_file, 'w') as f:
         json.dump(config, f, indent=2, default=str)
 
-    print(f"✅ JSON configuration saved to: {config_file}")
-    print("💡 Install PyYAML for YAML format: pip install PyYAML")
+    print(f"[OK] JSON configuration saved to: {config_file}")
+    print("[INFO] Install PyYAML for YAML format: pip install PyYAML")
 
 def validate_configuration():
     """Validate the unified configuration."""
     config_file = ROOT / "plexichat.yaml"
     if not config_file.exists():
-        print("❌ No configuration file found. Run 'python run.py config generate' first.")
+        print("[ERROR] No configuration file found. Run 'python run.py config generate' first.")
         return False
 
     try:
@@ -4242,32 +4300,32 @@ def validate_configuration():
             if yaml is not None:
                 config = yaml.safe_load(f)
             else:
-                print("❌ YAML library not available")
+                print("[ERROR] YAML library not available")
                 return False
 
         # Basic validation
         if "plexichat" not in config:
-            print("❌ Invalid configuration: missing 'plexichat' section")
+            print("[ERROR] Invalid configuration: missing 'plexichat' section")
             return False
 
         required_sections = ["server", "database", "security"]
         for section in required_sections:
             if section not in config["plexichat"]:
-                print(f"❌ Invalid configuration: missing '{section}' section")
+                print(f"[ERROR] Invalid configuration: missing '{section}' section")
                 return False
 
-        print("✅ Configuration is valid")
+        print("[OK] Configuration is valid")
         return True
 
     except Exception as e:
-        print(f"❌ Configuration validation failed: {e}")
+        print(f"[ERROR] Configuration validation failed: {e}")
         return False
 
 def show_current_config():
     """Show current configuration."""
     config_file = ROOT / "plexichat.yaml"
     if not config_file.exists():
-        print("❌ No configuration file found.")
+        print("[ERROR] No configuration file found.")
         return
 
     try:
@@ -4275,10 +4333,10 @@ def show_current_config():
             if yaml is not None:
                 config = yaml.safe_load(f)
             else:
-                print("❌ YAML library not available")
+                print("[ERROR] YAML library not available")
                 return
 
-        print("📋 Current PlexiChat Configuration:")
+        print("[*] Current PlexiChat Configuration:")
         print("=" * 40)
         if yaml is not None:
             print(yaml.dump(config, default_flow_style=False, indent=2))
@@ -4286,22 +4344,22 @@ def show_current_config():
             print(json.dumps(config, indent=2))
 
     except Exception as e:
-        print(f"❌ Failed to read configuration: {e}")
+        print(f"[ERROR] Failed to read configuration: {e}")
 
 def edit_config_interactive():
     """Interactive configuration editor."""
-    print("✏️ Interactive configuration editor not yet implemented.")
-    print("💡 Edit plexichat.yaml directly for now.")
+    print("[*] Interactive configuration editor not yet implemented.")
+    print("[INFO] Edit plexichat.yaml directly for now.")
 
 def reset_to_default_config():
     """Reset configuration to defaults."""
-    if input("⚠️ This will reset all configuration to defaults. Continue? (y/N): ").lower().startswith('y'):
+    if input("[WARN] This will reset all configuration to defaults. Continue? (y/N): ").lower().startswith('y'):
         generate_unified_config()
-        print("✅ Configuration reset to defaults")
+        print("[OK] Configuration reset to defaults")
 
 def setup_ssl_certificates():
     """Set up SSL certificates and domain configuration."""
-    print("🔒 Setting up SSL certificates for plexichat.local...")
+    print("[*] Setting up SSL certificates for plexichat.local...")
 
     # Create certs directory
     certs_dir = ROOT / "certs"
@@ -4325,17 +4383,17 @@ def setup_ssl_certificates():
             "-subj", "/C=US/ST=CA/L=SF/O=PlexiChat/CN=plexichat.local"
         ], check=True, capture_output=True)
 
-        print("✅ SSL certificates generated")
-        print("📝 Add '127.0.0.1 plexichat.local' to your hosts file")
+        print("[OK] SSL certificates generated")
+        print("[*] Add '127.0.0.1 plexichat.local' to your hosts file")
 
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to generate SSL certificates: {e}")
+        print(f"[ERROR] Failed to generate SSL certificates: {e}")
     except FileNotFoundError:
-        print("❌ OpenSSL not found. Please install OpenSSL first.")
+        print("[ERROR] OpenSSL not found. Please install OpenSSL first.")
 
 def renew_ssl_certificates():
     """Renew SSL certificates."""
-    print("🔄 SSL certificate renewal not yet implemented.")
+    print("[*] SSL certificate renewal not yet implemented.")
 
 def show_ssl_status():
     """Show SSL certificate status."""
@@ -4343,7 +4401,7 @@ def show_ssl_status():
     cert_file = certs_dir / "plexichat.crt"
 
     if not cert_file.exists():
-        print("❌ No SSL certificate found")
+        print("[ERROR] No SSL certificate found")
         return
 
     try:
@@ -4352,7 +4410,7 @@ def show_ssl_status():
             "openssl", "x509", "-in", str(cert_file), "-text", "-noout"
         ], capture_output=True, text=True, check=True)
 
-        print("📋 SSL Certificate Status:")
+        print("[*] SSL Certificate Status:")
         print("=" * 30)
         # Extract relevant info from openssl output
         lines = result.stdout.split('\n')
@@ -4361,111 +4419,111 @@ def show_ssl_status():
                 print(f"   {line.strip()}")
 
     except Exception as e:
-        print(f"❌ Failed to read SSL certificate: {e}")
+        print(f"[ERROR] Failed to read SSL certificate: {e}")
 
 # Placeholder implementations for other commands
 def run_database_migrations():
-    print("🗃️ Database migration system not yet implemented.")
+    print("[*] Database migration system not yet implemented.")
 
 def rollback_migrations():
-    print("↩️ Migration rollback not yet implemented.")
+    print("[*] Migration rollback not yet implemented.")
 
 def show_migration_status():
-    print("📋 Migration status not yet implemented.")
+    print("[*] Migration status not yet implemented.")
 
 def create_migration(name):
-    print(f"📝 Creating migration '{name}' not yet implemented.")
+    print(f"[*] Creating migration '{name}' not yet implemented.")
 
 def create_backup(name):
-    print(f"💾 Creating backup '{name or 'auto'}' not yet implemented.")
+    print(f"[*] Creating backup '{name or 'auto'}' not yet implemented.")
 
 def list_backups():
-    print("📋 Listing backups not yet implemented.")
+    print("[*] Listing backups not yet implemented.")
 
 def configure_backup_schedule():
-    print("⏰ Backup scheduling not yet implemented.")
+    print("[*] Backup scheduling not yet implemented.")
 
 def verify_backup(name):
-    print(f"✅ Verifying backup '{name or 'latest'}' not yet implemented.")
+    print(f"[OK] Verifying backup '{name or 'latest'}' not yet implemented.")
 
 def restore_from_backup(name):
-    print(f"🔄 Restoring from backup '{name}' not yet implemented.")
+    print(f"[*] Restoring from backup '{name}' not yet implemented.")
 
 def list_restore_points():
-    print("📋 Listing restore points not yet implemented.")
+    print("[*] Listing restore points not yet implemented.")
 
 def verify_restore_point(name):
-    print(f"✅ Verifying restore point '{name or 'latest'}' not yet implemented.")
+    print(f"[OK] Verifying restore point '{name or 'latest'}' not yet implemented.")
 
 def list_plugins():
-    print("🔌 Plugin listing not yet implemented.")
+    print("[*] Plugin listing not yet implemented.")
 
 def install_plugin(name):
-    print(f"📦 Installing plugin '{name}' not yet implemented.")
+    print(f"[*] Installing plugin '{name}' not yet implemented.")
 
 def remove_plugin(name):
-    print(f"🗑️ Removing plugin '{name}' not yet implemented.")
+    print(f"[*] Removing plugin '{name}' not yet implemented.")
 
 def enable_plugin(name):
-    print(f"✅ Enabling plugin '{name}' not yet implemented.")
+    print(f"[OK] Enabling plugin '{name}' not yet implemented.")
 
 def disable_plugin(name):
-    print(f"❌ Disabling plugin '{name}' not yet implemented.")
+    print(f"[ERROR] Disabling plugin '{name}' not yet implemented.")
 
 def update_plugins():
-    print("🔄 Updating plugins not yet implemented.")
+    print("[*] Updating plugins not yet implemented.")
 
 def show_cluster_status():
-    print("🌐 Cluster status not yet implemented.")
+    print("[*] Cluster status not yet implemented.")
 
 def join_cluster(address):
-    print(f"🔗 Joining cluster at '{address}' not yet implemented.")
+    print(f"[*] Joining cluster at '{address}' not yet implemented.")
 
 def leave_cluster():
-    print("👋 Leaving cluster not yet implemented.")
+    print("[*] Leaving cluster not yet implemented.")
 
 def list_cluster_nodes():
-    print("📋 Listing cluster nodes not yet implemented.")
+    print("[*] Listing cluster nodes not yet implemented.")
 
 def run_security_audit():
-    print("🛡️ Security audit not yet implemented.")
+    print("[*] Security audit not yet implemented.")
 
 def scan_vulnerabilities():
-    print("🔍 Vulnerability scanning not yet implemented.")
+    print("[*] Vulnerability scanning not yet implemented.")
 
 def manage_encryption_keys(args):
-    print("🔐 Encryption key management not yet implemented.")
+    print("[*] Encryption key management not yet implemented.")
 
 def manage_user_security(args):
-    print("👤 User security management not yet implemented.")
+    print("[*] User security management not yet implemented.")
 
 def show_system_status():
-    print("📊 System status monitoring not yet implemented.")
+    print("[*] System status monitoring not yet implemented.")
 
 def show_performance_metrics():
-    print("📈 Performance metrics not yet implemented.")
+    print("[*] Performance metrics not yet implemented.")
 
 def view_system_logs(args):
-    print("📜 System log viewing not yet implemented.")
+    print("[*] System log viewing not yet implemented.")
 
 def manage_alerts(args):
-    print("🚨 Alert management not yet implemented.")
+    print("[*] Alert management not yet implemented.")
 
 def run_robust_update():
     """Robust update system that works even with missing modules."""
-    print("🔄 PlexiChat Robust Update System")
+    print("[*] PlexiChat Robust Update System")
     print("=" * 45)
 
     # Check if we're in a Git repository
     if not (ROOT / ".git").exists():
-        print("❌ Not a Git repository. Updates require Git-based installation.")
-        print("💡 To enable updates:")
+        print("[ERROR] Not a Git repository. Updates require Git-based installation.")
+        print("[INFO] To enable updates:")
         print("   1. Clone from GitHub: git clone https://github.com/linux-of-user/plexichat.git")
         print("   2. Or download releases from: https://github.com/linux-of-user/plexichat/releases")
         return False
 
     try:
-        print("🔍 Checking for updates...")
+        print("[*] Checking for updates...")
 
         # Create progress bar for update process
         update_steps = ["Fetching updates", "Checking status", "Applying updates", "Installing dependencies", "Verifying installation"]
@@ -4485,7 +4543,7 @@ def run_robust_update():
 
         if result.returncode != 0:
             progress.close()
-            print(f"❌ Failed to fetch updates: {result.stderr}")
+            print(f"[ERROR] Failed to fetch updates: {result.stderr}")
             return False
 
         progress.update(1)
@@ -4506,10 +4564,10 @@ def run_robust_update():
 
         if "behind" not in result.stdout:
             progress.close()
-            print("✅ PlexiChat is already up to date!")
+            print("[OK] PlexiChat is already up to date!")
             return True
 
-        print("\n📦 Updates available!")
+        print("\n[*] Updates available!")
 
         # Show what will be updated
         try:
@@ -4522,18 +4580,18 @@ def run_robust_update():
             )
 
             if log_result.returncode == 0 and log_result.stdout.strip():
-                print("\n📋 Changes to be applied:")
+                print("\n[*] Changes to be applied:")
                 commit_lines = log_result.stdout.strip().split('\n')
                 for line in commit_lines[:5]:  # Show last 5 commits
-                    print(f"   • {line}")
+                    print(f"   * {line}")
                 if len(commit_lines) > 5:
                     print(f"   ... and {len(commit_lines) - 5} more commits")
         except:
             pass
 
-        if not input("\n🔄 Apply updates? (y/N): ").lower().startswith('y'):
+        if not input("\n[*] Apply updates? (y/N): ").lower().startswith('y'):
             progress.close()
-            print("❌ Update cancelled by user")
+            print("[ERROR] Update cancelled by user")
             return False
 
         # Step 3: Apply updates
@@ -4550,7 +4608,7 @@ def run_robust_update():
 
         if result.returncode != 0:
             progress.close()
-            print(f"❌ Failed to apply updates: {result.stderr}")
+            print(f"[ERROR] Failed to apply updates: {result.stderr}")
             return False
 
         progress.update(1)
@@ -4562,26 +4620,26 @@ def run_robust_update():
         # Install essential packages first (these are needed for the system to work)
         essential_packages = ["PyYAML", "requests", "tqdm"]
 
-        print("\n📦 Installing essential packages...")
+        print("\n[*] Installing essential packages...")
         for package in essential_packages:
             try:
                 subprocess.run([
                     sys.executable, "-m", "pip", "install", package, "--quiet", "--upgrade"
                 ], check=True, capture_output=True)
             except:
-                print(f"⚠️ Failed to install {package}, continuing...")
+                print(f"[WARN] Failed to install {package}, continuing...")
 
         # Try to install from requirements.txt if it exists
         if REQUIREMENTS.exists():
-            print("📦 Updating dependencies from requirements.txt...")
+            print("[*] Updating dependencies from requirements.txt...")
             try:
                 # Use a more robust approach that doesn't depend on our parsing functions
                 subprocess.run([
                     sys.executable, "-m", "pip", "install", "-r", str(REQUIREMENTS), "--quiet", "--upgrade"
                 ], timeout=300, capture_output=True)
-                print("✅ Dependencies updated successfully")
+                print("[OK] Dependencies updated successfully")
             except Exception as e:
-                print(f"⚠️ Some dependencies may not have updated: {e}")
+                print(f"[WARN] Some dependencies may not have updated: {e}")
 
         progress.update(1)
 
@@ -4600,31 +4658,31 @@ def run_robust_update():
             if (ROOT / "version.json").exists():
                 with open(ROOT / "version.json", 'r') as f:
                     version_data = json.load(f)
-                    print(f"✅ Updated to version: {version_data.get('current_version', 'unknown')}")
+                    print(f"[OK] Updated to version: {version_data.get('current_version', 'unknown')}")
 
         except Exception as e:
-            print(f"⚠️ Verification warning: {e}")
+            print(f"[WARN] Verification warning: {e}")
             verification_passed = False
 
         progress.update(1)
         progress.close()
 
         if verification_passed:
-            print("\n🎉 Update completed successfully!")
-            print("🔄 Restart PlexiChat to use the new version")
-            print("💡 Run 'python run.py version' to see the new version")
+            print("\n[SUCCESS] Update completed successfully!")
+            print("[*] Restart PlexiChat to use the new version")
+            print("[INFO] Run 'python run.py version' to see the new version")
         else:
-            print("\n⚠️ Update applied but verification had issues")
-            print("💡 Try running 'python run.py setup' to fix any issues")
+            print("\n[WARN] Update applied but verification had issues")
+            print("[INFO] Try running 'python run.py setup' to fix any issues")
 
         return True
 
     except subprocess.TimeoutExpired:
-        print("❌ Update timed out. Please check your internet connection.")
+        print("[ERROR] Update timed out. Please check your internet connection.")
         return False
     except Exception as e:
-        print(f"❌ Update failed: {e}")
-        print("💡 Try running 'git pull' manually or reinstalling PlexiChat")
+        print(f"[ERROR] Update failed: {e}")
+        print("[INFO] Try running 'git pull' manually or reinstalling PlexiChat")
         return False
 
 if __name__ == "__main__":
