@@ -36,23 +36,61 @@ except ImportError:
     setup_module_logging = lambda name=None, level="INFO": logging.getLogger(name or __name__)
 
 # Load configuration from YAML file
+def load_version_from_json():
+    """Load version information from version.json."""
+    version_file = Path("version.json")
+    if version_file.exists():
+        try:
+            with open(version_file, 'r', encoding='utf-8') as f:
+                version_data = yaml.safe_load(f)
+                return {
+                    "version": version_data.get("version", "a.1.1-14"),
+                    "version_type": version_data.get("version_type", "alpha"),
+                    "major_version": version_data.get("major_version", 1),
+                    "minor_version": version_data.get("minor_version", 1),
+                    "build_number": version_data.get("build_number", 14),
+                    "api_version": version_data.get("api_version", "v1"),
+                    "release_date": version_data.get("release_date", "2024-12-19")
+                }
+        except Exception as e:
+            logging.error(f"Error loading version.json: {e}")
+    
+    # Return default version if file doesn't exist
+    return {
+        "version": "a.1.1-14",
+        "version_type": "alpha",
+        "major_version": 1,
+        "minor_version": 1,
+        "build_number": 14,
+        "api_version": "v1",
+        "release_date": "2024-12-19"
+    }
+
 def load_config():
     """Load configuration from YAML file."""
     config_file = Path("config/plexichat.yaml")
     if config_file.exists():
         try:
             with open(config_file, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
+                config_data = yaml.safe_load(f)
+                # Load version from version.json
+                version_info = load_version_from_json()
+                # Update config with version info
+                if "system" not in config_data:
+                    config_data["system"] = {}
+                config_data["system"].update(version_info)
+                return config_data
         except Exception as e:
             logging.error(f"Error loading config: {e}")
     
     # Return default config if file doesn't exist
+    version_info = load_version_from_json()
     return {
         "system": {
             "name": "PlexiChat",
-            "version": "a.1.1-12",  # alpha version 1.1 build 12
+            **version_info,
             "environment": "production",
-            "debug": False
+            "debug": True
         },
         "network": {
             "host": "0.0.0.0",
@@ -113,16 +151,18 @@ except ImportError:
 
 # SSL/Certificate Management
 try:
-    from .core_system.security.certificate_manager import get_certificate_manager
-    ssl_manager = get_certificate_manager()
-    logging.info("SSL Manager loaded")
+    # Certificate manager not available in current version
+    ssl_manager = None
+    logging.info("SSL Manager not available in current version")
 except ImportError as e:
     logging.warning(f"SSL Manager not available: {e}")
     ssl_manager = None
 
 # Import security middleware (with fallback)
 try:
-    from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
+    from .features.security.middleware import AuthenticationMiddleware as SecurityAuthMiddleware, SecurityMiddleware as SecurityMidware
+    AuthenticationMiddleware = SecurityAuthMiddleware
+    SecurityMiddleware = SecurityMidware
 except ImportError:
     # Fallback middleware if security module not available
     class SecurityMiddleware:
@@ -252,34 +292,46 @@ async def initialize_ssl():
         logging.info(" Initializing HTTPS/SSL...")
 
         # Initialize SSL manager
-        result = await ssl_manager.initialize()
-
-        if isinstance(result, dict) and result.get("ssl_enabled"):
-            ssl_context = result.get("ssl_context")
-            logging.info(" HTTPS/SSL initialized successfully")
-
-            # Setup automatic certificate management
-            if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
-                if hasattr(ssl_manager, 'setup_automatic_https'):
-                    await ssl_manager.setup_automatic_https(
-                        domain=SSL_CONFIG["domain"],
-                        email=SSL_CONFIG["email"],
-                        domain_type="custom"
-                    )
+        try:
+            if hasattr(ssl_manager, 'initialize'):
+                result = await ssl_manager.initialize()
             else:
-                # Use self-signed certificate
-                if hasattr(ssl_manager, 'setup_automatic_https'):
-                    await ssl_manager.setup_automatic_https(
-                        domain=SSL_CONFIG["domain"],
-                        domain_type="localhost"
-                    )
-        elif result:
-            # If result is just True/False, create basic SSL context
-            logging.info(" HTTPS/SSL initialized successfully")
+                result = None
 
-            return ssl_context
-        else:
-            logging.error(" Failed to initialize SSL/TLS")
+            if isinstance(result, dict) and result.get("ssl_enabled"):
+                ssl_context = result.get("ssl_context")
+                logging.info(" HTTPS/SSL initialized successfully")
+
+                # Setup automatic certificate management
+                if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
+                    if hasattr(ssl_manager, 'setup_automatic_https'):
+                        try:
+                            await ssl_manager.setup_automatic_https(
+                                domain=SSL_CONFIG["domain"],
+                                email=SSL_CONFIG["email"],
+                                domain_type="custom"
+                            )
+                        except Exception as e:
+                            logging.warning(f"Failed to setup automatic HTTPS: {e}")
+                else:
+                    # Use self-signed certificate
+                    if hasattr(ssl_manager, 'setup_automatic_https'):
+                        try:
+                            await ssl_manager.setup_automatic_https(
+                                domain=SSL_CONFIG["domain"],
+                                domain_type="localhost"
+                            )
+                        except Exception as e:
+                            logging.warning(f"Failed to setup self-signed certificate: {e}")
+            elif result:
+                # If result is just True/False, create basic SSL context
+                logging.info(" HTTPS/SSL initialized successfully")
+                return ssl_context
+            else:
+                logging.error(" Failed to initialize SSL/TLS")
+                return None
+        except Exception as e:
+            logging.error(f"SSL initialization failed: {e}")
             return None
 
     except Exception as e:
@@ -550,7 +602,10 @@ async def lifespan(app: FastAPI):
         if get_unified_backup_manager:
             backup_manager = get_unified_backup_manager()
             if hasattr(backup_manager, 'initialize'):
-                await backup_manager.initialize()
+                try:
+                    await backup_manager.initialize()
+                except Exception as e:
+                    logger.warning(f"Backup manager initialize failed: {e}")
             logger.info("Backup manager initialized")
         else:
             logger.warning("Backup system not available, skipping initialization.")
@@ -561,7 +616,10 @@ async def lifespan(app: FastAPI):
         # Initialize AI abstraction layer
         if ai_layer:
             if hasattr(ai_layer, 'initialize'):
-                await ai_layer.initialize()
+                try:
+                    await ai_layer.initialize()
+                except Exception as e:
+                    logger.warning(f"AI layer initialize failed: {e}")
             logger.info("AI abstraction layer initialized")
         else:
             logger.warning("AI features not available, skipping initialization.")
@@ -573,7 +631,10 @@ async def lifespan(app: FastAPI):
         if UnifiedAuthManager:
             auth_manager = UnifiedAuthManager()
             if hasattr(auth_manager, 'initialize'):
-                await auth_manager.initialize()
+                try:
+                    await auth_manager.initialize()
+                except Exception as e:
+                    logger.warning(f"Auth manager initialize failed: {e}")
             logger.info("Authentication manager initialized")
         else:
             logger.warning("Unified auth manager not available, skipping initialization.")
@@ -583,8 +644,11 @@ async def lifespan(app: FastAPI):
     try:
         # Initialize SSL/Certificate manager if available
         if ssl_manager and hasattr(ssl_manager, 'initialize'):
-            await ssl_manager.initialize()
-            logger.info("SSL/Certificate manager initialized")
+            try:
+                await ssl_manager.initialize()
+                logger.info("SSL/Certificate manager initialized")
+            except Exception as e:
+                logger.warning(f"SSL/Certificate manager initialization failed: {e}")
         else:
             logger.warning("SSL/Certificate manager not available, skipping initialization.")
     except Exception as e:
@@ -595,7 +659,10 @@ async def lifespan(app: FastAPI):
         if get_database_manager and database_manager:
             legacy_manager = get_database_manager()
             if hasattr(legacy_manager, 'initialize'):
-                await legacy_manager.initialize()
+                try:
+                    await legacy_manager.initialize()
+                except Exception as e:
+                    logger.warning(f"Legacy DB manager initialize failed: {e}")
             logger.info("Legacy database manager initialized")
         else:
             logger.warning("Legacy database manager not available, skipping initialization.")
@@ -607,7 +674,10 @@ async def lifespan(app: FastAPI):
         if ConfigManager:
             config_manager = ConfigManager()
             if hasattr(config_manager, 'initialize'):
-                await config_manager.initialize()
+                try:
+                    await config_manager.initialize()
+                except Exception as e:
+                    logger.warning(f"Config manager initialize failed: {e}")
             logger.info("Configuration manager initialized")
         else:
             logger.warning("Config manager not available, skipping initialization.")
@@ -671,13 +741,13 @@ async def lifespan(app: FastAPI):
         if get_unified_backup_manager:
             backup_manager = get_unified_backup_manager()
             if hasattr(backup_manager, 'shutdown'):
-                await backup_manager.shutdown()
-            elif hasattr(backup_manager, 'cleanup'):
-                await backup_manager.cleanup()
-        else:
-            logger.warning("Backup system not available, skipping shutdown.")
-    except Exception as e:
-        logger.warning(f"Backup manager shutdown failed: {e}")
+                try:
+                    await backup_manager.shutdown()
+                except AttributeError:
+                    try:
+                        await backup_manager.cleanup()
+                    except AttributeError:
+                        logger.warning("Backup manager has neither 'shutdown' nor 'cleanup' method, skipping shutdown.")
 
     try:
         if get_database_manager and database_manager:
@@ -709,8 +779,8 @@ def create_app() -> FastAPI:
 
     # Create FastAPI app
     app = FastAPI(
-        title="PlexiChat v1.1",
-        version="a.1.1-12",
+        title=f"PlexiChat {config.get('system', {}).get('version', 'a.1.1-14')}",
+        version=config.get('system', {}).get('version', 'a.1.1-14'),
         description="Government-Level Secure Communication Platform",
         debug=config.get('system', {}).get('debug', False),
         docs_url="/docs" if config.get('system', {}).get('debug', False) else None,
@@ -799,7 +869,7 @@ def create_app() -> FastAPI:
             <h1 class="header">PlexiChat</h1>
             <div class="info">
                 <p><strong>Government-Level Secure Communication Platform</strong></p>
-                <p>Version: a.1.1-12</p>
+                <p>Version: {config.get('system', {}).get('version', 'a.1.1-14')}</p>
                 <p>Status: Running</p>
                 <br>
                 <p>Available endpoints:</p>
@@ -822,7 +892,7 @@ def create_app() -> FastAPI:
 
         health_status = {
             "status": "healthy",
-            "version": config.get('system', {}).get('version', 'a.1.1-12'),
+            "version": config.get('system', {}).get('version', 'a.1.1-14'),
             "timestamp": datetime.now().isoformat(),
             "services": {
                 "api": "running",
@@ -844,14 +914,15 @@ def create_app() -> FastAPI:
             return version_manager.get_version_info()
         except Exception as e:
             logger.error(f"Failed to get version info: {e}")
+            # Use centralized version from config
             return {
-                "version": "a.1.1-12",
-                "version_type": "alpha",
-                "major_version": 1,
-                "minor_version": 1,
-                "build_number": 12,
-                "api_version": "v1",
-                "release_date": datetime.now().strftime("%Y-%m-%d")
+                "version": config.get('system', {}).get('version', 'a.1.1-14'),
+                "version_type": config.get('system', {}).get('version_type', 'alpha'),
+                "major_version": config.get('system', {}).get('major_version', 1),
+                "minor_version": config.get('system', {}).get('minor_version', 1),
+                "build_number": config.get('system', {}).get('build_number', 14),
+                "api_version": config.get('system', {}).get('api_version', 'v1'),
+                "release_date": config.get('system', {}).get('release_date', datetime.now().strftime("%Y-%m-%d"))
             }
 
     # File upload endpoint
@@ -868,8 +939,12 @@ def create_app() -> FastAPI:
             # Security scan (if available)
             try:
                 if ssl_manager and hasattr(ssl_manager, 'scan_file'):
-                    scan_result = await ssl_manager.scan_file(file_metadata['path'])
-                    file_metadata['security_scan'] = scan_result
+                    try:
+                        scan_result = await ssl_manager.scan_file(file_metadata['path'])
+                        file_metadata['security_scan'] = scan_result
+                    except Exception as e:
+                        logger.warning(f"Security scan failed: {e}")
+                        file_metadata['security_scan'] = {"status": "failed", "error": str(e)}
             except Exception as e:
                 logger.warning(f"Security scan failed: {e}")
                 file_metadata['security_scan'] = {"status": "failed", "error": str(e)}

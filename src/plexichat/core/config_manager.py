@@ -2,7 +2,7 @@ import os
 import yaml
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, Optional, List, Union, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -30,7 +30,7 @@ class ConfigSection:
     data: Dict[str, Any] = field(default_factory=dict)
     description: str = ""
     required: bool = False
-    validator: Optional[callable] = None
+    validator: Optional[Callable] = None
 
 class ConfigurationManager:
     """Manages all PlexiChat configuration through YAML files."""
@@ -315,8 +315,8 @@ class ConfigurationManager:
     def create_configuration_wizard(self) -> Dict[str, Any]:
         """Interactive configuration wizard."""
         print("=== PlexiChat Configuration Wizard ===")
-        
-        config = {}
+
+        config: Dict[str, Any] = {}
         
         # System configuration
         print("\n1. System Configuration")
@@ -335,11 +335,10 @@ class ConfigurationManager:
             config["database"]["path"] = input("Database path [data/plexichat.db]: ") or "data/plexichat.db"
         else:
             config["database"]["host"] = input("Database host: ")
-            config["database"]["port"] = int(input("Database port: ") or "5432")
+            config["database"]["port"] = input("Database port [5432]: ") or "5432"
             config["database"]["name"] = input("Database name: ")
             config["database"]["user"] = input("Database user: ")
             config["database"]["password"] = input("Database password: ")
-        
         # Security configuration
         print("\n3. Security Configuration")
         config["security"] = {
@@ -361,12 +360,17 @@ class ConfigurationManager:
         print("\n5. AI Configuration")
         ai_enabled = input("Enable AI features (y/n) [y]: ").lower() != 'n'
         config["ai"] = {"enabled": ai_enabled}
-        
+
         if ai_enabled:
-            config["ai"]["provider"] = input("AI provider (openai/anthropic) [openai]: ") or "openai"
-            config["ai"]["api_key"] = input("API key: ")
-            config["ai"]["model"] = input("Model name [gpt-3.5-turbo]: ") or "gpt-3.5-turbo"
-        
+            provider = input("AI provider (openai/anthropic) [openai]: ") or "openai"
+            api_key = input("API key: ")
+            model = input("Model name [gpt-3.5-turbo]: ") or "gpt-3.5-turbo"
+            config["ai"].update({
+                "provider": provider,
+                "api_key": api_key,
+                "model": model
+            })
+
         return config
     
     def export_configuration(self, filepath: Path) -> bool:

@@ -622,6 +622,143 @@ class AdvancedClientPlugin(PluginInterface):
             except Exception as e:
                 raise HTTPException(status_code=400, detail=str(e))
 
+        # Enhanced API integration routes
+        @self.router.get("/api/user/activity")
+        async def get_user_activity(user_id: str = "default"):
+            """Get user activity from API."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(endpoint="/users/activity", method="GET")
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.get("/api/messages/history")
+        async def get_message_history(limit: int = 50):
+            """Get message history."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(
+                    endpoint="/messages/history",
+                    method="GET",
+                    params={"limit": str(limit)}
+                )
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.get("/api/performance/dashboard")
+        async def get_performance_dashboard():
+            """Get performance dashboard data."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(endpoint="/performance/dashboard/data", method="GET")
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.get("/api/ai/usage")
+        async def get_ai_usage():
+            """Get AI usage analytics."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(endpoint="/ai/analytics/usage", method="GET")
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.post("/api/files/share")
+        async def share_file(file_id: str, recipient_id: str, permissions: str = "read"):
+            """Share a file with another user."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(
+                    endpoint="/files/share",
+                    method="POST",
+                    data={
+                        "file_id": file_id,
+                        "recipient_id": recipient_id,
+                        "permissions": permissions
+                    }
+                )
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.get("/api/collaboration/stats")
+        async def get_collaboration_stats():
+            """Get collaboration statistics."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(endpoint="/collaboration/stats", method="GET")
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.post("/api/backup/schedule")
+        async def schedule_backup(name: str, schedule: str, backup_type: str = "incremental"):
+            """Schedule a backup."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(
+                    endpoint="/backup/create",
+                    method="POST",
+                    data={
+                        "name": name,
+                        "backup_type": backup_type,
+                        "schedule": schedule
+                    }
+                )
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        @self.router.get("/api/analytics/trends")
+        async def get_analytics_trends(metric: str = "usage", period: str = "7d"):
+            """Get analytics trends."""
+            try:
+                if not self.api_integration:
+                    raise HTTPException(status_code=503, detail="API integration not available")
+
+                from plugins.api_integration_layer.main import APIRequest
+                request = APIRequest(
+                    endpoint="/analytics/trends",
+                    method="GET",
+                    params={"metric": metric, "period": period}
+                )
+                result = await self.api_integration.make_api_request(request)
+                return JSONResponse(content=result)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
     def _setup_websockets(self):
         """Setup WebSocket endpoints."""
 

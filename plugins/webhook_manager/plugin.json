@@ -1,0 +1,140 @@
+{
+  "name": "webhook_manager",
+  "version": "1.0.0",
+  "description": "Advanced webhook management with event routing, payload transformation, retry logic, and third-party integrations",
+  "author": "PlexiChat Team",
+  "type": "integration",
+  "enabled": true,
+  "priority": 5,
+  "dependencies": ["api_integration_layer"],
+  "permissions": [
+    "api_access",
+    "network_access",
+    "file_system_access",
+    "webui_access",
+    "gui_access",
+    "webhook_access"
+  ],
+  "capabilities": [
+    "webhook_management",
+    "event_routing",
+    "payload_transformation",
+    "retry_logic",
+    "third_party_integrations",
+    "webhook_testing",
+    "delivery_tracking",
+    "security_validation",
+    "rate_limiting",
+    "batch_processing"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "max_retries": {
+      "type": "integer",
+      "default": 3,
+      "description": "Maximum retry attempts for failed webhooks"
+    },
+    "retry_delay": {
+      "type": "integer",
+      "default": 5,
+      "description": "Delay between retries in seconds"
+    },
+    "timeout": {
+      "type": "integer",
+      "default": 30,
+      "description": "Webhook request timeout in seconds"
+    },
+    "rate_limit": {
+      "type": "object",
+      "default": {
+        "requests_per_minute": 100,
+        "burst_limit": 20
+      },
+      "description": "Rate limiting configuration"
+    },
+    "security": {
+      "type": "object",
+      "default": {
+        "verify_ssl": true,
+        "require_signature": false,
+        "allowed_ips": []
+      },
+      "description": "Security settings"
+    },
+    "supported_events": {
+      "type": "array",
+      "default": [
+        "message.sent",
+        "message.received",
+        "user.login",
+        "user.logout",
+        "file.uploaded",
+        "file.shared",
+        "collaboration.started",
+        "collaboration.ended",
+        "backup.completed",
+        "system.alert"
+      ],
+      "description": "Supported webhook events"
+    },
+    "integrations": {
+      "type": "object",
+      "default": {
+        "slack": {
+          "enabled": false,
+          "webhook_url": "",
+          "channel": "#general"
+        },
+        "discord": {
+          "enabled": false,
+          "webhook_url": ""
+        },
+        "teams": {
+          "enabled": false,
+          "webhook_url": ""
+        },
+        "zapier": {
+          "enabled": false,
+          "webhook_url": ""
+        }
+      },
+      "description": "Third-party integration settings"
+    }
+  },
+  "webui": {
+    "enabled": true,
+    "routes": [
+      {
+        "path": "/webhook-manager",
+        "component": "WebhookManagerPanel",
+        "title": "Webhook Manager",
+        "icon": "link"
+      },
+      {
+        "path": "/webhooks/integrations",
+        "component": "IntegrationsPanel",
+        "title": "Integrations",
+        "icon": "plug"
+      },
+      {
+        "path": "/webhooks/logs",
+        "component": "WebhookLogsPanel",
+        "title": "Webhook Logs",
+        "icon": "list"
+      }
+    ]
+  },
+  "self_tests": [
+    "test_webhook_registration",
+    "test_event_routing",
+    "test_payload_transformation",
+    "test_retry_logic",
+    "test_security_validation",
+    "test_integrations",
+    "test_delivery_tracking"
+  ],
+  "requirements": [
+    "httpx>=0.24.0",
+    "cryptography>=3.4.0"
+  ]
+}

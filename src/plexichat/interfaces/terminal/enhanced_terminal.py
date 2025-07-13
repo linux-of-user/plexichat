@@ -249,6 +249,9 @@ class EnhancedTerminal:
             if os.name == 'nt':  # Windows
                 if msvcrt.kbhit():
                     key = msvcrt.getch()
+                    # Convert bytes to string for Windows
+                    if isinstance(key, bytes):
+                        key = key.decode('utf-8', errors='ignore')
                     self.process_key(key)
             else:  # Unix
                 key = sys.stdin.read(1)
@@ -258,22 +261,22 @@ class EnhancedTerminal:
     
     def process_key(self, key: str):
         """Process a single key press."""
-        if key == b'\x1b':  # Escape sequence
+        if key == '\x1b':  # Escape sequence
             # Handle arrow keys and other special keys
             pass
-        elif key == b'\t':  # Tab
+        elif key == '\t':  # Tab
             self.switch_pane()
-        elif key == b'q':  # Quit
+        elif key == 'q':  # Quit
             self.running = False
-        elif key == b'j':  # Scroll down
+        elif key == 'j':  # Scroll down
             self.panes[self.active_pane].scroll_down()
-        elif key == b'k':  # Scroll up
+        elif key == 'k':  # Scroll up
             self.panes[self.active_pane].scroll_up()
-        elif key == b'h':  # Previous pane
+        elif key == 'h':  # Previous pane
             self.previous_pane()
-        elif key == b'l':  # Next pane
+        elif key == 'l':  # Next pane
             self.next_pane()
-        elif key == b'r':  # Refresh
+        elif key == 'r':  # Refresh
             self.refresh_screen()
     
     def switch_pane(self):

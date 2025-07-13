@@ -8,61 +8,28 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
 import keyboard
-from rich.align import Align
-from rich.console import Console
-from rich.layout import Layout
-from rich.live import Live
-from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-
-from plexichat.core.config import settings
-from plexichat.core.config import settings
 import logging
-
 
 """
 Enhanced Split-Screen Console Interface
 Provides advanced split-screen functionality with real-time updates, interactive features, and improved layout.
 """
 
+# Rich library imports (optional)
 try:
+    from rich.align import Align
+    from rich.console import Console
+    from rich.layout import Layout
+    from rich.live import Live
+    from rich.panel import Panel
+    from rich.table import Table
+    from rich.text import Text
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
 
 @dataclass
-logger = logging.getLogger(__name__)
 class LogEntry:
     """Enhanced log entry with additional metadata."""
     timestamp: datetime
@@ -91,7 +58,7 @@ class EnhancedSplitScreen:
     """Enhanced split-screen console interface with advanced features."""
 
     def __init__(self, logger=None):
-        self.logger = logger
+        self.logger = logger or logging.getLogger(__name__)
         self.console = Console() if RICH_AVAILABLE else None
         self.layout = None
         self.live_display = None
@@ -110,8 +77,7 @@ class EnhancedSplitScreen:
             'errors': 0,
             'warnings': 0,
             'requests': 0,
-            'start_time': from datetime import datetime
-datetime = datetime.now(),
+            'start_time': datetime.now(),
             'last_error': None,
             'peak_memory': 0,
             'peak_cpu': 0
@@ -134,7 +100,7 @@ datetime = datetime.now(),
         self.current_filter = None
 
         if not RICH_AVAILABLE:
-            logger.info("Warning: Rich library not available. Split-screen functionality will be limited.")
+            self.logger.info("Warning: Rich library not available. Split-screen functionality will be limited.")
 
     def start(self):
         """Start the enhanced split-screen interface."""
@@ -174,8 +140,11 @@ datetime = datetime.now(),
         if self.logger:
             self.logger.info("Enhanced split-screen interface stopped")
 
-    def _create_enhanced_layout(self) -> Layout:
+    def _create_enhanced_layout(self):
         """Create the enhanced split-screen layout."""
+        if not RICH_AVAILABLE:
+            return None
+            
         layout = Layout()
 
         # Main structure
@@ -208,6 +177,9 @@ datetime = datetime.now(),
 
     def _update_loop(self):
         """Main update loop for the display."""
+        if not RICH_AVAILABLE or not self.live_display:
+            return
+            
         try:
             with self.live_display:
                 while self.active:
@@ -221,7 +193,7 @@ datetime = datetime.now(),
 
     def _update_display(self):
         """Update all display components."""
-        if not self.layout or not self.live_display:
+        if not RICH_AVAILABLE or not self.layout or not self.live_display:
             return
 
         try:
@@ -252,9 +224,10 @@ datetime = datetime.now(),
 
     def _update_header(self):
         """Update the header panel."""
-        from datetime import datetime
-uptime = datetime.now()
-datetime = datetime.now() - self.stats['start_time']
+        if not RICH_AVAILABLE or not self.layout:
+            return
+            
+        uptime = datetime.now() - self.stats['start_time']
         uptime_str = str(uptime).split('.')[0]  # Remove microseconds
 
         status_text = (
@@ -276,6 +249,9 @@ datetime = datetime.now() - self.stats['start_time']
 
     def _update_logs_panel(self):
         """Update the logs display panel."""
+        if not RICH_AVAILABLE or not self.layout:
+            return
+            
         log_table = Table(show_header=True, header_style="bold magenta", expand=True)
         log_table.add_column("Time", style="dim", width=12)
         log_table.add_column("Level", width=8)
@@ -298,136 +274,149 @@ datetime = datetime.now() - self.stats['start_time']
                 message = f"[bold red]{message}[/bold red]"
 
             log_table.add_row(
-                entry.timestamp.strftime("%H:%M:%S"),
-                f"[{level_style}]{entry.level.upper()}[/{level_style}]",
+                entry.timestamp.strftime('%H:%M:%S'),
+                f"[{level_style}]{entry.level}[/{level_style}]",
                 entry.module,
                 message
             )
 
         self.layout["logs"].update(Panel(
             log_table,
-            title=f"Recent Logs ({len(recent_logs)}/{len(self.log_buffer)})",
+            title="Recent Logs",
             border_style="green"
         ))
 
     def _update_operations_panel(self):
-        """Update the active operations panel."""
-        if not self.active_operations:
-            self.layout["operations"].update(Panel(
-                "[dim]No active operations[/dim]",
-                title="Active Operations",
-                border_style="yellow"
-            ))
+        """Update the operations panel."""
+        if not RICH_AVAILABLE or not self.layout:
             return
+            
+        operations_table = Table(show_header=True, header_style="bold cyan", expand=True)
+        operations_table.add_column("ID", style="dim", width=10)
+        operations_table.add_column("Type", width=12)
+        operations_table.add_column("Status", width=10)
+        operations_table.add_column("Duration", width=12)
 
-        ops_table = Table(show_header=True, header_style="bold cyan")
-        ops_table.add_column("Operation", style="cyan")
-        ops_table.add_column("Duration", style="yellow")
-        ops_table.add_column("Status", style="green")
+        for op_id, operation in self.active_operations.items():
+            duration = "N/A"
+            if operation.get('start_time'):
+                duration = str(datetime.now() - operation['start_time']).split('.')[0]
 
-        current_time = time.time()
-        for op_id, op_data in list(self.active_operations.items())[:5]:  # Show max 5
-            duration = current_time - op_data['start_time']
-            ops_table.add_row(
-                op_id[:20] + "..." if len(op_id) > 20 else op_id,
-                f"{duration:.1f}s",
-                op_data.get('status', 'Running')
+            status_style = "green" if operation.get('success') else "yellow"
+            operations_table.add_row(
+                op_id[:8],
+                operation.get('type', 'unknown'),
+                f"[{status_style}]{operation.get('status', 'running')}[/{status_style}]",
+                duration
             )
 
         self.layout["operations"].update(Panel(
-            ops_table,
-            title=f"Active Operations ({len(self.active_operations)})",
-            border_style="yellow"
+            operations_table,
+            title="Active Operations",
+            border_style="cyan"
         ))
 
     def _get_level_style(self, level: str) -> str:
-        """Get Rich style for log level."""
-        styles = {
-            'DEBUG': 'dim cyan',
-            'INFO': 'green',
+        """Get the style for a log level."""
+        level_styles = {
+            'DEBUG': 'dim',
+            'INFO': 'blue',
             'WARNING': 'yellow',
             'ERROR': 'red',
             'CRITICAL': 'bold red'
         }
-        return styles.get(level.upper(), 'white')
+        return level_styles.get(level.upper(), 'white')
 
     def add_log_entry(self, level: str, module: str, message: str, **kwargs):
         """Add a log entry to the display."""
         entry = LogEntry(
-            from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+            timestamp=datetime.now(),
             level=level,
             module=module,
             message=message,
             thread_id=str(threading.get_ident()),
             **kwargs
         )
-
+        
         self.log_buffer.append(entry)
         self.stats['total_logs'] += 1
-
+        
         if level.upper() in ['ERROR', 'CRITICAL']:
             self.stats['errors'] += 1
-            self.stats['last_error'] = entry.timestamp
+            self.stats['last_error'] = entry
         elif level.upper() == 'WARNING':
             self.stats['warnings'] += 1
 
     def start_operation(self, operation_id: str, operation_type: str = "request"):
         """Start tracking an operation."""
         self.active_operations[operation_id] = {
-            'start_time': time.time(),
             'type': operation_type,
-            'status': 'Running'
+            'status': 'running',
+            'start_time': datetime.now(),
+            'success': None
         }
 
     def end_operation(self, operation_id: str, success: bool = True):
-        """End operation tracking."""
+        """End tracking an operation."""
         if operation_id in self.active_operations:
-            duration = time.time() - self.active_operations[operation_id]['start_time']
-            del self.active_operations[operation_id]
-
-            if success:
-                self.stats['requests'] += 1
-
-            return duration
-        return None
+            self.active_operations[operation_id]['status'] = 'completed'
+            self.active_operations[operation_id]['success'] = success
 
     def _start_fallback_mode(self):
         """Start fallback mode without Rich library."""
+        logger = logging.getLogger(__name__)
         logger.info("=" * 80)
         logger.info("PlexiChat Enhanced Console - Fallback Mode")
         logger.info("=" * 80)
-        logger.info("Rich library not available. Using basic console output.")
-        logger.info("Install Rich for enhanced split-screen functionality: pip install rich")
+        logger.info("Rich library not available. Running in basic mode.")
+        logger.info("Press Ctrl+C to exit.")
         logger.info("=" * 80)
 
-        # Simple logging output
         self.active = True
-        fallback_thread = threading.Thread(target=self._fallback_loop, daemon=True)
-        fallback_thread.start()
+        
+        # Start input handler
+        input_thread = threading.Thread(target=self._input_handler, daemon=True)
+        input_thread.start()
+
+        # Fallback display loop
+        self._fallback_loop()
 
     def _fallback_loop(self):
-        """Fallback update loop."""
+        """Fallback display loop without Rich library."""
+        logger = logging.getLogger(__name__)
+        
         while self.active:
-            if self.log_buffer:
+            try:
+                # Simple console output
                 recent_logs = list(self.log_buffer)[-5:]  # Show last 5 logs
                 os.system('cls' if os.name == 'nt' else 'clear')
+                logger = logging.getLogger(__name__)
                 logger.info(f"PlexiChat Console - Logs: {self.stats['total_logs']} | Errors: {self.stats['errors']}")
                 logger.info("-" * 80)
+                
                 for entry in recent_logs:
-                    logger.info(f"[{entry.timestamp.strftime('%H:%M:%S')}] {entry.level.upper()}: {entry.message}")
+                    logger.info(f"[{entry.timestamp.strftime('%H:%M:%S')}] {entry.level}: {entry.message}")
+                
                 logger.info("-" * 80)
-            time.sleep(2)
+                logger.info("Press 'q' to quit, 'c' to clear logs")
+                
+                time.sleep(2)  # Update every 2 seconds
+                
+            except KeyboardInterrupt:
+                self.active = False
+            except Exception as e:
+                logger.error(f"Fallback loop error: {e}")
+                time.sleep(1)
 
     def _update_metrics_panel(self):
         """Update the metrics panel."""
+        if not RICH_AVAILABLE or not self.layout:
+            return
+            
         try:
             # Get current system metrics
-            cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=None)
-            memory = import psutil
-psutil = psutil.virtual_memory()
+            cpu_percent = psutil.cpu_percent(interval=None)
+            memory = psutil.virtual_memory()
 
             # Update peak values
             self.stats['peak_cpu'] = max(self.stats['peak_cpu'], cpu_percent)
@@ -435,45 +424,36 @@ psutil = psutil.virtual_memory()
 
             metrics_table = Table(show_header=False, expand=True)
             metrics_table.add_column("Metric", style="bold")
-            metrics_table.add_column("Value", style="green")
+            metrics_table.add_column("Value", style="blue")
 
             metrics_table.add_row("CPU Usage", f"{cpu_percent:.1f}%")
-            metrics_table.add_row("Memory", f"{memory.percent:.1f}%")
+            metrics_table.add_row("Memory Usage", f"{memory.percent:.1f}%")
             metrics_table.add_row("Peak CPU", f"{self.stats['peak_cpu']:.1f}%")
             metrics_table.add_row("Peak Memory", f"{self.stats['peak_memory']:.1f}%")
-            metrics_table.add_row("Active Ops", str(len(self.active_operations)))
-
-            # Add performance indicators
-            cpu_indicator = "" if cpu_percent > 80 else "" if cpu_percent > 60 else ""
-            memory_indicator = "" if memory.percent > 85 else "" if memory.percent > 70 else ""
+            metrics_table.add_row("Active Operations", str(len(self.active_operations)))
 
             self.layout["metrics"].update(Panel(
                 metrics_table,
-                title=f"System Metrics {cpu_indicator}{memory_indicator}",
-                border_style="cyan"
+                title="System Metrics",
+                border_style="green"
             ))
 
-        except ImportError:
+        except Exception:
             self.layout["metrics"].update(Panel(
                 "[dim]psutil not available\nInstall with: pip install psutil[/dim]",
                 title="System Metrics",
                 border_style="dim"
             ))
-        except Exception as e:
-            self.layout["metrics"].update(Panel(
-                f"[red]Error: {str(e)}[/red]",
-                title="System Metrics",
-                border_style="red"
-            ))
 
     def _update_system_panel(self):
         """Update the system information panel."""
+        if not RICH_AVAILABLE or not self.layout:
+            return
+            
         try:
             # Network and disk info
-            disk = import psutil
-psutil = psutil.disk_usage('/')
-            network = import psutil
-psutil = psutil.net_io_counters()
+            disk = psutil.disk_usage('/')
+            network = psutil.net_io_counters()
 
             system_table = Table(show_header=False, expand=True)
             system_table.add_column("Item", style="bold")
@@ -485,8 +465,7 @@ psutil = psutil.net_io_counters()
             system_table.add_row("Network Recv", f"{network.bytes_recv // (1024**2):.1f} MB")
 
             # Process info
-            process = import psutil
-psutil = psutil.Process()
+            process = psutil.Process()
             system_table.add_row("Process PID", str(process.pid))
             system_table.add_row("Threads", str(process.num_threads()))
 
@@ -505,6 +484,9 @@ psutil = psutil.Process()
 
     def _update_commands_panel(self):
         """Update the commands/help panel."""
+        if not RICH_AVAILABLE or not self.layout:
+            return
+            
         commands_text = Text()
         commands_text.append("Available Commands:\n", style="bold")
         commands_text.append(" ", style="dim")
@@ -536,6 +518,9 @@ psutil = psutil.Process()
 
     def _update_input_panel(self):
         """Update the input panel."""
+        if not RICH_AVAILABLE or not self.layout:
+            return
+            
         if self.input_mode:
             input_text = "[bold yellow]Input Mode Active[/bold yellow] - Type command and press Enter"
         else:
@@ -588,9 +573,7 @@ psutil = psutil.Process()
 
     def _show_detailed_stats(self):
         """Show detailed statistics."""
-        from datetime import datetime
-uptime = datetime.now()
-datetime = datetime.now() - self.stats['start_time']
+        uptime = datetime.now() - self.stats['start_time']
 
         stats_info = {
             'uptime': str(uptime).split('.')[0],
@@ -620,21 +603,18 @@ settings."""
             **self.stats,
             'active_operations': len(self.active_operations),
             'log_buffer_size': len(self.log_buffer),
-            'uptime_seconds': (from datetime import datetime
-datetime = datetime.now() - self.stats['start_time']).total_seconds()
+            'uptime_seconds': (datetime.now() - self.stats['start_time']).total_seconds()
         }
 
     def export_logs(self, filename: str = None) -> str:
         """Export current logs to file."""
         if not filename:
-            filename = f"plexichat_logs_{from datetime import datetime
-datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            filename = f"plexichat_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
 
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write("PlexiChat Console Logs Export\n")
-                f.write(f"Generated: {from datetime import datetime
-datetime = datetime.now().isoformat()}\n")
+                f.write(f"Generated: {datetime.now().isoformat()}\n")
                 f.write(f"Total Entries: {len(self.log_buffer)}\n")
                 f.write("=" * 80 + "\n\n")
 

@@ -368,6 +368,10 @@ class UnifiedPluginManager:
         self.hot_reload_enabled = self.config.get("hot_reload_enabled", True)
         self.isolation_enabled = self.config.get("isolation_enabled", True)
 
+        # Test integration
+        self.test_manager = None
+        self.webui_renderer = None
+
         # Unified configuration management
         self.plugin_config_manager = get_plugin_config_manager()
 
@@ -408,6 +412,12 @@ class UnifiedPluginManager:
             # Start hot-reload monitoring if enabled
             if self.hot_reload_enabled:
                 asyncio.create_task(self._hot_reload_monitor())
+
+            # Initialize test manager
+            await self._initialize_test_manager()
+
+            # Initialize WebUI renderer
+            await self._initialize_webui_renderer()
 
             self.initialized = True
             logger.info(" Unified Plugin Manager initialized successfully")
@@ -1155,6 +1165,53 @@ Path(event.src_path)
                 all_results["plugin_results"][plugin_name] = test_results
 
         return all_results
+
+    async def _initialize_test_manager(self):
+        """Initialize the test manager integration."""
+        try:
+            from .plugin_test_manager import get_test_manager
+
+            self.test_manager = get_test_manager()
+
+            # Discover tests for all loaded plugins
+            for plugin_name, plugin_info in self.modules.items():
+                if plugin_info.status == ModuleStatus.LOADED:
+                    await self.test_manager.discover_plugin_tests(plugin_name, plugin_info.path)
+
+            # Start test scheduler
+            self.test_manager.start_scheduler()
+
+            logger.info("Test manager integration initialized")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize test manager: {e}")
+
+    async def _initialize_webui_renderer(self):
+        """Initialize the WebUI renderer integration."""
+        try:
+            from ..gui.webui_renderer import get_webui_renderer
+
+            self.webui_renderer = get_webui_renderer()
+
+            # Register plugin pages with renderer
+            for plugin_name, plugin_instance in self.loaded_plugins.items():
+                if hasattr(plugin_instance, 'config') and 'webui' in plugin_instance.config:
+                    webui_config = plugin_instance.config['webui']
+                    if webui_config.get('enabled', False) and 'routes' in webui_config:
+                        self.webui_renderer.register_plugin_pages(plugin_name, webui_config['routes'])
+
+            logger.info("WebUI renderer integration initialized")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize WebUI renderer: {e}")
+
+    def get_test_manager(self):
+        """Get the test manager instance."""
+        return self.test_manager
+
+    def get_webui_renderer(self):
+        """Get the WebUI renderer instance."""
+        return self.webui_renderer
 
 
 # Global instance - SINGLE SOURCE OF TRUTH

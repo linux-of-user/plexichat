@@ -575,6 +575,45 @@ class ConsolidatedDatabaseManager:
         self.connection_status.clear()
         logger.info("All database connections closed")
 
+    async def shutdown(self):
+        """Shutdown the database manager."""
+        await self.close_all_connections()
+        logger.info("Database manager shutdown complete")
+
+    async def get_session(self, role: str = "primary", read_only: bool = False):
+        """Get database session with automatic failover."""
+        try:
+            # Import the cluster from engines which has get_session
+            from .engines import db_cluster
+            async with db_cluster.get_session() as session:
+                return session
+        except Exception:
+            return None
+
+    async def get_health(self, role: Optional[str] = None):
+        """Get database health status."""
+        return self.get_status()
+
+    async def backup(self, backup_name: Optional[str] = None):
+        """Create database backup."""
+        try:
+            # Import backup manager
+            from ..backup.manager import get_backup_manager
+            backup_manager = get_backup_manager()
+            return await backup_manager.create_backup(backup_name or "auto_backup")
+        except Exception:
+            return False
+
+    async def restore(self, backup_name: str):
+        """Restore database from backup."""
+        try:
+            # Import backup manager
+            from ..backup.manager import get_backup_manager
+            backup_manager = get_backup_manager()
+            return await backup_manager.restore_backup(backup_name)
+        except Exception:
+            return False
+
     async def __aenter__(self):
         """Async context manager entry."""
         if not self.initialized:

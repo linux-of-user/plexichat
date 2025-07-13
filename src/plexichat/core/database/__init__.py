@@ -1,79 +1,11 @@
-from .manager_database import *
-from .manager_database import (  # <-- Add this line
+"""
+PlexiChat Unified Database System
+================================
 
+This module consolidates all database functionality into a single, unified system.
+Replaces multiple database modules with a comprehensive, feature-rich solution.
 
-    ConnectionError,
-    Consolidates,
-    Core,
-    Database,
-    DatabaseBackupIntegration,
-    DatabaseCluster,
-    DatabaseConfig,
-    DatabaseError,
-    DatabaseMonitor,
-    DatabaseProvider,
-    DatabaseRole,
-    DatabaseType,
-    DatabaseUtils,
-    EncryptionError,
-    Features:,
-    Management,
-    MigrationError,
-    MigrationManager,
-    MongoDB,
-    Multi-database,
-    MySQL,
-    PlexiChat,
-    PostgreSQL,
-    SQLite,
-    System,
-    This,
-    Unified,
-    """,
-    -,
-    .backup_integration,
-    .cluster,
-    .config,
-    .exceptions,
-    .migration,
-    .models,
-    .monitor,
-    .schemas,
-    .utils,
-    a,
-    advanced,
-    all,
-    and,
-    clustering,
-    components,
-    comprehensive,
-    consolidates:,
-    database,
-    database_monitor,
-    db_backup,
-    db_cluster,
-    db_utils,
-    encryption,
-    engine,
-    features.,
-    from,
-    import,
-    into,
-    logging,
-    migration_manager,
-    module,
-    multi-backend,
-    replaces,
-    single,
-    src/plexichat/app/core/database/,
-    src/plexichat/app/db/,
-    src/plexichat/core/external_database.py,
-    support,
-    system,
-    unified,
-    with,
-)
-
+Features:
 - Database clustering with automatic failover and load balancing
 - Encrypted database connections and data-at-rest encryption
 - Advanced migration system with rollback capabilities
@@ -83,7 +15,10 @@ from .manager_database import (  # <-- Add this line
 - Backup and recovery integration
 """
 
+from typing import Optional
+
 # Import consolidated database components
+from .manager_database import (
     ConnectionStatus,
     ConsolidatedDatabaseManager,
     DatabaseConfig,
@@ -120,11 +55,14 @@ __all__ = [
     "initialize_database_system",
     "get_database_manager",
 
-    # Exceptions
-    "DatabaseError",
-    "ConnectionError",
-    "MigrationError",
-    "EncryptionError"
+    # Legacy functions
+    "initialize_database_system_legacy",
+    "shutdown_database_system",
+    "get_session",
+    "execute_query",
+    "get_database_health",
+    "backup_database",
+    "restore_database"
 ]
 
 # Database system constants
@@ -212,208 +150,51 @@ DATABASE_FEATURES = {
     }
 }
 
-# External database providers
-EXTERNAL_PROVIDERS = {
-    "aws_rds": {
-        "name": "Amazon RDS",
-        "supported_engines": ["postgresql", "mysql"],
-        "features": ["clustering", "encryption", "backup", "monitoring"],
-        "connection_string_format": "postgresql://{user}:{password}@{host}:{port}/{database}"
-    },
-    "google_cloud_sql": {
-        "name": "Google Cloud SQL",
-        "supported_engines": ["postgresql", "mysql"],
-        "features": ["clustering", "encryption", "backup", "monitoring"],
-        "connection_string_format": "postgresql://{user}:{password}@{host}:{port}/{database}"
-    },
-    "azure_database": {
-        "name": "Azure Database",
-        "supported_engines": ["postgresql", "mysql"],
-        "features": ["clustering", "encryption", "backup", "monitoring"],
-        "connection_string_format": "postgresql://{user}:{password}@{host}:{port}/{database}"
-    },
-    "supabase": {
-        "name": "Supabase",
-        "supported_engines": ["postgresql"],
-        "features": ["clustering", "encryption", "backup", "monitoring", "realtime"],
-        "connection_string_format": "postgresql://{user}:{password}@{host}:{port}/{database}"
-    },
-    "planetscale": {
-        "name": "PlanetScale",
-        "supported_engines": ["mysql"],
-        "features": ["clustering", "encryption", "backup", "monitoring", "branching"],
-        "connection_string_format": "mysql://{user}:{password}@{host}:{port}/{database}"
-    }
-}
-
-# Database security levels
-SECURITY_LEVELS = {
-    "BASIC": {
-        "encryption_at_rest": False,
-        "encryption_in_transit": True,
-        "connection_encryption": True,
-        "audit_logging": False
-    },
-    "ENHANCED": {
-        "encryption_at_rest": True,
-        "encryption_in_transit": True,
-        "connection_encryption": True,
-        "audit_logging": True
-    },
-    "GOVERNMENT": {
-        "encryption_at_rest": True,
-        "encryption_in_transit": True,
-        "connection_encryption": True,
-        "audit_logging": True,
-        "field_level_encryption": True,
-        "key_rotation": True
-    },
-    "MILITARY": {
-        "encryption_at_rest": True,
-        "encryption_in_transit": True,
-        "connection_encryption": True,
-        "audit_logging": True,
-        "field_level_encryption": True,
-        "key_rotation": True,
-        "quantum_resistant": True,
-        "zero_knowledge": True
-    }
-}
-
-# Default security level
-DEFAULT_SECURITY_LEVEL = "GOVERNMENT"
-
-# Performance optimization settings
-PERFORMANCE_SETTINGS = {
-    "query_optimization": {
-        "enable_query_cache": True,
-        "cache_size_mb": 256,
-        "cache_ttl_seconds": 300,
-        "enable_prepared_statements": True
-    },
-    "connection_optimization": {
-        "enable_connection_pooling": True,
-        "pool_pre_ping": True,
-        "pool_recycle_seconds": 3600,
-        "enable_connection_validation": True
-    },
-    "index_optimization": {
-        "auto_create_indexes": True,
-        "analyze_query_patterns": True,
-        "suggest_missing_indexes": True,
-        "monitor_index_usage": True
-    }
-}
-
-# Monitoring and alerting configuration
-MONITORING_CONFIG = {
-    "metrics": {
-        "connection_count": True,
-        "query_performance": True,
-        "error_rates": True,
-        "throughput": True,
-        "latency": True,
-        "resource_usage": True
-    },
-    "alerts": {
-        "high_connection_usage": {
-            "threshold": 0.8,
-            "severity": "warning"
-        },
-        "slow_queries": {
-            "threshold": 5.0,
-            "severity": "warning"
-        },
-        "high_error_rate": {
-            "threshold": 0.05,
-            "severity": "critical"
-        },
-        "connection_failures": {
-            "threshold": 3,
-            "severity": "critical"
-        }
-    },
-    "reporting": {
-        "daily_reports": True,
-        "weekly_summaries": True,
-        "performance_trends": True,
-        "capacity_planning": True
-    }
-}
-
-# Migration system configuration
-MIGRATION_CONFIG = {
-    "auto_migrate": False,
-    "backup_before_migration": True,
-    "rollback_on_failure": True,
-    "validate_migrations": True,
-    "migration_timeout_seconds": 300,
-    "concurrent_migrations": False
-}
-
-# Backup integration configuration
-BACKUP_CONFIG = {
-    "integration_enabled": True,
-    "backup_database_schema": True,
-    "backup_database_data": True,
-    "backup_encryption": True,
-    "backup_compression": True,
-    "backup_verification": True,
-    "restore_testing": True
-}
-
-# Note: initialize_database_system is now provided by the consolidated manager
-# Legacy function maintained for backward compatibility
-async def initialize_database_system_legacy(config: dict = None) -> bool:
-    """
-    Legacy initialization function - use database_manager.initialize() instead.
-
-    Args:
-        config: Optional configuration dictionary
-
-    Returns:
-        bool: True if initialization successful
-    """
+# Legacy compatibility functions
+async def initialize_database_system_legacy(config: Optional[dict] = None) -> bool:
+    """Legacy database initialization function."""
     try:
-        return await database_manager.initialize(config)
+        return await initialize_database_system(config)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f" Failed to initialize database system: {e}")
+        import logging
+        logging.error(f"Legacy database initialization failed: {e}")
         return False
 
 async def shutdown_database_system():
-    """Gracefully shutdown the database system."""
+    """Legacy database shutdown function."""
     try:
-        # Shutdown components in reverse order
-        await db_backup.shutdown()
-        await database_monitor.shutdown()
-        await connection_pool.shutdown()
-        # await database_encryption.shutdown()  # Removed: database_encryption is not defined
-        await migration_manager.shutdown()
-        await db_cluster.shutdown()
-        await database_manager.shutdown()
-
+        if database_manager:
+            await database_manager.shutdown()
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f" Error during database system shutdown: {e}")
+        import logging
+        logging.error(f"Legacy database shutdown failed: {e}")
 
-# Convenience functions for common operations
 async def get_session(role: str = "primary", read_only: bool = False):
-    """Get database session with automatic failover."""
-    return await db_cluster.get_session(role, read_only)
+    """Legacy session getter."""
+    if database_manager:
+        return await database_manager.get_session(role, read_only)
+    return None
 
 async def execute_query(query: str, params: dict = None, role: str = "primary"):
-    """Execute a database query with automatic failover."""
-    return await database_manager.execute_query(query, params, role)
+    """Legacy query executor."""
+    if database_manager:
+        return await database_manager.execute_query(query, params, role)
+    return None
 
 async def get_database_health():
-    """Get current database health status."""
-    return await database_monitor.get_health_status()
+    """Legacy health checker."""
+    if database_manager:
+        return await database_manager.get_health()
+    return {"status": "unknown"}
 
 async def backup_database(backup_name: str = None):
-    """Trigger database backup."""
-    return await db_backup.create_backup(backup_name)
+    """Legacy backup function."""
+    if database_manager:
+        return await database_manager.backup(backup_name)
+    return False
 
 async def restore_database(backup_name: str):
-    """Restore database from backup."""
-    return await db_backup.restore_backup(backup_name)
+    """Legacy restore function."""
+    if database_manager:
+        return await database_manager.restore(backup_name)
+    return False

@@ -64,15 +64,21 @@ class PluginTestSuite:
             
             # Expected plugins
             expected_plugins = [
+                "api_integration_layer",
                 "file_manager",
-                "code_analyzer", 
+                "code_analyzer",
                 "network_scanner",
                 "data_visualizer",
                 "api_tester",
                 "performance_monitor",
                 "security_toolkit",
                 "dev_tools",
-                "advanced_client"
+                "advanced_client",
+                "messaging_hub",
+                "analytics_dashboard",
+                "system_manager",
+                "webhook_manager",
+                "user_manager"
             ]
             
             missing_plugins = [p for p in expected_plugins if p not in discovered_plugins]
