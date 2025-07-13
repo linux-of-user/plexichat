@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import hashlib
 import json
@@ -9,10 +10,6 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import aiosqlite
-
-    import argparse
-
-
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse

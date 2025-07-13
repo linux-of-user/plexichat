@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Set
 
 from .canary_deployment_manager import CanaryNode, CanaryStrategy
 
-
 """
 PlexiChat Canary Node Selector
 

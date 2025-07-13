@@ -4,24 +4,37 @@ from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, func, select
 
-
-
-
 from plexichat.app.logger_config import logger
 from plexichat.app.models.advanced_moderation import (
-from plexichat.app.models.enhanced_models import EnhancedUser
-
-"""
-Human review service for moderation with comprehensive workflow management.
-Handles assignment, escalation, and reporting for human moderators.
-"""
-
+    EnhancedUser,
+    Handles,
+    Human,
     ModerationAction,
     ModerationItem,
     ModerationSeverity,
     ModerationSource,
     ModerationStatus,
+    """,
+    and,
+    assignment,
+    comprehensive,
+    escalation,
+    for,
+    from,
+    human,
+    import,
+    management.,
+    moderation,
+    moderators.,
+    plexichat.app.models.enhanced_models,
+    reporting,
+    review,
+    service,
+    with,
+    workflow,
 )
+
+
 @dataclass
 class ReviewAssignment:
     """Assignment of moderation item to human reviewer."""

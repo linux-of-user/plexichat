@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
 
-
 """
 PlexiChat Microservices Service Registry
 Manages service discovery, registration, and health monitoring

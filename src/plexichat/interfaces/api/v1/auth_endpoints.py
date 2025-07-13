@@ -2,27 +2,11 @@ import logging
 from datetime import datetime
 from typing import Dict, Optional
 
-
-        from ....core_system.auth.auth_manager import AuthManager
-        
-        from ....core_system.auth.auth_manager import AuthManager
-
-        from ....core_system.auth.auth_manager import AuthManager
-        
-        from ....core_system.auth.auth_manager import AuthManager
-
-        from ....core_system.auth.auth_manager import AuthManager
-        
-        from ....core_system.auth.auth_manager import AuthManager
-        
-        from ....core_system.auth.auth_manager import AuthManager
-
-        from ....core_system.auth.auth_manager import AuthManager
-
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
+
+from ....core_system.auth.auth_manager import AuthManager
 
 """
 PlexiChat Authentication API Endpoints

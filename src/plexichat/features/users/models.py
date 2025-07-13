@@ -3,14 +3,11 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy.sql import func
 from sqlmodel import JSON, Column
 from sqlmodel import Field as SQLField
 from sqlmodel import Index, SQLModel
-
-
-
-from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy.sql import func
 
 """
 PlexiChat User Data Models

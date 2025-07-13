@@ -1,29 +1,36 @@
 import logging
 from typing import Optional
 
-
-
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
-        from sqlalchemy import create_engine
+from sqlalchemy import create_engine
 
 from plexichat.core.database_setup_wizard import database_wizard
 from plexichat.core.external_database import (
-from plexichat.infrastructure.utils.auth import verify_admin_token
-        from plexichat.core.external_database import ExternalDatabaseManager
-
-"""
-PlexiChat Database Setup API
-Comprehensive database configuration and setup endpoints.
-"""
-
+    API,
+    Comprehensive,
+    Database,
     DatabaseEngine,
     DatabaseProvider,
     ExternalDatabaseConfig,
+    ExternalDatabaseManager,
+    PlexiChat,
+    Setup,
+    """,
+    and,
+    configuration,
+    database,
+    endpoints.,
     external_db_manager,
+    from,
+    import,
+    plexichat.core.external_database,
+    plexichat.infrastructure.utils.auth,
+    setup,
+    verify_admin_token,
 )
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/database/setup", tags=["database-setup"])
 security = HTTPBearer()

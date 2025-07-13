@@ -7,7 +7,6 @@ from typing import Any, Callable, Dict, List, Optional
 
 from .exceptions import ErrorCategory, ErrorSeverity
 
-
 """
 PlexiChat Error Monitor
 

@@ -17,7 +17,6 @@ from ...core.config import get_config
 from ...core.logging import get_logger
 from ..security.quantum_encryption import QuantumEncryptionEngine
 
-
 """
 PlexiChat Zero-Knowledge Backup Protocol
 

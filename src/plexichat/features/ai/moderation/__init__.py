@@ -1,19 +1,31 @@
 from .feedback_collector import FeedbackCollector, FeedbackSource, FeedbackType, ModerationFeedback
 from .moderation_engine import (
-from .training_system import (
-
-"""
-PlexiChat AI Moderation System
-Advanced AI-powered moderation with training capabilities and multiple provider support.
-"""
-
+    AI,
+    Advanced,
+    AI-powered,
+    Moderation,
     ModerationAction,
     ModerationCategory,
     ModerationConfig,
     ModerationEngine,
     ModerationResult,
     ModerationSeverity,
+    PlexiChat,
+    System,
+    """,
+    .training_system,
+    and,
+    capabilities,
+    from,
+    import,
+    moderation,
+    multiple,
+    provider,
+    support.,
+    training,
+    with,
 )
+
     ModerationTrainingSystem,
     TrainingData,
     TrainingDataSource,

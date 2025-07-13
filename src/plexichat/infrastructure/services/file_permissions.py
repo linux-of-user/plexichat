@@ -3,25 +3,33 @@ import secrets
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 
-from sqlmodel import Session, select
-
-
 from fastapi import HTTPException, status
+from sqlmodel import Session, select
 
 from plexichat.app.logger_config import logger
 from plexichat.app.models.files import (
-
-"""
-Comprehensive file permissions service for PlexiChat.
-Handles all file access control, permission validation, and audit logging.
-"""
-
+    Comprehensive,
     FileAccessLevel,
     FileAccessLog,
     FilePermission,
     FilePermissionType,
     FileRecord,
     FileShare,
+    Handles,
+    PlexiChat.,
+    """,
+    access,
+    all,
+    and,
+    audit,
+    control,
+    file,
+    for,
+    logging.,
+    permission,
+    permissions,
+    service,
+    validation,
 )
 
 

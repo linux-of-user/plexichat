@@ -4,7 +4,6 @@ from .role import Permissions, Role
 from .server import Server
 from .server_member import ServerMember
 
-
 """
 PlexiChat Channels Models Package
 

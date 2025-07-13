@@ -3,8 +3,7 @@ import asyncio
 import sys
 from pathlib import Path
 
-
-    from src.plexichat.core.database_setup_wizard import database_wizard
+from src.plexichat.core.database_setup_wizard import database_wizard
 
 #!/usr/bin/env python3
 """

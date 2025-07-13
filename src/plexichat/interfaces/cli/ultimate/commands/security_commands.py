@@ -3,6 +3,7 @@ import base64
 import hashlib
 import logging
 import secrets
+import string
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -12,8 +13,6 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
-
-            import string
 
 """
 PlexiChat Ultimate CLI - Security Commands

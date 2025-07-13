@@ -11,44 +11,57 @@ from typing import Any, Dict, List, Optional
 
 import aiosqlite
 
+from ..hybrid_cloud.cloud_orchestrator import (  # Import enhanced clustering components
+    ENHANCED_CLUSTERING_AVAILABLE,
+    Advanced,
+    Cluster,
+    False,
+    ImportError:,
+    Manager,
+    MetricDataPoint,
+    ResourceType,
+    Sophisticated,
+    True,
+    """,
+    ..predictive_scaling.ml_scaler,
+    =,
+    __name__,
+    allocation,
+    and,
+    clustering,
+    distribution,
+    except,
+    from,
+    gains,
+    hybrid_cloud_orchestrator,
+    import,
+    intelligent,
+    load,
+    logger,
+    logging.getLogger,
+    optimization.,
+    performance,
+    provides,
+    psutil,
+    resource,
+    system,
+    tangible,
+    that,
+    through,
+    try:,
+)
+from ..predictive_scaling.ml_scaler import predictive_scaler
+from ..serverless.faas_manager import faas_manager
+from ..service_mesh.mesh_manager import ServiceEndpoint, service_mesh_manager
+from ..specialized import NODE_TYPES
+from ..storage.distributed_storage_manager import DistributedStorageManager
 from . import DEFAULT_CLUSTER_CONFIG, ClusterRole, LoadBalancingStrategy, NodeStatus
-
-    from ..hybrid_cloud.cloud_orchestrator import hybrid_cloud_orchestrator
-    from ..predictive_scaling.ml_scaler import predictive_scaler
-    from ..serverless.faas_manager import faas_manager
-    from ..service_mesh.mesh_manager import service_mesh_manager
-        from ..specialized import NODE_TYPES
-        from .failover_manager import AutomaticFailoverManager
-        from .load_balancer import SmartLoadBalancer
-        from .node_manager import IntelligentNodeManager
-        from .performance_monitor import RealTimePerformanceMonitor
-        from .task_manager import AdvancedTaskManager
-
-        from ..storage.distributed_storage_manager import DistributedStorageManager
-        from .cluster_update_manager import ClusterUpdateManager
-
-            from ..service_mesh.mesh_manager import ServiceEndpoint
-
-            from ..hybrid_cloud.cloud_orchestrator import (
-                from ..predictive_scaling.ml_scaler import MetricDataPoint, ResourceType
-
-
-import psutil
-
-"""
-Advanced Cluster Manager
-
-Sophisticated clustering system that provides tangible performance gains through
-intelligent resource allocation, load distribution, and performance optimization.
-"""
-
-# Import enhanced clustering components
-try:
-    ENHANCED_CLUSTERING_AVAILABLE = True
-except ImportError:
-    ENHANCED_CLUSTERING_AVAILABLE = False
-
-logger = logging.getLogger(__name__)
+from .cluster_update_manager import ClusterUpdateManager
+from .failover_manager import AutomaticFailoverManager
+from .load_balancer import SmartLoadBalancer
+from .node_manager import IntelligentNodeManager
+from .performance_monitor import RealTimePerformanceMonitor
+from .task_manager import AdvancedTaskManager
 
 
 class ClusterState(Enum):

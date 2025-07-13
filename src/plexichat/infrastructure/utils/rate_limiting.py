@@ -7,9 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-                from pathlib import Path
-
-    from plexichat.core.config.settings import settings
+from plexichat.core.config.settings import settings
 
 # app/utils/rate_limiting.py
 """

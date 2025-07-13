@@ -3,12 +3,8 @@ import unicodedata
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, and_, or_, select
-
-
-
-
 from sqlalchemy import desc
+from sqlmodel import Session, and_, or_, select
 
 from plexichat.app.db import engine
 from plexichat.app.logger_config import logger

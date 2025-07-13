@@ -5,18 +5,25 @@ from typing import List
 import yaml
 
 from .enhanced_logic_engine import (
-
-"""
-CLI Automation Commands
-Enhanced CLI commands for automation, scripting, and logic engine management.
-"""
-
+    CLI,
     Action,
+    Automation,
     AutomationRule,
+    Commands,
     Condition,
     ConditionType,
+    Enhanced,
     EnhancedLogicEngine,
     TaskStatus,
+    """,
+    and,
+    automation,
+    commands,
+    engine,
+    for,
+    logic,
+    management.,
+    scripting,
 )
 
 

@@ -1,16 +1,11 @@
 import logging
 from functools import wraps
-from typing import Any, Dict, Optional
-
-from typing import Optional, Dict, Any, List, HTTPException, status
-
-        
+from typing import Any, Dict, HTTPException, List, Optional, status
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-        from plexichat.core.auth.manager_token import token_manager
-        from plexichat.core.auth.manager_token import token_manager
+from plexichat.core.auth.manager_token import token_manager
 
 """
 Authentication Utilities

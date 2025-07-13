@@ -1,11 +1,9 @@
-from .core_system.config import get_config
-from .main import app
-
-
-        import sys
+import sys
 
 import uvicorn
 
+from .core_system.config import get_config
+from .main import app
 
 """
 PlexiChat Module Entry Point

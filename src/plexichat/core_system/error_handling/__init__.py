@@ -3,59 +3,114 @@ from typing import Any, Callable, Dict, List, Optional
 from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
 from .crash_reporter import CrashContext, CrashReporter, crash_reporter
 from .enhanced_error_handler import EnhancedErrorHandler
-
-from .exceptions import (
-    from .error_manager import ErrorManager, error_manager
-    from .error_recovery import ErrorRecoveryManager, recovery_manager
-    from .error_monitor import ErrorMonitor, error_monitor
-    from .error_analytics import ErrorAnalytics, error_analytics
-    from .decorators import circuit_breaker, crash_handler, error_handler, retry
-    from .middleware import ErrorHandlingMiddleware
-    from .context import ErrorBoundary, ErrorContext
-    from .reporting import ErrorReporter, error_reporter
-        import logging
-        import logging
-        from .context import ErrorContext, ErrorSeverity
-
-        from .context import ErrorSeverity
-
-"""
-PlexiChat Core Error Handling System - Unified Error Management
-
-Consolidates all error handling components into a single, comprehensive module
-with advanced error tracking, recovery mechanisms, and comprehensive logging.
-
-This unified system replaces and consolidates:
-- src/plexichat/app/error_handling/
-- src/plexichat/app/core/error_handling/
-- src/plexichat/app/utils/monitoring/error_handler.py
-
-Features:
-- Comprehensive error classification and tracking
-- Advanced error recovery mechanisms with circuit breakers
-- Crash reporting with detailed context and analytics
-- Standardized error codes with user-friendly messages
-- Real-time error monitoring and alerting
-- Error pattern analysis and prediction
-- Integration with logging and monitoring systems
-- Automatic error reporting to external services
-- Error boundary management for fault isolation
-"""
-
-# Import existing error handling components (consolidated)
-# Note: Import from existing modules and create missing ones
+from .exceptions import (  # Import existing error handling components (consolidated); Note: Import from existing modules and create missing ones
+    Advanced,
     AuthenticationError,
     AuthorizationError,
+    Automatic,
     BaseAPIException,
+    Comprehensive,
+    Consolidates,
+    Core,
+    Crash,
     DatabaseError,
+    Error,
+    ErrorAnalytics,
+    ErrorBoundary,
     ErrorCode,
+    ErrorContext,
     ErrorDetails,
+    ErrorHandlingMiddleware,
+    ErrorManager,
+    ErrorMonitor,
+    ErrorRecoveryManager,
+    ErrorReporter,
+    ErrorSeverity,
     ExternalServiceError,
+    Features:,
     FileError,
+    Handling,
+    Integration,
+    Management,
     NetworkError,
+    PlexiChat,
     RateLimitError,
+    Real-time,
+    Standardized,
+    System,
+    This,
+    Unified,
     ValidationError,
+    """,
+    -,
+    .context,
+    .decorators,
+    .error_analytics,
+    .error_manager,
+    .error_monitor,
+    .error_recovery,
+    .middleware,
+    .reporting,
+    a,
+    advanced,
+    alerting,
+    all,
+    analysis,
+    analytics,
+    and,
+    boundary,
+    breakers,
+    circuit,
+    circuit_breaker,
+    classification,
+    codes,
+    components,
+    comprehensive,
+    consolidates:,
+    context,
+    crash_handler,
+    detailed,
+    error,
+    error_analytics,
     error_code_manager,
+    error_handler,
+    error_manager,
+    error_monitor,
+    error_reporter,
+    external,
+    fault,
+    for,
+    from,
+    handling,
+    import,
+    into,
+    isolation,
+    logging,
+    logging.,
+    management,
+    mechanisms,
+    messages,
+    module,
+    monitoring,
+    pattern,
+    prediction,
+    recovery,
+    recovery_manager,
+    replaces,
+    reporting,
+    retry,
+    services,
+    single,
+    src/plexichat/app/core/error_handling/,
+    src/plexichat/app/error_handling/,
+    src/plexichat/app/utils/monitoring/error_handler.py,
+    system,
+    systems,
+    to,
+    tracking,
+    unified,
+    user-friendly,
+    with,
 )
 
 # Import new unified components with error handling

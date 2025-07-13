@@ -12,7 +12,6 @@ import aiosqlite
 
 from . import ScanResult, ScanType, ThreatLevel, ThreatType
 
-
 """
 Link Safety Scanner
 

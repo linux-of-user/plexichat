@@ -6,23 +6,44 @@ import sys
 from ..core.versioning.canary_deployment_manager import CanaryStrategy, canary_deployment_manager
 from ..core.versioning.changelog_manager import changelog_manager
 from ..core.versioning.update_system import (
-from ..core.versioning.version_manager import Version, version_manager
-
-            from pathlib import Path
-
-
-"""
-PlexiChat Update CLI Commands
-
-Command-line interface for the advanced update system with new versioning scheme.
-Supports upgrades, downgrades, rollbacks, changelog viewing, and dependency management.
-"""
-
+    CLI,
+    Command-line,
+    Commands,
+    Path,
+    PlexiChat,
+    Supports,
+    Update,
     UpdateDeploymentStrategy,
     UpdateDistributionMethod,
     UpdateType,
+    Version,
+    """,
+    ..core.versioning.version_manager,
+    advanced,
+    and,
+    changelog,
+    dependency,
+    downgrades,
+    for,
+    from,
+    import,
+    interface,
+    management.,
+    new,
+    pathlib,
+    rollbacks,
+    scheme.,
+    system,
+    the,
+    update,
     update_system,
+    upgrades,
+    version_manager,
+    versioning,
+    viewing,
+    with,
 )
+
 logger = logging.getLogger(__name__)
 
 

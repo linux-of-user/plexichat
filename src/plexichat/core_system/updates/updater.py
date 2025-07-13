@@ -9,15 +9,10 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import requests
+from app.logger_config import settings
+from packaging import version
 
-    from packaging import version
-            from app.logger_config import settings
-                from ...core.versioning.version_manager import version_manager
-                    from pathlib import Path
-import shutil
-from pathlib import Path
-
-                    from pathlib import Path
+from ...core.versioning.version_manager import version_manager
 
 """
 PlexiChat Self-Update System

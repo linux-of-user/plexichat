@@ -15,7 +15,6 @@ from cryptography.x509.oid import NameOID
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
 
-
 """
 PlexiChat Certificate Manager - SINGLE SOURCE OF TRUTH
 

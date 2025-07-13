@@ -2,7 +2,6 @@ from .antivirus_node import AntivirusClusterNode
 from .gateway_node import GatewayClusterNode
 from .main_node import MainClusterNode
 
-
 """
 PlexiChat Specialized Cluster Nodes
 

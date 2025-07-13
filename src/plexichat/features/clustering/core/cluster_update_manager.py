@@ -9,7 +9,6 @@ from ...core.versioning.update_system import UpdateStatus, UpdateSystem, UpdateT
 from ...core.versioning.version_manager import Version
 from .encrypted_communication import EncryptedCommunication, MessageType
 
-
 """
 PlexiChat Cluster Update Manager
 

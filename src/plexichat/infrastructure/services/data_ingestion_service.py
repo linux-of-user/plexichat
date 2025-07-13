@@ -6,8 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-            from ..database.enhanced_abstraction import enhanced_db_manager
-            
+from ..database.enhanced_abstraction import enhanced_db_manager
 
 """
 PlexiChat Data Ingestion Service

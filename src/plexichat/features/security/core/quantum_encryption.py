@@ -7,17 +7,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from cryptography.hazmat.backends import default_backend
-
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
 from ...core.config import get_config
 from ...core.logging import get_logger
-
-        from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-
 
 """
 Quantum-Proof Encryption Architecture for PlexiChat

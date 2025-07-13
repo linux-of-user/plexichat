@@ -1,30 +1,20 @@
 import asyncio
 import json
 import logging
+import platform
 import queue
 import shlex
 import threading
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
-
-                import platform
-
-                
-                
-
 import jwt
+import psutil
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
-            import psutil
-                import psutil
-                import psutil
 
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.security import InputSanitizer
-        from plexichat.features.users.user import User
 
 """
 WebSocket endpoints for real-time communication.

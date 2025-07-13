@@ -9,9 +9,9 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-    import redis.asyncio as redis
-    import aiomcache
-    import aiohttp
+import aiohttp
+import aiomcache
+import redis.asyncio as redis
 
 """
 PlexiChat Multi-Tier Caching System

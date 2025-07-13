@@ -1,7 +1,6 @@
 from .status_update import StatusUpdate
 from .status_view import StatusView
 
-
 """
 PlexiChat Status Updates Models Package
 

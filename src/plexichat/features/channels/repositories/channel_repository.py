@@ -1,23 +1,34 @@
 from typing import Any, Dict, List, Optional
 
 from ....core_system.database.dao.base_dao import (
-from ....core_system.database.engines import get_session
-from ....core_system.database.repository.base_repository import BaseRepository
-from ..models.channel import Channel, ChannelType
-
-
-
-"""
-PlexiChat Channel Repository
-
-Data access layer for Discord-like channels with business logic.
-"""
-
     BaseDAO,
+    BaseRepository,
+    Channel,
+    ChannelType,
+    Data,
+    Discord-like,
     FilterCriteria,
     PaginationParams,
+    PlexiChat,
+    Repository,
     SortCriteria,
+    """,
+    ....core_system.database.engines,
+    ....core_system.database.repository.base_repository,
+    ..models.channel,
+    access,
+    business,
+    channels,
+    for,
+    from,
+    get_session,
+    import,
+    layer,
+    logic.,
+    with,
 )
+
+
 class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]]):
     """
     Channel repository with Discord-like channel management.

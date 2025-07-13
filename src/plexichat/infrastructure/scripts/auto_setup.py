@@ -2,11 +2,6 @@ import json
 import sys
 from pathlib import Path
 
-
-import sys
-from pathlib import Path
-
-
 #!/usr/bin/env python3
 """
 PlexiChat Auto-Setup Script

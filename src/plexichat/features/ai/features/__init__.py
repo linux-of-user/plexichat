@@ -1,27 +1,63 @@
 from .ai_powered_features_service import (
-
-"""
-PlexiChat AI-Powered Features Module
-
-This module provides comprehensive AI-powered features including:
-- Smart summarization with multiple summary types
-- Content suggestions for completion, improvement, and alternatives
-- Sentiment analysis with emotion detection
-- Semantic search with TF-IDF vectorization
-- Automated content moderation with AI-powered violation detection
-
-All features are built on top of PlexiChat's AI abstraction layer and support
-multiple AI providers with intelligent fallbacks.
-"""
-
+    AI,
+    TF-IDF,
+    AI-Powered,
+    AI-powered,
     AIPoweredFeaturesService,
+    All,
+    Automated,
+    Content,
     ContentSuggestion,
+    Features,
     ModerationAction,
     ModerationResult,
+    Module,
+    PlexiChat,
+    PlexiChat's,
+    Semantic,
     SemanticSearchResult,
     Sentiment,
     SentimentAnalysisResult,
+    Smart,
     SummarizationResult,
+    This,
+    """,
+    -,
+    abstraction,
+    alternatives,
+    analysis,
+    and,
+    are,
+    built,
+    completion,
+    comprehensive,
+    content,
+    detection,
+    emotion,
+    fallbacks.,
+    features,
+    for,
+    improvement,
+    including:,
+    intelligent,
+    layer,
+    moderation,
+    module,
+    multiple,
+    of,
+    on,
+    providers,
+    provides,
+    search,
+    suggestions,
+    summarization,
+    summary,
+    support,
+    top,
+    types,
+    vectorization,
+    violation,
+    with,
 )
 
 __all__ = [

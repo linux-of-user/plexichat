@@ -1,5 +1,6 @@
 import json
 import logging
+import socket
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -7,16 +8,12 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+import psutil
 import requests
 
 from .auth_storage import get_auth_storage
 from .config_manager import get_webui_config
 from .mfa_manager import get_mfa_manager
-
-            import socket
-            
-
-            import psutil
 
 """
 PlexiChat WebUI Self-Test Manager

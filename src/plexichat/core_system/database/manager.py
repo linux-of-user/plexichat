@@ -5,37 +5,59 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
+import redis.asyncio as redis  # type: ignore
+from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 
-    import redis.asyncio as redis  # type: ignore
-    from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 from ...core_system.config import get_config
-
 from ...core_system.logging import get_logger
+from ...features.channels.repositories.channel_repository import ChannelRepository
+from ...features.channels.repositories.permission_overwrite_repository import (
+    OF,
+    REMOVED,
+    SINGLE,
+    SOURCE,
+    TRUTH,
+    AsyncEngine,
+    Consolidated,
+    Consolidates,
+    Database,
+    Manager,
+    PlexiChat,
+    RoleRepository,
+    StaticPool,
+    """,
+    -,
+    ...features.backup,
+    ...features.channels.repositories.role_repository,
+    .global_data_distribution,
+    .zero_downtime_migration,
+    all,
+    and,
+    attempt,
+    core,
+    create_async_engine,
+    database,
+    database_manager.py,
+    for,
+    from,
+    functionality,
+    functionality.,
+    get_unified_backup_manager,
+    global_data_distribution_manager,
+    import,
+    json,
+    management,
+    os,
+    replaces:,
+    sqlalchemy,
+    sqlalchemy.ext.asyncio,
+    sqlalchemy.pool,
+    text,
+    unified,
+    unified_database_manager.py,
+    zero_downtime_migration_manager,
+)
 from ...features.security import distributed_key_manager, quantum_encryption
-
-            from ...features.channels.repositories.channel_repository import ChannelRepository
-            from ...features.channels.repositories.permission_overwrite_repository import (
-            from ...features.channels.repositories.role_repository import RoleRepository
-
-            from .zero_downtime_migration import zero_downtime_migration_manager
-            from .global_data_distribution import global_data_distribution_manager
-            from ...features.backup import get_unified_backup_manager
-        import os
-
-                import json
-
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-from sqlalchemy.pool import StaticPool
-
-"""
-PlexiChat Consolidated Database Manager
-
-SINGLE SOURCE OF TRUTH for all database management functionality.
-
-Consolidates and replaces:
-- database_manager.py (core functionality) - REMOVED
-- unified_database_manager.py (unified attempt) - REMOVED  
 - enhanced_abstraction.py (multi-database support) - REMOVED
 
 Provides comprehensive database management with:

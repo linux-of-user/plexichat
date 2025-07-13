@@ -6,16 +6,31 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Type
 
-        from .exceptions import (
-
-"""
-PlexiChat Error Recovery Manager
-
-Advanced error recovery system with multiple recovery strategies,
-automatic retry mechanisms, and intelligent fallback handling.
-"""
-
-logger = logging.getLogger(__name__)
+from .exceptions import (
+    Advanced,
+    Error,
+    Manager,
+    PlexiChat,
+    Recovery,
+    """,
+    =,
+    __name__,
+    and,
+    automatic,
+    error,
+    fallback,
+    handling.,
+    intelligent,
+    logger,
+    logging.getLogger,
+    mechanisms,
+    multiple,
+    recovery,
+    retry,
+    strategies,
+    system,
+    with,
+)
 
 
 class RecoveryStrategy(Enum):

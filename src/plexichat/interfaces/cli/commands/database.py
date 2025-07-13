@@ -10,8 +10,6 @@ import click
 import yaml
 from tabulate import tabulate
 
-
-
 from plexichat.core.config.config_manager import ConfigManager
 from plexichat.core.database.enhanced_abstraction import enhanced_db_manager
 from plexichat.core.database.indexing_strategy import index_manager

@@ -7,8 +7,6 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-
-
 """
 PlexiChat Logging Configuration
 

@@ -2,33 +2,18 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-
-        from ..v1.auth import auth_router_stable
-        from ..v1.files import files_router_stable
-        from ..v1.messages import messages_router_stable
-        from ..v1.users import users_router_stable
-        
-        from ..v1.analytics import analytics_router
-        from ..v1.auth import auth_router
-        from ..v1.collaboration import collaboration_router
-        from ..v1.files import files_router
-        from ..v1.messages import messages_router
-        from ..v1.updates import updates_router
-        from ..v1.users import users_router
-        
-        from ..beta.ai import ai_router
-        from ..beta.quantum import quantum_router
-        from ..v1.analytics import analytics_router
-        from ..v1.auth import auth_router
-        from ..v1.collaboration import collaboration_router
-        from ..v1.files import files_router
-        from ..v1.messages import messages_router
-        from ..v1.updates import updates_router
-        from ..v1.users import users_router
-        
-
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+
+from ..beta.ai import ai_router
+from ..beta.quantum import quantum_router
+from ..v1.analytics import analytics_router
+from ..v1.auth import auth_router, auth_router_stable
+from ..v1.collaboration import collaboration_router
+from ..v1.files import files_router, files_router_stable
+from ..v1.messages import messages_router, messages_router_stable
+from ..v1.updates import updates_router
+from ..v1.users import users_router, users_router_stable
 
 """
 PlexiChat API Version Manager

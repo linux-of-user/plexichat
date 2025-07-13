@@ -1,4 +1,7 @@
+import logging
 import os
+import secrets
+import string
 import sys
 import threading
 import time
@@ -9,14 +12,10 @@ from typing import Any, Dict, Optional
 import customtkinter as ctk
 import requests
 
-    import logging
-                    import secrets
-                    import string
-
-    from plexichat.app.logger_config import logger
-    from plexichat.core.security.government_auth import government_auth
-    from plexichat.gui.components.backup_management_widget import BackupManagementWidget
-    from plexichat.gui.components.clustering_management_widget import ClusteringManagementWidget
+from plexichat.app.logger_config import logger
+from plexichat.core.security.government_auth import government_auth
+from plexichat.gui.components.backup_management_widget import BackupManagementWidget
+from plexichat.gui.components.clustering_management_widget import ClusteringManagementWidget
 
 """
 PlexiChat Advanced GUI Application

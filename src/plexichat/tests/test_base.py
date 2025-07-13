@@ -4,7 +4,6 @@ import string
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-
 """
 Base test class with common utilities for PlexiChat tests.
 Provides test data generation, authentication helpers, and result tracking.

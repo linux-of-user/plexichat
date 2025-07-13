@@ -1,19 +1,21 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session
-
-
-
-
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
+from sqlmodel import Session
 
 from plexichat.app.db import get_session
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.services.user_management import UserManagementService
-from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
+from plexichat.app.utils.auth import (
+    from,
+    get_current_user,
+    get_optional_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
 
 """
 Enhanced user management API with comprehensive profile and friend system.

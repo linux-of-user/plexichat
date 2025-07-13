@@ -10,7 +10,6 @@ import aiohttp
 
 from .canary_deployment_manager import CanaryNode, HealthCheck, HealthCheckType
 
-
 """
 PlexiChat Canary Health Monitor
 

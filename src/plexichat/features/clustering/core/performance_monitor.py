@@ -7,24 +7,32 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 from . import (
-
-import psutil
-
-"""
-Real-Time Performance Monitor
-
-Advanced performance monitoring system with real-time metrics collection,
-predictive analytics, and performance optimization recommendations.
-"""
-
     ALERT_THRESHOLD_CPU,
     ALERT_THRESHOLD_DISK,
     ALERT_THRESHOLD_MEMORY,
     METRICS_COLLECTION_INTERVAL,
     PERFORMANCE_HISTORY_DAYS,
+    Advanced,
+    Monitor,
+    Performance,
     PerformanceMetric,
+    Real-Time,
+    """,
+    analytics,
+    and,
+    collection,
+    import,
+    metrics,
+    monitoring,
+    optimization,
+    performance,
+    predictive,
+    psutil,
+    real-time,
+    recommendations.,
+    system,
+    with,
 )
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-
 """
 PlexiChat Version Management System
 Provides centralized version tracking and management.

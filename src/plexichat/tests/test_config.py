@@ -1,5 +1,6 @@
 import json
 import logging
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -7,8 +8,6 @@ import yaml
 
 from ..core_system.config.manager import ConfigurationManager
 from .test_base import BaseTest, TestResult
-
-            import shutil
 
 """
 Configuration system tests for PlexiChat.

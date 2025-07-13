@@ -7,19 +7,38 @@ from typing import Any, Dict, List, Optional, Set
 
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
+from .unified_auth_manager import (
+    Authentication,
+    Consolidates,
+    Manager,
+    Security,
+    Unified,
+    """,
+    -,
+    ...features.security.network_protection,
+    ..security.input_validation,
+    .certificate_manager,
+    .unified_auth_manager,
+    a,
+    all,
+    and,
+    auth,
+    authorization,
+    comprehensive,
+    from,
+    functionality,
+    get_certificate_manager,
+    get_input_validator,
+    get_network_protection,
+    get_unified_auth_manager,
+    import,
+    into,
+    managers,
+    security,
+    single,
+    system:,
+)
 
-            from .unified_auth_manager import (
-            from ...features.security.network_protection import get_network_protection
-            from ..security.input_validation import get_input_validator
-            from .certificate_manager import get_certificate_manager
-            from .unified_auth_manager import get_unified_auth_manager
-
-
-"""
-Unified Security Manager
-
-Consolidates all security functionality into a single, comprehensive system:
-- Authentication and authorization (all auth managers)
 - DDoS protection and rate limiting
 - Input validation and sanitization
 - Certificate management and SSL/TLS

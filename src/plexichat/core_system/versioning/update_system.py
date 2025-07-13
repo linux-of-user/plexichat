@@ -14,17 +14,11 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
+from ...clustering.core.cluster_manager import AdvancedClusterManager
+from ...config.config_migration import ConfigMigrationManager
+from ...database.migrations import MigrationManager
 from .changelog_manager import ChangelogManager, ChangeType
 from .version_manager import Version, VersionType, version_manager
-
-                from pathlib import Path
-            from ...clustering.core.cluster_manager import AdvancedClusterManager
-            from ...config.config_migration import ConfigMigrationManager
-            
-            from ...database.migrations import MigrationManager
-            
-            from ...database.migrations import MigrationManager
-
 
 """
 PlexiChat Advanced Update System

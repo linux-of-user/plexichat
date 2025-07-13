@@ -1,9 +1,6 @@
 from pathlib import Path
 from typing import List
 
-
-
-
 from plexichat.app.plugins.enhanced_plugin_manager import PluginSource, get_enhanced_plugin_manager
 
 """

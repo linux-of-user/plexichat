@@ -2,23 +2,35 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-
-
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
 from plexichat.app.plugins.enhanced_plugin_manager import (
-
-"""
-Enhanced Plugin Management API endpoints for PlexiChat.
-Provides comprehensive plugin management with zip installation, security scanning,
-auto-updates, and dashboard functionality.
-"""
-
+    API,
+    Enhanced,
+    Management,
+    PlexiChat.,
+    Plugin,
     PluginSource,
     PluginStatus,
+    Provides,
+    """,
+    and,
+    auto-updates,
+    comprehensive,
+    dashboard,
+    endpoints,
+    for,
+    functionality.,
     get_enhanced_plugin_manager,
+    installation,
+    management,
+    plugin,
+    scanning,
+    security,
+    with,
+    zip,
 )
 
 

@@ -2,17 +2,19 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, and_, asc, desc, or_, select
-
-
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, text
+from sqlmodel import Session, and_, asc, desc, or_, select
 
 from plexichat.core.database import engine
 from plexichat.features.users.message import Message, MessageType
-from plexichat.interfaces.web.routers.auth import from plexichat.infrastructure.utils.auth import get_current_user
+from plexichat.interfaces.web.routers.auth import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
 from plexichat.interfaces.web.schemas.error import ValidationErrorResponse
 from plexichat.interfaces.web.schemas.message import MessageCreate, MessageRead
 

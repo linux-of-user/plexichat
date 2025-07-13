@@ -3,15 +3,11 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from jose import JWTError
-from sqlmodel import Session, select
-
-
-
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError
 from pydantic import BaseModel, Field, validator
+from sqlmodel import Session, select
 
 from plexichat.core.database import get_session
 from plexichat.features.users.user import User

@@ -16,7 +16,6 @@ from .hash_scanner import HashBasedScanner
 from .link_scanner import LinkSafetyScanner
 from .threat_intelligence import ThreatIntelligenceEngine
 
-
 """
 Advanced Antivirus Engine
 

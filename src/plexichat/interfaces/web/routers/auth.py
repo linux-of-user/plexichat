@@ -1,18 +1,15 @@
 import logging
 from datetime import datetime
 
-from sqlmodel import Session, select
-
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from sqlmodel import Session, select
 
 from plexichat.core.database import get_engine
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.security import create_access_token, verify_password
 from plexichat.interfaces.web.schemas.auth import (
-
     ErrorDetail,
     LoginRequest,
     TokenResponse,

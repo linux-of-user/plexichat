@@ -6,13 +6,10 @@ from typing import Any, Dict, List, Optional
 
 from ...features.clustering.service_mesh.mesh_manager import service_mesh_manager
 from ..containerization.orchestrator import container_orchestrator
-from ..messaging.async_task_queue import task_queue_manager
+from ..messaging.async_task_queue import TaskPriority, task_queue_manager
 from ..microservices.decomposition import microservices_orchestrator
 from ..microservices.service_registry import service_registry
 from ..performance.distributed_cache import CacheNode, distributed_cache
-
-        from ..messaging.async_task_queue import TaskPriority
-        
 
 """
 PlexiChat Phase II Scalability Integration

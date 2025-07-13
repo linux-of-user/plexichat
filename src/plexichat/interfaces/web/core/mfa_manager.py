@@ -13,7 +13,6 @@ from cryptography.fernet import Fernet
 
 from .config_manager import get_webui_config
 
-
 """
 PlexiChat WebUI Multi-Factor Authentication Manager
 

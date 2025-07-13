@@ -1,38 +1,78 @@
 from .edge_computing_manager import (
-
-"""
-PlexiChat Performance & Edge Computing Module
-
-This module provides comprehensive performance optimization and edge computing
-capabilities for the PlexiChat platform.
-
-Features:
-- Edge Computing & Auto-scaling Manager
-- Distributed node management with geographic distribution
-- Intelligent traffic routing and load balancing
-- Automatic resource scaling based on demand patterns
-- Performance monitoring and analytics
-- Health monitoring with automatic failover
-- Predictive scaling based on historical patterns
-- Multi-tier caching system integration
-- Real-time performance metrics collection
-
-Components:
-- EdgeComputingManager: Core edge computing and auto-scaling functionality
-- Performance monitoring and metrics collection
-- Traffic routing optimization
-- Node health monitoring and failover
-- API endpoints for management and monitoring
-"""
-
+    API,
+    Auto-scaling,
+    Automatic,
+    Components:,
+    Computing,
+    Core,
+    Distributed,
+    Edge,
     EdgeComputingManager,
+    EdgeComputingManager:,
     EdgeNode,
+    Features:,
+    Health,
+    Intelligent,
     LoadLevel,
     LoadMetrics,
+    Manager,
+    Module,
+    Multi-tier,
+    Node,
     NodeType,
+    Performance,
+    PlexiChat,
+    Predictive,
+    Real-time,
     ScalingAction,
     ScalingDecision,
+    This,
+    Traffic,
+    """,
+    &,
+    -,
+    analytics,
+    and,
+    auto-scaling,
+    automatic,
+    balancing,
+    based,
+    caching,
+    capabilities,
+    collection,
+    comprehensive,
+    computing,
+    demand,
+    distribution,
+    edge,
+    endpoints,
+    failover,
+    for,
+    functionality,
+    geographic,
     get_edge_computing_manager,
+    health,
+    historical,
+    integration,
+    load,
+    management,
+    metrics,
+    module,
+    monitoring,
+    node,
+    on,
+    optimization,
+    patterns,
+    performance,
+    platform.,
+    provides,
+    resource,
+    routing,
+    scaling,
+    system,
+    the,
+    traffic,
+    with,
 )
 
 __all__ = [

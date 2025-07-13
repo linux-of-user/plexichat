@@ -8,10 +8,6 @@ import ssl
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Tuple
 
-
-
-
-
 from fastapi import HTTPException, Request
 
 from plexichat.app.logger_config import logger

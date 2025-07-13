@@ -3,14 +3,16 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import JSONResponse
 
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user_from_token
+from plexichat.infrastructure.utils.auth import (
+    from,
+    get_current_user_from_token,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
 from plexichat.websockets.messaging_websocket import messaging_websocket_manager
 
 """

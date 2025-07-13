@@ -14,7 +14,6 @@ from typing import Any, Dict, List, Optional, Set
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-
 """
 PlexiChat Modular Service Loader
 

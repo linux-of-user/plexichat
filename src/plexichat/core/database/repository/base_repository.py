@@ -7,18 +7,25 @@ from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 from ...events.event_bus import DomainEvent, event_bus
 from ..dao.base_dao import (
-
-"""
-PlexiChat Repository Pattern Implementation
-Provides domain-specific data access with business logic encapsulation
-"""
-
     BaseDAO,
     FilterCriteria,
+    Implementation,
     PaginationParams,
+    Pattern,
+    PlexiChat,
+    Provides,
     QueryOptions,
     QueryResult,
+    Repository,
     SortCriteria,
+    """,
+    access,
+    business,
+    data,
+    domain-specific,
+    encapsulation,
+    logic,
+    with,
 )
 
 logger = logging.getLogger(__name__)

@@ -1,15 +1,10 @@
+import argparse
+import glob
 import os
+import shutil
 import sys
 import time
 from pathlib import Path
-
-
-
-                    from pathlib import Path
-        import glob
-                        import shutil
-    import argparse
-    
 
 import psutil
 

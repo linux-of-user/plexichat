@@ -5,8 +5,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-        from .canary_node_selector import CanaryNodeSelector
-        from .canary_health_monitor import CanaryHealthMonitor
+from .canary_health_monitor import CanaryHealthMonitor
+from .canary_node_selector import CanaryNodeSelector
 
 """
 PlexiChat Canary Deployment Manager

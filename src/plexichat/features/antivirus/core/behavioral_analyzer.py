@@ -12,7 +12,6 @@ import pefile
 
 from . import ScanResult, ScanType, ThreatLevel, ThreatType
 
-
 """
 Behavioral Analyzer
 

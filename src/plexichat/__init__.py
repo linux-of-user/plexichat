@@ -1,18 +1,15 @@
-    from .core.versioning.version_manager import Version, VersionType, version_manager
-
-        from .core.versioning.version_manager import version_manager
-        from .core_system.versioning.version_manager import version_manager
-    from .main import app
+    from .cli.integrated_cli import PlexiChatCLI
     from .core.launcher import PlexiChatLauncher
-        from .features.security import security_manager
-        from .infrastructure.performance import get_edge_computing_manager
-        from .infrastructure.services.service_manager import service_manager
-        from .features.backup import quantum_backup_system
-        from .interfaces.web import get_web_manager
-        from .interfaces.web import get_web_manager
-        from .cli.integrated_cli import PlexiChatCLI
-        from .features.ai.ai_coordinator import ai_coordinator
-        from .infrastructure.modules.plugin_manager import get_plugin_manager
+    from .core.versioning.version_manager import Version, VersionType, version_manager
+    from .core_system.versioning.version_manager import version_manager
+    from .features.ai.ai_coordinator import ai_coordinator
+    from .features.backup import quantum_backup_system
+    from .features.security import security_manager
+    from .infrastructure.modules.plugin_manager import get_plugin_manager
+    from .infrastructure.performance import get_edge_computing_manager
+    from .infrastructure.services.service_manager import service_manager
+    from .interfaces.web import get_web_manager
+    from .main import app
 
 """
 PlexiChat - Government-Level Secure Communication Platform

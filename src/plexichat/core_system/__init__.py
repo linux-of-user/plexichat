@@ -1,6 +1,5 @@
 from .config import get_config, get_setting, set_setting
 
-
 """
 PlexiChat Core System
 

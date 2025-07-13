@@ -4,32 +4,16 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-            from ..security.quantum_security import quantum_security_manager
-            
-            from ..identity.decentralized_identity import decentralized_identity_manager
-            
-            from ..blockchain.audit_trails import audit_trail_manager
-            
-            from ..knowledge.semantic_graphs import semantic_knowledge_manager
-            
-            from ..security.hardware_security import hsm_manager
-            
-            from ..security.threat_intelligence import threat_intelligence_manager
-            
-            from ..performance.optimization_engine import performance_optimization_engine
-            
-            from ..ai.ai_coordinator import ai_coordinator
-            
-            from ..messaging.messaging_coordinator import messaging_coordinator
-            
-            from ..plugins.advanced_plugin_system import advanced_plugin_manager
-            
-            from ..security.quantum_security import quantum_security_manager
-
-            from ..security.threat_intelligence import threat_intelligence_manager
-
-            from ..performance.optimization_engine import performance_optimization_engine
-
+from ..ai.ai_coordinator import ai_coordinator
+from ..blockchain.audit_trails import audit_trail_manager
+from ..identity.decentralized_identity import decentralized_identity_manager
+from ..knowledge.semantic_graphs import semantic_knowledge_manager
+from ..messaging.messaging_coordinator import messaging_coordinator
+from ..performance.optimization_engine import performance_optimization_engine
+from ..plugins.advanced_plugin_system import advanced_plugin_manager
+from ..security.hardware_security import hsm_manager
+from ..security.quantum_security import quantum_security_manager
+from ..security.threat_intelligence import threat_intelligence_manager
 
 """
 PlexiChat Comprehensive System Integration Coordinator

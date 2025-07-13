@@ -1,6 +1,5 @@
 from .archive_system import ArchiveStatus, ArchiveSystemPlugin, ArchiveType
 
-
 """
 PlexiChat Backup System Plugins
 

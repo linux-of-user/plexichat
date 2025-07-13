@@ -1,15 +1,12 @@
+import asyncio
 import logging
 from typing import Any, Callable, Dict
 
+from fastapi import HTTPException
+from flask import g, jsonify, request
+
 from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
-
-        from flask import g, request
-
-                import asyncio
-                    from flask import jsonify
-
-                    from fastapi import HTTPException
 
 """
 PlexiChat Authentication Middleware

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import random
 import time
 from contextlib import asynccontextmanager
@@ -7,19 +8,16 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session
-
-    import redis.asyncio as redis  # type: ignore
-    from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
-    import pymongo  # type: ignore
-    import os
-
+import pymongo  # type: ignore
+import redis.asyncio as redis  # type: ignore
+from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
+from sqlmodel import Session
 
-    from plexichat.core.config.settings import settings  # type: ignore
+from plexichat.core.config.settings import settings  # type: ignore
 
 """
 Multi-database engine support with automatic failover and load balancing.

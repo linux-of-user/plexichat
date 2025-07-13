@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 """
 PlexiChat Voice/Video Channel System
 

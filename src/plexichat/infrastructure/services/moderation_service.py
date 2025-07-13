@@ -3,28 +3,35 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from sqlmodel import Session, select
-
-
 from fastapi import HTTPException, status
+from sqlmodel import Session, select
 
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.models.message import Message
 from plexichat.app.models.moderation import (
-
-"""
-Comprehensive moderation service for PlexiChat.
-Handles user moderation, message moderation, automated moderation rules,
-role-based permissions, and server-specific moderation capabilities.
-"""
-
+    Comprehensive,
+    Handles,
     ModerationAction,
     ModerationLog,
     ModerationSeverity,
     ModerationStatus,
     ModeratorRole,
+    PlexiChat.,
     UserModerationStatus,
+    """,
+    and,
+    automated,
+    capabilities.,
+    for,
+    message,
+    moderation,
+    permissions,
+    role-based,
+    rules,
+    server-specific,
+    service,
+    user,
 )
 
 

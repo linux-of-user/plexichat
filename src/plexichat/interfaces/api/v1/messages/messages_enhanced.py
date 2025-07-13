@@ -1,20 +1,21 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, select
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlmodel import Session, select
 
 from plexichat.app.db import get_session
 from plexichat.app.models.message import Message, MessageType
 from plexichat.app.models.user import User
 from plexichat.app.services.message_service import MessageService
-from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
+from plexichat.app.utils.auth import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
 
 """
 Enhanced message API with file attachment support and comprehensive permissions.

@@ -1,28 +1,18 @@
+import atexit
+import gc
+import locale
 import logging
 import os
+import shutil
 import signal
+import socket
 import sys
 import threading
 import time
 from pathlib import Path
 from typing import Any, Dict
 
-
-            import atexit
-            
-            import socket
-
-            import gc
-
-            import locale
-
-        import socket
-        
-            import shutil
-            
-            
-
-            import psutil
+import psutil
 
 """
 Bug Fixes and System Improvements for PlexiChat

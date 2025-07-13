@@ -1,14 +1,12 @@
 import argparse
 import json
 import sys
+import webbrowser
 from datetime import datetime
 from pathlib import Path
 from typing import List
 
 from services.log_management import LogEntry, log_manager
-
-
-            import webbrowser
 
 """
 Advanced CLI log management commands.

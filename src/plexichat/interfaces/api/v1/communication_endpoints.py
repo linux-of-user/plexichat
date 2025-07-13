@@ -1,27 +1,52 @@
 from datetime import datetime
 from typing import List, Optional
 
-
 from ...core.logging import get_logger
 from ...services.communication_service import (
-
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
-from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
-
-from ...core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin_auth, require_auth
-
-"""
-PlexiChat Advanced Communication API Endpoints
-
-REST API endpoints for advanced communication features including
-voice messages, reactions, threads, translations, and smart notifications.
-"""
-
+    API,
+    REST,
+    Advanced,
+    APIRouter,
+    BaseModel,
+    Communication,
+    Depends,
+    Endpoints,
+    Field,
+    File,
+    FileResponse,
+    Form,
+    HTTPException,
     NotificationPriority,
+    PlexiChat,
+    Query,
     ReactionType,
     ThreadStatus,
+    UploadFile,
+    """,
+    ...core.auth.dependencies,
+    advanced,
+    and,
+    communication,
+    endpoints,
+    fastapi,
+    fastapi.responses,
+    features,
+    for,
+    from,
     get_communication_service,
+    import,
+    including,
+    messages,
+    notifications.,
+    plexichat.infrastructure.utils.auth,
+    pydantic,
+    reactions,
+    require_admin_auth,
+    require_auth,
+    smart,
+    threads,
+    translations,
+    voice,
 )
 
 # Initialize router and logger

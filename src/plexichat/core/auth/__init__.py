@@ -1,30 +1,57 @@
-    from .manager_auth import AuthManager, auth_manager
-    from .manager_token import TokenManager, token_manager
-    from .manager_session import SessionManager, session_manager
-    from .manager_password import PasswordManager, password_manager
-    from .manager_mfa import MFAManager, mfa_manager
-    from .manager_biometric import BiometricManager, biometric_manager
-    from .manager_oauth import OAuthManager, oauth_manager
-    from .manager_device import DeviceManager, device_manager
-    from .manager_audit import AuthAuditManager, auth_audit_manager
     from .decorators_auth import (
-    from .middleware_auth import (
-    from .validators_auth import BiometricValidator, PasswordValidator, TokenValidator
-    from .exceptions_auth import (
-        import logging
-        import logging
-
-        from plexichat.infrastructure.utils.auth import require_admin,
-
-"""
-PlexiChat Core Authentication System - Unified Authentication Management
-
-Consolidates all authentication components into a single, comprehensive module
-with government-level security, 2FA, biometric support, and advanced features.
-
-This unified system replaces and consolidates:
-- src/plexichat/app/auth/
-- src/plexichat/core/auth/ (if exists)
+        2FA,
+        Authentication,
+        BiometricValidator,
+        Core,
+        Management,
+        PasswordValidator,
+        System,
+        TokenValidator,
+        Unified,
+        -,
+        .exceptions_auth,
+        .middleware_auth,
+        .validators_auth,
+        a,
+        advanced,
+        all,
+        and,
+        authentication,
+        biometric,
+        c/plexichat/app/auth/,
+        c/plexichat/core/auth/,
+        components,
+        comprehensive,
+        consolidates:,
+        exists,
+        features.,
+        from,
+        government-level,
+        iChat,
+        if,
+        import,
+        into,
+        logging,
+        module,
+        olidates,
+        plexichat.infrastructure.utils.auth,
+        replaces,
+        require_admin,
+        security,
+        single,
+        support,
+        system,
+        unified,
+    )
+    from .manager_audit import AuthAuditManager, auth_audit_manager
+    from .manager_auth import AuthManager, auth_manager
+    from .manager_biometric import BiometricManager, biometric_manager
+    from .manager_device import DeviceManager, device_manager
+    from .manager_mfa import MFAManager, mfa_manager
+    from .manager_oauth import OAuthManager, oauth_manager
+    from .manager_password import PasswordManager, password_manager
+    from .manager_session import SessionManager, session_manager
+    from .manager_token import TokenManager, token_manager
 - Authentication components from security modules
 
 Features:

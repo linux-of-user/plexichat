@@ -15,7 +15,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import requests
 
-
 """
 PlexiChat GitHub-Based Update System
 Handles version checking, downloading, and updating from GitHub releases.

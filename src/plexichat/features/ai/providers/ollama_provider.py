@@ -7,7 +7,6 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
-
 """
 Ollama Provider Implementation
 Comprehensive Ollama integration with model management and local inference.

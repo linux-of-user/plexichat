@@ -1,28 +1,21 @@
 import asyncio
 import logging
+import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
 import typer
+import uvicorn
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-        from ....core_system.config import get_config
-        from ....core_system.config import get_config, get_setting, set_setting
-        
-        import time
-
-        
-        import subprocess
-        import sys
-        
-
-        import uvicorn
-        from ....main import app as fastapi_app
+from ....core_system.config import get_config, get_setting, set_setting
+from ....main import app as fastapi_app
 
 """
 PlexiChat CLI Manager

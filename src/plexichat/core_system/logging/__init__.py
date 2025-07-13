@@ -16,9 +16,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from ..config import get_config
-
-            from .security_logger import get_security_logger
-            from .performance_logger import get_performance_logger
+from .performance_logger import get_performance_logger
+from .security_logger import get_security_logger
 
 """
 PlexiChat Comprehensive Logging System

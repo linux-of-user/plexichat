@@ -2,26 +2,34 @@ import logging
 import time
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
+from .enhanced_abstraction import asyncpg  # type: ignore
+from .enhanced_abstraction import (
+    OLAP,
+    Analytics,
+    ClickHouse,
+    Client,
+    Clients,
+    Column-oriented,
+    Database,
+    DatabaseClientFactory,
+)
+from .enhanced_abstraction import DatabaseConfig as EnhancedDatabaseConfig  # type: ignore
+from .enhanced_abstraction import DatabaseType, High-performance, PlexiChat
+from .enhanced_abstraction import QueryResult as EnhancedQueryResult
+from .enhanced_abstraction import QueryType as EnhancedQueryType
+from .enhanced_abstraction import (
+    """,
+    -,
+    .enhanced_abstraction,
+    .manager,
+    analytics,
+    clickhouse_driver,
+    database,
+    from,
+    implementations:,
+    import,
+)
 
-    from .enhanced_abstraction import (
-    from .enhanced_abstraction import DatabaseConfig as EnhancedDatabaseConfig
-    from .enhanced_abstraction import QueryResult as EnhancedQueryResult
-    from .enhanced_abstraction import QueryType as EnhancedQueryType
-
-from .manager import DatabaseType
-
-            from clickhouse_driver import Client  # type: ignore
-
-            import asyncpg  # type: ignore
-
-    from .enhanced_abstraction import DatabaseClientFactory  # type: ignore
-
-
-"""
-PlexiChat Analytics Database Clients
-
-High-performance analytics database implementations:
-- ClickHouse (Column-oriented OLAP)
 - Apache Druid (Real-time analytics)
 - TimescaleDB (Time-series analytics)
 - Apache Pinot (Real-time OLAP)

@@ -1,67 +1,29 @@
 import base64
 import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
+import struct
+import time
 from datetime import datetime, timedelta, timezone
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
+import base32
 import bcrypt
 import bleach
+import magic
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from typing import Optional, Dict, Any, List
-from passlib.context import CryptContext
-
-    import magic
-    from PIL import Image
-
-        from cryptography.hazmat.primitives import serialization
-        from cryptography.hazmat.primitives.asymmetric import rsa
-
-        import base64
-
-        from cryptography.hazmat.primitives import hashes, serialization
-        from cryptography.hazmat.primitives.asymmetric import padding
-
-        import base64
-
-        from cryptography.hazmat.primitives import hashes, serialization
-        from cryptography.hazmat.primitives.asymmetric import padding
-
-        from cryptography.fernet import Fernet
-        from cryptography.fernet import Fernet
-        from cryptography.fernet import Fernet
-        import secrets
-
-        import base32
-        import base64
-        import hashlib
-        import hmac
-        import struct
-        import time
-
-        import time
-
-        import base64
-
-        from cryptography.fernet import Fernet
-
-        import base64
-
-        from cryptography.fernet import Fernet
-
-        import base64
-
-        from cryptography.hazmat.primitives import hashes
-        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-
-        from io import BytesIO
-
 from fastapi import Request
 from jose import JWTError, jwt
+from passlib.context import CryptContext
+from PIL import Image
 
 from plexichat.app.logger_config import logger, settings
 

@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import base64
 import hashlib
@@ -5,10 +6,8 @@ import sys
 import time
 from pathlib import Path
 
-    import httpx
-    from backup_node.backup_node_client import BackupNodeClient
-    import argparse
-    
+import httpx
+from backup_node.backup_node_client import BackupNodeClient
 
 #!/usr/bin/env python3
 """

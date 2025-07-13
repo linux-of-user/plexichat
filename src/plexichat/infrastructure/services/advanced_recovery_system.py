@@ -8,22 +8,35 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlmodel import Session, func, select
 
-
-
-
 from plexichat.app.logger_config import logger
 from plexichat.app.models.device_management import (
-from plexichat.app.models.enhanced_backup import EnhancedBackup, EnhancedBackupShard
-
-"""
-Advanced recovery and redundancy system for PlexiChat.
-Handles multiple storage location failures with intelligent recovery algorithms.
-"""
-
+    Advanced,
     DeviceShardAssignment,
     DeviceStatus,
+    EnhancedBackup,
+    EnhancedBackupShard,
+    Handles,
+    PlexiChat.,
     StorageDevice,
+    """,
+    algorithms.,
+    and,
+    failures,
+    for,
+    from,
+    import,
+    intelligent,
+    location,
+    multiple,
+    plexichat.app.models.enhanced_backup,
+    recovery,
+    redundancy,
+    storage,
+    system,
+    with,
 )
+
+
 @dataclass
 class RecoveryPlan:
     """Plan for recovering a backup from available shards."""

@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -5,15 +6,10 @@ from app.db import get_session
 from app.logger_config import logger
 from app.models.enhanced_models import BotAccount, BotType, EnhancedUser
 from app.services.user_management import UserManagementService
-from sqlmodel import Session, select
-
-
-        import secrets
-
+from app.utils.auth import from, get_current_user, import, plexichat.infrastructure.utils.auth
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-
-from app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
+from sqlmodel import Session, select
 
 """
 Enhanced bot management API with comprehensive features and regulation.

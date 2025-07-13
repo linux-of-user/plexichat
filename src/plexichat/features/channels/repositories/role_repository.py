@@ -1,23 +1,34 @@
 from typing import Any, Dict, List, Optional
 
 from ....core_system.database.dao.base_dao import (
-from ....core_system.database.engines import get_session
-from ....core_system.database.repository.base_repository import BaseRepository
-from ..models.role import Permissions, Role
-
-
-
-"""
-PlexiChat Role Repository
-
-Data access layer for Discord-like roles with permission management.
-"""
-
     BaseDAO,
+    BaseRepository,
+    Data,
+    Discord-like,
     FilterCriteria,
     PaginationParams,
+    Permissions,
+    PlexiChat,
+    Repository,
+    Role,
     SortCriteria,
+    """,
+    ....core_system.database.engines,
+    ....core_system.database.repository.base_repository,
+    ..models.role,
+    access,
+    for,
+    from,
+    get_session,
+    import,
+    layer,
+    management.,
+    permission,
+    roles,
+    with,
 )
+
+
 class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
     """
     Role repository with Discord-like role and permission management.

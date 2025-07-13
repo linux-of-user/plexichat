@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import markdown
-
-
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates

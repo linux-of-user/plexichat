@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 """
 PlexiChat Advanced Security Headers
 Implements comprehensive security headers for maximum protection

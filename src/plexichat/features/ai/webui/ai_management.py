@@ -2,17 +2,18 @@ import logging
 from pathlib import Path
 from typing import List
 
-
-from ..core.ai_abstraction_layer import AIAbstractionLayer, AIProvider, ModelCapability, ModelStatus
-
-        from ..core.ai_abstraction_layer import AIModel
-        
-        from ..core.ai_abstraction_layer import AIRequest
-        
-
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+
+from ..core.ai_abstraction_layer import (
+    AIAbstractionLayer,
+    AIModel,
+    AIProvider,
+    AIRequest,
+    ModelCapability,
+    ModelStatus,
+)
 
 """
 AI Management WebUI Components

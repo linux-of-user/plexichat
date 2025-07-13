@@ -6,13 +6,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
 
+from plexichat.app.logger_config import logger
 
 from .core import ScanResult, ScanType, ThreatLevel, ThreatType
 from .core.antivirus_engine import AdvancedAntivirusEngine
-
-
-
-from plexichat.app.logger_config import logger
 
 """
 Enhanced Antivirus Manager

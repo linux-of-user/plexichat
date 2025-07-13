@@ -12,26 +12,20 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
 
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 from ...core_system.config import get_config
 from ...core_system.database.abstraction.phase4_integration import phase4_database
 from ...core_system.logging import get_logger
 from ...features.ai.phase3_integration import phase3_ai
 from ...features.security.phase1_integration import phase1_security
 from ...infrastructure.scalability.phase2_integration import phase2_scalability
-
 from ...integration.master_coordinator import master_coordinator
 from .config_manager import get_plugin_config_manager
 from .contracts import get_contract_validator
 from .interfaces import BaseModule, ModuleCapability, ModulePermissions, ModuleState
 from .isolation import IsolationConfig, get_isolation_manager
-
-            from pathlib import Path
-            from pathlib import Path
-            from pathlib import Path
-            from pathlib import Path
-            from watchdog.events import FileSystemEventHandler
-            from watchdog.observers import Observer
-
 
 """
 PlexiChat Unified Plugin Manager - SINGLE SOURCE OF TRUTH

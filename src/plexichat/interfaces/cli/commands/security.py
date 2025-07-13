@@ -1,20 +1,28 @@
 from datetime import datetime
 from typing import List, Optional
 
-
 from plexichat.app.logger_config import logger
 from plexichat.app.security.permissions import Permission, PermissionManager, PermissionScope, Role
 from plexichat.app.security.rate_limiter import (
-        from plexichat.app.security.rate_limiter import RateLimitRule
-
-"""
-Security Management CLI
-Command-line interface for rate limiting and permissions management.
-"""
-
+    CLI,
+    Command-line,
     ComprehensiveRateLimiter,
+    Management,
     RateLimitAction,
+    RateLimitRule,
     RateLimitType,
+    Security,
+    """,
+    and,
+    for,
+    from,
+    import,
+    interface,
+    limiting,
+    management.,
+    permissions,
+    plexichat.app.security.rate_limiter,
+    rate,
 )
 
 

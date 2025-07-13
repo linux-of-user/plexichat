@@ -9,18 +9,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import aiosqlite
-
 from Crypto.Cipher import AES, ChaCha20_Poly1305
-from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Hash import BLAKE2b
+from Crypto.Protocol.KDF import PBKDF2, Argon2d
 from Crypto.Random import get_random_bytes
 from cryptography.hazmat.backends import default_backend
-
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
-
-    from Crypto.Protocol.KDF import Argon2d
-from Crypto.Hash import BLAKE2b
-
 
 """
 PlexiChat Quantum-Proof Encryption System

@@ -11,7 +11,6 @@ from cryptography.fernet import Fernet
 
 from .config_manager import get_webui_config
 
-
 """
 PlexiChat WebUI Distributed Authentication Storage
 

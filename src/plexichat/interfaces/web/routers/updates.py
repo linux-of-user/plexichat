@@ -2,21 +2,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
-        from core.updates.github_updater import github_updater
-        
-        from core.updates.github_updater import github_updater
-        
-        from core.updates.github_updater import github_updater
-        
-        from core.updates.github_updater import github_updater
-        
-        from core.updates.github_updater import github_updater
-        
-        from core.updates.github_updater import github_updater
-        
-
+from core.updates.github_updater import github_updater
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 

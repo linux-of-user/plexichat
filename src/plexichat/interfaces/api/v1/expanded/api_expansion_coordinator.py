@@ -4,13 +4,12 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
-        from .user_profiles import setup_user_profile_endpoints
-        from .search import setup_search_endpoints
-        from .safety import setup_safety_endpoints
-        from .channels import setup_channel_endpoints
-
 from fastapi import APIRouter
+
+from .channels import setup_channel_endpoints
+from .safety import setup_safety_endpoints
+from .search import setup_search_endpoints
+from .user_profiles import setup_user_profile_endpoints
 
 """
 PlexiChat Phase V API Expansion Coordinator

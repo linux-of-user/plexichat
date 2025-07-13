@@ -12,7 +12,6 @@ from ..ai import get_ai_manager
 from ..core.logging import get_logger
 from .base_service import BaseService, ServiceState
 
-
 """
 PlexiChat Advanced Communication Service
 

@@ -1,37 +1,80 @@
 from typing import Any, Dict, Optional
 
 from .audit_manager import AuthAuditManager, auth_audit_manager
-
 from .auth_manager import AuthManager, auth_manager
 from .biometric_manager import BiometricManager, biometric_manager
-
 from .device_manager import DeviceManager, device_manager
+from .exceptions import 2FA
+from .exceptions import Advanced2FASystem as MFAManager
 from .exceptions import (
-from .mfa_manager import Advanced2FASystem as MFAManager
-from .mfa_manager import tfa_system as mfa_manager
-from .middleware import AuthenticationMiddleware, FastAPIAuthMiddleware, FlaskAuthMiddleware
-from .oauth_manager import OAuthManager, oauth_manager
-from .password_manager import PasswordManager, password_manager
-from .session_manager import SessionManager, session_manager
-from .token_manager import TokenManager, token_manager
-from .validators import BiometricValidator, PasswordValidator, TokenValidator
+    Authentication,
+    AuthenticationMiddleware,
+    AuthenticationRequest,
+    BiometricValidator,
+    Consolidates,
+    Core,
+    FastAPIAuthMiddleware,
+    FlaskAuthMiddleware,
+    Management,
+    OAuthManager,
+    PasswordManager,
+    PasswordValidator,
+    PlexiChat,
+    SessionManager,
+    System,
+    This,
+    TokenManager,
+    TokenValidator,
+    Unified,
+    """,
+    -,
+    .auth_manager,
+    .decorators,
+    .mfa_manager,
+    .middleware,
+    .oauth_manager,
+    .password_manager,
+    .session_manager,
+    .token_manager,
+    .validators,
+    a,
+    advanced,
+    all,
+    and,
+    authentication,
+    biometric,
+    components,
+    comprehensive,
+    consolidates:,
+    exists,
+    features.,
+    from,
+    government-level,
+    if,
+    import,
+    into,
+    logging,
+    module,
+    oauth_manager,
+    optional_auth,
+    password_manager,
+    plexichat.infrastructure.utils.auth,
+    replaces,
+    require_admin,
+    require_auth,
+    require_level,
+    require_mfa,
+    security,
+    session_manager,
+    single,
+    src/plexichat/app/auth/,
+    src/plexichat/core/auth/,
+    support,
+    system,
+)
+from .exceptions import tfa_system as mfa_manager
+from .exceptions import token_manager, unified, with
 
-        import logging
-        import logging
-    from .auth_manager import AuthenticationRequest
-
-
-from .decorators import optional_auth, from plexichat.infrastructure.utils.auth import require_admin, require_auth, require_level, require_mfa
-
-"""
-PlexiChat Core Authentication System - Unified Authentication Management
-
-Consolidates all authentication components into a single, comprehensive module
-with government-level security, 2FA, biometric support, and advanced features.
-
-This unified system replaces and consolidates:
-- src/plexichat/app/auth/
-- src/plexichat/core/auth/ (if exists)
 - Authentication components from security modules
 
 Features:

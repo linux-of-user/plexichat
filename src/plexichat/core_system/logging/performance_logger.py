@@ -10,11 +10,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-
-
-        from ..config import get_config  # type: ignore
-
 import psutil
+
+from ..config import get_config  # type: ignore
 
 """
 PlexiChat Performance Monitoring and Logging System

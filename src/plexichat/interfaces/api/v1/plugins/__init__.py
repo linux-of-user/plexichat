@@ -1,5 +1,5 @@
-    from .plugins import router as plugins_router
     from .enhanced_plugins import router as enhanced_plugins_router
+    from .plugins import router as plugins_router
 
 """
 PlexiChat API v1 - Plugins Module

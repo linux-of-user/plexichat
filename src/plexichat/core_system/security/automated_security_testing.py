@@ -13,33 +13,57 @@ import requests
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
 from .unified_audit_system import (
-            import socket
-            import ssl
-
-
-"""
-PlexiChat Automated Security Testing System - SINGLE SOURCE OF TRUTH
-
-CONSOLIDATED and ENHANCED from:
-- features/security/penetration_tester.py - INTEGRATED
-- features/security/core/vulnerability_scanner.py - INTEGRATED
-- features/security/core/penetration_testing.py - INTEGRATED
-
-Features:
-- Automated penetration testing on every commit
-- Comprehensive vulnerability scanning
-- CI/CD pipeline integration
-- Real-time security monitoring
-- Automated security report generation
-- Integration with unified security architecture
-- Continuous security validation
-- Zero-trust security verification
-"""
-
+    CI/CD,
+    CONSOLIDATED,
+    ENHANCED,
+    INTEGRATED,
+    OF,
+    SINGLE,
+    SOURCE,
+    TRUTH,
+    Automated,
+    Comprehensive,
+    Continuous,
+    Features:,
+    Integration,
+    PlexiChat,
+    Real-time,
+    Security,
     SecurityEventType,
     SecuritySeverity,
+    System,
+    Testing,
     ThreatLevel,
+    Zero-trust,
+    """,
+    -,
+    and,
+    architecture,
+    commit,
+    every,
+    features/security/core/penetration_testing.py,
+    features/security/core/vulnerability_scanner.py,
+    features/security/penetration_tester.py,
+    from:,
+    generation,
     get_unified_audit_system,
+    import,
+    integration,
+    monitoring,
+    on,
+    penetration,
+    pipeline,
+    report,
+    scanning,
+    security,
+    socket,
+    ssl,
+    testing,
+    unified,
+    validation,
+    verification,
+    vulnerability,
+    with,
 )
 
 logger = get_logger(__name__)

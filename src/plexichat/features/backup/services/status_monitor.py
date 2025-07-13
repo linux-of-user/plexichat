@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import List, Optional, Tuple
 
-
 """
 PlexiChat Backup Status Monitor Service
 

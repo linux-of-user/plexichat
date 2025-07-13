@@ -15,7 +15,6 @@ import aiohttp
 
 from ..core.logging import get_logger
 
-
 """
 PlexiChat Plugin Marketplace Service
 

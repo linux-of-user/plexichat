@@ -6,8 +6,6 @@ from ....core_system.database.repository.base_repository import BaseRepository
 from ..models.permission_overwrite import OverwriteType, PermissionOverwrite
 from ..models.role import Permissions
 
-
-
 """
 PlexiChat Permission Overwrite Repository
 

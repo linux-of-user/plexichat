@@ -6,24 +6,44 @@ from app.db import get_session
 from app.logger_config import logger
 from app.security.database_encryption import EncryptedDatabaseManager, get_encryption_manager
 from core.external_database import (
-from sqlmodel import Session
-
-
-        from app.db import engine
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-
-"""
-Enhanced Database Setup API with Encryption Support
-Provides comprehensive database configuration, external hosting setup, and encryption management.
-"""
-
+    API,
+    APIRouter,
+    BaseModel,
+    Database,
     DatabaseEngine,
     DatabaseProvider,
+    Depends,
+    Encryption,
+    Enhanced,
     ExternalDatabaseConfig,
     ExternalDatabaseManager,
+    HTTPException,
+    Provides,
+    Session,
+    Setup,
+    Support,
+    """,
+    and,
+    app.db,
+    comprehensive,
+    configuration,
+    database,
+    encryption,
+    engine,
+    external,
+    fastapi,
+    from,
+    hosting,
+    import,
+    management.,
+    pydantic,
+    setup,
+    sqlmodel,
+    status,
+    with,
 )
+
+
 # Pydantic models for API
 class DatabaseEncryptionSetupRequest(BaseModel):
     enable_encryption: bool = True

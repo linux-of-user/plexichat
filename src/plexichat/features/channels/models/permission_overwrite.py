@@ -2,13 +2,11 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from sqlalchemy import DateTime, Index
 from sqlmodel import Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 from .role import Permissions
-
-
-from sqlalchemy import DateTime, Index
 
 """
 PlexiChat Permission Overwrite Model

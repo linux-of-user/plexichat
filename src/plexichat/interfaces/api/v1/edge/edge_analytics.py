@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from ....core.auth import require_auth
 from ....core.logging import get_logger
 from ....core.performance.edge_computing_manager import get_edge_computing_manager
-
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
 
 """
 PlexiChat Edge Analytics API

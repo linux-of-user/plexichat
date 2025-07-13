@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 from ..models.server import Server
 from ..repositories.server_repository import ServerRepository
 
-
 """
 PlexiChat Server Service
 

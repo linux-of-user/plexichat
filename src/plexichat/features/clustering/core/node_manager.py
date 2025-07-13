@@ -7,11 +7,9 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+import psutil
 
 from . import MAXIMUM_CLUSTER_SIZE, MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, NodeStatus
-
-
-import psutil
 
 """
 Intelligent Node Manager

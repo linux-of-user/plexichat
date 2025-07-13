@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import io
+import logging
 import os
 import secrets
 import smtplib
@@ -12,12 +13,9 @@ from typing import Any, Dict, List, Optional
 import pyotp  # type: ignore
 import qrcode
 from cryptography.fernet import Fernet
-
-    import logging
-
 from pydantic import BaseModel
 
-    from plexichat.app.logger_config import logger  # type: ignore
+from plexichat.app.logger_config import logger  # type: ignore
 
 """
 Advanced 2FA System for PlexiChat

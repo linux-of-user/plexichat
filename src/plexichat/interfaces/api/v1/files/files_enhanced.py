@@ -1,32 +1,50 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, select
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlmodel import Session, select
 
 from plexichat.app.db import get_session
 from plexichat.app.models.files import (
-from plexichat.app.models.user import User
-from plexichat.app.services.file_permissions import FilePermissionService
-from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
-    from plexichat.app.models.files import FileAccessLog
-
-"""
-Enhanced file management API with comprehensive permissions and access control.
-Supports file embedding in messages with proper permission validation.
-"""
-
+    API,
+    Enhanced,
     FileAccessLevel,
+    FileAccessLog,
     FilePermission,
+    FilePermissionService,
     FilePermissionType,
     FileRecord,
+    Supports,
+    User,
+    """,
+    access,
+    and,
+    comprehensive,
+    control.,
+    embedding,
+    file,
+    from,
+    get_current_user,
+    get_optional_current_user,
+    import,
+    in,
+    management,
+    messages,
+    permission,
+    permissions,
+    plexichat.app.models.files,
+    plexichat.app.models.user,
+    plexichat.app.services.file_permissions,
+    plexichat.app.utils.auth,
+    plexichat.infrastructure.utils.auth,
+    proper,
+    validation.,
+    with,
 )
+
+
 # Pydantic models for API
 class FilePermissionRequest(BaseModel):
     user_id: int

@@ -1,13 +1,31 @@
 from .changelog_manager import (
-from .update_system import (
-from .version_manager import (
-        import logging
+    Advanced,
+    New,
+    PlexiChat,
+    System,
+    Version,
+    Versioning,
+    """,
+    -,
+    .update_system,
+    .version_manager,
+    a.1.1-1,
+    b.1.2-1,
+    comprehensive,
+    e.g.,
+    format:,
+    from,
+    import,
+    letter.major.minor-build,
+    logging,
+    management:,
+    r.1.0-1,
+    scheme,
+    update,
+    versioning,
+    with,
+)
 
-"""
-PlexiChat Advanced Versioning System
-
-New versioning scheme with comprehensive update management:
-- Version format: letter.major.minor-build (e.g., a.1.1-1, b.1.2-1, r.1.0-1)
 - Types: 'a' (alpha), 'b' (beta), 'r' (release)
 - In-place upgrades and downgrades
 - Configuration and database migration

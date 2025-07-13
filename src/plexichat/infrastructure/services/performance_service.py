@@ -6,14 +6,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
+from ..ai.core.analytics_engine import analytics_engine
+from ..app.performance.optimization import PerformanceOptimizer
+from ..clustering.core.performance_monitor import PerformanceMonitor
 from ..core.config import get_config
 from ..core.logging.performance_logger import get_performance_logger
 from .base_service import BaseService
-
-
-            from ..app.performance.optimization import PerformanceOptimizer
-            from ..clustering.core.performance_monitor import PerformanceMonitor
-            from ..ai.core.analytics_engine import analytics_engine
 
 """
 PlexiChat Unified Performance Monitoring Service

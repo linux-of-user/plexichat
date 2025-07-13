@@ -2,10 +2,10 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-    import openai
-    from openai import AsyncOpenAI
-from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
+import openai
+from openai import AsyncOpenAI
 
+from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
 """
 OpenAI Provider for PlexiChat AI Abstraction Layer

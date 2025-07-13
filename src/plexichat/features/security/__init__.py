@@ -6,63 +6,109 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from ...core_system.auth import (
-from .bug_bounty import (
-from .cicd_security import (
-from .csp import ContentSecurityPolicyManager, CSPDirective, CSPPolicy, CSPSource, csp_manager
-from .database_encryption import DatabaseEncryption, DataClassification, database_encryption
-from .distributed_key_manager import DistributedKeyManager, KeyDomain, distributed_key_manager
-from .distributed_monitoring import (
-from .e2e_encryption import EndpointType, EndToEndEncryption, e2e_encryption
-
-from .exceptions import (
-from .middleware import AuthenticationMiddleware, SecurityMiddleware
-
-from .protection import (
-from .protection import ThreatLevel as ProtectionThreatLevel
-from .protection import (
-from .quantum_encryption import QuantumEncryptionSystem, quantum_encryption
-from .security_headers import (
-from .siem_integration import (
-from .ssl import SSLCertificateManager, ssl_manager
-from .validators import BiometricValidator, InputValidator, PasswordValidator, TokenValidator
-
-from .waf import (
-from .advanced_auth import AdvancedAuthManager
-from .default_admin import DefaultAdminManager
-from .login_manager import LoginManager
-
-
-from .decorators import optional_auth, from plexichat.infrastructure.utils.auth import require_admin, require_auth, require_level, require_mfa
-
-"""
-PlexiChat Unified Security System
-
-Integrates all security components into a comprehensive, government-level
-security architecture with quantum-proof encryption, distributed key
-management, and end-to-end protection.
-"""
-
-# Import consolidated authentication components from unified core system
-# Note: Authentication components now consolidated in core_system/auth/
+    AdvancedAuthManager,
     AuthAuditManager,
+    AuthenticationMiddleware,
     AuthManager,
     BiometricManager,
+    BiometricValidator,
+    ContentSecurityPolicyManager,
+    CSPDirective,
+    CSPPolicy,
+    CSPSource,
+    DatabaseEncryption,
+    DataClassification,
+    DefaultAdminManager,
     DeviceManager,
+    DistributedKeyManager,
+    EndpointType,
+    EndToEndEncryption,
+    InputValidator,
+    Integrates,
+    KeyDomain,
+    LoginManager,
     MFAManager,
     OAuthManager,
     PasswordManager,
+    PasswordValidator,
+    PlexiChat,
+    QuantumEncryptionSystem,
+    Security,
+    SecurityMiddleware,
     SessionManager,
+    SSLCertificateManager,
+    System,
+)
+from ...core_system.auth import (
+    ThreatLevel as ProtectionThreatLevel,  # Import consolidated authentication components from unified core system; Note: Authentication components now consolidated in core_system/auth/
+)
+from ...core_system.auth import (
     TokenManager,
+    TokenValidator,
+    Unified,
+    """,
+    .advanced_auth,
+    .bug_bounty,
+    .cicd_security,
+    .csp,
+    .database_encryption,
+    .decorators,
+    .default_admin,
+    .distributed_key_manager,
+    .distributed_monitoring,
+    .e2e_encryption,
+    .exceptions,
+    .login_manager,
+    .middleware,
+    .protection,
+    .quantum_encryption,
+    .security_headers,
+    .siem_integration,
+    .ssl,
+    .validators,
+    .waf,
+    a,
+    all,
+    and,
+    architecture,
     auth_audit_manager,
     auth_manager,
     biometric_manager,
+    components,
+    comprehensive,
+    csp_manager,
+    database_encryption,
     device_manager,
+    distributed,
+    distributed_key_manager,
+    e2e_encryption,
+    encryption,
+    end-to-end,
+    from,
+    government-level,
+    import,
+    into,
+    key,
+    management,
     mfa_manager,
     oauth_manager,
+    optional_auth,
     password_manager,
+    plexichat.infrastructure.utils.auth,
+    protection.,
+    quantum-proof,
+    quantum_encryption,
+    require_admin,
+    require_auth,
+    require_level,
+    require_mfa,
+    security,
     session_manager,
+    ssl_manager,
     token_manager,
+    with,
 )
+
     BugBountyManager,
     ReportStatus,
     SeverityLevel,

@@ -15,29 +15,55 @@ import aiosqlite
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
 from .unified_audit_system import (
-
-"""
-PlexiChat Unified Threat Intelligence Service - SINGLE SOURCE OF TRUTH
-
-CONSOLIDATED and ENHANCED from:
-- features/antivirus/core/threat_intelligence.py - INTEGRATED
-- features/security/threat_intelligence.py - INTEGRATED
-
-Features:
-- Unified threat intelligence feed management
-- Real-time threat detection and correlation
-- Automated threat response and mitigation
-- Multi-source intelligence aggregation
-- Machine learning-based threat analysis
-- Integration with unified security architecture
-- Comprehensive audit logging
-- Post-quantum cryptography threat awareness
-"""
-
+    CONSOLIDATED,
+    ENHANCED,
+    INTEGRATED,
+    OF,
+    SINGLE,
+    SOURCE,
+    TRUTH,
+    Automated,
+    Comprehensive,
+    Features:,
+    Integration,
+    Intelligence,
+    Machine,
+    Multi-source,
+    PlexiChat,
+    Post-quantum,
+    Real-time,
     SecurityEventType,
     SecuritySeverity,
+    Service,
+    Threat,
     ThreatLevel,
+    Unified,
+    """,
+    -,
+    aggregation,
+    analysis,
+    and,
+    architecture,
+    audit,
+    awareness,
+    correlation,
+    cryptography,
+    detection,
+    features/antivirus/core/threat_intelligence.py,
+    features/security/threat_intelligence.py,
+    feed,
+    from:,
     get_unified_audit_system,
+    intelligence,
+    learning-based,
+    logging,
+    management,
+    mitigation,
+    response,
+    security,
+    threat,
+    unified,
+    with,
 )
 
 logger = get_logger(__name__)

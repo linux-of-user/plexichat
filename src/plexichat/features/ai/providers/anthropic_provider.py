@@ -3,10 +3,10 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-    import anthropic
-    from anthropic import AsyncAnthropic
-from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
+import anthropic
+from anthropic import AsyncAnthropic
 
+from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
 """
 Anthropic Provider for PlexiChat AI Abstraction Layer

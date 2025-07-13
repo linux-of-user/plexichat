@@ -9,8 +9,6 @@ from typing import Any, Dict, List, Optional
 from ..core.config import get_config
 from ..core.logging import get_logger
 
-
-
 """
 PlexiChat Base Service
 

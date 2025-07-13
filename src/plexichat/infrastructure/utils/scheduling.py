@@ -11,9 +11,7 @@ from app.utils.self_tests.users import run_user_tests
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 from apscheduler.schedulers.background import BackgroundScheduler
 
-
-                   from plexichat.core.config import settings
-                                 from plexichat.core.config import settings
+from plexichat.core.config import settings
 
 # app/utils/scheduling.py
 """

@@ -1,62 +1,125 @@
-from ...security import (
-from .behavioral_analysis import BehavioralAnalyzer, behavioral_analyzer
-
-from .ddos_protection import EnhancedDDoSProtection, ddos_protection
-from .input_sanitization import InputSanitizer, input_sanitizer
-from .oauth_provider import OAuthProvider, oauth_provider
-from .penetration_testing import PenetrationTestingSystem, penetration_tester
-from .rate_limiting import RateLimiter, rate_limiter
-from .security_monitoring import SecurityMonitor, security_monitor
-from .ssl_certificate_manager import SSLCertificateManager, ssl_manager
-from .vulnerability_scanner import VulnerabilityScanner, vulnerability_scanner
-
-
-"""
-PlexiChat Core Security System - Unified Security Architecture
-
-Consolidates all security components into a single, comprehensive module
-with government-level security, quantum-proof encryption, and zero-knowledge architecture.
-
-This unified system replaces and consolidates:
-- src/plexichat/security/
-- src/plexichat/app/security/
-- src/plexichat/app/core/security/
-
-Features:
-- Quantum-proof encryption with post-quantum cryptography
-- Distributed multi-key security architecture
-- Zero-knowledge authentication and authorization
-- Advanced DDoS protection with behavioral analysis
-- Penetration testing and vulnerability assessment
-- SSL/TLS certificate management with Let's Encrypt
-- OAuth2/OIDC provider with 2FA/MFA support
-- Input sanitization and injection prevention
-- Rate limiting and abuse prevention
-- Comprehensive security monitoring and alerting
-"""
-
-# Import core security components from main security module
+from ...security import (  # Import core security components from main security module
+    2FA/MFA,
+    SSL/TLS,
+    Advanced,
+    Architecture,
+    BehavioralAnalyzer,
+    Comprehensive,
+    Consolidates,
+    Core,
     DatabaseEncryption,
     DataClassification,
+    DDoS,
+    Distributed,
     DistributedKeyManager,
     DistributedSecurityMonitor,
+    Encrypt,
     EndpointType,
     EndToEndEncryption,
+    EnhancedDDoSProtection,
+    Features:,
+    Input,
+    InputSanitizer,
     KeyDomain,
+    Let's,
     MonitoringScope,
+    OAuth2/OIDC,
+    OAuthProvider,
+    Penetration,
+    PenetrationTestingSystem,
+    PlexiChat,
+    Quantum-proof,
     QuantumEncryptionSystem,
+    Rate,
+    RateLimiter,
+    Security,
     SecurityEvent,
     SecurityEventType,
     SecurityManager,
     SecurityMetrics,
+    SecurityMonitor,
+    SSLCertificateManager,
+    System,
+    This,
     ThreatLevel,
     ThreatPattern,
+    Unified,
+    VulnerabilityScanner,
+    Zero-knowledge,
+    """,
+    -,
+    .behavioral_analysis,
+    .ddos_protection,
+    .input_sanitization,
+    .oauth_provider,
+    .penetration_testing,
+    .rate_limiting,
+    .security_monitoring,
+    .ssl_certificate_manager,
+    .vulnerability_scanner,
+    a,
+    abuse,
+    alerting,
+    all,
+    analysis,
+    and,
+    architecture,
+    architecture.,
+    assessment,
+    authentication,
+    authorization,
+    behavioral,
+    behavioral_analyzer,
+    certificate,
+    components,
+    comprehensive,
+    consolidates:,
+    cryptography,
     database_encryption,
+    ddos_protection,
     distributed_key_manager,
     e2e_encryption,
+    encryption,
+    from,
+    government-level,
+    import,
+    injection,
+    input_sanitizer,
+    into,
+    limiting,
+    management,
+    module,
+    monitoring,
+    multi-key,
+    oauth_provider,
+    penetration_tester,
+    post-quantum,
+    prevention,
+    protection,
+    provider,
+    quantum-proof,
     quantum_encryption,
+    rate_limiter,
+    replaces,
+    sanitization,
+    security,
     security_manager,
+    security_monitor,
+    single,
+    src/plexichat/app/core/security/,
+    src/plexichat/app/security/,
+    src/plexichat/security/,
+    ssl_manager,
+    support,
+    system,
+    testing,
+    unified,
+    vulnerability,
+    vulnerability_scanner,
+    with,
+    zero-knowledge,
 )
+
 # Import consolidated security modules
 # Note: advanced_authentication.py removed - functionality consolidated into core_system/auth/
 __version__ = "4.0.0"

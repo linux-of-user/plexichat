@@ -2,15 +2,11 @@ import json
 import logging
 import time
 from datetime import datetime
-from typing import Any, Dict
-
-from typing import Optional, Dict, Any, List, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-
-
+from typing import Any, Dict, List, Optional, Response
 
 from fastapi import Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from plexichat.core.security.government_auth import government_auth
 

@@ -5,7 +5,6 @@ from pathlib import Path
 
 from .test_base import BaseTest, TestResult
 
-
 """
 Database connectivity and functionality tests for PlexiChat.
 Tests database connections, queries, and data integrity.

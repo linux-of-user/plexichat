@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 from . import CRITICAL_LOAD_THRESHOLD, REBALANCE_INTERVAL, LoadBalancingStrategy, NodeStatus
 
-
 """
 Advanced Smart Load Balancer - SINGLE SOURCE OF TRUTH
 

@@ -2,25 +2,34 @@ import os
 from datetime import datetime
 from typing import Optional
 
-
-
-
-
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from plexichat.app.database.database_manager import (
-from plexichat.app.logger_config import logger
-
-"""
-Database Management API endpoints for PlexiChat.
-Provides database administration, migration, and monitoring capabilities.
-"""
-
+    API,
+    Database,
     DatabaseConfig,
     DatabaseType,
+    Management,
+    PlexiChat.,
+    Provides,
+    """,
+    administration,
+    and,
+    capabilities.,
+    database,
+    endpoints,
+    for,
+    from,
     get_database_manager,
+    import,
+    logger,
+    migration,
+    monitoring,
+    plexichat.app.logger_config,
 )
+
+
 # Pydantic models for API
 class DatabaseConfigRequest(BaseModel):
     db_type: str

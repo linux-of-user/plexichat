@@ -17,7 +17,6 @@ from ...core.logging import get_logger
 from ...services.base_service import BaseService, ServiceState
 from ..core.ai_abstraction_layer import AIAbstractionLayer, AIRequest
 
-
 """
 PlexiChat AI-Powered Features Service
 

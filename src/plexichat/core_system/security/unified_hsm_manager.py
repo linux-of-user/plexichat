@@ -8,11 +8,24 @@ from typing import Any, Dict, List, Optional
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
 from .unified_audit_system import (
-
-"""
-PlexiChat Unified Hardware Security Module (HSM) Manager - SINGLE SOURCE OF TRUTH
-
-CONSOLIDATED and ENHANCED from:
+    CONSOLIDATED,
+    ENHANCED,
+    HSM,
+    OF,
+    SINGLE,
+    SOURCE,
+    TRUTH,
+    Hardware,
+    Manager,
+    Module,
+    PlexiChat,
+    Security,
+    Unified,
+    """,
+    -,
+    and,
+    from:,
+)
 - features/security/hardware_security.py - INTEGRATED AND ENHANCED
 
 Features:

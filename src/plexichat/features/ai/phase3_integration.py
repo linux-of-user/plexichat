@@ -9,18 +9,32 @@ from .advanced_moderation import advanced_moderator
 from .ai_coordinator import ai_coordinator
 from .multilingual_chatbot import ConversationMode, ResponseStyle, multilingual_chatbot
 from .recommendation_engine import (
-from .semantic_search import SearchMode, SearchQuery, SearchType, semantic_search_engine
-
-
-"""
-PlexiChat Phase III AI Integration
-Coordinates all Phase III AI enhancements into a unified intelligent system
-"""
-
+    AI,
+    III,
+    Coordinates,
+    Integration,
+    Phase,
+    PlexiChat,
     RecommendationAlgorithm,
     RecommendationType,
+    SearchMode,
+    SearchQuery,
+    SearchType,
+    """,
+    .semantic_search,
+    a,
+    all,
+    enhancements,
+    from,
+    import,
+    intelligent,
+    into,
     recommendation_engine,
+    semantic_search_engine,
+    system,
+    unified,
 )
+
 logger = logging.getLogger(__name__)
 
 

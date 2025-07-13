@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
 
-
 """
 PlexiChat Backup Node Network
 

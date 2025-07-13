@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import os
 import platform
@@ -6,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import psutil
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -13,10 +15,6 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
-
-            import json
-
-import psutil
 
 """
 PlexiChat Ultimate CLI - Core System Commands

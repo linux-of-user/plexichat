@@ -1,4 +1,6 @@
 import asyncio
+import math
+import random
 import statistics
 import time
 from collections import defaultdict, deque
@@ -8,16 +10,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+import psutil
 
 from ...core.config import get_config
 from ...core.logging import get_logger
-
-        import math
-
-            import random
-            
-
-import psutil
 
 """
 PlexiChat Edge Computing & Auto-scaling Manager

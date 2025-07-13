@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import sqlite3
@@ -9,8 +10,6 @@ from typing import Any, Dict, List, Optional
 
 from .moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity
 from .training_system import ModerationTrainingSystem, TrainingDataSource
-
-            import hashlib
 
 """
 AI Moderation Feedback Collector

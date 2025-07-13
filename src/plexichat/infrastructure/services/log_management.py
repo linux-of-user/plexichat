@@ -6,9 +6,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-
-
-
 from plexichat.app.logger_config import logger
 
 """

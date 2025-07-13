@@ -7,20 +7,37 @@ import jsonschema
 
 from ...core_system.logging import get_logger
 from .interfaces import (
-
-"""
-PlexiChat Module Contracts and Validation System
-
-Provides contract validation, type checking, and compliance verification
-for all modules to ensure they meet interface requirements and security standards.
-"""
-
     BaseModule,
+    Contracts,
     IModuleAPI,
     IModuleConfiguration,
     IModuleLifecycle,
     IModuleSecurity,
+    Module,
     ModulePermissions,
+    PlexiChat,
+    Provides,
+    System,
+    Validation,
+    """,
+    all,
+    and,
+    checking,
+    compliance,
+    contract,
+    ensure,
+    for,
+    interface,
+    meet,
+    modules,
+    requirements,
+    security,
+    standards.,
+    they,
+    to,
+    type,
+    validation,
+    verification,
 )
 
 logger = get_logger(__name__)

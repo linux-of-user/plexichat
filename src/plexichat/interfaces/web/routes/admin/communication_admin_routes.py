@@ -1,13 +1,16 @@
+import re
 from functools import wraps
 
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 
+from ....core.auth.web_auth import (
+    from,
+    import,
+    plexichat.infrastructure.utils.auth,
+    require_admin_login,
+)
 from ....core.logging import get_logger
 from ....services.communication_service import get_communication_service
-
-            import re
-
-from ....core.auth.web_auth import from plexichat.infrastructure.utils.auth import require_admin_login
 
 """
 PlexiChat Communication Admin Web Routes

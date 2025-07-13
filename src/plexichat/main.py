@@ -4,43 +4,31 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import yaml
-
-from .core_system.config import get_config
-
-    from .core_system.logging import get_logger, setup_module_logging
-    import logging
-    from .core_system.security.certificate_manager import get_certificate_manager
-    from .features.ai.api.ai_endpoints import router as ai_api_router
-    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-    from .features.ai.webui.ai_management import router as ai_webui_router
-    from .features.clustering.core.cluster_manager import AdvancedClusterManager
-
-    from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-        from .interfaces.api.v1.clustering import router as clustering_router
-        from .features.backup.services import router as backup_router
-            from .features.backup import router as backup_router
-        from .interfaces.api.v1.security_api import router as security_router
-                from .core_system.database import get_database_manager
-                        from .core_system.integration.orchestrator import SystemOrchestrator
-                        from .core.database import database_manager
-                from .core_system.auth.unified_auth_manager import UnifiedAuthManager
-                from .features.backup.core.unified_backup_manager import get_unified_backup_manager
-            from .core_system.database import get_database_manager
-            from .features.backup.core.unified_backup_manager import get_unified_backup_manager
-            from .core_system.database import get_database_manager
-
 import uvicorn
+import yaml
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-    import uvicorn
+
+from .core.database import database_manager
+from .core_system.auth.unified_auth_manager import UnifiedAuthManager
+from .core_system.config import get_config
+from .core_system.database import get_database_manager
+from .core_system.integration.orchestrator import SystemOrchestrator
+from .core_system.logging import get_logger, setup_module_logging
+from .core_system.security.certificate_manager import get_certificate_manager
+from .features.ai.api.ai_endpoints import router as ai_api_router
+from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+from .features.ai.webui.ai_management import router as ai_webui_router
+from .features.backup import router as backup_router
+from .features.backup.core.unified_backup_manager import get_unified_backup_manager
+from .features.backup.services import router as backup_router
+from .features.clustering.core.cluster_manager import AdvancedClusterManager
+from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
+from .interfaces.api.v1.clustering import router as clustering_router
+from .interfaces.api.v1.security_api import router as security_router
 
 """
 PlexiChat Main Application

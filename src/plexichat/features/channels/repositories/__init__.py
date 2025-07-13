@@ -4,7 +4,6 @@ from .role_repository import PermissionsRepository, RoleRepository
 from .server_member_repository import ServerMemberRepository
 from .server_repository import ServerRepository
 
-
 """
 PlexiChat Channels Repositories Package
 

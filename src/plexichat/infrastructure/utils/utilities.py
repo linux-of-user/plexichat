@@ -1,23 +1,16 @@
 import hashlib
 import json
 import logging
+import re
 import secrets
 import threading
 import time
+import warnings
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
-
-        import secrets
-
-            from pathlib import Path
-        import re
-
-        import re
-        import re
-            import warnings
 
 """
 Common Utilities Module for PlexiChat

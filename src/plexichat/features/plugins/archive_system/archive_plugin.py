@@ -13,7 +13,6 @@ from ...backup.core.encryption_manager import QuantumResistantEncryptionManager
 from ...backup.core.shard_location_database import EnhancedShardLocationDatabase
 from ...backup.core.shard_manager import ImmutableShardManager
 
-
 """
 Archive System Plugin
 

@@ -1,4 +1,5 @@
 import hashlib
+import random
 import re
 import time
 import urllib.parse
@@ -6,11 +7,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
-
-
-
-        import random
-
 
 from plexichat.app.logger_config import logger
 

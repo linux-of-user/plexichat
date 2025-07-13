@@ -1,25 +1,40 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from plexichat.core.auth import from plexichat.infrastructure.utils.auth import get_current_user, require_permissions
+from plexichat.core.auth import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+    require_permissions,
+)
 from plexichat.core.logging import get_logger
 from plexichat.services.plugin_marketplace_service import (
-
-"""
-Plugin Marketplace API endpoints for PlexiChat.
-Provides comprehensive marketplace functionality including search, installation,
-reviews, and developer tools.
-"""
-
+    API,
+    Marketplace,
+    PlexiChat.,
+    Plugin,
     PluginCategory,
     PluginRating,
+    Provides,
+    """,
+    and,
+    comprehensive,
+    developer,
+    endpoints,
+    for,
+    functionality,
     get_plugin_marketplace_service,
+    including,
+    installation,
+    marketplace,
+    reviews,
+    search,
+    tools.,
 )
 
 logger = get_logger(__name__)

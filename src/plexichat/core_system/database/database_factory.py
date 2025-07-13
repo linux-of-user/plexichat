@@ -3,32 +3,47 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Type
 
-    from .manager import DatabaseType
+from plexichat.core_system.database.enhanced_abstraction import (  # type: ignore
+    AbstractDatabaseClient,
+    Database,
+    DatabaseConfig,
+    DatabaseType,
+    EnhancedDatabaseManager,
+    Factory,
+    PlexiChat,
+    Supports,
+    """,
+    across,
+    and,
+    appropriate,
+    automatic,
+    balancing,
+    based,
+    client,
+    clients,
+    configuration.,
+    connection,
+    creating,
+    database,
+    failover,
+    for,
+    implementation,
+    load,
+    multiple,
+    on,
+    pattern,
+    pooling,
+    selection,
+    try:,
+    types.,
+)
 
 from .analytics_clients import ClickHouseClient, TimescaleDBClient
 from .lakehouse import MinIOLakehouseClient
+from .manager import DatabaseType, database_manager
 from .nosql_clients import MongoDBClient, RedisClient
 from .sql_clients import MySQLClient, PostgreSQLClient, SQLiteClient
 
-        from .manager import database_manager
-        from .manager import database_manager
-
-    from plexichat.core_system.database.enhanced_abstraction import (  # type: ignore
-
-"""
-PlexiChat Database Factory
-
-Factory pattern implementation for creating appropriate database clients
-based on configuration. Supports automatic client selection, connection
-pooling, failover, and load balancing across multiple database types.
-"""
-
-try:
-        AbstractDatabaseClient,
-        DatabaseConfig,
-        DatabaseType,
-        EnhancedDatabaseManager,
-    )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     # Create placeholder classes if enhanced_abstraction is not available

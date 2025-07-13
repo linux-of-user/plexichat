@@ -2,11 +2,9 @@ import functools
 import logging
 from typing import Callable
 
+from fastapi import HTTPException, Request
 
 from .auth import SecurityLevel, session_manager
-
-
-from fastapi import HTTPException, Request
 
 """
 PlexiChat Security Decorators

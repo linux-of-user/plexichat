@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import hashlib
 import json
 import logging
@@ -14,18 +15,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-from cryptography.fernet import Fernet
-
-    import aiofiles
-from pathlib import Path
-        import base64
-        import base64
-
+import aiofiles
 import psutil
-    import uvicorn
-    from fastapi import FastAPI, HTTPException
-    from fastapi.middleware.cors import CORSMiddleware
-    from pydantic import BaseModel
+import uvicorn
+from cryptography.fernet import Fernet
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 #!/usr/bin/env python3
 """

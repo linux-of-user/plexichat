@@ -13,7 +13,6 @@ import aiofiles
 
 from ..core.logging import get_logger
 
-
 """
 OAuth Provider for Plugin Marketplace
 

@@ -1,6 +1,7 @@
 import json
 import logging
 import smtplib
+import syslog
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -9,10 +10,7 @@ from email.mime.text import MIMEText
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
-            import aiohttp
-            
-            import syslog
-            
+import aiohttp
 
 """
 PlexiChat Security Monitoring System

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional
 
 from .version_manager import Version
 
-
 """
 PlexiChat Changelog Management System
 

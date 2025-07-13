@@ -1,12 +1,9 @@
 import logging
 from datetime import datetime, timezone
 
-from sqlmodel import Session, select
-
-
-
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import func
+from sqlmodel import Session, select
 
 from plexichat.core.database import engine
 from plexichat.features.users.message import Message

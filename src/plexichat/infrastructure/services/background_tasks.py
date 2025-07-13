@@ -4,9 +4,6 @@ from typing import Any, Dict
 
 from sqlmodel import select
 
-
-
-
 from plexichat.app.db import get_session
 from plexichat.app.logger_config import logger
 from plexichat.app.models.message import Message

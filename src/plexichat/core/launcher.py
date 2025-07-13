@@ -4,15 +4,13 @@ import sys
 from dataclasses import dataclass
 from typing import Optional
 
+import uvicorn
 
-            import uvicorn
-
-            from plexichat.core.database import initialize_database_system_legacy
-            from plexichat.core.auth import initialize_auth_system
-            from plexichat.features.backup import initialize_backup_system
-            from plexichat.features.security import initialize_security_features
-            from plexichat.interfaces.web import create_app
-            from plexichat.core.database import shutdown_database_system
+from plexichat.core.auth import initialize_auth_system
+from plexichat.core.database import initialize_database_system_legacy, shutdown_database_system
+from plexichat.features.backup import initialize_backup_system
+from plexichat.features.security import initialize_security_features
+from plexichat.interfaces.web import create_app
 
 """
 PlexiChat Launcher System

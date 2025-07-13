@@ -2,9 +2,6 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-
-
-
 from plexichat.core.logging import logger
 from plexichat.features.antivirus.core import ScanType, ThreatLevel
 from plexichat.features.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager

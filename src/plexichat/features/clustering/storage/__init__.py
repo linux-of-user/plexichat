@@ -1,24 +1,47 @@
 from .distributed_storage_manager import (
-
-"""
-PlexiChat Distributed Storage Module
-
-Provides distributed storage capabilities for the clustering system with:
-- Intelligent data distribution across cluster nodes
-- Automatic replication and redundancy
-- Load balancing and performance optimization
-- Data consistency and synchronization
-- Storage monitoring and management
-- Automatic failover and recovery
-"""
-
+    Automatic,
+    Data,
     DataConsistency,
+    Distributed,
     DistributedStorageManager,
+    Intelligent,
+    Load,
+    Module,
+    PlexiChat,
+    Provides,
+    Storage,
     StorageNode,
     StorageNodeType,
     StorageStrategy,
     StoredData,
+    """,
+    -,
+    across,
+    and,
+    balancing,
+    capabilities,
+    cluster,
+    clustering,
+    consistency,
+    data,
+    distributed,
     distributed_storage_manager,
+    distribution,
+    failover,
+    for,
+    management,
+    monitoring,
+    nodes,
+    optimization,
+    performance,
+    recovery,
+    redundancy,
+    replication,
+    storage,
+    synchronization,
+    system,
+    the,
+    with:,
 )
 
 __version__ = "1.0.0"

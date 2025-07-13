@@ -3,22 +3,20 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-
-from ...ai import get_ai_manager
-
-from ...core.security import security_manager
-from ...services import get_service
-
-        from . import auth
-        from . import users
-        from . import ai
-        from . import collaboration
-        from . import experimental
-
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
 from fastapi.security import HTTPBearer
 
-from ...core.auth import from plexichat.infrastructure.utils.auth import get_current_user, verify_permissions
+from ...ai import get_ai_manager
+from ...core.auth import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+    verify_permissions,
+)
+from ...core.security import security_manager
+from ...services import get_service
+from . import ai, auth, collaboration, experimental, users
 
 """
 PlexiChat API Beta (Development Branch)

@@ -2,16 +2,14 @@ from .common_utils import *
 from .enhanced_logging import *
 from .enhanced_logging import setup_logging
 from .ip_security import *
+from .monitoring.error_handler import *
 from .performance import *
 from .rate_limiting import *
 from .scheduling import *
 from .security import *
 from .shutdown import *
 from .snowflake import *
-
 from .utilities import *
-
-    from .monitoring.error_handler import *
 
 """
 PlexiChat Infrastructure Utilities

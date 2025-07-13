@@ -5,19 +5,34 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-    from .enhanced_abstraction import (  # type: ignore
-            from minio import Minio  # type: ignore
-            
-            from pyspark.conf import SparkConf  # type: ignore
-            from pyspark.sql import SparkSession  # type: ignore
+from .enhanced_abstraction import (  # type: ignore
+    Data,
+    DatabaseClientFactory,
+    Implementation,
+    Lakehouse,
+    Minio,
+    MinIO,
+    Modern,
+    PlexiChat,
+    S3-compatible,
+    SparkConf,
+    SparkSession,
+    """,
+    -,
+    .enhanced_abstraction,
+    architecture,
+    combining:,
+    data,
+    from,
+    import,
+    lakehouse,
+    minio,
+    object,
+    pyspark.conf,
+    pyspark.sql,
+    storage,
+)
 
-    from .enhanced_abstraction import DatabaseClientFactory  # type: ignore
-
-"""
-PlexiChat Data Lakehouse Implementation
-
-Modern data lakehouse architecture combining:
-- MinIO object storage (S3-compatible)
 - Apache Iceberg table format
 - Delta Lake support
 - Apache Spark/Trino query engine

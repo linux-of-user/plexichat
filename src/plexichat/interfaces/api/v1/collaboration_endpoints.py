@@ -3,37 +3,69 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
-
 from ...core.logging import get_logger
 from ...services.collaboration_service import (
-
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel
-
-from ...core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin_auth, require_auth
-
-"""
-PlexiChat Collaboration API Endpoints
-
-Real-time collaboration endpoints providing WebSocket and REST API
-for document collaboration, live code editing, whiteboards, and screen sharing.
-
-Features:
-- WebSocket endpoints for real-time collaboration
-- REST API for session management
-- Document collaboration with operational transforms
-- Live code editing with conflict resolution
-- Whiteboard collaboration
-- Screen sharing coordination
-- Presence awareness and user cursors
-- Session management and permissions
-"""
-
+    API,
+    REST,
+    APIRouter,
+    BaseModel,
+    Collaboration,
     CollaborationType,
+    Depends,
+    Document,
+    Endpoints,
+    Features:,
+    HTTPException,
+    Live,
     Operation,
     OperationType,
+    PlexiChat,
+    Presence,
+    Query,
+    Real-time,
+    Screen,
+    Session,
     UserRole,
+    WebSocket,
+    WebSocketDisconnect,
+    Whiteboard,
+    """,
+    -,
+    ...core.auth.dependencies,
+    and,
+    awareness,
+    code,
+    collaboration,
+    conflict,
+    coordination,
+    cursors,
+    document,
+    editing,
+    endpoints,
+    fastapi,
+    for,
+    from,
     get_collaboration_service,
+    import,
+    live,
+    management,
+    operational,
+    permissions,
+    plexichat.infrastructure.utils.auth,
+    providing,
+    pydantic,
+    real-time,
+    require_admin_auth,
+    require_auth,
+    resolution,
+    screen,
+    session,
+    sharing,
+    sharing.,
+    transforms,
+    user,
+    whiteboards,
+    with,
 )
 
 # Initialize router and logger

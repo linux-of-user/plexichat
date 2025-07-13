@@ -5,8 +5,6 @@ from typing import Any, Dict, Optional
 
 from .context import ErrorContext, ErrorSeverity
 
-
-
 """
 PlexiChat Error Reporting System
 

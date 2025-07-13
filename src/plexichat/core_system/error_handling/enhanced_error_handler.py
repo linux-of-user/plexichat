@@ -8,7 +8,6 @@ from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 from .crash_reporter import CrashReporter
 from .exceptions import ErrorCategory, ErrorSeverity
 
-
 """
 PlexiChat Enhanced Error Handler
 

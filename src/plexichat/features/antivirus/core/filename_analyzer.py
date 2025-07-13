@@ -5,21 +5,29 @@ from pathlib import Path
 from typing import Any, Dict
 
 from . import (
-
-"""
-Filename Analyzer
-
-Analyzes filenames for suspicious patterns, extensions, and characteristics
-that may indicate malicious content.
-"""
-
     MAX_FILENAME_LENGTH,
     SUSPICIOUS_EXTENSIONS,
     SUSPICIOUS_FILENAME_PATTERNS,
+    Analyzer,
+    Analyzes,
+    Filename,
     ScanResult,
     ScanType,
     ThreatLevel,
     ThreatType,
+    """,
+    and,
+    characteristics,
+    content.,
+    extensions,
+    filenames,
+    for,
+    indicate,
+    malicious,
+    may,
+    patterns,
+    suspicious,
+    that,
 )
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,6 @@ from .test_config import ConfigTest
 from .test_database import DatabaseTest
 from .test_ssl import SSLTest
 
-
 """
 PlexiChat Test Suite
 

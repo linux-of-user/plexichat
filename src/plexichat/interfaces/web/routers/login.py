@@ -1,14 +1,12 @@
 from pathlib import Path
 from typing import Optional
 
-
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-    from plexichat.core.auth.manager_auth import login_manager
+from plexichat.core.auth.manager_auth import login_manager
 
 """
 PlexiChat Login Router

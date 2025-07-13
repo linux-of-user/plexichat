@@ -2,11 +2,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import JSON, Column, Field, SQLModel
-
-
-
 from sqlalchemy import DateTime, Index, Text
+from sqlmodel import JSON, Column, Field, SQLModel
 
 """
 Enhanced message models with Discord-like features.

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional
 import yaml
 from cryptography.fernet import Fernet
 
-
 """
 PlexiChat WebUI Configuration Manager
 

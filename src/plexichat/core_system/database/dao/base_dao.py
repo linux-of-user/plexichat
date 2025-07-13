@@ -1,17 +1,14 @@
 import logging
 import uuid
-
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
-from sqlmodel import SQLModel
-
-
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlmodel import SQLModel
 
 """
 PlexiChat Base Data Access Object (DAO) Pattern

@@ -11,8 +11,6 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from ..core.config import get_config
 from .base_service import BaseService
 
-
-
 """
 PlexiChat Real-time Collaboration Service
 

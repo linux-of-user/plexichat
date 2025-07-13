@@ -7,12 +7,10 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 from sqlmodel import SQLModel
 
 from ..dao.base_dao import BaseDAO, FilterCriteria, FilterOperator
+from ..engines import db_cluster
 from ..manager import database_manager
 from ..orm.advanced_orm import AdvancedORM, ORMConfig
 from ..repository.base_repository import BaseRepository, CacheStrategy, RepositoryConfig
-
-            from ..engines import db_cluster
-                from ..engines import db_cluster
 
 """
 PlexiChat Phase IV Database Abstraction Integration

@@ -1,4 +1,5 @@
 import logging
+import shutil
 import socket
 import ssl
 import subprocess
@@ -7,8 +8,6 @@ from datetime import datetime
 from pathlib import Path
 
 from .test_base import BaseTest, TestResult
-
-            import shutil
 
 """
 SSL/TLS functionality tests for PlexiChat.

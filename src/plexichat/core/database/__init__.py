@@ -1,33 +1,77 @@
+from .manager_database import *
 from .manager_database import (  # <-- Add this line
-from .backup_integration import DatabaseBackupIntegration, db_backup
-from .cluster import DatabaseCluster, db_cluster  # <-- Add this line
+    ConnectionError,
+    Consolidates,
+    Core,
+    Database,
+    DatabaseBackupIntegration,
+    DatabaseCluster,
+    DatabaseConfig,
+    DatabaseError,
+    DatabaseMonitor,
+    DatabaseProvider,
+    DatabaseRole,
+    DatabaseType,
+    DatabaseUtils,
+    EncryptionError,
+    Features:,
+    Management,
+    MigrationError,
+    MigrationManager,
+    MongoDB,
+    Multi-database,
+    MySQL,
+    PlexiChat,
+    PostgreSQL,
+    SQLite,
+    System,
+    This,
+    Unified,
+    """,
+    -,
+    .backup_integration,
+    .cluster,
+    .config,
+    .exceptions,
+    .migration,
+    .models,
+    .monitor,
+    .schemas,
+    .utils,
+    a,
+    advanced,
+    all,
+    and,
+    clustering,
+    components,
+    comprehensive,
+    consolidates:,
+    database,
+    database_monitor,
+    db_backup,
+    db_cluster,
+    db_utils,
+    encryption,
+    engine,
+    features.,
+    from,
+    import,
+    into,
+    logging,
+    migration_manager,
+    module,
+    multi-backend,
+    replaces,
+    single,
+    src/plexichat/app/core/database/,
+    src/plexichat/app/db/,
+    src/plexichat/core/external_database.py,
+    support,
+    system,
+    unified,
+    with,
+)
 
-from .config import DatabaseConfig, DatabaseProvider, DatabaseRole, DatabaseType
-from .exceptions import ConnectionError, DatabaseError, EncryptionError, MigrationError
-from .migration import MigrationManager, migration_manager  # <-- Add this line
-
-from .models import *
-from .monitor import DatabaseMonitor, database_monitor  # <-- Add this line
-from .schemas import *
-
-from .utils import DatabaseUtils, db_utils
-
-        import logging
-        import logging
-
-"""
-PlexiChat Core Database System - Unified Database Management
-
-Consolidates all database components into a single, comprehensive module
-with multi-backend support, encryption, clustering, and advanced features.
-
-This unified system replaces and consolidates:
-- src/plexichat/app/db/
-- src/plexichat/app/core/database/
-- src/plexichat/core/external_database.py
-
-Features:
-- Multi-database engine support (PostgreSQL, MySQL, SQLite, MongoDB)
 - Database clustering with automatic failover and load balancing
 - Encrypted database connections and data-at-rest encryption
 - Advanced migration system with rollback capabilities

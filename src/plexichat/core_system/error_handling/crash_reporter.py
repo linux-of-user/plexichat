@@ -8,12 +8,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import psutil
 
 from .exceptions import ErrorCategory, ErrorSeverity
-
-
-
-import psutil
 
 """
 PlexiChat Crash Reporter

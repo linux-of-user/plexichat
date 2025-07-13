@@ -10,9 +10,7 @@ import aiosqlite
 
 from ...core_system.logging import get_logger
 from ...security import quantum_encryption
-
-        from .unified_backup_manager import UnifiedShard
-
+from .unified_backup_manager import UnifiedShard
 
 """
 Unified Shard Manager

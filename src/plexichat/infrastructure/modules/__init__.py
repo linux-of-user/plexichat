@@ -13,13 +13,12 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-    from ...features.security import security_manager
-    from ...features.security.distributed_key_manager import distributed_key_manager
-    from ..services import SecureService, ServiceMetadata, ServicePriority, ServiceType
-    from ..services.loader import ServiceLoader
-    from ..performance.cache_manager import CacheManager
-        from ..security.quantum_encryption import SecurityTier
-        
+from ...features.security import security_manager
+from ...features.security.distributed_key_manager import distributed_key_manager
+from ..performance.cache_manager import CacheManager
+from ..security.quantum_encryption import SecurityTier
+from ..services import SecureService, ServiceMetadata, ServicePriority, ServiceType
+from ..services.loader import ServiceLoader
 
 """
 PlexiChat Enhanced Module System

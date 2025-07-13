@@ -3,18 +3,28 @@ import time
 from typing import Any, AsyncGenerator, Dict, List
 
 from .enhanced_abstraction import (
-            from clickhouse_driver import Client
+    OLAP,
+    Analytics,
+    ClickHouse,
+    Client,
+    Clients,
+    Column-oriented,
+    Database,
+    DatabaseClientFactory,
+    High-performance,
+    PlexiChat,
+    """,
+    -,
+    .enhanced_abstraction,
+    analytics,
+    asyncpg,
+    clickhouse_driver,
+    database,
+    from,
+    implementations:,
+    import,
+)
 
-            import asyncpg
-
-from .enhanced_abstraction import DatabaseClientFactory
-
-
-"""
-PlexiChat Analytics Database Clients
-
-High-performance analytics database implementations:
-- ClickHouse (Column-oriented OLAP)
 - Apache Druid (Real-time analytics)
 - TimescaleDB (Time-series analytics)
 - Apache Pinot (Real-time OLAP)

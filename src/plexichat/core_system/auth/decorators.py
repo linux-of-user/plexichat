@@ -5,8 +5,6 @@ from typing import Callable, List, Optional
 from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
 
-
-
 """
 PlexiChat Authentication Decorators
 

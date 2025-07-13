@@ -2,36 +2,71 @@ import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 
-
 from ....backup import government_backup_manager
 from ....core_system.security.input_validation import (
-from ....core_system.security.unified_audit_system import (
-from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-
-        from ....backup.core.backup_manager import BackupStatus
-
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel, Field
-
-"""
-Backup Management API Endpoints - SECURED WITH UNIFIED AUTHENTICATION
-Comprehensive API for backup system management and monitoring.
-
-ENHANCED SECURITY FEATURES:
-- Unified authentication/authorization integration
-- End-to-end encryption for all backup operations
-- Comprehensive audit logging
-- Role-based access control
-- Rate limiting and DDoS protection
-"""
-
+    API,
+    AUTHENTICATION,
+    ENHANCED,
+    FEATURES:,
+    SECURED,
+    SECURITY,
+    UNIFIED,
+    WITH,
+    APIRouter,
+    BackgroundTasks,
+    Backup,
+    BackupStatus,
+    BaseModel,
+    Comprehensive,
+    DDoS,
+    Depends,
+    End-to-end,
+    Endpoints,
+    Field,
+    HTTPBearer,
+    HTTPException,
     InputType,
-    ValidationLevel,
-    get_input_validator,
+    Management,
+    Query,
+    Rate,
+    Request,
+    Role-based,
 )
+from ....core_system.security.input_validation import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.input_validation import (
+    Unified,
+    ValidationLevel,
+    """,
+    -,
+    ....backup.core.backup_manager,
+    ....core_system.security.unified_audit_system,
+    ....core_system.security.unified_auth_manager,
+    access,
+    all,
+    and,
+    audit,
+    authentication/authorization,
+    backup,
+    control,
+    encryption,
+    fastapi,
+    fastapi.security,
+    for,
+    from,
+    get_input_validator,
+    get_unified_auth_manager,
+    import,
+    integration,
+    limiting,
+    logging,
+    management,
+    monitoring.,
+    operations,
+    protection,
+    pydantic,
+    system,
+)
+
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,

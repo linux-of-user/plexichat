@@ -1,13 +1,10 @@
 import logging
-from typing import Any, Dict, Optional
-
-from typing import Optional, Dict, Any, List, HTTPException, status
-
-        from .manager_auth import auth_manager
-        
+from typing import Any, Dict, HTTPException, List, Optional, status
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from .manager_auth import auth_manager
 
 """
 Authentication Dependencies

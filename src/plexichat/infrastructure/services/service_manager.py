@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Set, Type
 
 from . import SecureService, ServiceMetadata, ServiceStatus
 
-
 """
 PlexiChat Service Manager
 

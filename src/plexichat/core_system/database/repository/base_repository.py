@@ -5,21 +5,33 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
-from ..dao.base_dao import (
-    from sqlmodel import SQLModel  # type: ignore
-    from ...events.event_bus import DomainEvent, event_bus  # type: ignore
-
-"""
-PlexiChat Repository Pattern Implementation
-Provides domain-specific data access with business logic encapsulation
-"""
-
+from ..dao.base_dao import (  # type: ignore
     BaseDAO,
+    DomainEvent,
     FilterCriteria,
+    Implementation,
     PaginationParams,
+    Pattern,
+    PlexiChat,
+    Provides,
     QueryOptions,
     QueryResult,
+    Repository,
     SortCriteria,
+    SQLModel,
+    """,
+    ...events.event_bus,
+    access,
+    business,
+    data,
+    domain-specific,
+    encapsulation,
+    event_bus,
+    from,
+    import,
+    logic,
+    sqlmodel,
+    with,
 )
 
 try:

@@ -2,15 +2,13 @@ import asyncio
 import gzip
 import json
 import logging
+import shutil
 import threading
 from collections import deque
 from datetime import datetime, timezone
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Dict
-
-        from logging.handlers import RotatingFileHandler
-        
-            import shutil
 
 """
 PlexiChat Logging Service Module

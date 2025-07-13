@@ -1,8 +1,10 @@
 import asyncio
 import hashlib
+import io
 import json
 import logging
 import secrets
+import tarfile
 import zlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -14,16 +16,7 @@ import aiofiles
 import aiosqlite
 
 from ..security import KeyDomain, distributed_key_manager, quantum_encryption
-
-        import io
-        import tarfile
-
-        from ..security.quantum_encryption import SecurityTier
-
-        import io
-        import tarfile
-
-                            from pathlib import Path
+from ..security.quantum_encryption import SecurityTier
 
 """
 PlexiChat Quantum-Secure Backup System

@@ -1,12 +1,10 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from sqlalchemy import DateTime, Index
 from sqlmodel import JSON, Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
-
-
-from sqlalchemy import DateTime, Index
 
 """
 PlexiChat Server Member Model

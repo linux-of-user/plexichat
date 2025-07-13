@@ -1,22 +1,17 @@
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from typing import Optional, Dict, Any, List
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
-from .bug_bounty import bug_bounty_manager
+from .bug_bounty import SeverityLevel, VulnerabilityType, bug_bounty_manager
 from .cicd_security import cicd_scanner
 from .csp import csp_manager
 from .security_headers import security_headers_manager
 from .siem_integration import EventCategory, EventSeverity, SecurityEvent, siem_integration
 from .waf import waf
-
-            from .bug_bounty import SeverityLevel, VulnerabilityType
-            
-
-from fastapi import Request
-from fastapi.responses import JSONResponse
 
 """
 PlexiChat Phase I Security Integration

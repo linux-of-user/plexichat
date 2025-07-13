@@ -2,12 +2,10 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
-
-from ..monitoring.analytics_engine import AlertRule, analytics_engine
-
-
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
+
+from ..monitoring.analytics_engine import AlertRule, analytics_engine
 
 """
 AI Monitoring and Analytics API Endpoints

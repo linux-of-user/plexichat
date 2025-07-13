@@ -10,35 +10,46 @@ import logger
 import monitoring_logger
 import selftest_logger
 import settings
-from sqlmodel import Session, func, select
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
+from sqlmodel import Session, func, select
 
 from plexichat.core.config import config_manager
 from plexichat.core.database import get_session
 from plexichat.features.users.message import Message
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.monitoring import error_handler, system_monitor
-from plexichat.infrastructure.utils.scheduling import (
-from plexichat.utils.self_tests.connectivity import run_connectivity_tests
-from plexichat.utils.self_tests.database import run_database_tests
-from plexichat.utils.self_tests.endpoints import run_endpoint_tests
-from plexichat.utils.self_tests.test_executor import test_executor
-from plexichat.utils.self_tests.users import run_user_tests
-
-# app/routers/admin.py
-"""
-Admin console router providing web-based administration interface
-with comprehensive system management capabilities.
-"""
-
+from plexichat.infrastructure.utils.scheduling import (  # app/routers/admin.py
+    Admin,
+    """,
+    administration,
+    capabilities.,
+    comprehensive,
+    console,
+    from,
     get_scheduler_status,
+    import,
+    interface,
+    management,
+    plexichat.utils.self_tests.connectivity,
+    plexichat.utils.self_tests.database,
+    plexichat.utils.self_tests.endpoints,
+    plexichat.utils.self_tests.test_executor,
+    plexichat.utils.self_tests.users,
+    providing,
+    router,
     run_comprehensive_self_tests,
+    run_connectivity_tests,
+    run_database_tests,
+    run_endpoint_tests,
+    run_user_tests,
+    system,
+    test_executor,
+    web-based,
+    with,
 )
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 security = HTTPBearer()
 

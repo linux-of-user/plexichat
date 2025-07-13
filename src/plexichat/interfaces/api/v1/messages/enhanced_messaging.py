@@ -1,10 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
@@ -12,16 +8,31 @@ from plexichat.app.logger_config import logger
 from plexichat.app.models.message import MessageType
 from plexichat.app.models.user import User
 from plexichat.app.services.enhanced_messaging_service import (
-from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
-
-"""
-Enhanced Messaging API Endpoints
-Comprehensive messaging API with emoji support, reactions, replies, and resilience features.
-"""
-
+    API,
+    Comprehensive,
     EmojiService,
+    Endpoints,
+    Enhanced,
+    Messaging,
+    """,
+    and,
+    emoji,
     enhanced_messaging_service,
+    features.,
+    from,
+    get_current_user,
+    import,
+    messaging,
+    plexichat.app.utils.auth,
+    plexichat.infrastructure.utils.auth,
+    reactions,
+    replies,
+    resilience,
+    support,
+    with,
 )
+
+
 # Pydantic models for API requests/responses
 class MessageCreateRequest(BaseModel):
     content: str = Field(..., min_length=1, max_length=4000, description="Message content")

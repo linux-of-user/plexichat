@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 import aiosqlite
 from cryptography.hazmat.backends import default_backend
-
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
@@ -18,7 +17,6 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from .distributed_key_manager import DistributedKeyManager, KeyDomain
 from .quantum_encryption import QuantumEncryptionSystem, SecurityTier
-
 
 """
 PlexiChat End-to-End Encryption System

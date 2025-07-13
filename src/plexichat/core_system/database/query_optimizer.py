@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-
 """
 PlexiChat Advanced Query Optimizer
 

@@ -1,14 +1,11 @@
 import asyncio
 import logging
-
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
-
 
 from plexichat.antivirus.core import ScanResult, ScanType
 from plexichat.antivirus.core.antivirus_engine import AdvancedAntivirusEngine

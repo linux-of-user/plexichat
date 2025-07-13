@@ -3,7 +3,6 @@ from .post import Post
 from .space import Space
 from .space_member import SpaceMember
 
-
 """
 PlexiChat Spaces Models Package
 

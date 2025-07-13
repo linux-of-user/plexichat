@@ -2,10 +2,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
-
-
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
@@ -13,7 +9,13 @@ from pydantic import BaseModel
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.testing.enhanced_test_suite import enhanced_test_suite
-from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
+from plexichat.app.utils.auth import (
+    from,
+    get_current_user,
+    get_optional_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
 
 """
 Enhanced testing API for PlexiChat.

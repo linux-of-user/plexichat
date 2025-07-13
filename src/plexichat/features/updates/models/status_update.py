@@ -2,12 +2,10 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from sqlalchemy import DateTime, Index, Text
 from sqlmodel import Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
-
-
-from sqlalchemy import DateTime, Index, Text
 
 """
 PlexiChat Status Update Model

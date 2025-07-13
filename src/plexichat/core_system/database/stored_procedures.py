@@ -8,36 +8,77 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-    from .enhanced_abstraction import (  # type: ignore
-from .query_optimizer import performance_monitor, sql_analyzer
+from .enhanced_abstraction import (  # type: ignore
+    AbstractDatabaseClient,
+    Advanced,
+    Automatic,
+    Benefits:,
+    Better,
+    Centralized,
+    Cross-database,
+    DatabaseType,
+    Dynamic,
+    Enhanced,
+    Improved,
+    Manager,
+    Performance,
+    PlexiChat,
+    Prepared,
+    Procedure,
+    Procedures,
+    Query,
+    QueryType,
+    Reduced,
+    Statements,
+    Stored,
+    """,
+    -,
+    .query_optimizer,
+    and,
+    based,
+    benchmarking,
+    business,
+    caching,
+    calls,
+    compatibility,
+    compilation,
+    complex,
+    creation,
+    database,
+    execution,
+    featuring:,
+    for,
+    from,
+    generation,
+    import,
+    logic,
+    management,
+    migration,
+    monitoring,
+    network,
+    on,
+    optimization,
+    parameterized,
+    patterns,
+    performance,
+    performance_monitor,
+    plan,
+    procedure,
+    queries,
+    query,
+    reuse,
+    security,
+    sql_analyzer,
+    statement,
+    stored,
+    system,
+    through,
+    time,
+    traffic,
+    try:,
+    versioning,
+)
 
-
-"""
-PlexiChat Stored Procedures and Prepared Statements Manager
-
-Advanced database procedure management system featuring:
-- Automatic stored procedure generation for complex queries
-- Prepared statement caching and optimization
-- Query plan caching and reuse
-- Procedure performance monitoring
-- Dynamic procedure creation based on query patterns
-- Cross-database procedure compatibility
-- Procedure versioning and migration
-- Performance benchmarking and optimization
-
-Benefits:
-- Reduced network traffic through procedure calls
-- Improved query compilation and execution time
-- Enhanced security through parameterized queries
-- Better query plan caching and reuse
-- Centralized complex business logic
-"""
-
-try:
-        AbstractDatabaseClient,
-        DatabaseType,
-        QueryType,
-    )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     ENHANCED_ABSTRACTION_AVAILABLE = False

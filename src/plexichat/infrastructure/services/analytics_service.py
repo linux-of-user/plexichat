@@ -16,8 +16,6 @@ from app.models.message import Message
 from app.models.user import User
 from sqlmodel import Session, and_, func, select
 
-
-
 """
 Comprehensive analytics and statistics service.
 Provides real-time metrics, historical data, and insights.

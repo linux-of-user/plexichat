@@ -8,30 +8,62 @@ from typing import Any, Dict, List, Optional
 
 from app.logger_config import logger
 from app.profiles.advanced_profile_system import (
-
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, Field
-
-"""
-Subscription Management API for PlexiChat
-
-This API provides comprehensive subscription and tier management for external payment integration:
-- Admin API for managing user subscriptions
-- Tier management and upgrades/downgrades
-- External payment provider integration
-- Subscription lifecycle management
-- Usage tracking and limits enforcement
-- Billing and payment history
-- Webhook support for payment events
-"""
-
+    API,
+    Admin,
+    APIRouter,
+    BackgroundTasks,
+    BaseModel,
+    Billing,
+    Depends,
+    External,
+    Field,
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    HTTPException,
+    Management,
+    PlexiChat,
+    Request,
+    Subscription,
     SubscriptionStatus,
+    This,
+    Tier,
+    Usage,
     UserSubscription,
     UserTier,
+    Webhook,
+    """,
+    -,
     advanced_profile_system,
+    and,
+    comprehensive,
+    enforcement,
+    events,
+    external,
+    fastapi,
+    fastapi.security,
+    for,
+    from,
+    history,
+    import,
+    integration,
+    integration:,
+    lifecycle,
+    limits,
+    management,
+    managing,
+    payment,
+    provider,
+    provides,
+    pydantic,
+    subscription,
+    subscriptions,
+    support,
+    tier,
+    tracking,
+    upgrades/downgrades,
+    user,
 )
+
 # Security
 security = HTTPBearer()
 

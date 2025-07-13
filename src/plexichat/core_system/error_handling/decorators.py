@@ -6,11 +6,9 @@ from typing import Any, Callable, List, Type
 
 from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 from .crash_reporter import crash_reporter
+from .error_manager import error_manager
 from .error_recovery import RecoveryStrategy, recovery_manager
 from .exceptions import ErrorCategory, ErrorSeverity
-
-                from .error_manager import error_manager
-                
 
 """
 PlexiChat Error Handling Decorators

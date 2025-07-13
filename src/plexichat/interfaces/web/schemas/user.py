@@ -2,10 +2,8 @@ import re
 from datetime import datetime
 from typing import Optional
 
-
-
-
 from pydantic import BaseModel, Field, field_validator
+
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=1)

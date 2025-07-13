@@ -9,12 +9,10 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..security import KeyDomain, distributed_key_manager, quantum_encryption
+from cryptography.fernet import Fernet
 
-            from cryptography.fernet import Fernet
-            
-        from ..security.quantum_encryption import SecurityTier
-        
+from ..security import KeyDomain, distributed_key_manager, quantum_encryption
+from ..security.quantum_encryption import SecurityTier
 
 """
 PlexiChat Secure Caching System

@@ -5,46 +5,88 @@ from sqlmodel import Session, select
 
 from ....core_system.security.input_validation import get_input_validator
 from ....core_system.security.unified_audit_system import (
-from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-
-
-
-    
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel
-
-from plexichat.app.db import get_session
-from plexichat.app.models.enhanced_backup import (
-from plexichat.app.logger_config import logger
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.services.enhanced_backup_service import EnhancedBackupService
-from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
-    from plexichat.app.models.enhanced_backup import EnhancedBackupShard, ShardDistribution
-
-"""
-Enhanced backup API for PlexiChat - SECURED WITH UNIFIED AUTHENTICATION
-Handles government-level secure backup operations, recovery, and monitoring.
-
-ENHANCED SECURITY FEATURES:
-- Unified authentication/authorization integration
-- End-to-end encryption for all backup operations
-- Comprehensive audit logging
-- Role-based access control
-- Input validation and sanitization
-- Rate limiting and DDoS protection
-"""
-
+    API,
+    AUTHENTICATION,
+    ENHANCED,
+    FEATURES:,
+    SECURED,
+    SECURITY,
+    UNIFIED,
+    WITH,
+    APIRouter,
+    BackgroundTasks,
     BackupNode,
     BackupRecoveryLog,
     BackupStatus,
     BackupType,
+    BaseModel,
+    Comprehensive,
+    DDoS,
+    Depends,
+    End-to-end,
+    Enhanced,
     EnhancedBackup,
-    SecurityLevel,
+    EnhancedBackupService,
+    EnhancedBackupShard,
+    EnhancedUser,
+    Handles,
+    HTTPBearer,
+    HTTPException,
+    Input,
+    JSONResponse,
+    PlexiChat,
+    Query,
+    Rate,
+    Request,
+    Role-based,
+)
+from ....core_system.security.unified_audit_system import SecurityLevel
+from ....core_system.security.unified_audit_system import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_audit_system import (
+    ShardDistribution,
+    Unified,
     UserBackupQuota,
+    """,
+    -,
+    ....core_system.security.unified_auth_manager,
+    access,
+    all,
+    and,
+    audit,
+    authentication/authorization,
+    backup,
+    control,
+    encryption,
+    fastapi,
+    fastapi.responses,
+    fastapi.security,
+    for,
+    from,
+    get_current_user,
+    get_session,
+    get_unified_auth_manager,
+    government-level,
+    import,
+    integration,
+    limiting,
+    logger,
+    logging,
+    monitoring.,
+    operations,
+    plexichat.app.db,
+    plexichat.app.logger_config,
+    plexichat.app.models.enhanced_backup,
+    plexichat.app.models.enhanced_models,
+    plexichat.app.services.enhanced_backup_service,
+    plexichat.app.utils.auth,
+    plexichat.infrastructure.utils.auth,
+    protection,
+    pydantic,
+    recovery,
+    sanitization,
+    secure,
+    status,
+    validation,
 )
 
     SecurityEventType,

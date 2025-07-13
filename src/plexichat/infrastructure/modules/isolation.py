@@ -15,11 +15,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+import psutil
 
 from ...core_system.logging import get_logger
-
-
-import psutil
 
 """
 PlexiChat Module Isolation and Hot-Loading System

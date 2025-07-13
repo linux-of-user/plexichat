@@ -9,9 +9,6 @@ from typing import Any, Dict, List, Optional
 
 from cryptography.fernet import Fernet
 
-
-
-
 from plexichat.core.logging import logger
 
 """

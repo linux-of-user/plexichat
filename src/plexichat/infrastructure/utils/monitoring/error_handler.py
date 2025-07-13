@@ -7,9 +7,6 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
-
-
-
 import psutil
 
 from plexichat.core.config.settings import settings

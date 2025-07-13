@@ -2,15 +2,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from ...core.auth.dependencies import require_auth
 from ...core.logging import get_logger
 from ...services.collaboration_service import CollaborationType, get_collaboration_service
-
-
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 
 """
 PlexiChat Collaboration Web Routes

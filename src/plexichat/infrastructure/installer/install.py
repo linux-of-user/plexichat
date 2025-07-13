@@ -9,8 +9,6 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen, urlretrieve
 
-
-
 #!/usr/bin/env python3
 """
 PlexiChat GitHub Installer

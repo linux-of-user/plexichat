@@ -1,51 +1,118 @@
 from .core.unified_backup_manager import (
-from .core.unified_shard_manager import ShardMetadata, ShardState, ShardType, UnifiedShardManager
-
-from .core.backup_manager import government_backup_manager as legacy_government_backup_manager
-from .core.backup_node_auth import APIKeyStatus, BackupNodeAuthManager, NodePermissionLevel
-from .core.backup_node_client import (
-from .core.backup_node_server import BackupNodeConfig, BackupNodeServer, create_backup_node_server
-from .core.distribution_manager import IntelligentDistributionManager
-from .core.encryption_manager import QuantumEncryptionManager
-from .core.profile_backup import (
-from .core.proxy_manager import DatabaseProxyManager
-from .core.recovery_manager import AdvancedRecoveryManager
-from .core.shard_manager import ImmutableShardManager
-from .core.user_message_backup import BackupDataType, BackupOptStatus, UniversalBackupManager
-from .core.user_preferences import (
-from .plugins.archive_system import ArchiveStatus, ArchiveSystemPlugin, ArchiveType
-
-from .quantum_backup_system import BackupSecurity, QuantumBackup, QuantumBackupSystem, QuantumShard
-from .services import (
-
-"""
-PlexiChat Unified Backup System
-
-Next-generation backup system with consolidated architecture, quantum encryption,
-distributed shards, and zero data loss guarantees.
-
-This unified system replaces all previous backup implementations with a single,
-comprehensive solution that provides:
-- Government-level security with post-quantum cryptography
-- Intelligent shard distribution with AI optimization
-- Granular recovery capabilities
-- Real-time monitoring and analytics
-- Zero-trust security architecture
-- GDPR compliance and user privacy controls
-"""
-
-# Import unified backup system
+    AI,
+    GDPR,
+    AdvancedRecoveryManager,
+    APIKeyStatus,
+    ArchiveStatus,
+    ArchiveSystemPlugin,
+    ArchiveType,
+    Backup,
+    BackupDataType,
+    BackupNodeAuthManager,
+    BackupNodeConfig,
+    BackupNodeServer,
     BackupOperation,
+    BackupOptStatus,
     BackupPriority,
+    BackupSecurity,
     BackupStatus,
     BackupType,
+    DatabaseProxyManager,
     DistributionStrategy,
+    Government-level,
+    Granular,
+    ImmutableShardManager,
+    Intelligent,
+    IntelligentDistributionManager,
+    Next-generation,
+    NodePermissionLevel,
+    PlexiChat,
+    QuantumBackup,
+    QuantumBackupSystem,
+    QuantumEncryptionManager,
+    QuantumShard,
+    Real-time,
     SecurityLevel,
+    ShardMetadata,
+    ShardState,
+    ShardType,
+    System,
     SystemHealth,
+    This,
+    Unified,
     UnifiedBackupManager,
     UnifiedShard,
+    UnifiedShardManager,
+    UniversalBackupManager,
+    Zero-trust,
+    """,
+    -,
+    .core.backup_manager,
+    .core.backup_node_auth,
+    .core.backup_node_client,
+    .core.backup_node_server,
+    .core.distribution_manager,
+    .core.encryption_manager,
+    .core.profile_backup,
+    .core.proxy_manager,
+    .core.recovery_manager,
+    .core.shard_manager,
+    .core.unified_shard_manager,
+    .core.user_message_backup,
+    .core.user_preferences,
+    .plugins.archive_system,
+    .quantum_backup_system,
+    .services,
+    a,
+    all,
+    analytics,
+    and,
+    architecture,
+    backup,
+    capabilities,
+    compliance,
+    comprehensive,
+    consolidated,
+    controls,
+    create_backup_node_server,
+    cryptography,
+    data,
+    distributed,
+    distribution,
+    encryption,
+    from,
     get_unified_backup_manager,
 )
+from .core.unified_backup_manager import (
+    government_backup_manager as legacy_government_backup_manager,  # Import unified backup system
+)
+from .core.unified_backup_manager import (
+    guarantees.,
+    implementations,
+    import,
+    loss,
+    monitoring,
+    optimization,
+    post-quantum,
+    previous,
+    privacy,
+    provides:,
+    quantum,
+    recovery,
+    replaces,
+    security,
+    shard,
+    shards,
+    single,
+    solution,
+    system,
+    that,
+    unified,
+    user,
+    with,
+    zero,
+)
+
 # Legacy compatibility - redirect to unified system
 government_backup_manager = get_unified_backup_manager()
 

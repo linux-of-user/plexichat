@@ -2,15 +2,11 @@ import ipaddress
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import geoip2.database
 import geoip2.errors
 from app.logger_config import logger, settings
-from typing import Optional, Dict, Any, List
-
-
-
 from fastapi import Request
 
 # app/utils/ip_security.py

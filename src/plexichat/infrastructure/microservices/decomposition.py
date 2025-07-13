@@ -5,12 +5,11 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from ...features.ai import ai_coordinator
+from ...features.backup import backup_manager
+from ...features.messaging import messaging_manager
+from ...features.security.auth import auth_manager
 from .service_registry import ServiceEndpoint, ServiceRegistry, ServiceType
-
-        from ...features.security.auth import auth_manager
-        from ...features.messaging import messaging_manager
-        from ...features.backup import backup_manager
-        from ...features.ai import ai_coordinator
 
 """
 PlexiChat Microservices Decomposition

@@ -8,7 +8,6 @@ from typing import Any, Dict, List
 
 from .exceptions import ErrorCategory, ErrorSeverity
 
-
 """
 PlexiChat Error Analytics
 

@@ -1,11 +1,8 @@
 from typing import Optional
 
+from pydantic import BaseModel, EmailStr
 
 from .models import UserRole, UserStatus
-
-
-
-from pydantic import BaseModel, EmailStr
 
 """User API schemas."""
 class UserCreate(BaseModel):

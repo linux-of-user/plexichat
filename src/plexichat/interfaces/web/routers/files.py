@@ -7,35 +7,51 @@ from typing import Any, Dict, Optional
 
 import aiofiles
 import magic
-from PIL import Image
-from sqlmodel import Session, select
-
-
-
 from fastapi import (
-from fastapi.responses import FileResponse
-
-from plexichat.core.database import get_session
-from plexichat.features.users.files import FileRecord, FileShare
-from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
-from plexichat.infrastructure.utils.security import (
-from plexichat.interfaces.web.schemas.files import (
-
-"""
-File management endpoints with comprehensive upload, download, and management capabilities.
-Includes security features, virus scanning, and file type validation.
-"""
-
     APIRouter,
     BackgroundTasks,
     Depends,
     File,
+    FileRecord,
+    FileResponse,
+    FileShare,
     Form,
     HTTPException,
+    Includes,
     Query,
     UploadFile,
+    User,
+    """,
+    and,
+    capabilities.,
+    comprehensive,
+    download,
+    endpoints,
+    fastapi.responses,
+    features,
+    file,
+    from,
+    get_current_user,
+    get_session,
+    import,
+    management,
+    plexichat.core.database,
+    plexichat.features.users.files,
+    plexichat.features.users.user,
+    plexichat.infrastructure.utils.auth,
+    plexichat.infrastructure.utils.security,
+    plexichat.interfaces.web.schemas.files,
+    scanning,
+    security,
+    type,
+    upload,
+    validation.,
+    virus,
+    with,
 )
+from PIL import Image
+from sqlmodel import Session, select
+
 logger = logging.getLogger(__name__)
 logging_manager = logging.getLogger(f"{__name__}.manager")
     sanitize_filename,

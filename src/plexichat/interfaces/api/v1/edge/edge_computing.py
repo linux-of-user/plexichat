@@ -1,15 +1,18 @@
+import statistics
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-
-from ....core.logging import get_logger
-from ....core.performance.edge_computing_manager import get_edge_computing_manager
-
-        import statistics
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ....core.auth import from plexichat.infrastructure.utils.auth import require_admin, require_auth
+from ....core.auth import (
+    from,
+    import,
+    plexichat.infrastructure.utils.auth,
+    require_admin,
+    require_auth,
+)
+from ....core.logging import get_logger
+from ....core.performance.edge_computing_manager import get_edge_computing_manager
 
 """
 PlexiChat Edge Computing API Endpoints

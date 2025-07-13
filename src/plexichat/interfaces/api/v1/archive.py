@@ -1,23 +1,24 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
-from ...logger_config import logger
-from ...models.user import User
-
-        from ....plugins.archive_system.archive_plugin import ArchiveSystemPlugin
-        
-        from ....plugins.archive_system.archive_plugin import ArchiveType, ServerArchiveConfig
-        
-        from ....plugins.archive_system.archive_plugin import ArchiveType
-        
-        from ....plugins.archive_system.archive_plugin import ArchiveAccessLevel, ArchiveType
-        
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ...core.auth.dependencies import from plexichat.infrastructure.utils.auth import get_current_user, from plexichat.infrastructure.utils.auth import require_admin
+from ....plugins.archive_system.archive_plugin import (
+    ArchiveAccessLevel,
+    ArchiveSystemPlugin,
+    ArchiveType,
+    ServerArchiveConfig,
+)
+from ...core.auth.dependencies import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+    require_admin,
+)
+from ...logger_config import logger
+from ...models.user import User
 
 """
 Archive System API Endpoints

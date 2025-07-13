@@ -1,7 +1,5 @@
 from typing import Any, Dict, Optional
 
-
-
 """
 PlexiChat Authentication Exceptions
 

@@ -5,7 +5,6 @@ from typing import List, Optional
 from .models import User
 from .schemas import UserCreate, UserUpdate
 
-
 """User business logic service."""
 logger = logging.getLogger(__name__)
 

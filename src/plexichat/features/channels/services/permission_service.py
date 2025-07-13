@@ -4,8 +4,6 @@ from ..models.permission_overwrite import OverwriteType, PermissionOverwrite
 from ..models.role import Permissions, Role
 from ..models.server_member import ServerMember
 
-
-
 """
 PlexiChat Permission Service
 

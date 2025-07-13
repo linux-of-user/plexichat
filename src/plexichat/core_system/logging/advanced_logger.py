@@ -12,8 +12,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-
-
 """
 PlexiChat Advanced Logging System
 

@@ -1,39 +1,30 @@
 import asyncio
+import io
 import logging
 import platform
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, func, select
-
-
-
-
-
-
-
-
-
-        import io
-        from contextlib import redirect_stderr, redirect_stdout
-
-        from cli import EnhancedChatCLI
-
-
 import psutil
+from cli import EnhancedChatCLI
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlmodel import Session, func, select
 
+from plexichat.core.analytics.analytics_engine import analytics_engine
 from plexichat.core.database import get_session
 from plexichat.features.users.files import FileRecord
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, from plexichat.infrastructure.utils.auth import require_admin
-        from plexichat.tests.comprehensive_test_suite import test_framework
-        from plexichat.tests.comprehensive_test_suite import test_framework
-        from plexichat.core.analytics.analytics_engine import analytics_engine
-        from plexichat.core.analytics.analytics_engine import analytics_engine
-        from plexichat.core.analytics.analytics_engine import analytics_engine
+from plexichat.infrastructure.utils.auth import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+    require_admin,
+)
+from plexichat.tests.comprehensive_test_suite import test_framework
 
 """
 System monitoring and management endpoints.

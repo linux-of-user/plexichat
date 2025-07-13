@@ -1,4 +1,7 @@
 import asyncio
+import csv
+import io
+import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -10,12 +13,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
-
-        import json
-        
-        import csv
-        import io
-        
 
 """
 PlexiChat Ultimate CLI Coordinator

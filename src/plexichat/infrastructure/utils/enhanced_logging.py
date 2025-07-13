@@ -1,6 +1,7 @@
 import json
 import logging
 import logging.handlers
+import platform
 import sys
 import threading
 import time
@@ -9,12 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-
-            import platform
-
-            
-
-            import psutil
+import psutil
 
 """
 Enhanced Logging System for PlexiChat

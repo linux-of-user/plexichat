@@ -1,14 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Dict, List
-
-from typing import Optional, Dict, Any, List, FastAPI, HTTPException, Request, status
-
-from .auth_storage import get_auth_storage
-from .config_manager import get_webui_config
-from .mfa_manager import get_mfa_manager
-from .self_test_manager import get_self_test_manager
-
+from typing import Any, Dict, FastAPI, HTTPException, List, Optional, Request, status
 
 import uvicorn
 from fastapi import Depends
@@ -17,6 +9,11 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+from .auth_storage import get_auth_storage
+from .config_manager import get_webui_config
+from .mfa_manager import get_mfa_manager
+from .self_test_manager import get_self_test_manager
 
 """
 PlexiChat Enhanced WebUI Router

@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import logging
 from dataclasses import asdict, dataclass, field
@@ -7,8 +8,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import aiohttp
-
-            import base64
 
 """
 PlexiChat SIEM Integration

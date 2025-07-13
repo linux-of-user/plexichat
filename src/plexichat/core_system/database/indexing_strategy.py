@@ -1,16 +1,13 @@
 import logging
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
+from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
 from .query_optimizer import performance_monitor, sql_analyzer
-
-        import re
-        import re
-            import re
 
 """
 PlexiChat Advanced Indexing Strategy

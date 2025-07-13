@@ -13,7 +13,6 @@ import aiosqlite
 
 from .encryption_manager import EncryptionAlgorithm, QuantumResistantEncryptionManager
 
-
 """
 Enhanced Shard Location Database
 

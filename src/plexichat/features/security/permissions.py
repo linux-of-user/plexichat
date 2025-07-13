@@ -5,9 +5,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-
-
-
 from plexichat.app.logger_config import logger
 
 """

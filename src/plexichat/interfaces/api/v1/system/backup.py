@@ -5,49 +5,76 @@ from app.core.backup.distributed_backup import distributed_backup
 
 from ....core_system.security.input_validation import get_input_validator
 from ....core_system.security.unified_audit_system import (
-from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-
-        from ..services.universal_backup_service import (
-        from pathlib import Path
-
-        from ..services.universal_backup_service import UniversalBackupService
-
-        from pathlib import Path
-
-        from ..services.universal_backup_service import BackupDataType, UniversalBackupService
-
-        from pathlib import Path
-
-        from ..services.universal_backup_service import UniversalBackupService
-
-        from pathlib import Path
-
-        from ..services.universal_backup_service import UniversalBackupService
-
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel, Field
-
-"""
-Backup management API endpoints - SECURED WITH UNIFIED AUTHENTICATION
-Provides access to distributed backup system functionality.
-
-ENHANCED SECURITY FEATURES:
-- Unified authentication/authorization integration
-- End-to-end encryption for all backup operations
-- Comprehensive audit logging
-- Role-based access control
-- Input validation and sanitization
-- Rate limiting and DDoS protection
-"""
-
+    API,
+    AUTHENTICATION,
+    ENHANCED,
+    FEATURES:,
+    SECURED,
+    SECURITY,
+    UNIFIED,
+    WITH,
+    APIRouter,
+    BackgroundTasks,
+    Backup,
+    BackupDataType,
+    BaseModel,
+    Comprehensive,
+    DDoS,
+    Depends,
+    End-to-end,
+    Field,
+    HTTPBearer,
+    HTTPException,
+    Input,
+    Path,
+    Provides,
+    Rate,
+    Request,
+    Role-based,
     SecurityEventType,
+)
+from ....core_system.security.unified_audit_system import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_audit_system import (
     SecuritySeverity,
     ThreatLevel,
+    Unified,
+    UniversalBackupService,
+    """,
+    -,
+    ....core_system.security.unified_auth_manager,
+    ..services.universal_backup_service,
+    access,
+    all,
+    and,
+    audit,
+    authentication/authorization,
+    backup,
+    control,
+    distributed,
+    encryption,
+    endpoints,
+    fastapi,
+    fastapi.security,
+    for,
+    from,
+    functionality.,
     get_unified_audit_system,
+    get_unified_auth_manager,
+    import,
+    integration,
+    limiting,
+    logging,
+    management,
+    operations,
+    pathlib,
+    protection,
+    pydantic,
+    sanitization,
+    system,
+    to,
+    validation,
 )
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backup", tags=["backup"])
 security = HTTPBearer()

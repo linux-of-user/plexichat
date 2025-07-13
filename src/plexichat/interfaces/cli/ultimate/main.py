@@ -10,8 +10,6 @@ from rich.table import Table
 
 from .cli_coordinator import CommandCategory, ultimate_cli
 
-            from pathlib import Path
-
 """
 PlexiChat Ultimate CLI - Main Entry Point
 200+ commands for complete system control and management

@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional
 
 import aiosqlite
 
-
 """
 Universal Backup Manager
 

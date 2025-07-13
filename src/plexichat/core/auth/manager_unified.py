@@ -1,6 +1,8 @@
 import asyncio
 import json
+import random
 import secrets
+import string
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -9,15 +11,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import bcrypt
+
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
 from ...core_system.security.input_validation import InputType, ValidationLevel, get_input_validator
-
-        import random
-        import string
-
-        import bcrypt
-        import bcrypt
 
 """
 PlexiChat Unified Authentication Manager - SINGLE SOURCE OF TRUTH

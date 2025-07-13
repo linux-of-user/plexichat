@@ -8,9 +8,9 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-    import aio_pika
-    from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
-    import redis.asyncio as redis
+import aio_pika
+import redis.asyncio as redis
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 """
 PlexiChat Message Queue System

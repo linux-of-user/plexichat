@@ -4,35 +4,74 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-    from .enhanced_abstraction import (  # type: ignore
-from .indexing_strategy import IndexRecommendation, index_manager
-from .query_optimizer import performance_monitor
-from .schema_optimizer import DataTypeRecommendation, schema_optimizer
-from .stored_procedures import procedure_manager
+from .enhanced_abstraction import (  # type: ignore
+    AbstractDatabaseClient,
+    Automatic,
+    Comprehensive,
+    Cross-database,
+    Database,
+    DatabaseType,
+    DataTypeRecommendation,
+    Indexing,
+    IndexRecommendation,
+    Integration,
+    Performance,
+    PlexiChat,
+    Query,
+    Schema,
+    Stored,
+    System,
+    This,
+    """,
+    -,
+    .indexing_strategy,
+    .query_optimizer,
+    .schema_optimizer,
+    .stored_procedures,
+    a,
+    across,
+    alerting,
+    all,
+    analysis,
+    and,
+    automatically,
+    components,
+    components:,
+    data,
+    database,
+    enhanced_db_manager,
+    from,
+    import,
+    index_manager,
+    integration,
+    into,
+    management,
+    module,
+    monitoring,
+    of,
+    optimization,
+    optimizes,
+    performance,
+    performance_monitor,
+    prepared,
+    procedure_manager,
+    procedures,
+    recommendations,
+    schema_optimizer,
+    statements,
+    strategy,
+    supported,
+    system,
+    that,
+    ties,
+    together,
+    try:,
+    tuning,
+    type,
+    types.,
+    unified,
+)
 
-
-"""
-PlexiChat Database Performance Integration System
-
-Comprehensive integration of all database performance optimization components:
-- Query optimization and analysis
-- Indexing strategy and management
-- Schema optimization and data type analysis
-- Stored procedures and prepared statements
-- Performance monitoring and alerting
-- Automatic optimization recommendations
-- Cross-database performance tuning
-
-This module ties together all performance optimization components into a
-unified system that automatically optimizes database performance across
-all supported database types.
-"""
-
-try:
-        AbstractDatabaseClient,
-        DatabaseType,
-        enhanced_db_manager,
-    )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     ENHANCED_ABSTRACTION_AVAILABLE = False

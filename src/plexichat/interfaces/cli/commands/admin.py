@@ -1,15 +1,13 @@
 import argparse
 import getpass
 import json
+import logging
+import secrets
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-    import logging
-
-        import secrets
-
-    from plexichat.core_system.auth.government_auth import get_government_auth
+from plexichat.core_system.auth.government_auth import get_government_auth
 
 """
 PlexiChat Admin CLI - Government-Level Secure Command Line Interface

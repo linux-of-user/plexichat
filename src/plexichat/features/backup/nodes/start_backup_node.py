@@ -5,13 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-
-        from pathlib import Path
-    import httpx
-    
-        
-
-        import psutil
+import httpx
+import psutil
 
 #!/usr/bin/env python3
 """

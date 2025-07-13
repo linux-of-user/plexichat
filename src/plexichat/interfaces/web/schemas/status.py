@@ -1,10 +1,7 @@
 from datetime import datetime
 
-from sqlmodel import Session, select
-
-
-
 from fastapi import APIRouter
+from sqlmodel import Session, select
 
 from plexichat.features.users.message import Message
 from plexichat.features.users.user import User

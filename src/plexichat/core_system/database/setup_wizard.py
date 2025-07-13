@@ -1,27 +1,19 @@
 import asyncio
 import json
 import logging
+import time
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
-
-            import time
-            from sqlmodel import SQLModel
-
-            from sqlmodel import Session
-
-
 from sqlalchemy import create_engine, text
+from sqlmodel import Session, SQLModel
 
-                from plexichat.app.models.guild import Guild  # type: ignore
-                from plexichat.app.models.message import Message  # type: ignore
-                from plexichat.app.models.user import User  # type: ignore
-                    from plexichat.app.models.user import User  # type: ignore
-                    from plexichat.app.models.guild import Guild  # type: ignore
-                    from plexichat.app.models.message import Message  # type: ignore
+from plexichat.app.models.guild import Guild  # type: ignore
+from plexichat.app.models.message import Message  # type: ignore
+from plexichat.app.models.user import User  # type: ignore
 
 """
 PlexiChat Database Setup Wizard

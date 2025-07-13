@@ -12,19 +12,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
-
-
-            import redis
-
-
 import psutil
-from fastapi import HTTPException, Request
+import redis
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
-from sqlalchemy import JSON, Column, DateTime, Float, Integer, String
+from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-            from sqlalchemy import create_engine
-from fastapi import APIRouter, Depends
 
 """
 Multi-Node Clustering System for PlexiChat

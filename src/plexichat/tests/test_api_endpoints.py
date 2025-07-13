@@ -1,9 +1,9 @@
 import logging
 from datetime import datetime
 
-    import httpx
-from .test_base import BaseTest, TestResult
+import httpx
 
+from .test_base import BaseTest, TestResult
 
 """
 API endpoint tests for PlexiChat.

@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import sqlite3
 import time
 from dataclasses import dataclass
@@ -9,8 +10,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import aiohttp
-
-            import re
 
 """
 Advanced AI Moderation Engine

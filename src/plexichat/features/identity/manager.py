@@ -8,7 +8,6 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-
 """
 PlexiChat Decentralized Identity & Self-Sovereign Identity (SSI) System
 

@@ -7,7 +7,6 @@ from ..core.config import get_config
 from ..core.logging import get_logger
 from ..core.service_manager import BaseService, ServiceManager
 
-
 """
 PlexiChat AI-Powered Features Service Integration
 

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Set
 
 from .core.shard_manager import ImmutableShardManager, ShardType
 
-
 """
 User and Message Backup System
 

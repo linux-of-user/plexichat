@@ -14,7 +14,6 @@ from ...backup.core.shard_manager import ImmutableShardManager
 from ..models.message import Message
 from ..models.user import User
 
-
 """
 Universal Backup Service
 

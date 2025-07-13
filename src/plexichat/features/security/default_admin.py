@@ -2,14 +2,12 @@ import json
 import logging
 import os
 import secrets
+import string
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
 import bcrypt
-
-        import string
-
 
 """
 Default Admin Credentials System

@@ -4,8 +4,6 @@ from pathlib import Path
 
 from run import DualProgressBar
 
-
-
 #!/usr/bin/env python3
 """
 Test script to demonstrate the improved dual progress bar system.

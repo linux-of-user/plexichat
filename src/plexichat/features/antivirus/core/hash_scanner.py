@@ -7,7 +7,6 @@ import aiosqlite
 
 from . import ScanResult, ScanType, ThreatLevel, ThreatSignature, ThreatType
 
-
 """
 Hash-Based Scanner
 

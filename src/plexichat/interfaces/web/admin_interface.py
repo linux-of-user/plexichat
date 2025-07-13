@@ -9,18 +9,14 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
-
-        
-
+import psutil
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-        import psutil
 
-        from plexichat.cli.app import PlexiChatCLI
+from plexichat.cli.app import PlexiChatCLI
 
 """
 Enhanced Web Admin Interface for PlexiChat

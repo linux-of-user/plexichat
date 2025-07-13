@@ -5,10 +5,13 @@ from flask import Blueprint, flash, jsonify, render_template, request
 from werkzeug.exceptions import BadRequest
 
 from ....ai.features.ai_powered_features_service import AIPoweredFeaturesService
+from ....core.auth.decorators import (
+    from,
+    import,
+    plexichat.infrastructure.utils.auth,
+    require_admin,
+)
 from ....core.logging import get_logger
-
-
-from ....core.auth.decorators import from plexichat.infrastructure.utils.auth import require_admin
 
 """
 PlexiChat AI-Powered Features Admin Routes

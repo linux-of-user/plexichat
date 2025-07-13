@@ -1,9 +1,12 @@
 import asyncio
 import logging
 import os
+import platform
+import sys
 from pathlib import Path
 from typing import Optional
 
+import psutil
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
@@ -11,17 +14,6 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
 from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
-
-        
-        
-        import sys
-        import platform
-
-        
-
-        import psutil
-        import psutil
-        import psutil
 
 """
 PlexiChat Ultimate CLI - System Management Commands

@@ -19,8 +19,6 @@ from sklearn.cluster import DBSCAN
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
-
-
 """
 Advanced Behavioral Analysis System with Anti-Hijacking Measures
 

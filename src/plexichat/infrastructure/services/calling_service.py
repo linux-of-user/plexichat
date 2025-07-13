@@ -8,21 +8,29 @@ from typing import Any, Dict, List, Optional, Tuple
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-
 from plexichat.app.logger_config import logger
 from plexichat.app.models.calling import (
-
-"""
-Encrypted voice and video calling service with WebRTC.
-Provides end-to-end encrypted calling with secure key exchange.
-"""
-
     CallInvitation,
     CallParticipant,
     CallSession,
     CallStatus,
     CallType,
+    Encrypted,
     EncryptionMethod,
+    Provides,
+    WebRTC.,
+    """,
+    and,
+    calling,
+    encrypted,
+    end-to-end,
+    exchange.,
+    key,
+    secure,
+    service,
+    video,
+    voice,
+    with,
 )
 
 

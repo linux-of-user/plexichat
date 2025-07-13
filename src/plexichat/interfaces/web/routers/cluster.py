@@ -1,14 +1,10 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-    from plexichat.core.cluster_manager import cluster_manager
-            from plexichat.core.cluster_manager import ClusterNode
-        from plexichat.core.cluster_manager import ClusterNode
+from plexichat.core.cluster_manager import ClusterNode, cluster_manager
 
 """
 PlexiChat Cluster Router

@@ -3,15 +3,17 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
-from ....core.logging import get_logger
-from ....core.security.rate_limiting import rate_limiter
-
-
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field
 
-from ....core.auth.dependencies import from plexichat.infrastructure.utils.auth import get_current_user
+from ....core.auth.dependencies import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
+from ....core.logging import get_logger
+from ....core.security.rate_limiting import rate_limiter
 
 """
 Presence and activity tracking endpoints.

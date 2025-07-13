@@ -1,9 +1,7 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
-
-
+from typing import Any, Dict, Optional
 
 """
 PlexiChat Antivirus Core Components

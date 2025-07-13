@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
@@ -10,16 +8,24 @@ from pydantic import BaseModel, Field
 from plexichat.app.logger_config import logger
 from plexichat.app.security.permissions import Permission, PermissionManager
 from plexichat.app.security.rate_limiter import (
-
-"""
-Rate Limiting Management API Endpoints
-Comprehensive API for managing rate limits and DDoS protection.
-"""
-
+    API,
+    Comprehensive,
     ComprehensiveRateLimiter,
+    DDoS,
+    Endpoints,
+    Limiting,
+    Management,
+    Rate,
     RateLimitAction,
     RateLimitRule,
     RateLimitType,
+    """,
+    and,
+    for,
+    limits,
+    managing,
+    protection.,
+    rate,
 )
 
 router = APIRouter(prefix="/api/v1/rate-limits", tags=["Rate Limiting"])

@@ -12,7 +12,6 @@ from .immutable_shard_manager import ImmutableShard, ImmutableShardManager, Shar
 from .multi_node_network import MultiNodeBackupNetwork
 from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
 
-
 """
 PlexiChat Advanced Recovery System
 

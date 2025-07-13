@@ -1,14 +1,13 @@
 import logging
 
-
-    from ...users.router import router as users_router
-    from ...security.auth import auth_manager
-    from ...backups.manager import backup_manager
-    from ...clustering import cluster_manager
-    from ...ai import ai_router, moderation_router, monitoring_router, provider_router
-    from ...plugins.router import router as plugins_router
-
 from fastapi import APIRouter
+
+from ...ai import ai_router, moderation_router, monitoring_router, provider_router
+from ...backups.manager import backup_manager
+from ...clustering import cluster_manager
+from ...plugins.router import router as plugins_router
+from ...security.auth import auth_manager
+from ...users.router import router as users_router
 
 """
 PlexiChat API v1 Router

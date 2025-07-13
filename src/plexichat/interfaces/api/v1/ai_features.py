@@ -1,14 +1,12 @@
 from typing import Any, Dict, Optional
 
-
-from ....ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from ....core.logging import get_logger
-
-
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+
+from ....ai.features.ai_powered_features_service import AIPoweredFeaturesService
+from ....core.logging import get_logger
 
 """
 PlexiChat AI-Powered Features API

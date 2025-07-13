@@ -3,11 +3,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
-
 from sqlalchemy import text
 
-    from plexichat.core.database.multi_backend import db_manager  # type: ignore
+from plexichat.core.database.multi_backend import db_manager  # type: ignore
 
 """
 Database Migration System

@@ -2,48 +2,78 @@ import ipaddress
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Response
 
-from typing import Optional, Dict, Any, List, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from ....core_system.config import get_config
 from ....core_system.logging import get_logger
 from ....core_system.security.input_validation import (
-from ....core_system.security.unified_audit_system import (
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-from ....core_system.security.unified_security_manager import get_unified_security_manager
-from ....features.security.network_protection import RateLimitRequest, get_network_protection
-
-                from ....core_system.security.unified_auth_manager import (
-
-from fastapi import Request
-
-"""
-PlexiChat Unified Security Middleware - SINGLE SOURCE OF TRUTH
-
-CONSOLIDATED from multiple security middleware systems:
-- interfaces/web/middleware/comprehensive_security_middleware.py - INTEGRATED
-- interfaces/web/middleware/security_middleware.py - INTEGRATED
-- interfaces/web/middleware/message_security_middleware.py - INTEGRATED
-- features/security/comprehensive_security.py - INTEGRATED
-
-Features:
-- Comprehensive authentication and authorization
-- Advanced rate limiting and DDoS protection
-- Input validation and sanitization
-- SQL injection and XSS prevention
-- Malware and threat detection
-- Real-time security monitoring
-- Audit logging integration
-- Zero-trust security enforcement
-"""
-
+    CONSOLIDATED,
+    INTEGRATED,
+    OF,
+    SINGLE,
+    SOURCE,
+    SQL,
+    TRUTH,
+    XSS,
+    Advanced,
+    Audit,
+    Comprehensive,
+    DDoS,
+    Features:,
+    Input,
     InputType,
+    Malware,
+    Middleware,
+    PlexiChat,
+    RateLimitRequest,
+    Real-time,
+    Request,
+    Security,
+    Unified,
     ValidationLevel,
+    Zero-trust,
+    """,
+    -,
+    ....core_system.security.unified_audit_system,
+    ....core_system.security.unified_auth_manager,
+    ....core_system.security.unified_security_manager,
+    ....features.security.network_protection,
+    and,
+    authentication,
+    authorization,
+    detection,
+    enforcement,
+    fastapi,
+    features/security/comprehensive_security.py,
+    from,
     get_input_validator,
+    get_network_protection,
+    get_unified_auth_manager,
+    get_unified_security_manager,
+    import,
+    injection,
+    integration,
+    interfaces/web/middleware/comprehensive_security_middleware.py,
+    interfaces/web/middleware/message_security_middleware.py,
+    interfaces/web/middleware/security_middleware.py,
+    limiting,
+    logging,
+    middleware,
+    monitoring,
+    multiple,
+    prevention,
+    protection,
+    rate,
+    sanitization,
+    security,
+    systems:,
+    threat,
+    validation,
 )
+
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,

@@ -3,10 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-
-
-
-        from plexichat_admin_gui import PlexiChatAdminGUI
+from plexichat_admin_gui import PlexiChatAdminGUI
 
 #!/usr/bin/env python3
 """

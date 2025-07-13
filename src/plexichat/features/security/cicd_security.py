@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 """
 PlexiChat CI/CD Security Integration
 Integrates vulnerability scanning into CI/CD pipeline

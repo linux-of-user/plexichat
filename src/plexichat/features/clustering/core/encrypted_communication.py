@@ -12,22 +12,43 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa, x25519
-
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 from cryptography.x509.oid import NameOID
 
 from ....core_system.security.certificate_manager import get_certificate_manager
 from ....core_system.security.hardware_security import get_hsm_manager
-
 from ....core_system.security.unified_audit_system import (
-from . import HEARTBEAT_ENCRYPTION, HOT_UPDATE_SUPPORT, INTER_NODE_ENCRYPTION
+    HEARTBEAT_ENCRYPTION,
+    HOT_UPDATE_SUPPORT,
+    INTER_NODE_ENCRYPTION,
+    OF,
+    SINGLE,
+    SOURCE,
+    TRUTH,
+    Communication,
+    Encrypted,
+    Enhanced,
+    Inter-Node,
+    Kyber/Dilithium,
+    Manager,
+    Post-quantum,
+    Provides,
+    """,
+    -,
+    .,
+    between,
+    cluster,
+    communication,
+    cryptography,
+    from,
+    import,
+    military-grade,
+    nodes,
+    readiness,
+    secure,
+    with:,
+)
 
-
-"""
-Enhanced Encrypted Inter-Node Communication Manager - SINGLE SOURCE OF TRUTH
-
-Provides military-grade secure communication between cluster nodes with:
-- Post-quantum cryptography readiness (Kyber/Dilithium)
 - ChaCha20-Poly1305 and AES-256-GCM encryption
 - Perfect Forward Secrecy (PFS) with ECDHE key exchange
 - Certificate pinning and mutual TLS authentication

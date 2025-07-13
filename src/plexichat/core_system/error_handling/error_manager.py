@@ -9,11 +9,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, Type
 
+from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 from .context import ErrorCategory, ErrorContext, ErrorSeverity
-
-    from .enhanced_error_handler import EnhancedErrorHandler
-    from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
-    from .crash_reporter import CrashReporter
+from .crash_reporter import CrashReporter
+from .enhanced_error_handler import EnhancedErrorHandler
 
 """
 PlexiChat Core Error Manager

@@ -1,7 +1,5 @@
 import logging
 
-
-
 from fastapi import APIRouter, Header, HTTPException, Request
 
 logger = logging.getLogger(__name__)

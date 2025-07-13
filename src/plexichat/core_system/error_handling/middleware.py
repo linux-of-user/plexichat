@@ -6,17 +6,14 @@ import uuid
 from datetime import datetime
 from typing import Any, Callable, Dict
 
+from fastapi import HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from .beautiful_error_handler import BeautifulErrorHandler
+from .error_manager import error_manager
 from .exceptions import BaseAPIException, ErrorCategory, ErrorSeverity
-
-            from .error_manager import error_manager
-            
-
-from fastapi import HTTPException, Request, Response
-from fastapi.responses import JSONResponse
 
 """
 PlexiChat Error Handling Middleware

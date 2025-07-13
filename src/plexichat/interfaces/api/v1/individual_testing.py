@@ -1,10 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
-
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
@@ -12,24 +8,40 @@ from pydantic import BaseModel
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.testing.individual_tests import (
-from plexichat.app.utils.auth import get_optional_current_user
-
-"""
-Individual testing API with wonderful UI integration.
-Provides access to all individual test suites with detailed reporting.
-"""
-
+    API,
+    UI,
     AdminEndpointTests,
     AuthEndpointTests,
     BackupEndpointTests,
     DeviceEndpointTests,
     FileEndpointTests,
     FilterSystemTests,
+    Individual,
     MessageEndpointTests,
     ModerationEndpointTests,
+    Provides,
     SecurityFeatureTests,
     UserEndpointTests,
+    """,
+    access,
+    all,
+    detailed,
+    from,
+    get_optional_current_user,
+    import,
+    individual,
+    integration.,
+    plexichat.app.utils.auth,
+    reporting.,
+    suites,
+    test,
+    testing,
+    to,
+    with,
+    wonderful,
 )
+
+
 # Pydantic models for API
 class TestSuiteRequest(BaseModel):
     test_suite: str

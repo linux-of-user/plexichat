@@ -1,6 +1,9 @@
+import hashlib
 import json
 import logging
 import sqlite3
+import time
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -14,10 +17,6 @@ from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 
 from .moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity
-
-            import hashlib
-        import time
-            import uuid
 
 """
 AI Moderation Training System

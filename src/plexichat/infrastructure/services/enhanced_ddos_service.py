@@ -6,25 +6,48 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-
-    from app.security.advanced_behavioral_analyzer import (
-        import re
-        import re
-
-import psutil
-
-"""
-Enhanced DDoS Protection Service
-
-Integrates multiple DDoS protection systems with:
-- Dynamic rate limiting based on system load
-- Progressive IP blocking with escalation
-- Intelligent threat detection
-- Integration with security service
-- Real-time monitoring and adaptation
-"""
-
-logger = logging.getLogger(__name__)
+from app.security.advanced_behavioral_analyzer import (
+    IP,
+    DDoS,
+    Dynamic,
+    Enhanced,
+    Integrates,
+    Integration,
+    Intelligent,
+    Progressive,
+    Protection,
+    Real-time,
+    Service,
+    """,
+    -,
+    =,
+    __name__,
+    adaptation,
+    and,
+    based,
+    blocking,
+    detection,
+    escalation,
+    import,
+    limiting,
+    load,
+    logger,
+    logging.getLogger,
+    monitoring,
+    multiple,
+    on,
+    protection,
+    psutil,
+    rate,
+    re,
+    security,
+    service,
+    system,
+    systems,
+    threat,
+    with,
+    with:,
+)
 
 # Import advanced behavioral analyzer
 try:

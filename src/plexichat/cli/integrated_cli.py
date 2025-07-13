@@ -1,13 +1,11 @@
 import argparse
 import asyncio
 import logging
+import shlex
 import sys
 from typing import List, Optional
 
-            import shlex
-            
-
-            from plexichat.core.launcher import LaunchConfig, PlexiChatLauncher
+from plexichat.core.launcher import LaunchConfig, PlexiChatLauncher
 
 """
 PlexiChat Integrated CLI

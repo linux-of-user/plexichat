@@ -17,7 +17,6 @@ from ..core.auth.biometric_manager import BiometricManager
 from ..core.services.base_service import BaseService
 from ..security import e2e_encryption, quantum_encryption
 
-
 """
 PlexiChat Zero-Knowledge Security Service
 

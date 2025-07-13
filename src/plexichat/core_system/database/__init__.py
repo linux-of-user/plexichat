@@ -1,29 +1,65 @@
 from typing import Optional
 
-from .manager import (
-    from .models import *  # type: ignore
-    from .schemas import *  # type: ignore
-    from .utils import DatabaseUtils, db_utils  # type: ignore
-    from .backup_integration import DatabaseBackupIntegration, db_backup  # type: ignore
-    from .config import DatabaseProvider  # type: ignore
-    from .exceptions import (  # type: ignore
-        import logging
-    import logging
-    from .engines import db_cluster
+from .manager import *
+from .manager import .exceptions  # type: ignore
+from .manager import (  # type: ignore
+    Consolidates,
+    Core,
+    Database,
+    DatabaseBackupIntegration,
+    DatabaseProvider,
+    DatabaseUtils,
+    Features:,
+    Management,
+    MongoDB,
+    Multi-database,
+    MySQL,
+    PlexiChat,
+    PostgreSQL,
+    SQLite,
+    System,
+    This,
+    Unified,
+    """,
+    -,
+    .backup_integration,
+    .config,
+    .engines,
+    .models,
+    .schemas,
+    .utils,
+    a,
+    advanced,
+    all,
+    and,
+    clustering,
+    components,
+    comprehensive,
+    consolidates:,
+    database,
+    db_backup,
+    db_cluster,
+    db_utils,
+    encryption,
+    engine,
+    features.,
+    from,
+    import,
+    into,
+    logging,
+    module,
+    multi-backend,
+    replaces,
+    single,
+    src/plexichat/app/core/database/,
+    src/plexichat/app/db/,
+    src/plexichat/core/external_database.py,
+    support,
+    system,
+    unified,
+    with,
+)
 
-"""
-PlexiChat Core Database System - Unified Database Management
-
-Consolidates all database components into a single, comprehensive module
-with multi-backend support, encryption, clustering, and advanced features.
-
-This unified system replaces and consolidates:
-- src/plexichat/app/db/
-- src/plexichat/app/core/database/
-- src/plexichat/core/external_database.py
-
-Features:
-- Multi-database engine support (PostgreSQL, MySQL, SQLite, MongoDB)
 - Database clustering with automatic failover and load balancing
 - Encrypted database connections and data-at-rest encryption
 - Advanced migration system with rollback capabilities
@@ -52,18 +88,15 @@ DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibilit
 # Import database models and schemas (conditional)
 try:
 except ImportError:
-    pass
 
 try:
 except ImportError:
-    pass
 
 # Import database utilities (conditional)
 try:
 except ImportError:
     # Create placeholder classes
     class DatabaseUtils:
-        pass
     db_utils = DatabaseUtils()
 
 try:
@@ -71,7 +104,6 @@ except ImportError:
     # Create placeholder classes
     class DatabaseBackupIntegration:
         async def shutdown(self):
-            pass
     db_backup = DatabaseBackupIntegration()
 
 # Database configuration and types (conditional)
@@ -79,7 +111,6 @@ try:
 except ImportError:
     # Create placeholder classes
     class DatabaseProvider:
-        pass
 
 try:
         ConnectionError,

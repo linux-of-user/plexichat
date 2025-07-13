@@ -17,7 +17,6 @@ from ...core.logging import get_logger
 from ..security.quantum_encryption import QuantumEncryptionEngine
 from .shard_distribution import BackupNode, NodeCapabilities
 
-
 """
 Multi-Node Backup Network for PlexiChat
 

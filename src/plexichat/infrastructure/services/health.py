@@ -7,11 +7,9 @@ from enum import Enum
 from typing import Any, Callable, Dict, Optional
 
 import aiohttp
-
-        from ...core_system.database import database_manager
-
-
 import psutil
+
+from ...core_system.database import database_manager
 
 """
 PlexiChat Health Check Service

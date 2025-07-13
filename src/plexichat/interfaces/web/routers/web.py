@@ -1,21 +1,23 @@
 import asyncio
+import logging
 import os
 from pathlib import Path
 
-
-    import logging
-
-    import import
-    import settings
-
+import import
+import settings
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-    from plexichat.core.auth.manager_auth import login_manager
-    from plexichat.interfaces.web.routers.login import from plexichat.infrastructure.utils.auth import get_current_user
-    from plexichat.infrastructure.utils.auth import get_current_user = None
-    from plexichat.core.updater import updater
+from plexichat.core.auth.manager_auth import login_manager
+from plexichat.core.updater import updater
+from plexichat.infrastructure.utils.auth import None, =, get_current_user
+from plexichat.interfaces.web.routers.login import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
 
 """
 PlexiChat Web Interface

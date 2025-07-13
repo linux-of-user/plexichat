@@ -2,13 +2,13 @@ import asyncio
 import json
 import logging
 import threading
+import tkinter as tk
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from tkinter import filedialog, messagebox, simpledialog, ttk
 from typing import Any, Dict, List, Optional
 
-    import tkinter as tk
-    from tkinter import filedialog, messagebox, simpledialog, ttk
-    from ...features.clustering import AdvancedClusterManager
+from ...features.clustering import AdvancedClusterManager
 
 """
 Enhanced Clustering Management GUI Widget

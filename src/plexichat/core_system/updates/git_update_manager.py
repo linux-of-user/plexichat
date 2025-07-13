@@ -14,7 +14,6 @@ from ...core_system.config import get_config
 from ...core_system.logging import get_logger
 from ...features.backup import get_unified_backup_manager
 
-
 """
 PlexiChat Git-Based Update Manager
 

@@ -1,14 +1,11 @@
 import asyncio
 import logging
-
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
-
 
 from plexichat.app.middleware.rate_limiting import RateLimitingMiddleware
 from plexichat.app.middleware.security_middleware import SecurityMiddleware

@@ -6,8 +6,7 @@ from pathlib import Path
 
 import yaml
 
-
-    from plexichat.app.backup.backup_node_system import BackupNodeConfig, BackupNodeSystem, NodeMode
+from plexichat.app.backup.backup_node_system import BackupNodeConfig, BackupNodeSystem, NodeMode
 
 #!/usr/bin/env python3
 """

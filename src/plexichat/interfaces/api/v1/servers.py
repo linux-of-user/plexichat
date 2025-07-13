@@ -1,23 +1,31 @@
 from typing import List, Optional
 
-
 from ....features.channels.models.server import (
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
-
-from ....core_system.auth.auth_manager import from plexichat.infrastructure.utils.auth import get_current_user
-
-"""
-PlexiChat Server API Endpoints
-
-Discord-like server management endpoints.
-"""
-
+    API,
+    APIRouter,
+    BaseModel,
     DefaultMessageNotifications,
+    Depends,
+    Discord-like,
+    Endpoints,
     ExplicitContentFilter,
+    Field,
+    HTTPException,
+    PlexiChat,
     Server,
     VerificationLevel,
+    """,
+    ....core_system.auth.auth_manager,
+    endpoints.,
+    fastapi,
+    from,
+    get_current_user,
+    import,
+    management,
+    plexichat.infrastructure.utils.auth,
+    pydantic,
+    server,
+    status,
 )
 
 router = APIRouter(prefix="/servers", tags=["servers"])

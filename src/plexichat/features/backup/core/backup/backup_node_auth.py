@@ -10,7 +10,6 @@ from typing import Any, Dict, Optional
 
 import aiosqlite
 
-
 """
 Backup Node Authentication Manager
 

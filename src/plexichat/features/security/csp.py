@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-
 """
 PlexiChat Content Security Policy (CSP) Manager
 Implements strict CSP to prevent XSS and other injection attacks

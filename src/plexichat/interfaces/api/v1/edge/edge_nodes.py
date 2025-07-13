@@ -1,23 +1,38 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-
 from ....core.logging import get_logger
 from ....core.performance.edge_computing_manager import (
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
-
-from ....core.auth import from plexichat.infrastructure.utils.auth import require_admin, require_auth
-
-"""
-PlexiChat Edge Nodes Management API
-Advanced edge node management, deployment, and orchestration.
-"""
-
+    API,
+    Advanced,
+    APIRouter,
+    BaseModel,
+    Depends,
+    Edge,
     EdgeNode,
+    Field,
+    HTTPException,
+    Management,
+    Nodes,
     NodeType,
+    PlexiChat,
+    Query,
+    """,
+    ....core.auth,
+    and,
+    deployment,
+    edge,
+    fastapi,
+    from,
     get_edge_computing_manager,
+    import,
+    management,
+    node,
+    orchestration.,
+    plexichat.infrastructure.utils.auth,
+    pydantic,
+    require_admin,
+    require_auth,
 )
 
 logger = get_logger(__name__)

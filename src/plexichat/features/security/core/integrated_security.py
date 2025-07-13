@@ -1,6 +1,7 @@
 import hashlib
 import ipaddress
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -8,8 +9,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from ..logging import get_logger
-
-        import re
 
 """
 PlexiChat Integrated Security System

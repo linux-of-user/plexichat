@@ -5,22 +5,34 @@ from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, func, select
 
-
-
-
 from plexichat.app.logger_config import logger
 from plexichat.app.models.device_management import (
-from plexichat.app.models.enhanced_backup import EnhancedBackupShard
-
-"""
-Real-time backup status monitoring service for PlexiChat.
-Tracks device availability, shard distribution, and database backup coverage.
-"""
-
     DeviceShardAssignment,
     DeviceStatus,
+    EnhancedBackupShard,
+    PlexiChat.,
+    Real-time,
     StorageDevice,
+    Tracks,
+    """,
+    and,
+    availability,
+    backup,
+    coverage.,
+    database,
+    device,
+    distribution,
+    for,
+    from,
+    import,
+    monitoring,
+    plexichat.app.models.enhanced_backup,
+    service,
+    shard,
+    status,
 )
+
+
 @dataclass
 class DeviceAvailabilityStatus:
     """Device availability information."""

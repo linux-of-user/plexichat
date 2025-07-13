@@ -3,6 +3,7 @@ import ipaddress
 import logging
 import re
 import secrets
+import string
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -10,9 +11,7 @@ from enum import Enum
 from functools import wraps
 from typing import Any, Dict, List, Optional, Tuple
 
-    import bcrypt
-        import string
-        
+import bcrypt
 
 """
 Enhanced Security Module for PlexiChat

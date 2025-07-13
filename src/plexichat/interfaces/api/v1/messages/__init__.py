@@ -1,5 +1,5 @@
-    from .messages_enhanced import router as messages_enhanced_router
     from .enhanced_messaging import router as enhanced_messaging_router
+    from .messages_enhanced import router as messages_enhanced_router
 
 """
 PlexiChat API v1 - Messages Module

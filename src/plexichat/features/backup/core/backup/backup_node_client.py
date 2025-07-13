@@ -7,7 +7,6 @@ from typing import Dict, List, Optional
 
 import aiohttp
 
-
 """
 Backup Node Client
 

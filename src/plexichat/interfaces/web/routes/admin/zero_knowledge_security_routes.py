@@ -9,18 +9,37 @@ from flask import Blueprint, render_template, request, send_file
 from ....core.auth.decorators import admin_required
 from ....core.utils.response_utils import error_response, success_response
 from ....services.zero_knowledge_security_service import (
-        from io import BytesIO
-
-"""
-PlexiChat Zero-Knowledge Security Admin Routes
-
-Flask routes for managing zero-knowledge security features through the admin WebUI.
-Provides comprehensive configuration, testing, and monitoring interfaces.
-"""
-
+    Admin,
     AuditEventType,
+    BytesIO,
+    Flask,
     MessageType,
+    PlexiChat,
     PrivacyLevel,
+    Provides,
+    Routes,
+    Security,
+    WebUI.,
+    Zero-Knowledge,
+    """,
+    admin,
+    and,
+    comprehensive,
+    configuration,
+    features,
+    for,
+    from,
+    import,
+    interfaces.,
+    io,
+    managing,
+    monitoring,
+    routes,
+    security,
+    testing,
+    the,
+    through,
+    zero-knowledge,
     zero_knowledge_security,
 )
 

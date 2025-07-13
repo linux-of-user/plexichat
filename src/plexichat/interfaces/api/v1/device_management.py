@@ -1,39 +1,48 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlmodel import Session, func, select
-
-
-
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlmodel import Session, func, select
 
 from plexichat.app.db import get_session
 from plexichat.app.logger_config import logger
 from plexichat.app.models.device_management import (
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
-        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
-        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
-        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
-
-"""
-Device management API for intelligent shard distribution.
-Handles device registration, status reporting, and shard management.
-"""
-
+    API,
     ConnectionType,
+    Device,
     DeviceCapabilityReport,
     DeviceShardAssignment,
     DeviceStatus,
     DeviceType,
+    EnhancedUser,
+    Handles,
     StorageDevice,
+    """,
+    and,
+    device,
+    distribution.,
+    for,
+    from,
+    get_backup_status_monitor,
+    get_current_user,
+    get_optional_current_user,
+    import,
+    intelligent,
+    management,
+    management.,
+    plexichat.app.models.enhanced_models,
+    plexichat.app.services.backup_status_monitor,
+    plexichat.app.utils.auth,
+    plexichat.infrastructure.utils.auth,
+    registration,
+    reporting,
+    shard,
+    status,
 )
+
+
 # Pydantic models for API
 class DeviceRegistrationRequest(BaseModel):
     device_name: str

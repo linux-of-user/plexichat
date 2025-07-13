@@ -1,13 +1,15 @@
 from typing import Optional
 
-
-from ....features.channels.models.channel import ChannelType
-
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from ....core_system.auth.auth_manager import from plexichat.infrastructure.utils.auth import get_current_user
+from ....core_system.auth.auth_manager import (
+    from,
+    get_current_user,
+    import,
+    plexichat.infrastructure.utils.auth,
+)
+from ....features.channels.models.channel import ChannelType
 
 """
 PlexiChat Channel API Endpoints

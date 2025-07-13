@@ -2,36 +2,42 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-    import asyncpg  # type: ignore
-    import aiomysql  # type: ignore
-    import aiosqlite  # type: ignore
-    from .enhanced_abstraction import (  # type: ignore
+import aiomysql  # type: ignore
+import aiosqlite  # type: ignore
+import asyncpg  # type: ignore
 
-"""
-PlexiChat SQL Database Clients
+from .enhanced_abstraction import (  # type: ignore
+    SQL,
+    AbstractDatabaseClient,
+    Clients,
+    Database,
+    DatabaseConfig,
+    DatabaseType,
+    ImportError:,
+    None,
+    PlexiChat,
+    QueryResult,
+    Specialized,
+    """,
+    =,
+    aiomysql,
+    aiosqlite,
+    and,
+    asyncpg,
+    database-specific,
+    databases,
+    different,
+    enhancements.,
+    except,
+    features,
+    for,
+    implementations,
+    optimizations,
+    performance,
+    try:,
+    with,
+)
 
-Specialized implementations for different SQL databases with database-specific
-optimizations, features, and performance enhancements.
-"""
-
-try:
-except ImportError:
-    asyncpg = None
-
-try:
-except ImportError:
-    aiomysql = None
-
-try:
-except ImportError:
-    aiosqlite = None
-
-try:
-        AbstractDatabaseClient,
-        DatabaseConfig,
-        DatabaseType,
-        QueryResult,
-    )
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     ENHANCED_ABSTRACTION_AVAILABLE = False
