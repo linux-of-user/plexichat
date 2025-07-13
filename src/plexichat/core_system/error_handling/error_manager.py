@@ -19,9 +19,23 @@ import uuid
 
 from .context import ErrorContext, ErrorSeverity, ErrorCategory
 from .exceptions import BaseAPIException
-from .enhanced_error_handler import EnhancedErrorHandler
-from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
-from .crash_reporter import CrashReporter
+
+# Import with error handling
+try:
+    from .enhanced_error_handler import EnhancedErrorHandler
+except ImportError:
+    EnhancedErrorHandler = None
+
+try:
+    from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
+except ImportError:
+    CircuitBreaker = None
+    CircuitBreakerConfig = None
+
+try:
+    from .crash_reporter import CrashReporter
+except ImportError:
+    CrashReporter = None
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +106,7 @@ class ErrorManager:
         
         # Error callbacks and handlers
         self.error_callbacks: List[Callable] = []
-        self.severity_handlers: Dict[ErrorSeverity, List[Callable]] = defaultdict(list)
+        self.severity_handlers: Dict[str, List[Callable]] = defaultdict(list)
         
         # Monitoring and alerting
         self.alert_thresholds = self.config.get("alert_thresholds", {})
@@ -157,9 +171,9 @@ class ErrorManager:
             exception=exception,
             severity=severity,
             category=category,
-            component=component,
-            user_id=user_id,
-            request_id=request_id,
+            component=component or "unknown",
+            user_id=user_id or "anonymous",
+            request_id=request_id or "no-request",
             context=context or {},
             stack_trace=traceback.format_exc()
         )
@@ -387,7 +401,8 @@ class ErrorManager:
     
     def _handle_severity_actions(self, error_context: ErrorContext):
         """Handle severity-specific actions."""
-        handlers = self.severity_handlers.get(error_context.severity, [])
+        severity_key = error_context.severity.value if hasattr(error_context.severity, 'value') else str(error_context.severity)
+        handlers = self.severity_handlers.get(severity_key, [])
         for handler in handlers:
             try:
                 handler(error_context)

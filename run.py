@@ -380,6 +380,73 @@ def get_system_info():
 # BOOTSTRAP INSTALLER CLASS
 # ============================================================================
 
+class ProgressBar:
+    """
+    Progress bar that redraws in place for clean terminal output.
+    """
+
+    def __init__(self, total: int, width: int = 50, title: str = "Progress"):
+        """Initialize progress bar."""
+        self.total = total
+        self.current = 0
+        self.width = width
+        self.title = title
+        self.start_time = time.time()
+        self.last_update = 0
+
+    def update(self, current: int, message: str = ""):
+        """Update progress bar."""
+        self.current = current
+
+        # Calculate progress
+        if self.total > 0:
+            progress = min(current / self.total, 1.0)
+        else:
+            progress = 0
+
+        # Calculate timing
+        elapsed = time.time() - self.start_time
+        if progress > 0:
+            eta = (elapsed / progress) * (1 - progress)
+        else:
+            eta = 0
+
+        # Build progress bar
+        filled = int(progress * self.width)
+        bar = '#' * filled + '-' * (self.width - filled)
+
+        # Format time
+        def format_time(seconds):
+            if seconds < 60:
+                return f"{seconds:.0f}s"
+            elif seconds < 3600:
+                return f"{seconds//60:.0f}m {seconds%60:.0f}s"
+            else:
+                return f"{seconds//3600:.0f}h {(seconds%3600)//60:.0f}m"
+
+        # Build status line
+        status_line = f"\r{self.title}: [{bar}] {progress*100:.1f}% ({current}/{self.total})"
+
+        if elapsed > 1:  # Only show timing after 1 second
+            status_line += f" | Elapsed: {format_time(elapsed)}"
+            if eta > 1:
+                status_line += f" | ETA: {format_time(eta)}"
+
+        if message:
+            status_line += f" | {message}"
+
+        # Clear line and print
+        print(f"\r{' ' * 100}", end='')  # Clear line
+        print(status_line, end='', flush=True)
+
+        self.last_update = time.time()
+
+    def finish(self, message: str = "Complete"):
+        """Finish progress bar."""
+        self.update(self.total, message)
+        print()  # New line after completion
+
+
 class InteractiveSetupWizard:
     """
     Interactive setup wizard for PlexiChat configuration.
@@ -440,6 +507,13 @@ class InteractiveSetupWizard:
                 'name': 'API Server',
                 'enabled': True,
                 'description': 'RESTful API server for integrations'
+            },
+            'terminal_style': {
+                'name': 'Terminal Style',
+                'options': ['Classic Terminal', 'Split Screen', 'Tabbed Interface', 'Modern Dashboard'],
+                'selected': 1,  # Default to Split Screen
+                'required': True,
+                'description': 'Choose your preferred terminal interface style'
             }
         }
 
@@ -686,7 +760,20 @@ class InteractiveSetupWizard:
         self.features['database_type']['selected'] = db_result
         self.config['database_type'] = self.features['database_type']['options'][db_result]
 
-        # Step 3: Configure optional features
+        # Step 3: Choose terminal style
+        terminal_result = self.show_selection_menu(
+            "Choose Terminal Style",
+            self.features['terminal_style']['options'],
+            self.features['terminal_style']['selected']
+        )
+
+        if terminal_result is None:
+            return False
+
+        self.features['terminal_style']['selected'] = terminal_result
+        self.config['terminal_style'] = self.features['terminal_style']['options'][terminal_result]
+
+        # Step 4: Configure optional features
         if not self.show_features_menu():
             return False
 
@@ -743,6 +830,26 @@ class InteractiveSetupWizard:
                 db_types = ['SQLite (Default)', 'PostgreSQL', 'MySQL', 'MongoDB']
                 self.config['database_type'] = db_types[int(choice) - 1]
                 self.features['database_type']['selected'] = int(choice) - 1
+                break
+            else:
+                print("Invalid choice. Please enter 1-4.")
+
+        # Terminal style
+        print("\nChoose terminal style:")
+        print("1. Classic Terminal - Traditional command line")
+        print("2. Split Screen - Side-by-side panels (recommended)")
+        print("3. Tabbed Interface - Multiple tabs")
+        print("4. Modern Dashboard - Rich UI with widgets")
+
+        while True:
+            choice = input("Enter choice (1-4) [2]: ").strip()
+            if not choice:
+                choice = "2"
+
+            if choice in ['1', '2', '3', '4']:
+                terminal_types = ['Classic Terminal', 'Split Screen', 'Tabbed Interface', 'Modern Dashboard']
+                self.config['terminal_style'] = terminal_types[int(choice) - 1]
+                self.features['terminal_style']['selected'] = int(choice) - 1
                 break
             else:
                 print("Invalid choice. Please enter 1-4.")
@@ -1029,7 +1136,7 @@ class PlexiChatBootstrapper:
             return False
 
     def run_bootstrap(self) -> bool:
-        """Run the bootstrap process - clone source code only."""
+        """Run the bootstrap process - download everything including latest run.py."""
         self.print_bootstrap_banner()
 
         print("[*] Starting PlexiChat bootstrap installation...")
@@ -1039,13 +1146,17 @@ class PlexiChatBootstrapper:
         if not self.check_bootstrap_requirements():
             return False
 
-        # Step 2: Download source code ONLY
+        # Step 2: Download source code
         if not self.clone_or_download_repo():
+            return False
+
+        # Step 3: Download latest run.py and replace current one
+        if not self.update_run_script():
             return False
 
         print("\n" + "=" * 60)
         print("[SUCCESS] Bootstrap completed successfully!")
-        print("\nPlexiChat source code has been downloaded.")
+        print("\nPlexiChat source code and latest run.py have been downloaded.")
         print("\nNext steps:")
         print(f"  1. cd {self.install_dir}")
         print("  2. python run.py setup       # Run interactive setup wizard")
@@ -1056,8 +1167,81 @@ class PlexiChatBootstrapper:
         print("  * Installing dependencies")
         print("  * Setting up SSL certificates")
         print("  * Creating initial configuration")
+        print("\n[INFO] This bootstrap script will now be deleted.")
 
         return True
+
+    def update_run_script(self) -> bool:
+        """Download the latest run.py and replace the current one."""
+        try:
+            print("[*] Downloading latest run.py script...")
+
+            # Download the latest run.py from the cloned repository
+            source_run_py = self.install_dir / "run.py"
+            current_run_py = Path(__file__).absolute()
+
+            if source_run_py.exists():
+                print("[*] Copying latest run.py from repository...")
+
+                # Read the new run.py content
+                with open(source_run_py, 'r', encoding='utf-8') as f:
+                    new_content = f.read()
+
+                # Write to a temporary file first
+                temp_file = current_run_py.parent / "run_new.py"
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
+
+                # Schedule the replacement and deletion
+                self.schedule_self_replacement(temp_file, current_run_py)
+
+                print("[OK] Latest run.py downloaded and ready for replacement")
+                return True
+            else:
+                print("[WARN] Could not find run.py in downloaded repository")
+                print("[INFO] Continuing with current run.py")
+                return True
+
+        except Exception as e:
+            print(f"[WARN] Could not update run.py: {e}")
+            print("[INFO] Continuing with current run.py")
+            return True
+
+    def schedule_self_replacement(self, new_file: Path, old_file: Path):
+        """Schedule replacement of the current script after exit."""
+        try:
+            if IS_WINDOWS:
+                # Windows batch script for replacement
+                batch_content = f"""@echo off
+timeout /t 2 /nobreak >nul
+move "{new_file}" "{old_file}"
+del "%~f0"
+"""
+                batch_file = old_file.parent / "replace_script.bat"
+                with open(batch_file, 'w') as f:
+                    f.write(batch_content)
+
+                # Schedule batch execution
+                import subprocess
+                subprocess.Popen([str(batch_file)], shell=True)
+            else:
+                # Unix shell script for replacement
+                shell_content = f"""#!/bin/bash
+sleep 2
+mv "{new_file}" "{old_file}"
+rm "$0"
+"""
+                shell_file = old_file.parent / "replace_script.sh"
+                with open(shell_file, 'w') as f:
+                    f.write(shell_content)
+
+                # Make executable and schedule
+                os.chmod(shell_file, 0o755)
+                import subprocess
+                subprocess.Popen([str(shell_file)])
+
+        except Exception as e:
+            print(f"[WARN] Could not schedule script replacement: {e}")
 
     def create_initial_config(self):
         """Create initial configuration files."""
@@ -1261,6 +1445,7 @@ def interactive_setup_wizard():
     print("=" * 50)
     print(f"Installation Type: {config.get('installation_type', 'Standard')}")
     print(f"Database Type: {config.get('database_type', 'SQLite (Default)')}")
+    print(f"Terminal Style: {config.get('terminal_style', 'Split Screen')}")
     print(f"AI Features: {'Enabled' if config.get('ai_features', True) else 'Disabled'}")
     print(f"Security Features: {'Enabled' if config.get('security_features', True) else 'Disabled'}")
     print(f"Monitoring: {'Enabled' if config.get('monitoring', True) else 'Disabled'}")
@@ -1889,24 +2074,21 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
 
     failed_packages = []
 
-    # Create progress bar
-    progress = create_progress_bar(len(packages), "Installing packages")
+    # Create progress bar that redraws in place
+    progress = ProgressBar(len(packages), title="Installing packages")
 
-    for package in packages:
-        # Update progress description
-        if hasattr(progress, 'set_description'):
-            progress.set_description(f"Installing {package}")
+    for i, package in enumerate(packages):
+        # Extract package name for display
+        package_name = package.split('>=')[0].split('==')[0].split('[')[0]
 
         success = install_single_package(venv_python, package, use_fallbacks, verbose=False)
         if success:
-            # Don't print individual success messages to avoid cluttering with progress bar
-            pass
+            progress.update(i + 1, f"Installed {package_name}")
         else:
             failed_packages.append(package)
+            progress.update(i + 1, f"Failed {package_name}")
 
-        progress.update(1)
-
-    progress.close()
+    progress.finish("Installation complete")
 
     if failed_packages:
         print(f"\n[WARN]  {len(failed_packages)} packages failed to install:")

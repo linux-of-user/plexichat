@@ -402,47 +402,83 @@ async def initialize_error_handling_system(config: Optional[Dict[str, Any]] = No
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Failed to initialize error handling system: {e}")
+        logger.error(f"Error during error handling system initialization: {e}", exc_info=True)
         return False
 
 async def shutdown_error_handling_system():
     """Gracefully shutdown the error handling system."""
     try:
-        # Shutdown components in reverse order
-        await error_reporter.shutdown()
-        await error_analytics.shutdown()
-        await error_monitor.shutdown()
-        await recovery_manager.shutdown()
-        await crash_reporter.shutdown()
-        await error_manager.shutdown()
-        
+        # Shutdown components in reverse order with error handling
+        components = [
+            ('error_reporter', error_reporter),
+            ('error_analytics', error_analytics),
+            ('error_monitor', error_monitor),
+            ('recovery_manager', recovery_manager),
+            ('crash_reporter', crash_reporter),
+            ('error_manager', error_manager)
+        ]
+
+        for name, component in components:
+            try:
+                if component and hasattr(component, 'shutdown'):
+                    if asyncio.iscoroutinefunction(component.shutdown):
+                        await component.shutdown()
+                    else:
+                        component.shutdown()
+            except Exception as e:
+                print(f"Warning: Failed to shutdown {name}: {e}")
+
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Error during error handling system shutdown: {e}")
+        logger.error(f"Error during error handling system shutdown: {e}")
 
 # Convenience functions for common operations
-def handle_error(exception: Exception, context: Optional[Dict[str, Any]] = None, severity: str = "MEDIUM") -> ErrorContext:
+def handle_error(exception: Exception, context: Optional[Dict[str, Any]] = None, severity: str = "MEDIUM") -> Optional['ErrorContext']:
     """Handle an error with comprehensive logging and recovery."""
-    from .context import ErrorSeverity
-    # Convert string severity to enum
-    severity_map = {
-        "LOW": ErrorSeverity.LOW,
-        "MEDIUM": ErrorSeverity.MEDIUM,
-        "HIGH": ErrorSeverity.HIGH,
-        "CRITICAL": ErrorSeverity.CRITICAL
-    }
-    severity_enum = severity_map.get(severity.upper(), ErrorSeverity.MEDIUM)
-    return error_manager.handle_error(exception, context or {}, severity_enum)
+    try:
+        from .context import ErrorSeverity, ErrorContext
+
+        # Convert string severity to enum
+        severity_map = {
+            "LOW": ErrorSeverity.LOW,
+            "MEDIUM": ErrorSeverity.MEDIUM,
+            "HIGH": ErrorSeverity.HIGH,
+            "CRITICAL": ErrorSeverity.CRITICAL
+        }
+        severity_enum = severity_map.get(severity.upper(), ErrorSeverity.MEDIUM)
+
+        if error_manager:
+            return asyncio.run(error_manager.handle_error(exception, context or {}, severity_enum))
+        else:
+            # Fallback error context
+            return ErrorContext(exception=exception, context_data=context or {})
+    except Exception as e:
+        print(f"Error in handle_error: {e}")
+        return None
 
 def report_crash(exception: Exception, context: Optional[Dict[str, Any]] = None):
     """Report a crash with detailed context."""
-    from .context import ErrorSeverity
-    return crash_reporter.report_crash(exception, ErrorSeverity.CRITICAL, additional_context=context)
+    try:
+        from .context import ErrorSeverity
+        if crash_reporter:
+            return crash_reporter.report_crash(exception, ErrorSeverity.CRITICAL, additional_context=context or {})
+        else:
+            print(f"Crash: {exception}")
+            return None
+    except Exception as e:
+        print(f"Error in report_crash: {e}")
+        return None
 
 def get_error_statistics() -> Dict[str, Any]:
     """Get current error statistics."""
-    return error_monitor.get_statistics()
+    try:
+        if error_monitor:
+            return error_monitor.get_statistics()
+        else:
+            return {"error": "Error monitor not available"}
+    except Exception as e:
+        return {"error": f"Failed to get statistics: {e}"}
 
 def create_circuit_breaker(name: str, config: Optional[Dict[str, Any]] = None) -> CircuitBreaker:
     """Create a circuit breaker with the specified configuration."""
