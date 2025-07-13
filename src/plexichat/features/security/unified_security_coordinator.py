@@ -1,3 +1,18 @@
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+            from app.services.enhanced_ddos_service import enhanced_ddos_service
+            
+            from app.security.advanced_behavioral_analyzer import advanced_behavioral_analyzer
+            
+            from app.security.rate_limiter import RateLimiter
+
+            from app.security.input_sanitizer import InputSanitizer
+
+
 """
 Unified Security Coordinator for PlexiChat
 
@@ -14,12 +29,6 @@ This module coordinates all security systems including:
 
 This coordinator ensures all security systems work together seamlessly.
 """
-
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -289,8 +298,6 @@ class UnifiedSecurityCoordinator:
     async def _check_enhanced_ddos(self, request_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Check enhanced DDoS protection service."""
         try:
-            from app.services.enhanced_ddos_service import enhanced_ddos_service
-            
             ip = request_data.get("client_ip", "unknown")
             endpoint = request_data.get("endpoint", "/")
             method = request_data.get("method", "GET")
@@ -317,8 +324,6 @@ class UnifiedSecurityCoordinator:
     async def _check_behavioral_analysis(self, request_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Check behavioral analysis system."""
         try:
-            from app.security.advanced_behavioral_analyzer import advanced_behavioral_analyzer
-            
             entity_id = request_data.get("client_ip", "unknown")
             assessment = await advanced_behavioral_analyzer.analyze_request_behavior(
                 entity_id, "ip", request_data
@@ -342,8 +347,6 @@ class UnifiedSecurityCoordinator:
     async def _check_rate_limiting(self, request_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Check rate limiting systems."""
         try:
-            from app.security.rate_limiter import RateLimiter
-
             # Try to get existing rate limiter instance
             rate_limiter = RateLimiter()
 
@@ -369,8 +372,6 @@ class UnifiedSecurityCoordinator:
     async def _check_input_validation(self, request_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Check input validation and sanitization."""
         try:
-            from app.security.input_sanitizer import InputSanitizer
-
             sanitizer = InputSanitizer()
 
             # Check various inputs
@@ -448,42 +449,42 @@ class UnifiedSecurityCoordinator:
         """Generate witty security response based on threat level."""
         witty_responses = {
             "ddos_blocked": [
-                "🛡️ Whoa there, speed racer! Our servers aren't running a marathon.",
-                "🚦 Easy does it! Even The Flash takes breaks between requests.",
-                "⏰ Patience, grasshopper. Good things come to those who wait... and don't spam."
+                " Whoa there, speed racer! Our servers aren't running a marathon.",
+                " Easy does it! Even The Flash takes breaks between requests.",
+                " Patience, grasshopper. Good things come to those who wait... and don't spam."
             ],
             "behavioral_threat": [
-                "🤖 Nice try, but our AI spotted your robot dance moves!",
-                "🕵️ Our behavioral analysis says you're acting sus. Time for a timeout!",
-                "🎭 We see through your digital disguise. Take five and try being human."
+                " Nice try, but our AI spotted your robot dance moves!",
+                " Our behavioral analysis says you're acting sus. Time for a timeout!",
+                " We see through your digital disguise. Take five and try being human."
             ],
             "rate_limit_exceeded": [
-                "🐌 Slow down there, Sonic! Even hedgehogs need to pace themselves.",
-                "📊 You've exceeded your request quota. Time to touch some grass!",
-                "⚡ Too much power! Channel your inner zen and try again later."
+                " Slow down there, Sonic! Even hedgehogs need to pace themselves.",
+                " You've exceeded your request quota. Time to touch some grass!",
+                " Too much power! Channel your inner zen and try again later."
             ],
             "input_validation_failed": [
-                "🧹 Your input needs some spring cleaning. Try again with nicer data!",
-                "🚫 That input is about as welcome as a virus at a computer convention.",
-                "🔍 Our scanners found something fishy in your request. Back to the drawing board!"
+                " Your input needs some spring cleaning. Try again with nicer data!",
+                " That input is about as welcome as a virus at a computer convention.",
+                " Our scanners found something fishy in your request. Back to the drawing board!"
             ],
             "security_system_error": [
-                "🔧 Our security systems are having a moment. Please try again later!",
-                "⚠️ Something went wrong in our security checks. Better safe than sorry!",
-                "🛠️ Technical difficulties in the security department. Stand by!"
+                " Our security systems are having a moment. Please try again later!",
+                " Something went wrong in our security checks. Better safe than sorry!",
+                " Technical difficulties in the security department. Stand by!"
             ]
         }
 
         # Escalate wit based on security level
         if security_level >= 9:
             escalated_responses = [
-                "🚨 MAXIMUM SECURITY BREACH DETECTED! You've triggered our ultimate defense!",
-                "🔥 DEFCON 1 ACTIVATED! Your request has been classified as 'extremely suspicious'!",
-                "⚡ CRITICAL THREAT LEVEL! Our AI is now personally offended by your behavior!"
+                " MAXIMUM SECURITY BREACH DETECTED! You've triggered our ultimate defense!",
+                " DEFCON 1 ACTIVATED! Your request has been classified as 'extremely suspicious'!",
+                " CRITICAL THREAT LEVEL! Our AI is now personally offended by your behavior!"
             ]
             return escalated_responses[security_level % len(escalated_responses)]
 
-        responses = witty_responses.get(reason, ["🛡️ Security says no. Try being nicer to our servers!"])
+        responses = witty_responses.get(reason, [" Security says no. Try being nicer to our servers!"])
         return responses[security_level % len(responses)]
 
     def get_system_status(self) -> Dict[str, Any]:
@@ -509,7 +510,8 @@ class UnifiedSecurityCoordinator:
         }
 
     async def update_coordination_policy(self, policy_updates: Dict[str, Any]):
-        """Update coordination policy settings."""
+        """Update coordination policy from plexichat.core.config import settings
+settings."""
         for key, value in policy_updates.items():
             if key in self.coordination_policy:
                 self.coordination_policy[key] = value

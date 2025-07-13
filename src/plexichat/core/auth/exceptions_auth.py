@@ -1,11 +1,12 @@
+from typing import Any, Dict
+
+
+
 """
 PlexiChat Authentication Exceptions
 
 Custom exception classes for authentication and authorization errors.
 """
-
-from typing import Any, Dict
-
 
 class AuthenticationError(Exception):
     """Base authentication error."""

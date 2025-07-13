@@ -1,3 +1,14 @@
+import asyncio
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
+
+
 """
 PlexiChat Service Mesh Manager
 
@@ -10,16 +21,6 @@ Advanced service mesh implementation with:
 - Circuit breaking and fault injection
 - Canary deployments and A/B testing
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +172,8 @@ class ServiceMeshManager:
     
     async def _load_mesh_configuration(self):
         """Load service mesh configuration."""
-        config_file = Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
+        config_file = from pathlib import Path
+Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
         
         if config_file.exists():
             with open(config_file, 'r') as f:

@@ -1,3 +1,23 @@
+from .core.unified_backup_manager import (
+from .core.unified_shard_manager import ShardMetadata, ShardState, ShardType, UnifiedShardManager
+
+from .core.backup_manager import government_backup_manager as legacy_government_backup_manager
+from .core.backup_node_auth import APIKeyStatus, BackupNodeAuthManager, NodePermissionLevel
+from .core.backup_node_client import (
+from .core.backup_node_server import BackupNodeConfig, BackupNodeServer, create_backup_node_server
+from .core.distribution_manager import IntelligentDistributionManager
+from .core.encryption_manager import QuantumEncryptionManager
+from .core.profile_backup import (
+from .core.proxy_manager import DatabaseProxyManager
+from .core.recovery_manager import AdvancedRecoveryManager
+from .core.shard_manager import ImmutableShardManager
+from .core.user_message_backup import BackupDataType, BackupOptStatus, UniversalBackupManager
+from .core.user_preferences import (
+from .plugins.archive_system import ArchiveStatus, ArchiveSystemPlugin, ArchiveType
+
+from .quantum_backup_system import BackupSecurity, QuantumBackup, QuantumBackupSystem, QuantumShard
+from .services import (
+
 """
 PlexiChat Unified Backup System
 
@@ -15,7 +35,6 @@ comprehensive solution that provides:
 """
 
 # Import unified backup system
-from .core.unified_backup_manager import (
     BackupOperation,
     BackupPriority,
     BackupStatus,
@@ -27,15 +46,10 @@ from .core.unified_backup_manager import (
     UnifiedShard,
     get_unified_backup_manager,
 )
-from .core.unified_shard_manager import ShardMetadata, ShardState, ShardType, UnifiedShardManager
-
 # Legacy compatibility - redirect to unified system
 government_backup_manager = get_unified_backup_manager()
 
 # Import legacy managers for backward compatibility (deprecated)
-from .core.backup_manager import government_backup_manager as legacy_government_backup_manager
-from .core.backup_node_auth import APIKeyStatus, BackupNodeAuthManager, NodePermissionLevel
-from .core.backup_node_client import (
     BackupNodeClient,
     BackupNodeInfo,
     BackupNodeManager,
@@ -43,30 +57,17 @@ from .core.backup_node_client import (
     ShardInfo,
     ShardStatus,
 )
-from .core.backup_node_server import BackupNodeConfig, BackupNodeServer, create_backup_node_server
-from .core.distribution_manager import IntelligentDistributionManager
-from .core.encryption_manager import QuantumEncryptionManager
-from .core.profile_backup import (
     ProfileBackupManager,
     ProfileBackupMetadata,
     ProfileRestoreRequest,
     profile_backup_manager,
 )
-from .core.proxy_manager import DatabaseProxyManager
-from .core.recovery_manager import AdvancedRecoveryManager
-from .core.shard_manager import ImmutableShardManager
-from .core.user_message_backup import BackupDataType, BackupOptStatus, UniversalBackupManager
-from .core.user_preferences import (
     BackupOptOutLevel,
     UserBackupPreferences,
     UserPreferencesManager,
     user_preferences_manager,
 )
-from .plugins.archive_system import ArchiveStatus, ArchiveSystemPlugin, ArchiveType
-
 # Import quantum backup system for compatibility
-from .quantum_backup_system import BackupSecurity, QuantumBackup, QuantumBackupSystem, QuantumShard
-from .services import (
     BackupCoverageReport,
     BackupHealthStatus,
     BackupStatusMonitor,

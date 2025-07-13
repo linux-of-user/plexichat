@@ -1,12 +1,13 @@
+from enum import Enum
+from typing import Any, Dict
+
+
 """
 PlexiChat Clustering Core Components
 
 Core clustering system constants and configuration for government-level
 performance optimization and intelligent load distribution.
 """
-
-from enum import Enum
-from typing import Any, Dict
 
 # Clustering System Version
 CLUSTERING_VERSION = "2.0.0"

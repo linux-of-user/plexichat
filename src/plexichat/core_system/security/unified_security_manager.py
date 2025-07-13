@@ -1,3 +1,20 @@
+import asyncio
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+
+            from .unified_auth_manager import (
+            from ...features.security.network_protection import get_network_protection
+            from ..security.input_validation import get_input_validator
+            from .certificate_manager import get_certificate_manager
+            from .unified_auth_manager import get_unified_auth_manager
+
+
 """
 Unified Security Manager
 
@@ -19,16 +36,6 @@ This unified system replaces:
 - Certificate managers
 - Security monitoring systems
 """
-
-import asyncio
-import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -265,7 +272,6 @@ class UnifiedSecurityManager:
                 }
 
             # Create authentication request
-            from .unified_auth_manager import (
                 AuthenticationMethod,
                 AuthenticationRequest,
                 SecurityLevel,
@@ -377,11 +383,6 @@ class UnifiedSecurityManager:
         """Initialize all security component managers."""
         try:
             # Import and initialize our consolidated components
-            from ...features.security.network_protection import get_network_protection
-            from ..security.input_validation import get_input_validator
-            from .certificate_manager import get_certificate_manager
-            from .unified_auth_manager import get_unified_auth_manager
-
             # Initialize components with our consolidated systems
             self.auth_manager = get_unified_auth_manager()
             self.input_validator = get_input_validator()
@@ -394,7 +395,7 @@ class UnifiedSecurityManager:
             await self.network_protection.initialize()
             await self.certificate_manager.initialize()
 
-            logger.info("✅ All consolidated security components initialized")
+            logger.info(" All consolidated security components initialized")
 
         except ImportError as e:
             logger.warning(f"Some security components not available: {e}")

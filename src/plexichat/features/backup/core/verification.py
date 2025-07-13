@@ -1,3 +1,20 @@
+import asyncio
+import hashlib
+import hmac
+import json
+import secrets
+import struct
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+from ....core_system.config import get_config
+from ....core_system.logging import get_logger
+
+
 """
 PlexiChat Backup Verification System
 Comprehensive backup verification, integrity checking, and automated recovery testing
@@ -27,22 +44,6 @@ Performance Features:
 - Predictive failure detection
 - Automated load balancing
 """
-
-import asyncio
-import hashlib
-import hmac
-import json
-import secrets
-import struct
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
-
-from ....core_system.config import get_config
-from ....core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -198,15 +199,16 @@ class ComprehensiveBackupVerifier:
             # Start background monitoring
             self._start_background_tasks()
 
-            logger.info("🔍 Comprehensive Backup Verifier initialized with enhanced security and performance")
+            logger.info(" Comprehensive Backup Verifier initialized with enhanced security and performance")
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize backup verifier: {e}")
+            logger.error(f" Failed to initialize backup verifier: {e}")
             raise
 
     def _load_verification_config(self) -> Dict[str, Any]:
         """
-        Load comprehensive verification configuration with security and performance settings.
+        Load comprehensive verification configuration with security and performance from plexichat.core.config import settings
+settings.
 
         Returns:
             Dict containing all verification configuration parameters
@@ -272,7 +274,7 @@ class ComprehensiveBackupVerifier:
             user_config = self.config.get("backup_verification", {})
             base_config.update(user_config)
         except Exception as e:
-            logger.warning(f"⚠️ Failed to load user verification config: {e}")
+            logger.warning(f" Failed to load user verification config: {e}")
 
         return base_config
 
@@ -292,10 +294,10 @@ class ComprehensiveBackupVerifier:
                 session_key = secrets.token_bytes(32)
                 self.verification_keys[f"session_{level.value}"] = session_key
 
-            logger.debug("🔐 Security keys initialized for verification system")
+            logger.debug(" Security keys initialized for verification system")
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize security keys: {e}")
+            logger.error(f" Failed to initialize security keys: {e}")
             raise
 
     def _start_background_tasks(self) -> None:
@@ -319,10 +321,10 @@ class ComprehensiveBackupVerifier:
             audit_task = asyncio.create_task(self._audit_maintenance_loop())
             self.background_tasks.append(audit_task)
 
-            logger.debug("🔄 Background verification tasks started")
+            logger.debug(" Background verification tasks started")
 
         except Exception as e:
-            logger.error(f"❌ Failed to start background tasks: {e}")
+            logger.error(f" Failed to start background tasks: {e}")
 
     async def _performance_monitoring_loop(self) -> None:
         """Monitor verification system performance."""
@@ -339,7 +341,7 @@ class ComprehensiveBackupVerifier:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Performance monitoring error: {e}")
+                logger.error(f" Performance monitoring error: {e}")
                 await asyncio.sleep(60)
 
     async def _cache_cleanup_loop(self) -> None:
@@ -359,12 +361,12 @@ class ComprehensiveBackupVerifier:
                     del self.verification_cache[key]
 
                 if expired_keys:
-                    logger.debug(f"🧹 Cleaned up {len(expired_keys)} expired cache entries")
+                    logger.debug(f" Cleaned up {len(expired_keys)} expired cache entries")
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Cache cleanup error: {e}")
+                logger.error(f" Cache cleanup error: {e}")
                 await asyncio.sleep(300)
 
     async def _audit_maintenance_loop(self) -> None:
@@ -385,7 +387,7 @@ class ComprehensiveBackupVerifier:
 
                 cleaned_count = original_count - len(self.audit_trail)
                 if cleaned_count > 0:
-                    logger.debug(f"🧹 Cleaned up {cleaned_count} old audit entries")
+                    logger.debug(f" Cleaned up {cleaned_count} old audit entries")
 
                 # Archive security violations if needed
                 await self._archive_security_violations()
@@ -393,7 +395,7 @@ class ComprehensiveBackupVerifier:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Audit maintenance error: {e}")
+                logger.error(f" Audit maintenance error: {e}")
                 await asyncio.sleep(300)
 
     async def verify_backup_integrity(self, backup_id: str,
@@ -425,7 +427,7 @@ class ComprehensiveBackupVerifier:
         if not force_refresh:
             cached_result = self._get_cached_verification(backup_id, "backup")
             if cached_result:
-                logger.debug(f"📋 Using cached verification result for backup: {backup_id}")
+                logger.debug(f" Using cached verification result for backup: {backup_id}")
                 self.verification_stats["verification_cache_hits"] += 1
                 return cached_result
 
@@ -439,7 +441,7 @@ class ComprehensiveBackupVerifier:
             async with self.verification_semaphore:
                 try:
                     level = level or self.verification_config["default_verification_level"]
-                    logger.info(f"🔍 Starting backup verification: {backup_id} (level: {level.value})")
+                    logger.info(f" Starting backup verification: {backup_id} (level: {level.value})")
 
                     # Security check - validate backup access permissions
                     if not await self._validate_backup_access(backup_id):
@@ -494,11 +496,11 @@ class ComprehensiveBackupVerifier:
             # Log audit trail
             await self._log_verification_audit(result)
             
-            logger.info(f"✅ Backup verification completed: {backup_id} - {result.status.value}")
+            logger.info(f" Backup verification completed: {backup_id} - {result.status.value}")
             return result
             
         except Exception as e:
-            logger.error(f"❌ Backup verification failed for {backup_id}: {e}")
+            logger.error(f" Backup verification failed for {backup_id}: {e}")
             result.error_details.append(f"Verification exception: {str(e)}")
             result.verification_time_ms = (time.time() - start_time) * 1000
             return result
@@ -511,7 +513,7 @@ class ComprehensiveBackupVerifier:
         
         try:
             level = level or self.verification_config["default_verification_level"]
-            logger.debug(f"🔍 Verifying shard: {shard_id} (level: {level.value})")
+            logger.debug(f" Verifying shard: {shard_id} (level: {level.value})")
             
             result = VerificationResult(
                 verification_id=verification_id,
@@ -568,7 +570,7 @@ class ComprehensiveBackupVerifier:
             return result
 
         except Exception as e:
-            logger.error(f"❌ Shard verification failed for {shard_id}: {e}")
+            logger.error(f" Shard verification failed for {shard_id}: {e}")
             result.error_details.append(f"Verification exception: {str(e)}")
             result.verification_time_ms = (time.time() - start_time) * 1000
             return result
@@ -579,7 +581,7 @@ class ComprehensiveBackupVerifier:
             report_id = f"integrity_report_{secrets.token_hex(8)}"
             timestamp = datetime.now(timezone.utc)
 
-            logger.info(f"📊 Generating integrity report for scope: {scope}")
+            logger.info(f" Generating integrity report for scope: {scope}")
 
             # Collect verification results based on scope
             relevant_results = []
@@ -641,11 +643,11 @@ class ComprehensiveBackupVerifier:
             if len(self.integrity_reports) > 100:
                 self.integrity_reports = self.integrity_reports[-100:]
 
-            logger.info(f"📊 Integrity report generated: {integrity_score:.1f}% integrity")
+            logger.info(f" Integrity report generated: {integrity_score:.1f}% integrity")
             return report
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate integrity report: {e}")
+            logger.error(f" Failed to generate integrity report: {e}")
             raise
 
     async def perform_recovery_test(self, backup_id: str, test_type: str = "full") -> RecoveryTestResult:
@@ -654,7 +656,7 @@ class ComprehensiveBackupVerifier:
             test_id = f"recovery_test_{secrets.token_hex(8)}"
             start_time = time.time()
 
-            logger.info(f"🧪 Starting recovery test: {backup_id} (type: {test_type})")
+            logger.info(f" Starting recovery test: {backup_id} (type: {test_type})")
 
             result = RecoveryTestResult(
                 test_id=test_id,
@@ -688,11 +690,11 @@ class ComprehensiveBackupVerifier:
             if success:
                 self.verification_stats["recovery_tests_passed"] += 1
 
-            logger.info(f"🧪 Recovery test completed: {backup_id} - {'PASSED' if success else 'FAILED'}")
+            logger.info(f" Recovery test completed: {backup_id} - {'PASSED' if success else 'FAILED'}")
             return result
 
         except Exception as e:
-            logger.error(f"❌ Recovery test failed for {backup_id}: {e}")
+            logger.error(f" Recovery test failed for {backup_id}: {e}")
             result.issues_found.append(f"Test exception: {str(e)}")
             result.recovery_time_seconds = time.time() - start_time
             return result
@@ -707,16 +709,16 @@ class ComprehensiveBackupVerifier:
             schedule_key = f"{target_type}:{target_id}"
             self.verification_schedule[schedule_key] = next_verification
 
-            logger.info(f"📅 Scheduled verification for {schedule_key} at {next_verification}")
+            logger.info(f" Scheduled verification for {schedule_key} at {next_verification}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to schedule verification for {target_id}: {e}")
+            logger.error(f" Failed to schedule verification for {target_id}: {e}")
             return False
 
     async def run_verification_scheduler(self) -> None:
         """Run the automatic verification scheduler."""
-        logger.info("🔄 Starting verification scheduler")
+        logger.info(" Starting verification scheduler")
 
         while True:
             try:
@@ -743,7 +745,7 @@ class ComprehensiveBackupVerifier:
                         self.verification_schedule[schedule_key] = current_time + timedelta(hours=interval)
 
                     except Exception as e:
-                        logger.error(f"❌ Failed to process scheduled verification {schedule_key}: {e}")
+                        logger.error(f" Failed to process scheduled verification {schedule_key}: {e}")
                         # Remove failed schedule
                         del self.verification_schedule[schedule_key]
 
@@ -751,7 +753,7 @@ class ComprehensiveBackupVerifier:
                 await asyncio.sleep(3600)  # Check every hour
 
             except Exception as e:
-                logger.error(f"❌ Verification scheduler error: {e}")
+                logger.error(f" Verification scheduler error: {e}")
                 await asyncio.sleep(300)  # Wait 5 minutes on error
 
     # Helper methods for verification operations
@@ -1219,12 +1221,12 @@ class ComprehensiveBackupVerifier:
     async def enable_auto_repair(self) -> None:
         """Enable automatic repair functionality."""
         self.verification_config["auto_repair_enabled"] = True
-        logger.info("🔧 Auto-repair enabled")
+        logger.info(" Auto-repair enabled")
 
     async def disable_auto_repair(self) -> None:
         """Disable automatic repair functionality."""
         self.verification_config["auto_repair_enabled"] = False
-        logger.info("🔧 Auto-repair disabled")
+        logger.info(" Auto-repair disabled")
 
     # Enhanced helper methods with better error handling and security
 
@@ -1246,7 +1248,7 @@ class ComprehensiveBackupVerifier:
             return None
 
         except Exception as e:
-            logger.error(f"❌ Error accessing verification cache: {e}")
+            logger.error(f" Error accessing verification cache: {e}")
             return None
 
     def _cache_verification_result(self, result: VerificationResult) -> None:
@@ -1266,7 +1268,7 @@ class ComprehensiveBackupVerifier:
                     del self.verification_cache[key]
 
         except Exception as e:
-            logger.error(f"❌ Error caching verification result: {e}")
+            logger.error(f" Error caching verification result: {e}")
 
     async def _validate_backup_access(self, backup_id: str) -> bool:
         """Validate access permissions for backup verification."""
@@ -1276,7 +1278,7 @@ class ComprehensiveBackupVerifier:
             return True  # Placeholder - always allow for now
 
         except Exception as e:
-            logger.error(f"❌ Error validating backup access: {e}")
+            logger.error(f" Error validating backup access: {e}")
             return False
 
     async def _update_performance_metrics(self) -> None:
@@ -1303,7 +1305,7 @@ class ComprehensiveBackupVerifier:
                 self._system_start_time = current_time
 
         except Exception as e:
-            logger.error(f"❌ Error updating performance metrics: {e}")
+            logger.error(f" Error updating performance metrics: {e}")
 
     async def _check_performance_alerts(self) -> None:
         """Check for performance issues and generate alerts."""
@@ -1311,12 +1313,12 @@ class ComprehensiveBackupVerifier:
             # Check verification throughput
             throughput = self.verification_stats["verification_throughput_per_hour"]
             if throughput < 10:  # Less than 10 verifications per hour
-                logger.warning(f"⚠️ Low verification throughput: {throughput:.1f}/hour")
+                logger.warning(f" Low verification throughput: {throughput:.1f}/hour")
 
             # Check average verification time
             avg_time = self.verification_stats["average_verification_time_ms"]
             if avg_time > 30000:  # More than 30 seconds
-                logger.warning(f"⚠️ High average verification time: {avg_time:.1f}ms")
+                logger.warning(f" High average verification time: {avg_time:.1f}ms")
 
             # Check failure rate
             total = self.verification_stats["total_verifications"]
@@ -1324,10 +1326,10 @@ class ComprehensiveBackupVerifier:
             if total > 0:
                 failure_rate = failed / total
                 if failure_rate > 0.1:  # More than 10% failure rate
-                    logger.warning(f"⚠️ High verification failure rate: {failure_rate:.1%}")
+                    logger.warning(f" High verification failure rate: {failure_rate:.1%}")
 
         except Exception as e:
-            logger.error(f"❌ Error checking performance alerts: {e}")
+            logger.error(f" Error checking performance alerts: {e}")
 
     async def _archive_security_violations(self) -> None:
         """Archive old security violations."""
@@ -1341,12 +1343,12 @@ class ComprehensiveBackupVerifier:
                 ]
 
         except Exception as e:
-            logger.error(f"❌ Error archiving security violations: {e}")
+            logger.error(f" Error archiving security violations: {e}")
 
     async def shutdown(self) -> None:
         """Gracefully shutdown the verification system."""
         try:
-            logger.info("🛑 Shutting down Comprehensive Backup Verifier")
+            logger.info(" Shutting down Comprehensive Backup Verifier")
 
             # Cancel background tasks
             for task in self.background_tasks:
@@ -1372,10 +1374,10 @@ class ComprehensiveBackupVerifier:
                 total_checks=1
             ))
 
-            logger.info("✅ Comprehensive Backup Verifier shutdown complete")
+            logger.info(" Comprehensive Backup Verifier shutdown complete")
 
         except Exception as e:
-            logger.error(f"❌ Error during verification system shutdown: {e}")
+            logger.error(f" Error during verification system shutdown: {e}")
 
     async def get_system_health(self) -> Dict[str, Any]:
         """Get comprehensive system health information."""
@@ -1411,7 +1413,7 @@ class ComprehensiveBackupVerifier:
             }
 
         except Exception as e:
-            logger.error(f"❌ Error getting system health: {e}")
+            logger.error(f" Error getting system health: {e}")
             return {"system_status": "error", "error": str(e)}
 
     def _calculate_cache_hit_rate(self) -> float:
@@ -1424,5 +1426,5 @@ class ComprehensiveBackupVerifier:
             return (hits / total * 100) if total > 0 else 0.0
 
         except Exception as e:
-            logger.error(f"❌ Error calculating cache hit rate: {e}")
+            logger.error(f" Error calculating cache hit rate: {e}")
             return 0.0

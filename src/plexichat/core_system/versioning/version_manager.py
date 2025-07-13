@@ -1,3 +1,13 @@
+import json
+import logging
+import re
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+
 """
 PlexiChat Advanced Version Management System
 
@@ -13,15 +23,6 @@ Features:
 - Database schema versioning
 - Configuration migration support
 """
-
-import json
-import logging
-import re
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -197,8 +198,10 @@ class VersionManager:
     
     def __init__(self, version_file: Path = None):
         """Initialize version manager."""
-        self.version_file = version_file or Path("version.json")
-        self.changelog_file = Path("CHANGELOG.md")
+        self.version_file = version_file or from pathlib import Path
+Path("version.json")
+        self.changelog_file = from pathlib import Path
+Path("CHANGELOG.md")
         self.current_version: Optional[Version] = None
         self.version_history: List[VersionInfo] = []
         

@@ -1,3 +1,11 @@
+import asyncio
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set
+
+
 """
 PlexiChat Zero-Downtime Database Migration System
 
@@ -9,13 +17,6 @@ Advanced migration system with:
 - Multi-database coordination
 - Real-time validation and monitoring
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -427,7 +428,8 @@ class ZeroDowntimeMigrationManager:
             schema_steps = [step for step in migration.steps if step.phase == MigrationPhase.SCHEMA_CHANGE]
 
             for step in schema_steps:
-                step_start = datetime.now()
+                step_start = from datetime import datetime
+datetime.now()
 
                 # Execute SQL commands
                 for sql_command in step.sql_commands:
@@ -441,7 +443,8 @@ class ZeroDowntimeMigrationManager:
                             raise Exception(f"Validation failed for step: {step.step_id}")
 
                 # Track timing
-                step_duration = (datetime.now() - step_start).total_seconds()
+                step_duration = (from datetime import datetime
+datetime.now() - step_start).total_seconds()
                 execution.step_durations[step.step_id] = step_duration
                 execution.completed_steps.append(step.step_id)
 
@@ -460,7 +463,8 @@ class ZeroDowntimeMigrationManager:
             data_steps = [step for step in migration.steps if step.phase == MigrationPhase.DATA_MIGRATION]
 
             for step in data_steps:
-                step_start = datetime.now()
+                step_start = from datetime import datetime
+datetime.now()
 
                 # Execute data migration commands
                 for sql_command in step.sql_commands:
@@ -468,7 +472,8 @@ class ZeroDowntimeMigrationManager:
                     execution.data_migrated_rows += rows_affected
 
                 # Track timing
-                step_duration = (datetime.now() - step_start).total_seconds()
+                step_duration = (from datetime import datetime
+datetime.now() - step_start).total_seconds()
                 execution.step_durations[step.step_id] = step_duration
                 execution.completed_steps.append(step.step_id)
 

@@ -1,8 +1,3 @@
-"""
-Advanced recovery and redundancy system for PlexiChat.
-Handles multiple storage location failures with intelligent recovery algorithms.
-"""
-
 import concurrent.futures
 import gzip
 import hashlib
@@ -13,15 +8,22 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlmodel import Session, func, select
 
+
+
+
 from plexichat.app.logger_config import logger
 from plexichat.app.models.device_management import (
+from plexichat.app.models.enhanced_backup import EnhancedBackup, EnhancedBackupShard
+
+"""
+Advanced recovery and redundancy system for PlexiChat.
+Handles multiple storage location failures with intelligent recovery algorithms.
+"""
+
     DeviceShardAssignment,
     DeviceStatus,
     StorageDevice,
 )
-from plexichat.app.models.enhanced_backup import EnhancedBackup, EnhancedBackupShard
-
-
 @dataclass
 class RecoveryPlan:
     """Plan for recovering a backup from available shards."""
@@ -67,7 +69,8 @@ class AdvancedRecoverySystem:
     
     def __init__(self, session: Session):
         self.session = session
-        self.recovery_workspace = Path("secure_backups/recovery")
+        self.recovery_workspace = from pathlib import Path
+Path("secure_backups/recovery")
         self.recovery_workspace.mkdir(parents=True, exist_ok=True)
         
         # Recovery configuration
@@ -254,16 +257,17 @@ class AdvancedRecoverySystem:
     ) -> Dict[str, Any]:
         """Execute fast recovery using parallel downloads and intelligent algorithms."""
         try:
-            logger.info(f"🚀 Starting fast recovery for backup {recovery_plan.backup_id}")
+            logger.info(f" Starting fast recovery for backup {recovery_plan.backup_id}")
             
             if not output_path:
-                output_path = self.recovery_workspace / f"recovered_backup_{recovery_plan.backup_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+                output_path = self.recovery_workspace / f"recovered_backup_{recovery_plan.backup_id}_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
             
             recovery_start_time = datetime.now(timezone.utc)
             shard_recovery_statuses = {}
             
             # Phase 1: Parallel shard download
-            logger.info(f"📥 Phase 1: Downloading {len(recovery_plan.recovery_sources)} shards in parallel")
+            logger.info(f" Phase 1: Downloading {len(recovery_plan.recovery_sources)} shards in parallel")
             
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_concurrent_downloads) as executor:
                 download_futures = {}
@@ -284,9 +288,9 @@ class AdvancedRecoverySystem:
                         shard_data, recovery_status = future.result()
                         downloaded_shards[shard_id] = shard_data
                         shard_recovery_statuses[shard_id] = recovery_status
-                        logger.info(f"✅ Downloaded shard {shard_id}")
+                        logger.info(f" Downloaded shard {shard_id}")
                     except Exception as e:
-                        logger.error(f"❌ Failed to download shard {shard_id}: {e}")
+                        logger.error(f" Failed to download shard {shard_id}: {e}")
                         shard_recovery_statuses[shard_id] = ShardRecoveryStatus(
                             shard_id=shard_id,
                             recovery_attempts=1,
@@ -298,7 +302,7 @@ class AdvancedRecoverySystem:
                         )
             
             # Phase 2: Data reconstruction
-            logger.info(f"🔧 Phase 2: Reconstructing database from {len(downloaded_shards)} shards")
+            logger.info(f" Phase 2: Reconstructing database from {len(downloaded_shards)} shards")
             
             if downloaded_shards:
                 reconstruction_success = await self._reconstruct_database(
@@ -335,10 +339,10 @@ class AdvancedRecoverySystem:
             }
             
             if reconstruction_success:
-                logger.info(f"✅ Fast recovery completed successfully in {total_recovery_time:.1f} seconds")
-                logger.info(f"📁 Recovered database saved to: {output_path}")
+                logger.info(f" Fast recovery completed successfully in {total_recovery_time:.1f} seconds")
+                logger.info(f" Recovered database saved to: {output_path}")
             else:
-                logger.error(f"❌ Fast recovery failed after {total_recovery_time:.1f} seconds")
+                logger.error(f" Fast recovery failed after {total_recovery_time:.1f} seconds")
             
             return recovery_report
             
@@ -446,7 +450,7 @@ class AdvancedRecoverySystem:
     ) -> bool:
         """Reconstruct database from downloaded shards."""
         try:
-            logger.info(f"🔧 Reconstructing database with {len(downloaded_shards)} shards")
+            logger.info(f" Reconstructing database with {len(downloaded_shards)} shards")
             
             # Get shard order information
             shards = self.session.exec(
@@ -482,10 +486,10 @@ class AdvancedRecoverySystem:
             
             # Verify reconstructed database
             if output_path.exists() and output_path.stat().st_size > 0:
-                logger.info(f"✅ Database reconstructed successfully: {output_path.stat().st_size} bytes")
+                logger.info(f" Database reconstructed successfully: {output_path.stat().st_size} bytes")
                 return True
             else:
-                logger.error("❌ Database reconstruction failed: empty or missing file")
+                logger.error(" Database reconstruction failed: empty or missing file")
                 return False
             
         except Exception as e:

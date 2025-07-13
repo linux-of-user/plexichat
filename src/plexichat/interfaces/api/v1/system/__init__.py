@@ -1,3 +1,9 @@
+    from .backup import router as backup_router
+    from .backup_endpoints import router as backup_endpoints_router
+    from .enhanced_backup import router as enhanced_backup_router
+    from .database import router as database_router
+    from .database_setup import router as database_setup_router
+
 """
 PlexiChat API v1 - System Module
 
@@ -5,27 +11,22 @@ System management, backup, database, and administrative features.
 """
 
 try:
-    from .backup import router as backup_router
 except ImportError:
     backup_router = None
 
 try:
-    from .backup_endpoints import router as backup_endpoints_router
 except ImportError:
     backup_endpoints_router = None
 
 try:
-    from .enhanced_backup import router as enhanced_backup_router
 except ImportError:
     enhanced_backup_router = None
 
 try:
-    from .database import router as database_router
 except ImportError:
     database_router = None
 
 try:
-    from .database_setup import router as database_setup_router
 except ImportError:
     database_setup_router = None
 

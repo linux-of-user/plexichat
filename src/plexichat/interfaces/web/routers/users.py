@@ -1,16 +1,19 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session, select
 
-logger = logging.getLogger(__name__)
-# settings import will be added when needed
+
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+
 from plexichat.core.database import engine
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.security import get_password_hash
-from plexichat.interfaces.web.routers.auth import get_current_user
+from plexichat.interfaces.web.routers.auth import from plexichat.infrastructure.utils.auth import get_current_user
 from plexichat.interfaces.web.schemas.user import UserCreate, UserRead, UserUpdate
 
+logger = logging.getLogger(__name__)
+# settings import will be added when needed
 router = APIRouter()
 
 @router.post(
@@ -47,7 +50,7 @@ async def create_user(request: Request, user_data: UserCreate):
     response_model=UserRead,
     responses={404: {"description": "User not found"}, 429: {"description": "Rate limit exceeded"}}
 )
-async def get_user(request: Request, id: int, current_user=Depends(get_current_user)):
+async def get_user(request: Request, id: int, current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     logger.debug(f"User {current_user.id} fetching profile ID {id}")
     with Session(engine) as session:
         user = session.get(User, id)
@@ -62,7 +65,7 @@ async def get_user(request: Request, id: int, current_user=Depends(get_current_u
     response_model=UserRead,
     responses={403: {"description": "Not authorized"}, 400: {"description": "Invalid data"}, 429: {"description": "Rate limit exceeded"}}
 )
-async def update_user(request: Request, id: int, data: UserUpdate, current_user=Depends(get_current_user)):
+async def update_user(request: Request, id: int, data: UserUpdate, current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     if id != current_user.id:
         logger.warning(f"User {current_user.id} unauthorized to update ID {id}")
         raise HTTPException(status_code=403, detail="Not authorized")
@@ -85,7 +88,7 @@ async def update_user(request: Request, id: int, data: UserUpdate, current_user=
     status_code=status.HTTP_204_NO_CONTENT,
     responses={403: {"description": "Not authorized"}, 429: {"description": "Rate limit exceeded"}}
 )
-async def delete_user(request: Request, id: int, current_user=Depends(get_current_user)):
+async def delete_user(request: Request, id: int, current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     if id != current_user.id:
         logger.warning(f"User {current_user.id} unauthorized to delete ID {id}")
         raise HTTPException(status_code=403, detail="Not authorized")

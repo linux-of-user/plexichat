@@ -1,3 +1,16 @@
+import asyncio
+import threading
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, Optional, Set, Tuple
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+
+
 """
 PlexiChat Unified Network Protection System
 
@@ -17,18 +30,6 @@ Features:
 - Real-time monitoring and alerting
 - Integration with unified security architecture
 """
-
-import asyncio
-import threading
-import time
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, Optional, Set, Tuple
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -302,11 +303,11 @@ class ConsolidatedNetworkProtection:
             asyncio.create_task(self._monitoring_task())
             
             self.initialized = True
-            logger.info("✅ Network Protection System initialized successfully")
+            logger.info(" Network Protection System initialized successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Network Protection initialization failed: {e}")
+            logger.error(f" Network Protection initialization failed: {e}")
             return False
     
     def _setup_default_limits(self):
@@ -441,7 +442,7 @@ class ConsolidatedNetworkProtection:
             }
         )
 
-        logger.warning(f"🚨 Rate limit violation: {request.ip_address} - {description}")
+        logger.warning(f" Rate limit violation: {request.ip_address} - {description}")
         return threat
 
     def _record_request(self, request: RateLimitRequest):
@@ -519,13 +520,13 @@ class ConsolidatedNetworkProtection:
 
                 # Log statistics
                 if recent_requests > 0:
-                    logger.info(f"📊 Network Protection Stats: {recent_requests} req/min, "
+                    logger.info(f" Network Protection Stats: {recent_requests} req/min, "
                               f"{len(self.temporary_blocks)} blocked IPs, "
                               f"{blocked_ratio:.2%} block rate")
 
                 # Alert on high block rates
                 if blocked_ratio > 0.1:  # More than 10% blocked
-                    logger.warning(f"⚠️ High block rate detected: {blocked_ratio:.2%}")
+                    logger.warning(f" High block rate detected: {blocked_ratio:.2%}")
 
             except Exception as e:
                 logger.error(f"Monitoring task error: {e}")
@@ -561,7 +562,7 @@ class ConsolidatedNetworkProtection:
         self.blacklisted_ips.discard(ip_address)
         # Remove temporary block if present
         self.temporary_blocks.pop(ip_address, None)
-        logger.info(f"✅ Added {ip_address} to whitelist")
+        logger.info(f" Added {ip_address} to whitelist")
 
     def add_to_blacklist(self, ip_address: str, reason: str = "Manual"):
         """Add IP to blacklist."""
@@ -573,14 +574,14 @@ class ConsolidatedNetworkProtection:
             self.ip_reputation[ip_address].is_blacklisted = True
 
         self.stats["ips_blocked"] += 1
-        logger.warning(f"🚫 Added {ip_address} to blacklist: {reason}")
+        logger.warning(f" Added {ip_address} to blacklist: {reason}")
 
     def remove_from_blacklist(self, ip_address: str):
         """Remove IP from blacklist."""
         self.blacklisted_ips.discard(ip_address)
         if ip_address in self.ip_reputation:
             self.ip_reputation[ip_address].is_blacklisted = False
-        logger.info(f"✅ Removed {ip_address} from blacklist")
+        logger.info(f" Removed {ip_address} from blacklist")
 
 
 # Global instance - SINGLE SOURCE OF TRUTH

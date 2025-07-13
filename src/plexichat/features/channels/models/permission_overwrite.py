@@ -1,18 +1,20 @@
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, Optional
+
+from sqlmodel import Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+from .role import Permissions
+
+
+from sqlalchemy import DateTime, Index
+
 """
 PlexiChat Permission Overwrite Model
 
 Channel-specific permission overrides for roles and users.
 """
-
-from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, Optional
-
-from sqlalchemy import DateTime, Index
-from sqlmodel import Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
-from .role import Permissions
 
 # Initialize snowflake generator for permission overwrites
 overwrite_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=4)

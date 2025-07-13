@@ -1,17 +1,20 @@
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+
+from ....core.logging import get_logger
+from ....core.performance.edge_computing_manager import (
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from ....core.auth import from plexichat.infrastructure.utils.auth import require_admin, require_auth
+
 """
 PlexiChat Edge Nodes Management API
 Advanced edge node management, deployment, and orchestration.
 """
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
-
-from ....core.auth import require_admin, require_auth
-from ....core.logging import get_logger
-from ....core.performance.edge_computing_manager import (
     EdgeNode,
     NodeType,
     get_edge_computing_manager,
@@ -68,7 +71,7 @@ class NodeDeploymentConfig(BaseModel):
 @router.post("/")
 async def create_edge_node(
     node_data: EdgeNodeCreate,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Create and register a new edge node."""
     try:
@@ -99,7 +102,7 @@ async def create_edge_node(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to register edge node")
         
-        logger.info(f"✅ Edge node created: {node_data.node_id} by {current_user.get('username')}")
+        logger.info(f" Edge node created: {node_data.node_id} by {current_user.get('username')}")
         
         return {
             "success": True,
@@ -109,7 +112,7 @@ async def create_edge_node(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to create edge node: {e}")
+        logger.error(f" Failed to create edge node: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/")
@@ -191,7 +194,7 @@ async def list_edge_nodes(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to list edge nodes: {e}")
+        logger.error(f" Failed to list edge nodes: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{node_id}")
@@ -244,14 +247,14 @@ async def get_edge_node(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to get edge node {node_id}: {e}")
+        logger.error(f" Failed to get edge node {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{node_id}")
 async def update_edge_node(
     node_id: str,
     update_data: EdgeNodeUpdate,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Update edge node configuration."""
     try:
@@ -272,7 +275,7 @@ async def update_edge_node(
         if 'latitude' in update_dict or 'longitude' in update_dict or 'region' in update_dict:
             await manager._update_routing_table()
         
-        logger.info(f"✅ Edge node {node_id} updated by {current_user.get('username')}")
+        logger.info(f" Edge node {node_id} updated by {current_user.get('username')}")
         
         return {
             "success": True,
@@ -284,14 +287,14 @@ async def update_edge_node(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to update edge node {node_id}: {e}")
+        logger.error(f" Failed to update edge node {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{node_id}")
 async def remove_edge_node(
     node_id: str,
     force: bool = Query(False, description="Force removal even if node is active"),
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Remove an edge node from the system."""
     try:
@@ -315,7 +318,7 @@ async def remove_edge_node(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to remove edge node")
         
-        logger.info(f"✅ Edge node {node_id} removed by {current_user.get('username')}")
+        logger.info(f" Edge node {node_id} removed by {current_user.get('username')}")
         
         return {
             "success": True,
@@ -326,5 +329,5 @@ async def remove_edge_node(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to remove edge node {node_id}: {e}")
+        logger.error(f" Failed to remove edge node {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))

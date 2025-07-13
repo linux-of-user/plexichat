@@ -1,8 +1,3 @@
-"""
-Performance optimization utilities including caching, connection pooling,
-async optimizations, and monitoring.
-"""
-
 import asyncio
 import functools
 import threading
@@ -12,9 +7,16 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
-import psutil
 from app.logger_config import logger, logging_manager
 
+
+
+import psutil
+
+"""
+Performance optimization utilities including caching, connection pooling,
+async optimizations, and monitoring.
+"""
 
 class PerformanceCache:
     """High-performance in-memory cache with TTL and LRU eviction."""
@@ -38,12 +40,14 @@ class PerformanceCache:
                 return None
             
             # Check expiry
-            if key in self.expiry_times and datetime.now() > self.expiry_times[key]:
+            if key in self.expiry_times and from datetime import datetime
+datetime.now() > self.expiry_times[key]:
                 self._remove_key(key)
                 return None
             
             # Update access time for LRU
-            self.access_times[key] = datetime.now()
+            self.access_times[key] = from datetime import datetime
+datetime.now()
             return self.cache[key]
     
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
@@ -54,13 +58,15 @@ class PerformanceCache:
                 self._evict_lru()
             
             self.cache[key] = value
-            self.access_times[key] = datetime.now()
+            self.access_times[key] = from datetime import datetime
+datetime.now()
             
             # Set expiry
             if ttl is None:
                 ttl = self.default_ttl
             if ttl > 0:
-                self.expiry_times[key] = datetime.now() + timedelta(seconds=ttl)
+                self.expiry_times[key] = from datetime import datetime
+datetime.now() + timedelta(seconds=ttl)
     
     def delete(self, key: str) -> bool:
         """Delete key from cache."""
@@ -85,7 +91,8 @@ class PerformanceCache:
                 'max_size': self.max_size,
                 'hit_rate': getattr(self, '_hit_rate', 0.0),
                 'expired_keys': len([k for k, exp in self.expiry_times.items() 
-                                   if datetime.now() > exp])
+                                   if from datetime import datetime
+datetime.now() > exp])
             }
     
     def _remove_key(self, key: str) -> None:
@@ -108,7 +115,8 @@ class PerformanceCache:
             try:
                 time.sleep(60)  # Check every minute
                 with self.lock:
-                    now = datetime.now()
+                    now = from datetime import datetime
+datetime.now()
                     expired_keys = [k for k, exp in self.expiry_times.items() if now > exp]
                     for key in expired_keys:
                         self._remove_key(key)
@@ -229,7 +237,8 @@ class PerformanceMonitor:
     def record_metric(self, name: str, value: float, timestamp: Optional[datetime] = None):
         """Record a performance metric."""
         if timestamp is None:
-            timestamp = datetime.now()
+            timestamp = from datetime import datetime
+datetime.now()
         
         with self.lock:
             self.metrics[name].append({
@@ -293,20 +302,24 @@ class PerformanceMonitor:
         while True:
             try:
                 # CPU usage
-                cpu_percent = psutil.cpu_percent(interval=1)
+                cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
                 self.record_metric('system.cpu_percent', cpu_percent)
                 
                 # Memory usage
-                memory = psutil.virtual_memory()
+                memory = import psutil
+psutil.virtual_memory()
                 self.record_metric('system.memory_percent', memory.percent)
                 self.record_metric('system.memory_used_gb', memory.used / (1024**3))
                 
                 # Disk usage
-                disk = psutil.disk_usage('/')
+                disk = import psutil
+psutil.disk_usage('/')
                 self.record_metric('system.disk_percent', (disk.used / disk.total) * 100)
                 
                 # Network I/O
-                net_io = psutil.net_io_counters()
+                net_io = import psutil
+psutil.net_io_counters()
                 if net_io:
                     self.record_metric('system.network_bytes_sent', net_io.bytes_sent)
                     self.record_metric('system.network_bytes_recv', net_io.bytes_recv)
@@ -321,11 +334,16 @@ class PerformanceMonitor:
         """Get current system statistics."""
         try:
             return {
-                'cpu_count': psutil.cpu_count(),
-                'memory_total_gb': psutil.virtual_memory().total / (1024**3),
-                'disk_total_gb': psutil.disk_usage('/').total / (1024**3),
-                'boot_time': datetime.fromtimestamp(psutil.boot_time()).isoformat(),
-                'process_count': len(psutil.pids())
+                'cpu_count': import psutil
+psutil.cpu_count(),
+                'memory_total_gb': import psutil
+psutil.virtual_memory().total / (1024**3),
+                'disk_total_gb': import psutil
+psutil.disk_usage('/').total / (1024**3),
+                'boot_time': datetime.fromtimestamp(import psutil
+psutil.boot_time()).isoformat(),
+                'process_count': len(import psutil
+psutil.pids())
             }
         except Exception as e:
             logger.error(f"Error getting system stats: {e}")

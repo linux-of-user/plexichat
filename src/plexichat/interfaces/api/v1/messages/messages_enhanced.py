@@ -1,22 +1,25 @@
-"""
-Enhanced message API with file attachment support and comprehensive permissions.
-Handles message creation, editing, deletion with proper file access validation.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+from sqlmodel import Session, select
+
+
+
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sqlmodel import Session, select
 
 from plexichat.app.db import get_session
 from plexichat.app.models.message import Message, MessageType
 from plexichat.app.models.user import User
 from plexichat.app.services.message_service import MessageService
-from plexichat.app.utils.auth import get_current_user
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
 
+"""
+Enhanced message API with file attachment support and comprehensive permissions.
+Handles message creation, editing, deletion with proper file access validation.
+"""
 
 # Pydantic models for API
 class MessageCreateRequest(BaseModel):
@@ -63,7 +66,8 @@ async def create_message(
     request: MessageCreateRequest,
     http_request: Request,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> MessageResponse:
     """Create a new message with optional file attachments."""
     message_service = MessageService(session)
@@ -108,7 +112,8 @@ async def get_message(
     message_id: int,
     http_request: Request,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> MessageResponse:
     """Get a message with file access validation."""
     message = session.get(Message, message_id)
@@ -165,7 +170,8 @@ async def update_message(
     request: MessageUpdateRequest,
     http_request: Request,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> MessageResponse:
     """Update a message, including file attachments."""
     message_service = MessageService(session)
@@ -206,7 +212,8 @@ async def delete_message(
     message_id: int,
     hard_delete: bool = Query(False),
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Delete a message (soft delete by default)."""
     message_service = MessageService(session)
@@ -234,7 +241,8 @@ async def validate_message_file_access(
     message_id: int,
     http_request: Request,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """Validate user's access to all files in a message."""
     message_service = MessageService(session)
@@ -256,7 +264,8 @@ async def list_messages(
     offset: int = Query(0, ge=0),
     include_deleted: bool = Query(False),
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[MessageResponse]:
     """List messages with optional filtering."""
     # Build query

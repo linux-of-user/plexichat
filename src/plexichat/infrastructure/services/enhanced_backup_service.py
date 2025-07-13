@@ -1,8 +1,3 @@
-"""
-Enhanced government-level secure backup service.
-Handles automatic database backup, sharding, distribution, and recovery.
-"""
-
 import base64
 import gzip
 import hashlib
@@ -18,8 +13,19 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from sqlmodel import Session, select
 
+
+
+
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_backup import (
+from plexichat.app.models.enhanced_models import EnhancedUser
+from plexichat.app.models.message import Message
+
+"""
+Enhanced government-level secure backup service.
+Handles automatic database backup, sharding, distribution, and recovery.
+"""
+
     BackupNode,
     BackupRecoveryLog,
     BackupStatus,
@@ -31,16 +37,13 @@ from plexichat.app.models.enhanced_backup import (
     ShardStatus,
     UserBackupQuota,
 )
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.models.message import Message
-
-
 class EnhancedBackupService:
     """Government-level secure backup service with automatic distribution."""
     
     def __init__(self, session: Session):
         self.session = session
-        self.backup_dir = Path("secure_backups")
+        self.backup_dir = from pathlib import Path
+Path("secure_backups")
         self.backup_dir.mkdir(exist_ok=True, mode=0o700)  # Secure permissions
         
         # Government security standards

@@ -1,8 +1,3 @@
-"""
-PlexiChat Semantic Search Engine
-Advanced semantic search with vector embeddings and AI-powered relevance
-"""
-
 import asyncio
 import logging
 import time
@@ -12,6 +7,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+
+        import re
+
+
+"""
+PlexiChat Semantic Search Engine
+Advanced semantic search with vector embeddings and AI-powered relevance
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +185,7 @@ class SemanticSearchEngine:
         # Start background indexing
         self.indexing_task = asyncio.create_task(self._indexing_loop())
         
-        logger.info("✅ Semantic Search Engine started")
+        logger.info(" Semantic Search Engine started")
     
     async def stop(self):
         """Stop the semantic search engine."""
@@ -199,7 +202,7 @@ class SemanticSearchEngine:
             except asyncio.CancelledError:
                 pass
         
-        logger.info("✅ Semantic Search Engine stopped")
+        logger.info(" Semantic Search Engine stopped")
     
     async def index_document(self, document: SearchDocument) -> bool:
         """Index a document for search."""
@@ -519,8 +522,6 @@ class SemanticSearchEngine:
     async def _extract_keywords(self, text: str) -> List[str]:
         """Extract keywords from text."""
         # Simple keyword extraction (in production, use NLP libraries)
-        import re
-
         # Remove punctuation and convert to lowercase
         text = re.sub(r'[^\w\s]', '', text.lower())
         

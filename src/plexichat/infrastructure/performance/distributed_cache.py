@@ -1,8 +1,3 @@
-"""
-PlexiChat Distributed Caching System
-Multi-level distributed caching with Redis clustering and intelligent routing
-"""
-
 import asyncio
 import hashlib
 import logging
@@ -15,6 +10,12 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import aioredis
+
+
+"""
+PlexiChat Distributed Caching System
+Multi-level distributed caching with Redis clustering and intelligent routing
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +149,7 @@ class DistributedCacheManager:
         self.health_check_task = asyncio.create_task(self._health_check_loop())
         self.cleanup_task = asyncio.create_task(self._cleanup_loop())
         
-        logger.info("✅ Distributed Cache Manager started")
+        logger.info(" Distributed Cache Manager started")
     
     async def stop(self):
         """Stop the distributed cache manager."""
@@ -168,7 +169,7 @@ class DistributedCacheManager:
             if node.connection:
                 await node.connection.close()
         
-        logger.info("✅ Distributed Cache Manager stopped")
+        logger.info(" Distributed Cache Manager stopped")
     
     async def add_node(self, node: CacheNode) -> bool:
         """Add a cache node to the cluster."""
@@ -191,11 +192,11 @@ class DistributedCacheManager:
             # Rebuild hash ring
             self._rebuild_hash_ring()
             
-            logger.info(f"✅ Added cache node: {node.node_id} ({node.address})")
+            logger.info(f" Added cache node: {node.node_id} ({node.address})")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to add cache node {node.node_id}: {e}")
+            logger.error(f" Failed to add cache node {node.node_id}: {e}")
             return False
     
     async def remove_node(self, node_id: str) -> bool:
@@ -216,11 +217,11 @@ class DistributedCacheManager:
             # Rebuild hash ring
             self._rebuild_hash_ring()
             
-            logger.info(f"✅ Removed cache node: {node_id}")
+            logger.info(f" Removed cache node: {node_id}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to remove cache node {node_id}: {e}")
+            logger.error(f" Failed to remove cache node {node_id}: {e}")
             return False
     
     def _rebuild_hash_ring(self):

@@ -1,3 +1,21 @@
+import json
+import logging
+import statistics
+import threading
+import time
+from collections import defaultdict, deque
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
+
+
+        from ..config import get_config  # type: ignore
+
+import psutil
+
 """
 PlexiChat Performance Monitoring and Logging System
 
@@ -16,21 +34,6 @@ Features:
 - Trend analysis
 - Bottleneck detection
 """
-
-import json
-import logging
-import statistics
-import threading
-import time
-from collections import defaultdict, deque
-from contextlib import contextmanager
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
-
-import psutil
-
 
 @dataclass
 class PerformanceMetric:
@@ -133,7 +136,8 @@ class SystemMonitor:
     """System resource monitoring."""
     
     def __init__(self):
-        self.process = psutil.Process()
+        self.process = import psutil
+psutil.Process()
         self.last_cpu_times = None
         self.last_network_io = None
         self.last_disk_io = None
@@ -145,7 +149,8 @@ class SystemMonitor:
     def get_memory_usage(self) -> Dict[str, float]:
         """Get memory usage information."""
         memory_info = self.process.memory_info()
-        system_memory = psutil.virtual_memory()
+        system_memory = import psutil
+psutil.virtual_memory()
         
         return {
             "rss_mb": memory_info.rss / 1024 / 1024,
@@ -166,13 +171,15 @@ class SystemMonitor:
                 "read_count": disk_io.read_count,
                 "write_count": disk_io.write_count
             }
-        except (psutil.AccessDenied, AttributeError):
+        except (import psutil
+psutil.AccessDenied, AttributeError):
             return {}
     
     def get_network_usage(self) -> Dict[str, float]:
         """Get network I/O statistics."""
         try:
-            network_io = psutil.net_io_counters()
+            network_io = import psutil
+psutil.net_io_counters()
             return {
                 "bytes_sent": network_io.bytes_sent,
                 "bytes_recv": network_io.bytes_recv,
@@ -190,7 +197,8 @@ class SystemMonitor:
         """Get number of open files."""
         try:
             return len(self.process.open_files())
-        except (psutil.AccessDenied, AttributeError):
+        except (import psutil
+psutil.AccessDenied, AttributeError):
             return 0
 
 class PerformanceLogger:
@@ -446,9 +454,9 @@ def get_performance_logger() -> PerformanceLogger:
     """Get the global performance logger instance."""
     global _performance_logger
     if _performance_logger is None:
-        from ..config import get_config  # type: ignore
         config = get_config()
-        log_dir = Path(getattr(config.logging, "directory", "logs")) / "performance"
+        log_dir = from pathlib import Path
+Path(getattr(config.logging, "directory", "logs")) / "performance"
         _performance_logger = PerformanceLogger(log_dir)
     return _performance_logger
 

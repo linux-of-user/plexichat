@@ -1,23 +1,26 @@
-"""
-Database Management API endpoints for PlexiChat.
-Provides database administration, migration, and monitoring capabilities.
-"""
-
 import os
 from datetime import datetime
 from typing import Optional
+
+
+
+
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from plexichat.app.database.database_manager import (
+from plexichat.app.logger_config import logger
+
+"""
+Database Management API endpoints for PlexiChat.
+Provides database administration, migration, and monitoring capabilities.
+"""
+
     DatabaseConfig,
     DatabaseType,
     get_database_manager,
 )
-from plexichat.app.logger_config import logger
-
-
 # Pydantic models for API
 class DatabaseConfigRequest(BaseModel):
     db_type: str
@@ -115,7 +118,8 @@ async def create_database_backup(
         # Add timestamp to backup path if requested
         backup_path = request.backup_path
         if request.include_timestamp:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
             name, ext = os.path.splitext(backup_path)
             backup_path = f"{name}_{timestamp}{ext}"
         
@@ -129,7 +133,8 @@ async def create_database_backup(
             "success": True,
             "message": "Database backup started",
             "backup_path": backup_path,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
         
     except Exception as e:
@@ -165,7 +170,8 @@ async def restore_database_backup(
             "success": True,
             "message": "Database restore started",
             "backup_path": request.backup_path,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.now().isoformat(),
             "warning": "Database will be unavailable during restore process"
         }
         
@@ -213,7 +219,8 @@ async def migrate_database(
         
         # Create backup if requested
         if request.backup_source:
-            backup_path = f"backups/pre_migration_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
+            backup_path = f"backups/pre_migration_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
             os.makedirs(os.path.dirname(backup_path), exist_ok=True)
             await manager.backup_database(backup_path)
         
@@ -226,7 +233,8 @@ async def migrate_database(
             "source_type": manager.config.db_type.value,
             "target_type": target_config.db_type.value,
             "backup_created": request.backup_source,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.now().isoformat(),
             "warning": "Database will be unavailable during migration process"
         }
         
@@ -251,7 +259,8 @@ async def reconnect_database():
             return {
                 "success": True,
                 "message": "Database reconnected successfully",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": from datetime import datetime
+datetime.now().isoformat()
             }
         else:
             raise HTTPException(
@@ -330,7 +339,8 @@ async def delete_database_backup(filename: str, backup_dir: str = "backups"):
         return {
             "success": True,
             "message": f"Backup file deleted: {filename}",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
         
     except HTTPException:
@@ -361,7 +371,8 @@ async def get_database_statistics():
             "connection_response_time_ms": connection_test.get("response_time_ms"),
             "last_test_successful": connection_test.get("success"),
             "engine_info": info.get("engine_info", {}),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
         
         # Add database-specific stats
@@ -428,7 +439,8 @@ async def optimize_database():
             "success": True,
             "message": "Database optimization completed",
             "optimizations": optimization_results,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
         
     except Exception as e:

@@ -1,11 +1,10 @@
-"""
-Enhanced testing API for PlexiChat.
-Provides comprehensive testing capabilities accessible from WebUI and GUI.
-"""
-
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+
+
+
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -14,8 +13,12 @@ from pydantic import BaseModel
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.testing.enhanced_test_suite import enhanced_test_suite
-from plexichat.app.utils.auth import get_current_user, get_optional_current_user
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
 
+"""
+Enhanced testing API for PlexiChat.
+Provides comprehensive testing capabilities accessible from WebUI and GUI.
+"""
 
 # Pydantic models for API
 class TestRunRequest(BaseModel):
@@ -73,7 +76,7 @@ async def run_tests(
 ) -> JSONResponse:
     """Run comprehensive test suite."""
     try:
-        logger.info(f"🧪 Starting test run requested by user {current_user.id if current_user else 'anonymous'}")
+        logger.info(f" Starting test run requested by user {current_user.id if current_user else 'anonymous'}")
         
         # Validate categories
         available_categories = list(enhanced_test_suite.test_categories.keys())
@@ -109,7 +112,8 @@ async def run_tests(
             "estimated_duration_seconds": sum(
                 _get_category_duration(cat) for cat in categories_to_run
             ),
-            "test_run_id": f"test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            "test_run_id": f"test_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
         })
         
     except Exception as e:
@@ -159,7 +163,8 @@ async def get_test_status(
         return {
             "summary": summary,
             "latest_results": latest_results,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": from datetime import datetime
+datetime.now().isoformat()
         }
         
     except Exception as e:
@@ -184,7 +189,8 @@ async def get_latest_results(
         return {
             "results": results,
             "summary": enhanced_test_suite._generate_test_summary(),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
         
     except Exception as e:
@@ -199,7 +205,8 @@ async def list_test_reports(
 ) -> List[Dict[str, Any]]:
     """List available test reports."""
     try:
-        reports_dir = Path("tests/reports")
+        reports_dir = from pathlib import Path
+Path("tests/reports")
         if not reports_dir.exists():
             return []
         
@@ -237,7 +244,8 @@ async def download_test_report(
         if not filename.startswith("enhanced_test_report_") or not filename.endswith(".json"):
             raise HTTPException(status_code=400, detail="Invalid report filename")
         
-        report_file = Path("tests/reports") / filename
+        report_file = from pathlib import Path
+Path("tests/reports") / filename
         
         if not report_file.exists():
             raise HTTPException(status_code=404, detail="Report not found")
@@ -261,7 +269,7 @@ async def run_quick_test(
 ) -> Dict[str, Any]:
     """Run a quick system health test."""
     try:
-        logger.info("🚀 Running quick system health test...")
+        logger.info(" Running quick system health test...")
         
         # Run only essential tests
         essential_categories = ["system", "security", "database"]
@@ -298,7 +306,8 @@ async def run_quick_test(
 
 @router.delete("/results")
 async def clear_test_results(
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Clear all test results (admin only)."""
     try:
@@ -327,7 +336,7 @@ async def _run_tests_background(
 ):
     """Run tests in background task."""
     try:
-        logger.info(f"🔄 Running background tests for categories: {categories}")
+        logger.info(f" Running background tests for categories: {categories}")
         
         # Clear previous results
         enhanced_test_suite.tests.clear()
@@ -338,7 +347,7 @@ async def _run_tests_background(
         if save_report:
             await enhanced_test_suite._save_enhanced_report(report)
         
-        logger.info(f"✅ Background test run completed for user {user_id}")
+        logger.info(f" Background test run completed for user {user_id}")
         
     except Exception as e:
         logger.error(f"Background test run failed: {e}")

@@ -1,10 +1,3 @@
-"""
-PlexiChat WebUI Self-Test Manager
-
-Comprehensive self-test system for WebUI components including security,
-performance, connectivity, database, and API testing.
-"""
-
 import json
 import logging
 import time
@@ -19,6 +12,18 @@ import requests
 from .auth_storage import get_auth_storage
 from .config_manager import get_webui_config
 from .mfa_manager import get_mfa_manager
+
+            import socket
+            
+
+            import psutil
+
+"""
+PlexiChat WebUI Self-Test Manager
+
+Comprehensive self-test system for WebUI components including security,
+performance, connectivity, database, and API testing.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +136,8 @@ class SelfTestManager:
             warning_tests=0,
             skipped_tests=0,
             total_duration=0.0,
-            started_at=datetime.utcnow()
+            started_at=from datetime import datetime
+datetime.utcnow()
         )
         
         # Run tests by category
@@ -147,7 +153,8 @@ class SelfTestManager:
         suite.warning_tests = len([t for t in suite.tests if t.status == TestStatus.WARNING])
         suite.skipped_tests = len([t for t in suite.tests if t.status == TestStatus.SKIPPED])
         suite.total_duration = sum(t.duration for t in suite.tests)
-        suite.completed_at = datetime.utcnow()
+        suite.completed_at = from datetime import datetime
+datetime.utcnow()
         
         # Store results
         self.test_results[suite_id] = suite
@@ -174,7 +181,8 @@ class SelfTestManager:
             warning_tests=0,
             skipped_tests=0,
             total_duration=0.0,
-            started_at=datetime.utcnow()
+            started_at=from datetime import datetime
+datetime.utcnow()
         )
         
         if category in self.test_registry:
@@ -188,7 +196,8 @@ class SelfTestManager:
             suite.skipped_tests = len([t for t in suite.tests if t.status == TestStatus.SKIPPED])
             suite.total_duration = sum(t.duration for t in suite.tests)
         
-        suite.completed_at = datetime.utcnow()
+        suite.completed_at = from datetime import datetime
+datetime.utcnow()
         self.test_results[suite_id] = suite
         
         return suite
@@ -217,7 +226,8 @@ class SelfTestManager:
                     message=result.get('message', ''),
                     details=result.get('details', {}),
                     duration=duration,
-                    timestamp=datetime.utcnow(),
+                    timestamp=from datetime import datetime
+datetime.utcnow(),
                     error=result.get('error')
                 )
                 
@@ -231,7 +241,8 @@ class SelfTestManager:
                     message=f"Test execution failed: {str(e)}",
                     details={},
                     duration=duration,
-                    timestamp=datetime.utcnow(),
+                    timestamp=from datetime import datetime
+datetime.utcnow(),
                     error=str(e)
                 )
             
@@ -387,8 +398,8 @@ class SelfTestManager:
     async def _test_memory_usage(self) -> Dict[str, Any]:
         """Test memory usage."""
         try:
-            import psutil
-            process = psutil.Process()
+            process = import psutil
+psutil.Process()
             memory_info = process.memory_info()
             memory_mb = memory_info.rss / 1024 / 1024
             
@@ -429,8 +440,6 @@ class SelfTestManager:
     async def _test_port_accessibility(self) -> Dict[str, Any]:
         """Test port accessibility."""
         try:
-            import socket
-            
             primary_port = self.config.port_config.primary_port
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
@@ -582,7 +591,8 @@ class SelfTestManager:
     async def _export_test_results(self, suite: TestSuite):
         """Export test results to file."""
         try:
-            results_dir = Path("test_results")
+            results_dir = from pathlib import Path
+Path("test_results")
             results_dir.mkdir(exist_ok=True)
             
             filename = f"test_results_{suite.started_at.strftime('%Y%m%d_%H%M%S')}.json"

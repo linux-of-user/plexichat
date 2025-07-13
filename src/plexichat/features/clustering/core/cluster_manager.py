@@ -1,10 +1,3 @@
-"""
-Advanced Cluster Manager
-
-Sophisticated clustering system that provides tangible performance gains through
-intelligent resource allocation, load distribution, and performance optimization.
-"""
-
 import asyncio
 import json
 import logging
@@ -17,16 +10,40 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import aiosqlite
-import psutil
 
 from . import DEFAULT_CLUSTER_CONFIG, ClusterRole, LoadBalancingStrategy, NodeStatus
 
-# Import enhanced clustering components
-try:
     from ..hybrid_cloud.cloud_orchestrator import hybrid_cloud_orchestrator
     from ..predictive_scaling.ml_scaler import predictive_scaler
     from ..serverless.faas_manager import faas_manager
     from ..service_mesh.mesh_manager import service_mesh_manager
+        from ..specialized import NODE_TYPES
+        from .failover_manager import AutomaticFailoverManager
+        from .load_balancer import SmartLoadBalancer
+        from .node_manager import IntelligentNodeManager
+        from .performance_monitor import RealTimePerformanceMonitor
+        from .task_manager import AdvancedTaskManager
+
+        from ..storage.distributed_storage_manager import DistributedStorageManager
+        from .cluster_update_manager import ClusterUpdateManager
+
+            from ..service_mesh.mesh_manager import ServiceEndpoint
+
+            from ..hybrid_cloud.cloud_orchestrator import (
+                from ..predictive_scaling.ml_scaler import MetricDataPoint, ResourceType
+
+
+import psutil
+
+"""
+Advanced Cluster Manager
+
+Sophisticated clustering system that provides tangible performance gains through
+intelligent resource allocation, load distribution, and performance optimization.
+"""
+
+# Import enhanced clustering components
+try:
     ENHANCED_CLUSTERING_AVAILABLE = True
 except ImportError:
     ENHANCED_CLUSTERING_AVAILABLE = False
@@ -121,7 +138,8 @@ class AdvancedClusterManager:
     def __init__(self, plexichat_app):
         """Initialize the advanced cluster manager."""
         self.plexichat_app = plexichat_app
-        self.cluster_dir = Path("clustering")
+        self.cluster_dir = from pathlib import Path
+Path("clustering")
         self.databases_dir = self.cluster_dir / "databases"
         self.logs_dir = self.cluster_dir / "logs"
         self.config_dir = self.cluster_dir / "config"
@@ -164,13 +182,6 @@ class AdvancedClusterManager:
         await self._initialize_local_node()
         
         # Initialize component managers
-        from ..specialized import NODE_TYPES
-        from .failover_manager import AutomaticFailoverManager
-        from .load_balancer import SmartLoadBalancer
-        from .node_manager import IntelligentNodeManager
-        from .performance_monitor import RealTimePerformanceMonitor
-        from .task_manager import AdvancedTaskManager
-
         self.node_manager = IntelligentNodeManager(self)
         self.load_balancer = SmartLoadBalancer(self)
         self.performance_monitor = RealTimePerformanceMonitor(self)
@@ -192,9 +203,6 @@ class AdvancedClusterManager:
         await self.task_manager.initialize()
 
         # Initialize update and storage managers
-        from ..storage.distributed_storage_manager import DistributedStorageManager
-        from .cluster_update_manager import ClusterUpdateManager
-
         self.update_manager = ClusterUpdateManager(self)
         self.storage_manager = DistributedStorageManager(self)
 
@@ -384,15 +392,18 @@ class AdvancedClusterManager:
     async def _initialize_local_node(self):
         """Initialize the local node and add it to the cluster."""
         # Get system information
-        cpu_cores = psutil.cpu_count()
-        memory_gb = psutil.virtual_memory().total / (1024**3)
-        disk_gb = psutil.disk_usage('/').total / (1024**3)
+        cpu_cores = import psutil
+psutil.cpu_count()
+        memory_gb = import psutil
+psutil.virtual_memory().total / (1024**3)
+        disk_gb = import psutil
+psutil.disk_usage('/').total / (1024**3)
 
         # Get network information
         hostname = socket.gethostname()
         try:
             ip_address = socket.gethostbyname(hostname)
-        except:
+        except Exception:
             ip_address = "127.0.0.1"
 
         # Determine role (first node becomes master)
@@ -430,7 +441,7 @@ class AdvancedClusterManager:
     async def _initialize_specialized_nodes(self):
         """Initialize specialized cluster nodes based on configuration."""
         try:
-            logger.info("🔧 Initializing specialized cluster nodes")
+            logger.info(" Initializing specialized cluster nodes")
 
             # Get specialized node configuration
             specialized_config = self.cluster_config.get("specialized_nodes", {})
@@ -443,10 +454,10 @@ class AdvancedClusterManager:
             if not self.specialized_nodes:
                 await self._create_default_specialized_nodes()
 
-            logger.info(f"✅ Initialized {len(self.specialized_nodes)} specialized nodes")
+            logger.info(f" Initialized {len(self.specialized_nodes)} specialized nodes")
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize specialized nodes: {e}")
+            logger.error(f" Failed to initialize specialized nodes: {e}")
 
     async def _create_specialized_node(self, node_type: str, config: Dict[str, Any]):
         """Create and initialize a specialized node."""
@@ -482,10 +493,10 @@ class AdvancedClusterManager:
                 cluster_node.metadata[f"{node_type}_node"] = True
                 await self._save_node_to_database(cluster_node)
 
-            logger.info(f"✅ Created specialized {node_type} node: {node_id}")
+            logger.info(f" Created specialized {node_type} node: {node_id}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to create specialized {node_type} node: {e}")
+            logger.error(f" Failed to create specialized {node_type} node: {e}")
 
     async def _create_default_specialized_nodes(self):
         """Create default specialized nodes if none configured."""
@@ -500,7 +511,7 @@ class AdvancedClusterManager:
             await self._create_specialized_node("main", default_config)
 
         except Exception as e:
-            logger.error(f"❌ Failed to create default specialized nodes: {e}")
+            logger.error(f" Failed to create default specialized nodes: {e}")
 
     async def get_specialized_node(self, node_type: str) -> Optional[Any]:
         """Get a specialized node by type."""
@@ -537,7 +548,7 @@ class AdvancedClusterManager:
                 return None
 
         except Exception as e:
-            logger.error(f"❌ Failed to route request to specialized node: {e}")
+            logger.error(f" Failed to route request to specialized node: {e}")
             return None
 
     async def _determine_target_node(self, request_type: str, request_data: Dict[str, Any]) -> Optional[Any]:
@@ -577,7 +588,7 @@ class AdvancedClusterManager:
             return await self.get_specialized_node("main")
 
         except Exception as e:
-            logger.error(f"❌ Failed to determine target node: {e}")
+            logger.error(f" Failed to determine target node: {e}")
             return None
 
     async def get_specialized_node_status(self) -> Dict[str, Any]:
@@ -606,13 +617,13 @@ class AdvancedClusterManager:
             return status
 
         except Exception as e:
-            logger.error(f"❌ Failed to get specialized node status: {e}")
+            logger.error(f" Failed to get specialized node status: {e}")
             return {}
 
     async def shutdown_specialized_nodes(self):
         """Shutdown all specialized nodes gracefully."""
         try:
-            logger.info("🛑 Shutting down specialized nodes")
+            logger.info(" Shutting down specialized nodes")
 
             shutdown_tasks = []
             for node_id, node in self.specialized_nodes.items():
@@ -624,15 +635,15 @@ class AdvancedClusterManager:
                 await asyncio.gather(*shutdown_tasks, return_exceptions=True)
 
             self.specialized_nodes.clear()
-            logger.info("✅ All specialized nodes shut down")
+            logger.info(" All specialized nodes shut down")
 
         except Exception as e:
-            logger.error(f"❌ Failed to shutdown specialized nodes: {e}")
+            logger.error(f" Failed to shutdown specialized nodes: {e}")
 
     async def shutdown(self):
         """Gracefully shutdown the cluster manager and all components."""
         try:
-            logger.info("🛑 Shutting down Advanced Cluster Manager")
+            logger.info(" Shutting down Advanced Cluster Manager")
 
             # Update local node status
             if self.local_node_id in self.cluster_nodes:
@@ -675,10 +686,10 @@ class AdvancedClusterManager:
             if hasattr(self, 'db_connection') and self.db_connection:
                 await self.db_connection.close()
 
-            logger.info("✅ Advanced Cluster Manager shutdown complete")
+            logger.info(" Advanced Cluster Manager shutdown complete")
 
         except Exception as e:
-            logger.error(f"❌ Error during cluster manager shutdown: {e}")
+            logger.error(f" Error during cluster manager shutdown: {e}")
             raise
 
     async def _save_node_to_database(self, node: ClusterNode):
@@ -1018,19 +1029,19 @@ class AdvancedClusterManager:
 
             # Initialize hybrid cloud orchestrator
             await hybrid_cloud_orchestrator.initialize()
-            logger.info("✅ Hybrid cloud orchestrator initialized")
+            logger.info(" Hybrid cloud orchestrator initialized")
 
             # Initialize service mesh manager
             await service_mesh_manager.initialize()
-            logger.info("✅ Service mesh manager initialized")
+            logger.info(" Service mesh manager initialized")
 
             # Initialize FaaS manager
             await faas_manager.initialize()
-            logger.info("✅ FaaS manager initialized")
+            logger.info(" FaaS manager initialized")
 
             # Initialize predictive scaler
             await predictive_scaler.initialize()
-            logger.info("✅ Predictive scaler initialized")
+            logger.info(" Predictive scaler initialized")
 
             # Register cluster services with service mesh
             await self._register_cluster_services()
@@ -1041,7 +1052,7 @@ class AdvancedClusterManager:
             # Start enhanced monitoring
             await self._start_enhanced_monitoring()
 
-            logger.info("🚀 Enhanced clustering components initialized successfully!")
+            logger.info(" Enhanced clustering components initialized successfully!")
 
         except Exception as e:
             logger.error(f"Failed to initialize enhanced clustering: {e}")
@@ -1049,8 +1060,6 @@ class AdvancedClusterManager:
     async def _register_cluster_services(self):
         """Register cluster services with service mesh."""
         try:
-            from ..service_mesh.mesh_manager import ServiceEndpoint
-
             # Register core cluster services
             services = [
                 ServiceEndpoint(
@@ -1084,7 +1093,6 @@ class AdvancedClusterManager:
     async def _setup_hybrid_cloud_cluster(self):
         """Setup hybrid cloud cluster configuration."""
         try:
-            from ..hybrid_cloud.cloud_orchestrator import (
                 CloudProvider,
                 CloudRegion,
                 ComplianceRequirement,
@@ -1147,8 +1155,6 @@ class AdvancedClusterManager:
                 cluster_metrics = await self.get_cluster_metrics()
 
                 # Send metrics to predictive scaler
-                from ..predictive_scaling.ml_scaler import MetricDataPoint, ResourceType
-
                 for node_id, node_metrics in cluster_metrics.get("nodes", {}).items():
                     timestamp = datetime.now(timezone.utc)
 

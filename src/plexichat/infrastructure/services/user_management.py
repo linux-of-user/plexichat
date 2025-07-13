@@ -1,8 +1,3 @@
-"""
-Comprehensive user management service for PlexiChat.
-Handles user profiles, account management, friends, and user operations.
-"""
-
 import hashlib
 import io
 import os
@@ -11,12 +6,23 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import bcrypt
-from fastapi import HTTPException, status
 from PIL import Image
 from sqlmodel import Session, select
 
+
+
+
+from fastapi import HTTPException, status
+
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import (
+from plexichat.app.models.files import FileRecord
+
+"""
+Comprehensive user management service for PlexiChat.
+Handles user profiles, account management, friends, and user operations.
+"""
+
     AccountType,
     BotAccount,
     BotType,
@@ -25,9 +31,6 @@ from plexichat.app.models.enhanced_models import (
     FriendshipStatus,
     UserStatus,
 )
-from plexichat.app.models.files import FileRecord
-
-
 class UserManagementService:
     """Service for comprehensive user management operations."""
     

@@ -1,3 +1,15 @@
+import asyncio
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from ...core.versioning.update_system import UpdateStatus, UpdateSystem, UpdateType
+from ...core.versioning.version_manager import Version
+from .encrypted_communication import EncryptedCommunication, MessageType
+
+
 """
 PlexiChat Cluster Update Manager
 
@@ -9,17 +21,6 @@ Manages coordinated updates across cluster nodes with:
 - Rollback coordination
 - Update status synchronization
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from ...core.versioning.update_system import UpdateStatus, UpdateSystem, UpdateType
-from ...core.versioning.version_manager import Version
-from .encrypted_communication import EncryptedCommunication, MessageType
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +157,8 @@ class ClusterUpdateManager:
         """Plan a cluster-wide update operation."""
         
         # Generate operation ID
-        operation_id = f"cluster_update_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        operation_id = f"cluster_update_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
         # Determine target nodes
         if target_nodes is None:
@@ -200,7 +202,8 @@ class ClusterUpdateManager:
             estimated_minutes = base_time_per_node * 2
         
         operation.estimated_completion = datetime.now(timezone.utc).replace(
-            minute=datetime.now().minute + estimated_minutes
+            minute=from datetime import datetime
+datetime.now().minute + estimated_minutes
         )
         
         # Store operation
@@ -430,9 +433,11 @@ class ClusterUpdateManager:
     async def _monitor_node_update(self, node_id: str, operation: ClusterUpdateOperation) -> bool:
         """Monitor update progress on a node."""
         timeout = 600  # 10 minutes timeout
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
-        while (datetime.now() - start_time).seconds < timeout:
+        while (from datetime import datetime
+datetime.now() - start_time).seconds < timeout:
             try:
                 # Check node status
                 status_response = await self._send_node_message(node_id, {

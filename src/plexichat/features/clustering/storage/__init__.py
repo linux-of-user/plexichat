@@ -1,3 +1,5 @@
+from .distributed_storage_manager import (
+
 """
 PlexiChat Distributed Storage Module
 
@@ -10,7 +12,6 @@ Provides distributed storage capabilities for the clustering system with:
 - Automatic failover and recovery
 """
 
-from .distributed_storage_manager import (
     DataConsistency,
     DistributedStorageManager,
     StorageNode,

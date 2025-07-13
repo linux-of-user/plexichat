@@ -1,16 +1,23 @@
-#!/usr/bin/env python3
-"""
-Enhanced Chat API v2.0.0 - Clean Shutdown Script
-Safely shutdown all running components.
-"""
-
 import os
 import sys
 import time
 from pathlib import Path
 
+
+
+                    from pathlib import Path
+        import glob
+                        import shutil
+    import argparse
+    
+
 import psutil
 
+#!/usr/bin/env python3
+"""
+Enhanced Chat API v2.0.0 - Clean Shutdown Script
+Safely shutdown all running components.
+"""
 
 # Colors for output
 class Colors:
@@ -29,19 +36,19 @@ def print_colored(text: str, color: str = Colors.WHITE):
 
 def print_success(text: str):
     """Print success message."""
-    print_colored(f"✅ {text}", Colors.GREEN)
+    print_colored(f" {text}", Colors.GREEN)
 
 def print_error(text: str):
     """Print error message."""
-    print_colored(f"❌ {text}", Colors.RED)
+    print_colored(f" {text}", Colors.RED)
 
 def print_warning(text: str):
     """Print warning message."""
-    print_colored(f"⚠️  {text}", Colors.YELLOW)
+    print_colored(f"  {text}", Colors.YELLOW)
 
 def print_info(text: str):
     """Print info message."""
-    print_colored(f"ℹ️  {text}", Colors.BLUE)
+    print_colored(f"  {text}", Colors.BLUE)
 
 def print_header(text: str):
     """Print section header."""
@@ -64,7 +71,8 @@ class CleanShutdown:
 
         # Look for processes by name patterns
         
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        for proc in import psutil
+psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
                 cmdline = ' '.join(proc.info['cmdline'] or [])
                 
@@ -82,16 +90,22 @@ class CleanShutdown:
                         'process': proc
                     })
                     
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            except (import psutil
+psutil.NoSuchProcess, import psutil
+psutil.AccessDenied, import psutil
+psutil.ZombieProcess):
                 continue
         
         # Also check processes using our ports
         for port in self.ports_to_check:
             try:
-                for conn in psutil.net_connections():
-                    if conn.laddr.port == port and conn.status == psutil.CONN_LISTEN:
+                for conn in import psutil
+psutil.net_connections():
+                    if conn.laddr.port == port and conn.status == import psutil
+psutil.CONN_LISTEN:
                         try:
-                            proc = psutil.Process(conn.pid)
+                            proc = import psutil
+psutil.Process(conn.pid)
                             cmdline = ' '.join(proc.cmdline())
                             
                             # Add if not already found
@@ -103,7 +117,9 @@ class CleanShutdown:
                                     'process': proc,
                                     'port': port
                                 })
-                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        except (import psutil
+psutil.NoSuchProcess, import psutil
+psutil.AccessDenied):
                             continue
             except Exception:
                 continue
@@ -143,7 +159,8 @@ class CleanShutdown:
                     process.wait(timeout=timeout)
                     print_success(f"Process {pid} terminated gracefully")
                     return True
-                except psutil.TimeoutExpired:
+                except import psutil
+psutil.TimeoutExpired:
                     print_warning(f"Process {pid} didn't respond to SIGTERM, force killing...")
                     
                     # Force kill
@@ -152,17 +169,20 @@ class CleanShutdown:
                         process.wait(timeout=5)
                         print_success(f"Process {pid} force killed")
                         return True
-                    except psutil.TimeoutExpired:
+                    except import psutil
+psutil.TimeoutExpired:
                         print_error(f"Failed to kill process {pid}")
                         return False
             else:
                 print_info(f"Process {pid} already terminated")
                 return True
                 
-        except psutil.NoSuchProcess:
+        except import psutil
+psutil.NoSuchProcess:
             print_info(f"Process {pid} no longer exists")
             return True
-        except psutil.AccessDenied:
+        except import psutil
+psutil.AccessDenied:
             print_error(f"Access denied to process {pid}")
             return False
         except Exception as e:
@@ -199,8 +219,10 @@ class CleanShutdown:
         
         for port in self.ports_to_check:
             try:
-                for conn in psutil.net_connections():
-                    if conn.laddr.port == port and conn.status == psutil.CONN_LISTEN:
+                for conn in import psutil
+psutil.net_connections():
+                    if conn.laddr.port == port and conn.status == import psutil
+psutil.CONN_LISTEN:
                         ports_in_use.append(port)
                         break
             except Exception:
@@ -225,9 +247,10 @@ class CleanShutdown:
         ]
         
         for pid_file in pid_files:
-            if Path(pid_file).exists():
+            if from pathlib import Path
+Path(pid_file).exists():
                 try:
-                    Path(pid_file).unlink()
+Path(pid_file).unlink()
                     print_info(f"Removed PID file: {pid_file}")
                 except Exception as e:
                     print_warning(f"Failed to remove {pid_file}: {e}")
@@ -239,14 +262,12 @@ class CleanShutdown:
             '__pycache__/*'
         ]
         
-        import glob
         for pattern in temp_patterns:
             for file_path in glob.glob(pattern, recursive=True):
                 try:
                     if os.path.isfile(file_path):
                         os.remove(file_path)
                     elif os.path.isdir(file_path):
-                        import shutil
                         shutil.rmtree(file_path)
                 except Exception:
                     pass
@@ -295,8 +316,6 @@ class CleanShutdown:
 
 def main():
     """Main entry point."""
-    import argparse
-    
     parser = argparse.ArgumentParser(
         description="Enhanced Chat API v2.0.0 - Clean Shutdown Script"
     )

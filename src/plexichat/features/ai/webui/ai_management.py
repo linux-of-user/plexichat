@@ -1,22 +1,29 @@
-"""
-AI Management WebUI Components
-Web interface for managing AI providers, models, and monitoring.
-"""
-
 import logging
 from pathlib import Path
 from typing import List
+
+
+from ..core.ai_abstraction_layer import AIAbstractionLayer, AIProvider, ModelCapability, ModelStatus
+
+        from ..core.ai_abstraction_layer import AIModel
+        
+        from ..core.ai_abstraction_layer import AIRequest
+        
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from ..core.ai_abstraction_layer import AIAbstractionLayer, AIProvider, ModelCapability, ModelStatus
+"""
+AI Management WebUI Components
+Web interface for managing AI providers, models, and monitoring.
+"""
 
 logger = logging.getLogger(__name__)
 
 # Initialize templates
-templates_dir = Path(__file__).parent / "templates"
+templates_dir = from pathlib import Path
+Path(__file__).parent / "templates"
 templates_dir.mkdir(exist_ok=True)
 templates = Jinja2Templates(directory=str(templates_dir))
 
@@ -97,8 +104,6 @@ async def add_model_form(
 ):
     """Add new AI model via form."""
     try:
-        from ..core.ai_abstraction_layer import AIModel
-        
         model = AIModel(
             id=model_id,
             name=model_name,
@@ -331,8 +336,6 @@ async def test_ai_request(
 ):
     """Test AI request via form."""
     try:
-        from ..core.ai_abstraction_layer import AIRequest
-        
         ai_request = AIRequest(
             user_id=user_id,
             model_id=model_id,

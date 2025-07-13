@@ -1,8 +1,3 @@
-"""
-PlexiChat Microservices Service Registry
-Manages service discovery, registration, and health monitoring
-"""
-
 import asyncio
 import logging
 import time
@@ -12,6 +7,12 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
+
+
+"""
+PlexiChat Microservices Service Registry
+Manages service discovery, registration, and health monitoring
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +150,7 @@ class ServiceRegistry:
         
         self.running = True
         self.health_check_task = asyncio.create_task(self._health_check_loop())
-        logger.info("✅ Service Registry started")
+        logger.info(" Service Registry started")
     
     async def stop(self):
         """Stop the service registry."""
@@ -160,7 +161,7 @@ class ServiceRegistry:
                 await self.health_check_task
             except asyncio.CancelledError:
                 pass
-        logger.info("✅ Service Registry stopped")
+        logger.info(" Service Registry stopped")
     
     async def register_service(self, service: ServiceEndpoint) -> bool:
         """Register a new service."""
@@ -185,11 +186,11 @@ class ServiceRegistry:
             # Trigger event
             await self._trigger_event("service_registered", service)
             
-            logger.info(f"✅ Registered service: {service.service_name} ({service.service_id})")
+            logger.info(f" Registered service: {service.service_name} ({service.service_id})")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to register service {service.service_id}: {e}")
+            logger.error(f" Failed to register service {service.service_id}: {e}")
             return False
     
     async def deregister_service(self, service_id: str) -> bool:
@@ -215,11 +216,11 @@ class ServiceRegistry:
             # Trigger event
             await self._trigger_event("service_deregistered", service)
             
-            logger.info(f"✅ Deregistered service: {service.service_name} ({service_id})")
+            logger.info(f" Deregistered service: {service.service_name} ({service_id})")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to deregister service {service_id}: {e}")
+            logger.error(f" Failed to deregister service {service_id}: {e}")
             return False
     
     async def discover_services(self, 

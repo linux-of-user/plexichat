@@ -1,25 +1,27 @@
-"""
-Human review service for moderation with comprehensive workflow management.
-Handles assignment, escalation, and reporting for human moderators.
-"""
-
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, func, select
 
+
+
+
 from plexichat.app.logger_config import logger
 from plexichat.app.models.advanced_moderation import (
+from plexichat.app.models.enhanced_models import EnhancedUser
+
+"""
+Human review service for moderation with comprehensive workflow management.
+Handles assignment, escalation, and reporting for human moderators.
+"""
+
     ModerationAction,
     ModerationItem,
     ModerationSeverity,
     ModerationSource,
     ModerationStatus,
 )
-from plexichat.app.models.enhanced_models import EnhancedUser
-
-
 @dataclass
 class ReviewAssignment:
     """Assignment of moderation item to human reviewer."""
@@ -122,7 +124,7 @@ class HumanReviewService:
             
             self.session.commit()
             
-            logger.info(f"📋 Assigned moderation item {item.id} to moderator {assigned_moderator.id}")
+            logger.info(f" Assigned moderation item {item.id} to moderator {assigned_moderator.id}")
             
             # Send notification to moderator
             await self._notify_moderator(assigned_moderator, item, assignment)
@@ -163,7 +165,7 @@ class HumanReviewService:
                 item.escalated_by = moderator_id
                 item.status = ModerationStatus.ESCALATED
                 
-                logger.info(f"🔺 Moderation item {item_id} escalated by moderator {moderator_id}")
+                logger.info(f" Moderation item {item_id} escalated by moderator {moderator_id}")
                 
                 # Assign to senior moderator
                 await self._escalate_to_senior_moderator(item)
@@ -175,7 +177,7 @@ class HumanReviewService:
                 item.status = ModerationStatus.RESOLVED
                 item.resolved_at = datetime.now(timezone.utc)
                 
-                logger.info(f"✅ Moderation item {item_id} resolved by moderator {moderator_id}: {decision.value}")
+                logger.info(f" Moderation item {item_id} resolved by moderator {moderator_id}: {decision.value}")
                 
                 # Execute the moderation action
                 await self._execute_moderation_action(item)
@@ -555,23 +557,23 @@ class HumanReviewService:
     async def _notify_moderator(self, moderator: EnhancedUser, item: ModerationItem, assignment: ReviewAssignment):
         """Send notification to moderator about new assignment."""
         # This would send actual notifications (email, push, etc.)
-        logger.info(f"📧 Notified moderator {moderator.id} about assignment {item.id}")
+        logger.info(f" Notified moderator {moderator.id} about assignment {item.id}")
     
     async def _escalate_to_senior_moderator(self, item: ModerationItem):
         """Escalate item to senior moderator."""
         # This would find and assign to a senior moderator
-        logger.info(f"🔺 Escalating item {item.id} to senior moderator")
+        logger.info(f" Escalating item {item.id} to senior moderator")
     
     async def _execute_moderation_action(self, item: ModerationItem):
         """Execute the final moderation action."""
         # This would actually perform the moderation action
         # (delete content, ban user, etc.)
-        logger.info(f"⚡ Executing moderation action {item.final_action.value} for item {item.id}")
+        logger.info(f" Executing moderation action {item.final_action.value} for item {item.id}")
     
     async def _update_moderator_metrics(self, moderator_id: int, item: ModerationItem):
         """Update performance metrics for moderator."""
         # This would update moderator performance tracking
-        logger.info(f"📊 Updated metrics for moderator {moderator_id}")
+        logger.info(f" Updated metrics for moderator {moderator_id}")
 
 
 def get_human_review_service(session: Session) -> HumanReviewService:

@@ -1,16 +1,18 @@
-"""
-Enhanced Antivirus CLI
-Command-line interface for the enhanced antivirus system.
-"""
-
 import json
 from pathlib import Path
 from typing import List, Optional
+
+
+
 
 from plexichat.core.logging import logger
 from plexichat.features.antivirus.core import ScanType, ThreatLevel
 from plexichat.features.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager
 
+"""
+Enhanced Antivirus CLI
+Command-line interface for the enhanced antivirus system.
+"""
 
 class AntivirusCLI:
     """CLI for enhanced antivirus management."""
@@ -44,21 +46,21 @@ class AntivirusCLI:
         try:
             manager = await self._ensure_manager()
             
-            self.print_colored("🛡️ Enhanced Antivirus System Status", "cyan")
+            self.print_colored(" Enhanced Antivirus System Status", "cyan")
             self.print_colored("=" * 50, "cyan")
             
-            status = "✅ Running" if manager._running else "❌ Stopped"
-            enabled = "✅ Enabled" if manager.config["enabled"] else "❌ Disabled"
+            status = " Running" if manager._running else " Stopped"
+            enabled = " Enabled" if manager.config["enabled"] else " Disabled"
             
             print(f"Status: {status}")
             print(f"Enabled: {enabled}")
-            print(f"Initialized: {'✅ Yes' if manager._initialized else '❌ No'}")
-            print(f"Real-time Scanning: {'✅ On' if manager.config['real_time_scanning'] else '❌ Off'}")
+            print(f"Initialized: {' Yes' if manager._initialized else ' No'}")
+            print(f"Real-time Scanning: {' On' if manager.config['real_time_scanning'] else ' Off'}")
             print(f"Scan Workers: {manager.config['scan_workers']}")
             print(f"Max File Size: {manager.config['max_file_size'] / (1024*1024):.1f} MB")
             
             # Show component status
-            self.print_colored("\n🔧 Components:", "yellow")
+            self.print_colored("\n Components:", "yellow")
             components = {
                 "Hash Scanning": manager.config["hash_scanning"],
                 "Behavioral Analysis": manager.config["behavioral_analysis"],
@@ -69,11 +71,11 @@ class AntivirusCLI:
             }
             
             for component, enabled in components.items():
-                status_icon = "✅" if enabled else "❌"
+                status_icon = "" if enabled else ""
                 print(f"  {status_icon} {component}")
             
         except Exception as e:
-            self.print_colored(f"❌ Failed to get status: {e}", "red")
+            self.print_colored(f" Failed to get status: {e}", "red")
     
     async def show_statistics(self) -> None:
         """Show scan statistics."""
@@ -81,7 +83,7 @@ class AntivirusCLI:
             manager = await self._ensure_manager()
             stats = await manager.get_scan_statistics()
             
-            self.print_colored("📊 Scan Statistics", "cyan")
+            self.print_colored(" Scan Statistics", "cyan")
             self.print_colored("=" * 50, "cyan")
             
             print(f"Total Scans: {stats['total_scans']:,}")
@@ -97,22 +99,23 @@ class AntivirusCLI:
             
             print(f"Average Scan Time: {stats['average_scan_time']:.2f}s")
             
-            self.print_colored("\n🔄 Current Activity:", "yellow")
+            self.print_colored("\n Current Activity:", "yellow")
             print(f"Active Scans: {stats['active_scans']}")
             print(f"Queue Size: {stats['queue_size']}")
             print(f"Quarantine Count: {stats['quarantine_count']}")
             print(f"Monitored Directories: {stats['monitored_directories']}")
             
         except Exception as e:
-            self.print_colored(f"❌ Failed to get statistics: {e}", "red")
+            self.print_colored(f" Failed to get statistics: {e}", "red")
     
     async def scan_file(self, file_path: str, scan_types: List[str] = None) -> None:
         """Scan a file for threats."""
         try:
             manager = await self._ensure_manager()
             
-            if not Path(file_path).exists():
-                self.print_colored(f"❌ File not found: {file_path}", "red")
+            if not from pathlib import Path
+Path(file_path).exists():
+                self.print_colored(f" File not found: {file_path}", "red")
                 return
             
             # Convert scan type strings to enums
@@ -132,21 +135,21 @@ class AntivirusCLI:
                     scan_type_enums.append(type_mapping[scan_type])
             
             if not scan_type_enums:
-                self.print_colored("❌ No valid scan types specified", "red")
+                self.print_colored(" No valid scan types specified", "red")
                 return
             
-            self.print_colored(f"🔍 Scanning file: {file_path}", "cyan")
+            self.print_colored(f" Scanning file: {file_path}", "cyan")
             self.print_colored(f"Scan types: {', '.join(scan_types)}", "cyan")
             
             # Perform scan
             results = await manager.scan_file(file_path, scan_type_enums, priority=2, requester="cli")
             
             if not results:
-                self.print_colored("❌ No scan results returned", "red")
+                self.print_colored(" No scan results returned", "red")
                 return
             
             # Display results
-            self.print_colored(f"\n📋 Scan Results ({len(results)} scans performed):", "yellow")
+            self.print_colored(f"\n Scan Results ({len(results)} scans performed):", "yellow")
             
             overall_threat_level = ThreatLevel.CLEAN
             for result in results:
@@ -156,13 +159,13 @@ class AntivirusCLI:
                 # Color code based on threat level
                 if result.threat_level == ThreatLevel.CLEAN:
                     color = "green"
-                    icon = "✅"
+                    icon = ""
                 elif result.threat_level == ThreatLevel.SUSPICIOUS:
                     color = "yellow"
-                    icon = "⚠️"
+                    icon = ""
                 else:
                     color = "red"
-                    icon = "🚨"
+                    icon = ""
                 
                 self.print_colored(f"\n{icon} {result.scan_type.value}:", color)
                 print(f"   Threat Level: {result.threat_level.value}")
@@ -178,35 +181,36 @@ class AntivirusCLI:
             
             # Overall assessment
             if overall_threat_level == ThreatLevel.CLEAN:
-                self.print_colored("\n✅ Overall Assessment: CLEAN", "green")
+                self.print_colored("\n Overall Assessment: CLEAN", "green")
             elif overall_threat_level == ThreatLevel.SUSPICIOUS:
-                self.print_colored("\n⚠️ Overall Assessment: SUSPICIOUS", "yellow")
+                self.print_colored("\n Overall Assessment: SUSPICIOUS", "yellow")
             else:
-                self.print_colored("\n🚨 Overall Assessment: THREAT DETECTED", "red")
+                self.print_colored("\n Overall Assessment: THREAT DETECTED", "red")
             
         except Exception as e:
-            self.print_colored(f"❌ Scan failed: {e}", "red")
+            self.print_colored(f" Scan failed: {e}", "red")
     
     async def scan_plugin(self, plugin_path: str) -> None:
         """Scan a plugin file."""
         try:
             manager = await self._ensure_manager()
             
-            if not Path(plugin_path).exists():
-                self.print_colored(f"❌ Plugin file not found: {plugin_path}", "red")
+            if not from pathlib import Path
+Path(plugin_path).exists():
+                self.print_colored(f" Plugin file not found: {plugin_path}", "red")
                 return
             
-            self.print_colored(f"🔌 Scanning plugin: {plugin_path}", "cyan")
+            self.print_colored(f" Scanning plugin: {plugin_path}", "cyan")
             
             # Perform plugin scan
             results = await manager.scan_plugin(plugin_path)
             
             if not results:
-                self.print_colored("❌ No scan results returned", "red")
+                self.print_colored(" No scan results returned", "red")
                 return
             
             # Display results (similar to scan_file but with plugin context)
-            self.print_colored(f"\n📋 Plugin Scan Results ({len(results)} scans performed):", "yellow")
+            self.print_colored(f"\n Plugin Scan Results ({len(results)} scans performed):", "yellow")
             
             threat_count = 0
             for result in results:
@@ -216,13 +220,13 @@ class AntivirusCLI:
                 # Color code based on threat level
                 if result.threat_level == ThreatLevel.CLEAN:
                     color = "green"
-                    icon = "✅"
+                    icon = ""
                 elif result.threat_level == ThreatLevel.SUSPICIOUS:
                     color = "yellow"
-                    icon = "⚠️"
+                    icon = ""
                 else:
                     color = "red"
-                    icon = "🚨"
+                    icon = ""
                 
                 self.print_colored(f"\n{icon} {result.scan_type.value}:", color)
                 print(f"   Threat Level: {result.threat_level.value}")
@@ -232,21 +236,21 @@ class AntivirusCLI:
             
             # Plugin assessment
             if threat_count == 0:
-                self.print_colored("\n✅ Plugin Assessment: SAFE TO INSTALL", "green")
+                self.print_colored("\n Plugin Assessment: SAFE TO INSTALL", "green")
             elif threat_count <= 2:
-                self.print_colored(f"\n⚠️ Plugin Assessment: REVIEW REQUIRED ({threat_count} issues)", "yellow")
+                self.print_colored(f"\n Plugin Assessment: REVIEW REQUIRED ({threat_count} issues)", "yellow")
             else:
-                self.print_colored(f"\n🚨 Plugin Assessment: NOT RECOMMENDED ({threat_count} threats)", "red")
+                self.print_colored(f"\n Plugin Assessment: NOT RECOMMENDED ({threat_count} threats)", "red")
             
         except Exception as e:
-            self.print_colored(f"❌ Plugin scan failed: {e}", "red")
+            self.print_colored(f" Plugin scan failed: {e}", "red")
     
     async def scan_url(self, url: str) -> None:
         """Scan a URL for safety."""
         try:
             manager = await self._ensure_manager()
             
-            self.print_colored(f"🌐 Scanning URL: {url}", "cyan")
+            self.print_colored(f" Scanning URL: {url}", "cyan")
             
             # Perform URL scan
             result = await manager.scan_url(url)
@@ -254,15 +258,15 @@ class AntivirusCLI:
             # Display result
             if result.threat_level == ThreatLevel.CLEAN:
                 color = "green"
-                icon = "✅"
+                icon = ""
                 assessment = "SAFE"
             elif result.threat_level == ThreatLevel.SUSPICIOUS:
                 color = "yellow"
-                icon = "⚠️"
+                icon = ""
                 assessment = "SUSPICIOUS"
             else:
                 color = "red"
-                icon = "🚨"
+                icon = ""
                 assessment = "DANGEROUS"
             
             self.print_colored(f"\n{icon} URL Assessment: {assessment}", color)
@@ -278,7 +282,7 @@ class AntivirusCLI:
                 print(f"Details: {json.dumps(result.details, indent=2)}")
             
         except Exception as e:
-            self.print_colored(f"❌ URL scan failed: {e}", "red")
+            self.print_colored(f" URL scan failed: {e}", "red")
     
     async def show_quarantine(self) -> None:
         """Show quarantined files."""
@@ -286,7 +290,7 @@ class AntivirusCLI:
             manager = await self._ensure_manager()
             quarantine_list = await manager.get_quarantine_list()
             
-            self.print_colored("🔒 Quarantined Files", "cyan")
+            self.print_colored(" Quarantined Files", "cyan")
             self.print_colored("=" * 50, "cyan")
             
             if not quarantine_list:
@@ -296,7 +300,7 @@ class AntivirusCLI:
             for entry in quarantine_list:
                 threat_color = "red" if entry["threat_level"] in ["HIGH_RISK", "CRITICAL"] else "yellow"
                 
-                self.print_colored(f"\n🚨 {entry['threat_name']}", threat_color)
+                self.print_colored(f"\n {entry['threat_name']}", threat_color)
                 print(f"   Original Path: {entry['original_path']}")
                 print(f"   File Hash: {entry['file_hash'][:16]}...")
                 print(f"   Threat Level: {entry['threat_level']}")
@@ -308,7 +312,7 @@ class AntivirusCLI:
             self.print_colored(f"\nTotal quarantined files: {len(quarantine_list)}", "yellow")
             
         except Exception as e:
-            self.print_colored(f"❌ Failed to get quarantine list: {e}", "red")
+            self.print_colored(f" Failed to get quarantine list: {e}", "red")
     
     async def restore_quarantine(self, file_hash: str, restore_path: str = None) -> None:
         """Restore a file from quarantine."""
@@ -318,12 +322,12 @@ class AntivirusCLI:
             success = await manager.restore_from_quarantine(file_hash, restore_path)
             
             if success:
-                self.print_colored(f"✅ File restored from quarantine: {file_hash[:16]}...", "green")
+                self.print_colored(f" File restored from quarantine: {file_hash[:16]}...", "green")
             else:
-                self.print_colored("❌ Failed to restore file from quarantine", "red")
+                self.print_colored(" Failed to restore file from quarantine", "red")
             
         except Exception as e:
-            self.print_colored(f"❌ Restore failed: {e}", "red")
+            self.print_colored(f" Restore failed: {e}", "red")
     
     async def delete_quarantine(self, file_hash: str) -> None:
         """Delete a quarantined file permanently."""
@@ -333,34 +337,34 @@ class AntivirusCLI:
             success = await manager.delete_quarantined_file(file_hash)
             
             if success:
-                self.print_colored(f"✅ Quarantined file deleted permanently: {file_hash[:16]}...", "green")
+                self.print_colored(f" Quarantined file deleted permanently: {file_hash[:16]}...", "green")
             else:
-                self.print_colored("❌ Failed to delete quarantined file", "red")
+                self.print_colored(" Failed to delete quarantined file", "red")
             
         except Exception as e:
-            self.print_colored(f"❌ Delete failed: {e}", "red")
+            self.print_colored(f" Delete failed: {e}", "red")
     
     async def update_database(self) -> None:
         """Update threat intelligence database."""
         try:
             manager = await self._ensure_manager()
             
-            self.print_colored("🔄 Updating threat intelligence database...", "cyan")
+            self.print_colored(" Updating threat intelligence database...", "cyan")
             
             success = await manager.update_threat_database()
             
             if success:
-                self.print_colored("✅ Threat database updated successfully", "green")
+                self.print_colored(" Threat database updated successfully", "green")
             else:
-                self.print_colored("❌ Failed to update threat database", "red")
+                self.print_colored(" Failed to update threat database", "red")
             
         except Exception as e:
-            self.print_colored(f"❌ Database update failed: {e}", "red")
+            self.print_colored(f" Database update failed: {e}", "red")
 
 async def handle_antivirus_command(args: List[str]) -> None:
     """Handle antivirus management commands."""
     if not args:
-        print("🛡️ Enhanced Antivirus Commands:")
+        print(" Enhanced Antivirus Commands:")
         print("  status                        - Show system status")
         print("  stats                         - Show scan statistics")
         print("  scan <file_path> [types]      - Scan file")
@@ -400,8 +404,8 @@ async def handle_antivirus_command(args: List[str]) -> None:
         elif command == "update-db":
             await cli.update_database()
         else:
-            print(f"❌ Unknown command or missing arguments: {command}")
+            print(f" Unknown command or missing arguments: {command}")
     
     except Exception as e:
-        print(f"❌ Command failed: {e}")
+        print(f" Command failed: {e}")
         logger.error(f"Antivirus CLI command failed: {e}")

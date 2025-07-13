@@ -1,3 +1,10 @@
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
+
 """
 PlexiChat Business Automation System
 
@@ -8,12 +15,6 @@ WhatsApp Business-like features for automated messaging and business operations:
 - Customer service automation
 - Analytics and insights
 """
-
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ class BusinessHours:
             current_hour = now.hour
             
             return start_hour <= current_hour < end_hour
-        except:
+        except Exception:
             return False
 
 

@@ -1,21 +1,24 @@
-"""
-Enhanced Messaging Service
-Comprehensive messaging service with emoji support, replies, reactions, and resilience features.
-"""
-
 import re
 import unicodedata
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import desc
 from sqlmodel import Session, and_, or_, select
+
+
+
+
+from sqlalchemy import desc
 
 from plexichat.app.db import engine
 from plexichat.app.logger_config import logger
 from plexichat.app.models.guild import Emoji
 from plexichat.app.models.message import Message, MessageReaction, MessageType
 
+"""
+Enhanced Messaging Service
+Comprehensive messaging service with emoji support, replies, reactions, and resilience features.
+"""
 
 class EmojiService:
     """Service for handling emoji operations."""
@@ -32,110 +35,110 @@ class EmojiService:
     
     # Common emoji shortcodes
     EMOJI_SHORTCODES = {
-        ':smile:': '😄',
-        ':grin:': '😁',
-        ':joy:': '😂',
-        ':heart:': '❤️',
-        ':thumbsup:': '👍',
-        ':thumbsdown:': '👎',
-        ':fire:': '🔥',
-        ':star:': '⭐',
-        ':check:': '✅',
-        ':x:': '❌',
-        ':warning:': '⚠️',
-        ':info:': 'ℹ️',
-        ':question:': '❓',
-        ':exclamation:': '❗',
-        ':wave:': '👋',
-        ':clap:': '👏',
-        ':pray:': '🙏',
-        ':rocket:': '🚀',
-        ':tada:': '🎉',
-        ':confetti:': '🎊',
-        ':100:': '💯',
-        ':ok:': '👌',
-        ':peace:': '✌️',
-        ':love:': '💕',
-        ':kiss:': '💋',
-        ':hug:': '🤗',
-        ':thinking:': '🤔',
-        ':shrug:': '🤷',
-        ':facepalm:': '🤦',
-        ':eyes:': '👀',
-        ':brain:': '🧠',
-        ':muscle:': '💪',
-        ':coffee:': '☕',
-        ':pizza:': '🍕',
-        ':beer:': '🍺',
-        ':wine:': '🍷',
-        ':cake:': '🎂',
-        ':gift:': '🎁',
-        ':balloon:': '🎈',
-        ':party:': '🎉',
-        ':music:': '🎵',
-        ':game:': '🎮',
-        ':book:': '📚',
-        ':computer:': '💻',
-        ':phone:': '📱',
-        ':camera:': '📷',
-        ':lock:': '🔒',
-        ':key:': '🔑',
-        ':shield:': '🛡️',
-        ':sword:': '⚔️',
-        ':bow:': '🏹',
-        ':crown:': '👑',
-        ':gem:': '💎',
-        ':money:': '💰',
-        ':coin:': '🪙',
-        ':house:': '🏠',
-        ':car:': '🚗',
-        ':plane:': '✈️',
-        ':ship:': '🚢',
-        ':train:': '🚂',
-        ':bike:': '🚲',
-        ':sun:': '☀️',
-        ':moon:': '🌙',
-        ':star2:': '🌟',
-        ':cloud:': '☁️',
-        ':rain:': '🌧️',
-        ':snow:': '❄️',
-        ':lightning:': '⚡',
-        ':rainbow:': '🌈',
-        ':tree:': '🌳',
-        ':flower:': '🌸',
-        ':rose:': '🌹',
-        ':tulip:': '🌷',
-        ':sunflower:': '🌻',
-        ':cactus:': '🌵',
-        ':palm:': '🌴',
-        ':leaves:': '🍃',
-        ':herb:': '🌿',
-        ':four_leaf_clover:': '🍀',
-        ':mushroom:': '🍄',
-        ':earth:': '🌍',
-        ':globe:': '🌎',
-        ':mountain:': '⛰️',
-        ':volcano:': '🌋',
-        ':desert:': '🏜️',
-        ':beach:': '🏖️',
-        ':island:': '🏝️',
-        ':ocean:': '🌊',
-        ':droplet:': '💧',
-        ':snowflake:': '❄️',
-        ':ice:': '🧊',
-        ':crystal:': '🔮',
-        ':diamond:': '💎',
-        ':ring:': '💍',
-        ':crown2:': '👑',
-        ':trophy:': '🏆',
-        ':medal:': '🏅',
-        ':ribbon:': '🎀',
-        ':gift2:': '🎁',
-        ':balloon2:': '🎈',
-        ':confetti2:': '🎊',
-        ':fireworks:': '🎆',
-        ':sparkler:': '🎇',
-        ':sparkles:': '✨'
+        ':smile:': '',
+        ':grin:': '',
+        ':joy:': '',
+        ':heart:': '',
+        ':thumbsup:': '',
+        ':thumbsdown:': '',
+        ':fire:': '',
+        ':star:': '',
+        ':check:': '',
+        ':x:': '',
+        ':warning:': '',
+        ':info:': '',
+        ':question:': '',
+        ':exclamation:': '',
+        ':wave:': '',
+        ':clap:': '',
+        ':pray:': '',
+        ':rocket:': '',
+        ':tada:': '',
+        ':confetti:': '',
+        ':100:': '',
+        ':ok:': '',
+        ':peace:': '',
+        ':love:': '',
+        ':kiss:': '',
+        ':hug:': '',
+        ':thinking:': '',
+        ':shrug:': '',
+        ':facepalm:': '',
+        ':eyes:': '',
+        ':brain:': '',
+        ':muscle:': '',
+        ':coffee:': '',
+        ':pizza:': '',
+        ':beer:': '',
+        ':wine:': '',
+        ':cake:': '',
+        ':gift:': '',
+        ':balloon:': '',
+        ':party:': '',
+        ':music:': '',
+        ':game:': '',
+        ':book:': '',
+        ':computer:': '',
+        ':phone:': '',
+        ':camera:': '',
+        ':lock:': '',
+        ':key:': '',
+        ':shield:': '',
+        ':sword:': '',
+        ':bow:': '',
+        ':crown:': '',
+        ':gem:': '',
+        ':money:': '',
+        ':coin:': '',
+        ':house:': '',
+        ':car:': '',
+        ':plane:': '',
+        ':ship:': '',
+        ':train:': '',
+        ':bike:': '',
+        ':sun:': '',
+        ':moon:': '',
+        ':star2:': '',
+        ':cloud:': '',
+        ':rain:': '',
+        ':snow:': '',
+        ':lightning:': '',
+        ':rainbow:': '',
+        ':tree:': '',
+        ':flower:': '',
+        ':rose:': '',
+        ':tulip:': '',
+        ':sunflower:': '',
+        ':cactus:': '',
+        ':palm:': '',
+        ':leaves:': '',
+        ':herb:': '',
+        ':four_leaf_clover:': '',
+        ':mushroom:': '',
+        ':earth:': '',
+        ':globe:': '',
+        ':mountain:': '',
+        ':volcano:': '',
+        ':desert:': '',
+        ':beach:': '',
+        ':island:': '',
+        ':ocean:': '',
+        ':droplet:': '',
+        ':snowflake:': '',
+        ':ice:': '',
+        ':crystal:': '',
+        ':diamond:': '',
+        ':ring:': '',
+        ':crown2:': '',
+        ':trophy:': '',
+        ':medal:': '',
+        ':ribbon:': '',
+        ':gift2:': '',
+        ':balloon2:': '',
+        ':confetti2:': '',
+        ':fireworks:': '',
+        ':sparkler:': '',
+        ':sparkles:': ''
     }
     
     @classmethod
@@ -519,7 +522,8 @@ class EnhancedMessagingService:
     async def _check_rate_limit(self, user_id: int, action: str = "message") -> bool:
         """Check if user is within rate limits."""
         try:
-            now = datetime.utcnow()
+            now = from datetime import datetime
+datetime.utcnow()
             key = f"{user_id}_{action}"
             
             if key not in self.rate_limits:
@@ -628,7 +632,8 @@ class EnhancedMessagingService:
 
                 # Update message
                 message.content = processed_content
-                message.edited_timestamp = datetime.utcnow()
+                message.edited_timestamp = from datetime import datetime
+datetime.utcnow()
                 message.is_edited = True
 
                 session.commit()
@@ -656,7 +661,8 @@ class EnhancedMessagingService:
                 if filters.get('guild_id'):
                     query = query.where(Message.guild_id == filters['guild_id'])
                 if filters.get('days'):
-                    since = datetime.utcnow() - timedelta(days=filters['days'])
+                    since = from datetime import datetime
+datetime.utcnow() - timedelta(days=filters['days'])
                     query = query.where(Message.timestamp >= since)
 
                 messages = session.exec(query).all()

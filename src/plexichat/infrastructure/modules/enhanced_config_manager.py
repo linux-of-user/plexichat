@@ -1,8 +1,3 @@
-"""
-PlexiChat Enhanced Module Configuration Manager
-Advanced configuration system with dynamic loading, validation, and hot-reloading
-"""
-
 import asyncio
 import json
 import yaml
@@ -19,6 +14,13 @@ from watchdog.events import FileSystemEventHandler
 
 from ...core_system.logging import get_logger
 from ...core_system.config import get_config
+
+            import shutil
+
+"""
+PlexiChat Enhanced Module Configuration Manager
+Advanced configuration system with dynamic loading, validation, and hot-reloading
+"""
 
 logger = get_logger(__name__)
 
@@ -103,18 +105,21 @@ class ConfigWatcher(FileSystemEventHandler):
     
     def on_modified(self, event):
         if not event.is_directory:
-            asyncio.create_task(self.config_manager._handle_file_change(Path(event.src_path)))
+            asyncio.create_task(self.config_manager._handle_file_change(from pathlib import Path
+Path(event.src_path)))
     
     def on_created(self, event):
         if not event.is_directory:
-            asyncio.create_task(self.config_manager._handle_file_change(Path(event.src_path)))
+            asyncio.create_task(self.config_manager._handle_file_change(from pathlib import Path
+Path(event.src_path)))
 
 
 class EnhancedConfigManager:
     """Enhanced configuration manager with advanced features."""
     
     def __init__(self, config_dir: Optional[Path] = None):
-        self.config_dir = config_dir or Path("config/modules")
+        self.config_dir = config_dir or from pathlib import Path
+Path("config/modules")
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Configuration storage
@@ -633,11 +638,11 @@ class EnhancedConfigManager:
         if not config.file_path:
             return
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_file = self.backup_dir / f"{config.name}_{timestamp}.backup"
 
         try:
-            import shutil
             shutil.copy2(config.file_path, backup_file)
 
             # Cleanup old backups

@@ -1,16 +1,18 @@
-"""
-Comprehensive Social & Friends System for PlexiChat.
-Implements friend requests, friend lists, social features, and peer-to-peer messaging.
-"""
-
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
+
+
+
 from plexichat.app.logger_config import logger
 
+"""
+Comprehensive Social & Friends System for PlexiChat.
+Implements friend requests, friend lists, social features, and peer-to-peer messaging.
+"""
 
 class FriendshipStatus(Enum):
     """Status of friendship between users."""
@@ -76,7 +78,8 @@ class UserProfile:
     
     def __post_init__(self):
         if self.joined_at is None:
-            self.joined_at = datetime.now()
+            self.joined_at = from datetime import datetime
+datetime.now()
         if self.privacy_settings is None:
             self.privacy_settings = {
                 "show_online_status": True,
@@ -99,7 +102,8 @@ class SocialActivity:
     
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.now()
+            self.created_at = from datetime import datetime
+datetime.now()
 
 
 class SocialService:
@@ -114,13 +118,13 @@ class SocialService:
         # Load existing data
         self._load_social_data()
         
-        logger.info("👥 Social service initialized")
+        logger.info(" Social service initialized")
     
     def _load_social_data(self):
         """Load social data from storage."""
         try:
             # In a real implementation, this would load from database
-            logger.info("📂 Loaded social data")
+            logger.info(" Loaded social data")
         except Exception as e:
             logger.error(f"Failed to load social data: {e}")
     
@@ -128,7 +132,7 @@ class SocialService:
         """Save social data to storage."""
         try:
             # In a real implementation, this would save to database
-            logger.info("💾 Saved social data")
+            logger.info(" Saved social data")
         except Exception as e:
             logger.error(f"Failed to save social data: {e}")
     
@@ -159,7 +163,8 @@ class SocialService:
                 if bio is not None:
                     existing_profile.bio = bio
                 if privacy_settings:
-                    existing_profile.privacy_settings.update(privacy_settings)
+                    existing_profile.privacy_from plexichat.core.config import settings
+settings.update(privacy_settings)
                 profile = existing_profile
             else:
                 # Create new profile
@@ -180,7 +185,7 @@ class SocialService:
                 data={"display_name": display_name}
             )
             
-            logger.info(f"👤 Created/updated profile for user {user_id}")
+            logger.info(f" Created/updated profile for user {user_id}")
             return profile
             
         except Exception as e:
@@ -208,7 +213,8 @@ class SocialService:
             old_status = profile.status
             profile.status = status
             profile.status_message = status_message
-            profile.last_seen = datetime.now()
+            profile.last_seen = from datetime import datetime
+datetime.now()
             
             self._save_social_data()
             
@@ -220,7 +226,7 @@ class SocialService:
                     data={"old_status": old_status.value, "new_status": status.value}
                 )
             
-            logger.info(f"📱 Updated status for user {user_id}: {status.value}")
+            logger.info(f" Updated status for user {user_id}: {status.value}")
             return True
             
         except Exception as e:
@@ -245,7 +251,8 @@ class SocialService:
             # Check if recipient allows friend requests
             recipient_profile = self.get_user_profile(recipient_id)
             if (recipient_profile and 
-                not recipient_profile.privacy_settings.get("allow_friend_requests", True)):
+                not recipient_profile.privacy_from plexichat.core.config import settings
+settings.get("allow_friend_requests", True)):
                 raise ValueError("User does not accept friend requests")
             
             friendship_id = self._generate_friendship_id(requester_id, recipient_id)
@@ -266,7 +273,8 @@ class SocialService:
                 requester_id=requester_id,
                 recipient_id=recipient_id,
                 status=FriendshipStatus.PENDING,
-                created_at=datetime.now(),
+                created_at=from datetime import datetime
+datetime.now(),
                 message=message
             )
             
@@ -288,7 +296,7 @@ class SocialService:
                 data={"friendship_id": friendship_id, "message": message}
             )
             
-            logger.info(f"📤 Friend request sent from {requester_id} to {recipient_id}")
+            logger.info(f" Friend request sent from {requester_id} to {recipient_id}")
             return friendship_id
             
         except Exception as e:
@@ -317,13 +325,14 @@ class SocialService:
             if accept:
                 friendship.status = FriendshipStatus.ACCEPTED
                 activity_type = SocialActivityType.FRIEND_ADDED
-                logger.info(f"✅ Friend request accepted: {friendship.requester_id} <-> {friendship.recipient_id}")
+                logger.info(f" Friend request accepted: {friendship.requester_id} <-> {friendship.recipient_id}")
             else:
                 friendship.status = FriendshipStatus.DECLINED
                 activity_type = SocialActivityType.FRIEND_REMOVED
-                logger.info(f"❌ Friend request declined: {friendship.requester_id} -> {friendship.recipient_id}")
+                logger.info(f" Friend request declined: {friendship.requester_id} -> {friendship.recipient_id}")
             
-            friendship.updated_at = datetime.now()
+            friendship.updated_at = from datetime import datetime
+datetime.now()
             self._save_social_data()
             
             # Log activities for both users
@@ -375,7 +384,7 @@ class SocialService:
                 data={"friendship_id": friendship_id}
             )
             
-            logger.info(f"💔 Friendship removed: {user_id} <-> {friend_id}")
+            logger.info(f" Friendship removed: {user_id} <-> {friend_id}")
             return True
             
         except Exception as e:
@@ -408,7 +417,7 @@ class SocialService:
                 target_user_id=blocked_user_id
             )
             
-            logger.info(f"🚫 User {user_id} blocked user {blocked_user_id}")
+            logger.info(f" User {user_id} blocked user {blocked_user_id}")
             return True
             
         except Exception as e:
@@ -439,7 +448,7 @@ class SocialService:
                 target_user_id=blocked_user_id
             )
             
-            logger.info(f"✅ User {user_id} unblocked user {blocked_user_id}")
+            logger.info(f" User {user_id} unblocked user {blocked_user_id}")
             return True
             
         except Exception as e:
@@ -659,7 +668,8 @@ class SocialService:
                 "pending_friend_requests": pending_requests,
                 "total_blocked_users": sum(len(blocked_set) for blocked_set in self.blocked_users.values()),
                 "activity_counts": activity_counts,
-                "last_updated": datetime.now().isoformat()
+                "last_updated": from datetime import datetime
+datetime.now().isoformat()
             }
             
         except Exception as e:

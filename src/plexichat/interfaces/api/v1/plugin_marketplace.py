@@ -1,19 +1,22 @@
+from datetime import datetime, timezone
+from typing import List, Optional
+
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+
+from plexichat.core.auth import from plexichat.infrastructure.utils.auth import get_current_user, require_permissions
+from plexichat.core.logging import get_logger
+from plexichat.services.plugin_marketplace_service import (
+
 """
 Plugin Marketplace API endpoints for PlexiChat.
 Provides comprehensive marketplace functionality including search, installation,
 reviews, and developer tools.
 """
 
-from datetime import datetime, timezone
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-
-from plexichat.core.auth import get_current_user, require_permissions
-from plexichat.core.logging import get_logger
-from plexichat.services.plugin_marketplace_service import (
     PluginCategory,
     PluginRating,
     get_plugin_marketplace_service,
@@ -192,7 +195,7 @@ async def get_plugin_details(plugin_id: str):
 @router.post("/reviews")
 async def add_plugin_review(
     request: PluginReviewRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Add a review for a plugin."""
     try:
@@ -265,7 +268,7 @@ async def get_plugin_reviews(
 @router.post("/publish")
 async def publish_plugin(
     request: PluginPublishRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Publish a new plugin to the marketplace."""
     try:
@@ -297,7 +300,7 @@ async def publish_plugin(
 @router.post("/webhooks")
 async def register_webhook(
     request: WebhookRegisterRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Register a new webhook endpoint."""
     try:
@@ -325,7 +328,7 @@ async def register_webhook(
 
 
 @router.get("/webhooks")
-async def get_webhooks(current_user = Depends(get_current_user)):
+async def get_webhooks(current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Get all registered webhook endpoints."""
     try:
         # Check permissions
@@ -352,7 +355,7 @@ async def get_webhooks(current_user = Depends(get_current_user)):
 async def get_webhook_deliveries(
     endpoint_id: str,
     limit: int = Query(default=50, ge=1, le=200),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get webhook delivery history for an endpoint."""
     try:

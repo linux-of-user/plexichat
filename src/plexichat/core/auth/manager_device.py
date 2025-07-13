@@ -1,11 +1,12 @@
+import logging
+from typing import Any, Dict
+
+
 """
 PlexiChat Device Manager
 
 Device fingerprinting and trusted device management.
 """
-
-import logging
-from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class DeviceManager:
         """Initialize device manager."""
         self.config = config
         self.initialized = True
-        logger.info("✅ Device Manager initialized")
+        logger.info(" Device Manager initialized")
     
     async def is_device_trusted(self, user_id: str, device_info: Dict[str, Any]) -> bool:
         """Check if device is trusted."""
@@ -34,7 +35,7 @@ class DeviceManager:
     
     async def shutdown(self):
         """Shutdown device manager."""
-        logger.info("✅ Device Manager shutdown complete")
+        logger.info(" Device Manager shutdown complete")
 
 
 # Global instance

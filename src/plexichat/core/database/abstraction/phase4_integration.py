@@ -1,8 +1,3 @@
-"""
-PlexiChat Phase IV Database Abstraction Integration
-Coordinates all Phase IV database enhancements into a unified system
-"""
-
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -13,6 +8,12 @@ from ..dao.base_dao import BaseDAO, FilterCriteria
 from ..manager import database_manager
 from ..orm.advanced_orm import AdvancedORM, ORMConfig
 from ..repository.base_repository import BaseRepository, CacheStrategy, RepositoryConfig
+
+
+"""
+PlexiChat Phase IV Database Abstraction Integration
+Coordinates all Phase IV database enhancements into a unified system
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class Phase4DatabaseCoordinator:
             return
         
         start_time = datetime.now(timezone.utc)
-        logger.info("🗄️ Initializing Phase IV Database Abstraction System")
+        logger.info(" Initializing Phase IV Database Abstraction System")
         
         try:
             # 1. Initialize Database Manager
@@ -130,10 +131,10 @@ class Phase4DatabaseCoordinator:
             initialization_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             self.stats["initialization_time"] = initialization_time
             
-            logger.info(f"✅ Phase IV Database Abstraction System initialized in {initialization_time:.2f}s")
+            logger.info(f" Phase IV Database Abstraction System initialized in {initialization_time:.2f}s")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Phase IV database system: {e}")
+            logger.error(f" Failed to initialize Phase IV database system: {e}")
             raise
     
     async def _initialize_database_manager(self):
@@ -142,9 +143,9 @@ class Phase4DatabaseCoordinator:
         # We'll just verify it's working
         status = self.database_manager.get_status()
         if status["initialized"]:
-            logger.info("✅ Database Manager verified")
+            logger.info(" Database Manager verified")
         else:
-            logger.warning("⚠️ Database Manager not initialized")
+            logger.warning(" Database Manager not initialized")
     
     async def _initialize_advanced_orm(self):
         """Initialize advanced ORM layer."""
@@ -160,22 +161,22 @@ class Phase4DatabaseCoordinator:
         self.advanced_orm = AdvancedORM(orm_config)
         await self.advanced_orm.initialize()
         
-        logger.info("✅ Advanced ORM initialized")
+        logger.info(" Advanced ORM initialized")
     
     async def _setup_performance_monitoring(self):
         """Setup database performance monitoring."""
         # Performance monitoring is integrated into individual components
-        logger.info("✅ Performance Monitoring configured")
+        logger.info(" Performance Monitoring configured")
     
     async def _setup_health_monitoring(self):
         """Setup database health monitoring."""
         # Health monitoring will be performed in the monitoring loop
-        logger.info("✅ Health Monitoring configured")
+        logger.info(" Health Monitoring configured")
     
     async def _initialize_migration_management(self):
         """Initialize migration management."""
         # Migration management is part of the database manager
-        logger.info("✅ Migration Management ready")
+        logger.info(" Migration Management ready")
     
     # DAO Management
     
@@ -455,11 +456,11 @@ class Phase4DatabaseCoordinator:
             
             # Log any unhealthy components
             if orm_health and orm_health.get("status") != "healthy":
-                logger.warning(f"⚠️ ORM health check failed: {orm_health.get('error')}")
+                logger.warning(f" ORM health check failed: {orm_health.get('error')}")
             
             for name, health in repo_health.items():
                 if health.get("status") != "healthy":
-                    logger.warning(f"⚠️ Repository {name} health check failed: {health.get('error')}")
+                    logger.warning(f" Repository {name} health check failed: {health.get('error')}")
                     
         except Exception as e:
             logger.error(f"Health check error: {e}")
@@ -517,7 +518,7 @@ class Phase4DatabaseCoordinator:
             self.registered_daos.clear()
             self.registered_repositories.clear()
             
-            logger.info("✅ Phase IV Database Abstraction System shutdown complete")
+            logger.info(" Phase IV Database Abstraction System shutdown complete")
             
         except Exception as e:
             logger.error(f"Error during Phase IV database shutdown: {e}")

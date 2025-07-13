@@ -1,16 +1,17 @@
-"""
-PlexiChat Quantum Security System
-
-Post-quantum cryptography implementation with homomorphic encryption
-for privacy-preserving analytics and government-level security.
-"""
-
 import hashlib
 import logging
 import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
+
+
+"""
+PlexiChat Quantum Security System
+
+Post-quantum cryptography implementation with homomorphic encryption
+for privacy-preserving analytics and government-level security.
+"""
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,3 @@
-"""
-PlexiChat Infrastructure Utilities
-
-Consolidated utility functions from common and utils modules.
-This module provides centralized access to all utility functions used throughout the application.
-"""
-
 from .common_utils import *
 from .enhanced_logging import *
 from .enhanced_logging import setup_logging
@@ -16,12 +9,20 @@ from .security import *
 from .shutdown import *
 from .snowflake import *
 
-# Import all utility modules
 from .utilities import *
 
+    from .monitoring.error_handler import *
+
+"""
+PlexiChat Infrastructure Utilities
+
+Consolidated utility functions from common and utils modules.
+This module provides centralized access to all utility functions used throughout the application.
+"""
+
+# Import all utility modules
 # Import monitoring utilities
 try:
-    from .monitoring.error_handler import *
 except ImportError:
     pass
 

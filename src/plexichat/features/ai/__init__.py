@@ -1,3 +1,17 @@
+from .ai_coordinator import AICoordinator
+
+from .api.ai_endpoints import router as ai_router
+from .api.moderation_endpoints import router as moderation_router
+from .api.monitoring_endpoints import router as monitoring_router
+from .api.provider_endpoints import router as provider_router
+
+from .core.ai_abstraction_layer import (
+from .features.ai_powered_features_service import AIPoweredFeaturesService
+from .moderation.moderation_engine import ModerationEngine
+from .monitoring.analytics_engine import AnalyticsEngine
+from .providers.base_provider import BaseProvider
+
+
 """
 PlexiChat AI Module
 
@@ -14,16 +28,8 @@ Comprehensive AI abstraction layer with multi-provider support, featuring:
 - API endpoints for AI features
 """
 
-from .ai_coordinator import AICoordinator
-
 # API components
-from .api.ai_endpoints import router as ai_router
-from .api.moderation_endpoints import router as moderation_router
-from .api.monitoring_endpoints import router as monitoring_router
-from .api.provider_endpoints import router as provider_router
-
 # Core AI components
-from .core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIAccessControl,
     AIModel,
@@ -35,11 +41,6 @@ from .core.ai_abstraction_layer import (
 )
 
 # AI features and services
-from .features.ai_powered_features_service import AIPoweredFeaturesService
-from .moderation.moderation_engine import ModerationEngine
-from .monitoring.analytics_engine import AnalyticsEngine
-from .providers.base_provider import BaseProvider
-
 __version__ = "2.0.0"
 __all__ = [
     # Core AI components

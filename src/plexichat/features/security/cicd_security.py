@@ -1,8 +1,3 @@
-"""
-PlexiChat CI/CD Security Integration
-Integrates vulnerability scanning into CI/CD pipeline
-"""
-
 import asyncio
 import json
 import logging
@@ -10,6 +5,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+"""
+PlexiChat CI/CD Security Integration
+Integrates vulnerability scanning into CI/CD pipeline
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +162,7 @@ class CICDSecurityScanner:
             "supported_scan_types": [ScanType.STATIC_CODE_ANALYSIS, ScanType.SECRET_SCAN]
         }
         
-        logger.info(f"✅ Initialized {len(self.scanners)} security scanners")
+        logger.info(f" Initialized {len(self.scanners)} security scanners")
     
     def _load_security_policies(self):
         """Load security policies for scan evaluation."""
@@ -200,7 +201,8 @@ class CICDSecurityScanner:
     
     async def run_dependency_scan(self, project_path: str, scanner: ScannerType = ScannerType.SNYK) -> ScanResult:
         """Run dependency vulnerability scan."""
-        scan_id = f"dep_scan_{int(datetime.now().timestamp())}"
+        scan_id = f"dep_scan_{int(from datetime import datetime
+datetime.now().timestamp())}"
         scan_result = ScanResult(
             scan_id=scan_id,
             scanner=scanner,
@@ -239,7 +241,8 @@ class CICDSecurityScanner:
     
     async def run_static_code_analysis(self, project_path: str, scanner: ScannerType = ScannerType.BANDIT) -> ScanResult:
         """Run static code analysis scan."""
-        scan_id = f"sca_scan_{int(datetime.now().timestamp())}"
+        scan_id = f"sca_scan_{int(from datetime import datetime
+datetime.now().timestamp())}"
         scan_result = ScanResult(
             scan_id=scan_id,
             scanner=scanner,
@@ -274,7 +277,8 @@ class CICDSecurityScanner:
     
     async def run_container_scan(self, image_name: str, scanner: ScannerType = ScannerType.TRIVY) -> ScanResult:
         """Run container image vulnerability scan."""
-        scan_id = f"container_scan_{int(datetime.now().timestamp())}"
+        scan_id = f"container_scan_{int(from datetime import datetime
+datetime.now().timestamp())}"
         scan_result = ScanResult(
             scan_id=scan_id,
             scanner=scanner,

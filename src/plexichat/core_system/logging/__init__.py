@@ -1,3 +1,25 @@
+import asyncio
+import gzip
+import json
+import logging
+import logging.handlers
+import os
+import sys
+import threading
+import time
+import traceback
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from ..config import get_config
+
+            from .security_logger import get_security_logger
+            from .performance_logger import get_performance_logger
+
 """
 PlexiChat Comprehensive Logging System
 
@@ -17,26 +39,7 @@ Features:
 - Dashboard visualization
 """
 
-import asyncio
-import gzip
-import json
-import logging
-import logging.handlers
-import os
-import sys
-import threading
-import time
-import traceback
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
-
 # Import configuration and utilities
-from ..config import get_config
-
 # from ...services import get_service  # Commented out for now
 
 # Log levels with custom additions
@@ -340,7 +343,8 @@ class LoggingManager:
     def _setup_logging_system(self):
         """Setup the comprehensive logging system."""
         # Create log directory
-        log_dir = Path(self._get_config("logging.directory", "logs"))
+        log_dir = from pathlib import Path
+Path(self._get_config("logging.directory", "logs"))
         log_dir.mkdir(exist_ok=True, parents=True)
 
         # Configure root logger
@@ -493,7 +497,6 @@ class LoggingManager:
     def _setup_security_logging(self, log_dir: Path):
         """Setup security logging."""
         try:
-            from .security_logger import get_security_logger
             self.security_logger = get_security_logger()
         except ImportError:
             # Security logger not available
@@ -522,7 +525,6 @@ class LoggingManager:
     def _setup_performance_monitoring(self):
         """Setup performance monitoring."""
         try:
-            from .performance_logger import get_performance_logger
             self.performance_logger = get_performance_logger()
         except ImportError:
             # Performance logger not available

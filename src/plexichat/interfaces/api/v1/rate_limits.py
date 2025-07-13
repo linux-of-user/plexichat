@@ -1,10 +1,7 @@
-"""
-Rate Limiting Management API Endpoints
-Comprehensive API for managing rate limits and DDoS protection.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -13,6 +10,12 @@ from pydantic import BaseModel, Field
 from plexichat.app.logger_config import logger
 from plexichat.app.security.permissions import Permission, PermissionManager
 from plexichat.app.security.rate_limiter import (
+
+"""
+Rate Limiting Management API Endpoints
+Comprehensive API for managing rate limits and DDoS protection.
+"""
+
     ComprehensiveRateLimiter,
     RateLimitAction,
     RateLimitRule,
@@ -169,7 +172,7 @@ async def create_rate_limit_rule(
         limiter.rules[rule.name] = rule
         limiter.save_config()
         
-        logger.info(f"✅ Created rate limit rule: {rule.name}")
+        logger.info(f" Created rate limit rule: {rule.name}")
         return {"message": "Rule created successfully", "rule_name": rule.name}
         
     except HTTPException:
@@ -206,7 +209,7 @@ async def update_rate_limit_rule(
         
         limiter.save_config()
         
-        logger.info(f"✅ Updated rate limit rule: {rule_name}")
+        logger.info(f" Updated rate limit rule: {rule_name}")
         return {"message": "Rule updated successfully", "rule_name": rule_name}
         
     except HTTPException:
@@ -230,7 +233,7 @@ async def delete_rate_limit_rule(
         del limiter.rules[rule_name]
         limiter.save_config()
         
-        logger.info(f"✅ Deleted rate limit rule: {rule_name}")
+        logger.info(f" Deleted rate limit rule: {rule_name}")
         return {"message": "Rule deleted successfully", "rule_name": rule_name}
         
     except Exception as e:
@@ -313,7 +316,7 @@ async def unban_ip_address(
         
         if ip_address in limiter.tracker.banned_ips:
             del limiter.tracker.banned_ips[ip_address]
-            logger.info(f"✅ Unbanned IP: {ip_address}")
+            logger.info(f" Unbanned IP: {ip_address}")
             return {"message": "IP address unbanned successfully", "ip": ip_address}
         else:
             raise HTTPException(status_code=404, detail="IP address not found in ban list")
@@ -335,7 +338,7 @@ async def unban_user(
         
         if user_id in limiter.tracker.banned_users:
             del limiter.tracker.banned_users[user_id]
-            logger.info(f"✅ Unbanned user: {user_id}")
+            logger.info(f" Unbanned user: {user_id}")
             return {"message": "User unbanned successfully", "user_id": user_id}
         else:
             raise HTTPException(status_code=404, detail="User not found in ban list")
@@ -379,7 +382,7 @@ async def enable_rate_limiting(admin_user: str = Depends(verify_admin_permission
         limiter.enabled = True
         limiter.save_config()
         
-        logger.info("✅ Rate limiting enabled")
+        logger.info(" Rate limiting enabled")
         return {"message": "Rate limiting enabled", "enabled": True}
         
     except Exception as e:
@@ -394,7 +397,7 @@ async def disable_rate_limiting(admin_user: str = Depends(verify_admin_permissio
         limiter.enabled = False
         limiter.save_config()
         
-        logger.warning("⚠️ Rate limiting disabled")
+        logger.warning(" Rate limiting disabled")
         return {"message": "Rate limiting disabled", "enabled": False}
         
     except Exception as e:

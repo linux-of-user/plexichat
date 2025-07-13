@@ -1,3 +1,18 @@
+import logging
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+
+    from app.security.advanced_behavioral_analyzer import (
+        import re
+        import re
+
+import psutil
+
 """
 Enhanced DDoS Protection Service
 
@@ -9,21 +24,10 @@ Integrates multiple DDoS protection systems with:
 - Real-time monitoring and adaptation
 """
 
-import logging
-import time
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-
-import psutil
-
 logger = logging.getLogger(__name__)
 
 # Import advanced behavioral analyzer
 try:
-    from app.security.advanced_behavioral_analyzer import (
         BehavioralAssessment,
         BehavioralThreatType,
         advanced_behavioral_analyzer,
@@ -140,7 +144,7 @@ class EnhancedDDoSProtectionService:
         # Start background tasks
         self._start_background_tasks()
         
-        logger.info("🛡️ Enhanced DDoS Protection Service initialized")
+        logger.info(" Enhanced DDoS Protection Service initialized")
     
     async def check_request(self, ip: str, user_agent: str = "", 
                           endpoint: str = "", method: str = "GET") -> Tuple[bool, str, Dict[str, Any]]:
@@ -284,10 +288,12 @@ class EnhancedDDoSProtectionService:
         """Get current system load average."""
         try:
             # Get CPU usage
-            cpu_percent = psutil.cpu_percent(interval=0.1)
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=0.1)
             
             # Get memory usage
-            memory = psutil.virtual_memory()
+            memory = import psutil
+psutil.virtual_memory()
             memory_percent = memory.percent
             
             # Calculate combined load (weighted average)
@@ -340,7 +346,6 @@ class EnhancedDDoSProtectionService:
                 score += 0.3
         
         # Check endpoint patterns
-        import re
         for pattern in self.suspicious_patterns["request_patterns"]:
             if re.search(pattern, endpoint, re.IGNORECASE):
                 score += 0.4
@@ -457,7 +462,6 @@ class EnhancedDDoSProtectionService:
             if pattern.lower() in user_agent.lower():
                 patterns.append(f"suspicious_user_agent:{pattern}")
         
-        import re
         for pattern in self.suspicious_patterns["request_patterns"]:
             if re.search(pattern, endpoint, re.IGNORECASE):
                 patterns.append(f"suspicious_endpoint:{pattern}")

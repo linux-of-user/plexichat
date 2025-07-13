@@ -1,9 +1,3 @@
-"""
-PlexiChat Admin CLI - Government-Level Secure Command Line Interface
-Comprehensive administrative interface with government-level security,
-password management, system control, and advanced admin operations.
-"""
-
 import argparse
 import getpass
 import json
@@ -11,13 +5,23 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
-try:
     import logging
 
+        import secrets
+
     from plexichat.core_system.auth.government_auth import get_government_auth
+
+"""
+PlexiChat Admin CLI - Government-Level Secure Command Line Interface
+Comprehensive administrative interface with government-level security,
+password management, system control, and advanced admin operations.
+"""
+
+# Add src to path for imports
+sys.path.insert(0, str(from pathlib import Path
+Path(__file__).parent.parent.parent))
+
+try:
     logger = logging.getLogger(__name__)
     government_auth = None  # Will be initialized lazily
 except ImportError as e:
@@ -33,7 +37,8 @@ class AdminCLI:
         self.auth_system = None  # Will be initialized lazily
         self.current_user = None
         self.session_token = None
-        self.project_root = Path(__file__).parent.parent.parent.parent
+        self.project_root = from pathlib import Path
+Path(__file__).parent.parent.parent.parent
 
     def _get_auth_system(self):
         """Get auth system with lazy initialization."""
@@ -41,7 +46,7 @@ class AdminCLI:
             try:
                 self.auth_system = get_government_auth()
             except Exception as e:
-                print(f"⚠️ Failed to initialize authentication system: {e}")
+                print(f" Failed to initialize authentication system: {e}")
                 return None
         return self.auth_system
         
@@ -237,7 +242,7 @@ Examples:
     
     def handle_login(self, args):
         """Handle login command."""
-        print("🔐 PlexiChat Admin Login")
+        print(" PlexiChat Admin Login")
         print("=" * 50)
         
         username = args.username or input("Username: ")
@@ -245,7 +250,7 @@ Examples:
         
         auth_system = self._get_auth_system()
         if not auth_system:
-            print("❌ Authentication system not available")
+            print(" Authentication system not available")
             sys.exit(1)
 
         # Check if 2FA is required
@@ -257,25 +262,25 @@ Examples:
         
         if result['success']:
             self.current_user = username
-            print(f"✅ Login successful! Welcome, {username}")
+            print(f" Login successful! Welcome, {username}")
             
             if result.get('must_change_password'):
-                print("\n⚠️  You must change your password before continuing.")
+                print("\n  You must change your password before continuing.")
                 self.force_password_change(username)
             
             # Show session info
-            print("\n📊 Session Information:")
+            print("\n Session Information:")
             print(f"   Username: {username}")
             print(f"   2FA Enabled: {'Yes' if result.get('two_factor_enabled') else 'No'}")
             print(f"   Session Token: {result['session_token'][:16]}...")
             
         else:
-            print(f"❌ Login failed: {result['error']}")
+            print(f" Login failed: {result['error']}")
             sys.exit(1)
     
     def handle_change_password(self, args):
         """Handle password change command."""
-        print("🔑 Change Admin Password")
+        print(" Change Admin Password")
         print("=" * 50)
         
         username = args.username or input("Username: ")
@@ -289,11 +294,11 @@ Examples:
             confirm_password = getpass.getpass("Confirm New Password: ")
             
             if new_password != confirm_password:
-                print("❌ Passwords do not match. Please try again.")
+                print(" Passwords do not match. Please try again.")
                 continue
             
             if len(new_password) < 16:
-                print("❌ Password must be at least 16 characters long.")
+                print(" Password must be at least 16 characters long.")
                 continue
             
             break
@@ -301,20 +306,20 @@ Examples:
         # Change password
         auth_system = self._get_auth_system()
         if not auth_system:
-            print("❌ Authentication system not available")
+            print(" Authentication system not available")
             sys.exit(1)
         result = auth_system.change_password(username, current_password, new_password)
         
         if result['success']:
-            print("✅ Password changed successfully!")
-            print("🗑️  Default credentials file has been deleted.")
+            print(" Password changed successfully!")
+            print("  Default credentials file has been deleted.")
         else:
-            print(f"❌ Password change failed: {result['error']}")
+            print(f" Password change failed: {result['error']}")
             sys.exit(1)
     
     def force_password_change(self, username: str):
         """Force password change for new users."""
-        print("\n🔒 Mandatory Password Change Required")
+        print("\n Mandatory Password Change Required")
         print("-" * 40)
         
         while True:
@@ -323,29 +328,29 @@ Examples:
             confirm_password = getpass.getpass("Confirm New Password: ")
             
             if new_password != confirm_password:
-                print("❌ Passwords do not match. Please try again.")
+                print(" Passwords do not match. Please try again.")
                 continue
             
             auth_system = self._get_auth_system()
             if not auth_system:
-                print("❌ Authentication system not available")
+                print(" Authentication system not available")
                 sys.exit(1)
             result = auth_system.change_password(username, current_password, new_password)
             
             if result['success']:
-                print("✅ Password changed successfully!")
+                print(" Password changed successfully!")
                 break
             else:
-                print(f"❌ {result['error']}")
+                print(f" {result['error']}")
                 continue
     
     def handle_status(self, args):
         """Handle status command."""
-        print("📊 PlexiChat System Status")
+        print(" PlexiChat System Status")
         print("=" * 50)
         
         # System information
-        print("🖥️  System Information:")
+        print("  System Information:")
         print("   Authentication System: Active")
         print("   Security Level: Government-Grade")
         print("   Encryption: AES-256 (Fernet)")
@@ -356,13 +361,13 @@ Examples:
             admin_count = len(auth_system.admin_credentials)
             active_sessions = len(auth_system.active_sessions)
 
-            print("\n👥 User Information:")
+            print("\n User Information:")
             print(f"   Admin Users: {admin_count}")
             print(f"   Active Sessions: {active_sessions}")
 
             # Security policy
             policy = auth_system.security_policy
-        print("\n🔒 Security Policy:")
+        print("\n Security Policy:")
         print(f"   Min Password Length: {policy.min_password_length}")
         print(f"   Max Failed Attempts: {policy.max_failed_attempts}")
         print(f"   Lockout Duration: {policy.lockout_duration_minutes} minutes")
@@ -370,14 +375,15 @@ Examples:
         print(f"   2FA Required: {'Yes' if policy.require_2fa else 'No'}")
         
         # Check for default credentials file
-        default_creds = Path("DEFAULT_ADMIN_CREDENTIALS.txt")
+        default_creds = from pathlib import Path
+Path("DEFAULT_ADMIN_CREDENTIALS.txt")
         if default_creds.exists():
-            print("\n⚠️  WARNING: Default credentials file still exists!")
+            print("\n  WARNING: Default credentials file still exists!")
             print("   Please change the default password and delete the file.")
     
     def handle_create_user(self, args):
         """Handle create user command."""
-        print("👤 Create New Admin User")
+        print(" Create New Admin User")
         print("=" * 50)
         
         username = args.username
@@ -386,48 +392,48 @@ Examples:
         # Generate secure password
         password = self.auth_system._generate_secure_password()
         
-        print(f"\n🔐 Generated secure password for {username}:")
+        print(f"\n Generated secure password for {username}:")
         print(f"Password: {password}")
-        print("\n⚠️  Please save this password securely!")
+        print("\n  Please save this password securely!")
         print("The user will be required to change it on first login.")
         
         input("\nPress Enter to continue after saving the password...")
         
         # This would create the user (simplified for now)
-        print(f"✅ User {username} created successfully!")
-        print("📧 User must change password on first login.")
+        print(f" User {username} created successfully!")
+        print(" User must change password on first login.")
     
     def handle_reset_password(self, args):
         """Handle reset password command."""
-        print("🔄 Reset User Password")
+        print(" Reset User Password")
         print("=" * 50)
         
         username = args.username
         
         if username not in self.auth_system.admin_credentials:
-            print(f"❌ User {username} not found.")
+            print(f" User {username} not found.")
             sys.exit(1)
         
         # Generate new password
         new_password = self.auth_system._generate_secure_password()
         
-        print(f"\n🔐 New password for {username}:")
+        print(f"\n New password for {username}:")
         print(f"Password: {new_password}")
-        print("\n⚠️  Please provide this password to the user securely!")
+        print("\n  Please provide this password to the user securely!")
         print("The user will be required to change it on first login.")
         
         # This would reset the password (simplified for now)
-        print(f"✅ Password reset for {username} completed!")
+        print(f" Password reset for {username} completed!")
     
     def handle_setup_2fa(self, args):
         """Handle 2FA setup command."""
-        print("🔐 Setup Two-Factor Authentication")
+        print(" Setup Two-Factor Authentication")
         print("=" * 50)
         
         username = args.username or input("Username: ")
         
         if username not in self.auth_system.admin_credentials:
-            print(f"❌ User {username} not found.")
+            print(f" User {username} not found.")
             sys.exit(1)
         
         # Verify password first
@@ -435,31 +441,31 @@ Examples:
         auth_result = self.auth_system.authenticate(username, password)
         
         if not auth_result['success']:
-            print("❌ Authentication failed.")
+            print(" Authentication failed.")
             sys.exit(1)
         
-        print("📱 2FA Setup Instructions:")
+        print(" 2FA Setup Instructions:")
         print("1. Install an authenticator app (Google Authenticator, Authy, etc.)")
         print("2. Scan the QR code or enter the secret key manually")
         print("3. Enter the 6-digit code from your app to verify")
         
         # This would generate TOTP secret and QR code
         secret = "JBSWY3DPEHPK3PXP"  # Example secret
-        print(f"\n🔑 Secret Key: {secret}")
-        print("📱 QR Code: [Would display QR code here]")
+        print(f"\n Secret Key: {secret}")
+        print(" QR Code: [Would display QR code here]")
         
         # Verify setup
         while True:
             code = input("\nEnter 6-digit code from authenticator app: ")
             if len(code) == 6 and code.isdigit():
-                print("✅ 2FA setup completed successfully!")
+                print(" 2FA setup completed successfully!")
                 break
             else:
-                print("❌ Invalid code format. Please enter 6 digits.")
+                print(" Invalid code format. Please enter 6 digits.")
     
     def handle_list_users(self, args):
         """Handle list users command."""
-        print("👥 Admin Users")
+        print(" Admin Users")
         print("=" * 50)
         
         if not self.auth_system.admin_credentials:
@@ -467,10 +473,10 @@ Examples:
             return
         
         for username, admin in self.auth_system.admin_credentials.items():
-            status = "🔒 Locked" if admin.locked_until else "✅ Active"
-            tfa_status = "🔐 Enabled" if admin.two_factor_enabled else "❌ Disabled"
+            status = " Locked" if admin.locked_until else " Active"
+            tfa_status = " Enabled" if admin.two_factor_enabled else " Disabled"
             
-            print(f"\n👤 {username}")
+            print(f"\n {username}")
             print(f"   Status: {status}")
             print(f"   2FA: {tfa_status}")
             print(f"   Created: {admin.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -516,8 +522,10 @@ Examples:
         print(f"Failed Attempts: {admin.failed_attempts}")
 
         if admin.locked_until:
-            if datetime.utcnow() < admin.locked_until:
-                remaining = (admin.locked_until - datetime.utcnow()).total_seconds()
+            if from datetime import datetime
+datetime.utcnow() < admin.locked_until:
+                remaining = (admin.locked_until - from datetime import datetime
+datetime.utcnow()).total_seconds()
                 print(f"Account Status: LOCKED (unlocks in {int(remaining/60)} minutes)")
             else:
                 print("Account Status: ACTIVE (lock expired)")
@@ -535,7 +543,8 @@ Examples:
             sys.exit(1)
 
         admin = self.auth_system.admin_credentials[username]
-        admin.locked_until = datetime.utcnow() + timedelta(minutes=args.duration)
+        admin.locked_until = from datetime import datetime
+datetime.utcnow() + timedelta(minutes=args.duration)
         self.auth_system._save_credentials()
 
         print(f"SUCCESS: User {username} locked for {args.duration} minutes.")
@@ -586,7 +595,6 @@ Examples:
             sys.exit(1)
 
         # Generate backup codes (simplified implementation)
-        import secrets
         backup_codes = [f"{secrets.randbelow(100000):05d}-{secrets.randbelow(100000):05d}" for _ in range(10)]
 
         print(f"Backup codes for {username}:")
@@ -623,7 +631,8 @@ Examples:
         print("System Backup")
         print("=" * 50)
 
-        output_dir = args.output or f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        output_dir = args.output or f"backup_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         print(f"Creating system backup to: {output_dir}")
         print("Backing up configuration files...")
@@ -643,7 +652,8 @@ Examples:
         print("Checking session security... PASS")
         print("Checking file permissions... PASS")
         print("Checking network security... PASS")
-        print("Checking encryption settings... PASS")
+        print("Checking encryption from plexichat.core.config import settings
+settings... PASS")
 
         if args.report:
             print(f"Saving audit report to: {args.report}")

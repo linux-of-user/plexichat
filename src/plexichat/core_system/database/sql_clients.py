@@ -1,3 +1,12 @@
+import logging
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+    import asyncpg  # type: ignore
+    import aiomysql  # type: ignore
+    import aiosqlite  # type: ignore
+    from .enhanced_abstraction import (  # type: ignore
+
 """
 PlexiChat SQL Database Clients
 
@@ -5,27 +14,19 @@ Specialized implementations for different SQL databases with database-specific
 optimizations, features, and performance enhancements.
 """
 
-import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
 try:
-    import asyncpg  # type: ignore
 except ImportError:
     asyncpg = None
 
 try:
-    import aiomysql  # type: ignore
 except ImportError:
     aiomysql = None
 
 try:
-    import aiosqlite  # type: ignore
 except ImportError:
     aiosqlite = None
 
 try:
-    from .enhanced_abstraction import (  # type: ignore
         AbstractDatabaseClient,
         DatabaseConfig,
         DatabaseType,
@@ -104,10 +105,10 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
         
         try:
             self.pool = await asyncpg.create_pool(**self.connection_params)
-            logger.info(f"✅ Connected to PostgreSQL: {self.config.host}:{self.config.port}/{self.config.name}")
+            logger.info(f" Connected to PostgreSQL: {self.config.host}:{self.config.port}/{self.config.name}")
             return True
         except Exception as e:
-            logger.error(f"❌ PostgreSQL connection failed: {e}")
+            logger.error(f" PostgreSQL connection failed: {e}")
             return False
     
     async def disconnect(self) -> bool:
@@ -116,10 +117,10 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
             if self.pool:
                 await self.pool.close()
                 self.pool = None
-            logger.info("✅ Disconnected from PostgreSQL")
+            logger.info(" Disconnected from PostgreSQL")
             return True
         except Exception as e:
-            logger.error(f"❌ PostgreSQL disconnect failed: {e}")
+            logger.error(f" PostgreSQL disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> QueryResult:
@@ -253,10 +254,10 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
                 autocommit=True,
                 charset='utf8mb4'
             )
-            logger.info(f"✅ Connected to MySQL: {self.config.host}:{self.config.port}/{self.config.name}")
+            logger.info(f" Connected to MySQL: {self.config.host}:{self.config.port}/{self.config.name}")
             return True
         except Exception as e:
-            logger.error(f"❌ MySQL connection failed: {e}")
+            logger.error(f" MySQL connection failed: {e}")
             return False
     
     async def disconnect(self) -> bool:
@@ -266,10 +267,10 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
                 self.pool.close()
                 await self.pool.wait_closed()
                 self.pool = None
-            logger.info("✅ Disconnected from MySQL")
+            logger.info(" Disconnected from MySQL")
             return True
         except Exception as e:
-            logger.error(f"❌ MySQL disconnect failed: {e}")
+            logger.error(f" MySQL disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> QueryResult:
@@ -398,10 +399,10 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore
             await self.connection.execute("PRAGMA cache_size=10000")
             await self.connection.execute("PRAGMA temp_store=MEMORY")
             
-            logger.info(f"✅ Connected to SQLite: {self.db_path}")
+            logger.info(f" Connected to SQLite: {self.db_path}")
             return True
         except Exception as e:
-            logger.error(f"❌ SQLite connection failed: {e}")
+            logger.error(f" SQLite connection failed: {e}")
             return False
     
     async def disconnect(self) -> bool:
@@ -410,10 +411,10 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore
             if self.connection:
                 await self.connection.close()
                 self.connection = None
-            logger.info("✅ Disconnected from SQLite")
+            logger.info(" Disconnected from SQLite")
             return True
         except Exception as e:
-            logger.error(f"❌ SQLite disconnect failed: {e}")
+            logger.error(f" SQLite disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> QueryResult:

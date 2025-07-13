@@ -1,10 +1,3 @@
-"""
-PlexiChat WebUI Distributed Authentication Storage
-
-Advanced distributed authentication storage system with multiple backends,
-automatic failover, data replication, and encryption.
-"""
-
 import json
 import logging
 import sqlite3
@@ -17,6 +10,14 @@ from typing import Any, Dict, List, Optional
 from cryptography.fernet import Fernet
 
 from .config_manager import get_webui_config
+
+
+"""
+PlexiChat WebUI Distributed Authentication Storage
+
+Advanced distributed authentication storage system with multiple backends,
+automatic failover, data replication, and encryption.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,8 @@ class DatabaseAuthStorage(AuthStorageBackend):
     """Database-based authentication storage."""
     
     def __init__(self, db_path: str = "config/auth.db"):
-        self.db_path = Path(db_path)
+        self.db_path = from pathlib import Path
+Path(db_path)
         self.db_path.parent.mkdir(exist_ok=True)
         self._init_database()
     
@@ -139,7 +141,8 @@ class DatabaseAuthStorage(AuthStorageBackend):
     
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.updated_at = datetime.utcnow()
+        record.updated_at = from datetime import datetime
+datetime.utcnow()
         return await self.store_auth_record(record)
     
     async def delete_auth_record(self, user_id: str) -> bool:
@@ -195,7 +198,8 @@ class FileAuthStorage(AuthStorageBackend):
     """File-based authentication storage."""
     
     def __init__(self, storage_dir: str = "config/auth_storage"):
-        self.storage_dir = Path(storage_dir)
+        self.storage_dir = from pathlib import Path
+Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
         self.cipher = Fernet(Fernet.generate_key())  # In production, use proper key management
     
@@ -245,7 +249,8 @@ class FileAuthStorage(AuthStorageBackend):
     
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.updated_at = datetime.utcnow()
+        record.updated_at = from datetime import datetime
+datetime.utcnow()
         return await self.store_auth_record(record)
     
     async def delete_auth_record(self, user_id: str) -> bool:

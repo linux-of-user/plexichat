@@ -1,10 +1,9 @@
-"""
-Enhanced Messaging API Endpoints
-Comprehensive messaging API with emoji support, reactions, replies, and resilience features.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+
+
+
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -13,12 +12,16 @@ from plexichat.app.logger_config import logger
 from plexichat.app.models.message import MessageType
 from plexichat.app.models.user import User
 from plexichat.app.services.enhanced_messaging_service import (
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
+
+"""
+Enhanced Messaging API Endpoints
+Comprehensive messaging API with emoji support, reactions, replies, and resilience features.
+"""
+
     EmojiService,
     enhanced_messaging_service,
 )
-from plexichat.app.utils.auth import get_current_user
-
-
 # Pydantic models for API requests/responses
 class MessageCreateRequest(BaseModel):
     content: str = Field(..., min_length=1, max_length=4000, description="Message content")
@@ -101,7 +104,8 @@ router = APIRouter(prefix="/api/v1/messaging", tags=["Enhanced Messaging"])
 @router.post("/send", response_model=MessageResponse)
 async def send_message(
     request: MessageCreateRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Send a message with emoji support and processing."""
     try:
@@ -155,7 +159,8 @@ async def send_message(
 @router.post("/reply", response_model=MessageResponse)
 async def send_reply(
     request: ReplyCreateRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Send a reply to a message."""
     try:
@@ -208,7 +213,8 @@ async def send_reply(
 async def add_reaction(
     message_id: int,
     request: ReactionRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Add a reaction to a message."""
     try:
@@ -238,7 +244,8 @@ async def add_reaction(
 async def remove_reaction(
     message_id: int,
     emoji: str = Query(..., description="Emoji to remove"),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Remove a reaction from a message."""
     try:
@@ -271,7 +278,8 @@ async def get_messages(
     sender_id: Optional[int] = Query(None, description="Filter by sender"),
     recipient_id: Optional[int] = Query(None, description="Filter by recipient"),
     limit: int = Query(50, ge=1, le=100, description="Number of messages to return"),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get messages with filters."""
     try:
@@ -319,7 +327,8 @@ async def get_messages(
 @router.get("/messages/{message_id}", response_model=MessageContextResponse)
 async def get_message_context(
     message_id: int,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get a message with its full context (reactions, replies, referenced message)."""
     try:
@@ -412,7 +421,8 @@ async def get_message_context(
 async def edit_message(
     message_id: int,
     request: MessageEditRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Edit a message."""
     try:
@@ -464,7 +474,8 @@ async def edit_message(
 async def delete_message(
     message_id: int,
     force: bool = Query(False, description="Force hard delete (admin only)"),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Delete a message."""
     try:
@@ -502,7 +513,8 @@ async def delete_message(
 @router.post("/search", response_model=List[MessageResponse])
 async def search_messages(
     request: MessageSearchRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Search messages with text and emoji filtering."""
     try:
@@ -551,7 +563,8 @@ async def search_messages(
 @router.get("/emojis/custom")
 async def get_custom_emojis(
     guild_id: Optional[int] = Query(None, description="Filter by guild"),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get custom emojis."""
     try:
@@ -588,7 +601,8 @@ async def get_emoji_statistics(
     channel_id: Optional[int] = Query(None, description="Filter by channel"),
     guild_id: Optional[int] = Query(None, description="Filter by guild"),
     days: Optional[int] = Query(30, ge=1, le=365, description="Days to analyze"),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get emoji usage statistics."""
     try:

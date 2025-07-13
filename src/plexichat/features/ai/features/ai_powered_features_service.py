@@ -1,10 +1,3 @@
-"""
-PlexiChat AI-Powered Features Service
-
-Comprehensive AI-powered features including smart summarization, content suggestions,
-sentiment analysis, semantic search, and automated moderation with multiple AI providers.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -23,6 +16,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 from ...core.logging import get_logger
 from ...services.base_service import BaseService, ServiceState
 from ..core.ai_abstraction_layer import AIAbstractionLayer, AIRequest
+
+
+"""
+PlexiChat AI-Powered Features Service
+
+Comprehensive AI-powered features including smart summarization, content suggestions,
+sentiment analysis, semantic search, and automated moderation with multiple AI providers.
+"""
 
 logger = get_logger(__name__)
 
@@ -127,7 +128,8 @@ class AIPoweredFeaturesService(BaseService):
         super().__init__("ai_powered_features")
         
         # Configuration management
-        self.config_path = config_path or Path("config/ai_powered_features.yaml")
+        self.config_path = config_path or from pathlib import Path
+Path("config/ai_powered_features.yaml")
         
         # AI abstraction layer
         self.ai_layer = AIAbstractionLayer()
@@ -919,7 +921,8 @@ Guidelines:
     async def _load_semantic_index(self):
         """Load semantic index from disk."""
         try:
-            index_file = Path("data/semantic_index.json")
+            index_file = from pathlib import Path
+Path("data/semantic_index.json")
             if index_file.exists():
                 with open(index_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -932,7 +935,8 @@ Guidelines:
     async def _save_semantic_index(self):
         """Save semantic index to disk."""
         try:
-            index_file = Path("data/semantic_index.json")
+            index_file = from pathlib import Path
+Path("data/semantic_index.json")
             index_file.parent.mkdir(parents=True, exist_ok=True)
 
             data = {
@@ -1053,7 +1057,8 @@ Guidelines:
     async def _save_cache_to_disk(self):
         """Save all caches to disk."""
         try:
-            cache_dir = Path("data/ai_features_cache")
+            cache_dir = from pathlib import Path
+Path("data/ai_features_cache")
             cache_dir.mkdir(parents=True, exist_ok=True)
 
             # Save semantic index

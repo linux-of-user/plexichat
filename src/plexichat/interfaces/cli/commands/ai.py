@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-PlexiChat AI CLI Tool
-Command-line interface for managing AI providers and models.
-"""
-
 import argparse
 import asyncio
 import json
@@ -14,18 +8,27 @@ from typing import Optional
 
 import tabulate
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 
 from plexichat.ai.core.ai_abstraction_layer import (
+from plexichat.ai.providers import ProviderStatus
+
+#!/usr/bin/env python3
+"""
+PlexiChat AI CLI Tool
+Command-line interface for managing AI providers and models.
+"""
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(from pathlib import Path
+Path(__file__).parent.parent.parent))
+
     AIAbstractionLayer,
     AIModel,
     AIProvider,
     AIRequest,
     ModelCapability,
 )
-from plexichat.ai.providers import ProviderStatus
-
 logger = logging.getLogger(__name__)
 
 class AICommandLineInterface:
@@ -114,15 +117,15 @@ class AICommandLineInterface:
             success = await self.ai_layer.configure_provider(provider, config)
 
             if success:
-                print(f"✓ Provider {provider.value} configured successfully")
+                print(f" Provider {provider.value} configured successfully")
 
                 # Refresh provider instance
                 await self.ai_layer.refresh_provider(provider)
-                print(f"✓ Provider {provider.value} refreshed")
+                print(f" Provider {provider.value} refreshed")
 
                 return 0
             else:
-                print(f"✗ Failed to configure provider {provider.value}")
+                print(f" Failed to configure provider {provider.value}")
                 return 1
 
         except ValueError:
@@ -139,7 +142,7 @@ class AICommandLineInterface:
                 models = await self.ai_layer.discover_ollama_models()
                 print(f"\nAvailable Ollama Models ({len(models)} total):")
                 for model in models:
-                    print(f"  • {model}")
+                    print(f"   {model}")
 
             elif action == "pull":
                 if not model_id:
@@ -150,10 +153,10 @@ class AICommandLineInterface:
                 success = await self.ai_layer.pull_ollama_model(model_id)
 
                 if success:
-                    print(f"✓ Successfully pulled model: {model_id}")
+                    print(f" Successfully pulled model: {model_id}")
                     return 0
                 else:
-                    print(f"✗ Failed to pull model: {model_id}")
+                    print(f" Failed to pull model: {model_id}")
                     return 1
 
             elif action == "delete":
@@ -164,10 +167,10 @@ class AICommandLineInterface:
                 success = await self.ai_layer.delete_ollama_model(model_id)
 
                 if success:
-                    print(f"✓ Successfully deleted model: {model_id}")
+                    print(f" Successfully deleted model: {model_id}")
                     return 0
                 else:
-                    print(f"✗ Failed to delete model: {model_id}")
+                    print(f" Failed to delete model: {model_id}")
                     return 1
 
             return 0
@@ -210,17 +213,17 @@ class AICommandLineInterface:
         """Perform health check."""
         health = await self.ai_layer.health_check()
         
-        print("\n🏥 AI System Health Check")
+        print("\n AI System Health Check")
         print(f"Overall Status: {health['overall_status'].upper()}")
         print(f"Total Models: {health['total_models']}")
         print(f"Available Models: {health['available_models']}")
         print(f"Unavailable Models: {health['unavailable_models']}")
         
-        print("\n📊 Provider Status:")
+        print("\n Provider Status:")
         for provider, stats in health['providers'].items():
             print(f"  {provider}: {stats['available']}/{stats['total']} available")
             
-        print("\n🧠 Model Health:")
+        print("\n Model Health:")
         for model_id, model_info in health['models'].items():
             health_info = model_info.get('health', {})
             total_requests = health_info.get('total_requests', 0)
@@ -232,7 +235,7 @@ class AICommandLineInterface:
             
     async def test_model(self, model_id: str, prompt: str, user_id: str = "cli_user"):
         """Test AI model with a prompt."""
-        print(f"\n🧪 Testing model: {model_id}")
+        print(f"\n Testing model: {model_id}")
         print(f"Prompt: {prompt}")
         print("-" * 50)
         
@@ -248,20 +251,20 @@ class AICommandLineInterface:
             response = await self.ai_layer.process_request(request)
             
             if response.success:
-                print("✅ Success!")
+                print(" Success!")
                 print(f"Response: {response.content}")
                 print(f"Latency: {response.latency_ms}ms")
                 print(f"Cost: ${response.cost:.6f}")
                 print(f"Provider: {response.provider}")
                 if response.fallback_used:
-                    print(f"⚠️ Fallback used: {response.fallback_model}")
+                    print(f" Fallback used: {response.fallback_model}")
                 if response.cached:
-                    print("📦 Response was cached")
+                    print(" Response was cached")
             else:
-                print(f"❌ Failed: {response.error}")
+                print(f" Failed: {response.error}")
                 
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f" Error: {e}")
             
     async def configure_provider(self, provider: str, api_key: str, base_url: str = "", enabled: bool = True):
         """Configure AI provider."""
@@ -276,11 +279,11 @@ class AICommandLineInterface:
         try:
             success = await self.ai_layer.configure_provider(AIProvider(provider), config)
             if success:
-                print(f"✅ Provider {provider} configured successfully")
+                print(f" Provider {provider} configured successfully")
             else:
-                print(f"❌ Failed to configure provider {provider}")
+                print(f" Failed to configure provider {provider}")
         except Exception as e:
-            print(f"❌ Error configuring provider: {e}")
+            print(f" Error configuring provider: {e}")
             
     async def add_model(self, model_data: dict):
         """Add new AI model."""
@@ -298,28 +301,28 @@ class AICommandLineInterface:
             
             success = await self.ai_layer.add_model(model)
             if success:
-                print(f"✅ Model {model.id} added successfully")
+                print(f" Model {model.id} added successfully")
             else:
-                print(f"❌ Failed to add model {model.id}")
+                print(f" Failed to add model {model.id}")
                 
         except Exception as e:
-            print(f"❌ Error adding model: {e}")
+            print(f" Error adding model: {e}")
             
     async def remove_model(self, model_id: str):
         """Remove AI model."""
         try:
             success = await self.ai_layer.remove_model(model_id)
             if success:
-                print(f"✅ Model {model_id} removed successfully")
+                print(f" Model {model_id} removed successfully")
             else:
-                print(f"❌ Model {model_id} not found")
+                print(f" Model {model_id} not found")
         except Exception as e:
-            print(f"❌ Error removing model: {e}")
+            print(f" Error removing model: {e}")
             
     def clear_cache(self):
         """Clear AI cache."""
         self.ai_layer.clear_cache()
-        print("✅ AI cache cleared")
+        print(" AI cache cleared")
         
     async def get_usage_stats(self, user_id: Optional[str] = None):
         """Get usage statistics."""
@@ -329,7 +332,7 @@ class AICommandLineInterface:
                 print(f"No usage data found for user: {user_id}")
                 return
                 
-            print(f"\n📊 Usage Statistics for {user_id}:")
+            print(f"\n Usage Statistics for {user_id}:")
             for model_id, usage in stats.items():
                 print(f"  {model_id}:")
                 print(f"    Total Tokens: {usage['total_tokens']}")
@@ -338,7 +341,7 @@ class AICommandLineInterface:
                 print(f"    Last Request: {usage['last_request']}")
         else:
             all_stats = self.ai_layer.get_usage_stats()
-            print("\n📊 System Usage Statistics:")
+            print("\n System Usage Statistics:")
             print(f"Total Users: {len(all_stats)}")
             
             total_tokens = 0
@@ -431,9 +434,9 @@ async def main():
             await cli.get_usage_stats(args.user_id)
             
     except KeyboardInterrupt:
-        print("\n👋 Goodbye!")
+        print("\n Goodbye!")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

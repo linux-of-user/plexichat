@@ -1,8 +1,3 @@
-"""
-Universal User and Message Backup System
-Government-level backup system with opt-out capabilities and intelligent shard distribution.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -11,6 +6,16 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
+
+        import aiosqlite
+        
+        import aiosqlite
+        
+
+"""
+Universal User and Message Backup System
+Government-level backup system with opt-out capabilities and intelligent shard distribution.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +43,8 @@ class BackupDataType(Enum):
 
 @dataclass
 class UserBackupPreferences:
-    """User backup preferences and opt-out settings."""
+    """User backup preferences and opt-out from plexichat.core.config import settings
+settings."""
     user_id: str
     username: str
     backup_status: BackupOptStatus
@@ -119,8 +125,6 @@ class UniversalBackupManager:
     
     async def _initialize_database(self):
         """Initialize universal backup database."""
-        import aiosqlite
-        
         async with aiosqlite.connect(self.universal_db_path) as db:
             # User backup preferences
             await db.execute("""
@@ -401,8 +405,6 @@ class UniversalBackupManager:
     
     async def _save_user_preferences(self, preferences: UserBackupPreferences):
         """Save user preferences to database."""
-        import aiosqlite
-        
         async with aiosqlite.connect(self.universal_db_path) as db:
             await db.execute("""
                 INSERT OR REPLACE INTO user_backup_preferences 

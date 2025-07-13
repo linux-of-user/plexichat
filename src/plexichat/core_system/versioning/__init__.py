@@ -1,3 +1,8 @@
+from .changelog_manager import (
+from .update_system import (
+from .version_manager import (
+        import logging
+
 """
 PlexiChat Advanced Versioning System
 
@@ -22,14 +27,12 @@ Features:
 - Backup and rollback system
 """
 
-from .changelog_manager import (
     ChangeEntry,
     ChangelogManager,
     ChangeType,
     VersionChangelog,
     changelog_manager,
 )
-from .update_system import (
     UpdatePlan,
     UpdateResult,
     UpdateStatus,
@@ -37,7 +40,6 @@ from .update_system import (
     UpdateType,
     update_system,
 )
-from .version_manager import (
     Version,
     VersionInfo,
     VersionManager,
@@ -183,7 +185,6 @@ def initialize_versioning_system():
         
         return True
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Failed to initialize versioning system: {e}")
         return False

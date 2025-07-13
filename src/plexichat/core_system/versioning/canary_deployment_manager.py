@@ -1,3 +1,13 @@
+import asyncio
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+        from .canary_node_selector import CanaryNodeSelector
+        from .canary_health_monitor import CanaryHealthMonitor
+
 """
 PlexiChat Canary Deployment Manager
 
@@ -9,13 +19,6 @@ Advanced canary deployment system for staged rollouts with:
 - A/B testing capabilities
 - Performance impact analysis
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -173,11 +176,9 @@ class CanaryDeploymentManager:
         self.cluster_manager = cluster_manager
         
         # Initialize node selector
-        from .canary_node_selector import CanaryNodeSelector
         self.node_selector = CanaryNodeSelector(cluster_manager)
         
         # Initialize health monitor
-        from .canary_health_monitor import CanaryHealthMonitor
         self.health_monitor = CanaryHealthMonitor()
         
         await self.node_selector.initialize()
@@ -189,7 +190,8 @@ class CanaryDeploymentManager:
                                    strategy: CanaryStrategy = CanaryStrategy.PERCENTAGE_BASED,
                                    custom_config: Optional[Dict[str, Any]] = None) -> CanaryDeploymentPlan:
         """Create canary deployment plan."""
-        deployment_id = f"canary_{update_id}_{int(datetime.now().timestamp())}"
+        deployment_id = f"canary_{update_id}_{int(from datetime import datetime
+datetime.now().timestamp())}"
         
         plan = CanaryDeploymentPlan(
             deployment_id=deployment_id,

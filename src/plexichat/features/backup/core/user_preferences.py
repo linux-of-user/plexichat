@@ -1,3 +1,13 @@
+import json
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import aiosqlite
+
+
 """
 PlexiChat Backup User Preferences System
 
@@ -10,15 +20,6 @@ Comprehensive user preference management for backup operations:
 
 Integrated with the government-level backup system.
 """
-
-import json
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-import aiosqlite
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,3 @@
-"""
-PlexiChat Asynchronous Task Queue System
-Handles background tasks, job scheduling, and message processing
-"""
-
 import asyncio
 import json
 import logging
@@ -15,6 +10,12 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 import aioredis
+
+
+"""
+PlexiChat Asynchronous Task Queue System
+Handles background tasks, job scheduling, and message processing
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +136,7 @@ class TaskWorker:
         
         self.running = True
         self.start_time = datetime.now(timezone.utc)
-        logger.info(f"✅ Task worker {self.worker_id} started")
+        logger.info(f" Task worker {self.worker_id} started")
         
         # Start processing loop
         asyncio.create_task(self._process_loop())
@@ -156,7 +157,7 @@ class TaskWorker:
         # Shutdown thread pool
         self.thread_pool.shutdown(wait=True)
         
-        logger.info(f"✅ Task worker {self.worker_id} stopped")
+        logger.info(f" Task worker {self.worker_id} stopped")
     
     async def _process_loop(self):
         """Main task processing loop."""
@@ -203,7 +204,7 @@ class TaskWorker:
             await self.queue_manager.update_task_status(task)
             
             self.processed_tasks += 1
-            logger.info(f"✅ Task {task.task_id} completed successfully")
+            logger.info(f" Task {task.task_id} completed successfully")
             
         except asyncio.TimeoutError:
             # Task timed out
@@ -238,7 +239,7 @@ class TaskWorker:
         task.retry_count += 1
         self.failed_tasks += 1
         
-        logger.error(f"❌ Task {task.task_id} failed: {error_message} (retry {task.retry_count}/{task.max_retries})")
+        logger.error(f" Task {task.task_id} failed: {error_message} (retry {task.retry_count}/{task.max_retries})")
         
         if task.retry_count < task.max_retries:
             # Schedule retry
@@ -343,7 +344,7 @@ class AsyncTaskQueueManager:
             await worker.start()
         
         self.running = True
-        logger.info(f"✅ Task Queue Manager started with {self.max_workers} workers")
+        logger.info(f" Task Queue Manager started with {self.max_workers} workers")
     
     async def stop(self):
         """Stop the task queue manager."""
@@ -360,12 +361,12 @@ class AsyncTaskQueueManager:
         if self.redis:
             await self.redis.close()
         
-        logger.info("✅ Task Queue Manager stopped")
+        logger.info(" Task Queue Manager stopped")
     
     def register_task_handler(self, task_type: str, handler: Callable):
         """Register a task handler."""
         self.task_handlers[task_type] = handler
-        logger.info(f"✅ Registered task handler for: {task_type}")
+        logger.info(f" Registered task handler for: {task_type}")
     
     def get_task_handler(self, task_type: str) -> Optional[Callable]:
         """Get task handler for a task type."""
@@ -405,7 +406,7 @@ class AsyncTaskQueueManager:
             await self._add_task_to_queue(task)
         
         self.stats["total_tasks"] += 1
-        logger.info(f"✅ Submitted task {task_id} ({task_type}) to queue {queue_name}")
+        logger.info(f" Submitted task {task_id} ({task_type}) to queue {queue_name}")
         
         return task_id
     

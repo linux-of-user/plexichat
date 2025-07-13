@@ -1,3 +1,5 @@
+from .status_monitor import (
+
 """
 PlexiChat Backup Services
 
@@ -9,7 +11,6 @@ Service layer components for the government-level backup system:
 - Alerting and notification services
 """
 
-from .status_monitor import (
     BackupCoverageReport,
     BackupHealthStatus,
     BackupStatusMonitor,

@@ -1,26 +1,29 @@
-"""
-PlexiChat Enhanced WebUI Router
-
-Enhanced WebUI routing system with configurable ports, MFA authentication,
-distributed storage, self-tests, and feature toggles.
-"""
-
 import logging
 from datetime import datetime
 from typing import Any, Dict, List
 
+from typing import Optional, Dict, Any, List, FastAPI, HTTPException, Request, status
+
+from .auth_storage import get_auth_storage
+from .config_manager import get_webui_config
+from .mfa_manager import get_mfa_manager
+from .self_test_manager import get_self_test_manager
+
+
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from .auth_storage import get_auth_storage
-from .config_manager import get_webui_config
-from .mfa_manager import get_mfa_manager
-from .self_test_manager import get_self_test_manager
+"""
+PlexiChat Enhanced WebUI Router
+
+Enhanced WebUI routing system with configurable ports, MFA authentication,
+distributed storage, self-tests, and feature toggles.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +73,8 @@ class EnhancedWebUIRouter:
         # Custom middleware for security and logging
         @self.app.middleware("http")
         async def security_middleware(request: Request, call_next):
-            start_time = datetime.utcnow()
+            start_time = from datetime import datetime
+datetime.utcnow()
             
             # Security headers
             response = await call_next(request)
@@ -84,7 +88,8 @@ class EnhancedWebUIRouter:
             
             # Add custom headers
             response.headers["X-WebUI-Version"] = "2.0.0"
-            response.headers["X-Process-Time"] = str((datetime.utcnow() - start_time).total_seconds())
+            response.headers["X-Process-Time"] = str((from datetime import datetime
+datetime.utcnow() - start_time).total_seconds())
             
             return response
     
@@ -260,7 +265,8 @@ class EnhancedWebUIRouter:
                 "user": session.username,
                 "features": self._get_enabled_features(),
                 "system_status": await self._get_system_status(),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
             })
     
     def _setup_admin_routes(self):
@@ -461,7 +467,8 @@ class EnhancedWebUIRouter:
             "auth_storage": auth_health,
             "mfa_enabled": self.mfa_manager.is_mfa_enabled(),
             "self_tests_enabled": self.config.is_self_test_enabled(),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         }
     
     def _get_system_config(self) -> Dict[str, Any]:

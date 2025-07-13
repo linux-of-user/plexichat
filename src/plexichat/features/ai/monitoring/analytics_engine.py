@@ -1,8 +1,3 @@
-"""
-AI Analytics and Monitoring Engine
-Comprehensive monitoring, analytics, and alerting system for AI operations.
-"""
-
 import asyncio
 import json
 import logging
@@ -14,6 +9,12 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+
+
+"""
+AI Analytics and Monitoring Engine
+Comprehensive monitoring, analytics, and alerting system for AI operations.
+"""
 
 logger = logging.getLogger(__name__)
 

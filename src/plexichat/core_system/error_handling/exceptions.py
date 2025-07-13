@@ -1,15 +1,16 @@
+import uuid
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
+
 """
 PlexiChat Error Handling Exceptions
 
 Unified exception classes and error codes for the PlexiChat error handling system.
 Consolidates all error types into a single, comprehensive module.
 """
-
-import uuid
-from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
@@ -44,7 +45,8 @@ class ErrorCode:
         self.message = message
         self.severity = severity
         self.category = category
-        self.timestamp = datetime.now()
+        self.timestamp = from datetime import datetime
+datetime.now()
     
     def __str__(self):
         return f"{self.code}: {self.message}"
@@ -60,7 +62,8 @@ class ErrorDetails:
         self.context = context or {}
         self.stack_trace = stack_trace
         self.user_id = user_id
-        self.timestamp = datetime.now()
+        self.timestamp = from datetime import datetime
+datetime.now()
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -87,7 +90,8 @@ class BaseAPIException(Exception):
         self.error_code = error_code or "API_ERROR"
         self.details = details or {}
         self.status_code = status_code
-        self.timestamp = datetime.now()
+        self.timestamp = from datetime import datetime
+datetime.now()
 
 
 class ValidationError(BaseAPIException):

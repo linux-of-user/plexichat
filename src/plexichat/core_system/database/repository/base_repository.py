@@ -1,8 +1,3 @@
-"""
-PlexiChat Repository Pattern Implementation
-Provides domain-specific data access with business logic encapsulation
-"""
-
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -11,6 +6,14 @@ from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 from ..dao.base_dao import (
+    from sqlmodel import SQLModel  # type: ignore
+    from ...events.event_bus import DomainEvent, event_bus  # type: ignore
+
+"""
+PlexiChat Repository Pattern Implementation
+Provides domain-specific data access with business logic encapsulation
+"""
+
     BaseDAO,
     FilterCriteria,
     PaginationParams,
@@ -20,13 +23,11 @@ from ..dao.base_dao import (
 )
 
 try:
-    from sqlmodel import SQLModel  # type: ignore
 except ImportError:
     # Create a placeholder SQLModel for type hints
     class SQLModel:
         pass
 try:
-    from ...events.event_bus import DomainEvent, event_bus  # type: ignore
     EVENT_BUS_AVAILABLE = True
 except ImportError:
     EVENT_BUS_AVAILABLE = False

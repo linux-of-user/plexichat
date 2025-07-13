@@ -1,3 +1,24 @@
+import asyncio
+import json
+import secrets
+import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+from ...core_system.security.input_validation import InputType, ValidationLevel, get_input_validator
+
+        import random
+        import string
+
+        import bcrypt
+        import bcrypt
+
 """
 PlexiChat Unified Authentication Manager - SINGLE SOURCE OF TRUTH
 
@@ -18,21 +39,6 @@ Features:
 - Admin account management
 - Zero-trust security architecture
 """
-
-import asyncio
-import json
-import secrets
-import time
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
-from ...core_system.security.input_validation import InputType, ValidationLevel, get_input_validator
 
 logger = get_logger(__name__)
 
@@ -218,7 +224,8 @@ class UnifiedAuthManager:
         self.lockout_duration = timedelta(minutes=self.config.get("lockout_duration_minutes", 15))
         
         # Admin account management
-        self.admin_file = Path(self.config.get("admin_file", "data/admin.json"))
+        self.admin_file = from pathlib import Path
+Path(self.config.get("admin_file", "data/admin.json"))
         self.admin_file.parent.mkdir(parents=True, exist_ok=True)
         
         # MFA configuration
@@ -245,11 +252,11 @@ class UnifiedAuthManager:
             asyncio.create_task(self._cleanup_expired_tokens())
             
             self.initialized = True
-            logger.info("✅ Unified Authentication Manager initialized successfully")
+            logger.info(" Unified Authentication Manager initialized successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Authentication Manager initialization failed: {e}")
+            logger.error(f" Authentication Manager initialization failed: {e}")
             return False
     
     async def authenticate(self, request: AuthenticationRequest) -> AuthenticationResponse:
@@ -393,7 +400,7 @@ class UnifiedAuthManager:
             )
             
         except Exception as e:
-            logger.error(f"❌ Authentication error: {e}")
+            logger.error(f" Authentication error: {e}")
             await self._log_auth_error(audit_id, request, str(e))
             
             return AuthenticationResponse(
@@ -635,9 +642,6 @@ class UnifiedAuthManager:
 
     def _generate_secure_password(self) -> str:
         """Generate a secure random password."""
-        import random
-        import string
-
         # Generate 16-character password with mixed case, numbers, and symbols
         chars = string.ascii_letters + string.digits + "!@#$%^&*"
         password = ''.join(random.choice(chars) for _ in range(16))
@@ -654,12 +658,10 @@ class UnifiedAuthManager:
 
     def _hash_password(self, password: str) -> str:
         """Hash password using secure method."""
-        import bcrypt
         return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def _verify_password(self, password: str, password_hash: str) -> bool:
         """Verify password against hash."""
-        import bcrypt
         return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
 
     async def get_status(self) -> Dict[str, Any]:

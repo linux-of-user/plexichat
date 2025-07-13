@@ -1,8 +1,3 @@
-"""
-Advanced AI Moderation Engine
-Supports multiple AI providers, custom training, and progressive learning.
-"""
-
 import json
 import logging
 import sqlite3
@@ -14,6 +9,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import aiohttp
+
+            import re
+
+"""
+Advanced AI Moderation Engine
+Supports multiple AI providers, custom training, and progressive learning.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -107,10 +109,12 @@ class ModerationEngine:
     """Advanced AI moderation engine with multiple provider support."""
     
     def __init__(self, config_path: str = "config/moderation_config.json"):
-        self.config_path = Path(config_path)
+        self.config_path = from pathlib import Path
+Path(config_path)
         self.configs: Dict[str, ModerationConfig] = {}
         self.session: Optional[aiohttp.ClientSession] = None
-        self.db_path = Path("data/moderation.db")
+        self.db_path = from pathlib import Path
+Path("data/moderation.db")
         self.load_config()
         self._init_database()
         
@@ -366,7 +370,6 @@ class ModerationEngine:
         """Parse AI moderation response."""
         try:
             # Try to extract JSON from response
-            import re
             json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
             if json_match:
                 data = json.loads(json_match.group())

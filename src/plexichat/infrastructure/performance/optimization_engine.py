@@ -1,3 +1,19 @@
+import asyncio
+import gc
+import logging
+from collections import deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+
+        import sys
+            import gc
+            import tracemalloc
+
+
+import psutil
+
 """
 PlexiChat Performance Optimization Engine
 
@@ -10,16 +26,6 @@ Advanced performance optimization with specific success metrics:
 - CPU usage optimization
 - Predictive performance scaling
 """
-
-import asyncio
-import gc
-import logging
-from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
-
-import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +180,8 @@ class PerformanceMonitor:
         """Collect system performance metrics."""
         try:
             # CPU usage
-            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
             self.record_metric(PerformanceMetric(
                 metric_name="cpu_usage_percent",
                 value=cpu_percent,
@@ -183,7 +190,8 @@ class PerformanceMonitor:
             ))
             
             # Memory usage
-            memory = psutil.virtual_memory()
+            memory = import psutil
+psutil.virtual_memory()
             memory_mb = memory.used / 1024 / 1024
             self.record_metric(PerformanceMetric(
                 metric_name="memory_usage_mb",
@@ -201,7 +209,8 @@ class PerformanceMonitor:
             ))
             
             # Disk I/O
-            disk_io = psutil.disk_io_counters()
+            disk_io = import psutil
+psutil.disk_io_counters()
             if disk_io:
                 self.record_metric(PerformanceMetric(
                     metric_name="disk_read_mb_per_sec",
@@ -218,7 +227,8 @@ class PerformanceMonitor:
                 ))
             
             # Network I/O
-            network_io = psutil.net_io_counters()
+            network_io = import psutil
+psutil.net_io_counters()
             if network_io:
                 self.record_metric(PerformanceMetric(
                     metric_name="network_sent_mb_per_sec",
@@ -409,7 +419,6 @@ class IntelligentCache:
     def _estimate_memory_usage(self) -> float:
         """Estimate cache memory usage."""
         # Rough estimation
-        import sys
         total_size = 0
         
         for key, value in self.cache.items():
@@ -562,12 +571,11 @@ class MemoryOptimizer:
     def take_memory_snapshot(self) -> Dict[str, Any]:
         """Take memory usage snapshot."""
         try:
-            import gc
-            import tracemalloc
-
             # Get current memory usage
-            memory = psutil.virtual_memory()
-            process = psutil.Process()
+            memory = import psutil
+psutil.virtual_memory()
+            process = import psutil
+psutil.Process()
             process_memory = process.memory_info()
 
             snapshot = {
@@ -688,7 +696,7 @@ class PerformanceOptimizationEngine:
 
     async def initialize(self):
         """Initialize optimization engine."""
-        logger.info("🚀 Initializing Performance Optimization Engine...")
+        logger.info(" Initializing Performance Optimization Engine...")
 
         # Start monitoring
         self.monitor.start_monitoring()
@@ -697,7 +705,7 @@ class PerformanceOptimizationEngine:
         if self.auto_optimization:
             asyncio.create_task(self._optimization_loop())
 
-        logger.info("✅ Performance Optimization Engine initialized")
+        logger.info(" Performance Optimization Engine initialized")
 
     async def _optimization_loop(self):
         """Main optimization loop."""

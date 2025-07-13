@@ -1,10 +1,3 @@
-"""
-PlexiChat Backup Analytics & Monitoring System
-
-Provides real-time backup health monitoring, availability percentage tracking,
-predictive failure detection, and comprehensive backup reporting.
-"""
-
 import asyncio
 import statistics
 import time
@@ -22,6 +15,14 @@ from .advanced_recovery_system import AdvancedRecoverySystem
 from .immutable_shard_manager import ImmutableShardManager, ShardState
 from .multi_node_network import MultiNodeBackupNetwork
 from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
+
+
+"""
+PlexiChat Backup Analytics & Monitoring System
+
+Provides real-time backup health monitoring, availability percentage tracking,
+predictive failure detection, and comprehensive backup reporting.
+"""
 
 logger = get_logger(__name__)
 
@@ -176,7 +177,7 @@ class BackupAnalyticsMonitor:
         self.initialized = False
         self.start_time = datetime.now(timezone.utc)
         
-        logger.info("📊 Backup Analytics & Monitoring System initialized")
+        logger.info(" Backup Analytics & Monitoring System initialized")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default monitoring configuration."""
@@ -203,7 +204,7 @@ class BackupAnalyticsMonitor:
             if self.initialized:
                 return {"success": True, "message": "Already initialized"}
             
-            logger.info("🚀 Initializing backup analytics and monitoring system...")
+            logger.info(" Initializing backup analytics and monitoring system...")
             
             # Initialize core components
             await self.zero_knowledge_protocol.initialize()
@@ -224,7 +225,7 @@ class BackupAnalyticsMonitor:
             
             self.initialized = True
             
-            logger.info("✅ Backup analytics and monitoring system initialized")
+            logger.info(" Backup analytics and monitoring system initialized")
             
             return {
                 "success": True,
@@ -235,13 +236,13 @@ class BackupAnalyticsMonitor:
             }
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize backup analytics monitor: {e}")
+            logger.error(f" Failed to initialize backup analytics monitor: {e}")
             return {"success": False, "error": str(e)}
     
     async def _health_monitoring_loop(self):
         """Main health monitoring loop."""
         try:
-            logger.info("🔄 Starting health monitoring loop...")
+            logger.info(" Starting health monitoring loop...")
             
             while True:
                 try:
@@ -260,13 +261,13 @@ class BackupAnalyticsMonitor:
                     ).total_seconds()
                     
                 except Exception as e:
-                    logger.error(f"❌ Error in health monitoring loop: {e}")
+                    logger.error(f" Error in health monitoring loop: {e}")
                     continue
                     
         except asyncio.CancelledError:
-            logger.info("🛑 Health monitoring loop cancelled")
+            logger.info(" Health monitoring loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Health monitoring loop failed: {e}")
+            logger.error(f" Health monitoring loop failed: {e}")
     
     async def _collect_health_metrics(self):
         """Collect comprehensive health metrics."""
@@ -326,10 +327,10 @@ class BackupAnalyticsMonitor:
                     {"warning": 95.0, "critical": 90.0}
                 )
             
-            logger.debug(f"📊 Health metrics collected: {len(self.health_metrics)} metrics")
+            logger.debug(f" Health metrics collected: {len(self.health_metrics)} metrics")
             
         except Exception as e:
-            logger.error(f"❌ Failed to collect health metrics: {e}")
+            logger.error(f" Failed to collect health metrics: {e}")
     
     def _update_health_metric(self, name: str, value: float, unit: str, 
                             thresholds: Dict[str, float]):
@@ -370,7 +371,7 @@ class BackupAnalyticsMonitor:
             self.historical_metrics[name].append(value)
             
         except Exception as e:
-            logger.error(f"❌ Failed to update health metric {name}: {e}")
+            logger.error(f" Failed to update health metric {name}: {e}")
 
     async def _analyze_health_metrics(self):
         """Analyze health metrics and generate alerts."""
@@ -385,7 +386,7 @@ class BackupAnalyticsMonitor:
                     await self._generate_trend_alert(metric)
 
         except Exception as e:
-            logger.error(f"❌ Failed to analyze health metrics: {e}")
+            logger.error(f" Failed to analyze health metrics: {e}")
 
     async def _generate_alert(self, metric: HealthMetric):
         """Generate an alert for a health metric."""
@@ -422,10 +423,10 @@ class BackupAnalyticsMonitor:
             self.active_alerts[alert_id] = alert
             self.monitoring_stats["alerts_generated"] += 1
 
-            logger.warning(f"🚨 Alert generated: {alert.title} - {alert.message}")
+            logger.warning(f" Alert generated: {alert.title} - {alert.message}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate alert: {e}")
+            logger.error(f" Failed to generate alert: {e}")
 
     async def _generate_trend_alert(self, metric: HealthMetric):
         """Generate trend-based alert."""
@@ -446,15 +447,15 @@ class BackupAnalyticsMonitor:
             self.active_alerts[alert_id] = alert
             self.monitoring_stats["alerts_generated"] += 1
 
-            logger.warning(f"📉 Trend alert generated: {alert.title}")
+            logger.warning(f" Trend alert generated: {alert.title}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate trend alert: {e}")
+            logger.error(f" Failed to generate trend alert: {e}")
 
     async def _availability_tracking_loop(self):
         """Track system availability over time."""
         try:
-            logger.info("📈 Starting availability tracking loop...")
+            logger.info(" Starting availability tracking loop...")
 
             while True:
                 try:
@@ -472,18 +473,18 @@ class BackupAnalyticsMonitor:
                         })
 
                 except Exception as e:
-                    logger.error(f"❌ Error in availability tracking: {e}")
+                    logger.error(f" Error in availability tracking: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Availability tracking loop cancelled")
+            logger.info(" Availability tracking loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Availability tracking loop failed: {e}")
+            logger.error(f" Availability tracking loop failed: {e}")
 
     async def _alert_processing_loop(self):
         """Process and manage alerts."""
         try:
-            logger.info("🚨 Starting alert processing loop...")
+            logger.info(" Starting alert processing loop...")
 
             while True:
                 try:
@@ -496,13 +497,13 @@ class BackupAnalyticsMonitor:
                     await self._cleanup_old_alerts()
 
                 except Exception as e:
-                    logger.error(f"❌ Error in alert processing: {e}")
+                    logger.error(f" Error in alert processing: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Alert processing loop cancelled")
+            logger.info(" Alert processing loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Alert processing loop failed: {e}")
+            logger.error(f" Alert processing loop failed: {e}")
 
     async def _auto_resolve_alerts(self):
         """Automatically resolve alerts when conditions improve."""
@@ -515,10 +516,10 @@ class BackupAnalyticsMonitor:
                 current_metric = self.health_metrics.get(alert.metric_name)
                 if current_metric and current_metric.status in [HealthStatus.GOOD, HealthStatus.EXCELLENT]:
                     alert.resolved = True
-                    logger.info(f"✅ Auto-resolved alert: {alert.title}")
+                    logger.info(f" Auto-resolved alert: {alert.title}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to auto-resolve alerts: {e}")
+            logger.error(f" Failed to auto-resolve alerts: {e}")
 
     async def _cleanup_old_alerts(self):
         """Clean up old resolved alerts."""
@@ -534,15 +535,15 @@ class BackupAnalyticsMonitor:
                 del self.active_alerts[alert_id]
 
             if alerts_to_remove:
-                logger.debug(f"🧹 Cleaned up {len(alerts_to_remove)} old alerts")
+                logger.debug(f" Cleaned up {len(alerts_to_remove)} old alerts")
 
         except Exception as e:
-            logger.error(f"❌ Failed to cleanup old alerts: {e}")
+            logger.error(f" Failed to cleanup old alerts: {e}")
 
     async def _predictive_analytics_loop(self):
         """Predictive analytics and failure detection."""
         try:
-            logger.info("🔮 Starting predictive analytics loop...")
+            logger.info(" Starting predictive analytics loop...")
 
             while True:
                 try:
@@ -558,13 +559,13 @@ class BackupAnalyticsMonitor:
                     self.monitoring_stats["predictions_made"] += len(predictions)
 
                 except Exception as e:
-                    logger.error(f"❌ Error in predictive analytics: {e}")
+                    logger.error(f" Error in predictive analytics: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Predictive analytics loop cancelled")
+            logger.info(" Predictive analytics loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Predictive analytics loop failed: {e}")
+            logger.error(f" Predictive analytics loop failed: {e}")
 
     async def _perform_predictive_analysis(self) -> List[Dict[str, Any]]:
         """Perform predictive analysis on historical data."""
@@ -618,7 +619,7 @@ class BackupAnalyticsMonitor:
             return predictions
 
         except Exception as e:
-            logger.error(f"❌ Failed to perform predictive analysis: {e}")
+            logger.error(f" Failed to perform predictive analysis: {e}")
             return []
 
     async def _generate_predictive_alert(self, prediction: Dict[str, Any]):
@@ -643,15 +644,15 @@ class BackupAnalyticsMonitor:
             self.active_alerts[alert_id] = alert
             self.monitoring_stats["alerts_generated"] += 1
 
-            logger.warning(f"🔮 Predictive alert generated: {alert.title}")
+            logger.warning(f" Predictive alert generated: {alert.title}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate predictive alert: {e}")
+            logger.error(f" Failed to generate predictive alert: {e}")
 
     async def _report_generation_loop(self):
         """Generate periodic reports."""
         try:
-            logger.info("📊 Starting report generation loop...")
+            logger.info(" Starting report generation loop...")
 
             while True:
                 try:
@@ -672,13 +673,13 @@ class BackupAnalyticsMonitor:
                         await self._generate_monthly_report()
 
                 except Exception as e:
-                    logger.error(f"❌ Error in report generation: {e}")
+                    logger.error(f" Error in report generation: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Report generation loop cancelled")
+            logger.info(" Report generation loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Report generation loop failed: {e}")
+            logger.error(f" Report generation loop failed: {e}")
 
     async def _generate_daily_report(self):
         """Generate daily backup report."""
@@ -689,12 +690,12 @@ class BackupAnalyticsMonitor:
             report = await self._create_backup_report("daily", start_time, end_time)
 
             # TODO: Save report to storage and send notifications
-            logger.info(f"📊 Daily report generated: {report.report_id}")
+            logger.info(f" Daily report generated: {report.report_id}")
 
             self.monitoring_stats["reports_generated"] += 1
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate daily report: {e}")
+            logger.error(f" Failed to generate daily report: {e}")
 
     async def _generate_weekly_report(self):
         """Generate weekly backup report."""
@@ -704,12 +705,12 @@ class BackupAnalyticsMonitor:
 
             report = await self._create_backup_report("weekly", start_time, end_time)
 
-            logger.info(f"📊 Weekly report generated: {report.report_id}")
+            logger.info(f" Weekly report generated: {report.report_id}")
 
             self.monitoring_stats["reports_generated"] += 1
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate weekly report: {e}")
+            logger.error(f" Failed to generate weekly report: {e}")
 
     async def _generate_monthly_report(self):
         """Generate monthly backup report."""
@@ -719,12 +720,12 @@ class BackupAnalyticsMonitor:
 
             report = await self._create_backup_report("monthly", start_time, end_time)
 
-            logger.info(f"📊 Monthly report generated: {report.report_id}")
+            logger.info(f" Monthly report generated: {report.report_id}")
 
             self.monitoring_stats["reports_generated"] += 1
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate monthly report: {e}")
+            logger.error(f" Failed to generate monthly report: {e}")
 
     async def _create_backup_report(self, report_type: str, start_time: datetime,
                                   end_time: datetime) -> BackupReport:
@@ -804,7 +805,7 @@ class BackupAnalyticsMonitor:
             return report
 
         except Exception as e:
-            logger.error(f"❌ Failed to create backup report: {e}")
+            logger.error(f" Failed to create backup report: {e}")
             raise
 
     async def _generate_capacity_predictions(self) -> Dict[str, Any]:
@@ -836,7 +837,7 @@ class BackupAnalyticsMonitor:
             return predictions
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate capacity predictions: {e}")
+            logger.error(f" Failed to generate capacity predictions: {e}")
             return {}
 
     async def get_current_health_status(self) -> Dict[str, Any]:
@@ -896,7 +897,7 @@ class BackupAnalyticsMonitor:
             }
 
         except Exception as e:
-            logger.error(f"❌ Failed to get current health status: {e}")
+            logger.error(f" Failed to get current health status: {e}")
             return {}
 
     async def get_system_alerts(self, include_resolved: bool = False) -> List[Dict[str, Any]]:
@@ -928,7 +929,7 @@ class BackupAnalyticsMonitor:
             return alerts
 
         except Exception as e:
-            logger.error(f"❌ Failed to get system alerts: {e}")
+            logger.error(f" Failed to get system alerts: {e}")
             return []
 
 

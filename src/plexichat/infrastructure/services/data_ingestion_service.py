@@ -1,3 +1,14 @@
+import asyncio
+import logging
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+            from ..database.enhanced_abstraction import enhanced_db_manager
+            
+
 """
 PlexiChat Data Ingestion Service
 
@@ -22,14 +33,6 @@ Data Sources:
 - File operations
 - Security events
 """
-
-import asyncio
-import logging
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +169,7 @@ class DataIngestionService:
             return
         
         self.is_running = True
-        logger.info("🚀 Starting data ingestion service...")
+        logger.info(" Starting data ingestion service...")
         
         # Start background tasks
         if self.config.lakehouse_enabled:
@@ -178,7 +181,7 @@ class DataIngestionService:
             asyncio.create_task(self._metrics_collector())
         )
         
-        logger.info("✅ Data ingestion service started")
+        logger.info(" Data ingestion service started")
     
     async def stop(self):
         """Stop the ingestion service."""
@@ -186,7 +189,7 @@ class DataIngestionService:
             return
         
         self.is_running = False
-        logger.info("🛑 Stopping data ingestion service...")
+        logger.info(" Stopping data ingestion service...")
         
         # Cancel background tasks
         for task in self.background_tasks:
@@ -198,7 +201,7 @@ class DataIngestionService:
         # Flush remaining data
         await self._flush_buffers()
         
-        logger.info("✅ Data ingestion service stopped")
+        logger.info(" Data ingestion service stopped")
     
     async def ingest_event(self, event: DataEvent) -> bool:
         """Ingest a single data event."""
@@ -225,7 +228,7 @@ class DataIngestionService:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Event ingestion failed: {e}")
+            logger.error(f" Event ingestion failed: {e}")
             self.metrics["events_failed"] += 1
             return False
     
@@ -368,13 +371,11 @@ class DataIngestionService:
             self.event_buffer.clear()
             
         except Exception as e:
-            logger.error(f"❌ Failed to flush event buffer: {e}")
+            logger.error(f" Failed to flush event buffer: {e}")
     
     async def _write_to_lakehouse(self, grouped_events: Dict[str, List[DataEvent]]):
         """Write events to lakehouse."""
         try:
-            from ..database.enhanced_abstraction import enhanced_db_manager
-            
             for source_type, events in grouped_events.items():
                 table_name = f"{self.config.lakehouse_table_prefix}{source_type}"
                 
@@ -396,7 +397,7 @@ class DataIngestionService:
                     await lakehouse_client.ingest_data(table_name, data, mode="append")
                 
         except Exception as e:
-            logger.error(f"❌ Lakehouse write failed: {e}")
+            logger.error(f" Lakehouse write failed: {e}")
             raise
     
     async def _batch_processor(self):
@@ -409,7 +410,7 @@ class DataIngestionService:
                     await self._flush_event_buffer()
                     
             except Exception as e:
-                logger.error(f"❌ Batch processor error: {e}")
+                logger.error(f" Batch processor error: {e}")
     
     async def _metrics_collector(self):
         """Background metrics collector."""
@@ -424,7 +425,7 @@ class DataIngestionService:
                                                len(self.event_buffer))
                 
             except Exception as e:
-                logger.error(f"❌ Metrics collector error: {e}")
+                logger.error(f" Metrics collector error: {e}")
     
     async def _flush_buffers(self):
         """Flush all remaining buffers."""

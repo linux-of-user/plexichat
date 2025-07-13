@@ -1,3 +1,25 @@
+import asyncio
+import json
+from datetime import datetime
+from typing import Dict, List, Optional
+
+from starlette.websockets import WebSocketState
+
+from . import LogCategory, LogEntry, LogLevel, get_logging_manager
+from .performance_logger import get_performance_logger
+from .security_logger import SecurityEventType, SecuritySeverity, get_security_logger
+
+
+        import csv
+        import io
+        
+
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+from ...services.auth import from plexichat.infrastructure.utils.auth import require_admin
+
 """
 PlexiChat Centralized Log Management API
 
@@ -14,22 +36,6 @@ Features:
 - Alert management
 - Log integrity verification
 """
-
-import asyncio
-import json
-from datetime import datetime
-from typing import Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
-from starlette.websockets import WebSocketState
-
-from ...services.auth import require_admin
-from . import LogCategory, LogEntry, LogLevel, get_logging_manager
-from .performance_logger import get_performance_logger
-from .security_logger import SecurityEventType, SecuritySeverity, get_security_logger
-
 
 # Pydantic models for API
 class LogFilterRequest(BaseModel):
@@ -173,7 +179,7 @@ async def get_log_entries(
     end_time: Optional[datetime] = Query(None, description="End time filter"),
     search_query: Optional[str] = Query(None, description="Search in log messages"),
     limit: int = Query(100, le=1000, description="Maximum number of entries"),
-    current_user = Depends(require_admin)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """Get log entries with filtering."""
     logging_manager = get_logging_manager()
@@ -260,7 +266,7 @@ async def log_stream_websocket(
 @router.get("/performance/summary")
 async def get_performance_summary(
     hours: int = Query(1, ge=1, le=168, description="Hours to include in summary"),
-    current_user = Depends(require_admin)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """Get performance summary."""
     performance_logger = get_performance_logger()
@@ -272,7 +278,7 @@ async def get_performance_metrics(
     start_time: Optional[datetime] = Query(None, description="Start time filter"),
     end_time: Optional[datetime] = Query(None, description="End time filter"),
     limit: int = Query(1000, le=10000, description="Maximum number of data points"),
-    current_user = Depends(require_admin)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """Get performance metrics."""
     performance_logger = get_performance_logger()
@@ -304,7 +310,7 @@ async def get_security_events(
     start_time: Optional[datetime] = Query(None, description="Start time filter"),
     end_time: Optional[datetime] = Query(None, description="End time filter"),
     limit: int = Query(100, le=1000, description="Maximum number of events"),
-    current_user = Depends(require_admin)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """Get security events."""
     security_logger = get_security_logger()
@@ -348,7 +354,7 @@ async def get_security_events(
     }
 
 @router.get("/security/integrity")
-async def verify_log_integrity(current_user = Depends(require_admin)):
+async def verify_log_integrity(current_user = Depends(from plexichat.infrastructure.utils.auth import require_admin)):
     """Verify security log integrity."""
     security_logger = get_security_logger()
     return security_logger.verify_log_integrity()
@@ -356,7 +362,7 @@ async def verify_log_integrity(current_user = Depends(require_admin)):
 @router.post("/export")
 async def export_logs(
     export_request: LogExportRequest,
-    current_user = Depends(require_admin)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """Export logs in various formats."""
     logging_manager = get_logging_manager()
@@ -408,9 +414,6 @@ async def export_logs(
         )
     
     elif export_request.format == "csv":
-        import csv
-        import io
-        
         def generate_csv():
             output = io.StringIO()
             writer = csv.writer(output)
@@ -452,7 +455,7 @@ async def export_logs(
         )
 
 @router.get("/stats")
-async def get_log_stats(current_user = Depends(require_admin)):
+async def get_log_stats(current_user = Depends(from plexichat.infrastructure.utils.auth import require_admin)):
     """Get logging system statistics."""
     logging_manager = get_logging_manager()
     

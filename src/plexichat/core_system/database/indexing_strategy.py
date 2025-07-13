@@ -1,3 +1,17 @@
+import logging
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
+from .query_optimizer import performance_monitor, sql_analyzer
+
+        import re
+        import re
+            import re
+
 """
 PlexiChat Advanced Indexing Strategy
 
@@ -21,15 +35,7 @@ Features:
 - Performance impact analysis
 """
 
-import logging
-from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
 try:
-    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     # Create placeholder classes if enhanced_abstraction is not available
@@ -71,8 +77,6 @@ except ImportError:
                     self.count = 0
                     self.error = None
             return MockResult()
-from .query_optimizer import performance_monitor, sql_analyzer
-
 logger = logging.getLogger(__name__)
 
 
@@ -248,7 +252,6 @@ class IndexAnalyzer:
         recommendations = []
         
         # Extract WHERE clause patterns
-        import re
         where_pattern = re.compile(r'\bWHERE\s+(.+?)(?:\s+ORDER\s+BY|\s+GROUP\s+BY|\s+LIMIT|$)', re.IGNORECASE | re.DOTALL)
         where_match = where_pattern.search(query)
         
@@ -289,7 +292,6 @@ class IndexAnalyzer:
         recommendations = []
         
         # Extract JOIN patterns
-        import re
         join_pattern = re.compile(r'\bJOIN\s+(\w+)\s+.*?\bON\s+(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)', re.IGNORECASE)
         join_matches = join_pattern.findall(query)
         
@@ -325,7 +327,6 @@ class IndexAnalyzer:
         recommendations = []
         
         if analysis.has_order_by:
-            import re
             order_pattern = re.compile(r'\bORDER\s+BY\s+([\w,\s]+)', re.IGNORECASE)
             order_match = order_pattern.search(query)
             
@@ -458,10 +459,10 @@ class IndexManager:
                 self.indexes[database_name][index_def.name] = index_def
                 created_indexes.append(index_def.name)
                 
-                logger.info(f"✅ Created index: {index_def.name} on {index_def.table}")
+                logger.info(f" Created index: {index_def.name} on {index_def.table}")
                 
             except Exception as e:
-                logger.error(f"❌ Failed to create index {recommendation.index_definition.name}: {e}")
+                logger.error(f" Failed to create index {recommendation.index_definition.name}: {e}")
         
         return created_indexes
     
@@ -531,10 +532,10 @@ class IndexManager:
                     del self.indexes[database_name][index_name]
                     removed_indexes.append(index_name)
                     
-                    logger.info(f"🗑️ Removed unused index: {index_name}")
+                    logger.info(f" Removed unused index: {index_name}")
                     
                 except Exception as e:
-                    logger.error(f"❌ Failed to remove index {index_name}: {e}")
+                    logger.error(f" Failed to remove index {index_name}: {e}")
         
         return removed_indexes
     

@@ -1,10 +1,3 @@
-"""
-Real-Time Performance Monitor
-
-Advanced performance monitoring system with real-time metrics collection,
-predictive analytics, and performance optimization recommendations.
-"""
-
 import asyncio
 import logging
 import secrets
@@ -14,9 +7,18 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import psutil
 
 from . import (
+
+import psutil
+
+"""
+Real-Time Performance Monitor
+
+Advanced performance monitoring system with real-time metrics collection,
+predictive analytics, and performance optimization recommendations.
+"""
+
     ALERT_THRESHOLD_CPU,
     ALERT_THRESHOLD_DISK,
     ALERT_THRESHOLD_MEMORY,
@@ -275,14 +277,18 @@ class RealTimePerformanceMonitor:
             # Collect system metrics
             if node_id == self.cluster_manager.local_node_id:
                 # Local node - collect real metrics
-                cpu_usage = psutil.cpu_percent(interval=1)
-                memory = psutil.virtual_memory()
+                cpu_usage = import psutil
+psutil.cpu_percent(interval=1)
+                memory = import psutil
+psutil.virtual_memory()
                 memory_usage = memory.percent
-                disk = psutil.disk_usage('/')
+                disk = import psutil
+psutil.disk_usage('/')
                 disk_usage = (disk.used / disk.total) * 100
                 
                 # Network metrics (simplified)
-                network_io = psutil.net_io_counters()
+                network_io = import psutil
+psutil.net_io_counters()
                 network_throughput = (network_io.bytes_sent + network_io.bytes_recv) / (1024 * 1024)  # MB
                 
             else:
@@ -1524,7 +1530,7 @@ class RealTimePerformanceMonitor:
     async def shutdown(self) -> None:
         """Gracefully shutdown the performance monitor."""
         try:
-            logger.info("🛑 Shutting down Real-Time Performance Monitor")
+            logger.info(" Shutting down Real-Time Performance Monitor")
 
             # Stop auto-healing
             await self.disable_auto_healing()
@@ -1541,15 +1547,15 @@ class RealTimePerformanceMonitor:
             self.cluster_health_history.clear()
 
             # Log final statistics
-            logger.info("📊 Final performance monitoring statistics:")
+            logger.info(" Final performance monitoring statistics:")
             logger.info(f"   Total snapshots collected: {sum(len(snapshots) for snapshots in self.performance_snapshots.values())}")
             logger.info(f"   Total alerts generated: {len(self.active_alerts)}")
             logger.info(f"   Auto-healing actions performed: {sum(self.node_failure_counts.values())}")
 
-            logger.info("✅ Real-Time Performance Monitor shutdown complete")
+            logger.info(" Real-Time Performance Monitor shutdown complete")
 
         except Exception as e:
-            logger.error(f"❌ Error during performance monitor shutdown: {e}")
+            logger.error(f" Error during performance monitor shutdown: {e}")
 
     async def get_comprehensive_health_report(self) -> Dict[str, Any]:
         """Get comprehensive cluster health report."""
@@ -1621,7 +1627,7 @@ class RealTimePerformanceMonitor:
             }
 
         except Exception as e:
-            logger.error(f"❌ Error generating comprehensive health report: {e}")
+            logger.error(f" Error generating comprehensive health report: {e}")
             return {"error": str(e)}
 
     async def _calculate_performance_trends(self) -> Dict[str, Any]:
@@ -1655,7 +1661,7 @@ class RealTimePerformanceMonitor:
             return trends
 
         except Exception as e:
-            logger.error(f"❌ Error calculating performance trends: {e}")
+            logger.error(f" Error calculating performance trends: {e}")
             return {}
 
     def _calculate_metric_trend(self, values: List[float]) -> float:
@@ -1717,5 +1723,5 @@ class RealTimePerformanceMonitor:
             return recommendations
 
         except Exception as e:
-            logger.error(f"❌ Error generating recommendations: {e}")
+            logger.error(f" Error generating recommendations: {e}")
             return ["Error generating recommendations"]

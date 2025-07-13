@@ -1,16 +1,18 @@
-"""
-Device management models for intelligent shard distribution.
-Handles device-based backup storage and smart shard placement.
-"""
-
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, Index, Text
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
+
+
+from sqlalchemy import DateTime, Index, Text
+
+"""
+Device management models for intelligent shard distribution.
+Handles device-based backup storage and smart shard placement.
+"""
 
 class DeviceType(str, Enum):
     """Types of devices that can store shards."""

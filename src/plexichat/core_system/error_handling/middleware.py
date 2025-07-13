@@ -1,10 +1,3 @@
-"""
-PlexiChat Error Handling Middleware
-
-FastAPI middleware for comprehensive error handling, logging,
-and response formatting across the entire application.
-"""
-
 import asyncio
 import logging
 import time
@@ -13,13 +6,24 @@ import uuid
 from datetime import datetime
 from typing import Any, Callable, Dict
 
-from fastapi import HTTPException, Request, Response
-from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from .beautiful_error_handler import BeautifulErrorHandler
 from .exceptions import BaseAPIException, ErrorCategory, ErrorSeverity
+
+            from .error_manager import error_manager
+            
+
+from fastapi import HTTPException, Request, Response
+from fastapi.responses import JSONResponse
+
+"""
+PlexiChat Error Handling Middleware
+
+FastAPI middleware for comprehensive error handling, logging,
+and response formatting across the entire application.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +115,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         
         error_info = {
             'request_id': request_id,
-            'timestamp': datetime.now(),
+            'timestamp': from datetime import datetime
+datetime.now(),
             'exception': exception,
             'exception_type': type(exception).__name__,
             'message': str(exception),
@@ -237,8 +242,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         """Record error for monitoring systems."""
         try:
             # Import here to avoid circular imports
-            from .error_manager import error_manager
-            
             context = {
                 'request_id': error_info['request_id'],
                 'method': request.method,

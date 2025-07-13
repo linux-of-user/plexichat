@@ -1,3 +1,25 @@
+import asyncio
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+
+
+from ...ai import get_ai_manager
+
+from ...core.security import security_manager
+from ...services import get_service
+
+        from . import auth
+        from . import users
+        from . import ai
+        from . import collaboration
+        from . import experimental
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
+from fastapi.security import HTTPBearer
+
+from ...core.auth import from plexichat.infrastructure.utils.auth import get_current_user, verify_permissions
+
 """
 PlexiChat API Beta (Development Branch)
 
@@ -13,21 +35,7 @@ Features in Beta:
 - Cutting-edge integrations
 """
 
-import asyncio
-import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
-
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
-from fastapi.security import HTTPBearer
-
-from ...ai import get_ai_manager
-
 # Import core systems
-from ...core.auth import get_current_user, verify_permissions
-from ...core.security import security_manager
-from ...services import get_service
-
 logger = logging.getLogger(__name__)
 
 # Security scheme
@@ -108,8 +116,10 @@ async def get_api_info():
         "api_version": "beta",
         "info": API_VERSION_INFO,
         "endpoints": ENDPOINT_CATEGORIES,
-        "timestamp": datetime.utcnow().isoformat(),
-        "server_time": datetime.now().isoformat(),
+        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat(),
+        "server_time": from datetime import datetime
+datetime.now().isoformat(),
         "warning": "Beta features are experimental and may change without notice",
         "experimental_features": {
             "ai_training": "Custom model training endpoints",
@@ -144,7 +154,8 @@ async def health_check():
         return {
             "status": overall_status,
             "version": "beta",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat(),
             "services": services_status,
             "experimental_features": {
                 "ai_training": "active",
@@ -227,7 +238,8 @@ async def websocket_endpoint(websocket: WebSocket):
             "type": "connection_established",
             "api_version": "beta",
             "capabilities": ["experimental_messaging", "advanced_collaboration", "ai_features"],
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat(),
             "warning": "Beta WebSocket - features may change"
         })
         
@@ -242,7 +254,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 if message_type == "ping":
                     await websocket.send_json({
                         "type": "pong",
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                     })
                 elif message_type == "experimental_feature":
                     # Handle experimental feature requests
@@ -251,7 +264,8 @@ async def websocket_endpoint(websocket: WebSocket):
                         "type": "experimental_response",
                         "feature": feature,
                         "status": "processing",
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                     })
                 else:
                     # Echo back with beta processing
@@ -259,7 +273,8 @@ async def websocket_endpoint(websocket: WebSocket):
                         "type": "beta_echo",
                         "data": data,
                         "processed_with": "beta_features",
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                     })
                     
             except Exception as e:
@@ -267,7 +282,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_json({
                     "type": "error",
                     "message": "Beta message processing error",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                 })
                 
     except Exception as e:
@@ -280,26 +296,21 @@ def register_beta_endpoints():
     """Register all beta API endpoints."""
     try:
         # Experimental authentication endpoints
-        from . import auth
         beta_router.include_router(auth.router, prefix="/auth", tags=["auth"])
         
         # Experimental user management endpoints
-        from . import users
         beta_router.include_router(users.router, prefix="/users", tags=["users"])
         
         # Experimental AI endpoints
-        from . import ai
         beta_router.include_router(ai.router, prefix="/ai", tags=["ai"])
         
         # Experimental collaboration endpoints
-        from . import collaboration
         beta_router.include_router(collaboration.router, prefix="/collaboration", tags=["collaboration"])
         
         # Experimental features
-        from . import experimental
         beta_router.include_router(experimental.router, prefix="/experimental", tags=["experimental"])
         
-        logger.info("✅ API beta endpoints registered successfully")
+        logger.info(" API beta endpoints registered successfully")
         
     except ImportError as e:
         logger.warning(f"Some beta endpoints not available: {e}")
@@ -310,18 +321,21 @@ def register_beta_endpoints():
 @beta_router.middleware("http")
 async def beta_middleware(request, call_next):
     """Middleware for beta API requests."""
-    start_time = datetime.utcnow()
+    start_time = from datetime import datetime
+datetime.utcnow()
     
     # Add beta-specific processing
     response = await call_next(request)
     
     # Calculate processing time
-    process_time = (datetime.utcnow() - start_time).total_seconds()
+    process_time = (from datetime import datetime
+datetime.utcnow() - start_time).total_seconds()
     
     # Add beta response headers
     response.headers["X-API-Version"] = "beta"
     response.headers["X-Process-Time"] = str(process_time)
-    response.headers["X-Server-Time"] = datetime.utcnow().isoformat()
+    response.headers["X-Server-Time"] = from datetime import datetime
+datetime.utcnow().isoformat()
     response.headers["X-Beta-Warning"] = "Experimental features may change"
     response.headers["X-Stability-Level"] = "beta"
     

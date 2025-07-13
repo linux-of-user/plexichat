@@ -1,3 +1,10 @@
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
 """
 PlexiChat Advanced User System
 
@@ -9,12 +16,6 @@ Comprehensive user management with Discord/Telegram/WhatsApp Business feature pa
 - Subscription management
 - Activity tracking and analytics
 """
-
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

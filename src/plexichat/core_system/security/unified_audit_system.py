@@ -1,3 +1,21 @@
+import asyncio
+import hashlib
+import hmac
+import json
+import secrets
+import threading
+import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+
+
 """
 PlexiChat Unified Audit System - SINGLE SOURCE OF TRUTH
 
@@ -16,23 +34,6 @@ Features:
 - Automated incident response
 - Multi-node security coordination
 """
-
-import asyncio
-import hashlib
-import hmac
-import json
-import secrets
-import threading
-import time
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -484,7 +485,8 @@ class UnifiedAuditSystem:
         )
 
         # Tamper-resistant logging
-        log_dir = Path(self.config.get("log_directory", "logs/security"))
+        log_dir = from pathlib import Path
+Path(self.config.get("log_directory", "logs/security"))
         log_dir.mkdir(parents=True, exist_ok=True)
 
         secret_key = self.config.get("logging_secret_key", secrets.token_bytes(32))
@@ -527,11 +529,11 @@ class UnifiedAuditSystem:
             asyncio.create_task(self._metrics_collection_loop())
 
             self.initialized = True
-            logger.info("✅ Unified Audit System initialized successfully")
+            logger.info(" Unified Audit System initialized successfully")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Unified Audit System initialization failed: {e}")
+            logger.error(f" Unified Audit System initialization failed: {e}")
             return False
 
     def log_security_event(self,
@@ -746,7 +748,7 @@ class UnifiedAuditSystem:
             details=alert_data
         )
 
-        logger.critical(f"🚨 SECURITY ALERT: {message}")
+        logger.critical(f" SECURITY ALERT: {message}")
 
     def _add_to_correlation(self, correlation_id: str, event_id: str):
         """Add event to correlation map."""

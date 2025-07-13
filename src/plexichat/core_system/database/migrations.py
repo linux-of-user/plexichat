@@ -1,17 +1,20 @@
-"""
-Database Migration System
-Automatic database migrations with version control and rollback support.
-"""
-
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+
+
 from sqlalchemy import text
 
-try:
     from plexichat.core.database.multi_backend import db_manager  # type: ignore
+
+"""
+Database Migration System
+Automatic database migrations with version control and rollback support.
+"""
+
+try:
     MULTI_BACKEND_AVAILABLE = True
 except ImportError:
     MULTI_BACKEND_AVAILABLE = False
@@ -70,7 +73,8 @@ class MigrationManager:
     
     def __init__(self):
         self.migrations: List[Migration] = []
-        self.migrations_dir = Path("migrations")
+        self.migrations_dir = from pathlib import Path
+Path("migrations")
         self.migrations_dir.mkdir(exist_ok=True)
         
     async def initialize(self):

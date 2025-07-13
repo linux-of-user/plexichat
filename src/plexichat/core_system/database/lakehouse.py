@@ -1,3 +1,18 @@
+import logging
+import time
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+    from .enhanced_abstraction import (  # type: ignore
+            from minio import Minio  # type: ignore
+            
+            from pyspark.conf import SparkConf  # type: ignore
+            from pyspark.sql import SparkSession  # type: ignore
+
+    from .enhanced_abstraction import DatabaseClientFactory  # type: ignore
+
 """
 PlexiChat Data Lakehouse Implementation
 
@@ -20,15 +35,7 @@ Features:
 - Automatic compaction and optimization
 """
 
-import logging
-import time
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
 try:
-    from .enhanced_abstraction import (  # type: ignore
         AbstractDatabaseClient,
         DatabaseConfig,
         DatabaseType,
@@ -183,18 +190,16 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
             self.is_connected = True
             self.metrics["connections_created"] += 1
             
-            logger.info(f"✅ Connected to Data Lakehouse: {self.lakehouse_config.endpoint}")
+            logger.info(f" Connected to Data Lakehouse: {self.lakehouse_config.endpoint}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Lakehouse connection failed: {e}")
+            logger.error(f" Lakehouse connection failed: {e}")
             return False
     
     async def _init_minio(self):
         """Initialize MinIO client."""
         try:
-            from minio import Minio  # type: ignore
-            
             self.minio_client = Minio(
                 self.lakehouse_config.endpoint,
                 access_key=self.lakehouse_config.access_key,
@@ -206,18 +211,15 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
             bucket_name = self.lakehouse_config.bucket_name
             if not self.minio_client.bucket_exists(bucket_name):
                 self.minio_client.make_bucket(bucket_name)
-                logger.info(f"✅ Created MinIO bucket: {bucket_name}")
+                logger.info(f" Created MinIO bucket: {bucket_name}")
             
         except Exception as e:
-            logger.error(f"❌ MinIO initialization failed: {e}")
+            logger.error(f" MinIO initialization failed: {e}")
             raise
     
     async def _init_spark(self):
         """Initialize Spark session."""
         try:
-            from pyspark.conf import SparkConf  # type: ignore
-            from pyspark.sql import SparkSession  # type: ignore
-
             # Spark configuration for lakehouse
             conf = SparkConf()
             conf.set("spark.app.name", "PlexiChat-Lakehouse")
@@ -245,10 +247,10 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
                 conf.set("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
             
             self.spark_session = SparkSession.builder.config(conf=conf).getOrCreate()
-            logger.info("✅ Spark session initialized")
+            logger.info(" Spark session initialized")
             
         except Exception as e:
-            logger.error(f"❌ Spark initialization failed: {e}")
+            logger.error(f" Spark initialization failed: {e}")
             raise
     
     async def _init_catalog(self):
@@ -265,10 +267,10 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
                 # Delta Lake catalog
                 self.catalog = self.spark_session.catalog
             
-            logger.info("✅ Table catalog initialized")
+            logger.info(" Table catalog initialized")
             
         except Exception as e:
-            logger.error(f"❌ Catalog initialization failed: {e}")
+            logger.error(f" Catalog initialization failed: {e}")
             raise
 
     def _ensure_spark_session(self):
@@ -284,7 +286,7 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
             self.is_connected = False
             return True
         except Exception as e:
-            logger.error(f"❌ Lakehouse disconnect failed: {e}")
+            logger.error(f" Lakehouse disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None,
@@ -371,11 +373,11 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
             if self.spark_session is None:
                 raise Exception("Spark session not available")
             self.spark_session.sql(create_sql)
-            logger.info(f"✅ Created lakehouse table: {table_name}")
+            logger.info(f" Created lakehouse table: {table_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to create table {table_name}: {e}")
+            logger.error(f" Failed to create table {table_name}: {e}")
             return False
     
     async def ingest_data(self, table_name: str, data: List[Dict[str, Any]], 
@@ -392,11 +394,11 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
             elif self.lakehouse_config.table_format == TableFormat.DELTA:
                 df.write.format("delta").mode(mode).saveAsTable(table_name)
             
-            logger.info(f"✅ Ingested {len(data)} records to {table_name}")
+            logger.info(f" Ingested {len(data)} records to {table_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Data ingestion failed for {table_name}: {e}")
+            logger.error(f" Data ingestion failed for {table_name}: {e}")
             return False
     
     async def time_travel_query(self, table_name: str, timestamp: datetime) -> QueryResult:
@@ -420,7 +422,7 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
             return await self.execute_query(query)
             
         except Exception as e:
-            logger.error(f"❌ Time travel query failed: {e}")
+            logger.error(f" Time travel query failed: {e}")
             raise
     
     async def optimize_table(self, table_name: str) -> bool:
@@ -438,11 +440,11 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
                     sort_cols = ", ".join(self.lakehouse_config.sort_columns)
                     self.spark_session.sql(f"OPTIMIZE {table_name} ZORDER BY ({sort_cols})")  # type: ignore
             
-            logger.info(f"✅ Optimized table: {table_name}")
+            logger.info(f" Optimized table: {table_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Table optimization failed for {table_name}: {e}")
+            logger.error(f" Table optimization failed for {table_name}: {e}")
             return False
     
     async def execute_batch(self, queries: List[Dict[str, Any]]) -> List[QueryResult]:
@@ -518,7 +520,6 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
 
 # Register lakehouse clients
 try:
-    from .enhanced_abstraction import DatabaseClientFactory  # type: ignore
     FACTORY_AVAILABLE = True
 except ImportError:
     FACTORY_AVAILABLE = False

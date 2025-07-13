@@ -1,3 +1,37 @@
+import logging
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
+        from ....infrastructure.services.health import HealthCheckService
+        
+        from ....infrastructure.monitoring.metrics_collector import MetricsCollector
+        
+        from ....features.users.user_service import UserService
+        
+        from ....features.users.user_service import UserService
+        
+        from ....core_system.config import get_config
+        
+        from ....core_system.config import set_setting
+
+        from ....features.security.security_monitor import SecurityMonitor
+        
+        from ....features.security.security_monitor import SecurityMonitor
+        
+        from ....core_system.config import set_setting
+
+        from ....infrastructure.services.audit_logger import AuditLogger
+        
+        import asyncio
+
+        from ....infrastructure.utils.shutdown import GracefulShutdown
+
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from pydantic import BaseModel
+
 """
 PlexiChat Admin API Endpoints
 
@@ -14,14 +48,6 @@ Merged from:
 - admin_enhanced.py
 - admin/communication_admin_endpoints.py
 """
-
-import logging
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
-from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +116,6 @@ class SecurityEvent(BaseModel):
 async def get_system_status():
     """Get current system status."""
     try:
-        from ....infrastructure.services.health import HealthCheckService
-        
         health_service = HealthCheckService()
         status = await health_service.get_system_status()
         
@@ -103,7 +127,8 @@ async def get_system_status():
             disk_usage=status.get("disk_usage", {}),
             active_connections=status.get("active_connections", 0),
             total_users=status.get("total_users", 0),
-            timestamp=datetime.now()
+            timestamp=from datetime import datetime
+datetime.now()
         )
         
     except Exception as e:
@@ -117,14 +142,14 @@ async def get_system_metrics(
 ):
     """Get system performance metrics."""
     try:
-        from ....infrastructure.monitoring.metrics_collector import MetricsCollector
-        
         collector = MetricsCollector()
         
         if not start_time:
-            start_time = datetime.now() - timedelta(hours=1)
+            start_time = from datetime import datetime
+datetime.now() - timedelta(hours=1)
         if not end_time:
-            end_time = datetime.now()
+            end_time = from datetime import datetime
+datetime.now()
             
         metrics = await collector.get_system_metrics(start_time, end_time)
         
@@ -153,8 +178,6 @@ async def list_users(
 ):
     """List users with filtering and pagination."""
     try:
-        from ....features.users.user_service import UserService
-        
         user_service = UserService()
         users = await user_service.list_users(
             page=page,
@@ -177,8 +200,6 @@ async def manage_user(
 ):
     """Perform user management actions."""
     try:
-        from ....features.users.user_service import UserService
-        
         user_service = UserService()
         await user_service.manage_user(
             user_id=user_id,
@@ -206,8 +227,6 @@ async def manage_user(
 async def get_configuration():
     """Get current system configuration."""
     try:
-        from ....core_system.config import get_config
-        
         config = get_config()
         
         # Return sanitized config (remove sensitive data)
@@ -248,8 +267,6 @@ async def update_configuration(
 ):
     """Update system configuration."""
     try:
-        from ....core_system.config import set_setting
-
         # Validate the configuration key
         allowed_sections = ["server", "database", "security", "logging"]
         if update.section not in allowed_sections:
@@ -284,8 +301,6 @@ async def get_security_events(
 ):
     """Get security events."""
     try:
-        from ....features.security.security_monitor import SecurityMonitor
-        
         monitor = SecurityMonitor()
         events = await monitor.get_security_events(
             limit=limit,
@@ -301,7 +316,8 @@ async def get_security_events(
                 user_id=event.get("user_id"),
                 ip_address=event.get("ip_address", ""),
                 description=event.get("description", ""),
-                timestamp=event.get("timestamp", datetime.now()),
+                timestamp=event.get("timestamp", from datetime import datetime
+datetime.now()),
                 resolved=event.get("resolved", False)
             )
             for event in events
@@ -318,8 +334,6 @@ async def resolve_security_event(
 ):
     """Resolve a security event."""
     try:
-        from ....features.security.security_monitor import SecurityMonitor
-        
         monitor = SecurityMonitor()
         await monitor.resolve_security_event(event_id)
         
@@ -345,7 +359,8 @@ async def restart_system(background_tasks: BackgroundTasks):
         background_tasks.add_task(
             log_admin_action,
             action="system_restart",
-            details={"timestamp": datetime.now()}
+            details={"timestamp": from datetime import datetime
+datetime.now()}
         )
         
         # Schedule system restart
@@ -365,8 +380,6 @@ async def toggle_maintenance_mode(
 ):
     """Toggle maintenance mode."""
     try:
-        from ....core_system.config import set_setting
-
         # Update maintenance mode setting
         set_setting("system.maintenance_mode", enabled)
         if message:
@@ -391,14 +404,13 @@ async def toggle_maintenance_mode(
 async def log_admin_action(action: str, target_user_id: Optional[str] = None, details: Optional[Dict] = None):
     """Log administrative actions."""
     try:
-        from ....infrastructure.services.audit_logger import AuditLogger
-        
         audit_logger = AuditLogger()
         await audit_logger.log_admin_action(
             action=action,
             target_user_id=target_user_id,
             details=details,
-            timestamp=datetime.now()
+            timestamp=from datetime import datetime
+datetime.now()
         )
         
     except Exception as e:
@@ -407,10 +419,6 @@ async def log_admin_action(action: str, target_user_id: Optional[str] = None, de
 async def schedule_system_restart():
     """Schedule a graceful system restart."""
     try:
-        import asyncio
-
-        from ....infrastructure.utils.shutdown import GracefulShutdown
-
         # Wait a bit to allow the response to be sent
         await asyncio.sleep(2)
         

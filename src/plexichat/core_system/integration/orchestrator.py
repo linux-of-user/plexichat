@@ -1,3 +1,21 @@
+import importlib
+import logging
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Set
+
+        from pathlib import Path
+
+            
+
+            from plexichat.core.config.config_manager import ConfigManager
+            from plexichat.core.database.enhanced_abstraction import (
+            from plexichat.core.database.performance_integration import performance_optimizer
+            from plexichat.cli.integrated_cli import PlexiChatCLI
+            from plexichat.core.database.performance_integration import performance_optimizer
+            from plexichat.core.config.config_manager import ConfigManager
+            from plexichat.cli.integrated_cli import PlexiChatCLI
+
 """
 PlexiChat System Integration Module
 
@@ -13,12 +31,6 @@ Features:
 - Performance optimization system integration
 """
 
-import importlib
-import logging
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Set
-
 logger = logging.getLogger(__name__)
 
 
@@ -33,7 +45,7 @@ class SystemIntegrator:
     def get_all_python_modules(self) -> List[str]:
         """Get all Python modules in the PlexiChat codebase."""
         modules = []
-        Path(__file__).parent.parent
+Path(__file__).parent.parent
         
         # Core modules
         core_modules = [
@@ -154,7 +166,7 @@ class SystemIntegrator:
     
     async def initialize_all_systems(self) -> Dict[str, Any]:
         """Initialize all PlexiChat systems and components."""
-        logger.info("🚀 Starting comprehensive system initialization...")
+        logger.info(" Starting comprehensive system initialization...")
         
         initialization_results = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -166,8 +178,7 @@ class SystemIntegrator:
         
         # 1. Initialize core configuration
         try:
-            logger.info("📋 Initializing configuration system...")
-            from plexichat.core.config.config_manager import ConfigManager
+            logger.info(" Initializing configuration system...")
             config_manager = ConfigManager()
             config_manager.load_config()
             config_manager.load_database_performance_config()
@@ -177,10 +188,10 @@ class SystemIntegrator:
                 "config_loaded": True,
                 "db_performance_config_loaded": True
             }
-            logger.info("✅ Configuration system initialized")
+            logger.info(" Configuration system initialized")
             
         except Exception as e:
-            logger.error(f"❌ Configuration system failed: {e}")
+            logger.error(f" Configuration system failed: {e}")
             initialization_results["systems"]["configuration"] = {
                 "status": "failed",
                 "error": str(e)
@@ -188,8 +199,7 @@ class SystemIntegrator:
         
         # 2. Initialize enhanced database system
         try:
-            logger.info("🗄️ Initializing enhanced database system...")
-            from plexichat.core.database.enhanced_abstraction import (
+            logger.info(" Initializing enhanced database system...")
                 initialize_enhanced_database_system,
             )
             db_success = await initialize_enhanced_database_system()
@@ -200,12 +210,12 @@ class SystemIntegrator:
             }
             
             if db_success:
-                logger.info("✅ Enhanced database system initialized")
+                logger.info(" Enhanced database system initialized")
             else:
-                logger.warning("⚠️ Enhanced database system initialization failed")
+                logger.warning(" Enhanced database system initialization failed")
                 
         except Exception as e:
-            logger.error(f"❌ Database system failed: {e}")
+            logger.error(f" Database system failed: {e}")
             initialization_results["systems"]["database"] = {
                 "status": "failed",
                 "error": str(e)
@@ -213,9 +223,7 @@ class SystemIntegrator:
         
         # 3. Initialize performance optimization system
         try:
-            logger.info("🚀 Initializing performance optimization system...")
-            from plexichat.core.database.performance_integration import performance_optimizer
-
+            logger.info(" Initializing performance optimization system...")
             # Test performance system components
             summary = performance_optimizer.get_optimization_summary()
             
@@ -226,10 +234,10 @@ class SystemIntegrator:
                 "index_manager_ready": True,
                 "summary": summary
             }
-            logger.info("✅ Performance optimization system initialized")
+            logger.info(" Performance optimization system initialized")
             
         except Exception as e:
-            logger.error(f"❌ Performance optimization system failed: {e}")
+            logger.error(f" Performance optimization system failed: {e}")
             initialization_results["systems"]["performance_optimization"] = {
                 "status": "failed",
                 "error": str(e)
@@ -237,16 +245,16 @@ class SystemIntegrator:
         
         # 4. Initialize security system
         try:
-            logger.info("🔒 Initializing security system...")
+            logger.info(" Initializing security system...")
             
             initialization_results["systems"]["security"] = {
                 "status": "success",
                 "auth_manager_ready": True
             }
-            logger.info("✅ Security system initialized")
+            logger.info(" Security system initialized")
             
         except Exception as e:
-            logger.error(f"❌ Security system failed: {e}")
+            logger.error(f" Security system failed: {e}")
             initialization_results["systems"]["security"] = {
                 "status": "failed",
                 "error": str(e)
@@ -254,9 +262,7 @@ class SystemIntegrator:
         
         # 5. Initialize CLI system
         try:
-            logger.info("💻 Initializing CLI system...")
-            from plexichat.cli.integrated_cli import PlexiChatCLI
-            
+            logger.info(" Initializing CLI system...")
             cli = PlexiChatCLI()
             
             initialization_results["systems"]["cli"] = {
@@ -265,17 +271,17 @@ class SystemIntegrator:
                 "db_performance_cli_ready": True,
                 "command_count": len(cli.commands) if hasattr(cli, 'commands') else 0
             }
-            logger.info("✅ CLI system initialized")
+            logger.info(" CLI system initialized")
             
         except Exception as e:
-            logger.error(f"❌ CLI system failed: {e}")
+            logger.error(f" CLI system failed: {e}")
             initialization_results["systems"]["cli"] = {
                 "status": "failed",
                 "error": str(e)
             }
         
         # 6. Verify module imports
-        logger.info("📦 Verifying module imports...")
+        logger.info(" Verifying module imports...")
         modules = self.get_all_python_modules()
         module_results = await self.verify_module_imports(modules)
         initialization_results["modules"] = module_results
@@ -296,15 +302,15 @@ class SystemIntegrator:
         }
         
         if initialization_results["summary"]["overall_success"]:
-            logger.info("✅ All systems initialized successfully")
+            logger.info(" All systems initialized successfully")
         else:
-            logger.warning("⚠️ Some systems failed to initialize")
+            logger.warning(" Some systems failed to initialize")
         
         return initialization_results
     
     async def verify_module_imports(self, modules: List[str]) -> Dict[str, Any]:
         """Verify that all specified modules can be imported."""
-        logger.info(f"🔍 Verifying {len(modules)} module imports...")
+        logger.info(f" Verifying {len(modules)} module imports...")
         
         results = {
             "successful": [],
@@ -320,7 +326,7 @@ class SystemIntegrator:
                 importlib.import_module(module_name)
                 results["successful"].append(module_name)
                 self.initialized_modules.add(module_name)
-                logger.debug(f"✅ {module_name}")
+                logger.debug(f" {module_name}")
                 
             except ImportError as e:
                 results["failed"].append({
@@ -329,7 +335,7 @@ class SystemIntegrator:
                     "type": "ImportError"
                 })
                 self.failed_modules.add(module_name)
-                logger.warning(f"❌ {module_name}: {e}")
+                logger.warning(f" {module_name}: {e}")
                 
             except Exception as e:
                 results["failed"].append({
@@ -338,12 +344,12 @@ class SystemIntegrator:
                     "type": type(e).__name__
                 })
                 self.failed_modules.add(module_name)
-                logger.error(f"❌ {module_name}: {e}")
+                logger.error(f" {module_name}: {e}")
         
         results["successful_count"] = len(results["successful"])
         results["failed_count"] = len(results["failed"])
         
-        logger.info(f"📊 Module import results: {results['successful_count']}/{results['total_count']} successful")
+        logger.info(f" Module import results: {results['successful_count']}/{results['total_count']} successful")
         
         return results
     
@@ -359,7 +365,7 @@ class SystemIntegrator:
     
     async def run_integration_health_check(self) -> Dict[str, Any]:
         """Run comprehensive integration health check."""
-        logger.info("🏥 Running integration health check...")
+        logger.info(" Running integration health check...")
         
         health_check = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -369,7 +375,6 @@ class SystemIntegrator:
         
         # Check database performance system
         try:
-            from plexichat.core.database.performance_integration import performance_optimizer
             summary = performance_optimizer.get_optimization_summary()
             health_check["checks"]["performance_optimization"] = {
                 "status": "healthy",
@@ -384,7 +389,6 @@ class SystemIntegrator:
         
         # Check configuration system
         try:
-            from plexichat.core.config.config_manager import ConfigManager
             config_manager = ConfigManager()
             config = config_manager.load_config()
             health_check["checks"]["configuration"] = {
@@ -399,7 +403,6 @@ class SystemIntegrator:
         
         # Check CLI system
         try:
-            from plexichat.cli.integrated_cli import PlexiChatCLI
             cli = PlexiChatCLI()
             health_check["checks"]["cli"] = {
                 "status": "healthy",
@@ -423,7 +426,7 @@ class SystemIntegrator:
         else:
             health_check["overall_health"] = "unhealthy"
         
-        logger.info(f"🏥 Health check complete: {health_check['overall_health']}")
+        logger.info(f" Health check complete: {health_check['overall_health']}")
         return health_check
 
 

@@ -1,8 +1,3 @@
-"""
-Bug Fixes and System Improvements for PlexiChat
-Addresses common issues and implements fixes for known problems.
-"""
-
 import logging
 import os
 import signal
@@ -12,6 +7,27 @@ import time
 from pathlib import Path
 from typing import Any, Dict
 
+
+            import atexit
+            
+            import socket
+
+            import gc
+
+            import locale
+
+        import socket
+        
+            import shutil
+            
+            
+
+            import psutil
+
+"""
+Bug Fixes and System Improvements for PlexiChat
+Addresses common issues and implements fixes for known problems.
+"""
 
 class BugFixManager:
     """Manages bug fixes and system improvements."""
@@ -102,8 +118,6 @@ class BugFixManager:
         """Fix threading cleanup issues."""
         try:
             # Ensure proper thread cleanup on exit
-            import atexit
-            
             def cleanup_threads():
                 """Clean up any remaining threads."""
                 active_threads = threading.active_count()
@@ -160,7 +174,8 @@ class BugFixManager:
         """Fix file permission issues."""
         try:
             # Ensure log directory exists and is writable
-            log_dir = Path("logs")
+            log_dir = from pathlib import Path
+Path("logs")
             log_dir.mkdir(exist_ok=True)
             
             # Check if we can write to log directory
@@ -173,7 +188,8 @@ class BugFixManager:
                 return False
             
             # Ensure config directory exists
-            config_dir = Path("config")
+            config_dir = from pathlib import Path
+Path("config")
             config_dir.mkdir(exist_ok=True)
             
             return True
@@ -186,7 +202,8 @@ class BugFixManager:
         """Fix import path issues."""
         try:
             # Ensure src directory is in Python path
-            project_root = Path(__file__).parent.parent.parent.parent
+            project_root = from pathlib import Path
+Path(__file__).parent.parent.parent.parent
             src_path = project_root / "src"
             
             if src_path.exists() and str(src_path) not in sys.path:
@@ -230,8 +247,6 @@ class BugFixManager:
     def _fix_port_binding(self) -> bool:
         """Fix port binding issues."""
         try:
-            import socket
-
             # Check if default port is available
             default_port = 8000
             
@@ -259,7 +274,8 @@ class BugFixManager:
             # Ensure proper connection cleanup
             
             # For now, just verify database file can be created
-            db_path = Path("plexichat.db")
+            db_path = from pathlib import Path
+Path("plexichat.db")
             if not db_path.exists():
                 # Create empty database file to test permissions
                 try:
@@ -280,8 +296,6 @@ class BugFixManager:
         """Fix memory leak issues."""
         try:
             # Implement memory leak detection and fixes
-            import gc
-
             # Force garbage collection
             collected = gc.collect()
             if collected > 0:
@@ -301,8 +315,6 @@ class BugFixManager:
         """Fix Unicode handling issues."""
         try:
             # Ensure proper UTF-8 encoding
-            import locale
-
             # Set locale to UTF-8 if possible
             try:
                 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
@@ -389,7 +401,8 @@ class BugFixManager:
             test_dirs = ['logs', 'config', '.']
             
             for dir_path in test_dirs:
-                test_file = Path(dir_path) / f"test_write_{int(time.time())}.tmp"
+                test_file = from pathlib import Path
+Path(dir_path) / f"test_write_{int(time.time())}.tmp"
                 try:
                     test_file.write_text("test")
                     test_file.unlink()
@@ -406,8 +419,6 @@ class BugFixManager:
     
     def _check_ports(self) -> Dict[str, Any]:
         """Check if required ports are available."""
-        import socket
-        
         ports_to_check = [8000, 8001]  # Main port and backup
         
         for port in ports_to_check:
@@ -429,8 +440,6 @@ class BugFixManager:
     def _check_disk_space(self) -> Dict[str, Any]:
         """Check available disk space."""
         try:
-            import shutil
-            
             total, used, free = shutil.disk_usage('.')
             free_gb = free // (1024**3)
             
@@ -453,9 +462,8 @@ class BugFixManager:
     def _check_memory(self) -> Dict[str, Any]:
         """Check available memory."""
         try:
-            import psutil
-            
-            memory = psutil.virtual_memory()
+            memory = import psutil
+psutil.virtual_memory()
             available_gb = memory.available // (1024**3)
             
             if available_gb < 1:

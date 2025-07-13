@@ -1,3 +1,8 @@
+from .antivirus_node import AntivirusClusterNode
+from .gateway_node import GatewayClusterNode
+from .main_node import MainClusterNode
+
+
 """
 PlexiChat Specialized Cluster Nodes
 
@@ -7,10 +12,6 @@ Specialized cluster node implementations for different workload types:
 - MainClusterNode: Core application functionality and API processing
 - BackupClusterNode: Backup operations and shard management
 """
-
-from .antivirus_node import AntivirusClusterNode
-from .gateway_node import GatewayClusterNode
-from .main_node import MainClusterNode
 
 __all__ = [
     'AntivirusClusterNode',

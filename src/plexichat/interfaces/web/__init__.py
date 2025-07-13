@@ -1,3 +1,20 @@
+import asyncio
+import json
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
+
+
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.routing import APIRouter
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 """
 PlexiChat Web Interface Layer
 
@@ -14,21 +31,6 @@ This module provides:
 - Progressive Web App features
 - Mobile-responsive design
 """
-
-import asyncio
-import json
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
-
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, HTMLResponse
-from fastapi.routing import APIRouter
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +86,8 @@ class WebInterfaceManager:
         self.websocket_connections: Dict[str, WebSocketConnection] = {}
         
         # Setup paths
-        self.web_root = Path(__file__).parent
+        self.web_root = from pathlib import Path
+Path(__file__).parent
         self.templates_dir = self.web_root / "templates"
         self.static_dir = self.web_root / "static"
         
@@ -108,7 +111,7 @@ class WebInterfaceManager:
         # Register router
         self.app.include_router(self.router)
         
-        logger.info("🌐 Web Interface Manager initialized")
+        logger.info(" Web Interface Manager initialized")
     
     def _setup_core_routes(self):
         """Setup core web interface routes."""
@@ -200,7 +203,8 @@ class WebInterfaceManager:
         await websocket.accept()
         
         # Generate connection ID
-        connection_id = f"ws_{datetime.now().timestamp()}"
+        connection_id = f"ws_{from datetime import datetime
+datetime.now().timestamp()}"
         
         # Store connection
         connection = WebSocketConnection(websocket=websocket)
@@ -211,7 +215,8 @@ class WebInterfaceManager:
             await websocket.send_json({
                 "type": "connection_established",
                 "connection_id": connection_id,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": from datetime import datetime
+datetime.now().isoformat()
             })
             
             # Handle messages
@@ -272,11 +277,13 @@ class WebInterfaceManager:
             # Respond to ping
             await connection.websocket.send_json({
                 "type": "pong",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": from datetime import datetime
+datetime.now().isoformat()
             })
         
         # Update last activity
-        connection.last_activity = datetime.now()
+        connection.last_activity = from datetime import datetime
+datetime.now()
     
     async def broadcast_to_channel(self, channel: str, message: Dict[str, Any]):
         """Broadcast message to all connections subscribed to a channel."""
@@ -289,7 +296,8 @@ class WebInterfaceManager:
                         "type": "broadcast",
                         "channel": channel,
                         "data": message,
-                        "timestamp": datetime.now().isoformat()
+                        "timestamp": from datetime import datetime
+datetime.now().isoformat()
                     })
                 except Exception as e:
                     logger.error(f"Failed to send to connection {connection_id}: {e}")
@@ -303,7 +311,7 @@ class WebInterfaceManager:
     def register_page(self, page_info: WebPageInfo):
         """Register a web page."""
         self.pages[page_info.path] = page_info
-        logger.info(f"📄 Registered web page: {page_info.path}")
+        logger.info(f" Registered web page: {page_info.path}")
     
     def get_page_info(self, path: str) -> Optional[WebPageInfo]:
         """Get page information."""
@@ -340,7 +348,8 @@ class WebInterfaceManager:
     
     async def cleanup_inactive_connections(self, timeout_minutes: int = 30):
         """Clean up inactive WebSocket connections."""
-        cutoff_time = datetime.now() - timedelta(minutes=timeout_minutes)
+        cutoff_time = from datetime import datetime
+datetime.now() - timedelta(minutes=timeout_minutes)
         inactive_connections = []
         
         for connection_id, connection in self.websocket_connections.items():

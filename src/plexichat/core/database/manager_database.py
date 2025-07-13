@@ -1,3 +1,30 @@
+import asyncio
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+import redis.asyncio as redis
+from motor.motor_asyncio import AsyncIOMotorClient
+
+
+from ...core_system.config import get_config
+
+from ...core_system.logging import get_logger
+from ...features.security import distributed_key_manager, quantum_encryption
+
+            from .zero_downtime_migration import zero_downtime_migration_manager
+            from .global_data_distribution import global_data_distribution_manager
+            from ...features.backup import get_unified_backup_manager
+        import os
+
+                import json
+
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.pool import StaticPool
+
 """
 PlexiChat Consolidated Database Manager
 
@@ -20,28 +47,9 @@ Provides comprehensive database management with:
 - Global data distribution
 """
 
-import asyncio
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
-
 # Database-specific imports
-import redis.asyncio as redis
-from motor.motor_asyncio import AsyncIOMotorClient
-
 # SQLAlchemy imports
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-from sqlalchemy.pool import StaticPool
-
-from ...core_system.config import get_config
-
 # PlexiChat imports
-from ...core_system.logging import get_logger
-from ...features.security import distributed_key_manager, quantum_encryption
-
 logger = get_logger(__name__)
 
 
@@ -179,11 +187,11 @@ class ConsolidatedDatabaseManager:
             asyncio.create_task(self._metrics_collection_task())
             
             self.initialized = True
-            logger.info("✅ Consolidated Database Manager fully initialized")
+            logger.info(" Consolidated Database Manager fully initialized")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Database manager initialization failed: {e}")
+            logger.error(f" Database manager initialization failed: {e}")
             return False
     
     async def _initialize_security(self) -> None:
@@ -207,17 +215,14 @@ class ConsolidatedDatabaseManager:
         """Initialize advanced database components."""
         try:
             # Initialize migration manager
-            from .zero_downtime_migration import zero_downtime_migration_manager
             self.migration_manager = zero_downtime_migration_manager
             await self.migration_manager.initialize()
             
             # Initialize global data distribution
-            from .global_data_distribution import global_data_distribution_manager
             self.global_distribution = global_data_distribution_manager
             await self.global_distribution.initialize()
             
             # Initialize backup integration
-            from ...features.backup import get_unified_backup_manager
             self.backup_integration = get_unified_backup_manager()
             
             logger.info("Advanced database components initialized")
@@ -242,8 +247,6 @@ class ConsolidatedDatabaseManager:
     
     async def _load_environment_configurations(self) -> None:
         """Load database configurations from environment variables."""
-        import os
-
         # PostgreSQL configuration
         if os.getenv("PLEXICHAT_POSTGRES_URL"):
             postgres_config = DatabaseConfig(
@@ -333,11 +336,11 @@ class ConsolidatedDatabaseManager:
             if is_default:
                 self.default_database = name
 
-            logger.info(f"✅ Database '{name}' ({config.type.value}) added successfully")
+            logger.info(f" Database '{name}' ({config.type.value}) added successfully")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to add database '{name}': {e}")
+            logger.error(f" Failed to add database '{name}': {e}")
             self.connection_status[name] = ConnectionStatus.ERROR
             return False
 
@@ -393,7 +396,6 @@ class ConsolidatedDatabaseManager:
 
             elif config.type == DatabaseType.MONGODB:
                 # Parse MongoDB query (simplified)
-                import json
                 query_obj = json.loads(query)
                 collection = engine[config.database][query_obj.get("collection", "default")]
 

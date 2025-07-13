@@ -1,14 +1,15 @@
-"""
-PlexiChat Bug Bounty Program Management
-Manages vulnerability reports, rewards, and researcher coordination
-"""
-
 import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+"""
+PlexiChat Bug Bounty Program Management
+Manages vulnerability reports, rewards, and researcher coordination
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +237,7 @@ class BugBountyManager:
         self.researchers[researcher_email]["reports_submitted"] += 1
         self.researchers[researcher_email]["last_report"] = datetime.now(timezone.utc)
         
-        logger.info(f"✅ New vulnerability report submitted: {report_id} by {researcher_name}")
+        logger.info(f" New vulnerability report submitted: {report_id} by {researcher_name}")
         
         # Auto-triage based on severity
         if severity in [SeverityLevel.CRITICAL, SeverityLevel.HIGH]:
@@ -272,7 +273,7 @@ class BugBountyManager:
         elif status == ReportStatus.CONFIRMED and old_status != ReportStatus.CONFIRMED:
             self.researchers[report.researcher_email]["reports_confirmed"] += 1
         
-        logger.info(f"✅ Report {report_id} status updated: {old_status.value} -> {status.value}")
+        logger.info(f" Report {report_id} status updated: {old_status.value} -> {status.value}")
         return True
     
     def _calculate_reward(self, report: VulnerabilityReport) -> float:
@@ -300,7 +301,7 @@ class BugBountyManager:
         report.internal_notes.append(
             f"{datetime.now(timezone.utc).isoformat()}: Auto-escalated due to {report.severity.value} severity"
         )
-        logger.warning(f"🚨 High-severity report auto-escalated: {report_id}")
+        logger.warning(f" High-severity report auto-escalated: {report_id}")
     
     def get_program_info(self) -> Dict[str, Any]:
         """Get public program information."""

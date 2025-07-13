@@ -1,13 +1,18 @@
-"""
-PlexiChat Integrated CLI
-Comprehensive command-line interface for PlexiChat management and operations.
-"""
-
 import argparse
 import asyncio
 import logging
 import sys
 from typing import List, Optional
+
+            import shlex
+            
+
+            from plexichat.core.launcher import LaunchConfig, PlexiChatLauncher
+
+"""
+PlexiChat Integrated CLI
+Comprehensive command-line interface for PlexiChat management and operations.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +103,6 @@ class PlexiChatCLI:
         """Process a command string and return response."""
         try:
             # Parse command string into arguments
-            import shlex
             args_list = shlex.split(command_str)
 
             if not args_list:
@@ -135,8 +139,6 @@ class PlexiChatCLI:
     async def start_server(self, args):
         """Start the PlexiChat server."""
         try:
-            from plexichat.core.launcher import LaunchConfig, PlexiChatLauncher
-            
             config = LaunchConfig(
                 host=args.host,
                 port=args.port,
@@ -147,15 +149,15 @@ class PlexiChatCLI:
             await launcher.start()
             
         except ImportError:
-            print("❌ Server components not available")
+            print(" Server components not available")
             return False
         except Exception as e:
-            print(f"❌ Failed to start server: {e}")
+            print(f" Failed to start server: {e}")
             return False
     
     async def stop_server(self, args):
         """Stop the PlexiChat server."""
-        print("🛑 Stopping PlexiChat server...")
+        print(" Stopping PlexiChat server...")
         # Implementation would depend on how the server is managed
         return True
     
@@ -163,17 +165,17 @@ class PlexiChatCLI:
         """Show server status."""
         try:
             # Check if server is running
-            print("📊 PlexiChat Status:")
+            print(" PlexiChat Status:")
             print("Status: Unknown")
             print("Version: 1.0.0")
             return True
         except Exception as e:
-            print(f"❌ Failed to get status: {e}")
+            print(f" Failed to get status: {e}")
             return False
     
     async def run_setup(self, args):
         """Run setup wizard."""
-        print(f"🔧 Running {args.type} setup...")
+        print(f" Running {args.type} setup...")
         # Implementation would call the setup system
         return True
     
@@ -181,64 +183,64 @@ class PlexiChatCLI:
         """Run tests."""
         try:
             if args.suite:
-                print(f"🧪 Running test suite: {args.suite}")
+                print(f" Running test suite: {args.suite}")
             else:
-                print("🧪 Running all tests...")
+                print(" Running all tests...")
             
             # Implementation would call the test system
             return True
         except Exception as e:
-            print(f"❌ Test execution failed: {e}")
+            print(f" Test execution failed: {e}")
             return False
     
     async def create_backup(self, args):
         """Create backup."""
         backup_name = args.name or f"backup_{int(asyncio.get_event_loop().time())}"
-        print(f"💾 Creating backup: {backup_name}")
+        print(f" Creating backup: {backup_name}")
         # Implementation would call the backup system
         return True
     
     async def restore_backup(self, args):
         """Restore from backup."""
-        print(f"🔄 Restoring from backup: {args.backup_name}")
+        print(f" Restoring from backup: {args.backup_name}")
         # Implementation would call the restore system
         return True
     
     async def run_migration(self, args):
         """Run database migrations."""
-        print("🔄 Running database migrations...")
+        print(" Running database migrations...")
         # Implementation would call the migration system
         return True
     
     async def manage_config(self, args):
         """Manage configuration."""
         if args.action == 'show':
-            print("📋 Configuration:")
+            print(" Configuration:")
             # Show current config
         elif args.action == 'set':
-            print(f"✏️  Setting {args.key} = {args.value}")
+            print(f"  Setting {args.key} = {args.value}")
             # Set config value
         elif args.action == 'get':
-            print(f"📖 {args.key}: <value>")
+            print(f" {args.key}: <value>")
             # Get config value
         return True
     
     async def manage_users(self, args):
         """Manage users."""
         if args.action == 'list':
-            print("👥 Users:")
+            print(" Users:")
             # List users
         elif args.action == 'create':
-            print(f"➕ Creating user: {args.username}")
+            print(f" Creating user: {args.username}")
             # Create user
         elif args.action == 'delete':
-            print(f"🗑️  Deleting user: {args.username}")
+            print(f"  Deleting user: {args.username}")
             # Delete user
         return True
     
     async def show_logs(self, args):
         """Show logs."""
-        print(f"📜 Showing last {args.tail} log lines...")
+        print(f" Showing last {args.tail} log lines...")
         # Implementation would show logs
         return True
     
@@ -254,14 +256,14 @@ class PlexiChatCLI:
             if args.command in self.commands:
                 return await self.commands[args.command](args)
             else:
-                print(f"❌ Unknown command: {args.command}")
+                print(f" Unknown command: {args.command}")
                 return False
                 
         except KeyboardInterrupt:
-            print("\n⚠️  Operation cancelled by user")
+            print("\n  Operation cancelled by user")
             return False
         except Exception as e:
-            print(f"❌ CLI error: {e}")
+            print(f" CLI error: {e}")
             return False
 
 

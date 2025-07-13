@@ -1,10 +1,3 @@
-"""
-Archive System Plugin
-
-Optional archive module for message and user versioning through shard system.
-Provides server-by-server activation and premium user permissions.
-"""
-
 import asyncio
 import json
 import logging
@@ -19,6 +12,14 @@ import aiosqlite
 from ...backup.core.encryption_manager import QuantumResistantEncryptionManager
 from ...backup.core.shard_location_database import EnhancedShardLocationDatabase
 from ...backup.core.shard_manager import ImmutableShardManager
+
+
+"""
+Archive System Plugin
+
+Optional archive module for message and user versioning through shard system.
+Provides server-by-server activation and premium user permissions.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,8 @@ class ArchiveSystemPlugin:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.plugin_dir = self.data_dir / "plugins" / "archive_system"
         self.plugin_dir.mkdir(parents=True, exist_ok=True)
         
@@ -429,7 +431,8 @@ class ArchiveSystemPlugin:
                     return None
 
                 # Load shard data (implementation depends on shard storage)
-                shard_path = Path(shard_location['shard_path'])
+                shard_path = from pathlib import Path
+Path(shard_location['shard_path'])
                 if shard_path.exists():
                     async with aiofiles.open(shard_path, 'rb') as f:
                         shard_data = await f.read()
@@ -589,7 +592,8 @@ class ArchiveSystemPlugin:
                 for shard_id in entry.shard_ids:
                     shard_location = await self.location_database.get_shard_location(shard_id, "system")
                     if shard_location:
-                        shard_path = Path(shard_location['shard_path'])
+                        shard_path = from pathlib import Path
+Path(shard_location['shard_path'])
                         if shard_path.exists():
                             shard_path.unlink()
 

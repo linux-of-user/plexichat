@@ -1,3 +1,19 @@
+import hashlib
+import hmac
+import json
+import secrets
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from app.logger_config import logger
+from app.profiles.advanced_profile_system import (
+
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field
+
 """
 Subscription Management API for PlexiChat
 
@@ -11,25 +27,11 @@ This API provides comprehensive subscription and tier management for external pa
 - Webhook support for payment events
 """
 
-import hashlib
-import hmac
-import json
-import secrets
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from app.logger_config import logger
-from app.profiles.advanced_profile_system import (
     SubscriptionStatus,
     UserSubscription,
     UserTier,
     advanced_profile_system,
 )
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, Field
-
 # Security
 security = HTTPBearer()
 

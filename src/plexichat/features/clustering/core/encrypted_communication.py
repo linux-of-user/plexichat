@@ -1,18 +1,3 @@
-"""
-Enhanced Encrypted Inter-Node Communication Manager - SINGLE SOURCE OF TRUTH
-
-Provides military-grade secure communication between cluster nodes with:
-- Post-quantum cryptography readiness (Kyber/Dilithium)
-- ChaCha20-Poly1305 and AES-256-GCM encryption
-- Perfect Forward Secrecy (PFS) with ECDHE key exchange
-- Certificate pinning and mutual TLS authentication
-- Automatic key rotation with zero-downtime
-- Message replay protection and integrity verification
-- Integration with unified security architecture
-- Quantum-resistant key derivation functions
-- Hardware Security Module (HSM) support
-"""
-
 import asyncio
 import json
 import logging
@@ -28,22 +13,38 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa, x25519
 
-# Enhanced cryptography imports
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 from cryptography.x509.oid import NameOID
 
 from ....core_system.security.certificate_manager import get_certificate_manager
 from ....core_system.security.hardware_security import get_hsm_manager
 
-# Import unified security architecture
 from ....core_system.security.unified_audit_system import (
+from . import HEARTBEAT_ENCRYPTION, HOT_UPDATE_SUPPORT, INTER_NODE_ENCRYPTION
+
+
+"""
+Enhanced Encrypted Inter-Node Communication Manager - SINGLE SOURCE OF TRUTH
+
+Provides military-grade secure communication between cluster nodes with:
+- Post-quantum cryptography readiness (Kyber/Dilithium)
+- ChaCha20-Poly1305 and AES-256-GCM encryption
+- Perfect Forward Secrecy (PFS) with ECDHE key exchange
+- Certificate pinning and mutual TLS authentication
+- Automatic key rotation with zero-downtime
+- Message replay protection and integrity verification
+- Integration with unified security architecture
+- Quantum-resistant key derivation functions
+- Hardware Security Module (HSM) support
+"""
+
+# Enhanced cryptography imports
+# Import unified security architecture
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
     get_unified_audit_system,
 )
-from . import HEARTBEAT_ENCRYPTION, HOT_UPDATE_SUPPORT, INTER_NODE_ENCRYPTION
-
 logger = logging.getLogger(__name__)
 
 
@@ -135,7 +136,8 @@ class EnhancedEncryptedCommunicationManager:
 
     def __init__(self, node_id: str, data_dir: Path):
         self.node_id = node_id
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.crypto_dir = self.data_dir / "crypto"
         self.keys_dir = self.crypto_dir / "keys"
         self.certs_dir = self.crypto_dir / "certs"

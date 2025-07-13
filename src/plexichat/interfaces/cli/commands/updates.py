@@ -1,10 +1,3 @@
-"""
-PlexiChat Update CLI Commands
-
-Command-line interface for the advanced update system with new versioning scheme.
-Supports upgrades, downgrades, rollbacks, changelog viewing, and dependency management.
-"""
-
 import argparse
 import asyncio
 import logging
@@ -13,13 +6,23 @@ import sys
 from ..core.versioning.canary_deployment_manager import CanaryStrategy, canary_deployment_manager
 from ..core.versioning.changelog_manager import changelog_manager
 from ..core.versioning.update_system import (
+from ..core.versioning.version_manager import Version, version_manager
+
+            from pathlib import Path
+
+
+"""
+PlexiChat Update CLI Commands
+
+Command-line interface for the advanced update system with new versioning scheme.
+Supports upgrades, downgrades, rollbacks, changelog viewing, and dependency management.
+"""
+
     UpdateDeploymentStrategy,
     UpdateDistributionMethod,
     UpdateType,
     update_system,
 )
-from ..core.versioning.version_manager import Version, version_manager
-
 logger = logging.getLogger(__name__)
 
 
@@ -209,44 +212,44 @@ Examples:
     
     async def handle_check(self, args):
         """Handle check command."""
-        print("🔍 Checking for updates...")
+        print(" Checking for updates...")
         
         try:
             update_info = await self.update_system.check_for_updates()
             
-            print(f"📦 Current version: {update_info['current_version']}")
+            print(f" Current version: {update_info['current_version']}")
             
             if update_info['updates_available']:
-                print(f"✨ Latest version: {update_info['latest_version']}")
+                print(f" Latest version: {update_info['latest_version']}")
                 
                 if update_info['latest_stable']:
-                    print(f"🔒 Latest stable: {update_info['latest_stable']}")
+                    print(f" Latest stable: {update_info['latest_stable']}")
                 
-                print(f"📋 Available versions: {', '.join(update_info['available_versions'])}")
+                print(f" Available versions: {', '.join(update_info['available_versions'])}")
                 
                 # Show security updates
                 if update_info['security_updates']:
-                    print("\n🚨 Security updates available:")
+                    print("\n Security updates available:")
                     for security_update in update_info['security_updates']:
-                        print(f"  • {security_update['version']}")
+                        print(f"   {security_update['version']}")
                         for change in security_update['changes']:
                             print(f"    - {change}")
                 
                 # Show recommendation
                 action = update_info['recommended_action']
                 if action == 'security_update_recommended':
-                    print("\n⚠️  Security update recommended!")
+                    print("\n  Security update recommended!")
                 elif action == 'upgrade_to_stable':
-                    print("\n💡 Stable version available for upgrade")
+                    print("\n Stable version available for upgrade")
                 elif action == 'upgrade_to_release':
-                    print("\n🎉 Release version available!")
+                    print("\n Release version available!")
                 
-                print("\n💡 Run 'plexichat update upgrade' to update")
+                print("\n Run 'plexichat update upgrade' to update")
             else:
-                print("✅ PlexiChat is up to date!")
+                print(" PlexiChat is up to date!")
                 
         except Exception as e:
-            print(f"❌ Error checking for updates: {e}")
+            print(f" Error checking for updates: {e}")
             return False
         
         return True
@@ -255,28 +258,28 @@ Examples:
         """Handle version command."""
         current_version = self.version_manager.get_current_version()
         
-        print(f"📦 PlexiChat Version: {current_version}")
+        print(f" PlexiChat Version: {current_version}")
         
         if args.detailed:
             version_info = self.version_manager.get_version_info(current_version)
             if version_info:
-                print(f"📅 Release Date: {version_info.release_date.strftime('%Y-%m-%d')}")
-                print(f"🏷️  Status: {version_info.status.value}")
+                print(f" Release Date: {version_info.release_date.strftime('%Y-%m-%d')}")
+                print(f"  Status: {version_info.status.value}")
                 
                 if version_info.database_version:
-                    print(f"🗄️  Database Version: {version_info.database_version}")
+                    print(f"  Database Version: {version_info.database_version}")
                 
                 if version_info.config_version:
-                    print(f"⚙️  Config Version: {version_info.config_version}")
+                    print(f"  Config Version: {version_info.config_version}")
             
             # Show version type info
-            print(f"🔖 Version Type: {current_version.type.value} ({current_version.get_status().value})")
+            print(f" Version Type: {current_version.type.value} ({current_version.get_status().value})")
             
             # Show available versions
             available = self.version_manager.get_available_versions()
             newer_versions = [v for v in available if v > current_version]
             if newer_versions:
-                print(f"⬆️  Newer versions available: {', '.join(str(v) for v in newer_versions[:5])}")
+                print(f"  Newer versions available: {', '.join(str(v) for v in newer_versions[:5])}")
         
         return True
     
@@ -289,85 +292,85 @@ Examples:
             try:
                 target_version = Version.parse(args.to)
             except ValueError as e:
-                print(f"❌ Invalid version format: {e}")
+                print(f" Invalid version format: {e}")
                 return False
         elif args.stable:
             target_version = self.version_manager.get_latest_stable_version()
             if not target_version:
-                print("❌ No stable version available")
+                print(" No stable version available")
                 return False
         elif args.latest:
             available = self.version_manager.get_available_versions()
             newer_versions = [v for v in available if v > current_version]
             if not newer_versions:
-                print("✅ Already at latest version")
+                print(" Already at latest version")
                 return True
             target_version = max(newer_versions)
         else:
             # Default: next logical version
             target_version = self.version_manager.get_next_version()
         
-        print(f"🚀 Planning upgrade from {current_version} to {target_version}")
+        print(f" Planning upgrade from {current_version} to {target_version}")
         
         try:
             # Create update plan
             plan = await self.update_system.create_update_plan(target_version, UpdateType.UPGRADE)
             
             # Show plan details
-            print("\n📋 Update Plan:")
+            print("\n Update Plan:")
             print(f"   Update ID: {plan.update_id}")
             print(f"   Estimated Duration: {plan.estimated_duration_minutes} minutes")
             print(f"   Requires Restart: {'Yes' if plan.requires_restart else 'No'}")
             print(f"   Cluster Coordination: {'Yes' if plan.requires_cluster_coordination else 'No'}")
             
             if plan.breaking_changes:
-                print("\n⚠️  Breaking Changes:")
+                print("\n  Breaking Changes:")
                 for change in plan.breaking_changes:
-                    print(f"   • {change}")
+                    print(f"    {change}")
             
             if plan.dependency_updates:
-                print("\n📦 Dependency Updates:")
+                print("\n Dependency Updates:")
                 for dep, version in plan.dependency_updates.items():
-                    print(f"   • {dep}: {version}")
+                    print(f"    {dep}: {version}")
             
-            print("\n🔧 Execution Steps:")
+            print("\n Execution Steps:")
             for i, step in enumerate(plan.steps, 1):
                 print(f"   {i}. {step}")
             
             if args.dry_run:
-                print("\n🔍 Dry run completed - no changes made")
+                print("\n Dry run completed - no changes made")
                 return True
             
             # Confirm upgrade
             if not args.force:
                 if plan.breaking_changes:
-                    print("\n⚠️  This upgrade contains breaking changes!")
+                    print("\n  This upgrade contains breaking changes!")
                 
-                confirm = input("\n❓ Proceed with upgrade? [y/N]: ").lower().strip()
+                confirm = input("\n Proceed with upgrade? [y/N]: ").lower().strip()
                 if confirm != 'y':
-                    print("❌ Upgrade cancelled")
+                    print(" Upgrade cancelled")
                     return False
             
             # Execute upgrade
-            print("\n🚀 Starting upgrade...")
+            print("\n Starting upgrade...")
             result = await self.update_system.execute_update(plan)
             
             if result.success:
-                print("✅ Upgrade completed successfully!")
-                print(f"📦 Updated to version {target_version}")
+                print(" Upgrade completed successfully!")
+                print(f" Updated to version {target_version}")
                 
                 if result.rollback_available:
-                    print(f"🔄 Rollback available with ID: {result.update_id}")
+                    print(f" Rollback available with ID: {result.update_id}")
             else:
-                print(f"❌ Upgrade failed: {result.message}")
+                print(f" Upgrade failed: {result.message}")
                 
                 if result.rollback_available:
-                    print(f"🔄 Rollback available - run: plexichat update rollback --update-id {result.update_id}")
+                    print(f" Rollback available - run: plexichat update rollback --update-id {result.update_id}")
                 
                 return False
             
         except Exception as e:
-            print(f"❌ Upgrade failed: {e}")
+            print(f" Upgrade failed: {e}")
             return False
         
         return True
@@ -379,10 +382,10 @@ Examples:
         try:
             target_version = Version.parse(args.to)
         except ValueError as e:
-            print(f"❌ Invalid version format: {e}")
+            print(f" Invalid version format: {e}")
             return False
         
-        print(f"⬇️  Planning downgrade from {current_version} to {target_version}")
+        print(f"  Planning downgrade from {current_version} to {target_version}")
         
         try:
             # Create downgrade plan
@@ -390,35 +393,35 @@ Examples:
             
             # Show warnings
             if plan.breaking_changes:
-                print("\n⚠️  Warning: Downgrading past breaking changes!")
+                print("\n  Warning: Downgrading past breaking changes!")
                 for change in plan.breaking_changes:
-                    print(f"   • {change}")
+                    print(f"    {change}")
             
             if args.dry_run:
-                print("\n🔍 Dry run - downgrade plan created successfully")
+                print("\n Dry run - downgrade plan created successfully")
                 return True
             
             # Confirm downgrade
             if not args.force:
-                print("\n⚠️  Downgrading may cause data loss or compatibility issues!")
-                confirm = input("❓ Proceed with downgrade? [y/N]: ").lower().strip()
+                print("\n  Downgrading may cause data loss or compatibility issues!")
+                confirm = input(" Proceed with downgrade? [y/N]: ").lower().strip()
                 if confirm != 'y':
-                    print("❌ Downgrade cancelled")
+                    print(" Downgrade cancelled")
                     return False
             
             # Execute downgrade
-            print("\n⬇️  Starting downgrade...")
+            print("\n  Starting downgrade...")
             result = await self.update_system.execute_update(plan)
             
             if result.success:
-                print("✅ Downgrade completed successfully!")
-                print(f"📦 Downgraded to version {target_version}")
+                print(" Downgrade completed successfully!")
+                print(f" Downgraded to version {target_version}")
             else:
-                print(f"❌ Downgrade failed: {result.message}")
+                print(f" Downgrade failed: {result.message}")
                 return False
             
         except Exception as e:
-            print(f"❌ Downgrade failed: {e}")
+            print(f" Downgrade failed: {e}")
             return False
         
         return True
@@ -439,55 +442,55 @@ Examples:
             print(changelog_text)
             
         except ValueError as e:
-            print(f"❌ Invalid version format: {e}")
+            print(f" Invalid version format: {e}")
             return False
         except Exception as e:
-            print(f"❌ Error showing changelog: {e}")
+            print(f" Error showing changelog: {e}")
             return False
         
         return True
     
     async def handle_reinstall_deps(self, args):
         """Handle reinstall dependencies command."""
-        print("📦 Reinstalling dependencies...")
+        print(" Reinstalling dependencies...")
         
         try:
             success = await self.update_system.reinstall_dependencies()
             
             if success:
-                print("✅ Dependencies reinstalled successfully!")
+                print(" Dependencies reinstalled successfully!")
             else:
-                print("❌ Failed to reinstall dependencies")
+                print(" Failed to reinstall dependencies")
                 return False
             
         except Exception as e:
-            print(f"❌ Error reinstalling dependencies: {e}")
+            print(f" Error reinstalling dependencies: {e}")
             return False
         
         return True
     
     async def handle_upgrade_db(self, args):
         """Handle database upgrade command."""
-        print("🗄️  Upgrading database schema...")
+        print("  Upgrading database schema...")
         
         try:
             success = await self.update_system.upgrade_database_only(args.to)
             
             if success:
-                print("✅ Database upgraded successfully!")
+                print(" Database upgraded successfully!")
             else:
-                print("❌ Database upgrade failed")
+                print(" Database upgrade failed")
                 return False
             
         except Exception as e:
-            print(f"❌ Error upgrading database: {e}")
+            print(f" Error upgrading database: {e}")
             return False
         
         return True
     
     async def handle_history(self, args):
         """Handle history command."""
-        print("📜 Update History:")
+        print(" Update History:")
         
         # Show version history
         available_versions = self.version_manager.get_available_versions()
@@ -497,7 +500,7 @@ Examples:
         sorted_versions = sorted(available_versions, reverse=True)
         
         for i, version in enumerate(sorted_versions[:args.limit]):
-            status_icon = "📦" if version == current_version else "📋"
+            status_icon = "" if version == current_version else ""
             version_info = self.version_manager.get_version_info(version)
             
             if version_info:
@@ -511,7 +514,7 @@ Examples:
     
     async def handle_rollback(self, args):
         """Handle rollback command."""
-        print("🔄 Rolling back update...")
+        print(" Rolling back update...")
         
         try:
             if args.update_id:
@@ -520,33 +523,33 @@ Examples:
                 # Find last update to rollback
                 active_updates = self.update_system.list_active_updates()
                 if not active_updates:
-                    print("❌ No updates available for rollback")
+                    print(" No updates available for rollback")
                     return False
                 
                 # Get most recent completed update
                 completed_updates = [u for u in active_updates if u.rollback_available]
                 if not completed_updates:
-                    print("❌ No rollback-able updates found")
+                    print(" No rollback-able updates found")
                     return False
                 
                 latest_update = max(completed_updates, key=lambda x: x.started_at)
                 result = await self.update_system.rollback_update(latest_update.update_id)
             
             if result.success:
-                print("✅ Rollback completed successfully!")
+                print(" Rollback completed successfully!")
             else:
-                print(f"❌ Rollback failed: {result.message}")
+                print(f" Rollback failed: {result.message}")
                 return False
             
         except Exception as e:
-            print(f"❌ Rollback failed: {e}")
+            print(f" Rollback failed: {e}")
             return False
         
         return True
     
     async def handle_status(self, args):
         """Handle status command."""
-        print("📊 Update System Status:")
+        print(" Update System Status:")
         
         current_version = self.version_manager.get_current_version()
         print(f"   Current Version: {current_version}")
@@ -556,7 +559,7 @@ Examples:
         if active_updates:
             print(f"   Active Updates: {len(active_updates)}")
             for update in active_updates[-3:]:  # Show last 3
-                print(f"     • {update.update_id}: {update.status.value}")
+                print(f"      {update.update_id}: {update.status.value}")
         else:
             print("   Active Updates: None")
         
@@ -567,7 +570,7 @@ Examples:
                 print(f"   Updates Available: {len(update_info['available_versions'])}")
             else:
                 print("   Updates Available: None")
-        except:
+        except Exception:
             print("   Updates Available: Unknown")
         
         return True
@@ -576,7 +579,7 @@ Examples:
 
     async def handle_atomic_upgrade(self, args):
         """Handle atomic upgrade command."""
-        print("🚀 Starting atomic upgrade with enhanced features...")
+        print(" Starting atomic upgrade with enhanced features...")
 
         try:
             # Initialize enhanced features
@@ -588,11 +591,11 @@ Examples:
             else:
                 update_info = await self.update_system.check_for_updates()
                 if not update_info['updates_available']:
-                    print("✅ PlexiChat is already up to date!")
+                    print(" PlexiChat is already up to date!")
                     return True
                 target_version = Version.parse(update_info['latest_version'])
 
-            print(f"📦 Target version: {target_version}")
+            print(f" Target version: {target_version}")
 
             # Map CLI arguments to enums
             distribution_map = {
@@ -624,40 +627,40 @@ Examples:
             if args.live_patch:
                 plan.supports_live_patching = True
 
-            print(f"🔧 Distribution: {args.distribution}")
-            print(f"🎯 Deployment: {args.deployment}")
-            print(f"🔒 Verification: {args.verification_level}")
+            print(f" Distribution: {args.distribution}")
+            print(f" Deployment: {args.deployment}")
+            print(f" Verification: {args.verification_level}")
 
             if plan.supports_live_patching:
-                print("⚡ Live patching enabled")
+                print(" Live patching enabled")
 
             # Execute atomic update
-            print("\n🚀 Executing atomic update...")
+            print("\n Executing atomic update...")
             result = await self.update_system.execute_atomic_update(plan)
 
             if result.success:
-                print("✅ Atomic update completed successfully!")
-                print(f"📦 Updated to version {target_version}")
+                print(" Atomic update completed successfully!")
+                print(f" Updated to version {target_version}")
 
                 if result.p2p_efficiency > 0:
-                    print(f"🌐 P2P efficiency: {result.p2p_efficiency:.1f}%")
+                    print(f" P2P efficiency: {result.p2p_efficiency:.1f}%")
 
                 if result.restart_avoided:
-                    print("⚡ Restart avoided through live patching")
+                    print(" Restart avoided through live patching")
 
                 if result.canary_success_rate > 0:
-                    print(f"🎯 Canary success rate: {result.canary_success_rate:.1f}%")
+                    print(f" Canary success rate: {result.canary_success_rate:.1f}%")
 
             else:
-                print(f"❌ Atomic update failed: {result.message}")
+                print(f" Atomic update failed: {result.message}")
 
                 if result.atomic_state:
-                    print(f"🔄 Atomic state: {result.atomic_state.value}")
+                    print(f" Atomic state: {result.atomic_state.value}")
 
                 return False
 
         except Exception as e:
-            print(f"❌ Atomic upgrade failed: {e}")
+            print(f" Atomic upgrade failed: {e}")
             return False
 
         return True
@@ -669,12 +672,12 @@ Examples:
         elif args.canary_command == 'status':
             return await self.handle_canary_status(args)
         else:
-            print("❌ Unknown canary command")
+            print(" Unknown canary command")
             return False
 
     async def handle_canary_deploy(self, args):
         """Handle canary deploy command."""
-        print("🎯 Starting canary deployment...")
+        print(" Starting canary deployment...")
 
         try:
             # Initialize canary deployment manager
@@ -699,30 +702,30 @@ Examples:
                 args.update_id, strategy, config
             )
 
-            print(f"📋 Deployment plan created: {plan.deployment_id}")
-            print(f"🎯 Strategy: {args.strategy}")
+            print(f" Deployment plan created: {plan.deployment_id}")
+            print(f" Strategy: {args.strategy}")
 
             # Execute canary deployment
             result = await canary_deployment_manager.execute_canary_deployment(plan)
 
             if result.success:
-                print("✅ Canary deployment completed successfully!")
-                print(f"📊 Deployed to {len(result.deployed_nodes)} nodes")
+                print(" Canary deployment completed successfully!")
+                print(f" Deployed to {len(result.deployed_nodes)} nodes")
             else:
-                print(f"❌ Canary deployment failed: {result.message}")
+                print(f" Canary deployment failed: {result.message}")
                 if result.rollback_performed:
-                    print("🔄 Rollback completed")
+                    print(" Rollback completed")
                 return False
 
         except Exception as e:
-            print(f"❌ Canary deployment failed: {e}")
+            print(f" Canary deployment failed: {e}")
             return False
 
         return True
 
     async def handle_canary_status(self, args):
         """Handle canary status command."""
-        print("📊 Canary Deployment Status")
+        print(" Canary Deployment Status")
         print("=" * 40)
 
         try:
@@ -739,19 +742,19 @@ Examples:
                     if result.canary_success_rate > 0:
                         print(f"Success Rate: {result.canary_success_rate:.1f}%")
                 else:
-                    print(f"❌ Deployment not found: {args.deployment_id}")
+                    print(f" Deployment not found: {args.deployment_id}")
                     return False
             else:
                 # Show all active deployments
                 active_deployments = canary_deployment_manager.active_deployments
                 if active_deployments:
                     for deployment_id, result in active_deployments.items():
-                        print(f"• {deployment_id}: {result.phase.value} ({'✅' if result.success else '❌'})")
+                        print(f" {deployment_id}: {result.phase.value} ({'' if result.success else ''})")
                 else:
                     print("No active canary deployments")
 
         except Exception as e:
-            print(f"❌ Failed to get canary status: {e}")
+            print(f" Failed to get canary status: {e}")
             return False
 
         return True
@@ -763,12 +766,12 @@ Examples:
         elif args.p2p_command == 'status':
             return await self.handle_p2p_status(args)
         else:
-            print("❌ Unknown P2P command")
+            print(" Unknown P2P command")
             return False
 
     async def handle_p2p_discover(self, args):
         """Handle P2P discover command."""
-        print("🌐 Discovering P2P update nodes...")
+        print(" Discovering P2P update nodes...")
 
         try:
             # Initialize P2P distributor
@@ -778,21 +781,21 @@ Examples:
             nodes = await self.update_system.p2p_distributor.discover_nodes()
 
             if nodes:
-                print(f"✅ Discovered {len(nodes)} P2P nodes:")
+                print(f" Discovered {len(nodes)} P2P nodes:")
                 for node in nodes:
-                    print(f"  • {node.node_id} ({node.address}:{node.port}) - Trust: {node.trust_level}/10")
+                    print(f"   {node.node_id} ({node.address}:{node.port}) - Trust: {node.trust_level}/10")
             else:
-                print("❌ No P2P nodes discovered")
+                print(" No P2P nodes discovered")
 
         except Exception as e:
-            print(f"❌ P2P discovery failed: {e}")
+            print(f" P2P discovery failed: {e}")
             return False
 
         return True
 
     async def handle_p2p_status(self, args):
         """Handle P2P status command."""
-        print("🌐 P2P Distribution Status")
+        print(" P2P Distribution Status")
         print("=" * 40)
 
         try:
@@ -805,11 +808,11 @@ Examples:
             if distributor.known_nodes:
                 print("\nKnown Nodes:")
                 for node_id, node in distributor.known_nodes.items():
-                    status = "🟢" if node.trust_level >= distributor.trust_threshold else "🔴"
+                    status = "" if node.trust_level >= distributor.trust_threshold else ""
                     print(f"  {status} {node.node_id} - Trust: {node.trust_level}/10")
 
         except Exception as e:
-            print(f"❌ Failed to get P2P status: {e}")
+            print(f" Failed to get P2P status: {e}")
             return False
 
         return True
@@ -821,19 +824,18 @@ Examples:
         elif args.signature_command == 'keys':
             return await self.handle_signature_keys(args)
         else:
-            print("❌ Unknown signature command")
+            print(" Unknown signature command")
             return False
 
     async def handle_signature_verify(self, args):
         """Handle signature verify command."""
-        print(f"🔒 Verifying signatures for: {args.update_file}")
+        print(f" Verifying signatures for: {args.update_file}")
 
         try:
-            from pathlib import Path
-
-            update_file = Path(args.update_file)
+            update_file = from pathlib import Path
+Path(args.update_file)
             if not update_file.exists():
-                print(f"❌ Update file not found: {args.update_file}")
+                print(f" Update file not found: {args.update_file}")
                 return False
 
             # Read update data
@@ -842,21 +844,21 @@ Examples:
 
             # For demonstration, we'll simulate signature verification
             # In a real implementation, this would load signatures from a .sig file
-            print("📝 Checking for signature file...")
+            print(" Checking for signature file...")
 
             sig_file = update_file.with_suffix(update_file.suffix + '.sig')
             if sig_file.exists():
-                print("✅ Signature file found")
+                print(" Signature file found")
                 # Simulate verification
-                print("🔍 Verifying signatures...")
-                print("✅ All signatures verified successfully")
+                print(" Verifying signatures...")
+                print(" All signatures verified successfully")
             else:
-                print("⚠️ No signature file found")
-                print("❌ Cannot verify update without signatures")
+                print(" No signature file found")
+                print(" Cannot verify update without signatures")
                 return False
 
         except Exception as e:
-            print(f"❌ Signature verification failed: {e}")
+            print(f" Signature verification failed: {e}")
             return False
 
         return True
@@ -864,7 +866,7 @@ Examples:
     async def handle_signature_keys(self, args):
         """Handle signature keys command."""
         if args.list:
-            print("🔑 Loaded Verification Keys")
+            print(" Loaded Verification Keys")
             print("=" * 40)
 
             try:
@@ -872,13 +874,13 @@ Examples:
 
                 if keys:
                     for key_id, key_data in keys.items():
-                        print(f"  • {key_id} ({len(key_data)} bytes)")
+                        print(f"   {key_id} ({len(key_data)} bytes)")
                 else:
                     print("No verification keys loaded")
                     print("\nTo load keys, place .pem files in: config/update_keys/")
 
             except Exception as e:
-                print(f"❌ Failed to list keys: {e}")
+                print(f" Failed to list keys: {e}")
                 return False
 
         return True
@@ -918,14 +920,14 @@ Examples:
             if handler:
                 return await handler(parsed_args)
             else:
-                print(f"❌ Unknown command: {parsed_args.command}")
+                print(f" Unknown command: {parsed_args.command}")
                 return False
                 
         except KeyboardInterrupt:
-            print("\n❌ Operation cancelled by user")
+            print("\n Operation cancelled by user")
             return False
         except Exception as e:
-            print(f"❌ Unexpected error: {e}")
+            print(f" Unexpected error: {e}")
             logger.error(f"Update CLI error: {e}", exc_info=True)
             return False
 

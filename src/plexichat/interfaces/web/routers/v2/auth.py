@@ -1,29 +1,32 @@
+import logging
+import secrets
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from jose import JWTError
+from sqlmodel import Session, select
+
+
+
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field, validator
+
+from plexichat.core.database import get_session
+from plexichat.features.users.user import User
+from plexichat.infrastructure.utils.monitoring import error_handler, monitor_performance
+from plexichat.infrastructure.utils.rate_limiting import RateLimiter
+from plexichat.infrastructure.utils.security import InputSanitizer, SecurityManager
+
 # app/routers/v2/auth.py
 """
 Enhanced Authentication API v2 with improved security, performance, and features.
 Includes rate limiting, advanced validation, and comprehensive error handling.
 """
 
-import logging
-import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
-from pydantic import BaseModel, Field, validator
-from sqlmodel import Session, select
-
-from plexichat.core.database import get_session
-from plexichat.features.users.user import User
-
 logger = logging.getLogger(__name__)
 # settings import will be added when needed
-from plexichat.infrastructure.utils.monitoring import error_handler, monitor_performance
-from plexichat.infrastructure.utils.rate_limiting import RateLimiter
-from plexichat.infrastructure.utils.security import InputSanitizer, SecurityManager
-
 router = APIRouter(prefix="/v2/auth", tags=["auth-v2"])
 security = HTTPBearer()
 security_manager = SecurityManager()
@@ -356,7 +359,7 @@ async def change_password(
 
 @router.get("/me")
 @monitor_performance
-async def get_current_user(
+async def from plexichat.infrastructure.utils.auth import get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
 ):
@@ -392,7 +395,7 @@ async def get_current_user(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
-        error_handler.handle_error(e, context={"endpoint": "get_current_user"})
+        error_handler.handle_error(e, context={"endpoint": "from plexichat.infrastructure.utils.auth import get_current_user"})
         raise HTTPException(status_code=500, detail="Failed to get user information")
 
 

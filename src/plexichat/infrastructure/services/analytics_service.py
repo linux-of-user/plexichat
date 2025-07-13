@@ -1,8 +1,3 @@
-"""
-Comprehensive analytics and statistics service.
-Provides real-time metrics, historical data, and insights.
-"""
-
 import asyncio
 import json
 from collections import defaultdict, deque
@@ -21,6 +16,12 @@ from app.models.message import Message
 from app.models.user import User
 from sqlmodel import Session, and_, func, select
 
+
+
+"""
+Comprehensive analytics and statistics service.
+Provides real-time metrics, historical data, and insights.
+"""
 
 class MetricType(str, Enum):
     """Types of metrics."""
@@ -89,7 +90,8 @@ class AnalyticsService:
             name=name,
             type=metric_type,
             value=value,
-            timestamp=datetime.utcnow(),
+            timestamp=from datetime import datetime
+datetime.utcnow(),
             tags=tags
         )
         
@@ -172,7 +174,8 @@ class AnalyticsService:
         try:
             async with db_cluster.get_session() as session:
                 # Active users (last 5 minutes)
-                five_min_ago = datetime.utcnow() - timedelta(minutes=5)
+                five_min_ago = from datetime import datetime
+datetime.utcnow() - timedelta(minutes=5)
                 active_users = await session.execute(
                     select(func.count(User.id.distinct()))
                     .where(User.last_seen >= five_min_ago)
@@ -180,7 +183,8 @@ class AnalyticsService:
                 self.real_time_stats['active_users'] = active_users.scalar() or 0
                 
                 # Messages in last hour
-                hour_ago = datetime.utcnow() - timedelta(hours=1)
+                hour_ago = from datetime import datetime
+datetime.utcnow() - timedelta(hours=1)
                 recent_messages = await session.execute(
                     select(func.count(Message.id))
                     .where(Message.timestamp >= hour_ago)
@@ -261,7 +265,8 @@ class AnalyticsService:
                 total_users = await session.execute(select(func.count(User.id)))
                 
                 # Active users today
-                today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+                today = from datetime import datetime
+datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
                 active_today = await session.execute(
                     select(func.count(User.id.distinct()))
                     .where(User.last_seen >= today)
@@ -291,7 +296,8 @@ class AnalyticsService:
                 )
                 
                 # Messages last hour
-                hour_ago = datetime.utcnow() - timedelta(hours=1)
+                hour_ago = from datetime import datetime
+datetime.utcnow() - timedelta(hours=1)
                 messages_last_hour = await session.execute(
                     select(func.count(Message.id))
                     .where(Message.timestamp >= hour_ago)
@@ -336,7 +342,8 @@ class AnalyticsService:
     async def get_guild_analytics(self, guild_id: int, time_range: TimeRange = TimeRange.WEEK) -> Dict[str, Any]:
         """Get analytics for a specific guild."""
         try:
-            end_time = datetime.utcnow()
+            end_time = from datetime import datetime
+datetime.utcnow()
             start_time = self._get_start_time(end_time, time_range)
             
             async with db_cluster.get_session() as session:

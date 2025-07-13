@@ -1,16 +1,19 @@
+from functools import wraps
+
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+
+from ....core.logging import get_logger
+from ....services.communication_service import get_communication_service
+
+            import re
+
+from ....core.auth.web_auth import from plexichat.infrastructure.utils.auth import require_admin_login
+
 """
 PlexiChat Communication Admin Web Routes
 
 Web routes for communication service administration interface.
 """
-
-from functools import wraps
-
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
-
-from ....core.auth.web_auth import require_admin_login
-from ....core.logging import get_logger
-from ....services.communication_service import get_communication_service
 
 # Initialize blueprint and logger
 bp = Blueprint('communication_admin', __name__, url_prefix='/admin/communication')
@@ -20,7 +23,7 @@ def admin_required(f):
     """Decorator to require admin authentication for routes."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        return require_admin_login(f)(*args, **kwargs)
+        return from plexichat.infrastructure.utils.auth import require_admin_login(f)(*args, **kwargs)
     return decorated_function
 
 @bp.route('/')
@@ -290,7 +293,6 @@ async def test_configuration(test_type: str):
             quiet_start = notifications_config.get('quiet_hours_start', '')
             quiet_end = notifications_config.get('quiet_hours_end', '')
             
-            import re
             time_pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
             if not re.match(time_pattern, quiet_start):
                 issues.append('Invalid quiet_hours_start format')

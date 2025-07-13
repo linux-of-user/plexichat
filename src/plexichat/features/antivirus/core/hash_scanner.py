@@ -1,10 +1,3 @@
-"""
-Hash-Based Scanner
-
-Scans files using hash-based detection against public virus databases
-and PlexiChat's internal threat intelligence database.
-"""
-
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,6 +6,14 @@ from typing import Any, Dict, Optional, Set
 import aiosqlite
 
 from . import ScanResult, ScanType, ThreatLevel, ThreatSignature, ThreatType
+
+
+"""
+Hash-Based Scanner
+
+Scans files using hash-based detection against public virus databases
+and PlexiChat's internal threat intelligence database.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,8 @@ class HashBasedScanner:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.hash_db_path = self.data_dir / "hash_database.db"
         self.known_threats: Dict[str, ThreatSignature] = {}
         self.clean_hashes: Set[str] = set()

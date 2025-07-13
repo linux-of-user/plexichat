@@ -2,19 +2,22 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+from sqlmodel import Session, and_, asc, desc, or_, select
+
+
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, text
-from sqlmodel import Session, and_, asc, desc, or_, select
 
-logger = logging.getLogger(__name__)
-# settings import will be added when needed
 from plexichat.core.database import engine
 from plexichat.features.users.message import Message, MessageType
-from plexichat.interfaces.web.routers.auth import get_current_user
+from plexichat.interfaces.web.routers.auth import from plexichat.infrastructure.utils.auth import get_current_user
 from plexichat.interfaces.web.schemas.error import ValidationErrorResponse
 from plexichat.interfaces.web.schemas.message import MessageCreate, MessageRead
 
+logger = logging.getLogger(__name__)
+# settings import will be added when needed
 router = APIRouter()
 
 # Enhanced response models
@@ -64,7 +67,7 @@ async def send_message(
     request: Request,
     data: MessageCreate,
     background_tasks: BackgroundTasks,
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Send a message with enhanced validation and features."""
     logger.debug(f"User {current_user.id} sending message to recipient {data.recipient_id}")
@@ -88,7 +91,8 @@ async def send_message(
             .where(
                 and_(
                     Message.sender_id == current_user.id,
-                    Message.timestamp > datetime.utcnow() - timedelta(minutes=1)
+                    Message.timestamp > from datetime import datetime
+datetime.utcnow() - timedelta(minutes=1)
                 )
             )
         ).one()
@@ -105,7 +109,8 @@ async def send_message(
             recipient_id=data.recipient_id,
             content=data.content,
             type=getattr(data, 'message_type', MessageType.DEFAULT),
-            timestamp=datetime.utcnow()
+            timestamp=from datetime import datetime
+datetime.utcnow()
         )
 
         session.add(msg)
@@ -152,7 +157,7 @@ async def list_messages(
     search: Optional[str] = Query(None, min_length=3, description="Search in message content"),
     sort_order: str = Query("desc", regex="^(asc|desc)$", description="Sort order for messages"),
     include_deleted: bool = Query(False, description="Include deleted messages"),
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """List messages with advanced filtering, pagination, and search."""
     logger.debug(f"Listing messages for user {current_user.id} with filters")
@@ -235,10 +240,11 @@ async def search_messages(
     q: str = Query(..., min_length=3, description="Search query"),
     limit: int = Query(20, le=50, ge=1),
     offset: int = Query(0, ge=0),
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Advanced message search with relevance scoring."""
-    start_time = datetime.utcnow()
+    start_time = from datetime import datetime
+datetime.utcnow()
 
     with Session(engine) as session:
         # Full-text search implementation (simplified)
@@ -254,7 +260,8 @@ async def search_messages(
         count_stmt = select(func.count()).select_from(Message).where(and_(*search_conditions))
         total_matches = session.exec(count_stmt).one()
 
-        search_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        search_time = (from datetime import datetime
+datetime.utcnow() - start_time).total_seconds() * 1000
 
         # Generate search suggestions (simplified)
         suggestions = []
@@ -279,7 +286,7 @@ async def search_messages(
 )
 async def get_message_statistics(
     request: Request,
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get comprehensive message statistics for the user."""
     with Session(engine) as session:
@@ -300,7 +307,8 @@ async def get_message_statistics(
         ).one()
 
         # Time-based statistics
-        now = datetime.utcnow()
+        now = from datetime import datetime
+datetime.utcnow()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         week_start = today_start - timedelta(days=7)
         month_start = today_start - timedelta(days=30)
@@ -350,7 +358,7 @@ async def get_message_statistics(
 async def bulk_delete_messages(
     request: Request,
     message_ids: List[int] = Query(..., description="List of message IDs to delete"),
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Bulk delete messages (only messages sent by the user)."""
     if len(message_ids) > 100:
@@ -409,7 +417,7 @@ async def bulk_delete_messages(
 async def get_message(
     request: Request,
     message_id: int,
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get a specific message by ID."""
     with Session(engine) as session:
@@ -440,7 +448,7 @@ async def edit_message(
     request: Request,
     message_id: int,
     content: str = Query(..., min_length=1, description="New message content"),
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Edit a message (only messages sent by the user, within time limit)."""
     with Session(engine) as session:
@@ -458,14 +466,16 @@ async def edit_message(
 
         # Check if message is too old to edit (15 minutes limit)
         time_limit = timedelta(minutes=15)
-        if datetime.utcnow() - message.timestamp > time_limit:
+        if from datetime import datetime
+datetime.utcnow() - message.timestamp > time_limit:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Message is too old to edit"
             )
 
         message.content = content
-        message.edited_timestamp = datetime.utcnow()
+        message.edited_timestamp = from datetime import datetime
+datetime.utcnow()
 
         session.add(message)
         session.commit()
@@ -479,7 +489,7 @@ async def edit_message(
     response_model=MessageRead,
     responses={404: {"description": "Message not found"}, 429: {"description": "Rate limit exceeded"}}
 )
-async def get_message(request: Request, message_id: int, current_user=Depends(get_current_user)):
+async def get_message(request: Request, message_id: int, current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     logger.debug(f"User {current_user.id} fetching message ID {message_id}")
     with Session(engine) as session:
         msg = session.get(Message, message_id)

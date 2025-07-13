@@ -1,17 +1,19 @@
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, Optional
+
+from sqlmodel import Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index, Text
+
 """
 PlexiChat Status Update Model
 
 WhatsApp-like status update model with 24-hour expiry.
 """
-
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Dict, Optional
-
-from sqlalchemy import DateTime, Index, Text
-from sqlmodel import Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for status updates
 status_snowflake = SnowflakeGenerator(datacenter_id=3, worker_id=1)
@@ -108,7 +110,8 @@ class StatusUpdate(SQLModel, table=True):
     )
     
     expires_at: datetime = Field(
-        default_factory=lambda: datetime.utcnow() + timedelta(hours=24),
+        default_factory=lambda: from datetime import datetime
+datetime.utcnow() + timedelta(hours=24),
         sa_column=Column(DateTime),
         index=True,
         description="Status expiry timestamp (24 hours)"
@@ -130,7 +133,8 @@ class StatusUpdate(SQLModel, table=True):
     
     def is_expired(self) -> bool:
         """Check if status update has expired."""
-        return datetime.utcnow() > self.expires_at
+        return from datetime import datetime
+datetime.utcnow() > self.expires_at
     
     def is_text_status(self) -> bool:
         """Check if this is a text status."""
@@ -144,7 +148,8 @@ class StatusUpdate(SQLModel, table=True):
         """Get time remaining before expiry."""
         if self.is_expired():
             return timedelta(0)
-        return self.expires_at - datetime.utcnow()
+        return self.expires_at - from datetime import datetime
+datetime.utcnow()
     
     def hours_remaining(self) -> float:
         """Get hours remaining before expiry."""

@@ -1,11 +1,3 @@
-"""
-PlexiChat Quantum-Secure Backup System
-
-Enhanced backup system with quantum-proof encryption, distributed shard
-management, and government-level security. Integrates with the unified
-security architecture for maximum protection.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -21,9 +13,27 @@ from typing import Any, Dict, List, Optional
 import aiofiles
 import aiosqlite
 
-# Import security systems
 from ..security import KeyDomain, distributed_key_manager, quantum_encryption
 
+        import io
+        import tarfile
+
+        from ..security.quantum_encryption import SecurityTier
+
+        import io
+        import tarfile
+
+                            from pathlib import Path
+
+"""
+PlexiChat Quantum-Secure Backup System
+
+Enhanced backup system with quantum-proof encryption, distributed shard
+management, and government-level security. Integrates with the unified
+security architecture for maximum protection.
+"""
+
+# Import security systems
 logger = logging.getLogger(__name__)
 
 
@@ -107,7 +117,8 @@ class QuantumBackupSystem:
     """
     
     def __init__(self, config_dir: str = "config/backup"):
-        self.config_dir = Path(config_dir)
+        self.config_dir = from pathlib import Path
+Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Database for backup metadata
@@ -133,7 +144,7 @@ class QuantumBackupSystem:
         await self._load_backups()
         await self._discover_backup_nodes()
         await self._verify_system_integrity()
-        logger.info("🔐 Quantum backup system initialized")
+        logger.info(" Quantum backup system initialized")
     
     async def _init_database(self):
         """Initialize the backup metadata database."""
@@ -270,7 +281,7 @@ class QuantumBackupSystem:
                     }
                     self.backup_nodes[node_info["node_id"]] = node_info
         
-        logger.info(f"📡 Discovered {len(self.backup_nodes)} backup nodes")
+        logger.info(f" Discovered {len(self.backup_nodes)} backup nodes")
     
     async def _verify_system_integrity(self):
         """Verify integrity of the backup system."""
@@ -286,9 +297,9 @@ class QuantumBackupSystem:
                     await self._save_backup(backup)
         
         if corrupted_backups > 0:
-            logger.warning(f"⚠️ Found {corrupted_backups}/{total_backups} corrupted backups")
+            logger.warning(f" Found {corrupted_backups}/{total_backups} corrupted backups")
         else:
-            logger.info(f"✅ All {total_backups} backups verified as intact")
+            logger.info(f" All {total_backups} backups verified as intact")
     
     async def create_backup(
         self, 
@@ -327,7 +338,7 @@ class QuantumBackupSystem:
         # Start backup process
         asyncio.create_task(self._perform_backup(backup))
         
-        logger.info(f"🔐 Created quantum backup: {backup_id} for {source_path}")
+        logger.info(f" Created quantum backup: {backup_id} for {source_path}")
         return backup_id
 
     async def _perform_backup(self, backup: QuantumBackup):
@@ -354,10 +365,10 @@ class QuantumBackupSystem:
             if await self._verify_backup_integrity(backup.backup_id):
                 backup.status = BackupStatus.COMPLETED
                 backup.completed_at = datetime.now(timezone.utc)
-                logger.info(f"✅ Backup completed: {backup.backup_id}")
+                logger.info(f" Backup completed: {backup.backup_id}")
             else:
                 backup.status = BackupStatus.FAILED
-                logger.error(f"❌ Backup verification failed: {backup.backup_id}")
+                logger.error(f" Backup verification failed: {backup.backup_id}")
 
             await self._save_backup(backup)
 
@@ -365,7 +376,7 @@ class QuantumBackupSystem:
             backup.status = BackupStatus.FAILED
             backup.metadata["error"] = str(e)
             await self._save_backup(backup)
-            logger.error(f"❌ Backup failed: {backup.backup_id} - {e}")
+            logger.error(f" Backup failed: {backup.backup_id} - {e}")
 
     async def _read_source_data(self, source_path: str, source_type: str) -> bytes:
         """Read data from the source."""
@@ -403,13 +414,11 @@ class QuantumBackupSystem:
 
     async def _archive_directory(self, dir_path: str) -> bytes:
         """Create compressed archive of directory."""
-        import io
-        import tarfile
-
         archive_buffer = io.BytesIO()
 
         with tarfile.open(fileobj=archive_buffer, mode='w:gz') as tar:
-            tar.add(dir_path, arcname=Path(dir_path).name)
+            tar.add(dir_path, arcname=from pathlib import Path
+Path(dir_path).name)
 
         return archive_buffer.getvalue()
 
@@ -481,13 +490,11 @@ class QuantumBackupSystem:
             shards.append(shard)
             backup.shards[i] = shard
 
-        logger.info(f"🔐 Created {len(shards)} quantum shards for backup {backup.backup_id}")
+        logger.info(f" Created {len(shards)} quantum shards for backup {backup.backup_id}")
         return shards
 
     def _get_security_tier(self, security_level: BackupSecurity):
         """Convert backup security level to quantum encryption security tier."""
-        from ..security.quantum_encryption import SecurityTier
-
         mapping = {
             BackupSecurity.STANDARD: SecurityTier.STANDARD,
             BackupSecurity.ENHANCED: SecurityTier.ENHANCED,
@@ -570,7 +577,8 @@ class QuantumBackupSystem:
         """Verify the integrity of a single shard."""
         try:
             # Check if shard file exists
-            if shard.location and Path(shard.location).exists():
+            if shard.location and from pathlib import Path
+Path(shard.location).exists():
                 # Read shard data
                 async with aiofiles.open(shard.location, 'rb') as f:
                     stored_data = await f.read()
@@ -639,18 +647,19 @@ class QuantumBackupSystem:
             # Write restored data
             await self._write_restored_data(original_data, restore_path, backup.source_type)
 
-            logger.info(f"✅ Successfully restored backup {backup_id} to {restore_path}")
+            logger.info(f" Successfully restored backup {backup_id} to {restore_path}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to restore backup {backup_id}: {e}")
+            logger.error(f" Failed to restore backup {backup_id}: {e}")
             return False
 
     async def _decrypt_shard(self, shard: QuantumShard) -> Optional[bytes]:
         """Decrypt a quantum shard."""
         try:
             # Read encrypted data
-            if shard.location and Path(shard.location).exists():
+            if shard.location and from pathlib import Path
+Path(shard.location).exists():
                 async with aiofiles.open(shard.location, 'rb') as f:
                     encrypted_data = await f.read()
             else:
@@ -708,9 +717,6 @@ class QuantumBackupSystem:
 
     async def _restore_directory(self, data: bytes, restore_path: str):
         """Restore directory from archive data."""
-        import io
-        import tarfile
-
         archive_buffer = io.BytesIO(data)
 
         with tarfile.open(fileobj=archive_buffer, mode='r:gz') as tar:
@@ -827,9 +833,10 @@ class QuantumBackupSystem:
             if backup.status == BackupStatus.CORRUPTED:
                 # Remove shard files
                 for shard in backup.shards.values():
-                    if shard.location and Path(shard.location).exists():
+                    if shard.location and from pathlib import Path
+Path(shard.location).exists():
                         try:
-                            Path(shard.location).unlink()
+Path(shard.location).unlink()
                         except Exception as e:
                             logger.warning(f"Failed to delete shard file {shard.location}: {e}")
 
@@ -843,7 +850,7 @@ class QuantumBackupSystem:
                 del self.active_backups[backup_id]
                 cleaned_count += 1
 
-        logger.info(f"🗑️ Cleaned up {cleaned_count} corrupted backups")
+        logger.info(f" Cleaned up {cleaned_count} corrupted backups")
         return cleaned_count
 
     async def get_system_status(self) -> Dict[str, Any]:

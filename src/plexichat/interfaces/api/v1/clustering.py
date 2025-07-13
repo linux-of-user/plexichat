@@ -1,22 +1,25 @@
-"""
-Clustering API endpoints for PlexiChat.
-Provides cluster management, task distribution, and node coordination.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+
+
+
+
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
-
-# Import global cluster manager
 from plexichat.app.main import cluster_manager
 from plexichat.clustering import ClusterTask, TaskStatus
 from plexichat.clustering.core.node_manager import NodeStatus
 
+"""
+Clustering API endpoints for PlexiChat.
+Provides cluster management, task distribution, and node coordination.
+"""
 
+# Import global cluster manager
 # Pydantic models for API
 class NodeJoinRequest(BaseModel):
     node_id: str
@@ -199,7 +202,8 @@ async def join_cluster(request: NodeJoinRequest):
             role=role,
             status=NodeStatus.ONLINE,
             capabilities=request.capabilities,
-            last_heartbeat=datetime.now()
+            last_heartbeat=from datetime import datetime
+datetime.now()
         )
         
         # Add to cluster
@@ -217,7 +221,7 @@ async def join_cluster(request: NodeJoinRequest):
                 "capabilities": node.capabilities
             }
         
-        logger.info(f"🌐 Node {request.node_id} joined cluster")
+        logger.info(f" Node {request.node_id} joined cluster")
         
         return {
             "success": True,
@@ -253,7 +257,7 @@ async def leave_cluster(node_id: str):
         ]
         
         for task in affected_tasks:
-            logger.info(f"🔄 Reassigning task {task.task_id} from leaving node {node_id}")
+            logger.info(f" Reassigning task {task.task_id} from leaving node {node_id}")
             task.assigned_node = None
             task.status = TaskStatus.PENDING
             await clustering_service._schedule_task(task)
@@ -261,7 +265,7 @@ async def leave_cluster(node_id: str):
         # Remove node from cluster
         del clustering_service.nodes[node_id]
         
-        logger.info(f"👋 Node {node_id} left cluster")
+        logger.info(f" Node {node_id} left cluster")
         
         return {
             "success": True,
@@ -430,7 +434,8 @@ async def receive_heartbeat(request: HeartbeatRequest):
         node.memory_usage = request.memory_usage
         node.tasks_completed = request.tasks_completed
         node.tasks_failed = request.tasks_failed
-        node.last_heartbeat = datetime.now()
+        node.last_heartbeat = from datetime import datetime
+datetime.now()
         
         return {
             "success": True,
@@ -552,7 +557,8 @@ async def get_cluster_metrics():
                     "pending_tasks": total_tasks - completed_tasks - failed_tasks - running_tasks,
                     "success_rate_percentage": success_rate
                 },
-                "timestamp": datetime.now().isoformat()
+                "timestamp": from datetime import datetime
+datetime.now().isoformat()
             }
         }
         

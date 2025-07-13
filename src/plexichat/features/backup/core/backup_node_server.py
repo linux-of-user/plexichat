@@ -1,15 +1,3 @@
-"""
-PlexiChat Backup Node Server
-Government-Grade Independent Backup Storage System Server
-
-A dedicated backup node server with:
-- Advanced clustering and real-time monitoring
-- Quantum-resistant security
-- Large shard storage capabilities
-- Storage limits and seeding capabilities
-- Government-level security standards
-"""
-
 import asyncio
 import hashlib
 import json
@@ -21,9 +9,25 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import aiosqlite
+
+    import argparse
+
+
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+
+"""
+PlexiChat Backup Node Server
+Government-Grade Independent Backup Storage System Server
+
+A dedicated backup node server with:
+- Advanced clustering and real-time monitoring
+- Quantum-resistant security
+- Large shard storage capabilities
+- Storage limits and seeding capabilities
+- Government-level security standards
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +97,8 @@ class BackupNodeServer:
     def __init__(self, config: BackupNodeConfig):
         self.config = config
         self.app = FastAPI(title="PlexiChat Backup Node", version="3.0.0")
-        self.storage_path = Path(config.storage_path)
+        self.storage_path = from pathlib import Path
+Path(config.storage_path)
         self.db_path = self.storage_path / "shards_database.db"
         self.shards: Dict[str, BackupShard] = {}
         self.nodes: Dict[str, NodeInfo] = {}
@@ -174,7 +179,7 @@ class BackupNodeServer:
                 self.shards[shard_id] = shard
                 await self._save_shard_to_db(shard)
                 
-                logger.info(f"✅ Stored shard {shard_id} ({len(data)} bytes)")
+                logger.info(f" Stored shard {shard_id} ({len(data)} bytes)")
                 
                 return {
                     "success": True,
@@ -184,7 +189,7 @@ class BackupNodeServer:
                 }
                 
             except Exception as e:
-                logger.error(f"❌ Failed to store shard: {e}")
+                logger.error(f" Failed to store shard: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
                 
         @self.app.get("/retrieve/{shard_id}")
@@ -196,10 +201,10 @@ class BackupNodeServer:
                 
                 shard_file_path = self.storage_path / f"shard_{shard_id}"
                 if not shard_file_path.exists():
-                    logger.error(f"❌ Shard file missing: {shard_id}")
+                    logger.error(f" Shard file missing: {shard_id}")
                     raise HTTPException(status_code=404, detail="Shard file not found")
                 
-                logger.info(f"✅ Retrieved shard {shard_id}")
+                logger.info(f" Retrieved shard {shard_id}")
                 return FileResponse(
                     path=str(shard_file_path),
                     filename=f"shard_{shard_id}",
@@ -209,7 +214,7 @@ class BackupNodeServer:
             except HTTPException:
                 raise
             except Exception as e:
-                logger.error(f"❌ Failed to retrieve shard {shard_id}: {e}")
+                logger.error(f" Failed to retrieve shard {shard_id}: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
                 
         @self.app.post("/verify/{shard_id}")
@@ -237,7 +242,7 @@ class BackupNodeServer:
                 shard.verification_count += 1
                 await self._update_shard_in_db(shard)
                 
-                logger.info(f"✅ Verified shard {shard_id}: {'VALID' if is_valid else 'INVALID'}")
+                logger.info(f" Verified shard {shard_id}: {'VALID' if is_valid else 'INVALID'}")
                 
                 return {
                     "valid": is_valid,
@@ -251,7 +256,7 @@ class BackupNodeServer:
             except HTTPException:
                 raise
             except Exception as e:
-                logger.error(f"❌ Failed to verify shard {shard_id}: {e}")
+                logger.error(f" Failed to verify shard {shard_id}: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
                 
         @self.app.delete("/delete/{shard_id}")
@@ -268,14 +273,14 @@ class BackupNodeServer:
                 del self.shards[shard_id]
                 await self._delete_shard_from_db(shard_id)
                 
-                logger.info(f"✅ Deleted shard {shard_id}")
+                logger.info(f" Deleted shard {shard_id}")
                 
                 return {"success": True, "shard_id": shard_id}
                 
             except HTTPException:
                 raise
             except Exception as e:
-                logger.error(f"❌ Failed to delete shard {shard_id}: {e}")
+                logger.error(f" Failed to delete shard {shard_id}: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
                 
         @self.app.get("/shards")
@@ -301,7 +306,7 @@ class BackupNodeServer:
                 }
                 
             except Exception as e:
-                logger.error(f"❌ Failed to list shards: {e}")
+                logger.error(f" Failed to list shards: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
 
     def _calculate_storage_used(self) -> int:
@@ -355,10 +360,10 @@ class BackupNodeServer:
                         )
                         self.shards[shard.shard_id] = shard
 
-            logger.info(f"✅ Loaded {len(self.shards)} shards from database")
+            logger.info(f" Loaded {len(self.shards)} shards from database")
 
         except Exception as e:
-            logger.error(f"❌ Failed to load shards from database: {e}")
+            logger.error(f" Failed to load shards from database: {e}")
 
     async def _save_shard_to_db(self, shard: BackupShard):
         """Save shard metadata to database."""
@@ -393,7 +398,7 @@ class BackupNodeServer:
 
     async def start(self):
         """Start the backup node server."""
-        logger.info(f"🚀 Starting PlexiChat Backup Node {self.config.node_id}")
+        logger.info(f" Starting PlexiChat Backup Node {self.config.node_id}")
 
         # Initialize database and load existing shards
         await self._init_database()
@@ -411,13 +416,14 @@ class BackupNodeServer:
 
     async def stop(self):
         """Stop the backup node server."""
-        logger.info(f"🛑 Stopping PlexiChat Backup Node {self.config.node_id}")
+        logger.info(f" Stopping PlexiChat Backup Node {self.config.node_id}")
 
 
 # Factory function for creating backup node server
 def create_backup_node_server(config_path: Optional[str] = None) -> BackupNodeServer:
     """Create a backup node server from configuration."""
-    if config_path and Path(config_path).exists():
+    if config_path and from pathlib import Path
+Path(config_path).exists():
         with open(config_path, 'r') as f:
             config_data = json.load(f)
         config = BackupNodeConfig(**config_data)
@@ -436,8 +442,6 @@ def create_backup_node_server(config_path: Optional[str] = None) -> BackupNodeSe
 # Main entry point for running as standalone server
 async def main():
     """Main entry point for backup node server."""
-    import argparse
-
     parser = argparse.ArgumentParser(description="PlexiChat Backup Node Server")
     parser.add_argument("--config", help="Configuration file path")
     parser.add_argument("--port", type=int, default=8001, help="Server port")
@@ -461,7 +465,7 @@ async def main():
     try:
         await server.start()
     except KeyboardInterrupt:
-        logger.info("🛑 Received shutdown signal")
+        logger.info(" Received shutdown signal")
         await server.stop()
 
 

@@ -1,13 +1,12 @@
-"""
-Enhanced message service with file attachment and permission handling.
-Validates file access when creating messages with embedded files.
-"""
-
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import HTTPException, status
 from sqlmodel import Session
+
+
+
+
+from fastapi import HTTPException, status
 
 from plexichat.app.logger_config import logger
 from plexichat.app.models.files import FilePermissionType, FileRecord
@@ -15,6 +14,10 @@ from plexichat.app.models.message import Message, MessageType
 from plexichat.app.models.user import User
 from plexichat.app.services.file_permissions import FilePermissionService
 
+"""
+Enhanced message service with file attachment and permission handling.
+Validates file access when creating messages with embedded files.
+"""
 
 class MessageService:
     """Service for handling messages with file attachments and permissions."""
@@ -86,7 +89,8 @@ class MessageService:
                         "mime_type": file_record.mime_type,
                         "access_level": file_record.access_level.value,
                         "permission_source": access_context.get("permission_source") if access_context else "owner",
-                        "attached_at": datetime.utcnow().isoformat()
+                        "attached_at": from datetime import datetime
+datetime.utcnow().isoformat()
                     }
                     
                     # Add thumbnail for images
@@ -98,7 +102,8 @@ class MessageService:
             # Calculate expiration time
             expires_at = None
             if expires_after_seconds:
-                expires_at = datetime.utcnow() + timedelta(seconds=expires_after_seconds)
+                expires_at = from datetime import datetime
+datetime.utcnow() + timedelta(seconds=expires_after_seconds)
             
             # Create message
             message = Message(
@@ -225,7 +230,8 @@ class MessageService:
             # Update content if provided
             if content is not None:
                 message.content = content
-                message.edited_timestamp = datetime.utcnow()
+                message.edited_timestamp = from datetime import datetime
+datetime.utcnow()
                 message.is_edited = True
             
             # Handle file additions
@@ -264,7 +270,8 @@ class MessageService:
                         "mime_type": file_record.mime_type,
                         "access_level": file_record.access_level.value,
                         "permission_source": access_context.get("permission_source") if access_context else "owner",
-                        "attached_at": datetime.utcnow().isoformat()
+                        "attached_at": from datetime import datetime
+datetime.utcnow().isoformat()
                     }
                     
                     if file_record.mime_type and file_record.mime_type.startswith('image/'):

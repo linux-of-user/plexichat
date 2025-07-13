@@ -1,16 +1,18 @@
-"""
-PlexiChat Metrics Collection Service Module
-
-Small modular service for collecting and aggregating system metrics.
-"""
-
 import asyncio
 import logging
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List
 
+
+
 import psutil
+
+"""
+PlexiChat Metrics Collection Service Module
+
+Small modular service for collecting and aggregating system metrics.
+"""
 
 # Service metadata
 SERVICE_METADATA = {
@@ -144,13 +146,16 @@ class MetricsService:
     async def _collect_system_metrics(self) -> Dict[str, float]:
         """Collect general system metrics."""
         try:
-            boot_time = datetime.fromtimestamp(psutil.boot_time(), timezone.utc)
+            boot_time = datetime.fromtimestamp(import psutil
+psutil.boot_time(), timezone.utc)
             uptime = (datetime.now(timezone.utc) - boot_time).total_seconds()
             
             return {
                 "uptime_seconds": uptime,
-                "load_average_1m": psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
-                "process_count": len(psutil.pids())
+                "load_average_1m": import psutil
+psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
+                "process_count": len(import psutil
+psutil.pids())
             }
         except Exception as e:
             self.logger.warning(f"Failed to collect system metrics: {e}")
@@ -159,9 +164,12 @@ class MetricsService:
     async def _collect_cpu_metrics(self) -> Dict[str, float]:
         """Collect CPU metrics."""
         try:
-            cpu_percent = psutil.cpu_percent(interval=1)
-            cpu_count = psutil.cpu_count()
-            cpu_freq = psutil.cpu_freq()
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
+            cpu_count = import psutil
+psutil.cpu_count()
+            cpu_freq = import psutil
+psutil.cpu_freq()
             
             metrics = {
                 "usage_percent": cpu_percent,
@@ -175,7 +183,8 @@ class MetricsService:
                 })
             
             # Per-core usage
-            per_cpu = psutil.cpu_percent(percpu=True)
+            per_cpu = import psutil
+psutil.cpu_percent(percpu=True)
             for i, usage in enumerate(per_cpu):
                 metrics[f"core_{i}_percent"] = usage
             
@@ -188,8 +197,10 @@ class MetricsService:
     async def _collect_memory_metrics(self) -> Dict[str, float]:
         """Collect memory metrics."""
         try:
-            memory = psutil.virtual_memory()
-            swap = psutil.swap_memory()
+            memory = import psutil
+psutil.virtual_memory()
+            swap = import psutil
+psutil.swap_memory()
             
             return {
                 "total_bytes": memory.total,
@@ -211,7 +222,8 @@ class MetricsService:
             metrics = {}
             
             # Disk usage for root partition
-            disk_usage = psutil.disk_usage('/')
+            disk_usage = import psutil
+psutil.disk_usage('/')
             metrics.update({
                 "total_bytes": disk_usage.total,
                 "used_bytes": disk_usage.used,
@@ -220,7 +232,8 @@ class MetricsService:
             })
             
             # Disk I/O
-            disk_io = psutil.disk_io_counters()
+            disk_io = import psutil
+psutil.disk_io_counters()
             if disk_io:
                 metrics.update({
                     "read_bytes": disk_io.read_bytes,
@@ -238,7 +251,8 @@ class MetricsService:
     async def _collect_network_metrics(self) -> Dict[str, float]:
         """Collect network metrics."""
         try:
-            net_io = psutil.net_io_counters()
+            net_io = import psutil
+psutil.net_io_counters()
             
             if not net_io:
                 return {}
@@ -261,7 +275,8 @@ class MetricsService:
     async def _collect_process_metrics(self) -> Dict[str, float]:
         """Collect process-specific metrics."""
         try:
-            current_process = psutil.Process()
+            current_process = import psutil
+psutil.Process()
             
             memory_info = current_process.memory_info()
             cpu_percent = current_process.cpu_percent()

@@ -1,3 +1,22 @@
+import asyncio
+import hashlib
+import json
+import subprocess
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
+import requests
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+from .unified_audit_system import (
+            import socket
+            import ssl
+
+
 """
 PlexiChat Automated Security Testing System - SINGLE SOURCE OF TRUTH
 
@@ -17,21 +36,6 @@ Features:
 - Zero-trust security verification
 """
 
-import asyncio
-import hashlib
-import json
-import subprocess
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-
-import requests
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
-from .unified_audit_system import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
@@ -244,11 +248,11 @@ class AutomatedSecurityTester:
             asyncio.create_task(self._test_monitor())
             
             self.initialized = True
-            logger.info("✅ Automated Security Testing System fully initialized")
+            logger.info(" Automated Security Testing System fully initialized")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Security Testing initialization failed: {e}")
+            logger.error(f" Security Testing initialization failed: {e}")
             return False
     
     async def run_ci_cd_security_tests(self, 
@@ -351,7 +355,7 @@ class AutomatedSecurityTester:
             
             # Fail CI/CD if critical vulnerabilities found
             if test_result.critical_count > 0:
-                logger.critical(f"🚨 CI/CD SECURITY FAILURE: {test_result.critical_count} critical vulnerabilities found")
+                logger.critical(f" CI/CD SECURITY FAILURE: {test_result.critical_count} critical vulnerabilities found")
                 
                 # Log critical security failure
                 self.audit_system.log_security_event(
@@ -789,9 +793,6 @@ class AutomatedSecurityTester:
 
         try:
             # Test SSL/TLS configuration
-            import socket
-            import ssl
-
             hostname = self.base_url.replace("https://", "").replace("http://", "").split("/")[0]
 
             context = ssl.create_default_context()

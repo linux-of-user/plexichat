@@ -1,21 +1,24 @@
-"""
-Enhanced user management API with comprehensive profile and friend system.
-Handles user creation, profile management, account operations, and social features.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+from sqlmodel import Session
+
+
+
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr
-from sqlmodel import Session
 
 from plexichat.app.db import get_session
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.services.user_management import UserManagementService
-from plexichat.app.utils.auth import get_current_user, get_optional_current_user
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
 
+"""
+Enhanced user management API with comprehensive profile and friend system.
+Handles user creation, profile management, account operations, and social features.
+"""
 
 # Pydantic models for API
 class UserCreateRequest(BaseModel):
@@ -152,7 +155,8 @@ async def get_user_profile(
 @router.get("/me", response_model=UserProfileResponse)
 async def get_my_profile(
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> UserProfileResponse:
     """Get current user's profile with private information."""
     user_service = UserManagementService(session)
@@ -168,7 +172,8 @@ async def get_my_profile(
 async def update_profile(
     request: UserProfileUpdateRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> UserProfileResponse:
     """Update user profile information."""
     user_service = UserManagementService(session)
@@ -184,7 +189,8 @@ async def update_profile(
 async def update_email(
     request: EmailUpdateRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Update user email address."""
     user_service = UserManagementService(session)
@@ -211,7 +217,8 @@ async def update_email(
 async def change_password(
     request: PasswordChangeRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Change user password."""
     user_service = UserManagementService(session)
@@ -238,7 +245,8 @@ async def change_password(
 async def upload_profile_picture(
     file: UploadFile = File(...),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Upload user profile picture."""
     user_service = UserManagementService(session)
@@ -274,7 +282,8 @@ async def upload_profile_picture(
 async def delete_account(
     request: AccountDeleteRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Delete user account."""
     user_service = UserManagementService(session)
@@ -303,7 +312,8 @@ async def delete_account(
 async def send_friend_request(
     request: FriendRequestRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Send a friend request."""
     user_service = UserManagementService(session)
@@ -330,7 +340,8 @@ async def send_friend_request(
 async def respond_to_friend_request(
     request: FriendRequestResponse,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Accept or decline a friend request."""
     user_service = UserManagementService(session)
@@ -358,7 +369,8 @@ async def respond_to_friend_request(
 async def remove_friend(
     friend_id: int,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Remove a friend."""
     user_service = UserManagementService(session)
@@ -381,7 +393,8 @@ async def remove_friend(
 async def block_user(
     user_id: int,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Block a user."""
     user_service = UserManagementService(session)
@@ -403,7 +416,8 @@ async def block_user(
 @router.get("/friends")
 async def get_friends_list(
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get user's friends list."""
     user_service = UserManagementService(session)
@@ -414,7 +428,8 @@ async def get_friends_list(
 async def get_friend_requests(
     sent: bool = Query(False, description="Get sent requests instead of received"),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get pending friend requests."""
     user_service = UserManagementService(session)
@@ -463,7 +478,8 @@ async def get_user_statistics(
 @router.get("/me/statistics")
 async def get_my_statistics(
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """Get current user's full statistics."""
     user_service = UserManagementService(session)
@@ -478,7 +494,8 @@ async def get_my_statistics(
 @router.post("/activity")
 async def update_activity(
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Update user's last activity timestamp."""
     user_service = UserManagementService(session)

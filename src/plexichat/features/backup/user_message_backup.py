@@ -1,3 +1,15 @@
+import asyncio
+import json
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
+from .core.shard_manager import ImmutableShardManager, ShardType
+
+
 """
 User and Message Backup System
 
@@ -13,18 +25,7 @@ Features:
 - Compliance with data protection regulations
 """
 
-import asyncio
-import json
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-
 # Import PlexiChat backup components
-from .core.shard_manager import ImmutableShardManager, ShardType
-
 logger = logging.getLogger(__name__)
 
 
@@ -50,7 +51,8 @@ class OptOutLevel(Enum):
 
 @dataclass
 class BackupPreferences:
-    """User backup preferences and opt-out settings."""
+    """User backup preferences and opt-out from plexichat.core.config import settings
+settings."""
     user_id: str
     server_id: str
     opt_out_level: OptOutLevel = OptOutLevel.NONE
@@ -71,7 +73,8 @@ class UserMessageBackupSystem:
     """
     
     def __init__(self, data_dir: Path, shard_manager: ImmutableShardManager):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.backup_dir = self.data_dir / "user_message_backups"
         self.preferences_db = self.backup_dir / "backup_preferences.db"
         
@@ -121,7 +124,8 @@ class UserMessageBackupSystem:
     async def set_user_backup_preferences(self, user_id: str, server_id: str, 
                                         preferences: Dict[str, Any]) -> bool:
         """
-        Set user backup preferences and opt-out settings.
+        Set user backup preferences and opt-out from plexichat.core.config import settings
+settings.
         
         Args:
             user_id: User ID
@@ -197,7 +201,8 @@ class UserMessageBackupSystem:
             }
             
             # Create backup through shard system
-            backup_id = f"user_profile_{user_id}_{server_id}_{int(datetime.now().timestamp())}"
+            backup_id = f"user_profile_{user_id}_{server_id}_{int(from datetime import datetime
+datetime.now().timestamp())}"
             backup_json = json.dumps(backup_data).encode()
             
             # Create shards with enhanced security
@@ -265,7 +270,8 @@ class UserMessageBackupSystem:
             }
             
             # Create backup through shard system
-            backup_id = f"user_messages_{user_id}_{server_id}_{int(datetime.now().timestamp())}"
+            backup_id = f"user_messages_{user_id}_{server_id}_{int(from datetime import datetime
+datetime.now().timestamp())}"
             backup_json = json.dumps(backup_data).encode()
             
             # Create shards with enhanced security

@@ -1,9 +1,3 @@
-"""
-Enhanced Antivirus Manager
-Integrates the existing antivirus system with plugin scanning, real-time monitoring,
-and advanced threat detection capabilities.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -12,11 +6,19 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
 
-from plexichat.app.logger_config import logger
 
 from .core import ScanResult, ScanType, ThreatLevel, ThreatType
 from .core.antivirus_engine import AdvancedAntivirusEngine
 
+
+
+from plexichat.app.logger_config import logger
+
+"""
+Enhanced Antivirus Manager
+Integrates the existing antivirus system with plugin scanning, real-time monitoring,
+and advanced threat detection capabilities.
+"""
 
 @dataclass
 class ScanRequest:
@@ -49,7 +51,8 @@ class EnhancedAntivirusManager:
     """Enhanced antivirus manager with plugin integration and real-time monitoring."""
     
     def __init__(self, data_dir: str = "data"):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.antivirus_dir = self.data_dir / "antivirus"
         self.quarantine_dir = self.antivirus_dir / "quarantine"
         self.config_path = self.antivirus_dir / "enhanced_config.json"
@@ -261,7 +264,8 @@ class EnhancedAntivirusManager:
             True if quarantine successful, False otherwise
         """
         try:
-            path = Path(file_path)
+            path = from pathlib import Path
+Path(file_path)
             if not path.exists():
                 logger.warning(f"Cannot quarantine non-existent file: {file_path}")
                 return False
@@ -328,7 +332,8 @@ class EnhancedAntivirusManager:
                 return False
             
             entry = self.quarantine_entries[file_hash]
-            quarantine_path = Path(entry.quarantine_path)
+            quarantine_path = from pathlib import Path
+Path(entry.quarantine_path)
             
             if not quarantine_path.exists():
                 logger.error(f"Quarantined file not found: {entry.quarantine_path}")
@@ -338,7 +343,8 @@ class EnhancedAntivirusManager:
             if not restore_path:
                 restore_path = entry.original_path
             
-            restore_path = Path(restore_path)
+            restore_path = from pathlib import Path
+Path(restore_path)
             restore_path.parent.mkdir(parents=True, exist_ok=True)
             
             # Move file back
@@ -371,7 +377,8 @@ class EnhancedAntivirusManager:
                 return False
             
             entry = self.quarantine_entries[file_hash]
-            quarantine_path = Path(entry.quarantine_path)
+            quarantine_path = from pathlib import Path
+Path(entry.quarantine_path)
             
             if quarantine_path.exists():
                 quarantine_path.unlink()
@@ -550,12 +557,14 @@ class EnhancedAntivirusManager:
             file_path = scan_request.file_path
 
             # Check if file exists
-            if not Path(file_path).exists():
+            if not from pathlib import Path
+Path(file_path).exists():
                 logger.warning(f"File not found for scanning: {file_path}")
                 return []
 
             # Check file size limit
-            file_size = Path(file_path).stat().st_size
+            file_size = from pathlib import Path
+Path(file_path).stat().st_size
             if file_size > self.config["max_file_size"]:
                 logger.warning(f"File too large for scanning: {file_path} ({file_size} bytes)")
                 return []
@@ -564,7 +573,8 @@ class EnhancedAntivirusManager:
             for scan_type in scan_request.scan_types:
                 try:
                     if scan_type == ScanType.HASH_SCAN and self.config["hash_scanning"]:
-                        file_hash = await self._calculate_file_hash(Path(file_path))
+                        file_hash = await self._calculate_file_hash(from pathlib import Path
+Path(file_path))
                         result = await self.antivirus_engine.hash_scanner.scan_hash(file_hash, file_path)
                         results.append(result)
 
@@ -577,7 +587,8 @@ class EnhancedAntivirusManager:
                         results.append(result)
 
                     elif scan_type == ScanType.THREAT_INTELLIGENCE and self.config["threat_intelligence"]:
-                        file_hash = await self._calculate_file_hash(Path(file_path))
+                        file_hash = await self._calculate_file_hash(from pathlib import Path
+Path(file_path))
                         threat_sig = await self.antivirus_engine.threat_intelligence.check_hash_threat(file_hash)
                         if threat_sig:
                             # Convert threat signature to scan result
@@ -658,7 +669,8 @@ class EnhancedAntivirusManager:
     async def _scan_plugin_specific(self, plugin_path: str) -> Optional[ScanResult]:
         """Perform plugin-specific security checks."""
         start_time = datetime.now(timezone.utc)
-        path = Path(plugin_path)
+        path = from pathlib import Path
+Path(plugin_path)
 
         try:
             # Check if it's a ZIP file (plugin format)

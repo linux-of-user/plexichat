@@ -1,9 +1,8 @@
-"""
-Social & Friends API endpoints for PlexiChat.
-Provides comprehensive social features including friends, profiles, and activities.
-"""
-
 from typing import Any, Dict, Optional
+
+
+
+
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -11,6 +10,10 @@ from pydantic import BaseModel
 from plexichat.app.logger_config import logger
 from plexichat.app.services.social_service import UserStatus, social_service
 
+"""
+Social & Friends API endpoints for PlexiChat.
+Provides comprehensive social features including friends, profiles, and activities.
+"""
 
 # Pydantic models for API
 class ProfileCreateRequest(BaseModel):
@@ -147,7 +150,8 @@ async def update_profile(request: ProfileUpdateRequest):
         if request.website is not None:
             profile.website = request.website
         if request.privacy_settings is not None:
-            profile.privacy_settings.update(request.privacy_settings)
+            profile.privacy_from plexichat.core.config import settings
+settings.update(request.privacy_settings)
         if request.social_links is not None:
             profile.social_links = request.social_links
         

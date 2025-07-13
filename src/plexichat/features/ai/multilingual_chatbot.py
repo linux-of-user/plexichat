@@ -1,8 +1,3 @@
-"""
-PlexiChat Multilingual AI Chatbot
-Advanced conversational AI with multi-language support and context awareness
-"""
-
 import logging
 import time
 import uuid
@@ -10,6 +5,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+        import random
+
+"""
+PlexiChat Multilingual AI Chatbot
+Advanced conversational AI with multi-language support and context awareness
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -407,7 +409,6 @@ respond in their preferred language ({context.language}).
             ]
         }
         
-        import random
         intent_responses = responses.get(intent, ["I understand. How can I help you with that?"])
         return random.choice(intent_responses)
     
@@ -473,7 +474,7 @@ respond in their preferred language ({context.language}).
         
         welcome_messages = {
             "en": f"Hello! I'm {personality_config['name']}, your {personality_config['description']}. How can I help you today?",
-            "es": f"¡Hola! Soy {personality_config['name']}, tu {personality_config['description']}. ¿Cómo puedo ayudarte hoy?",
+            "es": f"Hola! Soy {personality_config['name']}, tu {personality_config['description']}. Cmo puedo ayudarte hoy?",
             "fr": f"Bonjour! Je suis {personality_config['name']}, votre {personality_config['description']}. Comment puis-je vous aider aujourd'hui?",
             "de": f"Hallo! Ich bin {personality_config['name']}, Ihr {personality_config['description']}. Wie kann ich Ihnen heute helfen?",
         }
@@ -484,9 +485,9 @@ respond in their preferred language ({context.language}).
         """Generate error response in user's language."""
         error_messages = {
             "en": "I'm sorry, I encountered an error. Please try again.",
-            "es": "Lo siento, encontré un error. Por favor, inténtalo de nuevo.",
-            "fr": "Je suis désolé, j'ai rencontré une erreur. Veuillez réessayer.",
-            "de": "Es tut mir leid, ich bin auf einen Fehler gestoßen. Bitte versuchen Sie es erneut.",
+            "es": "Lo siento, encontr un error. Por favor, intntalo de nuevo.",
+            "fr": "Je suis dsol, j'ai rencontr une erreur. Veuillez ressayer.",
+            "de": "Es tut mir leid, ich bin auf einen Fehler gestoen. Bitte versuchen Sie es erneut.",
         }
         
         return error_messages.get(language, error_messages["en"])
@@ -526,8 +527,8 @@ respond in their preferred language ({context.language}).
         """Generate goodbye message."""
         goodbye_messages = {
             "en": "Thank you for chatting with me! Have a wonderful day!",
-            "es": "¡Gracias por chatear conmigo! ¡Que tengas un día maravilloso!",
-            "fr": "Merci d'avoir discuté avec moi! Passez une merveilleuse journée!",
+            "es": "Gracias por chatear conmigo! Que tengas un da maravilloso!",
+            "fr": "Merci d'avoir discut avec moi! Passez une merveilleuse journe!",
             "de": "Danke, dass Sie mit mir gechattet haben! Haben Sie einen wunderbaren Tag!",
         }
         

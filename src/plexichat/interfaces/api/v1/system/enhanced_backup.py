@@ -1,3 +1,30 @@
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import Session, select
+
+from ....core_system.security.input_validation import get_input_validator
+from ....core_system.security.unified_audit_system import (
+from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager
+
+
+
+    
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel
+
+from plexichat.app.db import get_session
+from plexichat.app.models.enhanced_backup import (
+from plexichat.app.logger_config import logger
+from plexichat.app.models.enhanced_models import EnhancedUser
+from plexichat.app.services.enhanced_backup_service import EnhancedBackupService
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
+    from plexichat.app.models.enhanced_backup import EnhancedBackupShard, ShardDistribution
+
 """
 Enhanced backup API for PlexiChat - SECURED WITH UNIFIED AUTHENTICATION
 Handles government-level secure backup operations, recovery, and monitoring.
@@ -11,17 +38,6 @@ ENHANCED SECURITY FEATURES:
 - Rate limiting and DDoS protection
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel
-from sqlmodel import Session, select
-
-from plexichat.app.db import get_session
-from plexichat.app.models.enhanced_backup import (
     BackupNode,
     BackupRecoveryLog,
     BackupStatus,
@@ -31,16 +47,11 @@ from plexichat.app.models.enhanced_backup import (
     UserBackupQuota,
 )
 
-from ....core_system.security.input_validation import get_input_validator
-from ....core_system.security.unified_audit_system import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
     get_unified_audit_system,
 )
-from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-
 # Initialize security components
 auth_manager = get_unified_auth_manager()
 audit_system = get_unified_audit_system()
@@ -92,12 +103,6 @@ async def require_enhanced_backup_auth(request: Request, token: str = Depends(se
     except Exception as e:
         logger.error(f"Enhanced backup authentication error: {e}")
         raise HTTPException(status_code=500, detail="Authentication system error")
-from plexichat.app.logger_config import logger
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.services.enhanced_backup_service import EnhancedBackupService
-from plexichat.app.utils.auth import get_current_user
-
-
 # Pydantic models for API
 class BackupCreateRequest(BaseModel):
     backup_name: Optional[str] = None
@@ -136,7 +141,8 @@ async def create_backup(
     request: BackupCreateRequest,
     background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Create a new government-level secure backup."""
     backup_service = EnhancedBackupService(session)
@@ -174,7 +180,8 @@ async def list_backups(
     backup_type: Optional[BackupType] = Query(None),
     status_filter: Optional[BackupStatus] = Query(None),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """List available backups."""
     statement = select(EnhancedBackup)
@@ -214,7 +221,8 @@ async def list_backups(
 async def get_backup_details(
     backup_id: int,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """Get detailed information about a specific backup."""
     backup = session.get(EnhancedBackup, backup_id)
@@ -222,8 +230,6 @@ async def get_backup_details(
         raise HTTPException(status_code=404, detail="Backup not found")
     
     # Get shard distribution information
-    from plexichat.app.models.enhanced_backup import EnhancedBackupShard, ShardDistribution
-    
     shards = session.exec(
         select(EnhancedBackupShard).where(EnhancedBackupShard.backup_id == backup_id)
     ).all()
@@ -304,7 +310,8 @@ async def get_backup_details(
 async def recover_database(
     request: BackupRecoveryRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Recover database from backup."""
     backup_service = EnhancedBackupService(session)
@@ -338,7 +345,8 @@ async def get_recovery_logs(
     limit: int = Query(20, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get recovery operation logs."""
     statement = select(BackupRecoveryLog).order_by(
@@ -375,7 +383,8 @@ async def get_recovery_logs(
 async def register_backup_node(
     request: BackupNodeRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Register a new backup node."""
     # Check if user has admin permissions
@@ -406,7 +415,8 @@ async def register_backup_node(
 @router.get("/nodes/list")
 async def list_backup_nodes(
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """List all backup nodes."""
     nodes = session.exec(select(BackupNode)).all()
@@ -447,7 +457,8 @@ async def list_backup_nodes(
 async def set_user_quota(
     request: UserQuotaRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Set backup quota for a user."""
     # Check if user has admin permissions
@@ -462,7 +473,8 @@ async def set_user_quota(
         existing_quota.max_storage_bytes = int(request.max_storage_gb * 1024**3)
         existing_quota.max_shards = request.max_shards
         existing_quota.max_backup_age_days = request.max_backup_age_days
-        existing_quota.updated_at = datetime.utcnow()
+        existing_quota.updated_at = from datetime import datetime
+datetime.utcnow()
     else:
         # Create new quota
         quota = UserBackupQuota(
@@ -484,7 +496,8 @@ async def set_user_quota(
 @router.get("/statistics")
 async def get_backup_statistics(
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """Get comprehensive backup system statistics."""
     # Get backup counts by status

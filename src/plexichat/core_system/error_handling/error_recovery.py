@@ -1,10 +1,3 @@
-"""
-PlexiChat Error Recovery Manager
-
-Advanced error recovery system with multiple recovery strategies,
-automatic retry mechanisms, and intelligent fallback handling.
-"""
-
 import asyncio
 import logging
 import time
@@ -12,6 +5,15 @@ from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Type
+
+        from .exceptions import (
+
+"""
+PlexiChat Error Recovery Manager
+
+Advanced error recovery system with multiple recovery strategies,
+automatic retry mechanisms, and intelligent fallback handling.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +102,6 @@ class ErrorRecoveryManager:
     
     def _initialize_default_strategies(self):
         """Initialize default recovery strategies for common exceptions."""
-        from .exceptions import (
             AuthenticationError,
             DatabaseError,
             ExternalServiceError,

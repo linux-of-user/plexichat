@@ -1,10 +1,3 @@
-"""
-Filename Analyzer
-
-Analyzes filenames for suspicious patterns, extensions, and characteristics
-that may indicate malicious content.
-"""
-
 import logging
 import re
 from datetime import datetime, timezone
@@ -12,6 +5,14 @@ from pathlib import Path
 from typing import Any, Dict
 
 from . import (
+
+"""
+Filename Analyzer
+
+Analyzes filenames for suspicious patterns, extensions, and characteristics
+that may indicate malicious content.
+"""
+
     MAX_FILENAME_LENGTH,
     SUSPICIOUS_EXTENSIONS,
     SUSPICIOUS_FILENAME_PATTERNS,
@@ -89,7 +90,8 @@ class FilenameAnalyzer:
             ScanResult with filename analysis results
         """
         start_time = datetime.now(timezone.utc)
-        path = Path(file_path)
+        path = from pathlib import Path
+Path(file_path)
         filename = path.name
         
         logger.debug(f"Analyzing filename: {filename}")

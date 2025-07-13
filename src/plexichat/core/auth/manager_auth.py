@@ -1,10 +1,3 @@
-"""
-PlexiChat Core Authentication Manager
-
-Central authentication manager that coordinates all authentication
-operations and provides a unified interface for the system.
-"""
-
 import logging
 import time
 import uuid
@@ -21,6 +14,14 @@ from .mfa_manager import MFAManager
 from .password_manager import PasswordManager
 from .session_manager import SessionManager
 from .token_manager import TokenManager
+
+
+"""
+PlexiChat Core Authentication Manager
+
+Central authentication manager that coordinates all authentication
+operations and provides a unified interface for the system.
+"""
 
 # Note: Removed import from deleted advanced_authentication.py - functionality now in unified system
 
@@ -164,10 +165,10 @@ class AuthManager:
             self.password_requirements = config.get("password_requirements", {})
             
             self.initialized = True
-            logger.info("✅ Authentication Manager initialized")
+            logger.info(" Authentication Manager initialized")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Authentication Manager: {e}")
+            logger.error(f" Failed to initialize Authentication Manager: {e}")
             raise
     
     async def authenticate(self, request: AuthenticationRequest) -> AuthenticationResponse:
@@ -319,7 +320,7 @@ class AuthManager:
             )
             
         except Exception as e:
-            logger.error(f"❌ Authentication error: {e}")
+            logger.error(f" Authentication error: {e}")
             
             await self.audit_manager.log_auth_error(
                 audit_id=audit_id,
@@ -359,7 +360,7 @@ class AuthManager:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Logout error: {e}")
+            logger.error(f" Logout error: {e}")
             return False
     
     async def require_authentication(self, token: str, required_level: str = "BASIC") -> Dict[str, Any]:
@@ -391,7 +392,7 @@ class AuthManager:
             }
             
         except Exception as e:
-            logger.error(f"❌ Authentication requirement failed: {e}")
+            logger.error(f" Authentication requirement failed: {e}")
             raise
     
     async def shutdown(self):
@@ -407,10 +408,10 @@ class AuthManager:
             await self.token_manager.shutdown()
             await self.advanced_auth.shutdown()
             
-            logger.info("✅ Authentication Manager shutdown complete")
+            logger.info(" Authentication Manager shutdown complete")
             
         except Exception as e:
-            logger.error(f"❌ Error during Authentication Manager shutdown: {e}")
+            logger.error(f" Error during Authentication Manager shutdown: {e}")
     
     # Private helper methods
     async def _authenticate_primary(self, request: AuthenticationRequest) -> AuthenticationResponse:
@@ -447,7 +448,7 @@ class AuthManager:
                 )
                 
         except Exception as e:
-            logger.error(f"❌ Password authentication error: {e}")
+            logger.error(f" Password authentication error: {e}")
             return AuthenticationResponse(
                 result=AuthenticationResult.INVALID_CREDENTIALS,
                 success=False,

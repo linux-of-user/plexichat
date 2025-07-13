@@ -1,9 +1,3 @@
-# app/utils/monitoring/error_handler.py
-"""
-Comprehensive error handling and monitoring system with alerting,
-diagnostics, and recovery mechanisms.
-"""
-
 import json
 import logging
 import time
@@ -13,9 +7,18 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
+
+
+
 import psutil
 
 from plexichat.core.config.settings import settings
+
+# app/utils/monitoring/error_handler.py
+"""
+Comprehensive error handling and monitoring system with alerting,
+diagnostics, and recovery mechanisms.
+"""
 
 logger = logging.getLogger(__name__)
 monitoring_logger = logging.getLogger(f"{__name__}.monitoring")
@@ -41,12 +44,16 @@ class SystemMonitor:
         """Get comprehensive system metrics."""
         try:
             # CPU and Memory
-            cpu_percent = psutil.cpu_percent(interval=1)
-            memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
+            memory = import psutil
+psutil.virtual_memory()
+            disk = import psutil
+psutil.disk_usage('/')
             
             # Process info
-            process = psutil.Process()
+            process = import psutil
+psutil.Process()
             process_memory = process.memory_info()
             
             # Application uptime
@@ -57,7 +64,8 @@ class SystemMonitor:
                 "uptime_seconds": uptime.total_seconds(),
                 "cpu": {
                     "percent": cpu_percent,
-                    "count": psutil.cpu_count()
+                    "count": import psutil
+psutil.cpu_count()
                 },
                 "memory": {
                     "total_mb": memory.total // 1024 // 1024,
@@ -162,7 +170,8 @@ class SystemMonitor:
         key = f"{error_type}_{severity}"
         self.error_counts[key] = self.error_counts.get(key, 0) + 1
         
-        if settings.MONITORING_ENABLED:
+        if from plexichat.core.config import settings
+settings.MONITORING_ENABLED:
             monitoring_logger.warning("ERROR_RECORDED: type=%s severity=%s count=%d", 
                                     error_type, severity, self.error_counts[key])
 
@@ -172,7 +181,9 @@ class ErrorHandler:
     
     def __init__(self):
         self.monitor = SystemMonitor()
-        self.error_log_file = Path(settings.LOG_DIR) / "errors.jsonl"
+        self.error_log_file = from pathlib import Path
+Path(from plexichat.core.config import settings
+settings.LOG_DIR) / "errors.jsonl"
         self.error_log_file.parent.mkdir(parents=True, exist_ok=True)
     
     def handle_error(self, error: Exception, context: Dict[str, Any] = None, 
@@ -187,7 +198,8 @@ class ErrorHandler:
             "severity": severity,
             "context": context or {},
             "traceback": traceback.format_exc(),
-            "system_metrics": self.monitor.get_system_metrics() if settings.MONITORING_LOG_PERFORMANCE else None
+            "system_metrics": self.monitor.get_system_metrics() if from plexichat.core.config import settings
+settings.MONITORING_LOG_PERFORMANCE else None
         }
         
         # Log the error
@@ -306,7 +318,9 @@ def monitor_performance(func):
             result = func(*args, **kwargs)
             duration = time.time() - start_time
             
-            if settings.MONITORING_ENABLED and settings.MONITORING_LOG_PERFORMANCE:
+            if from plexichat.core.config import settings
+settings.MONITORING_ENABLED and from plexichat.core.config import settings
+settings.MONITORING_LOG_PERFORMANCE:
                 monitoring_logger.info("PERFORMANCE: %s.%s duration=%.3fs status=success", 
                                      func.__module__, func.__name__, duration)
             return result
@@ -314,7 +328,9 @@ def monitor_performance(func):
         except Exception as e:
             duration = time.time() - start_time
             
-            if settings.MONITORING_ENABLED and settings.MONITORING_LOG_PERFORMANCE:
+            if from plexichat.core.config import settings
+settings.MONITORING_ENABLED and from plexichat.core.config import settings
+settings.MONITORING_LOG_PERFORMANCE:
                 monitoring_logger.warning("PERFORMANCE: %s.%s duration=%.3fs status=error error=%s", 
                                         func.__module__, func.__name__, duration, str(e))
             raise

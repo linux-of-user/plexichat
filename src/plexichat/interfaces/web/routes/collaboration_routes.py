@@ -1,3 +1,17 @@
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
+
+
+from ...core.auth.dependencies import require_auth
+from ...core.logging import get_logger
+from ...services.collaboration_service import CollaborationType, get_collaboration_service
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 """
 PlexiChat Collaboration Web Routes
 
@@ -5,21 +19,10 @@ Web routes for collaboration dashboard and interfaces providing
 access to real-time collaboration features through web interface.
 """
 
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-
-from ...core.auth.dependencies import require_auth
-from ...core.logging import get_logger
-from ...services.collaboration_service import CollaborationType, get_collaboration_service
-
 # Initialize router and templates
 router = APIRouter(prefix="/collaboration", tags=["Collaboration Web"])
-templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
+templates = Jinja2Templates(directory=from pathlib import Path
+Path(__file__).parent.parent / "templates")
 logger = get_logger(__name__)
 
 @router.get("/", response_class=HTMLResponse)

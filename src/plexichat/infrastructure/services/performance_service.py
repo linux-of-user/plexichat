@@ -1,3 +1,20 @@
+import asyncio
+import statistics
+import threading
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Callable, Dict, List, Optional
+
+from ..core.config import get_config
+from ..core.logging.performance_logger import get_performance_logger
+from .base_service import BaseService
+
+
+            from ..app.performance.optimization import PerformanceOptimizer
+            from ..clustering.core.performance_monitor import PerformanceMonitor
+            from ..ai.core.analytics_engine import analytics_engine
+
 """
 PlexiChat Unified Performance Monitoring Service
 
@@ -17,19 +34,6 @@ Features:
 - Dashboard data aggregation
 - Historical trend analysis
 """
-
-import asyncio
-import statistics
-import threading
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Dict, List, Optional
-
-from ..core.config import get_config
-from ..core.logging.performance_logger import get_performance_logger
-from .base_service import BaseService
-
 
 @dataclass
 class SystemMetrics:
@@ -235,19 +239,16 @@ class PerformanceService(BaseService):
         """Initialize performance data collectors."""
         # Import collectors based on availability
         try:
-            from ..app.performance.optimization import PerformanceOptimizer
             self.perf_optimizer = PerformanceOptimizer()
         except ImportError:
             self.perf_optimizer = None
         
         try:
-            from ..clustering.core.performance_monitor import PerformanceMonitor
             self.cluster_monitor = PerformanceMonitor()
         except ImportError:
             self.cluster_monitor = None
         
         try:
-            from ..ai.core.analytics_engine import analytics_engine
             self.ai_analytics = analytics_engine
         except ImportError:
             self.ai_analytics = None

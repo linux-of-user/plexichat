@@ -1,3 +1,24 @@
+import json
+import logging
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List
+
+import asyncio
+import logging
+
+import asyncio
+import logging
+from .ui import MainComponent, SettingsComponent
+from .api import api_handler
+
+import json
+
+
+import asyncio
+import logging
+
+
 """
 PlexiChat Plugin SDK
 
@@ -9,12 +30,6 @@ Rich SDK for plugin development with:
 - Performance profiler
 - Deployment utilities
 """
-
-import json
-import logging
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -114,9 +129,6 @@ Simple PlexiChat Plugin
 This is a basic plugin template for PlexiChat.
 """
 
-import asyncio
-import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -171,11 +183,6 @@ Micro-App PlexiChat Plugin
 
 This is a full micro-application template for PlexiChat.
 """
-
-import asyncio
-import logging
-from .ui import MainComponent, SettingsComponent
-from .api import api_handler
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +280,8 @@ class SettingsComponent:
         }
     
     async def save_settings(self, form_data):
-        """Save settings."""
+        """Save from plexichat.core.config import settings
+settings."""
         for key, value in form_data.items():
             self.api.set_config(key, value)
         
@@ -285,9 +293,6 @@ class SettingsComponent:
         return '''"""
 API Handlers for Micro-App Plugin
 """
-
-import json
-
 
 async def api_handler(method, data):
     """Handle API requests."""
@@ -355,9 +360,6 @@ AI Integration PlexiChat Plugin
 
 This plugin demonstrates AI integration capabilities.
 """
-
-import asyncio
-import logging
 
 logger = logging.getLogger(__name__)
 

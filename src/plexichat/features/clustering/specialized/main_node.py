@@ -1,3 +1,17 @@
+import asyncio
+import logging
+
+import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict
+
+
+
+from plexichat.clustering.core.base_node import BaseClusterNode
+
 """
 Specialized Main Cluster Node
 
@@ -10,20 +24,9 @@ Dedicated cluster node for core application operations with:
 - Performance optimization for core workloads
 """
 
-import asyncio
-import logging
-
 # Import PlexiChat components
-import sys
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict
-
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from plexichat.clustering.core.base_node import BaseClusterNode
+sys.path.append(str(from pathlib import Path
+Path(__file__).parent.parent.parent))
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +127,8 @@ class MainClusterNode(BaseClusterNode):
     
     async def process_api_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Process API request on main node."""
-        request_id = request_data.get('request_id', f"req_{int(datetime.now().timestamp())}")
+        request_id = request_data.get('request_id', f"req_{int(from datetime import datetime
+datetime.now().timestamp())}")
         start_time = datetime.now(timezone.utc)
         
         try:

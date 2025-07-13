@@ -1,8 +1,3 @@
-"""
-CLI Automation Commands
-Enhanced CLI commands for automation, scripting, and logic engine management.
-"""
-
 import uuid
 from datetime import datetime
 from typing import List
@@ -10,6 +5,12 @@ from typing import List
 import yaml
 
 from .enhanced_logic_engine import (
+
+"""
+CLI Automation Commands
+Enhanced CLI commands for automation, scripting, and logic engine management.
+"""
+
     Action,
     AutomationRule,
     Condition,
@@ -75,7 +76,7 @@ class AutomationCLI:
     def show_automation_help(self):
         """Show automation help."""
         help_text = f"""
-{self.colorize('🤖 PlexiChat Automation System', 'cyan')}
+{self.colorize(' PlexiChat Automation System', 'cyan')}
 {self.colorize('=' * 50, 'cyan')}
 
 {self.colorize('Available Commands:', 'yellow')}
@@ -108,10 +109,10 @@ class AutomationCLI:
         rules = self.logic_engine.list_rules()
         
         if not rules:
-            print(self.colorize("📝 No automation rules configured", "yellow"))
+            print(self.colorize(" No automation rules configured", "yellow"))
             return
         
-        print(self.colorize("🤖 Automation Rules", "cyan"))
+        print(self.colorize(" Automation Rules", "cyan"))
         print(self.colorize("=" * 80, "cyan"))
         
         # Table header
@@ -119,7 +120,7 @@ class AutomationCLI:
         print("-" * 80)
         
         for rule in rules:
-            status = self.colorize("✅ Enabled", "green") if rule['enabled'] else self.colorize("❌ Disabled", "red")
+            status = self.colorize(" Enabled", "green") if rule['enabled'] else self.colorize(" Disabled", "red")
             schedule = rule['schedule'] or "Manual"
             success_rate = f"{rule['success_rate']:.1f}%"
             
@@ -128,24 +129,24 @@ class AutomationCLI:
     async def cmd_automation_show(self, args: List[str]):
         """Show detailed rule information."""
         if not args:
-            print(self.colorize("❌ Please specify rule ID", "red"))
+            print(self.colorize(" Please specify rule ID", "red"))
             return
         
         rule_id = args[0]
         status = self.logic_engine.get_rule_status(rule_id)
         
         if 'error' in status:
-            print(self.colorize(f"❌ {status['error']}", "red"))
+            print(self.colorize(f" {status['error']}", "red"))
             return
         
         rule = status['rule']
         
-        print(self.colorize(f"🤖 Rule: {rule['name']}", "cyan"))
+        print(self.colorize(f" Rule: {rule['name']}", "cyan"))
         print(self.colorize("=" * 60, "cyan"))
         
         print(f"{self.colorize('ID:', 'yellow')} {rule['id']}")
         print(f"{self.colorize('Description:', 'yellow')} {rule['description']}")
-        print(f"{self.colorize('Status:', 'yellow')} {'✅ Enabled' if rule['enabled'] else '❌ Disabled'}")
+        print(f"{self.colorize('Status:', 'yellow')} {' Enabled' if rule['enabled'] else ' Disabled'}")
         print(f"{self.colorize('Schedule:', 'yellow')} {rule['schedule'] or 'Manual'}")
         print(f"{self.colorize('Created:', 'yellow')} {rule['created_at']}")
         print(f"{self.colorize('Last Run:', 'yellow')} {rule['last_run'] or 'Never'}")
@@ -169,11 +170,11 @@ class AutomationCLI:
             print(f"\n{self.colorize('Recent Executions:', 'yellow')}")
             for exec in status['recent_executions'][:5]:
                 status_color = "green" if exec['status'] == 'completed' else "red"
-                print(f"  • {exec['started_at']} - {self.colorize(exec['status'], status_color)}")
+                print(f"   {exec['started_at']} - {self.colorize(exec['status'], status_color)}")
     
     async def cmd_automation_create(self, args: List[str]):
         """Create new automation rule interactively."""
-        print(self.colorize("🆕 Creating New Automation Rule", "cyan"))
+        print(self.colorize(" Creating New Automation Rule", "cyan"))
         print(self.colorize("=" * 40, "cyan"))
         
         try:
@@ -184,7 +185,7 @@ class AutomationCLI:
             
             name = input("Rule Name: ").strip()
             if not name:
-                print(self.colorize("❌ Rule name is required", "red"))
+                print(self.colorize(" Rule name is required", "red"))
                 return
             
             description = input("Description: ").strip()
@@ -213,7 +214,7 @@ class AutomationCLI:
                 try:
                     condition_type_enum = ConditionType(condition_type)
                 except ValueError:
-                    print(self.colorize(f"❌ Invalid condition type: {condition_type}", "red"))
+                    print(self.colorize(f" Invalid condition type: {condition_type}", "red"))
                     continue
                 
                 field = input("Field/Variable: ").strip()
@@ -225,7 +226,7 @@ class AutomationCLI:
                     value=value
                 )
                 rule.conditions.append(condition)
-                print(self.colorize(f"✅ Added condition: {condition_type} {field} {value}", "green"))
+                print(self.colorize(f" Added condition: {condition_type} {field} {value}", "green"))
             
             # Add actions
             print(f"\n{self.colorize('Adding Actions (at least one required):', 'yellow')}")
@@ -233,7 +234,7 @@ class AutomationCLI:
                 action_type = input("Action type (command/notification/webhook/email): ").strip()
                 if not action_type:
                     if not rule.actions:
-                        print(self.colorize("❌ At least one action is required", "red"))
+                        print(self.colorize(" At least one action is required", "red"))
                         continue
                     break
                 
@@ -257,41 +258,41 @@ class AutomationCLI:
                     action = Action(type="email", parameters={"to": to_email, "subject": subject, "body": body})
                 
                 else:
-                    print(self.colorize(f"❌ Unknown action type: {action_type}", "red"))
+                    print(self.colorize(f" Unknown action type: {action_type}", "red"))
                     continue
                 
                 rule.actions.append(action)
-                print(self.colorize(f"✅ Added action: {action_type}", "green"))
+                print(self.colorize(f" Added action: {action_type}", "green"))
             
             # Save rule
             if self.logic_engine.add_rule(rule):
-                print(self.colorize(f"✅ Created automation rule: {rule.name}", "green"))
+                print(self.colorize(f" Created automation rule: {rule.name}", "green"))
                 print(f"Rule ID: {rule.id}")
             else:
-                print(self.colorize("❌ Failed to create rule", "red"))
+                print(self.colorize(" Failed to create rule", "red"))
                 
         except KeyboardInterrupt:
-            print(self.colorize("\n❌ Rule creation cancelled", "yellow"))
+            print(self.colorize("\n Rule creation cancelled", "yellow"))
         except Exception as e:
-            print(self.colorize(f"❌ Error creating rule: {e}", "red"))
+            print(self.colorize(f" Error creating rule: {e}", "red"))
     
     async def cmd_automation_run(self, args: List[str]):
         """Manually execute automation rule."""
         if not args:
-            print(self.colorize("❌ Please specify rule ID", "red"))
+            print(self.colorize(" Please specify rule ID", "red"))
             return
         
         rule_id = args[0]
         
-        print(self.colorize(f"🚀 Executing rule: {rule_id}", "blue"))
+        print(self.colorize(f" Executing rule: {rule_id}", "blue"))
         
         try:
             execution = await self.logic_engine.execute_rule(rule_id)
             
             if execution.status == TaskStatus.COMPLETED:
-                print(self.colorize("✅ Rule executed successfully", "green"))
+                print(self.colorize(" Rule executed successfully", "green"))
             elif execution.status == TaskStatus.FAILED:
-                print(self.colorize(f"❌ Rule execution failed: {execution.error}", "red"))
+                print(self.colorize(f" Rule execution failed: {execution.error}", "red"))
             
             print(f"Execution ID: {execution.id}")
             print(f"Duration: {(execution.completed_at - execution.started_at).total_seconds():.2f}s")
@@ -300,36 +301,36 @@ class AutomationCLI:
                 print(f"Actions executed: {execution.result.get('actions_executed', 0)}")
             
         except Exception as e:
-            print(self.colorize(f"❌ Error executing rule: {e}", "red"))
+            print(self.colorize(f" Error executing rule: {e}", "red"))
     
     async def cmd_automation_enable(self, args: List[str]):
         """Enable automation rule."""
         if not args:
-            print(self.colorize("❌ Please specify rule ID", "red"))
+            print(self.colorize(" Please specify rule ID", "red"))
             return
         
         rule_id = args[0]
         if self.logic_engine.enable_rule(rule_id):
-            print(self.colorize(f"✅ Enabled rule: {rule_id}", "green"))
+            print(self.colorize(f" Enabled rule: {rule_id}", "green"))
         else:
-            print(self.colorize(f"❌ Rule not found: {rule_id}", "red"))
+            print(self.colorize(f" Rule not found: {rule_id}", "red"))
     
     async def cmd_automation_disable(self, args: List[str]):
         """Disable automation rule."""
         if not args:
-            print(self.colorize("❌ Please specify rule ID", "red"))
+            print(self.colorize(" Please specify rule ID", "red"))
             return
         
         rule_id = args[0]
         if self.logic_engine.disable_rule(rule_id):
-            print(self.colorize(f"✅ Disabled rule: {rule_id}", "green"))
+            print(self.colorize(f" Disabled rule: {rule_id}", "green"))
         else:
-            print(self.colorize(f"❌ Rule not found: {rule_id}", "red"))
+            print(self.colorize(f" Rule not found: {rule_id}", "red"))
     
     async def cmd_automation_delete(self, args: List[str]):
         """Delete automation rule."""
         if not args:
-            print(self.colorize("❌ Please specify rule ID", "red"))
+            print(self.colorize(" Please specify rule ID", "red"))
             return
         
         rule_id = args[0]
@@ -337,19 +338,19 @@ class AutomationCLI:
         # Confirm deletion
         confirm = input(f"Are you sure you want to delete rule '{rule_id}'? (y/N): ").strip().lower()
         if confirm != 'y':
-            print(self.colorize("❌ Deletion cancelled", "yellow"))
+            print(self.colorize(" Deletion cancelled", "yellow"))
             return
         
         if self.logic_engine.remove_rule(rule_id):
-            print(self.colorize(f"✅ Deleted rule: {rule_id}", "green"))
+            print(self.colorize(f" Deleted rule: {rule_id}", "green"))
         else:
-            print(self.colorize(f"❌ Rule not found: {rule_id}", "red"))
+            print(self.colorize(f" Rule not found: {rule_id}", "red"))
     
     async def cmd_automation_status(self, args: List[str]):
         """Show automation system status."""
         rules = self.logic_engine.list_rules()
         
-        print(self.colorize("🤖 Automation System Status", "cyan"))
+        print(self.colorize(" Automation System Status", "cyan"))
         print(self.colorize("=" * 40, "cyan"))
         
         total_rules = len(rules)
@@ -376,36 +377,36 @@ class AutomationCLI:
     async def cmd_automation_scheduler(self, args: List[str]):
         """Control automation scheduler."""
         if not args:
-            print(self.colorize("❌ Please specify action: start or stop", "red"))
+            print(self.colorize(" Please specify action: start or stop", "red"))
             return
         
         action = args[0].lower()
         
         if action == "start":
             await self.logic_engine.start_scheduler()
-            print(self.colorize("✅ Automation scheduler started", "green"))
+            print(self.colorize(" Automation scheduler started", "green"))
         
         elif action == "stop":
             await self.logic_engine.stop_scheduler()
-            print(self.colorize("✅ Automation scheduler stopped", "green"))
+            print(self.colorize(" Automation scheduler stopped", "green"))
         
         else:
-            print(self.colorize(f"❌ Unknown scheduler action: {action}", "red"))
+            print(self.colorize(f" Unknown scheduler action: {action}", "red"))
     
     async def cmd_automation_logs(self, args: List[str]):
         """Show execution logs."""
         if not args:
-            print(self.colorize("❌ Please specify execution ID", "red"))
+            print(self.colorize(" Please specify execution ID", "red"))
             return
         
         execution_id = args[0]
         logs = self.logic_engine.get_execution_logs(execution_id)
         
         if 'error' in logs:
-            print(self.colorize(f"❌ {logs['error']}", "red"))
+            print(self.colorize(f" {logs['error']}", "red"))
             return
         
-        print(self.colorize(f"📋 Execution Logs: {execution_id}", "cyan"))
+        print(self.colorize(f" Execution Logs: {execution_id}", "cyan"))
         print(self.colorize("=" * 60, "cyan"))
         
         print(f"Rule ID: {logs['rule_id']}")
@@ -423,7 +424,8 @@ class AutomationCLI:
     
     async def cmd_automation_export(self, args: List[str]):
         """Export automation configuration."""
-        filename = args[0] if args else f"automation_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.yaml"
+        filename = args[0] if args else f"automation_export_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}.yaml"
         
         try:
             config = self.logic_engine.export_config()
@@ -431,15 +433,15 @@ class AutomationCLI:
             with open(filename, 'w') as f:
                 yaml.dump(config, f, indent=2, default_flow_style=False)
             
-            print(self.colorize(f"✅ Configuration exported to: {filename}", "green"))
+            print(self.colorize(f" Configuration exported to: {filename}", "green"))
             
         except Exception as e:
-            print(self.colorize(f"❌ Export failed: {e}", "red"))
+            print(self.colorize(f" Export failed: {e}", "red"))
     
     async def cmd_automation_import(self, args: List[str]):
         """Import automation configuration."""
         if not args:
-            print(self.colorize("❌ Please specify config file", "red"))
+            print(self.colorize(" Please specify config file", "red"))
             return
         
         filename = args[0]
@@ -449,16 +451,16 @@ class AutomationCLI:
                 config = yaml.safe_load(f)
             
             if self.logic_engine.import_config(config):
-                print(self.colorize(f"✅ Configuration imported from: {filename}", "green"))
+                print(self.colorize(f" Configuration imported from: {filename}", "green"))
             else:
-                print(self.colorize("❌ Import failed", "red"))
+                print(self.colorize(" Import failed", "red"))
                 
         except Exception as e:
-            print(self.colorize(f"❌ Import failed: {e}", "red"))
+            print(self.colorize(f" Import failed: {e}", "red"))
     
     async def cmd_automation_cleanup(self, args: List[str]):
         """Clean up old execution logs."""
         days = int(args[0]) if args and args[0].isdigit() else 30
         
         cleaned = self.logic_engine.cleanup_old_executions(days)
-        print(self.colorize(f"✅ Cleaned up {cleaned} old execution records (older than {days} days)", "green"))
+        print(self.colorize(f" Cleaned up {cleaned} old execution records (older than {days} days)", "green"))

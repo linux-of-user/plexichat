@@ -1,3 +1,12 @@
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Protocol, runtime_checkable
+
+from ...core_system.logging import get_logger
+
+
 """
 PlexiChat Module Interfaces and Contracts - SINGLE SOURCE OF TRUTH
 
@@ -9,14 +18,6 @@ Defines strict interfaces and contracts for all modules/plugins to ensure:
 - Security and permission boundaries
 - Performance monitoring and resource management
 """
-
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Protocol, runtime_checkable
-
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 

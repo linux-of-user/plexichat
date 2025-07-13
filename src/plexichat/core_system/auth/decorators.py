@@ -1,9 +1,3 @@
-"""
-PlexiChat Authentication Decorators
-
-Decorators for protecting functions and endpoints with authentication requirements.
-"""
-
 import asyncio
 import functools
 from typing import Callable, List, Optional
@@ -11,6 +5,13 @@ from typing import Callable, List, Optional
 from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
 
+
+
+"""
+PlexiChat Authentication Decorators
+
+Decorators for protecting functions and endpoints with authentication requirements.
+"""
 
 def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = None):
     """
@@ -78,7 +79,7 @@ def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = No
     return decorator
 
 
-def require_admin(func: Callable) -> Callable:
+def from plexichat.infrastructure.utils.auth import require_admin(func: Callable) -> Callable:
     """Decorator to require admin privileges."""
     return require_auth(security_level="GOVERNMENT")(func)
 

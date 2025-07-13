@@ -1,17 +1,19 @@
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import JSON, Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index, Text
+
 """
 PlexiChat Post Model
 
 Reddit-like post model for community spaces.
 """
-
-from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import DateTime, Index, Text
-from sqlmodel import JSON, Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for posts
 post_snowflake = SnowflakeGenerator(datacenter_id=2, worker_id=2)
@@ -202,7 +204,8 @@ class Post(SQLModel, table=True):
         """Check if poll is still active."""
         if self.type != PostType.POLL or self.poll_expires_at is None:
             return False
-        return datetime.utcnow() < self.poll_expires_at
+        return from datetime import datetime
+datetime.utcnow() < self.poll_expires_at
     
     def is_locked(self) -> bool:
         """Check if post is locked."""

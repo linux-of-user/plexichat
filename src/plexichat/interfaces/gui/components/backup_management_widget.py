@@ -1,3 +1,16 @@
+import asyncio
+import json
+import logging
+import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+    import tkinter as tk
+    from tkinter import filedialog, messagebox, simpledialog, ttk
+    from ...features.backup import get_unified_backup_manager
+
 """
 Enhanced Backup Management GUI Widget
 Comprehensive GUI component for backup system management and monitoring.
@@ -12,20 +25,9 @@ Features:
 - Security monitoring and alerts
 """
 
-import asyncio
-import json
-import logging
-import threading
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-
 # GUI imports with proper fallbacks
 GUI_AVAILABLE = False
 try:
-    import tkinter as tk
-    from tkinter import filedialog, messagebox, simpledialog, ttk
     GUI_AVAILABLE = True
 except ImportError:
     pass
@@ -41,7 +43,6 @@ BACKUP_AVAILABLE = False
 backup_manager = None
 
 try:
-    from ...features.backup import get_unified_backup_manager
     backup_manager = get_unified_backup_manager()
     BACKUP_AVAILABLE = True
 except ImportError:
@@ -67,7 +68,8 @@ except ImportError:
                 'backup_nodes_online': 8,
                 'backup_nodes_total': 10,
                 'encryption_status': 'QUANTUM_READY',
-                'last_backup_time': datetime.now() - timedelta(minutes=15)
+                'last_backup_time': from datetime import datetime
+datetime.now() - timedelta(minutes=15)
             })()
         
         async def get_recent_backups(self, limit=10):
@@ -77,7 +79,8 @@ except ImportError:
                     'source_path': f'/data/backup_{i}',
                     'backup_type': 'INCREMENTAL' if i % 2 else 'FULL',
                     'status': 'COMPLETED',
-                    'created_at': datetime.now() - timedelta(hours=i),
+                    'created_at': from datetime import datetime
+datetime.now() - timedelta(hours=i),
                     'size_mb': 125.5 + i * 10,
                     'shard_count': 15 + i,
                     'security_level': 'GOVERNMENT'
@@ -94,7 +97,8 @@ except ImportError:
                     'storage_used_gb': 45.2 + i * 5,
                     'storage_total_gb': 100.0,
                     'shard_count': 234 + i * 10,
-                    'last_heartbeat': datetime.now() - timedelta(minutes=i)
+                    'last_heartbeat': from datetime import datetime
+datetime.now() - timedelta(minutes=i)
                 })()
                 for i in range(10)
             ]
@@ -268,7 +272,7 @@ class EnhancedBackupManagementWidget:
             # Title
             title_label = ttk.Label(
                 header_frame,
-                text="💾 Enhanced Backup Management",
+                text=" Enhanced Backup Management",
                 font=("Arial", 18, "bold")
             )
             title_label.pack(side=tk.LEFT)
@@ -276,7 +280,7 @@ class EnhancedBackupManagementWidget:
             # Status indicator
             self.status_indicator = ttk.Label(
                 header_frame,
-                text="● Initializing...",
+                text=" Initializing...",
                 foreground="orange",
                 font=("Arial", 10, "bold")
             )
@@ -425,9 +429,9 @@ class EnhancedBackupManagementWidget:
             # Update status indicator
             if self.status_indicator:
                 if self.status_data.backup_nodes_online > 0:
-                    self.status_indicator.config(text="● Online", foreground="green")
+                    self.status_indicator.config(text=" Online", foreground="green")
                 else:
-                    self.status_indicator.config(text="● Offline", foreground="red")
+                    self.status_indicator.config(text=" Offline", foreground="red")
 
             # Update overview metrics
             if self.total_backups_label:
@@ -450,7 +454,8 @@ class EnhancedBackupManagementWidget:
                 self.status_text.config(state=tk.NORMAL)
                 self.status_text.delete(1.0, tk.END)
 
-                status_info = f"Backup System Status Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                status_info = f"Backup System Status Report - {from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                 status_info += f"{'='*60}\n"
                 status_info += f"Total Backups: {self.status_data.total_backups}\n"
                 status_info += f"Active Backups: {self.status_data.active_backups}\n"
@@ -573,7 +578,7 @@ class EnhancedBackupManagementWidget:
 
         try:
             self.overview_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.overview_frame, text="📊 Overview")
+            self.notebook.add(self.overview_frame, text=" Overview")
 
             # Metrics frame
             metrics_frame = ttk.LabelFrame(self.overview_frame, text="Backup System Metrics", padding=10)
@@ -653,7 +658,7 @@ class EnhancedBackupManagementWidget:
 
         try:
             self.backups_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.backups_frame, text="💾 Backups")
+            self.notebook.add(self.backups_frame, text=" Backups")
 
             # Backup controls
             control_frame = ttk.Frame(self.backups_frame)
@@ -661,25 +666,25 @@ class EnhancedBackupManagementWidget:
 
             ttk.Button(
                 control_frame,
-                text="➕ Create Backup",
+                text=" Create Backup",
                 command=self.create_backup_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="🔄 Refresh",
+                text=" Refresh",
                 command=self.refresh_backups
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="🗑️ Delete Backup",
+                text=" Delete Backup",
                 command=self.delete_backup_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="📊 Export Report",
+                text=" Export Report",
                 command=self.export_backup_report
             ).pack(side=tk.LEFT)
 
@@ -730,7 +735,7 @@ class EnhancedBackupManagementWidget:
 
         try:
             self.nodes_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.nodes_frame, text="🖥️ Nodes")
+            self.notebook.add(self.nodes_frame, text=" Nodes")
 
             # Node controls
             control_frame = ttk.Frame(self.nodes_frame)
@@ -738,19 +743,19 @@ class EnhancedBackupManagementWidget:
 
             ttk.Button(
                 control_frame,
-                text="➕ Add Node",
+                text=" Add Node",
                 command=self.add_backup_node_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="🔄 Refresh",
+                text=" Refresh",
                 command=self.refresh_nodes
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="🔧 Node Health",
+                text=" Node Health",
                 command=self.check_node_health
             ).pack(side=tk.LEFT)
 
@@ -801,7 +806,7 @@ class EnhancedBackupManagementWidget:
 
         try:
             self.recovery_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.recovery_frame, text="🔄 Recovery")
+            self.notebook.add(self.recovery_frame, text=" Recovery")
 
             # Recovery controls
             recovery_controls_frame = ttk.LabelFrame(self.recovery_frame, text="Recovery Operations", padding=10)
@@ -809,19 +814,19 @@ class EnhancedBackupManagementWidget:
 
             ttk.Button(
                 recovery_controls_frame,
-                text="🔍 Browse Backups",
+                text=" Browse Backups",
                 command=self.browse_backups_for_recovery
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 recovery_controls_frame,
-                text="📥 Restore Backup",
+                text=" Restore Backup",
                 command=self.restore_backup_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 recovery_controls_frame,
-                text="🔧 Verify Integrity",
+                text=" Verify Integrity",
                 command=self.verify_backup_integrity
             ).pack(side=tk.LEFT)
 
@@ -841,7 +846,7 @@ class EnhancedBackupManagementWidget:
 
         try:
             self.settings_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.settings_frame, text="⚙️ Settings")
+            self.notebook.add(self.settings_frame, text=" Settings")
 
             # Backup settings
             backup_settings_frame = ttk.LabelFrame(self.settings_frame, text="Backup Settings", padding=10)
@@ -893,14 +898,14 @@ class EnhancedBackupManagementWidget:
             # Manual refresh button
             ttk.Button(
                 control_frame,
-                text="🔄 Refresh Now",
+                text=" Refresh Now",
                 command=self.manual_refresh
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             # Export button
             ttk.Button(
                 control_frame,
-                text="📊 Export Data",
+                text=" Export Data",
                 command=self.export_backup_data
             ).pack(side=tk.LEFT)
 
@@ -1180,7 +1185,8 @@ class EnhancedBackupManagementWidget:
 
             if filename:
                 export_data = {
-                    'timestamp': datetime.now().isoformat(),
+                    'timestamp': from datetime import datetime
+datetime.now().isoformat(),
                     'backup_system_status': {
                         'total_backups': self.status_data.total_backups,
                         'active_backups': self.status_data.active_backups,

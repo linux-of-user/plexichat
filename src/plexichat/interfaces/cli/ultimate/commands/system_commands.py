@@ -1,8 +1,3 @@
-"""
-PlexiChat Ultimate CLI - System Management Commands
-Advanced system administration and management commands
-"""
-
 import asyncio
 import logging
 import os
@@ -17,6 +12,22 @@ from rich.table import Table
 
 from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
 
+        
+        
+        import sys
+        import platform
+
+        
+
+        import psutil
+        import psutil
+        import psutil
+
+"""
+PlexiChat Ultimate CLI - System Management Commands
+Advanced system administration and management commands
+"""
+
 logger = logging.getLogger(__name__)
 console = Console()
 
@@ -26,24 +37,25 @@ console = Console()
 async def cmd_processes():
     """List and manage system processes."""
     try:
-        import psutil
-        
-        console.print("🔍 Scanning system processes...")
+        console.print(" Scanning system processes...")
         
         processes = []
-        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status']):
+        for proc in import psutil
+psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'status']):
             try:
                 proc_info = proc.info
                 if 'plexichat' in proc_info['name'].lower() or proc_info['pid'] == os.getpid():
                     processes.append(proc_info)
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
+            except (import psutil
+psutil.NoSuchProcess, import psutil
+psutil.AccessDenied):
                 pass
         
         if not processes:
             console.print("[yellow]No PlexiChat processes found[/yellow]")
             return True
         
-        table = Table(title="🔧 PlexiChat Processes")
+        table = Table(title=" PlexiChat Processes")
         table.add_column("PID", style="cyan")
         table.add_column("Name", style="white")
         table.add_column("CPU %", style="green")
@@ -63,7 +75,7 @@ async def cmd_processes():
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to list processes: {e}[/red]")
+        console.print(f"[red] Failed to list processes: {e}[/red]")
         return False
 
 
@@ -79,14 +91,14 @@ async def cmd_services(action: str = "list", service: Optional[str] = None):
         }
         
         if action == "list":
-            table = Table(title="🔧 System Services")
+            table = Table(title=" System Services")
             table.add_column("Service", style="cyan")
             table.add_column("Status", style="green")
             table.add_column("Port", style="blue")
             table.add_column("PID", style="yellow")
             
             for svc_name, svc_info in services.items():
-                status_icon = "🟢" if svc_info["status"] == "running" else "🔴"
+                status_icon = "" if svc_info["status"] == "running" else ""
                 port_str = str(svc_info["port"]) if svc_info["port"] else "N/A"
                 
                 table.add_row(
@@ -100,56 +112,59 @@ async def cmd_services(action: str = "list", service: Optional[str] = None):
             
         elif action in ["start", "stop", "restart"]:
             if not service:
-                console.print("[red]❌ Service name required for this action[/red]")
+                console.print("[red] Service name required for this action[/red]")
                 return False
             
             if service not in services:
-                console.print(f"[red]❌ Unknown service: {service}[/red]")
+                console.print(f"[red] Unknown service: {service}[/red]")
                 console.print(f"Available services: {', '.join(services.keys())}")
                 return False
             
-            console.print(f"🔧 {action.title()}ing service: {service}")
+            console.print(f" {action.title()}ing service: {service}")
             
             # Simulate service action
             await asyncio.sleep(1)
             
-            console.print(f"[green]✅ Service {service} {action}ed successfully[/green]")
+            console.print(f"[green] Service {service} {action}ed successfully[/green]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Service management failed: {e}[/red]")
+        console.print(f"[red] Service management failed: {e}[/red]")
         return False
 
 
 async def cmd_resources():
     """Monitor system resource usage."""
     try:
-        import psutil
-        
-        console.print("📊 Gathering resource information...")
+        console.print(" Gathering resource information...")
         
         # CPU information
-        cpu_percent = psutil.cpu_percent(interval=1)
-        cpu_count = psutil.cpu_count()
+        cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
+        cpu_count = import psutil
+psutil.cpu_count()
         
         # Memory information
-        memory = psutil.virtual_memory()
+        memory = import psutil
+psutil.virtual_memory()
         
         # Disk information
-        disk = psutil.disk_usage('/' if os.name != 'nt' else 'C:')
+        disk = import psutil
+psutil.disk_usage('/' if os.name != 'nt' else 'C:')
         
         # Network information
-        network = psutil.net_io_counters()
+        network = import psutil
+psutil.net_io_counters()
         
         # Create resource table
-        table = Table(title="📊 System Resources")
+        table = Table(title=" System Resources")
         table.add_column("Resource", style="cyan")
         table.add_column("Usage", style="white")
         table.add_column("Details", style="blue")
         
         # CPU
-        cpu_bar = "█" * int(cpu_percent / 5) + "░" * (20 - int(cpu_percent / 5))
+        cpu_bar = "" * int(cpu_percent / 5) + "" * (20 - int(cpu_percent / 5))
         table.add_row(
             "CPU",
             f"{cpu_percent:.1f}%",
@@ -158,7 +173,7 @@ async def cmd_resources():
         
         # Memory
         memory_percent = memory.percent
-        memory_bar = "█" * int(memory_percent / 5) + "░" * (20 - int(memory_percent / 5))
+        memory_bar = "" * int(memory_percent / 5) + "" * (20 - int(memory_percent / 5))
         table.add_row(
             "Memory",
             f"{memory_percent:.1f}%",
@@ -167,7 +182,7 @@ async def cmd_resources():
         
         # Disk
         disk_percent = (disk.used / disk.total) * 100
-        disk_bar = "█" * int(disk_percent / 5) + "░" * (20 - int(disk_percent / 5))
+        disk_bar = "" * int(disk_percent / 5) + "" * (20 - int(disk_percent / 5))
         table.add_row(
             "Disk",
             f"{disk_percent:.1f}%",
@@ -178,18 +193,21 @@ async def cmd_resources():
         table.add_row(
             "Network",
             "Active",
-            f"↑ {network.bytes_sent // (1024**2):.1f}MB ↓ {network.bytes_recv // (1024**2):.1f}MB"
+            f" {network.bytes_sent // (1024**2):.1f}MB  {network.bytes_recv // (1024**2):.1f}MB"
         )
         
         console.print(table)
         
         # Show top processes
-        console.print("\n🔝 Top Processes by CPU:")
+        console.print("\n Top Processes by CPU:")
         processes = []
-        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent']):
+        for proc in import psutil
+psutil.process_iter(['pid', 'name', 'cpu_percent']):
             try:
                 processes.append(proc.info)
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
+            except (import psutil
+psutil.NoSuchProcess, import psutil
+psutil.AccessDenied):
                 pass
         
         top_processes = sorted(processes, key=lambda x: x['cpu_percent'], reverse=True)[:5]
@@ -211,14 +229,14 @@ async def cmd_resources():
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get resource information: {e}[/red]")
+        console.print(f"[red] Failed to get resource information: {e}[/red]")
         return False
 
 
 async def cmd_cleanup(dry_run: bool = False):
     """Clean up temporary files and optimize system."""
     try:
-        console.print("🧹 Starting system cleanup...")
+        console.print(" Starting system cleanup...")
         
         cleanup_items = [
             {"path": "/tmp/plexichat_*", "type": "temp_files", "size": "45MB"},
@@ -230,7 +248,7 @@ async def cmd_cleanup(dry_run: bool = False):
         
         total_size = 0
         
-        table = Table(title="🧹 Cleanup Items")
+        table = Table(title=" Cleanup Items")
         table.add_column("Type", style="cyan")
         table.add_column("Path", style="white")
         table.add_column("Size", style="green")
@@ -249,10 +267,10 @@ async def cmd_cleanup(dry_run: bool = False):
             )
         
         console.print(table)
-        console.print(f"\n📊 Total space to free: {total_size:.0f}MB")
+        console.print(f"\n Total space to free: {total_size:.0f}MB")
         
         if not dry_run:
-            if Confirm.ask("🗑️ Proceed with cleanup?"):
+            if Confirm.ask(" Proceed with cleanup?"):
                 with Progress(
                     SpinnerColumn(),
                     TextColumn("[progress.description]{task.description}"),
@@ -266,23 +284,23 @@ async def cmd_cleanup(dry_run: bool = False):
                         await asyncio.sleep(0.5)  # Simulate cleanup
                         progress.advance(task)
                 
-                console.print(f"[green]✅ Cleanup completed! Freed {total_size:.0f}MB of space[/green]")
+                console.print(f"[green] Cleanup completed! Freed {total_size:.0f}MB of space[/green]")
             else:
                 console.print("[yellow]Cleanup cancelled[/yellow]")
         else:
-            console.print("[blue]ℹ️ Dry run completed - no files were deleted[/blue]")
+            console.print("[blue] Dry run completed - no files were deleted[/blue]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Cleanup failed: {e}[/red]")
+        console.print(f"[red] Cleanup failed: {e}[/red]")
         return False
 
 
 async def cmd_optimize():
     """Optimize system performance."""
     try:
-        console.print("⚡ Starting system optimization...")
+        console.print(" Starting system optimization...")
         
         optimizations = [
             "Optimizing database indexes",
@@ -308,7 +326,7 @@ async def cmd_optimize():
                 progress.advance(task)
         
         # Show optimization results
-        results = Table(title="⚡ Optimization Results")
+        results = Table(title=" Optimization Results")
         results.add_column("Component", style="cyan")
         results.add_column("Before", style="red")
         results.add_column("After", style="green")
@@ -320,22 +338,22 @@ async def cmd_optimize():
         results.add_row("Response Time", "120ms", "95ms", "20.8% faster")
         
         console.print(results)
-        console.print("[green]✅ System optimization completed successfully[/green]")
+        console.print("[green] System optimization completed successfully[/green]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Optimization failed: {e}[/red]")
+        console.print(f"[red] Optimization failed: {e}[/red]")
         return False
 
 
 async def cmd_environment():
     """Show environment information and variables."""
     try:
-        console.print("🌍 Environment Information")
+        console.print(" Environment Information")
         
         # System environment
-        env_table = Table(title="🔧 Environment Variables")
+        env_table = Table(title=" Environment Variables")
         env_table.add_column("Variable", style="cyan")
         env_table.add_column("Value", style="white")
         
@@ -357,14 +375,13 @@ async def cmd_environment():
         console.print(env_table)
         
         # Python environment
-        console.print("\n🐍 Python Environment:")
-        import sys
+        console.print("\n Python Environment:")
         console.print(f"  Python Version: {sys.version}")
         console.print(f"  Python Path: {sys.executable}")
         console.print(f"  Virtual Environment: {os.environ.get('VIRTUAL_ENV', 'Not activated')}")
         
         # PlexiChat environment
-        console.print("\n🚀 PlexiChat Environment:")
+        console.print("\n PlexiChat Environment:")
         console.print(f"  Installation Path: {Path.cwd()}")
         console.print(f"  Configuration: {os.environ.get('PLEXICHAT_CONFIG', 'Default')}")
         console.print(f"  Environment: {os.environ.get('PLEXICHAT_ENV', 'development')}")
@@ -373,7 +390,7 @@ async def cmd_environment():
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get environment information: {e}[/red]")
+        console.print(f"[red] Failed to get environment information: {e}[/red]")
         return False
 
 
@@ -385,25 +402,25 @@ async def cmd_maintenance(mode: str = "status"):
             maintenance_active = False  # This would check actual status
             
             if maintenance_active:
-                console.print("[yellow]🚧 Maintenance mode is ACTIVE[/yellow]")
+                console.print("[yellow] Maintenance mode is ACTIVE[/yellow]")
                 console.print("  Started: 2024-01-01 12:00:00")
                 console.print("  Reason: System upgrade")
                 console.print("  ETA: 30 minutes")
             else:
-                console.print("[green]✅ Maintenance mode is INACTIVE[/green]")
+                console.print("[green] Maintenance mode is INACTIVE[/green]")
                 console.print("  System is fully operational")
         
         elif mode == "enable":
             reason = Prompt.ask("Reason for maintenance", default="Scheduled maintenance")
             duration = Prompt.ask("Estimated duration (minutes)", default="30")
             
-            if Confirm.ask("🚧 Enable maintenance mode?"):
-                console.print("🚧 Enabling maintenance mode...")
+            if Confirm.ask(" Enable maintenance mode?"):
+                console.print(" Enabling maintenance mode...")
                 
                 # This would actually enable maintenance mode
                 await asyncio.sleep(1)
                 
-                console.print("[yellow]✅ Maintenance mode enabled[/yellow]")
+                console.print("[yellow] Maintenance mode enabled[/yellow]")
                 console.print(f"  Reason: {reason}")
                 console.print(f"  Duration: {duration} minutes")
                 console.print("  All user requests will be blocked")
@@ -411,40 +428,36 @@ async def cmd_maintenance(mode: str = "status"):
                 console.print("[blue]Maintenance mode activation cancelled[/blue]")
         
         elif mode == "disable":
-            if Confirm.ask("✅ Disable maintenance mode?"):
-                console.print("✅ Disabling maintenance mode...")
+            if Confirm.ask(" Disable maintenance mode?"):
+                console.print(" Disabling maintenance mode...")
                 
                 # This would actually disable maintenance mode
                 await asyncio.sleep(1)
                 
-                console.print("[green]✅ Maintenance mode disabled[/green]")
+                console.print("[green] Maintenance mode disabled[/green]")
                 console.print("  System is now fully operational")
             else:
                 console.print("[blue]Maintenance mode deactivation cancelled[/blue]")
         
         else:
-            console.print(f"[red]❌ Unknown maintenance mode: {mode}[/red]")
+            console.print(f"[red] Unknown maintenance mode: {mode}[/red]")
             console.print("Available modes: status, enable, disable")
             return False
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Maintenance mode operation failed: {e}[/red]")
+        console.print(f"[red] Maintenance mode operation failed: {e}[/red]")
         return False
 
 
 async def cmd_system_info():
     """Show detailed system information."""
     try:
-        import platform
-
-        import psutil
-        
-        console.print(Panel("💻 Detailed System Information", style="bold blue"))
+        console.print(Panel(" Detailed System Information", style="bold blue"))
         
         # Operating System
-        console.print("\n🖥️ Operating System:")
+        console.print("\n Operating System:")
         console.print(f"  System: {platform.system()}")
         console.print(f"  Release: {platform.release()}")
         console.print(f"  Version: {platform.version()}")
@@ -453,26 +466,33 @@ async def cmd_system_info():
         console.print(f"  Processor: {platform.processor()}")
         
         # Hardware
-        console.print("\n🔧 Hardware:")
-        console.print(f"  CPU Cores: {psutil.cpu_count(logical=False)} physical, {psutil.cpu_count()} logical")
-        console.print(f"  CPU Frequency: {psutil.cpu_freq().current:.0f} MHz")
+        console.print("\n Hardware:")
+        console.print(f"  CPU Cores: {import psutil
+psutil.cpu_count(logical=False)} physical, {import psutil
+psutil.cpu_count()} logical")
+        console.print(f"  CPU Frequency: {import psutil
+psutil.cpu_freq().current:.0f} MHz")
         
-        memory = psutil.virtual_memory()
+        memory = import psutil
+psutil.virtual_memory()
         console.print(f"  Total Memory: {memory.total // (1024**3):.1f} GB")
         console.print(f"  Available Memory: {memory.available // (1024**3):.1f} GB")
         
         # Storage
-        console.print("\n💾 Storage:")
-        for partition in psutil.disk_partitions():
+        console.print("\n Storage:")
+        for partition in import psutil
+psutil.disk_partitions():
             try:
-                usage = psutil.disk_usage(partition.mountpoint)
+                usage = import psutil
+psutil.disk_usage(partition.mountpoint)
                 console.print(f"  {partition.device}: {usage.total // (1024**3):.1f} GB total, {usage.free // (1024**3):.1f} GB free")
             except PermissionError:
                 continue
         
         # Network
-        console.print("\n🌐 Network:")
-        for interface, addrs in psutil.net_if_addrs().items():
+        console.print("\n Network:")
+        for interface, addrs in import psutil
+psutil.net_if_addrs().items():
             for addr in addrs:
                 if addr.family.name == 'AF_INET':
                     console.print(f"  {interface}: {addr.address}")
@@ -480,7 +500,7 @@ async def cmd_system_info():
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get system information: {e}[/red]")
+        console.print(f"[red] Failed to get system information: {e}[/red]")
         return False
 
 
@@ -591,7 +611,7 @@ def register_system_commands():
     for command in commands:
         ultimate_cli.register_command(command)
     
-    console.print("[green]✅ Registered 8 system management commands[/green]")
+    console.print("[green] Registered 8 system management commands[/green]")
 
 
 # Auto-register when module is imported

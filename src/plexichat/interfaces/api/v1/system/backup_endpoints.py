@@ -1,3 +1,21 @@
+import logging
+from datetime import datetime, timezone
+from typing import List, Optional
+
+
+from ....backup import government_backup_manager
+from ....core_system.security.input_validation import (
+from ....core_system.security.unified_audit_system import (
+from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager
+
+        from ....backup.core.backup_manager import BackupStatus
+
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel, Field
+
 """
 Backup Management API Endpoints - SECURED WITH UNIFIED AUTHENTICATION
 Comprehensive API for backup system management and monitoring.
@@ -10,29 +28,15 @@ ENHANCED SECURITY FEATURES:
 - Rate limiting and DDoS protection
 """
 
-import logging
-from datetime import datetime, timezone
-from typing import List, Optional
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel, Field
-
-from ....backup import government_backup_manager
-from ....core_system.security.input_validation import (
     InputType,
     ValidationLevel,
     get_input_validator,
 )
-from ....core_system.security.unified_audit_system import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
     get_unified_audit_system,
 )
-from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backup", tags=["backup"])
 security = HTTPBearer()
@@ -215,7 +219,7 @@ async def get_backup_system_health(
 
 @router.get("/overview")
 async def get_backup_overview(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get backup system overview with recent activities."""
     try:
@@ -251,7 +255,7 @@ async def get_backup_overview(
 async def create_backup(
     request: BackupCreateRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Create a new backup operation."""
     try:
@@ -286,15 +290,13 @@ async def create_backup(
 async def list_backup_operations(
     status_filter: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(100, description="Maximum number of operations to return"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """List backup operations with optional filtering."""
     try:
         if not government_backup_manager.initialized:
             await government_backup_manager.initialize()
         
-        from ....backup.core.backup_manager import BackupStatus
-
         # Convert string filter to enum
         status_enum = None
         if status_filter:
@@ -328,7 +330,7 @@ async def list_backup_operations(
 @router.get("/operations/{backup_id}")
 async def get_backup_operation(
     backup_id: str,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get details of a specific backup operation."""
     try:
@@ -363,7 +365,7 @@ async def get_backup_operation(
 @router.get("/shards")
 async def list_shards(
     limit: int = Query(100, description="Maximum number of shards to return"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """List backup shards."""
     try:
@@ -388,7 +390,7 @@ async def list_shards(
 
 @router.post("/shards/redistribute")
 async def redistribute_shards(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Redistribute shards across backup nodes."""
     try:
@@ -413,7 +415,7 @@ async def redistribute_shards(
 
 @router.post("/shards/verify")
 async def verify_shards(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Verify integrity of all shards."""
     try:
@@ -567,7 +569,7 @@ async def generate_backup_node_api_key(
 @router.post("/archives", response_model=dict)
 async def create_archive(
     request: ArchiveCreateRequest,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Create a new archive."""
     try:
@@ -600,7 +602,7 @@ async def create_archive(
 @router.get("/archives")
 async def list_archives(
     limit: int = Query(100, description="Maximum number of archives to return"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """List archives."""
     try:
@@ -624,7 +626,7 @@ async def list_archives(
 async def set_user_backup_preferences(
     user_id: str,
     request: UserBackupPreferencesRequest,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Set user backup preferences."""
     try:
@@ -653,7 +655,7 @@ async def set_user_backup_preferences(
 async def opt_out_user_backup(
     user_id: str,
     data_types: List[str] = Query([], description="Data types to opt out of"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Opt user out of backup system."""
     try:
@@ -680,7 +682,7 @@ async def opt_out_user_backup(
 async def opt_in_user_backup(
     user_id: str,
     data_types: List[str] = Query([], description="Data types to opt into"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Opt user back into backup system."""
     try:
@@ -707,7 +709,7 @@ async def opt_in_user_backup(
 @router.post("/proxy-mode/enable")
 async def enable_proxy_mode(
     reason: str = "Manual activation",
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Enable backup proxy mode."""
     try:
@@ -728,7 +730,7 @@ async def enable_proxy_mode(
 
 @router.post("/proxy-mode/disable")
 async def disable_proxy_mode(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Disable backup proxy mode."""
     try:

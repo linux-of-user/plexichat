@@ -1,11 +1,3 @@
-"""
-PlexiChat Event Bus
-
-Centralized event bus for decoupled inter-module communication.
-Enables modules to communicate without direct coupling through
-publish-subscribe pattern with async support.
-"""
-
 import asyncio
 import logging
 import traceback
@@ -14,6 +6,15 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
+
+
+"""
+PlexiChat Event Bus
+
+Centralized event bus for decoupled inter-module communication.
+Enables modules to communicate without direct coupling through
+publish-subscribe pattern with async support.
+"""
 
 logger = logging.getLogger(__name__)
 

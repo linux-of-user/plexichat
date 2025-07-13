@@ -1,8 +1,3 @@
-"""
-Peer-to-peer messaging service with database fallback.
-Enables messaging when database is unavailable using server as proxy.
-"""
-
 import asyncio
 import base64
 import hashlib
@@ -14,8 +9,15 @@ from typing import Any, Dict, List, Optional
 
 from cryptography.fernet import Fernet
 
+
+
+
 from plexichat.core.logging import logger
 
+"""
+Peer-to-peer messaging service with database fallback.
+Enables messaging when database is unavailable using server as proxy.
+"""
 
 @dataclass
 class P2PMessage:
@@ -77,7 +79,7 @@ class MessageCache:
             self.cache[message.id] = message
             self._save_to_disk()
             
-            logger.info(f"💾 Cached P2P message {message.id}")
+            logger.info(f" Cached P2P message {message.id}")
             return True
             
         except Exception as e:
@@ -150,7 +152,7 @@ class MessageCache:
                 for msg_id, msg_data in cache_data.items()
             }
             
-            logger.info(f"📂 Loaded {len(self.cache)} cached messages")
+            logger.info(f" Loaded {len(self.cache)} cached messages")
             
         except FileNotFoundError:
             logger.info("No existing cache file found")
@@ -193,7 +195,7 @@ class P2PMessagingService:
             # Send queued messages
             await self._send_queued_messages(user_id)
             
-            logger.info(f"🔗 Peer {user_id} connected to P2P network")
+            logger.info(f" Peer {user_id} connected to P2P network")
             
             return connection_id
             
@@ -205,7 +207,7 @@ class P2PMessagingService:
         """Disconnect a peer from the P2P network."""
         if user_id in self.peers:
             del self.peers[user_id]
-            logger.info(f"🔗 Peer {user_id} disconnected from P2P network")
+            logger.info(f" Peer {user_id} disconnected from P2P network")
     
     async def send_message(
         self,
@@ -239,15 +241,15 @@ class P2PMessagingService:
             if recipient_id in self.peers and self.peers[recipient_id].is_online:
                 success = await self._send_direct_message(message)
                 if success:
-                    logger.info(f"📨 Sent P2P message directly to peer {recipient_id}")
+                    logger.info(f" Sent P2P message directly to peer {recipient_id}")
                 else:
                     # Queue for later delivery
                     self.peers[recipient_id].message_queue.append(message)
-                    logger.info(f"📬 Queued P2P message for peer {recipient_id}")
+                    logger.info(f" Queued P2P message for peer {recipient_id}")
             else:
                 # Peer offline, cache message
                 self.message_cache.add_message(message)
-                logger.info(f"💾 Cached P2P message for offline peer {recipient_id}")
+                logger.info(f" Cached P2P message for offline peer {recipient_id}")
             
             # Try to save to database if available
             if self.database_available:
@@ -255,7 +257,7 @@ class P2PMessagingService:
             else:
                 # Cache for later database sync
                 self.message_cache.add_message(message)
-                logger.info(f"💾 Cached message for database sync: {message.id}")
+                logger.info(f" Cached message for database sync: {message.id}")
             
             return message
             
@@ -348,7 +350,7 @@ class P2PMessagingService:
                     pending_messages = self.message_cache.get_pending_database_sync()
                     
                     if pending_messages:
-                        logger.info(f"🔄 Syncing {len(pending_messages)} messages to database")
+                        logger.info(f" Syncing {len(pending_messages)} messages to database")
                         
                         synced_ids = []
                         for message in pending_messages:
@@ -359,7 +361,7 @@ class P2PMessagingService:
                         # Clear synced messages from cache
                         self.message_cache.clear_synced_messages(synced_ids)
                         
-                        logger.info(f"✅ Synced {len(synced_ids)} messages to database")
+                        logger.info(f" Synced {len(synced_ids)} messages to database")
                 
             except Exception as e:
                 logger.error(f"Database sync error: {e}")
@@ -386,7 +388,7 @@ class P2PMessagingService:
                     await self.disconnect_peer(user_id)
                 
                 if offline_peers:
-                    logger.info(f"🔗 Cleaned up {len(offline_peers)} offline peers")
+                    logger.info(f" Cleaned up {len(offline_peers)} offline peers")
                 
             except Exception as e:
                 logger.error(f"Peer health check error: {e}")
@@ -433,7 +435,7 @@ class P2PMessagingService:
         """Save message to database (placeholder)."""
         try:
             # In production, this would save to actual database
-            logger.debug(f"💾 Saved message {message.id} to database")
+            logger.debug(f" Saved message {message.id} to database")
             return True
         except Exception as e:
             logger.error(f"Failed to save to database: {e}")
@@ -459,9 +461,9 @@ class P2PMessagingService:
         """Set database availability status."""
         self.database_available = available
         if available:
-            logger.info("✅ Database connection restored")
+            logger.info(" Database connection restored")
         else:
-            logger.warning("⚠️ Database unavailable, using P2P mode")
+            logger.warning(" Database unavailable, using P2P mode")
     
     def get_network_status(self) -> Dict[str, Any]:
         """Get P2P network status."""

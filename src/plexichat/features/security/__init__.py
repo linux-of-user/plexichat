@@ -1,3 +1,39 @@
+import asyncio
+import logging
+import secrets
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from ...core_system.auth import (
+from .bug_bounty import (
+from .cicd_security import (
+from .csp import ContentSecurityPolicyManager, CSPDirective, CSPPolicy, CSPSource, csp_manager
+from .database_encryption import DatabaseEncryption, DataClassification, database_encryption
+from .distributed_key_manager import DistributedKeyManager, KeyDomain, distributed_key_manager
+from .distributed_monitoring import (
+from .e2e_encryption import EndpointType, EndToEndEncryption, e2e_encryption
+
+from .exceptions import (
+from .middleware import AuthenticationMiddleware, SecurityMiddleware
+
+from .protection import (
+from .protection import ThreatLevel as ProtectionThreatLevel
+from .protection import (
+from .quantum_encryption import QuantumEncryptionSystem, quantum_encryption
+from .security_headers import (
+from .siem_integration import (
+from .ssl import SSLCertificateManager, ssl_manager
+from .validators import BiometricValidator, InputValidator, PasswordValidator, TokenValidator
+
+from .waf import (
+from .advanced_auth import AdvancedAuthManager
+from .default_admin import DefaultAdminManager
+from .login_manager import LoginManager
+
+
+from .decorators import optional_auth, from plexichat.infrastructure.utils.auth import require_admin, require_auth, require_level, require_mfa
+
 """
 PlexiChat Unified Security System
 
@@ -6,16 +42,8 @@ security architecture with quantum-proof encryption, distributed key
 management, and end-to-end protection.
 """
 
-import asyncio
-import logging
-import secrets
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
 # Import consolidated authentication components from unified core system
 # Note: Authentication components now consolidated in core_system/auth/
-from ...core_system.auth import (
     AuthAuditManager,
     AuthManager,
     BiometricManager,
@@ -35,7 +63,6 @@ from ...core_system.auth import (
     session_manager,
     token_manager,
 )
-from .bug_bounty import (
     BugBountyManager,
     ReportStatus,
     SeverityLevel,
@@ -43,7 +70,6 @@ from .bug_bounty import (
     VulnerabilityType,
     bug_bounty_manager,
 )
-from .cicd_security import (
     CICDSecurityScanner,
     ScannerType,
     ScanResult,
@@ -52,11 +78,6 @@ from .cicd_security import (
     VulnerabilitySeverity,
     cicd_scanner,
 )
-from .csp import ContentSecurityPolicyManager, CSPDirective, CSPPolicy, CSPSource, csp_manager
-from .database_encryption import DatabaseEncryption, DataClassification, database_encryption
-from .decorators import optional_auth, require_admin, require_auth, require_level, require_mfa
-from .distributed_key_manager import DistributedKeyManager, KeyDomain, distributed_key_manager
-from .distributed_monitoring import (
     DistributedSecurityMonitor,
     MonitoringScope,
     SecurityEvent,
@@ -65,10 +86,7 @@ from .distributed_monitoring import (
     ThreatLevel,
     ThreatPattern,
 )
-from .e2e_encryption import EndpointType, EndToEndEncryption, e2e_encryption
-
 # Import exceptions
-from .exceptions import (
     AccountLockError,
     AuthenticationError,
     AuthorizationError,
@@ -92,10 +110,7 @@ from .exceptions import (
 )
 
 # Import middleware and utilities
-from .middleware import AuthenticationMiddleware, SecurityMiddleware
-
 # Import consolidated protection components
-from .protection import (
     AttackType,
     BehavioralAnalyzer,
     DDoSProtection,
@@ -105,8 +120,6 @@ from .protection import (
     RateLimiter,
     SecurityThreat,
 )
-from .protection import ThreatLevel as ProtectionThreatLevel
-from .protection import (
     VulnerabilityScanner,
     behavioral_analyzer,
     ddos_protection,
@@ -118,14 +131,11 @@ from .protection import (
 )
 
 # Import core security components (quantum encryption, key management, monitoring)
-from .quantum_encryption import QuantumEncryptionSystem, quantum_encryption
-from .security_headers import (
     AdvancedSecurityHeaders,
     SecurityHeaderConfig,
     SecurityHeaderType,
     security_headers_manager,
 )
-from .siem_integration import (
     EventCategory,
     EventSeverity,
     SecurityEvent,
@@ -136,11 +146,7 @@ from .siem_integration import (
 )
 
 # Import SSL/TLS management
-from .ssl import SSLCertificateManager, ssl_manager
-from .validators import BiometricValidator, InputValidator, PasswordValidator, TokenValidator
-
 # Import Phase I security enhancements
-from .waf import (
     WAFAction,
     WAFRule,
     WAFRuleType,
@@ -171,7 +177,8 @@ class SecurityManager:
     """
     
     def __init__(self, config_dir: str = "config/security"):
-        self.config_dir = Path(config_dir)
+        self.config_dir = from pathlib import Path
+Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Security components
@@ -201,7 +208,7 @@ class SecurityManager:
         await self._setup_security_policies()
         await self._perform_initial_security_check()
         await self._start_security_monitoring()
-        logger.info("🛡️ PlexiChat Security Manager initialized - Government-level protection active")
+        logger.info(" PlexiChat Security Manager initialized - Government-level protection active")
     
     async def _setup_security_policies(self):
         """Setup comprehensive security policies."""
@@ -242,7 +249,7 @@ class SecurityManager:
     
     async def _perform_initial_security_check(self):
         """Perform comprehensive security system check."""
-        logger.info("🔍 Performing initial security system check...")
+        logger.info(" Performing initial security system check...")
         
         # Check quantum encryption system
         quantum_status = await self._check_quantum_encryption()
@@ -273,9 +280,9 @@ class SecurityManager:
         }
         
         if self.security_status["system_ready"]:
-            logger.info("✅ All security systems operational - PlexiChat is secure")
+            logger.info(" All security systems operational - PlexiChat is secure")
         else:
-            logger.warning("⚠️ Some security systems need attention")
+            logger.warning(" Some security systems need attention")
     
     async def _check_quantum_encryption(self) -> Dict[str, Any]:
         """Check quantum encryption system status."""
@@ -427,7 +434,7 @@ class SecurityManager:
                     logger.error(f"Security monitoring error: {e}")
 
         asyncio.create_task(monitoring_loop())
-        logger.info("🔍 Continuous security monitoring started")
+        logger.info(" Continuous security monitoring started")
     
     async def _perform_security_check(self):
         """Perform periodic security check."""
@@ -440,10 +447,10 @@ class SecurityManager:
         
         if current_level != previous_level:
             if current_level == "COMPROMISED":
-                logger.critical(f"🚨 SECURITY ALERT: System security level changed to {current_level}")
+                logger.critical(f" SECURITY ALERT: System security level changed to {current_level}")
                 await self._trigger_security_response()
             else:
-                logger.info(f"🔒 Security level: {current_level}")
+                logger.info(f" Security level: {current_level}")
     
     async def _rotate_expired_keys(self):
         """Rotate expired keys across all systems."""
@@ -455,7 +462,7 @@ class SecurityManager:
             db_rotated = await self.database_encryption.rotate_database_keys()
             
             if quantum_rotated > 0 or db_rotated > 0:
-                logger.info(f"🔄 Key rotation: {quantum_rotated} quantum keys, {db_rotated} database keys")
+                logger.info(f" Key rotation: {quantum_rotated} quantum keys, {db_rotated} database keys")
                 
         except Exception as e:
             logger.error(f"Key rotation failed: {e}")
@@ -465,13 +472,13 @@ class SecurityManager:
         try:
             cleaned = await self.e2e_encryption.cleanup_expired_sessions()
             if cleaned > 0:
-                logger.info(f"🗑️ Cleaned up {cleaned} expired E2E sessions")
+                logger.info(f" Cleaned up {cleaned} expired E2E sessions")
         except Exception as e:
             logger.error(f"Session cleanup failed: {e}")
     
     async def _trigger_security_response(self):
         """Trigger emergency security response."""
-        logger.critical("🚨 TRIGGERING EMERGENCY SECURITY RESPONSE")
+        logger.critical(" TRIGGERING EMERGENCY SECURITY RESPONSE")
         
         # Force key rotation
         await self.quantum_encryption.rotate_keys(force=True)
@@ -480,14 +487,10 @@ class SecurityManager:
         # Clear all E2E sessions
         self.e2e_encryption.active_sessions.clear()
         
-        logger.critical("🔒 Emergency security measures activated")
+        logger.critical(" Emergency security measures activated")
 
 
 # Import consolidated auth modules from app/auth
-from .advanced_auth import AdvancedAuthManager
-from .default_admin import DefaultAdminManager
-from .login_manager import LoginManager
-
 # Global security manager instance
 security_manager = SecurityManager()
 
@@ -607,7 +610,7 @@ __all__ = [
     'SecurityMiddleware',
     'AuthenticationMiddleware',
     'require_auth',
-    'require_admin',
+    'from plexichat.infrastructure.utils.auth import require_admin',
     'require_mfa',
     'require_level',
     'optional_auth',

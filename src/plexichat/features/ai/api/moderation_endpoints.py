@@ -1,17 +1,19 @@
-"""
-AI Moderation API Endpoints
-RESTful API endpoints for AI moderation, training, and feedback collection.
-"""
-
 import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+
+from ..moderation import (
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel, Field
 
-from ..moderation import (
+"""
+AI Moderation API Endpoints
+RESTful API endpoints for AI moderation, training, and feedback collection.
+"""
+
     FeedbackCollector,
     FeedbackSource,
     FeedbackType,

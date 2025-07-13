@@ -1,14 +1,15 @@
-"""
-Database connectivity and functionality tests for PlexiChat.
-Tests database connections, queries, and data integrity.
-"""
-
 import logging
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
 from .test_base import BaseTest, TestResult
+
+
+"""
+Database connectivity and functionality tests for PlexiChat.
+Tests database connections, queries, and data integrity.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,8 @@ class DatabaseTest(BaseTest):
     
     async def setup(self):
         """Setup test database."""
-        self.test_db_path = Path("test_plexichat.db")
+        self.test_db_path = from pathlib import Path
+Path("test_plexichat.db")
         # Clean up any existing test database
         if self.test_db_path.exists():
             self.test_db_path.unlink()
@@ -37,7 +39,8 @@ class DatabaseTest(BaseTest):
     
     async def test_sqlite_connection(self):
         """Test SQLite database connection."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             # Test connection
@@ -50,7 +53,8 @@ class DatabaseTest(BaseTest):
             
             assert result[0] == 1, "Basic query failed"
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="SQLite Connection",
@@ -64,7 +68,8 @@ class DatabaseTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="SQLite Connection",
                 category="Database",
@@ -77,7 +82,8 @@ class DatabaseTest(BaseTest):
     
     async def test_table_creation(self):
         """Test database table creation."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not self.connection:
@@ -101,7 +107,8 @@ class DatabaseTest(BaseTest):
             
             assert result is not None, "Table creation failed"
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="Table Creation",
@@ -115,7 +122,8 @@ class DatabaseTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="Table Creation",
                 category="Database",
@@ -128,7 +136,8 @@ class DatabaseTest(BaseTest):
     
     async def test_data_operations(self):
         """Test basic CRUD operations."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not self.connection:
@@ -171,7 +180,8 @@ class DatabaseTest(BaseTest):
             
             self.connection.commit()
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="CRUD Operations",
@@ -185,7 +195,8 @@ class DatabaseTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="CRUD Operations",
                 category="Database",

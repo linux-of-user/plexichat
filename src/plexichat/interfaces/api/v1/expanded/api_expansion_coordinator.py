@@ -1,15 +1,21 @@
-"""
-PlexiChat Phase V API Expansion Coordinator
-Manages the massive expansion of API endpoints with comprehensive functionality
-"""
-
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+
+        from .user_profiles import setup_user_profile_endpoints
+        from .search import setup_search_endpoints
+        from .safety import setup_safety_endpoints
+        from .channels import setup_channel_endpoints
+
 from fastapi import APIRouter
+
+"""
+PlexiChat Phase V API Expansion Coordinator
+Manages the massive expansion of API endpoints with comprehensive functionality
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +109,7 @@ class Phase5APIExpansionCoordinator:
     async def initialize(self):
         """Initialize the API expansion system."""
         try:
-            logger.info("🚀 Initializing Phase V API Expansion")
+            logger.info(" Initializing Phase V API Expansion")
             
             # Initialize category routers
             await self._initialize_category_routers()
@@ -117,10 +123,10 @@ class Phase5APIExpansionCoordinator:
             # Initialize monitoring
             await self._initialize_monitoring()
             
-            logger.info("✅ Phase V API Expansion initialized successfully")
+            logger.info(" Phase V API Expansion initialized successfully")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize API expansion: {e}")
+            logger.error(f" Failed to initialize API expansion: {e}")
             raise
     
     async def _initialize_category_routers(self):
@@ -193,7 +199,6 @@ class Phase5APIExpansionCoordinator:
         router = self.category_routers[APICategory.USER_PROFILES]
         
         # Import and setup user profile endpoints
-        from .user_profiles import setup_user_profile_endpoints
         await setup_user_profile_endpoints(router)
         
         # Register endpoint info
@@ -221,7 +226,6 @@ class Phase5APIExpansionCoordinator:
         """Register search endpoints."""
         router = self.category_routers[APICategory.SEARCH]
         
-        from .search import setup_search_endpoints
         await setup_search_endpoints(router)
         
         endpoints = [
@@ -246,7 +250,6 @@ class Phase5APIExpansionCoordinator:
         """Register safety and moderation endpoints."""
         router = self.category_routers[APICategory.SAFETY]
         
-        from .safety import setup_safety_endpoints
         await setup_safety_endpoints(router)
         
         endpoints = [
@@ -273,7 +276,6 @@ class Phase5APIExpansionCoordinator:
         """Register channel management endpoints."""
         router = self.category_routers[APICategory.CHANNEL_MANAGEMENT]
         
-        from .channels import setup_channel_endpoints
         await setup_channel_endpoints(router)
         
         # Register endpoints (similar pattern for other categories)

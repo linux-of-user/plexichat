@@ -1,8 +1,3 @@
-"""
-PlexiChat AI-Powered Recommendation Engine
-Intelligent content and connection recommendations using machine learning
-"""
-
 import asyncio
 import logging
 import math
@@ -13,6 +8,12 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+
+
+"""
+PlexiChat AI-Powered Recommendation Engine
+Intelligent content and connection recommendations using machine learning
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +197,7 @@ class AIRecommendationEngine:
         # Start background model updates
         self.model_update_task = asyncio.create_task(self._model_update_loop())
         
-        logger.info("✅ AI Recommendation Engine started")
+        logger.info(" AI Recommendation Engine started")
     
     async def stop(self):
         """Stop the recommendation engine."""
@@ -213,7 +214,7 @@ class AIRecommendationEngine:
             except asyncio.CancelledError:
                 pass
         
-        logger.info("✅ AI Recommendation Engine stopped")
+        logger.info(" AI Recommendation Engine stopped")
     
     async def get_recommendations(self, 
                                  user_id: str, 

@@ -1,3 +1,17 @@
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+from ...core.logging import get_logger
+from ...services.performance_service import get_performance_service
+
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
+from ...core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin_auth, require_auth
+
 """
 PlexiChat Performance Dashboard Web Routes
 
@@ -5,20 +19,10 @@ Web routes for the performance monitoring dashboard and related pages.
 Provides HTML interfaces for viewing system performance, metrics, and alerts.
 """
 
-from datetime import datetime, timezone
-from pathlib import Path
-
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-
-from ...core.auth.dependencies import require_admin_auth, require_auth
-from ...core.logging import get_logger
-from ...services.performance_service import get_performance_service
-
 # Initialize router and templates
 router = APIRouter(prefix="/performance", tags=["Performance Dashboard"])
-templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
+templates = Jinja2Templates(directory=from pathlib import Path
+Path(__file__).parent.parent / "templates")
 logger = get_logger(__name__)
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -80,7 +84,7 @@ async def metrics_page(
 @router.get("/alerts", response_class=HTMLResponse)
 async def alerts_page(
     request: Request,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Performance alerts management page."""
     try:

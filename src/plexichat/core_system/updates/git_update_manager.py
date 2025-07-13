@@ -1,16 +1,3 @@
-"""
-PlexiChat Git-Based Update Manager
-
-Replaces local version.json with Git-based versioning using GitHub releases.
-Features:
-- Automatic update checking from GitHub releases
-- Secure download and verification of updates
-- Backup system integration for rollback capability
-- Version management through Git tags and releases
-- Automatic dependency updates
-- Configuration migration support
-"""
-
 import asyncio
 import os
 import shutil
@@ -26,6 +13,20 @@ import semver
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
 from ...features.backup import get_unified_backup_manager
+
+
+"""
+PlexiChat Git-Based Update Manager
+
+Replaces local version.json with Git-based versioning using GitHub releases.
+Features:
+- Automatic update checking from GitHub releases
+- Secure download and verification of updates
+- Backup system integration for rollback capability
+- Version management through Git tags and releases
+- Automatic dependency updates
+- Configuration migration support
+"""
 
 logger = get_logger(__name__)
 
@@ -47,7 +48,8 @@ class GitUpdateManager:
         self.github_token = self.config.get("github_token")  # Optional for private repos
         
         # Local configuration
-        self.project_root = Path(__file__).parent.parent.parent.parent.parent
+        self.project_root = from pathlib import Path
+Path(__file__).parent.parent.parent.parent.parent
         self.backup_before_update = self.config.get("backup_before_update", True)
         self.auto_update_enabled = self.config.get("auto_update_enabled", False)
         self.update_channel = self.config.get("update_channel", "stable")  # stable, beta, alpha
@@ -73,11 +75,11 @@ class GitUpdateManager:
             # Get current version from Git
             self.current_version = await self._get_current_version()
             
-            logger.info(f"✅ Git Update Manager initialized - Current version: {self.current_version}")
+            logger.info(f" Git Update Manager initialized - Current version: {self.current_version}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Git Update Manager initialization failed: {e}")
+            logger.error(f" Git Update Manager initialization failed: {e}")
             return False
     
     async def _get_current_version(self) -> str:
@@ -222,47 +224,48 @@ class GitUpdateManager:
             if not self.update_available:
                 return {"success": False, "error": "No update available"}
             
-            logger.info(f"🚀 Starting update from {self.current_version} to {self.latest_version}")
+            logger.info(f" Starting update from {self.current_version} to {self.latest_version}")
             
             # Step 1: Create backup if enabled
             backup_id = None
             if self.backup_before_update and self.backup_manager:
-                logger.info("📦 Creating pre-update backup...")
-                backup_name = backup_name or f"pre-update-{self.current_version}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+                logger.info(" Creating pre-update backup...")
+                backup_name = backup_name or f"pre-update-{self.current_version}-{from datetime import datetime
+datetime.now().strftime('%Y%m%d-%H%M%S')}"
                 backup_result = await self.backup_manager.create_backup(backup_name)
                 if backup_result.get("success"):
                     backup_id = backup_result.get("backup_id")
-                    logger.info(f"✅ Backup created: {backup_id}")
+                    logger.info(f" Backup created: {backup_id}")
                 else:
-                    logger.error("❌ Backup failed, aborting update")
+                    logger.error(" Backup failed, aborting update")
                     return {"success": False, "error": "Backup failed"}
             
             # Step 2: Download and verify update
-            logger.info("⬇️ Downloading update...")
+            logger.info(" Downloading update...")
             download_result = await self._download_update()
             if not download_result["success"]:
                 return download_result
             
             # Step 3: Apply update
-            logger.info("🔄 Applying update...")
+            logger.info(" Applying update...")
             apply_result = await self._apply_update(download_result["temp_dir"])
             if not apply_result["success"]:
                 # Rollback if backup exists
                 if backup_id:
-                    logger.info("🔄 Rolling back due to update failure...")
+                    logger.info(" Rolling back due to update failure...")
                     await self._rollback_update(backup_id)
                 return apply_result
             
             # Step 4: Update dependencies
-            logger.info("📦 Updating dependencies...")
+            logger.info(" Updating dependencies...")
             deps_result = await self._update_dependencies()
             if not deps_result["success"]:
-                logger.warning(f"⚠️ Dependency update failed: {deps_result.get('error')}")
+                logger.warning(f" Dependency update failed: {deps_result.get('error')}")
             
             # Step 5: Verify update
             new_version = await self._get_current_version()
             
-            logger.info(f"✅ Update completed successfully: {self.current_version} → {new_version}")
+            logger.info(f" Update completed successfully: {self.current_version}  {new_version}")
             
             return {
                 "success": True,
@@ -273,7 +276,7 @@ class GitUpdateManager:
             }
             
         except Exception as e:
-            logger.error(f"❌ Update failed: {e}")
+            logger.error(f" Update failed: {e}")
             return {"success": False, "error": str(e)}
     
     async def _download_update(self) -> Dict[str, Any]:
@@ -289,7 +292,8 @@ class GitUpdateManager:
                 return {"success": False, "error": "No download URL available"}
             
             # Create temporary directory
-            temp_dir = Path(tempfile.mkdtemp(prefix="plexichat_update_"))
+            temp_dir = from pathlib import Path
+Path(tempfile.mkdtemp(prefix="plexichat_update_"))
             
             headers = {}
             if self.github_token:
@@ -401,18 +405,18 @@ class GitUpdateManager:
             if not self.backup_manager:
                 return {"success": False, "error": "Backup manager not available"}
             
-            logger.info(f"🔄 Rolling back to backup: {backup_id}")
+            logger.info(f" Rolling back to backup: {backup_id}")
             result = await self.backup_manager.restore_backup(backup_id)
             
             if result.get("success"):
-                logger.info("✅ Rollback completed successfully")
+                logger.info(" Rollback completed successfully")
                 return {"success": True}
             else:
-                logger.error(f"❌ Rollback failed: {result.get('error')}")
+                logger.error(f" Rollback failed: {result.get('error')}")
                 return result
                 
         except Exception as e:
-            logger.error(f"❌ Rollback failed: {e}")
+            logger.error(f" Rollback failed: {e}")
             return {"success": False, "error": str(e)}
     
     def get_version_info(self) -> Dict[str, Any]:

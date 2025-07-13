@@ -1,17 +1,19 @@
+from datetime import datetime
+from enum import IntEnum
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import JSON, Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index, Text
+
 """
 PlexiChat Channel Model
 
 Discord-like channel model with comprehensive features for text, voice, and special channels.
 """
-
-from datetime import datetime
-from enum import IntEnum
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import DateTime, Index, Text
-from sqlmodel import JSON, Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for channels
 channel_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=2)

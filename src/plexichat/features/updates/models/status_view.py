@@ -1,16 +1,18 @@
+from datetime import datetime
+from typing import Any, Dict
+
+from sqlmodel import Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index
+
 """
 PlexiChat Status View Model
 
 Tracking who viewed status updates.
 """
-
-from datetime import datetime
-from typing import Any, Dict
-
-from sqlalchemy import DateTime, Index
-from sqlmodel import Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for status views
 view_snowflake = SnowflakeGenerator(datacenter_id=3, worker_id=2)

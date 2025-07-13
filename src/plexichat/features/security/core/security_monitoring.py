@@ -1,10 +1,3 @@
-"""
-PlexiChat Security Monitoring System
-
-Real-time security monitoring with alerting, incident response,
-and comprehensive security event correlation.
-"""
-
 import json
 import logging
 import smtplib
@@ -15,6 +8,18 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
+
+            import aiohttp
+            
+            import syslog
+            
+
+"""
+PlexiChat Security Monitoring System
+
+Real-time security monitoring with alerting, incident response,
+and comprehensive security event correlation.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -389,8 +394,6 @@ Please investigate this security event immediately.
     async def _send_webhook_alert(self, alert: SecurityAlert):
         """Send webhook alert notification."""
         try:
-            import aiohttp
-            
             webhook_config = self.alert_channels["webhook"]
             url = webhook_config.get("url")
             
@@ -421,8 +424,6 @@ Please investigate this security event immediately.
     async def _send_syslog_alert(self, alert: SecurityAlert):
         """Send syslog alert notification."""
         try:
-            import syslog
-            
             self.alert_channels["syslog"]
             
             # Map severity to syslog priority

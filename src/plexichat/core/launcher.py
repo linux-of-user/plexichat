@@ -1,13 +1,23 @@
-"""
-PlexiChat Launcher System
-Provides centralized application launching and initialization.
-"""
-
 import asyncio
 import logging
 import sys
 from dataclasses import dataclass
 from typing import Optional
+
+
+            import uvicorn
+
+            from plexichat.core.database import initialize_database_system_legacy
+            from plexichat.core.auth import initialize_auth_system
+            from plexichat.features.backup import initialize_backup_system
+            from plexichat.features.security import initialize_security_features
+            from plexichat.interfaces.web import create_app
+            from plexichat.core.database import shutdown_database_system
+
+"""
+PlexiChat Launcher System
+Provides centralized application launching and initialization.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +46,7 @@ class PlexiChatLauncher:
     async def initialize(self) -> bool:
         """Initialize the launcher and all systems."""
         try:
-            logger.info("🚀 Initializing PlexiChat Launcher...")
+            logger.info(" Initializing PlexiChat Launcher...")
             
             # Initialize core systems
             await self._initialize_core_systems()
@@ -48,25 +58,23 @@ class PlexiChatLauncher:
             await self._initialize_interfaces()
             
             self._initialized = True
-            logger.info("✅ PlexiChat Launcher initialized successfully")
+            logger.info(" PlexiChat Launcher initialized successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize launcher: {e}")
+            logger.error(f" Failed to initialize launcher: {e}")
             return False
     
     async def _initialize_core_systems(self):
         """Initialize core systems."""
         try:
             # Database system
-            from plexichat.core.database import initialize_database_system_legacy
             await initialize_database_system_legacy()
             
             # Authentication system
-            from plexichat.core.auth import initialize_auth_system
             await initialize_auth_system()
             
-            logger.info("✅ Core systems initialized")
+            logger.info(" Core systems initialized")
             
         except ImportError as e:
             logger.warning(f"Some core systems not available: {e}")
@@ -78,14 +86,12 @@ class PlexiChatLauncher:
         """Initialize feature systems."""
         try:
             # Backup system
-            from plexichat.features.backup import initialize_backup_system
             await initialize_backup_system()
             
             # Security features
-            from plexichat.features.security import initialize_security_features
             await initialize_security_features()
             
-            logger.info("✅ Features initialized")
+            logger.info(" Features initialized")
             
         except ImportError as e:
             logger.warning(f"Some features not available: {e}")
@@ -96,10 +102,9 @@ class PlexiChatLauncher:
         """Initialize interface systems."""
         try:
             # Web interface
-            from plexichat.interfaces.web import create_app
             self.app = create_app()
             
-            logger.info("✅ Interfaces initialized")
+            logger.info(" Interfaces initialized")
             
         except ImportError as e:
             logger.warning(f"Some interfaces not available: {e}")
@@ -113,10 +118,9 @@ class PlexiChatLauncher:
                 if not await self.initialize():
                     return False
             
-            logger.info(f"🌟 Starting PlexiChat on {self.config.host}:{self.config.port}")
+            logger.info(f" Starting PlexiChat on {self.config.host}:{self.config.port}")
             
             # Start the server
-            import uvicorn
             config = uvicorn.Config(
                 self.app,
                 host=self.config.host,
@@ -131,13 +135,13 @@ class PlexiChatLauncher:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to start application: {e}")
+            logger.error(f" Failed to start application: {e}")
             return False
     
     async def stop(self):
         """Stop the application."""
         try:
-            logger.info("🛑 Stopping PlexiChat...")
+            logger.info(" Stopping PlexiChat...")
             
             if self.server:
                 self.server.should_exit = True
@@ -145,16 +149,15 @@ class PlexiChatLauncher:
             # Shutdown systems
             await self._shutdown_systems()
             
-            logger.info("✅ PlexiChat stopped successfully")
+            logger.info(" PlexiChat stopped successfully")
             
         except Exception as e:
-            logger.error(f"❌ Failed to stop application: {e}")
+            logger.error(f" Failed to stop application: {e}")
     
     async def _shutdown_systems(self):
         """Shutdown all systems gracefully."""
         try:
             # Shutdown database
-            from plexichat.core.database import shutdown_database_system
             await shutdown_database_system()
             
         except ImportError:

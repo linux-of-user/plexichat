@@ -1,9 +1,9 @@
-"""
-Plugin Management API endpoints for PlexiChat.
-Provides comprehensive plugin management and monitoring capabilities.
-"""
-
 from typing import Any, Dict
+
+
+
+
+                        import json
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
@@ -11,6 +11,10 @@ from pydantic import BaseModel
 from plexichat.app.logger_config import logger
 from plexichat.app.plugins.plugin_manager import get_plugin_manager
 
+"""
+Plugin Management API endpoints for PlexiChat.
+Provides comprehensive plugin management and monitoring capabilities.
+"""
 
 # Pydantic models for API
 class PluginActionRequest(BaseModel):
@@ -47,7 +51,6 @@ async def list_plugins():
                 try:
                     config_file = plugin_manager.plugins_dir / plugin_name / "plugin.json"
                     if config_file.exists():
-                        import json
                         with open(config_file, 'r') as f:
                             config = json.load(f)
                         

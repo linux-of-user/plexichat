@@ -1,16 +1,18 @@
-"""
-Advanced theming service for PlexiChat.
-Provides comprehensive theming capabilities across all interfaces.
-"""
-
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+
+
+
 from plexichat.app.logger_config import logger
 
+"""
+Advanced theming service for PlexiChat.
+Provides comprehensive theming capabilities across all interfaces.
+"""
 
 @dataclass
 class ThemeColors:
@@ -71,15 +73,18 @@ class Theme:
     
     def __post_init__(self):
         if not self.created_at:
-            self.created_at = datetime.now().isoformat()
-        self.updated_at = datetime.now().isoformat()
+            self.created_at = from datetime import datetime
+datetime.now().isoformat()
+        self.updated_at = from datetime import datetime
+datetime.now().isoformat()
 
 
 class ThemingService:
     """Advanced theming service."""
     
     def __init__(self):
-        self.themes_directory = Path("data/themes")
+        self.themes_directory = from pathlib import Path
+Path("data/themes")
         self.themes_directory.mkdir(parents=True, exist_ok=True)
         
         self.user_preferences_file = self.themes_directory / "user_preferences.json"
@@ -363,7 +368,8 @@ class ThemingService:
             base_theme = self.built_in_themes["default_light"]
         
         # Generate unique ID
-        theme_id = f"custom_{name.lower().replace(' ', '_')}_{int(datetime.now().timestamp())}"
+        theme_id = f"custom_{name.lower().replace(' ', '_')}_{int(from datetime import datetime
+datetime.now().timestamp())}"
         
         # Create theme colors
         theme_colors = ThemeColors(**asdict(base_theme.colors))
@@ -416,7 +422,8 @@ class ThemingService:
             if hasattr(theme, key):
                 setattr(theme, key, value)
         
-        theme.updated_at = datetime.now().isoformat()
+        theme.updated_at = from datetime import datetime
+datetime.now().isoformat()
         
         self._save_custom_themes()
         logger.info(f"Updated custom theme: {theme_id}")

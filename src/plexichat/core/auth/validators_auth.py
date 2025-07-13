@@ -1,3 +1,14 @@
+import logging
+import re
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+from ..security.input_validation import get_input_validator
+
+        import base64
+            import time
+            import time
+
 """
 PlexiChat Authentication Validators
 
@@ -5,14 +16,7 @@ ENHANCED to integrate with unified input validation framework.
 Provides specialized validation for authentication-specific data.
 """
 
-import logging
-import re
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
 # Import unified input validation
-from ..security.input_validation import get_input_validator
-
 logger = logging.getLogger(__name__)
 
 
@@ -211,7 +215,6 @@ class TokenValidator:
             return ValidationResult(valid=False, errors=errors, warnings=warnings)
         
         # Check base64 encoding
-        import base64
         try:
             for i, part in enumerate(parts[:2]):  # Don't decode signature
                 # Add padding if needed
@@ -239,13 +242,11 @@ class TokenValidator:
         
         # Expiration check
         if "exp" in claims:
-            import time
             if claims["exp"] < time.time():
                 errors.append("Token has expired")
         
         # Issued at check
         if "iat" in claims:
-            import time
             if claims["iat"] > time.time() + 60:  # Allow 1 minute clock skew
                 warnings.append("Token issued in the future")
         

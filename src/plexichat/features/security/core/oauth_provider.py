@@ -1,10 +1,3 @@
-"""
-PlexiChat OAuth Provider
-
-Comprehensive OAuth 2.0 and OpenID Connect provider with PKCE support,
-JWT tokens, and enterprise-grade security features.
-"""
-
 import base64
 import hashlib
 import logging
@@ -14,10 +7,19 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-import jwt
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+
+
+import jwt
+
+"""
+PlexiChat OAuth Provider
+
+Comprehensive OAuth 2.0 and OpenID Connect provider with PKCE support,
+JWT tokens, and enterprise-grade security features.
+"""
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,9 @@
-"""
-Individual testing API with wonderful UI integration.
-Provides access to all individual test suites with detailed reporting.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+
+
+
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -13,6 +12,13 @@ from pydantic import BaseModel
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.testing.individual_tests import (
+from plexichat.app.utils.auth import get_optional_current_user
+
+"""
+Individual testing API with wonderful UI integration.
+Provides access to all individual test suites with detailed reporting.
+"""
+
     AdminEndpointTests,
     AuthEndpointTests,
     BackupEndpointTests,
@@ -24,9 +30,6 @@ from plexichat.app.testing.individual_tests import (
     SecurityFeatureTests,
     UserEndpointTests,
 )
-from plexichat.app.utils.auth import get_optional_current_user
-
-
 # Pydantic models for API
 class TestSuiteRequest(BaseModel):
     test_suite: str
@@ -204,7 +207,7 @@ async def run_test_suite(
         
         suite_info = TEST_SUITES[suite_id]
         
-        logger.info(f"🧪 Starting individual test suite: {suite_info['name']}")
+        logger.info(f" Starting individual test suite: {suite_info['name']}")
         
         # Run test suite in background
         background_tasks.add_task(
@@ -222,7 +225,8 @@ async def run_test_suite(
             "suite_id": suite_id,
             "estimated_duration_minutes": suite_info["estimated_duration_minutes"],
             "endpoints_to_test": len(suite_info["endpoints_tested"]),
-            "test_run_id": f"individual_{suite_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            "test_run_id": f"individual_{suite_id}_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
         })
         
     except Exception as e:
@@ -257,7 +261,7 @@ async def run_multiple_test_suites(
         else:
             estimated_time = total_estimated_time
         
-        logger.info(f"🧪 Starting multiple test suites: {request.test_suites}")
+        logger.info(f" Starting multiple test suites: {request.test_suites}")
         
         # Run test suites in background
         background_tasks.add_task(
@@ -279,7 +283,8 @@ async def run_multiple_test_suites(
                 len(TEST_SUITES[suite_id]["endpoints_tested"])
                 for suite_id in request.test_suites
             ),
-            "test_run_id": f"multi_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            "test_run_id": f"multi_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
         })
         
     except Exception as e:
@@ -303,7 +308,8 @@ async def get_test_results(
         return {
             "suite_id": suite_id,
             "suite_name": TEST_SUITES[suite_id]["name"],
-            "last_run": datetime.now().isoformat(),
+            "last_run": from datetime import datetime
+datetime.now().isoformat(),
             "status": "completed",
             "summary": {
                 "total_tests": 15,
@@ -492,7 +498,7 @@ async def get_testing_dashboard(
     <body>
         <div class="container">
             <div class="header">
-                <h1>🧪 Individual Testing Dashboard</h1>
+                <h1> Individual Testing Dashboard</h1>
                 <p>Comprehensive endpoint testing with beautiful reporting</p>
             </div>
             
@@ -521,10 +527,10 @@ async def get_testing_dashboard(
             
             <div class="controls">
                 <div class="control-group">
-                    <button class="control-button" onclick="runAllSuites()">🚀 Run All Suites</button>
-                    <button class="control-button" onclick="runCriticalSuites()">⚡ Run Critical Tests</button>
-                    <button class="control-button" onclick="viewReports()">📊 View Reports</button>
-                    <button class="control-button danger" onclick="clearResults()">🗑️ Clear Results</button>
+                    <button class="control-button" onclick="runAllSuites()"> Run All Suites</button>
+                    <button class="control-button" onclick="runCriticalSuites()"> Run Critical Tests</button>
+                    <button class="control-button" onclick="viewReports()"> View Reports</button>
+                    <button class="control-button danger" onclick="clearResults()"> Clear Results</button>
                 </div>
             </div>
         </div>
@@ -556,7 +562,7 @@ async def get_testing_dashboard(
                                 </div>
                             </div>
                             <button class="run-button" onclick="runSuite('${suite.id}', '${suite.name}')">
-                                🧪 Run ${suite.name}
+                                 Run ${suite.name}
                             </button>
                         </div>
                     `).join('');
@@ -580,7 +586,7 @@ async def get_testing_dashboard(
                     const result = await response.json();
                     
                     if (result.success) {
-                        alert(`✅ Started ${suiteName}\\nEstimated duration: ${result.estimated_duration_minutes} minutes`);
+                        alert(` Started ${suiteName}\\nEstimated duration: ${result.estimated_duration_minutes} minutes`);
                         
                         // Simulate test completion (in real app, this would poll for status)
                         setTimeout(() => {
@@ -588,11 +594,11 @@ async def get_testing_dashboard(
                         }, result.estimated_duration_minutes * 1000); // Convert to milliseconds for demo
                     } else {
                         statusIndicator.className = 'status-indicator failed';
-                        alert(`❌ Failed to start ${suiteName}`);
+                        alert(` Failed to start ${suiteName}`);
                     }
                 } catch (error) {
                     statusIndicator.className = 'status-indicator failed';
-                    alert(`❌ Error running ${suiteName}: ${error.message}`);
+                    alert(` Error running ${suiteName}: ${error.message}`);
                 }
             }
             
@@ -616,7 +622,7 @@ async def get_testing_dashboard(
                     const result = await response.json();
                     
                     if (result.success) {
-                        alert(`🚀 Started all test suites\\nEstimated duration: ${result.estimated_duration_minutes} minutes`);
+                        alert(` Started all test suites\\nEstimated duration: ${result.estimated_duration_minutes} minutes`);
                         
                         // Mark all as running
                         suiteIds.forEach(id => {
@@ -624,7 +630,7 @@ async def get_testing_dashboard(
                         });
                     }
                 } catch (error) {
-                    alert(`❌ Error running all suites: ${error.message}`);
+                    alert(` Error running all suites: ${error.message}`);
                 }
             }
             
@@ -632,7 +638,7 @@ async def get_testing_dashboard(
             function runCriticalSuites() {
                 const criticalSuites = ['auth', 'security', 'backup'];
                 // Implementation would be similar to runAllSuites but with filtered list
-                alert('🔥 Running critical test suites: Authentication, Security, Backup');
+                alert(' Running critical test suites: Authentication, Security, Backup');
             }
             
             // View test reports
@@ -646,7 +652,7 @@ async def get_testing_dashboard(
                     document.querySelectorAll('.status-indicator').forEach(indicator => {
                         indicator.className = 'status-indicator';
                     });
-                    alert('✅ Test results cleared');
+                    alert(' Test results cleared');
                 }
             }
             
@@ -670,7 +676,7 @@ async def _run_test_suite_background(
 ):
     """Run test suite in background."""
     try:
-        logger.info(f"🔄 Running background test suite: {suite_info['name']}")
+        logger.info(f" Running background test suite: {suite_info['name']}")
         
         # Initialize test suite
         test_class = suite_info["class"]
@@ -680,7 +686,7 @@ async def _run_test_suite_background(
         results = await test_suite.run_all_tests()
         
         # Save results (implementation would save to database/file)
-        logger.info(f"✅ Completed test suite {suite_id}: {results.get('summary', {})}")
+        logger.info(f" Completed test suite {suite_id}: {results.get('summary', {})}")
         
     except Exception as e:
         logger.error(f"Background test suite {suite_id} failed: {e}")
@@ -695,7 +701,7 @@ async def _run_multiple_suites_background(
 ):
     """Run multiple test suites in background."""
     try:
-        logger.info(f"🔄 Running multiple test suites: {suite_ids}")
+        logger.info(f" Running multiple test suites: {suite_ids}")
         
         if parallel_execution:
             # Run suites in parallel
@@ -714,7 +720,7 @@ async def _run_multiple_suites_background(
                     suite_info = TEST_SUITES[suite_id]
                     await _run_test_suite_background(suite_id, suite_info, base_url, True, user_id)
         
-        logger.info(f"✅ Completed multiple test suites: {suite_ids}")
+        logger.info(f" Completed multiple test suites: {suite_ids}")
         
     except Exception as e:
         logger.error(f"Multiple test suites execution failed: {e}")

@@ -1,8 +1,3 @@
-"""
-AI Moderation Feedback Collector
-Collects and processes user feedback for improving moderation accuracy.
-"""
-
 import json
 import logging
 import sqlite3
@@ -14,6 +9,13 @@ from typing import Any, Dict, List, Optional
 
 from .moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity
 from .training_system import ModerationTrainingSystem, TrainingDataSource
+
+            import hashlib
+
+"""
+AI Moderation Feedback Collector
+Collects and processes user feedback for improving moderation accuracy.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +72,8 @@ class FeedbackCollector:
     """Collects and processes moderation feedback."""
     
     def __init__(self, data_path: str = "data/moderation_feedback"):
-        self.data_path = Path(data_path)
+        self.data_path = from pathlib import Path
+Path(data_path)
         self.data_path.mkdir(parents=True, exist_ok=True)
         
         self.db_path = self.data_path / "feedback.db"
@@ -247,7 +250,6 @@ class FeedbackCollector:
     async def cache_content(self, content_id: str, content: str):
         """Cache content for feedback processing."""
         try:
-            import hashlib
             content_hash = hashlib.sha256(content.encode()).hexdigest()
             
             with sqlite3.connect(self.db_path) as conn:

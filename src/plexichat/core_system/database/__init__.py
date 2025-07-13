@@ -1,3 +1,16 @@
+from typing import Optional
+
+from .manager import (
+    from .models import *  # type: ignore
+    from .schemas import *  # type: ignore
+    from .utils import DatabaseUtils, db_utils  # type: ignore
+    from .backup_integration import DatabaseBackupIntegration, db_backup  # type: ignore
+    from .config import DatabaseProvider  # type: ignore
+    from .exceptions import (  # type: ignore
+        import logging
+    import logging
+    from .engines import db_cluster
+
 """
 PlexiChat Core Database System - Unified Database Management
 
@@ -20,10 +33,7 @@ Features:
 - Backup and recovery integration
 """
 
-from typing import Optional
-
 # Import consolidated database components
-from .manager import (
     ConnectionStatus,
     ConsolidatedDatabaseManager,
     DatabaseConfig,
@@ -41,18 +51,15 @@ DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibilit
 
 # Import database models and schemas (conditional)
 try:
-    from .models import *  # type: ignore
 except ImportError:
     pass
 
 try:
-    from .schemas import *  # type: ignore
 except ImportError:
     pass
 
 # Import database utilities (conditional)
 try:
-    from .utils import DatabaseUtils, db_utils  # type: ignore
 except ImportError:
     # Create placeholder classes
     class DatabaseUtils:
@@ -60,7 +67,6 @@ except ImportError:
     db_utils = DatabaseUtils()
 
 try:
-    from .backup_integration import DatabaseBackupIntegration, db_backup  # type: ignore
 except ImportError:
     # Create placeholder classes
     class DatabaseBackupIntegration:
@@ -70,14 +76,12 @@ except ImportError:
 
 # Database configuration and types (conditional)
 try:
-    from .config import DatabaseProvider  # type: ignore
 except ImportError:
     # Create placeholder classes
     class DatabaseProvider:
         pass
 
 try:
-    from .exceptions import (  # type: ignore
         ConnectionError,
         DatabaseError,
         EncryptionError,
@@ -369,14 +373,12 @@ async def initialize_database_system_legacy(config: Optional[dict] = None) -> bo
     try:
         return await database_manager.initialize(config)
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Failed to initialize database system: {e}")
+        logger.error(f" Failed to initialize database system: {e}")
         return False
 
 async def shutdown_database_system():
     """Gracefully shutdown the database system."""
-    import logging
     logger = logging.getLogger(__name__)
 
     try:
@@ -385,7 +387,7 @@ async def shutdown_database_system():
         # Shutdown backup integration
         try:
             await db_backup.shutdown()
-            logger.info("✅ Database backup system shutdown")
+            logger.info(" Database backup system shutdown")
         except (AttributeError, NameError):
             logger.debug("Database backup system not available for shutdown")
         except Exception as e:
@@ -395,22 +397,21 @@ async def shutdown_database_system():
         try:
             # Use close_all_connections which exists in the manager
             await database_manager.close_all_connections()
-            logger.info("✅ Database manager shutdown")
+            logger.info(" Database manager shutdown")
         except (AttributeError, NameError):
             logger.debug("Database manager not available for shutdown")
         except Exception as e:
             logger.warning(f"Error shutting down database manager: {e}")
 
-        logger.info("✅ Database system shutdown completed")
+        logger.info(" Database system shutdown completed")
 
     except Exception as e:
-        logger.error(f"❌ Error during database system shutdown: {e}")
+        logger.error(f" Error during database system shutdown: {e}")
 
 # Convenience functions for common operations
 async def get_session(role: str = "primary", read_only: bool = False):
     """Get database session with automatic failover."""
     # Use the database cluster from engines.py which has get_session
-    from .engines import db_cluster
     try:
         async with db_cluster.get_session() as session:
             return session

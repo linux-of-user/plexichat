@@ -1,15 +1,3 @@
-"""
-PlexiChat Unified Plugin Configuration Manager
-
-Centralizes all plugin configuration management with:
-- Hot-reloadable configuration
-- Schema validation
-- Configuration inheritance
-- Environment-specific overrides
-- Real-time configuration updates
-- Configuration versioning and rollback
-"""
-
 import asyncio
 import json
 from dataclasses import dataclass, field
@@ -24,6 +12,19 @@ from watchdog.observers import Observer
 
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
+
+
+"""
+PlexiChat Unified Plugin Configuration Manager
+
+Centralizes all plugin configuration management with:
+- Hot-reloadable configuration
+- Schema validation
+- Configuration inheritance
+- Environment-specific overrides
+- Real-time configuration updates
+- Configuration versioning and rollback
+"""
 
 logger = get_logger(__name__)
 
@@ -66,7 +67,8 @@ class PluginConfigurationManager:
     """
     
     def __init__(self, config_dir: Optional[Path] = None):
-        self.config_dir = config_dir or Path("config/plugins")
+        self.config_dir = config_dir or from pathlib import Path
+Path("config/plugins")
         self.schemas_dir = self.config_dir / "schemas"
         self.environments_dir = self.config_dir / "environments"
         self.backups_dir = self.config_dir / "backups"
@@ -107,11 +109,11 @@ class PluginConfigurationManager:
             if self.hot_reload_enabled:
                 self._start_file_watching()
             
-            logger.info("✅ Plugin Configuration Manager initialized successfully")
+            logger.info(" Plugin Configuration Manager initialized successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Configuration Manager initialization failed: {e}")
+            logger.error(f" Configuration Manager initialization failed: {e}")
             return False
     
     async def register_plugin_config(self, 
@@ -426,7 +428,8 @@ class PluginConfigurationManager:
     async def _backup_config(self, plugin_name: str, config_entry: ConfigurationEntry):
         """Backup current configuration."""
         try:
-            backup_file = self.backups_dir / f"{plugin_name}_v{config_entry.version}_{int(datetime.now().timestamp())}.yaml"
+            backup_file = self.backups_dir / f"{plugin_name}_v{config_entry.version}_{int(from datetime import datetime
+datetime.now().timestamp())}.yaml"
             
             backup_data = {
                 "plugin_name": plugin_name,
@@ -475,7 +478,8 @@ class PluginConfigurationManager:
                     if event.is_directory:
                         return
                     
-                    file_path = Path(event.src_path)
+                    file_path = from pathlib import Path
+Path(event.src_path)
                     if file_path.suffix.lower() in ['.yaml', '.yml', '.json']:
                         plugin_name = file_path.stem
                         logger.info(f"Configuration file changed: {file_path}")

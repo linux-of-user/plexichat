@@ -1,8 +1,3 @@
-"""
-PlexiChat Admin Credentials Manager
-Handles secure storage and management of admin passwords separately from user passwords.
-"""
-
 import json
 import logging
 import os
@@ -13,6 +8,13 @@ from typing import Any, Dict, Optional
 
 import bcrypt
 
+                    from datetime import timedelta
+
+"""
+PlexiChat Admin Credentials Manager
+Handles secure storage and management of admin passwords separately from user passwords.
+"""
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,9 +23,11 @@ class AdminCredentialsManager:
     
     def __init__(self):
         """Initialize the admin credentials manager."""
-        self.config_dir = Path("config")
+        self.config_dir = from pathlib import Path
+Path("config")
         self.admin_creds_file = self.config_dir / "admin_credentials.json"
-        self.default_creds_file = Path("default_creds.txt")
+        self.default_creds_file = from pathlib import Path
+Path("default_creds.txt")
         
         # Ensure config directory exists
         self.config_dir.mkdir(exist_ok=True)
@@ -185,7 +189,6 @@ class AdminCredentialsManager:
                 
                 # Lock account after 5 failed attempts for 30 minutes
                 if admin_info["login_attempts"] >= 5:
-                    from datetime import timedelta
                     lock_until = datetime.now(timezone.utc) + timedelta(minutes=30)
                     admin_info["locked_until"] = lock_until.isoformat()
                     logger.warning(f"Admin account '{username}' locked due to failed attempts")

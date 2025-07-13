@@ -1,10 +1,3 @@
-"""
-PlexiChat Error Analytics
-
-Advanced error analytics system for pattern detection, trend analysis,
-and predictive error prevention.
-"""
-
 import asyncio
 import logging
 import statistics
@@ -14,6 +7,14 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 from .exceptions import ErrorCategory, ErrorSeverity
+
+
+"""
+PlexiChat Error Analytics
+
+Advanced error analytics system for pattern detection, trend analysis,
+and predictive error prevention.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,8 @@ class ErrorAnalytics:
     async def record_error(self, error_info: Dict[str, Any]):
         """Record an error for analytics."""
         analytics_data = {
-            'timestamp': error_info.get('timestamp', datetime.now()),
+            'timestamp': error_info.get('timestamp', from datetime import datetime
+datetime.now()),
             'severity': error_info.get('severity', ErrorSeverity.MEDIUM),
             'category': error_info.get('category', ErrorCategory.UNKNOWN),
             'component': error_info.get('component', 'unknown'),
@@ -104,7 +106,8 @@ class ErrorAnalytics:
         self.error_data.append(analytics_data)
         
         # Keep only recent data to prevent memory issues
-        cutoff_time = datetime.now() - timedelta(days=30)
+        cutoff_time = from datetime import datetime
+datetime.now() - timedelta(days=30)
         self.error_data = [
             error for error in self.error_data
             if error['timestamp'] >= cutoff_time
@@ -142,7 +145,8 @@ class ErrorAnalytics:
     
     async def _detect_patterns(self):
         """Detect error patterns in recent data."""
-        cutoff_time = datetime.now() - timedelta(hours=self.pattern_detection_window_hours)
+        cutoff_time = from datetime import datetime
+datetime.now() - timedelta(hours=self.pattern_detection_window_hours)
         recent_errors = [
             error for error in self.error_data
             if error['timestamp'] >= cutoff_time
@@ -185,7 +189,8 @@ class ErrorAnalytics:
                 ))
                 
                 pattern = ErrorPattern(
-                    pattern_id=f"error_type_{error_type}_{datetime.now().strftime('%Y%m%d')}",
+                    pattern_id=f"error_type_{error_type}_{from datetime import datetime
+datetime.now().strftime('%Y%m%d')}",
                     pattern_type="recurring_error_type",
                     frequency=count,
                     components_involved=components,
@@ -216,7 +221,8 @@ class ErrorAnalytics:
                 ))
                 
                 pattern = ErrorPattern(
-                    pattern_id=f"component_{component}_{datetime.now().strftime('%Y%m%d')}",
+                    pattern_id=f"component_{component}_{from datetime import datetime
+datetime.now().strftime('%Y%m%d')}",
                     pattern_type="component_failure",
                     frequency=count,
                     components_involved=[component],
@@ -251,7 +257,8 @@ class ErrorAnalytics:
             for hour, count in hourly_counts.items():
                 if count > avg_hourly + (2 * std_hourly) and count >= self.min_pattern_frequency:
                     pattern = ErrorPattern(
-                        pattern_id=f"time_pattern_hour_{hour}_{datetime.now().strftime('%Y%m%d')}",
+                        pattern_id=f"time_pattern_hour_{hour}_{from datetime import datetime
+datetime.now().strftime('%Y%m%d')}",
                         pattern_type="time_based",
                         frequency=count,
                         components_involved=[],
@@ -285,7 +292,8 @@ class ErrorAnalytics:
             for user_id, count in user_errors.items():
                 if count > avg_user_errors * 3 and count >= self.min_pattern_frequency:
                     pattern = ErrorPattern(
-                        pattern_id=f"user_pattern_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+                        pattern_id=f"user_pattern_{user_id}_{from datetime import datetime
+datetime.now().strftime('%Y%m%d')}",
                         pattern_type="user_specific",
                         frequency=count,
                         components_involved=[],
@@ -304,7 +312,8 @@ class ErrorAnalytics:
     
     async def _analyze_trends(self):
         """Analyze error trends over time."""
-        cutoff_time = datetime.now() - timedelta(days=self.trend_analysis_window_days)
+        cutoff_time = from datetime import datetime
+datetime.now() - timedelta(days=self.trend_analysis_window_days)
         trend_data = [
             error for error in self.error_data
             if error['timestamp'] >= cutoff_time
@@ -442,7 +451,8 @@ class ErrorAnalytics:
                 'trends_analyzed': len(self.trends),
                 'correlations_found': len(self.correlations),
                 'analysis_window_hours': self.pattern_detection_window_hours,
-                'last_analysis': datetime.now().isoformat()
+                'last_analysis': from datetime import datetime
+datetime.now().isoformat()
             }
         }
     

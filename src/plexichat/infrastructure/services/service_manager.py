@@ -1,10 +1,3 @@
-"""
-PlexiChat Service Manager
-
-Centralized service orchestration with quantum security integration,
-intelligent dependency resolution, and adaptive resource management.
-"""
-
 import asyncio
 import importlib
 import inspect
@@ -14,6 +7,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Type
 
 from . import SecureService, ServiceMetadata, ServiceStatus
+
+
+"""
+PlexiChat Service Manager
+
+Centralized service orchestration with quantum security integration,
+intelligent dependency resolution, and adaptive resource management.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,8 @@ class ServiceManager:
     """
     
     def __init__(self, services_dir: str = "src/plexichat/services"):
-        self.services_dir = Path(services_dir)
+        self.services_dir = from pathlib import Path
+Path(services_dir)
         
         # Service registry
         self.registered_services: Dict[str, Type[SecureService]] = {}
@@ -68,7 +70,7 @@ class ServiceManager:
         try:
             await self._discover_services()
             await self._start_health_monitoring()
-            logger.info("🎛️ Service manager initialized")
+            logger.info(" Service manager initialized")
         except Exception as e:
             logger.error(f"Failed to initialize service manager: {e}")
     
@@ -91,7 +93,7 @@ class ServiceManager:
             except Exception as e:
                 logger.warning(f"Failed to load service from {service_file}: {e}")
         
-        logger.info(f"🔍 Discovered {discovered_count} services")
+        logger.info(f" Discovered {discovered_count} services")
     
     async def _load_service_from_file(self, service_file: Path):
         """Load a service from a Python file."""
@@ -136,7 +138,7 @@ class ServiceManager:
             self.dependency_graph[service_id].add(dependency)
             self.reverse_dependencies[dependency].add(service_id)
         
-        logger.info(f"📝 Registered service: {metadata.name} ({service_id})")
+        logger.info(f" Registered service: {metadata.name} ({service_id})")
     
     async def start_service(self, service_id: str) -> bool:
         """Start a specific service and its dependencies."""
@@ -161,11 +163,11 @@ class ServiceManager:
             
             self.active_services[service_id] = service_instance
             
-            logger.info(f"✅ Started service: {metadata.name}")
+            logger.info(f" Started service: {metadata.name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to start service {service_id}: {e}")
+            logger.error(f" Failed to start service {service_id}: {e}")
             return False
     
     async def _start_dependencies(self, service_id: str):
@@ -203,11 +205,11 @@ class ServiceManager:
             
             del self.active_services[service_id]
             
-            logger.info(f"🛑 Stopped service: {service_id}")
+            logger.info(f" Stopped service: {service_id}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to stop service {service_id}: {e}")
+            logger.error(f" Failed to stop service {service_id}: {e}")
             return False
     
     async def restart_service(self, service_id: str) -> bool:
@@ -221,7 +223,7 @@ class ServiceManager:
         # Topological sort of services by dependencies
         start_order = self._get_startup_order()
         
-        logger.info(f"🚀 Starting {len(start_order)} services in dependency order")
+        logger.info(f" Starting {len(start_order)} services in dependency order")
         
         # Start services in batches based on priority
         priority_groups = defaultdict(list)
@@ -285,7 +287,7 @@ class ServiceManager:
         # Get shutdown order (reverse of startup order)
         shutdown_order = list(reversed(self._get_startup_order()))
         
-        logger.info(f"🛑 Stopping {len(self.active_services)} services")
+        logger.info(f" Stopping {len(self.active_services)} services")
         
         for service_id in shutdown_order:
             if service_id in self.active_services:
@@ -303,7 +305,7 @@ class ServiceManager:
                     await asyncio.sleep(self.health_check_interval * 2)
         
         asyncio.create_task(health_monitor())
-        logger.info("💓 Service health monitoring started")
+        logger.info(" Service health monitoring started")
     
     async def _check_all_service_health(self):
         """Check health of all active services."""
@@ -317,7 +319,7 @@ class ServiceManager:
         
         # Attempt recovery for unhealthy services
         for service_id in unhealthy_services:
-            logger.info(f"🔄 Attempting recovery for unhealthy service: {service_id}")
+            logger.info(f" Attempting recovery for unhealthy service: {service_id}")
             await self.restart_service(service_id)
     
     def get_service_status(self, service_id: str) -> Optional[Dict[str, Any]]:

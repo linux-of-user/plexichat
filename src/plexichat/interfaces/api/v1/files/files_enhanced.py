@@ -1,28 +1,32 @@
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import Session, select
+
+
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+from plexichat.app.db import get_session
+from plexichat.app.models.files import (
+from plexichat.app.models.user import User
+from plexichat.app.services.file_permissions import FilePermissionService
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
+    from plexichat.app.models.files import FileAccessLog
+
 """
 Enhanced file management API with comprehensive permissions and access control.
 Supports file embedding in messages with proper permission validation.
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from sqlmodel import Session, select
-
-from plexichat.app.db import get_session
-from plexichat.app.models.files import (
     FileAccessLevel,
     FilePermission,
     FilePermissionType,
     FileRecord,
 )
-from plexichat.app.models.user import User
-from plexichat.app.services.file_permissions import FilePermissionService
-from plexichat.app.utils.auth import get_current_user, get_optional_current_user
-
-
 # Pydantic models for API
 class FilePermissionRequest(BaseModel):
     user_id: int
@@ -175,7 +179,8 @@ async def grant_file_permission(
     file_id: int,
     permission_request: FilePermissionRequest,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Grant permissions to a user for a file."""
     permission_service = FilePermissionService(session)
@@ -206,7 +211,8 @@ async def revoke_file_permission(
     file_id: int,
     user_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Revoke permissions for a user on a file."""
     permission_service = FilePermissionService(session)
@@ -233,7 +239,8 @@ async def revoke_file_permission(
 async def list_file_permissions(
     file_id: int,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """List all permissions for a file."""
     permission_service = FilePermissionService(session)
@@ -285,7 +292,8 @@ async def create_file_share(
     file_id: int,
     share_request: FileShareRequest,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Create a share link for a file."""
     permission_service = FilePermissionService(session)
@@ -329,7 +337,8 @@ async def update_file_access_level(
     allow_public_read: bool = False,
     allow_public_download: bool = False,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Update file access level and public permissions."""
     permission_service = FilePermissionService(session)
@@ -373,7 +382,8 @@ async def get_file_access_logs(
     limit: int = Query(100, le=1000),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get access logs for a file (admin only)."""
     permission_service = FilePermissionService(session)
@@ -389,7 +399,6 @@ async def get_file_access_logs(
             detail="Insufficient permissions to view access logs"
         )
 
-    from plexichat.app.models.files import FileAccessLog
     statement = select(FileAccessLog).where(
         FileAccessLog.file_id == file_id
     ).order_by(FileAccessLog.accessed_at.desc()).offset(offset).limit(limit)

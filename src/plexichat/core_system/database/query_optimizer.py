@@ -1,3 +1,13 @@
+import hashlib
+import logging
+import re
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+
 """
 PlexiChat Advanced Query Optimizer
 
@@ -21,15 +31,6 @@ Key Optimization Strategies:
 - Avoid SELECT * queries
 - Implement stored procedures for complex queries
 """
-
-import hashlib
-import logging
-import re
-from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,3 @@
-"""
-PlexiChat End-to-End Encryption System
-
-Implements E2E encryption for all API endpoints, ensuring that even if
-the server is compromised, user data remains encrypted. Uses forward
-secrecy, perfect forward secrecy, and quantum-resistant algorithms.
-"""
-
 import hashlib
 import json
 import logging
@@ -19,7 +11,6 @@ from typing import Any, Dict, List, Optional
 import aiosqlite
 from cryptography.hazmat.backends import default_backend
 
-# Cryptography imports
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
@@ -28,6 +19,16 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from .distributed_key_manager import DistributedKeyManager, KeyDomain
 from .quantum_encryption import QuantumEncryptionSystem, SecurityTier
 
+
+"""
+PlexiChat End-to-End Encryption System
+
+Implements E2E encryption for all API endpoints, ensuring that even if
+the server is compromised, user data remains encrypted. Uses forward
+secrecy, perfect forward secrecy, and quantum-resistant algorithms.
+"""
+
+# Cryptography imports
 logger = logging.getLogger(__name__)
 
 
@@ -107,7 +108,8 @@ class EndToEndEncryption:
     """
     
     def __init__(self, config_dir: str = "config/security/e2e"):
-        self.config_dir = Path(config_dir)
+        self.config_dir = from pathlib import Path
+Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Database for E2E sessions
@@ -129,7 +131,7 @@ class EndToEndEncryption:
         await self._init_database()
         await self._load_sessions()
         await self._setup_endpoint_policies()
-        logger.info("🔐 End-to-end encryption system initialized")
+        logger.info(" End-to-end encryption system initialized")
     
     async def _init_database(self):
         """Initialize the E2E sessions database."""
@@ -321,7 +323,7 @@ class EndToEndEncryption:
         self.active_sessions[session_id] = session
         await self._save_session(session)
         
-        logger.info(f"🔐 Created E2E session: {session_id} for {endpoint_type.value}")
+        logger.info(f" Created E2E session: {session_id} for {endpoint_type.value}")
         return session
 
     async def establish_shared_secret(self, session_id: str, remote_public_key: bytes) -> bool:
@@ -374,7 +376,7 @@ class EndToEndEncryption:
         session.is_verified = True
         await self._save_session(session)
 
-        logger.info(f"🤝 Established shared secret for session: {session_id}")
+        logger.info(f" Established shared secret for session: {session_id}")
         return True
 
     async def _initialize_double_ratchet(self, session: E2ESession):
@@ -473,7 +475,7 @@ class EndToEndEncryption:
         await self._save_session(session)
         await self._save_message(message)
 
-        logger.debug(f"🔒 Encrypted message: {message_id}")
+        logger.debug(f" Encrypted message: {message_id}")
         return message
 
     async def decrypt_message(self, message: E2EMessage) -> Optional[bytes]:
@@ -519,7 +521,7 @@ class EndToEndEncryption:
             session.last_used = datetime.now(timezone.utc)
             await self._save_session(session)
 
-            logger.debug(f"🔓 Decrypted message: {message.message_id}")
+            logger.debug(f" Decrypted message: {message.message_id}")
             return plaintext
 
         except Exception as e:
@@ -614,7 +616,7 @@ class EndToEndEncryption:
 
     async def _rotate_session(self, session: E2ESession):
         """Rotate session keys when limits are reached."""
-        logger.info(f"🔄 Rotating session: {session.session_id}")
+        logger.info(f" Rotating session: {session.session_id}")
 
         # Create new session
         new_session = await self.create_session(session.user_id, session.endpoint_type)
@@ -631,7 +633,7 @@ class EndToEndEncryption:
         # Remove from active sessions
         del self.active_sessions[session.session_id]
 
-        logger.info(f"🔄 Session rotated: {session.session_id} -> {new_session.session_id}")
+        logger.info(f" Session rotated: {session.session_id} -> {new_session.session_id}")
         return new_session
 
     async def _save_session(self, session: E2ESession):
@@ -702,7 +704,7 @@ class EndToEndEncryption:
             session.metadata["expired_at"] = current_time.isoformat()
             await self._save_session(session)
             del self.active_sessions[session_id]
-            logger.info(f"🗑️ Cleaned up expired session: {session_id}")
+            logger.info(f" Cleaned up expired session: {session_id}")
 
         return len(expired_sessions)
 

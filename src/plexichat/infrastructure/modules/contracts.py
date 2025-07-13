@@ -1,10 +1,3 @@
-"""
-PlexiChat Module Contracts and Validation System
-
-Provides contract validation, type checking, and compliance verification
-for all modules to ensure they meet interface requirements and security standards.
-"""
-
 import inspect
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -14,6 +7,14 @@ import jsonschema
 
 from ...core_system.logging import get_logger
 from .interfaces import (
+
+"""
+PlexiChat Module Contracts and Validation System
+
+Provides contract validation, type checking, and compliance verification
+for all modules to ensure they meet interface requirements and security standards.
+"""
+
     BaseModule,
     IModuleAPI,
     IModuleConfiguration,
@@ -466,17 +467,17 @@ class ModuleContractValidator:
         if result.violations:
             report.append("ERRORS:")
             for violation in result.violations:
-                report.append(f"  ❌ [{violation.category.upper()}] {violation.message}")
+                report.append(f"   [{violation.category.upper()}] {violation.message}")
             report.append("")
         
         if result.warnings:
             report.append("WARNINGS:")
             for warning in result.warnings:
-                report.append(f"  ⚠️  [{warning.category.upper()}] {warning.message}")
+                report.append(f"    [{warning.category.upper()}] {warning.message}")
             report.append("")
         
         if result.is_valid and not result.warnings:
-            report.append("✅ Module fully compliant with all contracts!")
+            report.append(" Module fully compliant with all contracts!")
         
         return "\n".join(report)
 

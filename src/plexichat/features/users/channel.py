@@ -1,15 +1,17 @@
-"""
-Channel models for Discord-like functionality.
-Includes text channels, voice channels, categories, threads, and permissions.
-"""
-
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, Index, Text
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
+
+
+from sqlalchemy import DateTime, Index, Text
+
+"""
+Channel models for Discord-like functionality.
+Includes text channels, voice channels, categories, threads, and permissions.
+"""
 
 class ChannelType(int, Enum):
     """Channel types matching Discord API."""

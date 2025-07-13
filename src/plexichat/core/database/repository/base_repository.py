@@ -1,8 +1,3 @@
-"""
-PlexiChat Repository Pattern Implementation
-Provides domain-specific data access with business logic encapsulation
-"""
-
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -12,6 +7,12 @@ from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 from ...events.event_bus import DomainEvent, event_bus
 from ..dao.base_dao import (
+
+"""
+PlexiChat Repository Pattern Implementation
+Provides domain-specific data access with business logic encapsulation
+"""
+
     BaseDAO,
     FilterCriteria,
     PaginationParams,

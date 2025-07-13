@@ -1,8 +1,3 @@
-"""
-Base AI Provider Interface
-Common interface for all AI providers with standardized methods and error handling.
-"""
-
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -11,6 +6,12 @@ from enum import Enum
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import aiohttp
+
+
+"""
+Base AI Provider Interface
+Common interface for all AI providers with standardized methods and error handling.
+"""
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,3 @@
-"""
-PlexiChat Modular Service Loader
-
-Enhanced service loading system that loads small modular service files
-and provides dynamic service management with hot-reloading capabilities.
-"""
-
 import asyncio
 import importlib
 import importlib.util
@@ -20,6 +13,14 @@ from typing import Any, Dict, List, Optional, Set
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+
+"""
+PlexiChat Modular Service Loader
+
+Enhanced service loading system that loads small modular service files
+and provides dynamic service management with hot-reloading capabilities.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,8 @@ class ServiceFileWatcher(FileSystemEventHandler):
         if event.is_directory:
             return
         
-        file_path = Path(event.src_path)
+        file_path = from pathlib import Path
+Path(event.src_path)
         if file_path.suffix == '.py':
             # Debounce rapid file changes
             current_time = time.time()
@@ -123,7 +125,8 @@ class ModularServiceLoader:
     """Enhanced modular service loader."""
     
     def __init__(self, services_dir: str = "src/plexichat/services/modules"):
-        self.services_dir = Path(services_dir)
+        self.services_dir = from pathlib import Path
+Path(services_dir)
         self.services_dir.mkdir(parents=True, exist_ok=True)
         
         # Service registry

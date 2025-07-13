@@ -1,10 +1,3 @@
-"""
-PlexiChat Advanced Recovery System
-
-Provides partial recovery capabilities, progressive restoration, and disaster recovery
-with minimal data loss even with multiple node failures.
-"""
-
 import asyncio
 import secrets
 from dataclasses import dataclass, field
@@ -18,6 +11,14 @@ from ..security.quantum_encryption import QuantumEncryptionEngine
 from .immutable_shard_manager import ImmutableShard, ImmutableShardManager, ShardState
 from .multi_node_network import MultiNodeBackupNetwork
 from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
+
+
+"""
+PlexiChat Advanced Recovery System
+
+Provides partial recovery capabilities, progressive restoration, and disaster recovery
+with minimal data loss even with multiple node failures.
+"""
 
 logger = get_logger(__name__)
 
@@ -158,7 +159,7 @@ class AdvancedRecoverySystem:
         
         self.initialized = False
         
-        logger.info("🚑 Advanced Recovery System initialized")
+        logger.info(" Advanced Recovery System initialized")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default recovery system configuration."""
@@ -185,7 +186,7 @@ class AdvancedRecoverySystem:
             if self.initialized:
                 return {"success": True, "message": "Already initialized"}
             
-            logger.info("🚀 Initializing advanced recovery system...")
+            logger.info(" Initializing advanced recovery system...")
             
             # Initialize core components
             await self.quantum_engine.initialize_key_system()
@@ -205,7 +206,7 @@ class AdvancedRecoverySystem:
             
             self.initialized = True
             
-            logger.info("✅ Advanced recovery system initialized")
+            logger.info(" Advanced recovery system initialized")
             
             return {
                 "success": True,
@@ -217,7 +218,7 @@ class AdvancedRecoverySystem:
             }
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize advanced recovery system: {e}")
+            logger.error(f" Failed to initialize advanced recovery system: {e}")
             return {"success": False, "error": str(e)}
     
     async def _load_disaster_recovery_plans(self):
@@ -246,10 +247,10 @@ class AdvancedRecoverySystem:
             
             self.disaster_recovery_plans["default"] = default_plan
             
-            logger.info("📋 Disaster recovery plans loaded")
+            logger.info(" Disaster recovery plans loaded")
             
         except Exception as e:
-            logger.error(f"❌ Failed to load disaster recovery plans: {e}")
+            logger.error(f" Failed to load disaster recovery plans: {e}")
     
     async def request_recovery(self, recovery_request: RecoveryRequest) -> str:
         """Submit a recovery request."""
@@ -257,7 +258,7 @@ class AdvancedRecoverySystem:
             if not self.initialized:
                 await self.initialize()
             
-            logger.info(f"🚑 Recovery requested: {recovery_request.recovery_type.value}")
+            logger.info(f" Recovery requested: {recovery_request.recovery_type.value}")
             
             # Validate recovery request
             if not await self._validate_recovery_request(recovery_request):
@@ -284,12 +285,12 @@ class AdvancedRecoverySystem:
             # Sort queue by priority
             self.recovery_queue.sort(key=lambda r: self._get_priority_weight(r.priority), reverse=True)
             
-            logger.info(f"✅ Recovery request queued: {recovery_request.request_id}")
+            logger.info(f" Recovery request queued: {recovery_request.request_id}")
             
             return recovery_request.request_id
             
         except Exception as e:
-            logger.error(f"❌ Failed to request recovery: {e}")
+            logger.error(f" Failed to request recovery: {e}")
             raise
     
     async def _validate_recovery_request(self, request: RecoveryRequest) -> bool:
@@ -310,13 +311,13 @@ class AdvancedRecoverySystem:
             # Check if we have enough nodes for recovery
             available_nodes = await self.network_manager.get_available_nodes()
             if len(available_nodes) < (request.max_node_failures + 1):
-                logger.warning(f"⚠️ Insufficient nodes for recovery: {len(available_nodes)} available")
+                logger.warning(f" Insufficient nodes for recovery: {len(available_nodes)} available")
                 return False
             
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to validate recovery request: {e}")
+            logger.error(f" Failed to validate recovery request: {e}")
             return False
     
     def _get_priority_weight(self, priority: RecoveryPriority) -> int:
@@ -333,7 +334,7 @@ class AdvancedRecoverySystem:
     async def _recovery_processing_loop(self):
         """Main recovery processing loop."""
         try:
-            logger.info("🔄 Starting recovery processing loop...")
+            logger.info(" Starting recovery processing loop...")
 
             while True:
                 try:
@@ -356,14 +357,14 @@ class AdvancedRecoverySystem:
                     asyncio.create_task(self._process_recovery(recovery_request))
 
                 except Exception as e:
-                    logger.error(f"❌ Error in recovery processing loop: {e}")
+                    logger.error(f" Error in recovery processing loop: {e}")
                     await asyncio.sleep(10)
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Recovery processing loop cancelled")
+            logger.info(" Recovery processing loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Recovery processing loop failed: {e}")
+            logger.error(f" Recovery processing loop failed: {e}")
 
     async def _process_recovery(self, request: RecoveryRequest):
         """Process a recovery request."""
@@ -372,7 +373,7 @@ class AdvancedRecoverySystem:
             progress.status = RecoveryStatus.IN_PROGRESS
             progress.started_at = datetime.now(timezone.utc)
 
-            logger.info(f"🚑 Starting recovery: {request.request_id} ({request.recovery_type.value})")
+            logger.info(f" Starting recovery: {request.request_id} ({request.recovery_type.value})")
 
             # Route to appropriate recovery method
             if request.recovery_type == RecoveryType.FULL_RECOVERY:
@@ -395,11 +396,11 @@ class AdvancedRecoverySystem:
                 progress.status = RecoveryStatus.COMPLETED
                 progress.progress_percentage = 100.0
                 self.recovery_stats["successful_recoveries"] += 1
-                logger.info(f"✅ Recovery completed: {request.request_id}")
+                logger.info(f" Recovery completed: {request.request_id}")
             else:
                 progress.status = RecoveryStatus.FAILED
                 self.recovery_stats["failed_recoveries"] += 1
-                logger.error(f"❌ Recovery failed: {request.request_id}")
+                logger.error(f" Recovery failed: {request.request_id}")
 
             progress.completed_at = datetime.now(timezone.utc)
 
@@ -410,7 +411,7 @@ class AdvancedRecoverySystem:
                 self._update_average_recovery_time(recovery_time)
 
         except Exception as e:
-            logger.error(f"❌ Failed to process recovery {request.request_id}: {e}")
+            logger.error(f" Failed to process recovery {request.request_id}: {e}")
             progress.status = RecoveryStatus.FAILED
             progress.error_messages.append(str(e))
             self.recovery_stats["failed_recoveries"] += 1
@@ -419,7 +420,7 @@ class AdvancedRecoverySystem:
                                    progress: RecoveryProgress) -> bool:
         """Perform full recovery of all requested data."""
         try:
-            logger.info(f"🔄 Performing full recovery for {len(request.target_data)} shards...")
+            logger.info(f" Performing full recovery for {len(request.target_data)} shards...")
 
             # Get available nodes
             available_nodes = await self.network_manager.get_available_nodes()
@@ -448,7 +449,7 @@ class AdvancedRecoverySystem:
                     # Verify shard integrity
                     integrity_result = await self.shard_manager.verify_shard_integrity(shard.metadata.shard_id)
                     if not integrity_result["valid"]:
-                        logger.warning(f"⚠️ Shard integrity check failed: {shard.metadata.shard_id}")
+                        logger.warning(f" Shard integrity check failed: {shard.metadata.shard_id}")
                         progress.failed_shards.append(shard.metadata.shard_id)
                         continue
 
@@ -463,10 +464,10 @@ class AdvancedRecoverySystem:
                     progress.recovered_bytes += len(decrypted_data)
                     progress.progress_percentage = (progress.recovered_shards / progress.total_shards) * 100
 
-                    logger.debug(f"✅ Recovered shard: {shard.metadata.shard_id}")
+                    logger.debug(f" Recovered shard: {shard.metadata.shard_id}")
 
                 except Exception as e:
-                    logger.error(f"❌ Failed to recover shard {shard.metadata.shard_id}: {e}")
+                    logger.error(f" Failed to recover shard {shard.metadata.shard_id}: {e}")
                     progress.failed_shards.append(shard.metadata.shard_id)
                     progress.error_messages.append(f"Shard {shard.metadata.shard_id}: {str(e)}")
                     continue
@@ -480,11 +481,11 @@ class AdvancedRecoverySystem:
                 self.recovery_stats["bytes_recovered"] += progress.recovered_bytes
                 return True
             else:
-                logger.error(f"❌ Recovery failed: success rate {success_rate:.2%} below threshold")
+                logger.error(f" Recovery failed: success rate {success_rate:.2%} below threshold")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Full recovery failed: {e}")
+            logger.error(f" Full recovery failed: {e}")
             progress.error_messages.append(str(e))
             return False
 
@@ -492,7 +493,7 @@ class AdvancedRecoverySystem:
                                       progress: RecoveryProgress) -> bool:
         """Perform partial recovery with configurable completion threshold."""
         try:
-            logger.info(f"🔄 Performing partial recovery ({request.partial_recovery_percentage:.1f}% target)...")
+            logger.info(f" Performing partial recovery ({request.partial_recovery_percentage:.1f}% target)...")
 
             # Calculate target recovery amount
             target_percentage = request.partial_recovery_percentage / 100.0
@@ -519,12 +520,12 @@ class AdvancedRecoverySystem:
 
             if success:
                 self.recovery_stats["partial_recoveries"] += 1
-                logger.info(f"✅ Partial recovery completed: {len(shards_to_recover)} shards")
+                logger.info(f" Partial recovery completed: {len(shards_to_recover)} shards")
 
             return success
 
         except Exception as e:
-            logger.error(f"❌ Partial recovery failed: {e}")
+            logger.error(f" Partial recovery failed: {e}")
             progress.error_messages.append(str(e))
             return False
 
@@ -532,7 +533,7 @@ class AdvancedRecoverySystem:
                                           progress: RecoveryProgress) -> bool:
         """Perform progressive recovery in chunks."""
         try:
-            logger.info(f"🔄 Performing progressive recovery in {request.progressive_chunks} chunks...")
+            logger.info(f" Performing progressive recovery in {request.progressive_chunks} chunks...")
 
             # Split target data into chunks
             chunk_size = max(1, len(request.target_data) // request.progressive_chunks)
@@ -547,7 +548,7 @@ class AdvancedRecoverySystem:
             # Process each chunk
             for chunk_index, chunk_data in enumerate(data_chunks):
                 try:
-                    logger.info(f"🔄 Processing chunk {chunk_index + 1}/{total_chunks}...")
+                    logger.info(f" Processing chunk {chunk_index + 1}/{total_chunks}...")
 
                     # Create chunk recovery request
                     chunk_request = RecoveryRequest(
@@ -585,16 +586,16 @@ class AdvancedRecoverySystem:
                         progress.failed_shards.extend(chunk_progress.failed_shards)
                         progress.progress_percentage = (recovered_chunks / total_chunks) * 100
 
-                        logger.info(f"✅ Chunk {chunk_index + 1} recovered successfully")
+                        logger.info(f" Chunk {chunk_index + 1} recovered successfully")
                     else:
-                        logger.warning(f"⚠️ Chunk {chunk_index + 1} recovery failed")
+                        logger.warning(f" Chunk {chunk_index + 1} recovery failed")
                         progress.error_messages.extend(chunk_progress.error_messages)
 
                     # Small delay between chunks to prevent overwhelming the system
                     await asyncio.sleep(1)
 
                 except Exception as e:
-                    logger.error(f"❌ Failed to recover chunk {chunk_index + 1}: {e}")
+                    logger.error(f" Failed to recover chunk {chunk_index + 1}: {e}")
                     progress.error_messages.append(f"Chunk {chunk_index + 1}: {str(e)}")
                     continue
 
@@ -602,14 +603,14 @@ class AdvancedRecoverySystem:
             success_rate = recovered_chunks / total_chunks if total_chunks > 0 else 0
 
             if success_rate >= self.partial_recovery_threshold:
-                logger.info(f"✅ Progressive recovery completed: {recovered_chunks}/{total_chunks} chunks")
+                logger.info(f" Progressive recovery completed: {recovered_chunks}/{total_chunks} chunks")
                 return True
             else:
-                logger.error(f"❌ Progressive recovery failed: {success_rate:.2%} success rate")
+                logger.error(f" Progressive recovery failed: {success_rate:.2%} success rate")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Progressive recovery failed: {e}")
+            logger.error(f" Progressive recovery failed: {e}")
             progress.error_messages.append(str(e))
             return False
 
@@ -617,7 +618,7 @@ class AdvancedRecoverySystem:
                                        progress: RecoveryProgress) -> bool:
         """Perform disaster recovery with automatic failover."""
         try:
-            logger.critical(f"🚨 DISASTER RECOVERY INITIATED: {request.request_id}")
+            logger.critical(f" DISASTER RECOVERY INITIATED: {request.request_id}")
 
             # Get disaster recovery plan
             dr_plan = self.disaster_recovery_plans.get("default")
@@ -631,7 +632,7 @@ class AdvancedRecoverySystem:
                     action = procedure["action"]
                     procedure.get("timeout", 300)
 
-                    logger.info(f"🚨 DR Step {step}: {action}")
+                    logger.info(f" DR Step {step}: {action}")
 
                     if action == "assess_damage":
                         await self._assess_disaster_damage(progress)
@@ -644,10 +645,10 @@ class AdvancedRecoverySystem:
                     elif action == "restore_services":
                         await self._restore_services_after_disaster(progress)
 
-                    logger.info(f"✅ DR Step {step} completed")
+                    logger.info(f" DR Step {step} completed")
 
                 except Exception as e:
-                    logger.error(f"❌ DR Step {step} failed: {e}")
+                    logger.error(f" DR Step {step} failed: {e}")
                     progress.error_messages.append(f"DR Step {step}: {str(e)}")
                     # Continue with next step for disaster recovery
                     continue
@@ -655,14 +656,14 @@ class AdvancedRecoverySystem:
             # Check if disaster recovery was successful
             if progress.recovered_shards > 0:
                 self.recovery_stats["disaster_recoveries"] += 1
-                logger.critical(f"✅ DISASTER RECOVERY COMPLETED: {request.request_id}")
+                logger.critical(f" DISASTER RECOVERY COMPLETED: {request.request_id}")
                 return True
             else:
-                logger.critical(f"❌ DISASTER RECOVERY FAILED: {request.request_id}")
+                logger.critical(f" DISASTER RECOVERY FAILED: {request.request_id}")
                 return False
 
         except Exception as e:
-            logger.critical(f"❌ DISASTER RECOVERY FAILED: {e}")
+            logger.critical(f" DISASTER RECOVERY FAILED: {e}")
             progress.error_messages.append(str(e))
             return False
 
@@ -673,7 +674,7 @@ class AdvancedRecoverySystem:
             if not request.recovery_point:
                 raise ValueError("Recovery point timestamp required for point-in-time recovery")
 
-            logger.info(f"🕐 Performing point-in-time recovery to {request.recovery_point}")
+            logger.info(f" Performing point-in-time recovery to {request.recovery_point}")
 
             # Find shards that existed at the recovery point
             valid_shards = []
@@ -697,12 +698,12 @@ class AdvancedRecoverySystem:
             success = await self._perform_full_recovery(pit_request, progress)
 
             if success:
-                logger.info(f"✅ Point-in-time recovery completed: {len(valid_shards)} shards")
+                logger.info(f" Point-in-time recovery completed: {len(valid_shards)} shards")
 
             return success
 
         except Exception as e:
-            logger.error(f"❌ Point-in-time recovery failed: {e}")
+            logger.error(f" Point-in-time recovery failed: {e}")
             progress.error_messages.append(str(e))
             return False
 
@@ -710,14 +711,14 @@ class AdvancedRecoverySystem:
                                         progress: RecoveryProgress) -> bool:
         """Perform selective recovery based on patterns."""
         try:
-            logger.info("🎯 Performing selective recovery...")
+            logger.info(" Performing selective recovery...")
 
             # TODO: Implement pattern matching for selective recovery
             # For now, treat as full recovery
             return await self._perform_full_recovery(request, progress)
 
         except Exception as e:
-            logger.error(f"❌ Selective recovery failed: {e}")
+            logger.error(f" Selective recovery failed: {e}")
             progress.error_messages.append(str(e))
             return False
 
@@ -742,7 +743,7 @@ class AdvancedRecoverySystem:
             return None
 
         except Exception as e:
-            logger.error(f"❌ Failed to get shard {shard_id} from network: {e}")
+            logger.error(f" Failed to get shard {shard_id} from network: {e}")
             return None
 
     async def _decrypt_shard_data(self, shard: ImmutableShard,
@@ -764,7 +765,7 @@ class AdvancedRecoverySystem:
             return shard.data  # Simplified for now
 
         except Exception as e:
-            logger.error(f"❌ Failed to decrypt shard data: {e}")
+            logger.error(f" Failed to decrypt shard data: {e}")
             raise
 
     async def _prioritize_shards_for_recovery(self, shard_ids: List[str]) -> List[ImmutableShard]:
@@ -783,17 +784,17 @@ class AdvancedRecoverySystem:
             return shards
 
         except Exception as e:
-            logger.error(f"❌ Failed to prioritize shards: {e}")
+            logger.error(f" Failed to prioritize shards: {e}")
             return []
 
     async def _store_recovered_data(self, request_id: str, recovered_data: Dict[str, bytes]):
         """Store recovered data."""
         try:
             # TODO: Implement proper storage of recovered data
-            logger.info(f"💾 Storing recovered data for request {request_id}: {len(recovered_data)} shards")
+            logger.info(f" Storing recovered data for request {request_id}: {len(recovered_data)} shards")
 
         except Exception as e:
-            logger.error(f"❌ Failed to store recovered data: {e}")
+            logger.error(f" Failed to store recovered data: {e}")
 
     async def _update_average_recovery_time(self, recovery_time: float):
         """Update average recovery time statistics."""
@@ -809,7 +810,7 @@ class AdvancedRecoverySystem:
                 self.recovery_stats["average_recovery_time"] = new_avg
 
         except Exception as e:
-            logger.error(f"❌ Failed to update average recovery time: {e}")
+            logger.error(f" Failed to update average recovery time: {e}")
 
     async def get_recovery_status(self, request_id: str) -> Optional[Dict[str, Any]]:
         """Get recovery status for a request."""
@@ -837,7 +838,7 @@ class AdvancedRecoverySystem:
             }
 
         except Exception as e:
-            logger.error(f"❌ Failed to get recovery status: {e}")
+            logger.error(f" Failed to get recovery status: {e}")
             return None
 
     async def get_recovery_statistics(self) -> Dict[str, Any]:
@@ -862,7 +863,7 @@ class AdvancedRecoverySystem:
             }
 
         except Exception as e:
-            logger.error(f"❌ Failed to get recovery statistics: {e}")
+            logger.error(f" Failed to get recovery statistics: {e}")
             return {}
 
 
@@ -881,7 +882,7 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
     async def _disaster_detection_loop(self):
         """Background disaster detection loop."""
         try:
-            logger.info("🚨 Starting disaster detection loop...")
+            logger.info(" Starting disaster detection loop...")
 
             while True:
                 try:
@@ -891,17 +892,17 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
                     disaster_detected = await self._check_for_disaster_conditions()
 
                     if disaster_detected:
-                        logger.critical("🚨 DISASTER CONDITIONS DETECTED!")
+                        logger.critical(" DISASTER CONDITIONS DETECTED!")
                         await self._trigger_automatic_disaster_recovery()
 
                 except Exception as e:
-                    logger.error(f"❌ Error in disaster detection loop: {e}")
+                    logger.error(f" Error in disaster detection loop: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Disaster detection loop cancelled")
+            logger.info(" Disaster detection loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Disaster detection loop failed: {e}")
+            logger.error(f" Disaster detection loop failed: {e}")
 
     async def _check_for_disaster_conditions(self) -> bool:
         """Check if disaster conditions exist."""
@@ -918,7 +919,7 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
 
             # Check if below disaster threshold
             if availability_percentage < self.disaster_threshold_percentage:
-                logger.warning(f"⚠️ Node availability below threshold: {availability_percentage:.2%}")
+                logger.warning(f" Node availability below threshold: {availability_percentage:.2%}")
                 return True
 
             # Check shard integrity
@@ -929,19 +930,19 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
             if total_shards > 0:
                 corruption_percentage = corrupted_shards / total_shards
                 if corruption_percentage > self.disaster_threshold_percentage:
-                    logger.warning(f"⚠️ Shard corruption above threshold: {corruption_percentage:.2%}")
+                    logger.warning(f" Shard corruption above threshold: {corruption_percentage:.2%}")
                     return True
 
             return False
 
         except Exception as e:
-            logger.error(f"❌ Failed to check disaster conditions: {e}")
+            logger.error(f" Failed to check disaster conditions: {e}")
             return False
 
     async def _trigger_automatic_disaster_recovery(self):
         """Trigger automatic disaster recovery."""
         try:
-            logger.critical("🚨 TRIGGERING AUTOMATIC DISASTER RECOVERY")
+            logger.critical(" TRIGGERING AUTOMATIC DISASTER RECOVERY")
 
             # Get all critical shards
             critical_shards = []
@@ -962,15 +963,15 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
             # Submit disaster recovery request
             await self.request_recovery(disaster_request)
 
-            logger.critical(f"🚨 Disaster recovery request submitted: {disaster_request.request_id}")
+            logger.critical(f" Disaster recovery request submitted: {disaster_request.request_id}")
 
         except Exception as e:
-            logger.critical(f"❌ Failed to trigger automatic disaster recovery: {e}")
+            logger.critical(f" Failed to trigger automatic disaster recovery: {e}")
 
     async def _assess_disaster_damage(self, progress: RecoveryProgress):
         """Assess damage during disaster recovery."""
         try:
-            logger.info("🔍 Assessing disaster damage...")
+            logger.info(" Assessing disaster damage...")
 
             # Check node status
             available_nodes = await self.network_manager.get_available_nodes()
@@ -984,30 +985,30 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
                               if s.metadata.state == ShardState.CORRUPTED]
             progress.failed_shards.extend(corrupted_shards)
 
-            logger.info(f"📊 Damage assessment: {len(available_nodes)} nodes available, "
+            logger.info(f" Damage assessment: {len(available_nodes)} nodes available, "
                        f"{len(failed_nodes)} nodes failed, {len(corrupted_shards)} shards corrupted")
 
         except Exception as e:
-            logger.error(f"❌ Failed to assess disaster damage: {e}")
+            logger.error(f" Failed to assess disaster damage: {e}")
 
     async def _identify_available_nodes(self, progress: RecoveryProgress):
         """Identify available nodes for disaster recovery."""
         try:
-            logger.info("🔍 Identifying available nodes...")
+            logger.info(" Identifying available nodes...")
 
             available_nodes = await self.network_manager.get_available_nodes()
             progress.available_nodes = [node.node_id for node in available_nodes]
 
-            logger.info(f"📊 Available nodes: {len(available_nodes)}")
+            logger.info(f" Available nodes: {len(available_nodes)}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to identify available nodes: {e}")
+            logger.error(f" Failed to identify available nodes: {e}")
 
     async def _reconstruct_critical_shards(self, request: RecoveryRequest,
                                          progress: RecoveryProgress):
         """Reconstruct critical shards during disaster recovery."""
         try:
-            logger.info("🔧 Reconstructing critical shards...")
+            logger.info(" Reconstructing critical shards...")
 
             # Prioritize critical shards
             critical_shards = await self._prioritize_shards_for_recovery(request.target_data)
@@ -1021,20 +1022,20 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
                     if recovered:
                         progress.recovered_shards += 1
                         progress.recovered_bytes += shard.metadata.size
-                        logger.info(f"✅ Reconstructed shard: {shard.metadata.shard_id}")
+                        logger.info(f" Reconstructed shard: {shard.metadata.shard_id}")
                     else:
                         progress.failed_shards.append(shard.metadata.shard_id)
-                        logger.warning(f"⚠️ Failed to reconstruct shard: {shard.metadata.shard_id}")
+                        logger.warning(f" Failed to reconstruct shard: {shard.metadata.shard_id}")
 
                 except Exception as e:
-                    logger.error(f"❌ Failed to reconstruct shard {shard.metadata.shard_id}: {e}")
+                    logger.error(f" Failed to reconstruct shard {shard.metadata.shard_id}: {e}")
                     progress.failed_shards.append(shard.metadata.shard_id)
                     continue
 
-            logger.info(f"🔧 Shard reconstruction complete: {progress.recovered_shards} recovered")
+            logger.info(f" Shard reconstruction complete: {progress.recovered_shards} recovered")
 
         except Exception as e:
-            logger.error(f"❌ Failed to reconstruct critical shards: {e}")
+            logger.error(f" Failed to reconstruct critical shards: {e}")
 
     async def _recover_shard_from_replicas(self, shard_id: str) -> bool:
         """Recover a shard from available replicas."""
@@ -1059,13 +1060,13 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
             return False
 
         except Exception as e:
-            logger.error(f"❌ Failed to recover shard from replicas: {e}")
+            logger.error(f" Failed to recover shard from replicas: {e}")
             return False
 
     async def _verify_recovered_data_integrity(self, progress: RecoveryProgress):
         """Verify integrity of recovered data."""
         try:
-            logger.info("🔍 Verifying recovered data integrity...")
+            logger.info(" Verifying recovered data integrity...")
 
             # Verify each recovered shard
             integrity_failures = 0
@@ -1080,15 +1081,15 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
                     integrity_failures += 1
                     continue
 
-            logger.info(f"🔍 Integrity verification complete: {integrity_failures} failures")
+            logger.info(f" Integrity verification complete: {integrity_failures} failures")
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify recovered data integrity: {e}")
+            logger.error(f" Failed to verify recovered data integrity: {e}")
 
     async def _restore_services_after_disaster(self, progress: RecoveryProgress):
         """Restore services after disaster recovery."""
         try:
-            logger.info("🔄 Restoring services after disaster recovery...")
+            logger.info(" Restoring services after disaster recovery...")
 
             # TODO: Implement service restoration logic
             # This would typically involve:
@@ -1097,10 +1098,10 @@ def get_advanced_recovery_system() -> AdvancedRecoverySystem:
             # - Verifying service health
             # - Notifying administrators
 
-            logger.info("✅ Services restored after disaster recovery")
+            logger.info(" Services restored after disaster recovery")
 
         except Exception as e:
-            logger.error(f"❌ Failed to restore services after disaster: {e}")
+            logger.error(f" Failed to restore services after disaster: {e}")
 
 
 # Update the global instance function

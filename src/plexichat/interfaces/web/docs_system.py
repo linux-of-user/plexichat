@@ -1,8 +1,3 @@
-"""
-PlexiChat Enhanced Documentation System
-Comprehensive documentation interface with advanced search, navigation, and modern UI.
-"""
-
 import logging
 import os
 import re
@@ -11,9 +6,16 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import markdown
+
+
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+
+"""
+PlexiChat Enhanced Documentation System
+Comprehensive documentation interface with advanced search, navigation, and modern UI.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,8 @@ class EnhancedDocumentationManager:
     """Enhanced documentation manager with advanced features."""
 
     def __init__(self):
-        self.docs_dir = Path("docs")
+        self.docs_dir = from pathlib import Path
+Path("docs")
         self.docs_dir.mkdir(exist_ok=True)
         self.cache = {}
         self.search_index = {}
@@ -260,7 +263,7 @@ The admin dashboard provides:
 
 ### Creating Users
 
-1. Go to **Admin** → **Users**
+1. Go to **Admin**  **Users**
 2. Click "Add New User"
 3. Fill in the required information:
    - Username (3-50 characters, letters/numbers/underscore/hyphen only)
@@ -650,7 +653,8 @@ When reporting issues, include:
             except Exception as e:
                 logger.error(f"Failed to index {doc_file}: {e}")
 
-        self.last_indexed = datetime.now()
+        self.last_indexed = from datetime import datetime
+datetime.now()
         logger.info(f"Search index built with {len(self.search_index)} documents")
 
     def _extract_title(self, content: str) -> str:

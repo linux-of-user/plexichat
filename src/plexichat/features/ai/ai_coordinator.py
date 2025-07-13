@@ -1,3 +1,10 @@
+import asyncio
+import logging
+from datetime import datetime
+from typing import Any, Dict, List
+
+from .advanced_ai_system import (
+
 """
 PlexiChat AI Coordinator
 
@@ -10,12 +17,6 @@ Central coordinator for all AI-powered features:
 - AI-powered insights and analytics
 """
 
-import asyncio
-import logging
-from datetime import datetime
-from typing import Any, Dict, List
-
-from .advanced_ai_system import (
     AICapability,
     ModerationAction,
     ai_provider_manager,
@@ -58,7 +59,7 @@ class AICoordinator:
         
     async def initialize(self):
         """Initialize AI coordinator."""
-        logger.info("🤖 Initializing AI Coordinator...")
+        logger.info(" Initializing AI Coordinator...")
         
         # Test AI providers
         await self._test_ai_providers()
@@ -67,7 +68,7 @@ class AICoordinator:
         asyncio.create_task(self._ai_analytics_task())
         asyncio.create_task(self._model_health_monitoring())
         
-        logger.info("✅ AI Coordinator initialized")
+        logger.info(" AI Coordinator initialized")
     
     async def _test_ai_providers(self):
         """Test available AI providers."""
@@ -75,9 +76,9 @@ class AICoordinator:
             for capability in AICapability:
                 model = await self.provider_manager.get_available_model(capability)
                 if model:
-                    logger.info(f"✅ {capability.value}: {model.name} ({model.provider.value})")
+                    logger.info(f" {capability.value}: {model.name} ({model.provider.value})")
                 else:
-                    logger.warning(f"⚠️ No model available for {capability.value}")
+                    logger.warning(f" No model available for {capability.value}")
         except Exception as e:
             logger.error(f"AI provider testing failed: {e}")
     
@@ -98,7 +99,8 @@ class AICoordinator:
             if self.auto_moderation_enabled and message_text:
                 moderation_result = await self.moderation_engine.moderate_content(
                     message_text, 
-                    f"msg_{sender_id}_{int(datetime.now().timestamp())}"
+                    f"msg_{sender_id}_{int(from datetime import datetime
+datetime.now().timestamp())}"
                 )
                 ai_results["moderation"] = {
                     "action": moderation_result.action.value,

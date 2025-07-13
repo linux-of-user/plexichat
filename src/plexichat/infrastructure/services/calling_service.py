@@ -1,8 +1,3 @@
-"""
-Encrypted voice and video calling service with WebRTC.
-Provides end-to-end encrypted calling with secure key exchange.
-"""
-
 import base64
 import hashlib
 import secrets
@@ -13,8 +8,15 @@ from typing import Any, Dict, List, Optional, Tuple
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
+
 from plexichat.app.logger_config import logger
 from plexichat.app.models.calling import (
+
+"""
+Encrypted voice and video calling service with WebRTC.
+Provides end-to-end encrypted calling with secure key exchange.
+"""
+
     CallInvitation,
     CallParticipant,
     CallSession,
@@ -241,7 +243,7 @@ class CallingService:
             for user_id in target_user_ids:
                 await self._send_call_invitation(call_session, initiator_id, user_id)
             
-            logger.info(f"🔐 Initiated encrypted {call_type.value} call {call_id} with {len(target_user_ids)} participants")
+            logger.info(f" Initiated encrypted {call_type.value} call {call_id} with {len(target_user_ids)} participants")
             
             return call_session
             
@@ -299,7 +301,7 @@ class CallingService:
                 public_key=public_key
             )
             
-            logger.info(f"🔐 User {user_id} joined encrypted call {call_id}")
+            logger.info(f" User {user_id} joined encrypted call {call_id}")
             
             return call_offer
             
@@ -346,7 +348,7 @@ class CallingService:
                 public_key=participant.public_key
             )
             
-            logger.info(f"🔐 User {user_id} answered encrypted call {call_id}")
+            logger.info(f" User {user_id} answered encrypted call {call_id}")
             
             return call_answer
             
@@ -381,7 +383,7 @@ class CallingService:
             del self.active_calls[call_id]
             del self.call_participants[call_id]
             
-            logger.info(f"🔐 Ended encrypted call {call_id} by user {user_id}")
+            logger.info(f" Ended encrypted call {call_id} by user {user_id}")
             
             return True
             
@@ -421,7 +423,7 @@ class CallingService:
         )
         
         # In production, send real-time notification
-        logger.info(f"📞 Sent call invitation to user {invitee_id} for call {call_session.call_id}")
+        logger.info(f" Sent call invitation to user {invitee_id} for call {call_session.call_id}")
     
     def _generate_default_sdp(self) -> str:
         """Generate default SDP for testing."""

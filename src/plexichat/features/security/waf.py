@@ -1,8 +1,3 @@
-"""
-PlexiChat Web Application Firewall (WAF)
-Integrates ModSecurity with OWASP Core Rule Set for comprehensive protection
-"""
-
 import logging
 import re
 from dataclasses import dataclass
@@ -10,8 +5,16 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+from typing import Optional, Dict, Any, List
+
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
+
+"""
+PlexiChat Web Application Firewall (WAF)
+Integrates ModSecurity with OWASP Core Rule Set for comprehensive protection
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +200,7 @@ class WebApplicationFirewall:
             self.rules[rule.rule_id] = rule
             self.stats["rules_triggered"][rule.rule_id] = 0
         
-        logger.info(f"✅ Loaded {len(owasp_rules)} OWASP Core Rule Set rules")
+        logger.info(f" Loaded {len(owasp_rules)} OWASP Core Rule Set rules")
     
     def _load_custom_rules(self):
         """Load custom WAF rules."""
@@ -225,7 +228,7 @@ class WebApplicationFirewall:
             self.rules[rule.rule_id] = rule
             self.stats["rules_triggered"][rule.rule_id] = 0
         
-        logger.info(f"✅ Loaded {len(custom_rules)} custom WAF rules")
+        logger.info(f" Loaded {len(custom_rules)} custom WAF rules")
 
     async def analyze_request(self, request: Request) -> Tuple[bool, Optional[WAFViolation]]:
         """
@@ -350,10 +353,10 @@ class WebApplicationFirewall:
 
             self.rules[rule.rule_id] = rule
             self.stats["rules_triggered"][rule.rule_id] = 0
-            logger.info(f"✅ Added custom WAF rule: {rule.rule_id}")
+            logger.info(f" Added custom WAF rule: {rule.rule_id}")
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to add WAF rule {rule.rule_id}: {e}")
+            logger.error(f" Failed to add WAF rule {rule.rule_id}: {e}")
             return False
 
     def remove_rule(self, rule_id: str) -> bool:
@@ -362,7 +365,7 @@ class WebApplicationFirewall:
             del self.rules[rule_id]
             if rule_id in self.stats["rules_triggered"]:
                 del self.stats["rules_triggered"][rule_id]
-            logger.info(f"✅ Removed WAF rule: {rule_id}")
+            logger.info(f" Removed WAF rule: {rule_id}")
             return True
         return False
 
@@ -372,7 +375,7 @@ class WebApplicationFirewall:
         # Remove from blocked list if present
         if ip_address in self.blocked_ips:
             del self.blocked_ips[ip_address]
-        logger.info(f"✅ Whitelisted IP: {ip_address}")
+        logger.info(f" Whitelisted IP: {ip_address}")
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get WAF statistics."""

@@ -1,10 +1,3 @@
-"""
-PlexiChat Advanced Logging System
-
-Comprehensive logging with configurable levels, structured output, crash handling,
-performance monitoring, and real-time log streaming.
-"""
-
 import json
 import logging
 import logging.handlers
@@ -19,6 +12,14 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+
+
+"""
+PlexiChat Advanced Logging System
+
+Comprehensive logging with configurable levels, structured output, crash handling,
+performance monitoring, and real-time log streaming.
+"""
 
 class LogLevel(Enum):
     """Enhanced log levels."""
@@ -120,7 +121,8 @@ class CrashHandler:
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
             
-        crash_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        crash_id = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
         crash_file = self.crash_dir / f"crash_{crash_id}.json"
         
         crash_report = {
@@ -245,7 +247,8 @@ class AdvancedLogger:
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or self._default_config()
-        self.log_dir = Path(self.config.get("log_directory", "logs"))
+        self.log_dir = from pathlib import Path
+Path(self.config.get("log_directory", "logs"))
         self.log_dir.mkdir(exist_ok=True)
         
         # Create subdirectories
@@ -322,16 +325,16 @@ class AdvancedLogger:
 
         # Generate initial log entries to ensure system is working
         logger = logging.getLogger("plexichat.logging.system")
-        logger.info("🔧 Advanced logging system initialized")
-        logger.info(f"📁 Log directory: {self.log_dir}")
-        logger.info(f"📊 Log level: {self.config['log_level']}")
-        logger.debug("🔍 Debug logging enabled")
+        logger.info(" Advanced logging system initialized")
+        logger.info(f" Log directory: {self.log_dir}")
+        logger.info(f" Log level: {self.config['log_level']}")
+        logger.debug(" Debug logging enabled")
 
         # Test all log levels
-        logger.info("✅ INFO level logging active")
-        logger.warning("⚠️ WARNING level logging active")
-        logger.error("❌ ERROR level logging active")
-        logger.critical("🚨 CRITICAL level logging active")
+        logger.info(" INFO level logging active")
+        logger.warning(" WARNING level logging active")
+        logger.error(" ERROR level logging active")
+        logger.critical(" CRITICAL level logging active")
 
     def _setup_file_handlers(self, root_logger, log_level):
         """Setup file-based logging handlers."""

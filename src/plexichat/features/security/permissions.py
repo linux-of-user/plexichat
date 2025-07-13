@@ -1,8 +1,3 @@
-"""
-Role-Based Permission System for PlexiChat
-Comprehensive permission management with granular access control.
-"""
-
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -10,8 +5,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
+
+
+
 from plexichat.app.logger_config import logger
 
+"""
+Role-Based Permission System for PlexiChat
+Comprehensive permission management with granular access control.
+"""
 
 class Permission(Enum):
     """System permissions."""
@@ -130,7 +132,8 @@ class PermissionManager:
     """Manages roles and permissions."""
     
     def __init__(self, config_path: str = "config/permissions.json"):
-        self.config_path = Path(config_path)
+        self.config_path = from pathlib import Path
+Path(config_path)
         self.roles: Dict[str, Role] = {}
         self.user_permissions: Dict[str, UserPermissions] = {}
         self.permission_cache: Dict[str, Dict[str, bool]] = {}
@@ -160,8 +163,10 @@ class PermissionManager:
                         color=role_data.get("color", "#ffffff"),
                         is_default=role_data.get("is_default", False),
                         is_system=role_data.get("is_system", False),
-                        created_at=datetime.fromisoformat(role_data.get("created_at", datetime.now().isoformat())),
-                        updated_at=datetime.fromisoformat(role_data.get("updated_at", datetime.now().isoformat()))
+                        created_at=datetime.fromisoformat(role_data.get("created_at", from datetime import datetime
+datetime.now().isoformat())),
+                        updated_at=datetime.fromisoformat(role_data.get("updated_at", from datetime import datetime
+datetime.now().isoformat()))
                     )
                     self.roles[role.name] = role
                 
@@ -181,17 +186,19 @@ class PermissionManager:
                             for scope_id, perms in user_data.get("denied_permissions", {}).items()
                         },
                         is_active=user_data.get("is_active", True),
-                        created_at=datetime.fromisoformat(user_data.get("created_at", datetime.now().isoformat())),
-                        updated_at=datetime.fromisoformat(user_data.get("updated_at", datetime.now().isoformat()))
+                        created_at=datetime.fromisoformat(user_data.get("created_at", from datetime import datetime
+datetime.now().isoformat())),
+                        updated_at=datetime.fromisoformat(user_data.get("updated_at", from datetime import datetime
+datetime.now().isoformat()))
                     )
                     self.user_permissions[user_perms.user_id] = user_perms
                 
-                logger.info(f"✅ Loaded {len(self.roles)} roles and {len(self.user_permissions)} user permissions")
+                logger.info(f" Loaded {len(self.roles)} roles and {len(self.user_permissions)} user permissions")
             else:
                 self._create_default_roles()
                 
         except Exception as e:
-            logger.error(f"❌ Failed to load permissions config: {e}")
+            logger.error(f" Failed to load permissions config: {e}")
             self._create_default_roles()
     
     def save_config(self) -> None:
@@ -240,10 +247,10 @@ class PermissionManager:
             with open(self.config_path, 'w') as f:
                 json.dump(config_data, f, indent=2, default=str)
             
-            logger.info("✅ Permissions configuration saved")
+            logger.info(" Permissions configuration saved")
             
         except Exception as e:
-            logger.error(f"❌ Failed to save permissions config: {e}")
+            logger.error(f" Failed to save permissions config: {e}")
     
     def _create_default_roles(self) -> None:
         """Create default system roles."""
@@ -307,39 +314,41 @@ class PermissionManager:
             self.roles[role.name] = role
         
         self.save_config()
-        logger.info("✅ Created default permission roles")
+        logger.info(" Created default permission roles")
     
     def create_role(self, role: Role) -> bool:
         """Create a new role."""
         try:
             if role.name in self.roles:
-                logger.warning(f"⚠️ Role already exists: {role.name}")
+                logger.warning(f" Role already exists: {role.name}")
                 return False
             
-            role.created_at = datetime.now()
-            role.updated_at = datetime.now()
+            role.created_at = from datetime import datetime
+datetime.now()
+            role.updated_at = from datetime import datetime
+datetime.now()
             self.roles[role.name] = role
             self.save_config()
             self._clear_permission_cache()
             
-            logger.info(f"✅ Created role: {role.name}")
+            logger.info(f" Created role: {role.name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to create role {role.name}: {e}")
+            logger.error(f" Failed to create role {role.name}: {e}")
             return False
     
     def update_role(self, role_name: str, updates: Dict[str, Any]) -> bool:
         """Update an existing role."""
         try:
             if role_name not in self.roles:
-                logger.warning(f"⚠️ Role not found: {role_name}")
+                logger.warning(f" Role not found: {role_name}")
                 return False
             
             role = self.roles[role_name]
             
             if role.is_system and "permissions" in updates:
-                logger.warning(f"⚠️ Cannot modify permissions of system role: {role_name}")
+                logger.warning(f" Cannot modify permissions of system role: {role_name}")
                 return False
             
             for key, value in updates.items():
@@ -349,27 +358,28 @@ class PermissionManager:
                     else:
                         setattr(role, key, value)
             
-            role.updated_at = datetime.now()
+            role.updated_at = from datetime import datetime
+datetime.now()
             self.save_config()
             self._clear_permission_cache()
             
-            logger.info(f"✅ Updated role: {role_name}")
+            logger.info(f" Updated role: {role_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to update role {role_name}: {e}")
+            logger.error(f" Failed to update role {role_name}: {e}")
             return False
     
     def delete_role(self, role_name: str) -> bool:
         """Delete a role."""
         try:
             if role_name not in self.roles:
-                logger.warning(f"⚠️ Role not found: {role_name}")
+                logger.warning(f" Role not found: {role_name}")
                 return False
             
             role = self.roles[role_name]
             if role.is_system:
-                logger.warning(f"⚠️ Cannot delete system role: {role_name}")
+                logger.warning(f" Cannot delete system role: {role_name}")
                 return False
             
             # Remove role from all users
@@ -389,18 +399,18 @@ class PermissionManager:
             self.save_config()
             self._clear_permission_cache()
             
-            logger.info(f"✅ Deleted role: {role_name}")
+            logger.info(f" Deleted role: {role_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to delete role {role_name}: {e}")
+            logger.error(f" Failed to delete role {role_name}: {e}")
             return False
 
     def assign_role(self, user_id: str, role_name: str, scope: PermissionScope = PermissionScope.GLOBAL, scope_id: Optional[str] = None) -> bool:
         """Assign a role to a user."""
         try:
             if role_name not in self.roles:
-                logger.warning(f"⚠️ Role not found: {role_name}")
+                logger.warning(f" Role not found: {role_name}")
                 return False
 
             if user_id not in self.user_permissions:
@@ -422,22 +432,23 @@ class PermissionManager:
                 if role_name not in user_perms.channel_roles[scope_id]:
                     user_perms.channel_roles[scope_id].append(role_name)
 
-            user_perms.updated_at = datetime.now()
+            user_perms.updated_at = from datetime import datetime
+datetime.now()
             self.save_config()
             self._clear_user_cache(user_id)
 
-            logger.info(f"✅ Assigned role {role_name} to user {user_id} in scope {scope.value}")
+            logger.info(f" Assigned role {role_name} to user {user_id} in scope {scope.value}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to assign role {role_name} to user {user_id}: {e}")
+            logger.error(f" Failed to assign role {role_name} to user {user_id}: {e}")
             return False
 
     def revoke_role(self, user_id: str, role_name: str, scope: PermissionScope = PermissionScope.GLOBAL, scope_id: Optional[str] = None) -> bool:
         """Revoke a role from a user."""
         try:
             if user_id not in self.user_permissions:
-                logger.warning(f"⚠️ User permissions not found: {user_id}")
+                logger.warning(f" User permissions not found: {user_id}")
                 return False
 
             user_perms = self.user_permissions[user_id]
@@ -452,15 +463,16 @@ class PermissionManager:
                 if scope_id in user_perms.channel_roles and role_name in user_perms.channel_roles[scope_id]:
                     user_perms.channel_roles[scope_id].remove(role_name)
 
-            user_perms.updated_at = datetime.now()
+            user_perms.updated_at = from datetime import datetime
+datetime.now()
             self.save_config()
             self._clear_user_cache(user_id)
 
-            logger.info(f"✅ Revoked role {role_name} from user {user_id} in scope {scope.value}")
+            logger.info(f" Revoked role {role_name} from user {user_id} in scope {scope.value}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to revoke role {role_name} from user {user_id}: {e}")
+            logger.error(f" Failed to revoke role {role_name} from user {user_id}: {e}")
             return False
 
     def grant_permission(self, user_id: str, permission: Permission, scope_id: str = "global") -> bool:
@@ -475,15 +487,16 @@ class PermissionManager:
                 user_perms.explicit_permissions[scope_id] = set()
 
             user_perms.explicit_permissions[scope_id].add(permission)
-            user_perms.updated_at = datetime.now()
+            user_perms.updated_at = from datetime import datetime
+datetime.now()
             self.save_config()
             self._clear_user_cache(user_id)
 
-            logger.info(f"✅ Granted permission {permission.value} to user {user_id} in scope {scope_id}")
+            logger.info(f" Granted permission {permission.value} to user {user_id} in scope {scope_id}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to grant permission {permission.value} to user {user_id}: {e}")
+            logger.error(f" Failed to grant permission {permission.value} to user {user_id}: {e}")
             return False
 
     def deny_permission(self, user_id: str, permission: Permission, scope_id: str = "global") -> bool:
@@ -498,15 +511,16 @@ class PermissionManager:
                 user_perms.denied_permissions[scope_id] = set()
 
             user_perms.denied_permissions[scope_id].add(permission)
-            user_perms.updated_at = datetime.now()
+            user_perms.updated_at = from datetime import datetime
+datetime.now()
             self.save_config()
             self._clear_user_cache(user_id)
 
-            logger.info(f"✅ Denied permission {permission.value} to user {user_id} in scope {scope_id}")
+            logger.info(f" Denied permission {permission.value} to user {user_id} in scope {scope_id}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to deny permission {permission.value} to user {user_id}: {e}")
+            logger.error(f" Failed to deny permission {permission.value} to user {user_id}: {e}")
             return False
 
     def check_permission(self, user_id: str, permission: Permission, scope: PermissionScope = PermissionScope.GLOBAL, scope_id: Optional[str] = None) -> PermissionCheck:
@@ -641,7 +655,7 @@ class PermissionManager:
             return result
 
         except Exception as e:
-            logger.error(f"❌ Failed to check permission {permission.value} for user {user_id}: {e}")
+            logger.error(f" Failed to check permission {permission.value} for user {user_id}: {e}")
             return PermissionCheck(
                 user_id=user_id,
                 permission=permission,

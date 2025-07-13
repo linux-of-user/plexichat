@@ -1,16 +1,19 @@
+from typing import Optional
+
+
+from ....features.channels.models.channel import ChannelType
+
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+
+from ....core_system.auth.auth_manager import from plexichat.infrastructure.utils.auth import get_current_user
+
 """
 PlexiChat Channel API Endpoints
 
 Discord-like channel management endpoints.
 """
-
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
-
-from ....core_system.auth.auth_manager import get_current_user
-from ....features.channels.models.channel import ChannelType
 
 router = APIRouter(prefix="/channels", tags=["channels"])
 
@@ -60,7 +63,7 @@ class ChannelResponse(BaseModel):
 async def create_channel(
     server_id: str,
     request: ChannelCreateRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Create a new channel in a server.
@@ -86,7 +89,7 @@ async def create_channel(
 @router.get("/{channel_id}", response_model=ChannelResponse)
 async def get_channel(
     channel_id: str,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Get channel details.
@@ -113,10 +116,11 @@ async def get_channel(
 async def update_channel(
     channel_id: str,
     request: ChannelUpdateRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
-    Update channel settings.
+    Update channel from plexichat.core.config import settings
+settings.
     
     Requires MANAGE_CHANNELS permission.
     """
@@ -139,7 +143,7 @@ async def update_channel(
 @router.delete("/{channel_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_channel(
     channel_id: str,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Delete channel.
@@ -169,7 +173,7 @@ async def get_channel_messages(
     limit: int = 50,
     before: Optional[str] = None,
     after: Optional[str] = None,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Get messages from a channel.
@@ -196,7 +200,7 @@ async def get_channel_messages(
 async def send_message(
     channel_id: str,
     content: str,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Send a message to a channel.

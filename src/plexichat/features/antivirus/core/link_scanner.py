@@ -1,10 +1,3 @@
-"""
-Link Safety Scanner
-
-Analyzes URLs and links for safety, checking against known malicious domains,
-suspicious patterns, and using threat intelligence feeds.
-"""
-
 import hashlib
 import json
 import logging
@@ -18,6 +11,14 @@ import aiohttp
 import aiosqlite
 
 from . import ScanResult, ScanType, ThreatLevel, ThreatType
+
+
+"""
+Link Safety Scanner
+
+Analyzes URLs and links for safety, checking against known malicious domains,
+suspicious patterns, and using threat intelligence feeds.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,8 @@ class LinkSafetyScanner:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.link_db_path = self.data_dir / "link_safety.db"
         
         # Known malicious domains (would be populated from threat feeds)

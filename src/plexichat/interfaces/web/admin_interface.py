@@ -1,8 +1,3 @@
-"""
-Enhanced Web Admin Interface for PlexiChat
-Provides comprehensive web-based administration with console access, log viewing, and user management.
-"""
-
 import asyncio
 import hashlib
 import io
@@ -14,11 +9,23 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+
+
+        
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+        import psutil
+
+        from plexichat.cli.app import PlexiChatCLI
+
+"""
+Enhanced Web Admin Interface for PlexiChat
+Provides comprehensive web-based administration with console access, log viewing, and user management.
+"""
 
 # Admin authentication
 security = HTTPBasic()
@@ -74,7 +81,8 @@ class LogEntry(BaseModel):
 
 class ConsoleCommand(BaseModel):
     command: str
-    timestamp: datetime = datetime.now()
+    timestamp: datetime = from datetime import datetime
+datetime.now()
 
 class SystemStats(BaseModel):
     uptime: str
@@ -175,7 +183,8 @@ async def update_system_config(
     
     try:
         # Save configuration
-        config_path = Path("config/system.json")
+        config_path = from pathlib import Path
+Path("config/system.json")
         config_path.parent.mkdir(exist_ok=True)
         
         with open(config_path, "w") as f:
@@ -229,7 +238,8 @@ async def create_admin_user(
         "password_hash": hashlib.sha256(password.encode()).hexdigest(),
         "role": role,
         "permissions": perm_list,
-        "created_at": datetime.now().isoformat()
+        "created_at": from datetime import datetime
+datetime.now().isoformat()
     }
     
     return {"status": "success", "message": f"User {new_username} created successfully"}
@@ -262,7 +272,8 @@ async def download_log_file(
     """Download log file."""
     check_permission(username, "view_logs")
     
-    log_path = Path("logs") / filename
+    log_path = from pathlib import Path
+Path("logs") / filename
     if not log_path.exists() or not log_path.is_file():
         raise HTTPException(status_code=404, detail="Log file not found")
     
@@ -281,7 +292,8 @@ async def download_all_logs(username: str = Depends(verify_admin_credentials)):
     zip_buffer = io.BytesIO()
     
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        log_dir = Path("logs")
+        log_dir = from pathlib import Path
+Path("logs")
         if log_dir.exists():
             for log_file in log_dir.glob("*.log"):
                 zip_file.write(log_file, log_file.name)
@@ -291,7 +303,8 @@ async def download_all_logs(username: str = Depends(verify_admin_credentials)):
     return StreamingResponse(
         io.BytesIO(zip_buffer.read()),
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename=plexichat_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"}
+        headers={"Content-Disposition": f"attachment; filename=plexichat_logs_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"}
     )
 
 # Console Interface
@@ -316,8 +329,6 @@ async def execute_console_command(
     
     try:
         # Import CLI app
-        from plexichat.cli.app import PlexiChatCLI
-
         # Create CLI instance
         PlexiChatCLI()
         
@@ -330,14 +341,16 @@ async def execute_console_command(
         return {
             "status": "success",
             "output": result,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
     
     except Exception as e:
         return {
             "status": "error",
             "output": f"Error executing command: {e}",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
 
 # API Endpoints for AJAX calls
@@ -356,7 +369,8 @@ async def stream_logs(username: str = Depends(verify_admin_credentials)):
         # This would connect to the actual log stream
         while True:
             # Simulate log streaming
-            yield f"data: {json.dumps({'timestamp': datetime.now().isoformat(), 'level': 'INFO', 'message': 'Sample log entry'})}\n\n"
+            yield f"data: {json.dumps({'timestamp': from datetime import datetime
+datetime.now().isoformat(), 'level': 'INFO', 'message': 'Sample log entry'})}\n\n"
             await asyncio.sleep(1)
     
     return StreamingResponse(log_generator(), media_type="text/plain")
@@ -389,13 +403,14 @@ async def clustering_management_interface(request: Request, username: str = Depe
 async def get_system_statistics() -> SystemStats:
     """Get current system statistics."""
     try:
-        import psutil
-        
         return SystemStats(
             uptime="2 hours, 15 minutes",
-            cpu_usage=psutil.cpu_percent(),
-            memory_usage=psutil.virtual_memory().percent,
-            disk_usage=psutil.disk_usage('/').percent,
+            cpu_usage=import psutil
+psutil.cpu_percent(),
+            memory_usage=import psutil
+psutil.virtual_memory().percent,
+            disk_usage=import psutil
+psutil.disk_usage('/').percent,
             active_connections=25,
             total_requests=1247,
             error_count=12
@@ -416,7 +431,8 @@ async def get_recent_logs(limit: int = 50) -> List[LogEntry]:
     # This would read from actual log files
     sample_logs = [
         LogEntry(
-            timestamp=datetime.now() - timedelta(minutes=i),
+            timestamp=from datetime import datetime
+datetime.now() - timedelta(minutes=i),
             level="INFO" if i % 3 != 0 else "WARNING",
             module="web_server",
             message=f"Sample log entry {i}"
@@ -428,7 +444,8 @@ async def get_recent_logs(limit: int = 50) -> List[LogEntry]:
 async def get_available_log_files() -> List[Dict[str, Any]]:
     """Get list of available log files."""
     log_files = []
-    log_dir = Path("logs")
+    log_dir = from pathlib import Path
+Path("logs")
     
     if log_dir.exists():
         for log_file in log_dir.glob("*.log"):
@@ -443,7 +460,8 @@ async def get_available_log_files() -> List[Dict[str, Any]]:
 
 async def get_system_config() -> SystemConfig:
     """Get current system configuration."""
-    config_path = Path("config/system.json")
+    config_path = from pathlib import Path
+Path("config/system.json")
     
     if config_path.exists():
         with open(config_path) as f:

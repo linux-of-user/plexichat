@@ -1,3 +1,71 @@
+import json
+import os
+import platform
+import secrets
+import shutil
+import string
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import urllib.error
+import urllib.request
+import zipfile
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+    import msvcrt  # Windows key detection
+    import termios  # Unix key detection
+    import tty
+from datetime import datetime
+
+    import yaml  # Optional dependency for version verification and backup/restore
+    from tqdm import tqdm  # type: ignore
+                import shutil
+        import platform
+            import shutil
+                import sys
+
+                import subprocess
+                import subprocess
+                            import re
+                    import asyncio
+                import glob
+        import hashlib
+        import tempfile
+        import zipfile
+
+        import traceback
+        import hashlib
+        import tempfile
+        import zipfile
+
+        import traceback
+  import [file]     Import PlexiChat configuration and data
+        import webbrowser
+        import webbrowser
+            import requests
+
+
+        import queue
+        import threading
+
+        import yaml as yaml_module
+            import yaml as yaml_module
+        import subprocess
+
+        import subprocess
+
+        import psutil
+
+                from plexichat.core_system.update.update_manager import UpdateManager
+                from plexichat.core_system.update.version_manager import VersionManager
+                from plexichat.cli.integrated_cli import PlexiChatCLI
+                from src.plexichat.cli.integrated_cli import PlexiChatCLI
+                        from plexichat.core_system.config.manager import ConfigurationManager
+                        from plexichat.core_system.config.manager import ConfigurationManager
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -18,46 +86,22 @@ Features:
 - Standalone installer capability
 """
 
-import json
-import os
-import platform
-import secrets
-import shutil
-import string
-import subprocess
-import sys
-import tempfile
-import threading
-import time
-import urllib.error
-import urllib.request
-import zipfile
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
 # Platform-specific imports with error handling
 try:
-    import msvcrt  # Windows key detection
     HAS_MSVCRT = True
 except ImportError:
     HAS_MSVCRT = False
 
 try:
-    import termios  # Unix key detection
-    import tty
     HAS_TERMIOS = True
 except ImportError:
     HAS_TERMIOS = False
-from datetime import datetime
-
 # Try to import optional dependencies
 try:
-    import yaml  # Optional dependency for version verification and backup/restore
 except ImportError:
     yaml = None
 
 try:
-    from tqdm import tqdm  # type: ignore
 except ImportError:
     tqdm = None
 
@@ -87,7 +131,6 @@ class SimpleProgressBar:
         # Set a fixed, consistent width that works well across terminals
         if width is None:
             try:
-                import shutil
                 terminal_width = shutil.get_terminal_size().columns
                 # Use a conservative approach: ensure we have enough space
                 # Format: "Installing package: |????????????????????????????????????????| 100.0% (36/36) ETA: 123s"
@@ -95,7 +138,7 @@ class SimpleProgressBar:
                 available_width = max(80, terminal_width)  # Ensure minimum 80 chars
                 self.width = min(50, available_width - 57)  # Cap bar width at 50, reserve 57 for other elements
                 self.width = max(20, self.width)  # Minimum bar width of 20
-            except:
+            except Exception:
                 self.width = 30  # Safe fallback
         else:
             self.width = width
@@ -206,7 +249,8 @@ def install_with_progress(packages, desc="Installing packages"):
         return False
 
 # Set up paths
-ROOT = Path(__file__).parent.resolve()
+ROOT = from pathlib import Path
+Path(__file__).parent.resolve()
 SRC = ROOT / "src"
 VENV_DIR = ROOT / ".venv"
 DEPENDENCIES = ROOT / "dependencies.txt"
@@ -325,10 +369,12 @@ def check_python_version():
 def get_system_info():
     """Get comprehensive system information."""
     try:
-        import psutil
-        cpu_count = psutil.cpu_count()
-        memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        cpu_count = import psutil
+psutil.cpu_count()
+        memory = import psutil
+psutil.virtual_memory()
+        disk = import psutil
+psutil.disk_usage('/')
         has_psutil = True
     except ImportError:
         cpu_count = os.cpu_count()
@@ -371,7 +417,7 @@ def get_system_info():
         info["available_env_managers"] = {
             name: details['available'] for name, details in environments.items()
         }
-    except:
+    except Exception:
         info["available_env_managers"] = {"detection_failed": True}
 
     return info
@@ -406,7 +452,7 @@ class DualProgressBar:
         """Get current terminal width with fallback."""
         try:
             return shutil.get_terminal_size().columns
-        except:
+        except Exception:
             return 80
 
     def format_time(self, seconds):
@@ -445,27 +491,27 @@ class DualProgressBar:
         # Check if terminal supports Unicode (fallback for basic terminals)
         try:
             # Test Unicode support
-            test_char = '█'
+            test_char = ''
             print(test_char, end='', flush=True)
             print('\b', end='', flush=True)  # Move back
             unicode_supported = True
-        except:
+        except Exception:
             unicode_supported = False
 
         # Build overall progress bar
         filled = int(self.overall_progress * self.width)
         if unicode_supported:
-            bar = '█' * filled + '░' * (self.width - filled)
-            overall_line = f"📦 Overall Progress: [{bar}] {self.overall_progress*100:.1f}% ({self.current_package}/{self.total_packages})"
+            bar = '' * filled + '' * (self.width - filled)
+            overall_line = f" Overall Progress: [{bar}] {self.overall_progress*100:.1f}% ({self.current_package}/{self.total_packages})"
         else:
             bar = '#' * filled + '-' * (self.width - filled)
             overall_line = f"Overall Progress: [{bar}] {self.overall_progress*100:.1f}% ({self.current_package}/{self.total_packages})"
 
         if elapsed > 1:
             if unicode_supported:
-                overall_line += f" | ⏱️  Elapsed: {self.format_time(elapsed)}"
+                overall_line += f" |   Elapsed: {self.format_time(elapsed)}"
                 if eta > 1:
-                    overall_line += f" | ⏳ ETA: {self.format_time(eta)}"
+                    overall_line += f" |  ETA: {self.format_time(eta)}"
             else:
                 overall_line += f" | Elapsed: {self.format_time(elapsed)}"
                 if eta > 1:
@@ -474,9 +520,9 @@ class DualProgressBar:
         # Build current package line with animated indicator
         package_elapsed = time.time() - self.package_start_time
         if unicode_supported:
-            dots = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[int(package_elapsed * 2) % 10]  # Spinning animation
-            status_indicator = f" {dots} " if self.current_status == "Installing" else " ✓ " if self.current_status == "Installed" else " ✗ " if self.current_status == "Failed" else " ⚙️  "
-            package_line = f"🔧 Current Package: {status_indicator}{self.current_package_name}"
+            dots = ""[int(package_elapsed * 2) % 10]  # Spinning animation
+            status_indicator = f" {dots} " if self.current_status == "Installing" else "  " if self.current_status == "Installed" else "  " if self.current_status == "Failed" else "   "
+            package_line = f" Current Package: {status_indicator}{self.current_package_name}"
         else:
             dots = "." * (int(package_elapsed * 2) % 4)  # Simple dots
             status_indicator = f" {dots} " if self.current_status == "Installing" else " [OK] " if self.current_status == "Installed" else " [FAIL] " if self.current_status == "Failed" else " [PREP] "
@@ -528,17 +574,17 @@ class DualProgressBar:
             
             # Check Unicode support (same logic as print_progress_bars)
             try:
-                test_char = '█'
+                test_char = ''
                 print(test_char, end='', flush=True)
                 print('\b', end='', flush=True)
                 unicode_supported = True
-            except:
+            except Exception:
                 unicode_supported = False
             
             if unicode_supported:
-                dots = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[int(package_elapsed * 2) % 10]
-                status_indicator = f" {dots} " if status == "Installing" else " ✓ " if status == "Installed" else " ✗ " if status == "Failed" else " ⚙️  "
-                package_line = f"🔧 Current Package: {status_indicator}{package_name}"
+                dots = ""[int(package_elapsed * 2) % 10]
+                status_indicator = f" {dots} " if status == "Installing" else "  " if status == "Installed" else "  " if status == "Failed" else "   "
+                package_line = f" Current Package: {status_indicator}{package_name}"
             else:
                 dots = "." * (int(package_elapsed * 2) % 4)
                 status_indicator = f" {dots} " if status == "Installing" else " [OK] " if status == "Installed" else " [FAIL] " if status == "Failed" else " [PREP] "
@@ -560,15 +606,15 @@ class DualProgressBar:
         
         # Check Unicode support for completion message
         try:
-            test_char = '🎉'
+            test_char = ''
             print(test_char, end='', flush=True)
             print('\b', end='', flush=True)
             unicode_supported = True
-        except:
+        except Exception:
             unicode_supported = False
         
         if unicode_supported:
-            final_line = f"🎉 {message} - {self.total_packages} packages in {self.format_time(elapsed)}"
+            final_line = f" {message} - {self.total_packages} packages in {self.format_time(elapsed)}"
         else:
             final_line = f"[COMPLETE] {message} - {self.total_packages} packages in {self.format_time(elapsed)}"
         
@@ -659,7 +705,6 @@ class OSSpecificSetupWizard:
 
     def detect_os(self) -> str:
         """Detect the operating system."""
-        import platform
         system = platform.system().lower()
 
         if system == "windows":
@@ -681,7 +726,7 @@ class OSSpecificSetupWizard:
                         return "fedora"
                     else:
                         return "linux"
-            except:
+            except Exception:
                 return "linux"
         elif 'bsd' in system:
             return "bsd"
@@ -1074,7 +1119,7 @@ class OSSpecificSetupWizard:
                 return key
             finally:
                 termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        except:
+        except Exception:
             return input().strip()
 
     def clear_screen(self):
@@ -1159,7 +1204,7 @@ class LegacySetupWizard:
                                 selection = (selection + 1) % len(options)
                         else:
                             return None  # ESC pressed
-                    except:
+                    except Exception:
                         return None  # ESC pressed
                 elif key == '\r' or key == '\n':  # Enter key
                     return selection
@@ -1238,7 +1283,7 @@ class LegacySetupWizard:
                                 selection = (selection - 1) % len(feature_keys)
                             elif arrow_key == 'B':  # Down arrow
                                 selection = (selection + 1) % len(feature_keys)
-                    except:
+                    except Exception:
                         pass
                 elif key == ' ':  # Space to toggle
                     feature_key = feature_keys[selection]
@@ -1432,7 +1477,8 @@ class PlexiChatBootstrapper:
     """
 
     def __init__(self):
-        self.script_dir = Path(__file__).parent.absolute()
+        self.script_dir = from pathlib import Path
+Path(__file__).parent.absolute()
         self.install_dir = self.script_dir  # Install in same directory, not subfolder
         self.repo_url = "https://github.com/linux-of-user/plexichat.git"
         self.repo_zip_url = "https://github.com/linux-of-user/plexichat/archive/refs/heads/main.zip"
@@ -1618,7 +1664,6 @@ class PlexiChatBootstrapper:
 
         # Check available disk space
         try:
-            import shutil
             free_space = shutil.disk_usage('.').free / (1024**3)  # GB
             if free_space < 1.0:  # Require at least 1GB free
                 print(f"[WARN] Low disk space: {free_space:.1f}GB available")
@@ -1749,7 +1794,8 @@ class PlexiChatBootstrapper:
         try:
             # Clone to temporary directory first
             with tempfile.TemporaryDirectory() as temp_dir:
-                temp_repo = Path(temp_dir) / "repo"
+                temp_repo = from pathlib import Path
+Path(temp_dir) / "repo"
 
                 # Clone the repository
                 if version_info['type'] == 'branch':
@@ -1779,7 +1825,8 @@ class PlexiChatBootstrapper:
         """Download using ZIP file."""
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
-                zip_path = Path(temp_dir) / "source.zip"
+                zip_path = from pathlib import Path
+Path(temp_dir) / "source.zip"
 
                 # Download ZIP file
                 if not self.download_with_progress(version_info['url'], zip_path, f"Downloading {version_info['name']}"):
@@ -1790,7 +1837,8 @@ class PlexiChatBootstrapper:
                     zip_ref.extractall(temp_dir)
 
                 # Find the extracted directory
-                extracted_dirs = [d for d in Path(temp_dir).iterdir()
+                extracted_dirs = [d for d in from pathlib import Path
+Path(temp_dir).iterdir()
                                 if d.is_dir() and d.name != "__pycache__"]
 
                 if not extracted_dirs:
@@ -2024,15 +2072,11 @@ class PlexiChatBootstrapper:
             # Try to use the core update system
             try:
                 # Add the src directory to Python path temporarily
-                import sys
                 src_path = str(self.install_dir / "src")
                 if src_path not in sys.path:
                     sys.path.insert(0, src_path)
 
                 # Import the update system
-                from plexichat.core_system.update.update_manager import UpdateManager
-                from plexichat.core_system.update.version_manager import VersionManager
-
                 # Initialize update manager
                 update_manager = UpdateManager()
                 version_manager = VersionManager()
@@ -2073,7 +2117,8 @@ class PlexiChatBootstrapper:
         try:
             # Look for run.py in the downloaded source
             source_run_py = self.install_dir / "run.py"
-            current_run_py = Path(__file__).absolute()
+            current_run_py = from pathlib import Path
+Path(__file__).absolute()
 
             if source_run_py.exists() and source_run_py != current_run_py:
                 print("[*] Using direct file replacement...")
@@ -2128,7 +2173,6 @@ del "%~f0"
                     f.write(batch_content)
 
                 # Schedule batch execution
-                import subprocess
                 subprocess.Popen([str(batch_file)], shell=True)
             else:
                 # Unix shell script for replacement
@@ -2143,7 +2187,6 @@ rm "$0"
 
                 # Make executable and schedule
                 os.chmod(shell_file, 0o755)
-                import subprocess
                 subprocess.Popen([str(shell_file)])
 
         except Exception as e:
@@ -2233,7 +2276,7 @@ def show_environment_info():
                         print(f"     - {env_line}")
                     if len(envs) > 3:
                         print(f"     ... and {len(envs) - 3} more")
-                except:
+                except Exception:
                     pass
 
             elif env_name == 'venv':
@@ -2395,7 +2438,6 @@ def get_version_info():
                         # Parse Python version file
                         with open(location, 'r') as f:
                             content = f.read()
-                            import re
                             match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
                             if match:
                                 return match.group(1)
@@ -2405,7 +2447,7 @@ def get_version_info():
                             version = f.read().strip()
                             if version:
                                 return version
-                except:
+                except Exception:
                     continue
 
         # Ultimate fallback
@@ -2429,7 +2471,8 @@ def update_version_format():
             if "deprecated" not in version_data:
                 version_data["deprecated"] = True
                 version_data["deprecation_notice"] = "This file is deprecated. PlexiChat now uses Git-based versioning."
-                version_data["migration_date"] = datetime.now().isoformat()
+                version_data["migration_date"] = from datetime import datetime
+datetime.now().isoformat()
 
                 with open(VERSION_FILE, 'w') as f:
                     json.dump(version_data, f, indent=2)
@@ -2468,7 +2511,8 @@ def generate_default_admin_creds():
     creds_content = f"""Username: admin
 Password: {password}
 Role: super_admin
-Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Generated: {from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 IMPORTANT: Change password after first login and delete this file.
 """
@@ -2613,7 +2657,7 @@ def detect_python_environments():
         subprocess.run([sys.executable, '-m', 'venv', '--help'],
                       capture_output=True, check=True)
         environments['venv']['available'] = True
-    except:
+    except Exception:
         pass
 
     # Check conda
@@ -2622,7 +2666,7 @@ def detect_python_environments():
                               capture_output=True, check=True, text=True)
         environments['conda']['available'] = True
         environments['conda']['version'] = result.stdout.strip()
-    except:
+    except Exception:
         pass
 
     # Check mamba
@@ -2631,7 +2675,7 @@ def detect_python_environments():
                               capture_output=True, check=True, text=True)
         environments['mamba']['available'] = True
         environments['mamba']['version'] = result.stdout.strip()
-    except:
+    except Exception:
         pass
 
     # Check virtualenv
@@ -2639,7 +2683,7 @@ def detect_python_environments():
         subprocess.run(['virtualenv', '--version'],
                       capture_output=True, check=True)
         environments['virtualenv']['available'] = True
-    except:
+    except Exception:
         pass
 
     # Check pipenv
@@ -2647,7 +2691,7 @@ def detect_python_environments():
         subprocess.run(['pipenv', '--version'],
                       capture_output=True, check=True)
         environments['pipenv']['available'] = True
-    except:
+    except Exception:
         pass
 
     # Check poetry
@@ -2655,7 +2699,7 @@ def detect_python_environments():
         subprocess.run(['poetry', '--version'],
                       capture_output=True, check=True)
         environments['poetry']['available'] = True
-    except:
+    except Exception:
         pass
 
     return environments
@@ -2710,7 +2754,7 @@ def create_virtual_environment(env_type='auto'):
                 # Create python symlink
                 try:
                     (VENV_DIR / "Scripts" / "python.exe").symlink_to(conda_python)
-                except:
+                except Exception:
                     # Fallback: create batch file
                     with open(VENV_DIR / "Scripts" / "python.bat", 'w') as f:
                         f.write(f'@echo off\nconda run -n {env_name} python %*\n')
@@ -3006,24 +3050,24 @@ def install_package_list(venv_python, packages, use_fallbacks=True):
 
     # Report results with better formatting
     if failed_packages:
-        print(f"\n⚠️  {len(failed_packages)} packages failed to install:")
+        print(f"\n  {len(failed_packages)} packages failed to install:")
         for pkg in failed_packages:
-            print(f"   ❌ {pkg}")
+            print(f"    {pkg}")
 
         # Check if any critical packages failed
         critical_packages = ['fastapi', 'uvicorn', 'sqlalchemy', 'pydantic']
         critical_failed = [pkg for pkg in failed_packages if any(crit in pkg.lower() for crit in critical_packages)]
 
         if critical_failed:
-            print(f"\n🚨 Critical packages failed: {critical_failed}")
-            print("💡 Try installing manually or check system dependencies")
+            print(f"\n Critical packages failed: {critical_failed}")
+            print(" Try installing manually or check system dependencies")
             return False
         else:
-            print("\n⚠️  Some optional packages failed, but core functionality should work.")
-            print(f"✅ Successfully installed {len(packages) - len(failed_packages)}/{len(packages)} packages")
+            print("\n  Some optional packages failed, but core functionality should work.")
+            print(f" Successfully installed {len(packages) - len(failed_packages)}/{len(packages)} packages")
             return True
     else:
-        print(f"✅ All {len(packages)} packages installed successfully")
+        print(f" All {len(packages)} packages installed successfully")
         return True
 
 
@@ -3111,7 +3155,7 @@ def install_single_package(python_exe, package, use_fallbacks=True, verbose=Fals
                 elif 'centos' in os_info or 'rhel' in os_info or 'fedora' in os_info:
                     pkg_name = package.lower().replace('_', '-')
                     print(f"      sudo yum install python3-{pkg_name}")
-            except:
+            except Exception:
                 print(f"      Check your distribution's package manager for python3-{package}")
         elif system == "darwin":  # macOS
             print(f"      brew install {package}")
@@ -3174,7 +3218,8 @@ def start_log_monitor():
                                 line = line.strip()
                                 if line:
                                     # Format log line with source
-                                    timestamp = datetime.now().strftime('%H:%M:%S')
+                                    timestamp = from datetime import datetime
+datetime.now().strftime('%H:%M:%S')
                                     source_emoji = {
                                         "latest": "[*]",
                                         "main": "[*]",
@@ -3252,7 +3297,8 @@ def start_log_generator():
                 time.sleep(3 + (counter % 5))
 
                 level, module, message = log_messages[counter % len(log_messages)]
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                timestamp = from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
                 log_entry = f"[{timestamp}] [{level:8}] {module}: {message}\n"
 
@@ -3351,7 +3397,8 @@ def run_plexichat_server():
         # Create initial log entries
         latest_log = logs_dir / "latest.log"
         with open(latest_log, 'a', encoding='utf-8') as f:
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             f.write(f"[{timestamp}] [INFO] plexichat.startup: [*] PlexiChat server starting up...\n")
             f.write(f"[{timestamp}] [INFO] plexichat.startup: [*] Initializing logging system\n")
             f.write(f"[{timestamp}] [INFO] plexichat.startup: [*] Loading configuration\n")
@@ -3383,7 +3430,7 @@ def run_plexichat_server():
                 print("[*] Split-screen mode enabled - CLI commands will appear separately from logs")
             else:
                 print("[*] Standard mode - CLI and logs will be mixed")
-        except:
+        except Exception:
             print("[*] Standard mode - CLI and logs will be mixed")
 
         print("Commands: 'status', 'logs', 'stop', 'help'")
@@ -3393,9 +3440,7 @@ def run_plexichat_server():
         try:
             sys.path.insert(0, str(SRC))
             try:
-                from plexichat.cli.integrated_cli import PlexiChatCLI
             except ImportError:
-                from src.plexichat.cli.integrated_cli import PlexiChatCLI
             cli = PlexiChatCLI()
             print("[OK] Integrated CLI loaded")
         except Exception as e:
@@ -3412,7 +3457,6 @@ def run_plexichat_server():
 
                 if cli:
                     # Use integrated CLI
-                    import asyncio
                     try:
                         # Run async command in sync context
                         loop = asyncio.new_event_loop()
@@ -3524,7 +3568,7 @@ def clean_environment(deep_clean=False):
                         shutil.rmtree(VENV_DIR, ignore_errors=True)
                         if not VENV_DIR.exists():
                             success = True
-                    except:
+                    except Exception:
                         pass
 
                 if success:
@@ -3547,7 +3591,8 @@ def clean_environment(deep_clean=False):
     for root, dirs, files in os.walk(ROOT):
         for dir_name in dirs[:]:
             if dir_name in ["__pycache__", ".pytest_cache", ".mypy_cache", ".coverage"]:
-                cache_dir = Path(root) / dir_name
+                cache_dir = from pathlib import Path
+Path(root) / dir_name
                 try:
                     print(f"[*] Removing cache: {cache_dir}")
                     shutil.rmtree(cache_dir, ignore_errors=True)
@@ -3577,9 +3622,9 @@ def clean_environment(deep_clean=False):
 
         for pattern in deep_clean_items:
             try:
-                import glob
                 for item in glob.glob(str(ROOT / pattern), recursive=True):
-                    item_path = Path(item)
+                    item_path = from pathlib import Path
+Path(item)
                     if item_path.exists():
                         if item_path.is_file():
                             item_path.unlink(missing_ok=True)
@@ -3616,7 +3661,7 @@ def stop_running_processes():
                             subprocess.run(["taskkill", "/F", "/PID", pid],
                                          capture_output=True, timeout=5, check=False)
                             print(f"[STOP] Stopped process PID: {pid}")
-                        except:
+                        except Exception:
                             pass
                 elif result.stdout.strip():
                     print("[*] No PlexiChat processes found")
@@ -3634,7 +3679,7 @@ def stop_running_processes():
                         print("[WARN]  Using broad process termination - this may affect other Python processes")
                         subprocess.run(["taskkill", "/F", "/IM", "python.exe"],
                                      capture_output=True, timeout=5, check=False)
-                except:
+                except Exception:
                     print("[WARN]  Could not stop processes using Windows methods")
 
         else:
@@ -3653,7 +3698,7 @@ def stop_running_processes():
                                 subprocess.run(["kill", "-TERM", pid.strip()],
                                              capture_output=True, timeout=5, check=False)
                                 print(f"[STOP] Stopped process PID: {pid.strip()}")
-                            except:
+                            except Exception:
                                 pass
 
                     # Give processes time to terminate gracefully
@@ -3672,7 +3717,7 @@ def stop_running_processes():
                                     subprocess.run(["kill", "-KILL", pid.strip()],
                                                  capture_output=True, timeout=5, check=False)
                                     print(f"[STOP] Force killed process PID: {pid.strip()}")
-                                except:
+                                except Exception:
                                     pass
                 else:
                     print("[*] No PlexiChat processes found")
@@ -3695,7 +3740,8 @@ def export_plexichat_config(filename=None, options=None):
 
     # Generate filename if not provided
     if filename is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
         version = get_version_info()
         filename = f"plexichat_export_{version}_{timestamp}.plx"
 
@@ -3703,20 +3749,18 @@ def export_plexichat_config(filename=None, options=None):
     if not filename.endswith('.plx'):
         filename += '.plx'
 
-    export_path = Path(filename)
+    export_path = from pathlib import Path
+Path(filename)
     if not export_path.is_absolute():
         export_path = ROOT / filename
 
     print(f"[*] Exporting PlexiChat configuration to: {export_path}")
 
     try:
-        import hashlib
-        import tempfile
-        import zipfile
-
         # Create temporary directory for staging
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
+            temp_path = from pathlib import Path
+Path(temp_dir)
             export_staging = temp_path / "plexichat_export"
             export_staging.mkdir()
 
@@ -3724,7 +3768,8 @@ def export_plexichat_config(filename=None, options=None):
             metadata = {
                 "export_version": "1.0",
                 "plexichat_version": get_version_info(),
-                "export_date": datetime.now().isoformat(),
+                "export_date": from datetime import datetime
+datetime.now().isoformat(),
                 "system_info": get_system_info(),
                 "options": options,
                 "exported_components": []
@@ -3822,7 +3867,8 @@ def export_plexichat_config(filename=None, options=None):
                 with zipfile.ZipFile(export_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     for root, dirs, files in os.walk(export_staging):
                         for file in files:
-                            file_path = Path(root) / file
+                            file_path = from pathlib import Path
+Path(root) / file
                             arc_path = file_path.relative_to(export_staging)
                             zipf.write(file_path, arc_path)
             else:
@@ -3860,7 +3906,6 @@ def export_plexichat_config(filename=None, options=None):
 
     except Exception as e:
         print(f"[ERROR] Export failed: {e}")
-        import traceback
         traceback.print_exc()
         return False
 
@@ -3872,7 +3917,8 @@ def import_plexichat_config(filename, options=None):
     if options is None:
         options = {}
 
-    import_path = Path(filename)
+    import_path = from pathlib import Path
+Path(filename)
     if not import_path.is_absolute():
         import_path = ROOT / filename
 
@@ -3883,10 +3929,6 @@ def import_plexichat_config(filename, options=None):
     print(f"[*] Importing PlexiChat configuration from: {import_path}")
 
     try:
-        import hashlib
-        import tempfile
-        import zipfile
-
         # Verify checksum if available
         checksum_file = import_path.with_suffix('.md5')
         if checksum_file.exists():
@@ -3915,13 +3957,15 @@ def import_plexichat_config(filename, options=None):
         if options.get('backup', True):
             print("[*] Creating backup of current configuration...")
             backup_options = {'compress': True}
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_filename = f"plexichat_backup_before_import_{timestamp}.plx"
             export_plexichat_config(backup_filename, backup_options)
 
         # Extract/read import file
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
+            temp_path = from pathlib import Path
+Path(temp_dir)
             import_staging = temp_path / "plexichat_import"
 
             # Check if it's a zip file or directory
@@ -3984,7 +4028,8 @@ def import_plexichat_config(filename, options=None):
                                     # Merge directories
                                     for root, dirs, files in os.walk(source_path):
                                         for file in files:
-                                            src_file = Path(root) / file
+                                            src_file = from pathlib import Path
+Path(root) / file
                                             rel_path = src_file.relative_to(source_path)
                                             dst_file = dest_path / rel_path
                                             dst_file.parent.mkdir(parents=True, exist_ok=True)
@@ -4039,7 +4084,8 @@ def import_plexichat_config(filename, options=None):
                             # Merge directories
                             for root, dirs, files in os.walk(source_dir):
                                 for file in files:
-                                    src_file = Path(root) / file
+                                    src_file = from pathlib import Path
+Path(root) / file
                                     rel_path = src_file.relative_to(source_dir)
                                     dst_file = dest_dir / rel_path
                                     dst_file.parent.mkdir(parents=True, exist_ok=True)
@@ -4067,7 +4113,6 @@ def import_plexichat_config(filename, options=None):
 
     except Exception as e:
         print(f"[ERROR] Import failed: {e}")
-        import traceback
         traceback.print_exc()
         return False
 
@@ -4495,7 +4540,6 @@ Usage: python run.py [command] [options]
   version           Show version and update information
   update            Check for and apply updates from GitHub
   export [file]     Export complete PlexiChat configuration and data
-  import [file]     Import PlexiChat configuration and data
   help              Show this help message
 
 [*] Interface Commands:
@@ -4607,7 +4651,6 @@ def open_admin_gui():
     print(f"[*] Opening Admin GUI: {admin_url}")
 
     try:
-        import webbrowser
         webbrowser.open(admin_url)
         print("[OK] Admin GUI opened in browser")
         return True
@@ -4625,7 +4668,6 @@ def open_webui():
     print(f"[*] Opening WebUI: {webui_url}")
 
     try:
-        import webbrowser
         webbrowser.open(webui_url)
         print("[OK] WebUI opened in browser")
         return True
@@ -4651,7 +4693,6 @@ def show_service_status():
 
     for name, url, emoji in services:
         try:
-            import requests
             response = requests.get(url.replace('ws://', 'http://'), timeout=2)
             if response.status_code == 200:
                 status = "[INFO] Running"
@@ -5414,7 +5455,8 @@ in the same location as this script.
             return
 
         # Check if we're already in a PlexiChat installation
-        if (Path(__file__).parent / "src" / "plexichat").exists():
+        if (from pathlib import Path
+Path(__file__).parent / "src" / "plexichat").exists():
             print("[WARN]  You appear to already be in a PlexiChat installation directory.")
             print("The bootstrap command is for installing PlexiChat from a standalone run.py file.")
             print("Use 'python run.py setup' instead to configure this installation.")
@@ -5536,8 +5578,6 @@ Examples:
                     # Import using existing config system
                     try:
                         sys.path.insert(0, "src")
-                        from plexichat.core_system.config.manager import ConfigurationManager
-
                         config_manager = ConfigurationManager()
                         if config_manager.import_config_from_file(config_file):
                             print("[SUCCESS] Configuration imported successfully!")
@@ -5573,8 +5613,6 @@ Examples:
 
                     try:
                         sys.path.insert(0, "src")
-                        from plexichat.core_system.config.manager import ConfigurationManager
-
                         config_manager = ConfigurationManager()
                         if config_manager.export_config_to_file(config_file, config_format):
                             print("[SUCCESS] Configuration exported successfully!")
@@ -6015,9 +6053,6 @@ def start_classic_terminal():
         )
 
         # Start a thread to handle user input
-        import queue
-        import threading
-
         input_queue = queue.Queue()
 
         def input_handler():
@@ -6060,7 +6095,7 @@ def start_classic_terminal():
                         line = process.stdout.readline()
                         if line:
                             print(line.rstrip())
-                except:
+                except Exception:
                     pass
         except KeyboardInterrupt:
             print("\n[STOP] Stopping PlexiChat server...")
@@ -6119,12 +6154,10 @@ def generate_unified_config():
     # Check if yaml is available
     yaml_module = None
     try:
-        import yaml as yaml_module
     except ImportError:
         print("[WARN] PyYAML not installed. Installing...")
         try:
             subprocess.run([sys.executable, "-m", "pip", "install", "PyYAML"], check=True, capture_output=True)
-            import yaml as yaml_module
             print("[OK] PyYAML installed successfully")
         except Exception as e:
             print(f"[ERROR] Failed to install PyYAML: {e}")
@@ -6135,7 +6168,8 @@ def generate_unified_config():
     config = {
         "plexichat": {
             "version": "3.0.0",
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": from datetime import datetime
+datetime.now().isoformat(),
 
             # Server Configuration
             "server": {
@@ -6198,7 +6232,8 @@ def generate_json_config():
     config = {
         "plexichat": {
             "version": "3.0.0",
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": from datetime import datetime
+datetime.now().isoformat(),
             "server": {
                 "host": "0.0.0.0",
                 "port": 8080,
@@ -6322,8 +6357,6 @@ def setup_ssl_certificates():
 
     # Generate self-signed certificate
     try:
-        import subprocess
-
         # Generate private key
         subprocess.run([
             "openssl", "genrsa", "-out", str(certs_dir / "plexichat.key"), "2048"
@@ -6360,7 +6393,6 @@ def show_ssl_status():
         return
 
     try:
-        import subprocess
         result = subprocess.run([
             "openssl", "x509", "-in", str(cert_file), "-text", "-noout"
         ], capture_output=True, text=True, check=True)
@@ -6541,7 +6573,7 @@ def run_robust_update():
                     print(f"   * {line}")
                 if len(commit_lines) > 5:
                     print(f"   ... and {len(commit_lines) - 5} more commits")
-        except:
+        except Exception:
             pass
 
         if not input("\n[*] Apply updates? (y/N): ").lower().startswith('y'):
@@ -6581,7 +6613,7 @@ def run_robust_update():
                 subprocess.run([
                     sys.executable, "-m", "pip", "install", package, "--quiet", "--upgrade"
                 ], check=True, capture_output=True)
-            except:
+            except Exception:
                 print(f"[WARN] Failed to install {package}, continuing...")
 
         # Try to install from requirements.txt if it exists

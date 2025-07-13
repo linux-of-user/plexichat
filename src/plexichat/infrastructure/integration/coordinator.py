@@ -1,15 +1,42 @@
+import asyncio
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Dict, List
+
+            from ..security.quantum_security import quantum_security_manager
+            
+            from ..identity.decentralized_identity import decentralized_identity_manager
+            
+            from ..blockchain.audit_trails import audit_trail_manager
+            
+            from ..knowledge.semantic_graphs import semantic_knowledge_manager
+            
+            from ..security.hardware_security import hsm_manager
+            
+            from ..security.threat_intelligence import threat_intelligence_manager
+            
+            from ..performance.optimization_engine import performance_optimization_engine
+            
+            from ..ai.ai_coordinator import ai_coordinator
+            
+            from ..messaging.messaging_coordinator import messaging_coordinator
+            
+            from ..plugins.advanced_plugin_system import advanced_plugin_manager
+            
+            from ..security.quantum_security import quantum_security_manager
+
+            from ..security.threat_intelligence import threat_intelligence_manager
+
+            from ..performance.optimization_engine import performance_optimization_engine
+
+
 """
 PlexiChat Comprehensive System Integration Coordinator
 
 Integrates all advanced systems into a unified, cohesive platform
 with centralized management and monitoring.
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +80,7 @@ class SystemIntegrationCoordinator:
     
     async def initialize_integration(self):
         """Initialize comprehensive system integration."""
-        logger.info("🔗 Initializing PlexiChat System Integration...")
+        logger.info(" Initializing PlexiChat System Integration...")
         
         # Initialize all system components
         await self._initialize_quantum_security()
@@ -71,13 +98,11 @@ class SystemIntegrationCoordinator:
         self.integration_active = True
         await self._start_system_monitoring()
         
-        logger.info("✅ PlexiChat System Integration Complete!")
+        logger.info(" PlexiChat System Integration Complete!")
     
     async def _initialize_quantum_security(self):
         """Initialize quantum security system."""
         try:
-            from ..security.quantum_security import quantum_security_manager
-            
             status = quantum_security_manager.get_security_status()
             
             self.system_components["quantum_security"] = SystemStatus(
@@ -88,10 +113,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("quantum_security", {})
             )
             
-            logger.info("✅ Quantum Security System integrated")
+            logger.info(" Quantum Security System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Quantum Security integration failed: {e}")
+            logger.error(f" Quantum Security integration failed: {e}")
             self.system_components["quantum_security"] = SystemStatus(
                 component_name="Quantum Security",
                 is_active=False,
@@ -103,8 +128,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_decentralized_identity(self):
         """Initialize decentralized identity system."""
         try:
-            from ..identity.decentralized_identity import decentralized_identity_manager
-            
             status = decentralized_identity_manager.get_identity_status()
             
             self.system_components["decentralized_identity"] = SystemStatus(
@@ -115,10 +138,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("decentralized_identity", {})
             )
             
-            logger.info("✅ Decentralized Identity System integrated")
+            logger.info(" Decentralized Identity System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Decentralized Identity integration failed: {e}")
+            logger.error(f" Decentralized Identity integration failed: {e}")
             self.system_components["decentralized_identity"] = SystemStatus(
                 component_name="Decentralized Identity",
                 is_active=False,
@@ -130,8 +153,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_blockchain_audit(self):
         """Initialize blockchain audit trails."""
         try:
-            from ..blockchain.audit_trails import audit_trail_manager
-            
             status = audit_trail_manager.get_audit_status()
             
             self.system_components["blockchain_audit"] = SystemStatus(
@@ -142,10 +163,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("audit_trails", {})
             )
             
-            logger.info("✅ Blockchain Audit System integrated")
+            logger.info(" Blockchain Audit System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Blockchain Audit integration failed: {e}")
+            logger.error(f" Blockchain Audit integration failed: {e}")
             self.system_components["blockchain_audit"] = SystemStatus(
                 component_name="Blockchain Audit Trails",
                 is_active=False,
@@ -157,8 +178,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_semantic_knowledge(self):
         """Initialize semantic knowledge graphs."""
         try:
-            from ..knowledge.semantic_graphs import semantic_knowledge_manager
-            
             status = semantic_knowledge_manager.get_knowledge_status()
             
             self.system_components["semantic_knowledge"] = SystemStatus(
@@ -169,10 +188,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("semantic_knowledge", {})
             )
             
-            logger.info("✅ Semantic Knowledge System integrated")
+            logger.info(" Semantic Knowledge System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Semantic Knowledge integration failed: {e}")
+            logger.error(f" Semantic Knowledge integration failed: {e}")
             self.system_components["semantic_knowledge"] = SystemStatus(
                 component_name="Semantic Knowledge Graphs",
                 is_active=False,
@@ -184,8 +203,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_hardware_security(self):
         """Initialize hardware security modules."""
         try:
-            from ..security.hardware_security import hsm_manager
-            
             status = hsm_manager.get_hsm_status()
             
             self.system_components["hardware_security"] = SystemStatus(
@@ -196,10 +213,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("hardware_security", {})
             )
             
-            logger.info("✅ Hardware Security System integrated")
+            logger.info(" Hardware Security System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Hardware Security integration failed: {e}")
+            logger.error(f" Hardware Security integration failed: {e}")
             self.system_components["hardware_security"] = SystemStatus(
                 component_name="Hardware Security Modules",
                 is_active=False,
@@ -211,8 +228,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_threat_intelligence(self):
         """Initialize threat intelligence system."""
         try:
-            from ..security.threat_intelligence import threat_intelligence_manager
-            
             status = threat_intelligence_manager.get_threat_intelligence_status()
             
             self.system_components["threat_intelligence"] = SystemStatus(
@@ -223,10 +238,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("threat_intelligence", {})
             )
             
-            logger.info("✅ Threat Intelligence System integrated")
+            logger.info(" Threat Intelligence System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Threat Intelligence integration failed: {e}")
+            logger.error(f" Threat Intelligence integration failed: {e}")
             self.system_components["threat_intelligence"] = SystemStatus(
                 component_name="Threat Intelligence",
                 is_active=False,
@@ -238,8 +253,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_performance_optimization(self):
         """Initialize performance optimization system."""
         try:
-            from ..performance.optimization_engine import performance_optimization_engine
-            
             await performance_optimization_engine.initialize()
             
             self.system_components["performance_optimization"] = SystemStatus(
@@ -250,10 +263,10 @@ class SystemIntegrationCoordinator:
                 metrics={"optimization_active": True}
             )
             
-            logger.info("✅ Performance Optimization System integrated")
+            logger.info(" Performance Optimization System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Performance Optimization integration failed: {e}")
+            logger.error(f" Performance Optimization integration failed: {e}")
             self.system_components["performance_optimization"] = SystemStatus(
                 component_name="Performance Optimization",
                 is_active=False,
@@ -265,8 +278,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_ai_systems(self):
         """Initialize AI systems."""
         try:
-            from ..ai.ai_coordinator import ai_coordinator
-            
             await ai_coordinator.initialize()
             status = ai_coordinator.get_ai_status()
             
@@ -278,10 +289,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("ai_system", {})
             )
             
-            logger.info("✅ AI Systems integrated")
+            logger.info(" AI Systems integrated")
             
         except Exception as e:
-            logger.error(f"❌ AI Systems integration failed: {e}")
+            logger.error(f" AI Systems integration failed: {e}")
             self.system_components["ai_systems"] = SystemStatus(
                 component_name="AI Systems",
                 is_active=False,
@@ -293,8 +304,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_messaging_collaboration(self):
         """Initialize messaging and collaboration systems."""
         try:
-            from ..messaging.messaging_coordinator import messaging_coordinator
-            
             await messaging_coordinator.initialize()
             status = messaging_coordinator.get_system_status()
             
@@ -306,10 +315,10 @@ class SystemIntegrationCoordinator:
                 metrics=status
             )
             
-            logger.info("✅ Messaging & Collaboration Systems integrated")
+            logger.info(" Messaging & Collaboration Systems integrated")
             
         except Exception as e:
-            logger.error(f"❌ Messaging & Collaboration integration failed: {e}")
+            logger.error(f" Messaging & Collaboration integration failed: {e}")
             self.system_components["messaging_collaboration"] = SystemStatus(
                 component_name="Messaging & Collaboration",
                 is_active=False,
@@ -321,8 +330,6 @@ class SystemIntegrationCoordinator:
     async def _initialize_plugin_system(self):
         """Initialize plugin system."""
         try:
-            from ..plugins.advanced_plugin_system import advanced_plugin_manager
-            
             await advanced_plugin_manager.initialize()
             status = advanced_plugin_manager.get_plugin_status()
             
@@ -334,10 +341,10 @@ class SystemIntegrationCoordinator:
                 metrics=status.get("plugin_system", {})
             )
             
-            logger.info("✅ Plugin System integrated")
+            logger.info(" Plugin System integrated")
             
         except Exception as e:
-            logger.error(f"❌ Plugin System integration failed: {e}")
+            logger.error(f" Plugin System integration failed: {e}")
             self.system_components["plugin_system"] = SystemStatus(
                 component_name="Plugin System",
                 is_active=False,
@@ -356,7 +363,7 @@ class SystemIntegrationCoordinator:
         integration_task = asyncio.create_task(self._integration_monitoring_loop())
         self.monitoring_tasks.append(integration_task)
         
-        logger.info("🔍 System monitoring started")
+        logger.info(" System monitoring started")
     
     async def _health_monitoring_loop(self):
         """Continuous health monitoring loop."""
@@ -413,8 +420,6 @@ class SystemIntegrationCoordinator:
     async def _check_quantum_security_health(self, component: SystemStatus):
         """Check quantum security system health."""
         try:
-            from ..security.quantum_security import quantum_security_manager
-
             # Test encryption/decryption
             test_data = "health_check_test"
             encrypted = quantum_security_manager.encrypt_sensitive_data(test_data)
@@ -439,8 +444,6 @@ class SystemIntegrationCoordinator:
     async def _check_threat_intelligence_health(self, component: SystemStatus):
         """Check threat intelligence system health."""
         try:
-            from ..security.threat_intelligence import threat_intelligence_manager
-
             # Check if feeds are updating
             feed_status = threat_intelligence_manager.get_threat_intelligence_status()
             threat_intel = feed_status.get("threat_intelligence", {})
@@ -460,8 +463,6 @@ class SystemIntegrationCoordinator:
     async def _check_performance_health(self, component: SystemStatus):
         """Check performance optimization system health."""
         try:
-            from ..performance.optimization_engine import performance_optimization_engine
-
             # Get performance report
             report = performance_optimization_engine.get_comprehensive_performance_report()
             
@@ -528,7 +529,7 @@ class SystemIntegrationCoordinator:
     
     async def shutdown_integration(self):
         """Shutdown system integration."""
-        logger.info("🔄 Shutting down PlexiChat System Integration...")
+        logger.info(" Shutting down PlexiChat System Integration...")
         
         self.integration_active = False
         
@@ -540,7 +541,7 @@ class SystemIntegrationCoordinator:
         if self.monitoring_tasks:
             await asyncio.gather(*self.monitoring_tasks, return_exceptions=True)
         
-        logger.info("✅ PlexiChat System Integration shutdown complete")
+        logger.info(" PlexiChat System Integration shutdown complete")
 
 
 # Global system integration coordinator

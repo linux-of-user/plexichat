@@ -1,18 +1,34 @@
-"""
-Clustering Management API Endpoints
-Comprehensive API for cluster management, load balancing, and failover.
-"""
-
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+
+from ....clustering import cluster_manager
+
+        from ....clustering.core.cluster_manager import NodeStatus, NodeType
+
+        from ....clustering.core.cluster_manager import NodeType
+
+        from ....clustering.core.load_balancer import LoadBalancingAlgorithm
+
+        from ....clustering.core.cluster_update_manager import (
+        from ....core.versioning.update_system import UpdateType
+        from ....core.versioning.version_manager import Version
+
+            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
+            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
+            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 
-from ....auth.dependencies import require_admin_auth
-from ....clustering import cluster_manager
+from ....auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin_auth
+
+"""
+Clustering Management API Endpoints
+Comprehensive API for cluster management, load balancing, and failover.
+"""
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/clustering", tags=["clustering"])
@@ -83,7 +99,7 @@ class TopologyResponse(BaseModel):
 # Overview and Status Endpoints
 @router.get("/overview", response_model=ClusterOverviewResponse)
 async def get_cluster_overview(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get cluster overview and metrics."""
     try:
@@ -107,7 +123,7 @@ async def get_cluster_overview(
 
 @router.get("/health")
 async def get_cluster_health(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get detailed cluster health information."""
     try:
@@ -142,7 +158,7 @@ async def get_cluster_health(
 
 @router.get("/topology", response_model=TopologyResponse)
 async def get_cluster_topology(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get cluster topology visualization data."""
     try:
@@ -177,15 +193,13 @@ async def get_cluster_topology(
 async def list_cluster_nodes(
     status_filter: Optional[str] = Query(None, description="Filter by node status"),
     node_type_filter: Optional[str] = Query(None, description="Filter by node type"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """List cluster nodes with optional filtering."""
     try:
         if not cluster_manager.initialized:
             await cluster_manager.initialize()
         
-        from ....clustering.core.cluster_manager import NodeStatus, NodeType
-
         # Convert filters to enums
         status_enum = None
         if status_filter:
@@ -231,15 +245,13 @@ async def list_cluster_nodes(
 @router.post("/nodes", response_model=ClusterNodeResponse)
 async def add_cluster_node(
     request: ClusterNodeRequest,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Add a new node to the cluster."""
     try:
         if not cluster_manager.initialized:
             await cluster_manager.initialize()
         
-        from ....clustering.core.cluster_manager import NodeType
-
         # Convert node type to enum
         try:
             node_type_enum = NodeType(request.node_type.upper())
@@ -278,7 +290,7 @@ async def add_cluster_node(
 async def remove_cluster_node(
     node_id: str,
     force: bool = Query(False, description="Force removal even if node is active"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Remove a node from the cluster."""
     try:
@@ -306,7 +318,7 @@ async def remove_cluster_node(
 async def set_node_maintenance(
     node_id: str,
     enable: bool = Query(True, description="Enable or disable maintenance mode"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Set node maintenance mode."""
     try:
@@ -333,7 +345,7 @@ async def set_node_maintenance(
 # Load Balancer Management
 @router.get("/load-balancer/config")
 async def get_load_balancer_config(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get current load balancer configuration."""
     try:
@@ -358,15 +370,13 @@ async def get_load_balancer_config(
 @router.put("/load-balancer/config")
 async def update_load_balancer_config(
     config: LoadBalancerConfig,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Update load balancer configuration."""
     try:
         if not cluster_manager.initialized:
             await cluster_manager.initialize()
         
-        from ....clustering.core.load_balancer import LoadBalancingAlgorithm
-
         # Convert algorithm to enum
         try:
             algorithm_enum = LoadBalancingAlgorithm(config.algorithm.upper())
@@ -395,7 +405,7 @@ async def update_load_balancer_config(
 
 @router.get("/load-balancer/stats")
 async def get_load_balancer_stats(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get load balancer statistics."""
     try:
@@ -422,7 +432,7 @@ async def get_load_balancer_stats(
 @router.get("/performance/metrics")
 async def get_performance_metrics(
     time_range: str = Query("1h", description="Time range: 1h, 6h, 24h, 7d"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get cluster performance metrics over time."""
     try:
@@ -455,7 +465,7 @@ async def get_performance_metrics(
 # Failover Management
 @router.get("/failover/config")
 async def get_failover_config(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get failover configuration."""
     try:
@@ -480,7 +490,7 @@ async def get_failover_config(
 @router.put("/failover/config")
 async def update_failover_config(
     config: FailoverConfig,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Update failover configuration."""
     try:
@@ -509,7 +519,7 @@ async def update_failover_config(
 @router.get("/failover/history")
 async def get_failover_history(
     limit: int = Query(100, description="Maximum number of events to return"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get failover event history."""
     try:
@@ -542,7 +552,7 @@ async def get_failover_history(
 @router.post("/failover/test")
 async def test_failover(
     node_id: str,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Test failover for a specific node."""
     try:
@@ -588,7 +598,7 @@ class ClusterUpdateResponse(BaseModel):
 @router.post("/updates/plan", response_model=ClusterUpdateResponse)
 async def plan_cluster_update(
     request: ClusterUpdateRequest,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Plan a cluster-wide update operation."""
     try:
@@ -596,13 +606,9 @@ async def plan_cluster_update(
             await cluster_manager.initialize()
 
         # Import update system components
-        from ....clustering.core.cluster_update_manager import (
             ClusterUpdateManager,
             ClusterUpdateStrategy,
         )
-        from ....core.versioning.update_system import UpdateType
-        from ....core.versioning.version_manager import Version
-
         # Initialize cluster update manager if not exists
         if not hasattr(cluster_manager, 'update_manager'):
             cluster_manager.update_manager = ClusterUpdateManager(cluster_manager)
@@ -641,7 +647,7 @@ async def plan_cluster_update(
 @router.post("/updates/{operation_id}/execute")
 async def execute_cluster_update(
     operation_id: str,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Execute a planned cluster update operation."""
     try:
@@ -664,7 +670,7 @@ async def execute_cluster_update(
 @router.get("/updates/{operation_id}/status", response_model=ClusterUpdateResponse)
 async def get_cluster_update_status(
     operation_id: str,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get status of a cluster update operation."""
     try:
@@ -689,7 +695,7 @@ async def get_cluster_update_status(
 
 @router.get("/updates/active", response_model=List[ClusterUpdateResponse])
 async def list_active_cluster_updates(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """List all active cluster update operations."""
     try:
@@ -710,7 +716,7 @@ async def list_active_cluster_updates(
 @router.get("/updates/history")
 async def get_cluster_update_history(
     limit: int = Query(10, description="Number of operations to return"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get cluster update operation history."""
     try:
@@ -731,7 +737,7 @@ async def get_cluster_update_history(
 @router.post("/updates/{operation_id}/rollback")
 async def rollback_cluster_update(
     operation_id: str,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Rollback a cluster update operation."""
     try:
@@ -792,7 +798,7 @@ class StorageNodeResponse(BaseModel):
 
 @router.get("/storage/overview", response_model=StorageOverviewResponse)
 async def get_storage_overview(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get distributed storage system overview."""
     try:
@@ -801,7 +807,6 @@ async def get_storage_overview(
 
         # Initialize storage manager if not exists
         if not hasattr(cluster_manager, 'storage_manager'):
-            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
             cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
             await cluster_manager.storage_manager.initialize()
 
@@ -815,7 +820,7 @@ async def get_storage_overview(
 
 @router.get("/storage/nodes", response_model=List[StorageNodeResponse])
 async def list_storage_nodes(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """List all storage nodes with details."""
     try:
@@ -823,7 +828,6 @@ async def list_storage_nodes(
             await cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'storage_manager'):
-            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
             cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
             await cluster_manager.storage_manager.initialize()
 
@@ -837,7 +841,7 @@ async def list_storage_nodes(
 
 @router.get("/storage/distribution")
 async def get_data_distribution(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get data distribution statistics across storage nodes."""
     try:
@@ -845,7 +849,6 @@ async def get_data_distribution(
             await cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'storage_manager'):
-            from ....clustering.storage.distributed_storage_manager import DistributedStorageManager
             cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
             await cluster_manager.storage_manager.initialize()
 
@@ -859,7 +862,7 @@ async def get_data_distribution(
 
 @router.post("/storage/rebalance")
 async def trigger_storage_rebalance(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Trigger manual storage rebalancing."""
     try:
@@ -881,7 +884,7 @@ async def trigger_storage_rebalance(
 
 @router.post("/storage/cleanup")
 async def trigger_storage_cleanup(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Trigger manual storage cleanup."""
     try:
@@ -907,7 +910,7 @@ async def perform_hot_update(
     update_package: str,
     target_nodes: List[str] = Query([], description="Target node IDs (empty for all)"),
     rollback_on_failure: bool = Query(True, description="Rollback on failure"),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Perform hot update across cluster nodes (legacy endpoint)."""
     try:
@@ -935,7 +938,7 @@ async def perform_hot_update(
 @router.get("/hot-update/{update_id}/status")
 async def get_hot_update_status(
     update_id: str,
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get status of hot update operation."""
     try:

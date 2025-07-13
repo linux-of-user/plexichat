@@ -1,3 +1,11 @@
+import asyncio
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
 """
 PlexiChat Hybrid Cloud Orchestrator
 
@@ -9,13 +17,6 @@ Advanced hybrid cloud management for massive clustering with:
 - Disaster recovery and geo-distribution
 - Compliance and data sovereignty
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -574,7 +575,8 @@ class HybridCloudOrchestrator:
                     await self.optimize_placements()
 
                 # Store cost metrics
-                self.cost_tracker[datetime.now().isoformat()] = total_cost
+                self.cost_tracker[from datetime import datetime
+datetime.now().isoformat()] = total_cost
 
             except Exception as e:
                 logger.error(f"Cost monitoring task error: {e}")

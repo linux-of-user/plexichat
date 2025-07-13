@@ -1,11 +1,3 @@
-"""
-PlexiChat Quantum-Proof Encryption System
-
-Implements post-quantum cryptography with multiple key hierarchies,
-distributed key management, and quantum-resistant algorithms.
-Breaking one key doesn't compromise the entire system.
-"""
-
 import base64
 import json
 import logging
@@ -18,23 +10,32 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import aiosqlite
 
-# Post-quantum cryptography (using pycryptodome for now, will add real PQC libraries)
 from Crypto.Cipher import AES, ChaCha20_Poly1305
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from cryptography.hazmat.backends import default_backend
 
-# Standard cryptography
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-try:
     from Crypto.Protocol.KDF import Argon2d
+from Crypto.Hash import BLAKE2b
+
+
+"""
+PlexiChat Quantum-Proof Encryption System
+
+Implements post-quantum cryptography with multiple key hierarchies,
+distributed key management, and quantum-resistant algorithms.
+Breaking one key doesn't compromise the entire system.
+"""
+
+# Post-quantum cryptography (using pycryptodome for now, will add real PQC libraries)
+# Standard cryptography
+try:
 except ImportError:
     # Fallback to argon2-cffi if Argon2d not available in pycryptodome
     Argon2d = None
-from Crypto.Hash import BLAKE2b
-
 logger = logging.getLogger(__name__)
 
 
@@ -110,7 +111,8 @@ class QuantumEncryptionSystem:
     """
     
     def __init__(self, config_dir: str = "config/security"):
-        self.config_dir = Path(config_dir)
+        self.config_dir = from pathlib import Path
+Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Key storage
@@ -134,7 +136,7 @@ class QuantumEncryptionSystem:
         await self._init_database()
         await self._load_keys()
         await self._ensure_master_keys()
-        logger.info("🔐 Quantum encryption system initialized")
+        logger.info(" Quantum encryption system initialized")
     
     async def _init_database(self):
         """Initialize the keys database."""
@@ -252,7 +254,7 @@ class QuantumEncryptionSystem:
         self.master_keys[key_id] = master_key
         await self._save_key(master_key)
         
-        logger.info(f"🔑 Generated master key for {security_tier.name} tier")
+        logger.info(f" Generated master key for {security_tier.name} tier")
         return master_key
     
     def _generate_key_material(self, algorithm: QuantumAlgorithm, security_tier: SecurityTier) -> bytes:
@@ -784,7 +786,7 @@ class QuantumEncryptionSystem:
                     await self._rotate_key(key)
                     rotated_count += 1
 
-        logger.info(f"🔄 Rotated {rotated_count} keys")
+        logger.info(f" Rotated {rotated_count} keys")
         return rotated_count
 
     async def _rotate_key(self, old_key: QuantumKey):
@@ -814,7 +816,7 @@ class QuantumEncryptionSystem:
             del self.service_keys[old_key.key_id]
 
         await self._save_key(new_key)
-        logger.info(f"🔑 Rotated key: {old_key.key_id} -> {new_key.key_id}")
+        logger.info(f" Rotated key: {old_key.key_id} -> {new_key.key_id}")
 
 
 # Global quantum encryption system instance

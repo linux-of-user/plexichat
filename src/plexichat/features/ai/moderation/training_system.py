@@ -1,8 +1,3 @@
-"""
-AI Moderation Training System
-Progressive learning system that improves moderation accuracy based on user feedback.
-"""
-
 import json
 import logging
 import sqlite3
@@ -19,6 +14,15 @@ from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 
 from .moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity
+
+            import hashlib
+        import time
+            import uuid
+
+"""
+AI Moderation Training System
+Progressive learning system that improves moderation accuracy based on user feedback.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +87,8 @@ class ModerationTrainingSystem:
     """AI moderation training system with progressive learning."""
     
     def __init__(self, data_path: str = "data/moderation_training"):
-        self.data_path = Path(data_path)
+        self.data_path = from pathlib import Path
+Path(data_path)
         self.data_path.mkdir(parents=True, exist_ok=True)
         
         self.db_path = self.data_path / "training.db"
@@ -169,7 +174,6 @@ class ModerationTrainingSystem:
     ) -> bool:
         """Add training data point."""
         try:
-            import hashlib
             content_hash = hashlib.sha256(content.encode()).hexdigest()
             
             training_data = TrainingData(
@@ -246,7 +250,6 @@ class ModerationTrainingSystem:
 
     async def train_model(self, min_samples: int = 100) -> Optional[TrainingResult]:
         """Train moderation model with available data."""
-        import time
         start_time = time.time()
 
         try:
@@ -294,8 +297,8 @@ class ModerationTrainingSystem:
             report = classification_report(y_test, y_pred, output_dict=True)
 
             # Create new model version
-            import uuid
-            model_version = f"v{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}"
+            model_version = f"v{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}"
 
             # Save model
             model_file = self.models_path / f"{model_version}.joblib"

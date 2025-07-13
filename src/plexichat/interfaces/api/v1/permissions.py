@@ -1,10 +1,8 @@
-"""
-Permissions Management API Endpoints
-Comprehensive API for managing roles and permissions.
-"""
-
 from datetime import datetime
 from typing import Dict, List, Optional
+
+
+
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -12,6 +10,11 @@ from pydantic import BaseModel, Field
 
 from plexichat.app.logger_config import logger
 from plexichat.app.security.permissions import Permission, PermissionManager, PermissionScope, Role
+
+"""
+Permissions Management API Endpoints
+Comprehensive API for managing roles and permissions.
+"""
 
 router = APIRouter(prefix="/api/v1/permissions", tags=["Permissions"])
 security = HTTPBearer()
@@ -170,7 +173,7 @@ async def create_role(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to create role (may already exist)")
         
-        logger.info(f"✅ Created role: {role.name}")
+        logger.info(f" Created role: {role.name}")
         return {"message": "Role created successfully", "role_name": role.name}
         
     except HTTPException:
@@ -237,7 +240,7 @@ async def update_role(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to update role")
         
-        logger.info(f"✅ Updated role: {role_name}")
+        logger.info(f" Updated role: {role_name}")
         return {"message": "Role updated successfully", "role_name": role_name}
         
     except HTTPException:
@@ -259,7 +262,7 @@ async def delete_role(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to delete role (may be system role or not found)")
         
-        logger.info(f"✅ Deleted role: {role_name}")
+        logger.info(f" Deleted role: {role_name}")
         return {"message": "Role deleted successfully", "role_name": role_name}
         
     except HTTPException:
@@ -293,7 +296,7 @@ async def assign_role(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to assign role")
         
-        logger.info(f"✅ Assigned role {assignment.role_name} to user {assignment.user_id}")
+        logger.info(f" Assigned role {assignment.role_name} to user {assignment.user_id}")
         return {"message": "Role assigned successfully"}
         
     except HTTPException:
@@ -327,7 +330,7 @@ async def revoke_role(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to revoke role")
         
-        logger.info(f"✅ Revoked role {assignment.role_name} from user {assignment.user_id}")
+        logger.info(f" Revoked role {assignment.role_name} from user {assignment.user_id}")
         return {"message": "Role revoked successfully"}
         
     except HTTPException:
@@ -356,7 +359,7 @@ async def grant_permission(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to grant permission")
         
-        logger.info(f"✅ Granted permission {grant.permission} to user {grant.user_id}")
+        logger.info(f" Granted permission {grant.permission} to user {grant.user_id}")
         return {"message": "Permission granted successfully"}
         
     except HTTPException:
@@ -385,7 +388,7 @@ async def deny_permission(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to deny permission")
         
-        logger.info(f"✅ Denied permission {grant.permission} to user {grant.user_id}")
+        logger.info(f" Denied permission {grant.permission} to user {grant.user_id}")
         return {"message": "Permission denied successfully"}
         
     except HTTPException:

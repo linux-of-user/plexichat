@@ -1,8 +1,3 @@
-"""
-Multi-database engine support with automatic failover and load balancing.
-Supports PostgreSQL, MySQL, SQLite, and MongoDB with clustering.
-"""
-
 import asyncio
 import logging
 import random
@@ -12,38 +7,46 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from sqlmodel import Session
+
+    import redis.asyncio as redis  # type: ignore
+    from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
+    import pymongo  # type: ignore
+    import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
-from sqlmodel import Session
+
+    from plexichat.core.config.settings import settings  # type: ignore
+
+"""
+Multi-database engine support with automatic failover and load balancing.
+Supports PostgreSQL, MySQL, SQLite, and MongoDB with clustering.
+"""
 
 try:
-    import redis.asyncio as redis  # type: ignore
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
     redis = None
 
 try:
-    from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
     MOTOR_AVAILABLE = True
 except ImportError:
     MOTOR_AVAILABLE = False
     AsyncIOMotorClient = None
 
 try:
-    import pymongo  # type: ignore
     PYMONGO_AVAILABLE = True
 except ImportError:
     PYMONGO_AVAILABLE = False
     pymongo = None
 
 try:
-    from plexichat.core.config.settings import settings  # type: ignore
 except ImportError:
     # Fallback configuration if settings module is not available
-    import os
     class Settings:
         def __init__(self):
             self.DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./plexichat.db")
@@ -108,15 +111,19 @@ class DatabaseCluster:
         asyncio.create_task(self._health_monitor())
     
     def _load_database_configs(self):
-        """Load database configurations from settings."""
+        """Load database configurations from from plexichat.core.config import settings
+settings."""
         # Primary database
-        if settings.DATABASE_URL:
-            db_type = self._detect_database_type(settings.DATABASE_URL)
+        if from plexichat.core.config import settings
+settings.DATABASE_URL:
+            db_type = self._detect_database_type(from plexichat.core.config import settings
+settings.DATABASE_URL)
             self.databases["primary"] = DatabaseConfig(
                 name="primary",
                 type=db_type,
                 role=DatabaseRole.PRIMARY,
-                url=settings.DATABASE_URL,
+                url=from plexichat.core.config import settings
+settings.DATABASE_URL,
                 pool_size=getattr(settings, 'DB_POOL_SIZE', 20),
                 max_overflow=getattr(settings, 'DB_MAX_OVERFLOW', 30),
                 echo=getattr(settings, 'DB_ECHO', False)

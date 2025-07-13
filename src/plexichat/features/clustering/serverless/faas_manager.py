@@ -1,3 +1,15 @@
+import asyncio
+import json
+import logging
+import tempfile
+import zipfile
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
+
+
 """
 PlexiChat Serverless/FaaS Manager
 
@@ -10,17 +22,6 @@ Advanced serverless computing integration with:
 - Cost optimization and resource management
 - Integration with PlexiChat's clustering system
 """
-
-import asyncio
-import json
-import logging
-import tempfile
-import zipfile
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +203,8 @@ class FaaSManager:
     
     async def _load_function_configurations(self):
         """Load existing function configurations."""
-        config_dir = Path("config/functions")
+        config_dir = from pathlib import Path
+Path("config/functions")
         if config_dir.exists():
             for config_file in config_dir.glob("*.json"):
                 try:
@@ -277,7 +279,8 @@ class FaaSManager:
                 raise ValueError(f"Function not found: {function_name}")
             
             config = self.functions[function_name]
-            execution_id = f"exec_{function_name}_{int(datetime.now().timestamp())}"
+            execution_id = f"exec_{function_name}_{int(from datetime import datetime
+datetime.now().timestamp())}"
             
             # Create execution record
             execution = FunctionExecution(
@@ -306,7 +309,8 @@ class FaaSManager:
                               config: FunctionConfig, payload: Dict[str, Any]) -> Any:
         """Execute function and return result."""
         try:
-            start_time = datetime.now()
+            start_time = from datetime import datetime
+datetime.now()
             
             # Check for warm instance
             warm_instance = await self._get_warm_instance(config.function_name)
@@ -321,7 +325,8 @@ class FaaSManager:
                 result = await self._execute_cloud_function(config, payload)
             
             # Calculate execution metrics
-            end_time = datetime.now()
+            end_time = from datetime import datetime
+datetime.now()
             duration_ms = (end_time - start_time).total_seconds() * 1000
             
             # Update execution record
@@ -403,7 +408,8 @@ class FaaSManager:
     async def _validate_function_config(self, config: FunctionConfig) -> bool:
         """Validate function configuration."""
         # Check if code path exists
-        if not Path(config.code_path).exists():
+        if not from pathlib import Path
+Path(config.code_path).exists():
             logger.error(f"Function code path not found: {config.code_path}")
             return False
 
@@ -423,7 +429,8 @@ class FaaSManager:
         # Create temporary zip file
         with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as temp_file:
             with zipfile.ZipFile(temp_file.name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-                code_path = Path(config.code_path)
+                code_path = from pathlib import Path
+Path(config.code_path)
 
                 if code_path.is_file():
                     # Single file

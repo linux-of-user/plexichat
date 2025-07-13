@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-PlexiChat Backup Node Test Suite
-Tests the backup node functionality and API endpoints.
-"""
-
 import asyncio
 import base64
 import hashlib
@@ -11,14 +5,24 @@ import sys
 import time
 from pathlib import Path
 
-# Add parent directory to path
-sys.path.append(str(Path(__file__).parent.parent))
-
-try:
     import httpx
     from backup_node.backup_node_client import BackupNodeClient
+    import argparse
+    
+
+#!/usr/bin/env python3
+"""
+PlexiChat Backup Node Test Suite
+Tests the backup node functionality and API endpoints.
+"""
+
+# Add parent directory to path
+sys.path.append(str(from pathlib import Path
+Path(__file__).parent.parent))
+
+try:
 except ImportError as e:
-    print(f"❌ Missing dependencies: {e}")
+    print(f" Missing dependencies: {e}")
     print("Install with: pip install httpx")
     sys.exit(1)
 
@@ -34,7 +38,7 @@ class BackupNodeTester:
     
     def log_test(self, test_name: str, success: bool, message: str = ""):
         """Log test result."""
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = " PASS" if success else " FAIL"
         print(f"{status} {test_name}: {message}")
         self.test_results.append({
             "test": test_name,
@@ -262,7 +266,7 @@ class BackupNodeTester:
     
     async def run_all_tests(self):
         """Run all tests."""
-        print("🧪 PlexiChat Backup Node Test Suite")
+        print(" PlexiChat Backup Node Test Suite")
         print("=" * 50)
         
         tests = [
@@ -283,32 +287,30 @@ class BackupNodeTester:
                 if result:
                     passed += 1
             except Exception as e:
-                print(f"❌ Test failed with exception: {e}")
+                print(f" Test failed with exception: {e}")
         
         print("\n" + "=" * 50)
-        print(f"📊 Test Results: {passed}/{total} passed")
+        print(f" Test Results: {passed}/{total} passed")
         
         if passed == total:
-            print("🎉 All tests passed!")
+            print(" All tests passed!")
             return True
         else:
-            print(f"⚠️ {total - passed} tests failed")
+            print(f" {total - passed} tests failed")
             return False
     
     def print_summary(self):
         """Print test summary."""
-        print("\n📋 Detailed Test Results:")
+        print("\n Detailed Test Results:")
         print("-" * 30)
         
         for result in self.test_results:
-            status = "✅" if result["success"] else "❌"
+            status = "" if result["success"] else ""
             print(f"{status} {result['test']}: {result['message']}")
 
 
 async def main():
     """Main test function."""
-    import argparse
-    
     parser = argparse.ArgumentParser(description="PlexiChat Backup Node Test Suite")
     parser.add_argument("--address", default="localhost", help="Backup node address")
     parser.add_argument("--port", type=int, default=8001, help="Backup node port")
@@ -318,8 +320,8 @@ async def main():
     
     tester = BackupNodeTester(args.address, args.port)
     
-    print(f"🎯 Testing backup node at {args.address}:{args.port}")
-    print("⏳ Starting tests...\n")
+    print(f" Testing backup node at {args.address}:{args.port}")
+    print(" Starting tests...\n")
     
     success = await tester.run_all_tests()
     
@@ -327,10 +329,10 @@ async def main():
         tester.print_summary()
     
     if success:
-        print("\n✅ All tests completed successfully!")
+        print("\n All tests completed successfully!")
         sys.exit(0)
     else:
-        print("\n❌ Some tests failed!")
+        print("\n Some tests failed!")
         sys.exit(1)
 
 

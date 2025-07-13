@@ -1,8 +1,3 @@
-"""
-Real-time backup status monitoring service for PlexiChat.
-Tracks device availability, shard distribution, and database backup coverage.
-"""
-
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -10,15 +5,22 @@ from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, func, select
 
+
+
+
 from plexichat.app.logger_config import logger
 from plexichat.app.models.device_management import (
+from plexichat.app.models.enhanced_backup import EnhancedBackupShard
+
+"""
+Real-time backup status monitoring service for PlexiChat.
+Tracks device availability, shard distribution, and database backup coverage.
+"""
+
     DeviceShardAssignment,
     DeviceStatus,
     StorageDevice,
 )
-from plexichat.app.models.enhanced_backup import EnhancedBackupShard
-
-
 @dataclass
 class DeviceAvailabilityStatus:
     """Device availability information."""
@@ -92,7 +94,7 @@ class BackupStatusMonitor:
                 (datetime.now(timezone.utc) - self.last_update).total_seconds() < self.cache_duration_seconds):
                 return self.cached_status
             
-            logger.info("🔍 Generating real-time backup status report...")
+            logger.info(" Generating real-time backup status report...")
             
             # Get device availability
             device_statuses = await self._get_device_availability_statuses()
@@ -107,7 +109,7 @@ class BackupStatusMonitor:
             self.cached_status = coverage_report
             self.last_update = datetime.now(timezone.utc)
             
-            logger.info(f"📊 Backup status: {coverage_report.overall_availability_percentage:.1f}% available")
+            logger.info(f" Backup status: {coverage_report.overall_availability_percentage:.1f}% available")
             
             return coverage_report
             
@@ -465,7 +467,7 @@ class BackupStatusMonitor:
     async def start_monitoring(self):
         """Start continuous monitoring service."""
         self.monitoring_active = True
-        logger.info("🔄 Started backup status monitoring service")
+        logger.info(" Started backup status monitoring service")
         
         while self.monitoring_active:
             try:
@@ -479,7 +481,7 @@ class BackupStatusMonitor:
     def stop_monitoring(self):
         """Stop monitoring service."""
         self.monitoring_active = False
-        logger.info("⏹️ Stopped backup status monitoring service")
+        logger.info(" Stopped backup status monitoring service")
 
 
 # Global monitor instance

@@ -1,8 +1,3 @@
-"""
-PlexiChat Backup Node Client
-Client library for interacting with backup nodes.
-"""
-
 import asyncio
 import base64
 import hashlib
@@ -10,10 +5,16 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
     import httpx
+
+"""
+PlexiChat Backup Node Client
+Client library for interacting with backup nodes.
+"""
+
+try:
 except ImportError:
-    print("❌ Missing httpx dependency. Install with: pip install httpx")
+    print(" Missing httpx dependency. Install with: pip install httpx")
     raise
 
 logger = logging.getLogger(__name__)
@@ -231,7 +232,8 @@ class BackupNodeManager:
                 await client.health_check()
                 results[node_id] = True
                 self.node_configs[node_id]["is_healthy"] = True
-                self.node_configs[node_id]["last_health_check"] = datetime.now().isoformat()
+                self.node_configs[node_id]["last_health_check"] = from datetime import datetime
+datetime.now().isoformat()
             except Exception as e:
                 logger.warning(f"Health check failed for node {node_id}: {e}")
                 results[node_id] = False

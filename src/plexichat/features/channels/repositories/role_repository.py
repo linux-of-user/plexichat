@@ -1,22 +1,23 @@
+from typing import Any, Dict, List, Optional
+
+from ....core_system.database.dao.base_dao import (
+from ....core_system.database.engines import get_session
+from ....core_system.database.repository.base_repository import BaseRepository
+from ..models.role import Permissions, Role
+
+
+
 """
 PlexiChat Role Repository
 
 Data access layer for Discord-like roles with permission management.
 """
 
-from typing import Any, Dict, List, Optional
-
-from ....core_system.database.dao.base_dao import (
     BaseDAO,
     FilterCriteria,
     PaginationParams,
     SortCriteria,
 )
-from ....core_system.database.engines import get_session
-from ....core_system.database.repository.base_repository import BaseRepository
-from ..models.role import Permissions, Role
-
-
 class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
     """
     Role repository with Discord-like role and permission management.
@@ -136,7 +137,8 @@ class RoleRepository(BaseRepository[Role, Dict[str, Any], Dict[str, Any]]):
     # Business logic methods
     
     async def create_role_with_defaults(self, role_data: Dict[str, Any]) -> Role:
-        """Create role with default settings."""
+        """Create role with default from plexichat.core.config import settings
+settings."""
         # Set default position if not provided
         if "position" not in role_data:
             role_data["position"] = await self.get_next_position(role_data["server_id"])

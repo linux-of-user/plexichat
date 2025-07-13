@@ -1,3 +1,18 @@
+import asyncio
+import hashlib
+import json
+import uuid
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+from ..core.config import get_config
+from .base_service import BaseService
+
+
+
 """
 PlexiChat Real-time Collaboration Service
 
@@ -17,20 +32,6 @@ Features:
 - Conflict resolution algorithms
 - Real-time communication
 """
-
-import asyncio
-import hashlib
-import json
-import uuid
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
-
-from ..core.config import get_config
-from .base_service import BaseService
-
 
 class CollaborationType(Enum):
     """Types of collaboration sessions."""
@@ -310,7 +311,7 @@ class CollaborationService(BaseService):
             for websocket in connections:
                 try:
                     await websocket.close()
-                except:
+                except Exception:
                     pass
         
         self.logger.info("Collaboration service cleaned up")
@@ -432,7 +433,7 @@ class CollaborationService(BaseService):
                 self.session_connections[session_id].discard(websocket)
                 try:
                     await websocket.close()
-                except:
+                except Exception:
                     pass
         
         # Notify other users

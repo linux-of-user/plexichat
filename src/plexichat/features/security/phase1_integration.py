@@ -1,15 +1,9 @@
-"""
-PlexiChat Phase I Security Integration
-Integrates all Phase I security enhancements into a unified system
-"""
-
 import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from fastapi import Request
-from fastapi.responses import JSONResponse
+from typing import Optional, Dict, Any, List
 
 from .bug_bounty import bug_bounty_manager
 from .cicd_security import cicd_scanner
@@ -17,6 +11,17 @@ from .csp import csp_manager
 from .security_headers import security_headers_manager
 from .siem_integration import EventCategory, EventSeverity, SecurityEvent, siem_integration
 from .waf import waf
+
+            from .bug_bounty import SeverityLevel, VulnerabilityType
+            
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+"""
+PlexiChat Phase I Security Integration
+Integrates all Phase I security enhancements into a unified system
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +75,10 @@ class Phase1SecurityCoordinator:
             if self.components["csp"]:
                 csp_manager.active_policy = "production"
             
-            logger.info("✅ Phase I Security Coordinator initialized")
+            logger.info(" Phase I Security Coordinator initialized")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Phase I security components: {e}")
+            logger.error(f" Failed to initialize Phase I security components: {e}")
     
     async def _initialize_siem(self):
         """Initialize SIEM integration with default providers."""
@@ -83,7 +88,8 @@ class Phase1SecurityCoordinator:
             
             # Send initialization event
             init_event = SecurityEvent(
-                event_id=f"phase1_init_{int(datetime.now().timestamp())}",
+                event_id=f"phase1_init_{int(from datetime import datetime
+datetime.now().timestamp())}",
                 timestamp=datetime.now(timezone.utc),
                 source_system="plexichat_security",
                 event_type="SECURITY_SYSTEM_INIT",
@@ -135,7 +141,8 @@ class Phase1SecurityCoordinator:
                     # Create SIEM event for WAF violation
                     if self.components["siem"]:
                         waf_event = SecurityEvent(
-                            event_id=f"waf_violation_{int(datetime.now().timestamp())}",
+                            event_id=f"waf_violation_{int(from datetime import datetime
+datetime.now().timestamp())}",
                             timestamp=datetime.now(timezone.utc),
                             source_system="plexichat_waf",
                             event_type="WAF_VIOLATION",
@@ -204,8 +211,6 @@ class Phase1SecurityCoordinator:
             raise Exception("Bug bounty program is disabled")
         
         try:
-            from .bug_bounty import SeverityLevel, VulnerabilityType
-            
             report_id = bug_bounty_manager.submit_report(
                 researcher_email=report_data["researcher_email"],
                 researcher_name=report_data["researcher_name"],
@@ -271,7 +276,8 @@ class Phase1SecurityCoordinator:
             # Send SIEM event for security scan
             if self.components["siem"]:
                 scan_event = SecurityEvent(
-                    event_id=f"security_scan_{int(datetime.now().timestamp())}",
+                    event_id=f"security_scan_{int(from datetime import datetime
+datetime.now().timestamp())}",
                     timestamp=datetime.now(timezone.utc),
                     source_system="plexichat_scanner",
                     event_type="SECURITY_SCAN_COMPLETED",
@@ -320,7 +326,7 @@ class Phase1SecurityCoordinator:
             if self.components["siem"]:
                 await siem_integration.stop()
             
-            logger.info("✅ Phase I Security Coordinator shutdown complete")
+            logger.info(" Phase I Security Coordinator shutdown complete")
             
         except Exception as e:
             logger.error(f"Error during Phase I security shutdown: {e}")

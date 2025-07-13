@@ -1,3 +1,16 @@
+import json
+import logging
+import time
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
+    from .enhanced_abstraction import (  # type: ignore
+            from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
+
+                import json
+            import aioredis  # type: ignore
+
+    from .enhanced_abstraction import DatabaseClientFactory  # type: ignore
+
 """
 PlexiChat NoSQL Database Clients
 
@@ -9,13 +22,7 @@ Implementations for various NoSQL databases:
 - CouchDB (Document store)
 """
 
-import json
-import logging
-import time
-from typing import Any, AsyncGenerator, Dict, List, Optional
-
 try:
-    from .enhanced_abstraction import (  # type: ignore
         AbstractDatabaseClient,
         DatabaseConfig,
         DatabaseType,
@@ -104,8 +111,6 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
     async def connect(self) -> bool:
         """Connect to MongoDB."""
         try:
-            from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
-
             # Build connection string
             if self.config.username and self.config.password:
                 connection_string = (
@@ -136,11 +141,11 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
             self.is_connected = True
             self.metrics["connections_created"] += 1
             
-            logger.info(f"✅ Connected to MongoDB: {self.config.host}")
+            logger.info(f" Connected to MongoDB: {self.config.host}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ MongoDB connection failed: {e}")
+            logger.error(f" MongoDB connection failed: {e}")
             return False
     
     async def disconnect(self) -> bool:
@@ -151,7 +156,7 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
                 self.is_connected = False
             return True
         except Exception as e:
-            logger.error(f"❌ MongoDB disconnect failed: {e}")
+            logger.error(f" MongoDB disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None,
@@ -276,7 +281,6 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
         for query in queries:
             # Convert dict query to string for execute_query
             if isinstance(query, dict):
-                import json
                 query_str = json.dumps(query)
             else:
                 query_str = str(query)
@@ -352,11 +356,11 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
             
             # Create index
             await collection.create_index(index_spec)
-            logger.info(f"✅ Created index on {table}.{columns}")
+            logger.info(f" Created index on {table}.{columns}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to create index: {e}")
+            logger.error(f" Failed to create index: {e}")
             return False
     
     async def stream_data(self, query: str, params: Optional[Dict[str, Any]] = None) -> AsyncGenerator:
@@ -391,8 +395,6 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
     async def connect(self) -> bool:
         """Connect to Redis."""
         try:
-            import aioredis  # type: ignore
-
             # Build connection URL
             if self.config.password:
                 url = f"redis://:{self.config.password}@{self.config.host}:{self.config.port or 6379}/{self.config.database or 0}"
@@ -419,11 +421,11 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
             self.is_connected = True
             self.metrics["connections_created"] += 1
             
-            logger.info(f"✅ Connected to Redis: {self.config.host}")
+            logger.info(f" Connected to Redis: {self.config.host}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Redis connection failed: {e}")
+            logger.error(f" Redis connection failed: {e}")
             return False
     
     async def disconnect(self) -> bool:
@@ -434,7 +436,7 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
                 self.is_connected = False
             return True
         except Exception as e:
-            logger.error(f"❌ Redis disconnect failed: {e}")
+            logger.error(f" Redis disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None,
@@ -555,7 +557,6 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
 
 # Register clients with factory
 try:
-    from .enhanced_abstraction import DatabaseClientFactory  # type: ignore
     DatabaseClientFactory.register_client(DatabaseType.MONGODB, MongoDBClient)
     DatabaseClientFactory.register_client(DatabaseType.REDIS, RedisClient)
 except ImportError:

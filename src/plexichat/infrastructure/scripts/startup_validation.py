@@ -1,17 +1,19 @@
+import sys
+from pathlib import Path
+
+
+
 #!/usr/bin/env python3
 """
 PlexiChat Startup Validation
 Ensures all required directories exist before starting the application.
 """
 
-import sys
-from pathlib import Path
-
-
 def validate_directory_structure():
     """Validate that all required directories exist."""
 
-    project_root = Path(__file__).parent.parent
+    project_root = from pathlib import Path
+Path(__file__).parent.parent
 
     required_dirs = [
         "config", "data", "backups", "logs", "plugins",

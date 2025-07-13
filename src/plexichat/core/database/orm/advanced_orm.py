@@ -1,19 +1,22 @@
-"""
-PlexiChat Advanced ORM Layer
-Enhanced SQLModel integration with advanced features and optimizations
-"""
-
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
+from sqlmodel import Session, SQLModel, select
+
+        import hashlib
+
 from sqlalchemy import MetaData, create_engine, event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import selectinload, sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
-from sqlmodel import Session, SQLModel, select
+
+"""
+PlexiChat Advanced ORM Layer
+Enhanced SQLModel integration with advanced features and optimizations
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -156,10 +159,10 @@ class AdvancedORM:
             # Create tables
             await self._create_tables()
             
-            logger.info("✅ Advanced ORM initialized successfully")
+            logger.info(" Advanced ORM initialized successfully")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize ORM: {e}")
+            logger.error(f" Failed to initialize ORM: {e}")
             raise
     
     def _create_sync_engine(self):
@@ -461,7 +464,6 @@ class AdvancedORM:
     
     def _get_cache_key(self, query: str, parameters: Dict[str, Any] = None) -> str:
         """Generate cache key for query."""
-        import hashlib
         content = f"{query}:{parameters or {}}"
         return hashlib.md5(content.encode()).hexdigest()
     
@@ -591,7 +593,7 @@ class AdvancedORM:
             if self.sync_engine:
                 self.sync_engine.dispose()
             
-            logger.info("✅ ORM shutdown complete")
+            logger.info(" ORM shutdown complete")
             
         except Exception as e:
             logger.error(f"Error during ORM shutdown: {e}")

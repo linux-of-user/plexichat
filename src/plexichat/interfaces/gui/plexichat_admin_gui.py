@@ -1,8 +1,3 @@
-"""
-PlexiChat Advanced GUI Application
-Sophisticated Python GUI with same login system and full feature parity with WebUI.
-"""
-
 import os
 import sys
 import threading
@@ -13,6 +8,20 @@ from typing import Any, Dict, Optional
 
 import customtkinter as ctk
 import requests
+
+    import logging
+                    import secrets
+                    import string
+
+    from plexichat.app.logger_config import logger
+    from plexichat.core.security.government_auth import government_auth
+    from plexichat.gui.components.backup_management_widget import BackupManagementWidget
+    from plexichat.gui.components.clustering_management_widget import ClusteringManagementWidget
+
+"""
+PlexiChat Advanced GUI Application
+Sophisticated Python GUI with same login system and full feature parity with WebUI.
+"""
 
 # Add src to path for imports
 current_dir = os.path.dirname(__file__)
@@ -25,12 +34,9 @@ for path in [src_dir, root_dir]:
         sys.path.insert(0, abs_path)
 
 try:
-    from plexichat.app.logger_config import logger
-    from plexichat.core.security.government_auth import government_auth
     PLEXICHAT_MODULES_AVAILABLE = True
 except ImportError as e:
     # Fallback for development/standalone mode
-    import logging
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
     government_auth = None
@@ -39,8 +45,6 @@ except ImportError as e:
 
 # Import GUI components
 try:
-    from plexichat.gui.components.backup_management_widget import BackupManagementWidget
-    from plexichat.gui.components.clustering_management_widget import ClusteringManagementWidget
     GUI_COMPONENTS_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"GUI components not available: {e}")
@@ -98,13 +102,13 @@ class PlexiChatAdminGUI:
                 response = requests.get(f"{url}/health", timeout=2, verify=False)
                 if response.status_code == 200:
                     self.server_url = url
-                    print(f"✅ Detected PlexiChat server at: {url}")
+                    print(f" Detected PlexiChat server at: {url}")
                     return
-            except:
+            except Exception:
                 continue
 
-        print("⚠️ PlexiChat server not detected. Using default: http://localhost:8000")
-        print("💡 Make sure to start the server with: python run.py run")
+        print(" PlexiChat server not detected. Using default: http://localhost:8000")
+        print(" Make sure to start the server with: python run.py run")
     
     def setup_styles(self):
         """Setup custom styles and colors."""
@@ -132,7 +136,7 @@ class PlexiChatAdminGUI:
         # Logo and title
         title_label = ctk.CTkLabel(
             login_frame,
-            text="🔒 PlexiChat Admin",
+            text=" PlexiChat Admin",
             font=ctk.CTkFont(size=32, weight="bold")
         )
         title_label.pack(pady=(40, 10))
@@ -150,7 +154,7 @@ class PlexiChatAdminGUI:
         
         security_label = ctk.CTkLabel(
             security_frame,
-            text="⚠️ GOVERNMENT-LEVEL SECURITY\nUnauthorized access is prohibited",
+            text=" GOVERNMENT-LEVEL SECURITY\nUnauthorized access is prohibited",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color="white"
         )
@@ -190,7 +194,7 @@ class PlexiChatAdminGUI:
         # Login button
         self.login_button = ctk.CTkButton(
             login_frame,
-            text="🔐 Secure Login",
+            text=" Secure Login",
             width=300,
             height=40,
             font=ctk.CTkFont(size=16, weight="bold"),
@@ -209,7 +213,8 @@ class PlexiChatAdminGUI:
         # Footer
         footer_label = ctk.CTkLabel(
             login_frame,
-            text=f"System Time: {datetime.now().strftime('%H:%M:%S')}",
+            text=f"System Time: {from datetime import datetime
+datetime.now().strftime('%H:%M:%S')}",
             font=ctk.CTkFont(size=10),
             text_color="gray"
         )
@@ -226,7 +231,8 @@ class PlexiChatAdminGUI:
     
     def update_time(self, label):
         """Update time display."""
-        label.configure(text=f"System Time: {datetime.now().strftime('%H:%M:%S')}")
+        label.configure(text=f"System Time: {from datetime import datetime
+datetime.now().strftime('%H:%M:%S')}")
         self.root.after(1000, lambda: self.update_time(label))
     
     def handle_login(self):
@@ -240,7 +246,7 @@ class PlexiChatAdminGUI:
             return
         
         # Disable login button and show loading
-        self.login_button.configure(text="🔄 Authenticating...", state="disabled")
+        self.login_button.configure(text=" Authenticating...", state="disabled")
         
         # Perform authentication in thread to avoid blocking UI
         threading.Thread(
@@ -271,7 +277,7 @@ class PlexiChatAdminGUI:
     def handle_auth_result(self, result: Dict[str, Any], username: str):
         """Handle authentication result."""
         # Re-enable login button
-        self.login_button.configure(text="🔐 Secure Login", state="normal")
+        self.login_button.configure(text=" Secure Login", state="normal")
         
         if result['success']:
             self.current_user = username
@@ -292,7 +298,7 @@ class PlexiChatAdminGUI:
     
     def handle_auth_error(self, error: str):
         """Handle authentication error."""
-        self.login_button.configure(text="🔐 Secure Login", state="normal")
+        self.login_button.configure(text=" Secure Login", state="normal")
         self.show_status(f"Authentication error: {error}", "error")
     
     def show_2fa_input(self):
@@ -331,7 +337,7 @@ class PlexiChatAdminGUI:
         # Title
         title_label = ctk.CTkLabel(
             dialog,
-            text="🔒 Password Change Required",
+            text=" Password Change Required",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         title_label.pack(pady=(20, 10))
@@ -440,7 +446,7 @@ class PlexiChatAdminGUI:
         # Logo
         logo_label = ctk.CTkLabel(
             self.sidebar,
-            text="🔒 PlexiChat",
+            text=" PlexiChat",
             font=ctk.CTkFont(size=24, weight="bold")
         )
         logo_label.pack(pady=(20, 10))
@@ -455,17 +461,17 @@ class PlexiChatAdminGUI:
         # Navigation buttons
         self.nav_buttons = {}
         nav_items = [
-            ("📊 Dashboard", "dashboard"),
-            ("👥 Users", "users"),
-            ("🔒 Security", "security"),
-            ("⚖️ Moderation", "moderation"),
-            ("💾 Backup Management", "backup_management"),
-            ("🖥️ Clustering", "clustering_management"),
-            ("⚙️ System", "system"),
-            ("📈 Monitoring", "monitoring"),
-            ("🧩 Plugins", "plugins"),
-            ("📄 Logs", "logs"),
-            ("⚙️ Settings", "settings")
+            (" Dashboard", "dashboard"),
+            (" Users", "users"),
+            (" Security", "security"),
+            (" Moderation", "moderation"),
+            (" Backup Management", "backup_management"),
+            (" Clustering", "clustering_management"),
+            (" System", "system"),
+            (" Monitoring", "monitoring"),
+            (" Plugins", "plugins"),
+            (" Logs", "logs"),
+            (" Settings", "settings")
         ]
         
         for text, module in nav_items:
@@ -505,7 +511,7 @@ class PlexiChatAdminGUI:
         # Theme selector
         theme_btn = ctk.CTkButton(
             user_frame,
-            text="🎨",
+            text="",
             width=40,
             height=40,
             command=self.toggle_theme
@@ -523,7 +529,7 @@ class PlexiChatAdminGUI:
         # Logout button
         logout_btn = ctk.CTkButton(
             user_frame,
-            text="🚪 Logout",
+            text=" Logout",
             width=80,
             height=30,
             command=self.logout
@@ -590,10 +596,10 @@ class PlexiChatAdminGUI:
         
         # Create stats grid
         stats = [
-            ("👥 Total Users", "5", self.colors['primary']),
-            ("💬 Messages Today", "1,234", self.colors['success']),
-            ("🖥️ Server Status", "Online", self.colors['accent']),
-            ("🔒 Security Level", "High", self.colors['warning'])
+            (" Total Users", "5", self.colors['primary']),
+            (" Messages Today", "1,234", self.colors['success']),
+            (" Server Status", "Online", self.colors['accent']),
+            (" Security Level", "High", self.colors['warning'])
         ]
         
         for i, (title, value, color) in enumerate(stats):
@@ -627,10 +633,10 @@ class PlexiChatAdminGUI:
         actions_title.pack(pady=(15, 10))
         
         actions = [
-            ("💾 Start Backup", lambda: self.show_module("backup")),
-            ("👤 Add User", lambda: self.show_module("users")),
-            ("🔒 Security Scan", lambda: self.show_module("security")),
-            ("🔄 Restart Server", self.restart_server)
+            (" Start Backup", lambda: self.show_module("backup")),
+            (" Add User", lambda: self.show_module("users")),
+            (" Security Scan", lambda: self.show_module("security")),
+            (" Restart Server", self.restart_server)
         ]
         
         for i, (text, command) in enumerate(actions):
@@ -683,7 +689,7 @@ class PlexiChatAdminGUI:
         # Add user button
         add_btn = ctk.CTkButton(
             self.content_area,
-            text="👤 Add User",
+            text=" Add User",
             command=self.add_user_dialog
         )
         add_btn.pack(pady=(0, 20))
@@ -717,7 +723,7 @@ class PlexiChatAdminGUI:
             # User info
             info_label = ctk.CTkLabel(
                 user_frame,
-                text=f"👤 {username} - {'Locked' if admin_data.locked_until else 'Active'}",
+                text=f" {username} - {'Locked' if admin_data.locked_until else 'Active'}",
                 font=ctk.CTkFont(size=14)
             )
             info_label.pack(side="left", padx=15, pady=10)
@@ -725,7 +731,7 @@ class PlexiChatAdminGUI:
             # Actions
             reset_btn = ctk.CTkButton(
                 user_frame,
-                text="🔑 Reset Password",
+                text=" Reset Password",
                 width=120,
                 command=lambda u=username: self.reset_user_password(u)
             )
@@ -745,9 +751,9 @@ class PlexiChatAdminGUI:
         
         # Security alerts
         alerts = [
-            ("⚠️ Failed Login Attempts", "15 failed attempts in the last hour", "warning"),
-            ("✅ SSL Certificate", "Valid until 2025-01-15", "success"),
-            ("🚨 Default Password", "Change default admin password immediately", "error")
+            (" Failed Login Attempts", "15 failed attempts in the last hour", "warning"),
+            (" SSL Certificate", "Valid until 2025-01-15", "success"),
+            (" Default Password", "Change default admin password immediately", "error")
         ]
         
         for title_text, message, alert_type in alerts:
@@ -798,7 +804,7 @@ class PlexiChatAdminGUI:
         # Start backup button
         backup_btn = ctk.CTkButton(
             backup_frame,
-            text="💾 Start Backup",
+            text=" Start Backup",
             command=self.start_backup
         )
         backup_btn.pack(pady=20)
@@ -874,8 +880,6 @@ class PlexiChatAdminGUI:
                     new_password = government_auth._generate_secure_password()
                 else:
                     # Fallback password generation
-                    import secrets
-                    import string
                     chars = string.ascii_letters + string.digits + "!@#$%^&*"
                     new_password = ''.join(secrets.choice(chars) for _ in range(16))
 

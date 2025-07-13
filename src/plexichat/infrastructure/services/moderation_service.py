@@ -1,21 +1,24 @@
+import time
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+from sqlmodel import Session, select
+
+
+from fastapi import HTTPException, status
+
+from plexichat.app.logger_config import logger
+from plexichat.app.models.enhanced_models import EnhancedUser
+from plexichat.app.models.message import Message
+from plexichat.app.models.moderation import (
+
 """
 Comprehensive moderation service for PlexiChat.
 Handles user moderation, message moderation, automated moderation rules,
 role-based permissions, and server-specific moderation capabilities.
 """
 
-import time
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
-
-from fastapi import HTTPException, status
-from sqlmodel import Session, select
-
-from plexichat.app.logger_config import logger
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.models.message import Message
-from plexichat.app.models.moderation import (
     ModerationAction,
     ModerationLog,
     ModerationSeverity,
@@ -302,7 +305,7 @@ class ModerationService:
 
             self.session.commit()
 
-            logger.info(f"👤 Assigned role {role.value} to user {user_id}")
+            logger.info(f" Assigned role {role.value} to user {user_id}")
             return True
 
         except Exception as e:
@@ -367,7 +370,7 @@ class ModerationService:
             elif action == ModerationAction.RESTRICT:
                 self.assign_role(target_user_id, UserRole.RESTRICTED, moderator_id, guild_id, reason, duration)
 
-            logger.info(f"⚖️ Enhanced moderation action {action.value} executed on user {target_user_id}")
+            logger.info(f" Enhanced moderation action {action.value} executed on user {target_user_id}")
             return log_id
 
         except HTTPException:
@@ -402,7 +405,7 @@ class ModerationService:
             self.session.add(log_entry)
             self.session.commit()
 
-            logger.info(f"📝 Appeal submitted for moderation log {moderation_log_id}")
+            logger.info(f" Appeal submitted for moderation log {moderation_log_id}")
             return True
 
         except Exception as e:
@@ -460,9 +463,9 @@ class ModerationService:
                 if cache_key in self.user_roles_cache:
                     del self.user_roles_cache[cache_key]
 
-                logger.info(f"✅ Appeal approved for moderation log {moderation_log_id}")
+                logger.info(f" Appeal approved for moderation log {moderation_log_id}")
             else:
-                logger.info(f"❌ Appeal denied for moderation log {moderation_log_id}")
+                logger.info(f" Appeal denied for moderation log {moderation_log_id}")
 
             self.session.add(log_entry)
             self.session.commit()
@@ -730,7 +733,8 @@ class ModerationService:
                 if not new_content:
                     raise HTTPException(status_code=400, detail="New content required for message edit")
                 message.content = new_content
-                message.edited_timestamp = datetime.utcnow()
+                message.edited_timestamp = from datetime import datetime
+datetime.utcnow()
                 message.is_edited = True
             elif action == ModerationAction.PIN_MESSAGE:
                 message.is_pinned = True

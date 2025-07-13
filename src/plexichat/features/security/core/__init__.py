@@ -1,3 +1,16 @@
+from ...security import (
+from .behavioral_analysis import BehavioralAnalyzer, behavioral_analyzer
+
+from .ddos_protection import EnhancedDDoSProtection, ddos_protection
+from .input_sanitization import InputSanitizer, input_sanitizer
+from .oauth_provider import OAuthProvider, oauth_provider
+from .penetration_testing import PenetrationTestingSystem, penetration_tester
+from .rate_limiting import RateLimiter, rate_limiter
+from .security_monitoring import SecurityMonitor, security_monitor
+from .ssl_certificate_manager import SSLCertificateManager, ssl_manager
+from .vulnerability_scanner import VulnerabilityScanner, vulnerability_scanner
+
+
 """
 PlexiChat Core Security System - Unified Security Architecture
 
@@ -23,7 +36,6 @@ Features:
 """
 
 # Import core security components from main security module
-from ...security import (
     DatabaseEncryption,
     DataClassification,
     DistributedKeyManager,
@@ -45,19 +57,8 @@ from ...security import (
     quantum_encryption,
     security_manager,
 )
-from .behavioral_analysis import BehavioralAnalyzer, behavioral_analyzer
-
 # Import consolidated security modules
 # Note: advanced_authentication.py removed - functionality consolidated into core_system/auth/
-from .ddos_protection import EnhancedDDoSProtection, ddos_protection
-from .input_sanitization import InputSanitizer, input_sanitizer
-from .oauth_provider import OAuthProvider, oauth_provider
-from .penetration_testing import PenetrationTestingSystem, penetration_tester
-from .rate_limiting import RateLimiter, rate_limiter
-from .security_monitoring import SecurityMonitor, security_monitor
-from .ssl_certificate_manager import SSLCertificateManager, ssl_manager
-from .vulnerability_scanner import VulnerabilityScanner, vulnerability_scanner
-
 __version__ = "4.0.0"
 __all__ = [
     # Core security management

@@ -1,14 +1,3 @@
-"""
-Hot Update Manager for Zero-Downtime Updates
-
-Provides hot update capabilities for cluster nodes with:
-- Rolling deployment strategies
-- Configuration updates without restart
-- Code hot-swapping capabilities
-- Rollback mechanisms
-- Update coordination across cluster
-"""
-
 import asyncio
 import importlib
 import json
@@ -20,6 +9,18 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+
+"""
+Hot Update Manager for Zero-Downtime Updates
+
+Provides hot update capabilities for cluster nodes with:
+- Rolling deployment strategies
+- Configuration updates without restart
+- Code hot-swapping capabilities
+- Rollback mechanisms
+- Update coordination across cluster
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,8 @@ class HotUpdateManager:
         self.rollback_timeout_seconds = 120
         
         # Hot update storage
-        self.update_storage_dir = Path("data/hot_updates")
+        self.update_storage_dir = from pathlib import Path
+Path("data/hot_updates")
         self.update_storage_dir.mkdir(parents=True, exist_ok=True)
         self.backup_dir = self.update_storage_dir / "backups"
         self.backup_dir.mkdir(exist_ok=True)
@@ -148,7 +150,8 @@ class HotUpdateManager:
         """Apply configuration update without restart."""
         try:
             # Backup current configuration
-            backup_id = f"config_backup_{int(datetime.now().timestamp())}"
+            backup_id = f"config_backup_{int(from datetime import datetime
+datetime.now().timestamp())}"
             await self._backup_configuration(backup_id)
             
             # Apply new configuration

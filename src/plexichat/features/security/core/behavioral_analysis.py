@@ -1,10 +1,3 @@
-"""
-PlexiChat Behavioral Analysis System
-
-AI-powered behavioral threat detection with machine learning models,
-anomaly detection, and adaptive security responses.
-"""
-
 import hashlib
 import logging
 from collections import defaultdict, deque
@@ -12,14 +5,23 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+    import numpy as np
+from datetime import datetime, timedelta, timezone
+
+            import re
+
+"""
+PlexiChat Behavioral Analysis System
+
+AI-powered behavioral threat detection with machine learning models,
+anomaly detection, and adaptive security responses.
+"""
+
 # Optional import for advanced behavioral analysis
 try:
-    import numpy as np
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
-from datetime import datetime, timedelta, timezone
-
 logger = logging.getLogger(__name__)
 
 
@@ -320,7 +322,6 @@ class BehavioralAnalyzer:
         
         # Endpoint anomaly detection
         for pattern in self.thresholds["suspicious_endpoint_patterns"]:
-            import re
             if re.search(pattern, event.endpoint, re.IGNORECASE):
                 anomalies.append(AnomalyDetection(
                     anomaly_type=AnomalyType.ENDPOINT_ANOMALY,

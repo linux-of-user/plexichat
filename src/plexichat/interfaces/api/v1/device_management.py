@@ -1,19 +1,32 @@
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import Session, func, select
+
+
+
+
+
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+from plexichat.app.db import get_session
+from plexichat.app.logger_config import logger
+from plexichat.app.models.device_management import (
+from plexichat.app.models.enhanced_models import EnhancedUser
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user, get_optional_current_user
+        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
+        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
+        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
+
 """
 Device management API for intelligent shard distribution.
 Handles device registration, status reporting, and shard management.
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from sqlmodel import Session, func, select
-
-from plexichat.app.db import get_session
-from plexichat.app.logger_config import logger
-from plexichat.app.models.device_management import (
     ConnectionType,
     DeviceCapabilityReport,
     DeviceShardAssignment,
@@ -21,10 +34,6 @@ from plexichat.app.models.device_management import (
     DeviceType,
     StorageDevice,
 )
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.utils.auth import get_current_user, get_optional_current_user
-
-
 # Pydantic models for API
 class DeviceRegistrationRequest(BaseModel):
     device_name: str
@@ -77,7 +86,8 @@ router = APIRouter(prefix="/api/v1/devices", tags=["Device Management"])
 async def register_device(
     request: DeviceRegistrationRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Register a new storage device."""
     try:
@@ -103,8 +113,10 @@ async def register_device(
             existing_device.geographic_region = request.geographic_region
             existing_device.capabilities = request.capabilities
             existing_device.status = DeviceStatus.ONLINE
-            existing_device.last_seen_at = datetime.utcnow()
-            existing_device.last_updated_at = datetime.utcnow()
+            existing_device.last_seen_at = from datetime import datetime
+datetime.utcnow()
+            existing_device.last_updated_at = from datetime import datetime
+datetime.utcnow()
             
             session.commit()
             session.refresh(existing_device)
@@ -134,7 +146,8 @@ async def register_device(
             geographic_region=request.geographic_region,
             capabilities=request.capabilities,
             status=DeviceStatus.ONLINE,
-            last_seen_at=datetime.utcnow()
+            last_seen_at=from datetime import datetime
+datetime.utcnow()
         )
         
         session.add(device)
@@ -174,8 +187,10 @@ async def device_heartbeat(
         
         # Update device status
         device.status = update.status
-        device.last_heartbeat_at = datetime.utcnow()
-        device.last_seen_at = datetime.utcnow()
+        device.last_heartbeat_at = from datetime import datetime
+datetime.utcnow()
+        device.last_seen_at = from datetime import datetime
+datetime.utcnow()
         
         if update.available_storage_gb is not None:
             device.available_storage_bytes = int(update.available_storage_gb * 1024**3)
@@ -269,7 +284,8 @@ async def submit_capability_report(
         if report.latency_ms is not None:
             device.average_latency_ms = report.latency_ms
         
-        device.last_seen_at = datetime.utcnow()
+        device.last_seen_at = from datetime import datetime
+datetime.utcnow()
         
         session.commit()
         
@@ -290,7 +306,8 @@ async def submit_capability_report(
 @router.get("/my-devices")
 async def get_my_devices(
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get devices owned by the current user."""
     try:
@@ -380,7 +397,8 @@ async def get_device_shards(
     limit: int = Query(50, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """Get shards stored on a specific device."""
     try:
@@ -439,7 +457,8 @@ async def delete_device_shard(
     shard_id: int,
     request: ShardDeletionRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Delete a specific shard from a device."""
     try:
@@ -497,8 +516,6 @@ async def get_network_status(
 ) -> Dict[str, Any]:
     """Get real-time network status of all devices."""
     try:
-        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
-
         monitor = get_backup_status_monitor(session)
         network_status = await monitor.get_device_network_status()
 
@@ -517,8 +534,6 @@ async def get_backup_coverage(
 ) -> Dict[str, Any]:
     """Get comprehensive backup coverage report."""
     try:
-        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
-
         monitor = get_backup_status_monitor(session)
         coverage_report = await monitor.get_real_time_status(force_refresh=force_refresh)
 
@@ -545,7 +560,8 @@ async def get_backup_coverage(
                 "warnings": coverage_report.warnings,
                 "overall_health": "critical" if coverage_report.critical_issues else ("warning" if coverage_report.warnings else "healthy")
             },
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         }
 
     except Exception as e:
@@ -560,8 +576,6 @@ async def get_shard_distribution(
 ) -> Dict[str, Any]:
     """Get visual shard distribution map."""
     try:
-        from plexichat.app.services.backup_status_monitor import get_backup_status_monitor
-
         monitor = get_backup_status_monitor(session)
         distribution_map = await monitor.get_shard_distribution_map()
 

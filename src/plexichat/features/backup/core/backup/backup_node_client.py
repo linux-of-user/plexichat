@@ -1,10 +1,3 @@
-"""
-Backup Node Client
-
-Client for communicating with backup nodes in the distributed system.
-Handles node discovery, communication, and shard operations.
-"""
-
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -13,6 +6,14 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 import aiohttp
+
+
+"""
+Backup Node Client
+
+Client for communicating with backup nodes in the distributed system.
+Handles node discovery, communication, and shard operations.
+"""
 
 logger = logging.getLogger(__name__)
 

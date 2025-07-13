@@ -1,10 +1,3 @@
-"""
-Plugin Validation System for PlexiChat Marketplace
-
-Comprehensive validation system for plugins including security scanning,
-code quality checks, compatibility validation, and metadata verification.
-"""
-
 import ast
 import json
 import re
@@ -19,6 +12,14 @@ from typing import Any, Dict, List, Optional
 import aiofiles
 
 from ..core.logging import get_logger
+
+
+"""
+Plugin Validation System for PlexiChat Marketplace
+
+Comprehensive validation system for plugins including security scanning,
+code quality checks, compatibility validation, and metadata verification.
+"""
 
 logger = get_logger(__name__)
 
@@ -93,7 +94,7 @@ class PluginValidator:
         self.min_plexichat_version = "3.0.0"
         self.supported_python_versions = ["3.8", "3.9", "3.10", "3.11", "3.12"]
         
-        logger.info("🔍 Plugin Validator initialized")
+        logger.info(" Plugin Validator initialized")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default validation configuration."""
@@ -112,7 +113,7 @@ class PluginValidator:
     async def validate_plugin(self, plugin_path: str) -> ValidationResult:
         """Validate a plugin package comprehensively."""
         try:
-            logger.info(f"🔍 Starting validation for plugin: {plugin_path}")
+            logger.info(f" Starting validation for plugin: {plugin_path}")
             
             # Initialize result
             result = ValidationResult(
@@ -125,7 +126,8 @@ class PluginValidator:
             
             # Extract and analyze plugin
             with tempfile.TemporaryDirectory() as temp_dir:
-                extract_path = Path(temp_dir) / "plugin"
+                extract_path = from pathlib import Path
+Path(temp_dir) / "plugin"
                 
                 # Extract plugin archive
                 if not await self._extract_plugin(plugin_path, extract_path):
@@ -160,11 +162,11 @@ class PluginValidator:
                     not any(issue.severity == ValidationSeverity.CRITICAL for issue in result.issues)
                 )
             
-            logger.info(f"✅ Validation completed: {result.plugin_name} (Score: {result.score:.1f})")
+            logger.info(f" Validation completed: {result.plugin_name} (Score: {result.score:.1f})")
             return result
             
         except Exception as e:
-            logger.error(f"❌ Validation failed: {e}")
+            logger.error(f" Validation failed: {e}")
             result = ValidationResult(
                 plugin_id="unknown",
                 plugin_name="unknown",

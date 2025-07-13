@@ -1,3 +1,19 @@
+import asyncio
+import hashlib
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import aiosqlite
+
+from ...core_system.logging import get_logger
+from ...security import quantum_encryption
+
+        from .unified_backup_manager import UnifiedShard
+
+
 """
 Unified Shard Manager
 
@@ -14,19 +30,6 @@ Features:
 - Automatic shard verification and repair
 - Performance optimization with caching
 """
-
-import asyncio
-import hashlib
-import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-
-import aiosqlite
-
-from ...core_system.logging import get_logger
-from ...security import quantum_encryption
 
 logger = get_logger(__name__)
 
@@ -423,8 +426,6 @@ class UnifiedShardManager:
         shard_config: Dict[str, int]
     ) -> 'UnifiedShard':
         """Create a unified shard object."""
-        from .unified_backup_manager import UnifiedShard
-
         # Generate shard ID
         shard_id = f"shard_{operation.backup_id}_{shard_index:04d}_{secrets.token_hex(8)}"
 

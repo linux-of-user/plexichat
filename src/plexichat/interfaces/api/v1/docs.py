@@ -1,9 +1,7 @@
-"""
-PlexiChat Documentation API
-Enhanced documentation system with interactive viewer and editor.
-"""
-
 from typing import Any, Dict, List, Optional
+
+
+
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -12,6 +10,11 @@ from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
 from plexichat.core.security.government_auth import get_current_admin
+
+"""
+PlexiChat Documentation API
+Enhanced documentation system with interactive viewer and editor.
+"""
 
 router = APIRouter(prefix="/docs", tags=["documentation"])
 templates = Jinja2Templates(directory="src/plexichat/app/web/templates")
@@ -78,14 +81,14 @@ Edit the `config/plexichat.yaml` file to customize your installation.
 
 ```
 plexichat/
-├── src/                    # Source code only
-├── config/                 # Configuration files (auto-created)
-├── logs/                   # Log files (auto-created)
-├── data/                   # Database files (auto-created)
-├── backups/                # Backup storage (auto-created)
-├── gui/                    # Desktop GUI application
-├── web/                    # Web interface files
-└── docs/                   # Documentation files
+ src/                    # Source code only
+ config/                 # Configuration files (auto-created)
+ logs/                   # Log files (auto-created)
+ data/                   # Database files (auto-created)
+ backups/                # Backup storage (auto-created)
+ gui/                    # Desktop GUI application
+ web/                    # Web interface files
+ docs/                   # Documentation files
 ```
 
 ## Running the Application

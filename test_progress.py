@@ -1,19 +1,21 @@
+import sys
+import time
+from pathlib import Path
+
+from run import DualProgressBar
+
+
+
 #!/usr/bin/env python3
 """
 Test script to demonstrate the improved dual progress bar system.
 """
 
-import sys
-import time
-from pathlib import Path
-
 # Add the current directory to Python path to import from run.py
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(from pathlib import Path
+Path(__file__).parent))
 
 # Import the DualProgressBar class from run.py
-from run import DualProgressBar
-
-
 def test_dual_progress_bars():
     """Test the dual progress bar system."""
     print("Testing Enhanced Dual Progress Bar System")

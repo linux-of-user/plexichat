@@ -1,8 +1,3 @@
-"""
-PlexiChat Container Orchestration System
-Manages Docker containers and Kubernetes deployments
-"""
-
 import asyncio
 import json
 import logging
@@ -12,6 +7,12 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import yaml
+
+
+"""
+PlexiChat Container Orchestration System
+Manages Docker containers and Kubernetes deployments
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -362,16 +363,16 @@ class ContainerOrchestrator:
             ])
             
             if result["returncode"] == 0:
-                logger.info("✅ Docker Compose deployment successful")
+                logger.info(" Docker Compose deployment successful")
                 self.stats["deployments"] += 1
                 self.stats["last_deployment"] = datetime.now(timezone.utc)
                 return True
             else:
-                logger.error(f"❌ Docker Compose deployment failed: {result['stderr']}")
+                logger.error(f" Docker Compose deployment failed: {result['stderr']}")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ Docker Compose deployment error: {e}")
+            logger.error(f" Docker Compose deployment error: {e}")
             return False
     
     async def deploy_with_kubernetes(self) -> bool:
@@ -395,16 +396,16 @@ class ContainerOrchestrator:
                 ], input_data=content)
                 
                 if result["returncode"] != 0:
-                    logger.error(f"❌ Failed to apply {filename}: {result['stderr']}")
+                    logger.error(f" Failed to apply {filename}: {result['stderr']}")
                     return False
             
-            logger.info("✅ Kubernetes deployment successful")
+            logger.info(" Kubernetes deployment successful")
             self.stats["deployments"] += 1
             self.stats["last_deployment"] = datetime.now(timezone.utc)
             return True
             
         except Exception as e:
-            logger.error(f"❌ Kubernetes deployment error: {e}")
+            logger.error(f" Kubernetes deployment error: {e}")
             return False
     
     async def scale_service(self, service_name: str, replicas: int) -> bool:
@@ -418,10 +419,10 @@ class ContainerOrchestrator:
                 ])
                 
                 if result["returncode"] == 0:
-                    logger.info(f"✅ Scaled {service_name} to {replicas} replicas")
+                    logger.info(f" Scaled {service_name} to {replicas} replicas")
                     return True
                 else:
-                    logger.error(f"❌ Failed to scale {service_name}: {result['stderr']}")
+                    logger.error(f" Failed to scale {service_name}: {result['stderr']}")
                     return False
             
             elif self.platform == OrchestrationPlatform.DOCKER_COMPOSE:
@@ -431,16 +432,16 @@ class ContainerOrchestrator:
                 ])
                 
                 if result["returncode"] == 0:
-                    logger.info(f"✅ Scaled {service_name} to {replicas} replicas")
+                    logger.info(f" Scaled {service_name} to {replicas} replicas")
                     return True
                 else:
-                    logger.error(f"❌ Failed to scale {service_name}: {result['stderr']}")
+                    logger.error(f" Failed to scale {service_name}: {result['stderr']}")
                     return False
             
             return False
             
         except Exception as e:
-            logger.error(f"❌ Scaling error for {service_name}: {e}")
+            logger.error(f" Scaling error for {service_name}: {e}")
             return False
     
     async def get_container_status(self) -> Dict[str, Any]:
@@ -478,7 +479,7 @@ class ContainerOrchestrator:
                         }
         
         except Exception as e:
-            logger.error(f"❌ Error getting container status: {e}")
+            logger.error(f" Error getting container status: {e}")
         
         return container_statuses
     

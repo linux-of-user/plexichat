@@ -1,3 +1,29 @@
+import asyncio
+import logging
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable, Dict, List, Optional
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
+
+        from ....core_system.config import get_config
+        from ....core_system.config import get_config, get_setting, set_setting
+        
+        import time
+
+        
+        import subprocess
+        import sys
+        
+
+        import uvicorn
+        from ....main import app as fastapi_app
+
 """
 PlexiChat CLI Manager
 
@@ -12,19 +38,6 @@ Consolidated CLI management system that merges functionality from:
 
 Provides a unified command-line interface for PlexiChat administration and operations.
 """
-
-import asyncio
-import logging
-import sys
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Callable, Dict, List, Optional
-
-import typer
-from rich.console import Console
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.table import Table
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -123,7 +136,7 @@ cli_manager = CLIManager()
 @app.command()
 def status():
     """Show system status."""
-    console.print(Panel.fit("🚀 PlexiChat System Status", style="bold green"))
+    console.print(Panel.fit(" PlexiChat System Status", style="bold green"))
     
     # Create status table
     table = Table(title="System Information")
@@ -132,10 +145,10 @@ def status():
     table.add_column("Details", style="yellow")
     
     # Add status rows (these would be populated from actual system checks)
-    table.add_row("Core System", "✅ Running", "All core services operational")
-    table.add_row("Database", "✅ Connected", "PostgreSQL 14.2")
-    table.add_row("API Server", "✅ Running", "Port 8000")
-    table.add_row("Web Interface", "✅ Running", "Port 3000")
+    table.add_row("Core System", " Running", "All core services operational")
+    table.add_row("Database", " Connected", "PostgreSQL 14.2")
+    table.add_row("API Server", " Running", "Port 8000")
+    table.add_row("Web Interface", " Running", "Port 3000")
     
     console.print(table)
 
@@ -143,10 +156,9 @@ def status():
 def version():
     """Show version information."""
     try:
-        from ....core_system.config import get_config
         config = get_config()
         version = config.app_version
-    except:
+    except Exception:
         version = "Unknown"
     
     console.print(f"[bold green]PlexiChat v{version}[/bold green]")
@@ -158,13 +170,12 @@ def config(
     set_value: Optional[str] = typer.Option(None, "--set", help="Set configuration value"),
     list_all: bool = typer.Option(False, "--list", help="List all configuration")
 ):
-    """Manage configuration settings."""
+    """Manage configuration from plexichat.core.config import settings
+settings."""
     try:
-        from ....core_system.config import get_config, get_setting, set_setting
-        
         if list_all:
             config = get_config()
-            console.print(Panel.fit("📋 Configuration Settings", style="bold blue"))
+            console.print(Panel.fit(" Configuration Settings", style="bold blue"))
             
             # Display sanitized config
             table = Table()
@@ -183,9 +194,9 @@ def config(
         elif key and set_value:
             success = set_setting(key, set_value)
             if success:
-                console.print(f"[green]✅ Set {key} = {set_value}[/green]")
+                console.print(f"[green] Set {key} = {set_value}[/green]")
             else:
-                console.print(f"[red]❌ Failed to set {key}[/red]")
+                console.print(f"[red] Failed to set {key}[/red]")
                 
         elif key:
             value = get_setting(key)
@@ -206,11 +217,12 @@ def logs(
     level: Optional[str] = typer.Option(None, "--level", help="Filter by log level")
 ):
     """View application logs."""
-    console.print(f"[cyan]📋 Showing last {lines} log lines[/cyan]")
+    console.print(f"[cyan] Showing last {lines} log lines[/cyan]")
     
     try:
         # This would integrate with the actual logging system
-        log_file = Path("logs/plexichat.log")
+        log_file = from pathlib import Path
+Path("logs/plexichat.log")
         if log_file.exists():
             with open(log_file, 'r') as f:
                 log_lines = f.readlines()
@@ -238,7 +250,7 @@ def setup(
     force: bool = typer.Option(False, "--force", help="Force reinstallation")
 ):
     """Setup PlexiChat dependencies and configuration."""
-    console.print(f"[cyan]🚀 Setting up PlexiChat ({install_type} installation)[/cyan]")
+    console.print(f"[cyan] Setting up PlexiChat ({install_type} installation)[/cyan]")
     
     with Progress(
         SpinnerColumn(),
@@ -249,23 +261,22 @@ def setup(
         # Setup tasks
         task1 = progress.add_task("Checking Python version...", total=None)
         # Simulate setup steps
-        import time
         time.sleep(1)
-        progress.update(task1, description="✅ Python version OK")
+        progress.update(task1, description=" Python version OK")
         
         task2 = progress.add_task("Installing dependencies...", total=None)
         time.sleep(2)
-        progress.update(task2, description="✅ Dependencies installed")
+        progress.update(task2, description=" Dependencies installed")
         
         task3 = progress.add_task("Setting up database...", total=None)
         time.sleep(1)
-        progress.update(task3, description="✅ Database configured")
+        progress.update(task3, description=" Database configured")
         
         task4 = progress.add_task("Creating configuration...", total=None)
         time.sleep(1)
-        progress.update(task4, description="✅ Configuration created")
+        progress.update(task4, description=" Configuration created")
     
-    console.print("[green]🎉 Setup completed successfully![/green]")
+    console.print("[green] Setup completed successfully![/green]")
 
 @app.command()
 def start(
@@ -275,14 +286,10 @@ def start(
     workers: int = typer.Option(1, "--workers", help="Number of worker processes")
 ):
     """Start the PlexiChat server."""
-    console.print(f"[green]🚀 Starting PlexiChat server on {host}:{port}[/green]")
+    console.print(f"[green] Starting PlexiChat server on {host}:{port}[/green]")
     
     try:
         # This would start the actual server
-        import uvicorn
-
-        from ....main import app as fastapi_app
-        
         uvicorn.run(
             fastapi_app,
             host=host,
@@ -291,16 +298,16 @@ def start(
             workers=workers if not reload else 1
         )
     except ImportError:
-        console.print("[red]❌ Server dependencies not installed. Run 'plexichat setup' first.[/red]")
+        console.print("[red] Server dependencies not installed. Run 'plexichat setup' first.[/red]")
     except Exception as e:
-        console.print(f"[red]❌ Failed to start server: {e}[/red]")
+        console.print(f"[red] Failed to start server: {e}[/red]")
 
 @app.command()
 def stop():
     """Stop the PlexiChat server."""
-    console.print("[yellow]🛑 Stopping PlexiChat server...[/yellow]")
+    console.print("[yellow] Stopping PlexiChat server...[/yellow]")
     # This would implement graceful shutdown
-    console.print("[green]✅ Server stopped[/green]")
+    console.print("[green] Server stopped[/green]")
 
 @app.command()
 def test(
@@ -308,12 +315,9 @@ def test(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output")
 ):
     """Run tests."""
-    console.print("[cyan]🧪 Running tests...[/cyan]")
+    console.print("[cyan] Running tests...[/cyan]")
     
     try:
-        import subprocess
-        import sys
-        
         cmd = [sys.executable, "-m", "pytest"]
         if pattern:
             cmd.extend(["-k", pattern])
@@ -323,9 +327,9 @@ def test(
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode == 0:
-            console.print("[green]✅ All tests passed![/green]")
+            console.print("[green] All tests passed![/green]")
         else:
-            console.print("[red]❌ Some tests failed[/red]")
+            console.print("[red] Some tests failed[/red]")
             console.print(result.stdout)
             console.print(result.stderr)
             

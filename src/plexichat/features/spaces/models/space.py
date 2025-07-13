@@ -1,17 +1,19 @@
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import JSON, Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index, Text
+
 """
 PlexiChat Space Model
 
 Reddit-like community space model.
 """
-
-from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import DateTime, Index, Text
-from sqlmodel import JSON, Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for spaces
 space_snowflake = SnowflakeGenerator(datacenter_id=2, worker_id=1)

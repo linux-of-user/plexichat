@@ -1,8 +1,3 @@
-"""
-Advanced Database Encryption System
-Provides comprehensive encryption for database connections, data at rest, and sensitive fields.
-"""
-
 import base64
 import logging
 import secrets
@@ -12,8 +7,15 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+
+"""
+Advanced Database Encryption System
+Provides comprehensive encryption for database connections, data at rest, and sensitive fields.
+"""
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,3 @@
-"""
-PlexiChat WebUI Multi-Factor Authentication Manager
-
-Enhanced MFA system with TOTP, backup codes, SMS, email, and biometric support.
-Provides distributed authentication storage and advanced security features.
-"""
-
 import base64
 import io
 import json
@@ -19,6 +12,14 @@ import qrcode
 from cryptography.fernet import Fernet
 
 from .config_manager import get_webui_config
+
+
+"""
+PlexiChat WebUI Multi-Factor Authentication Manager
+
+Enhanced MFA system with TOTP, backup codes, SMS, email, and biometric support.
+Provides distributed authentication storage and advanced security features.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,8 @@ class MFADevice:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = from datetime import datetime
+datetime.utcnow()
 
 @dataclass
 class MFASession:
@@ -157,7 +159,8 @@ class MFAManager:
             if totp.verify(verification_code, valid_window=2):
                 # Activate the device
                 device.is_active = True
-                device.last_used = datetime.utcnow()
+                device.last_used = from datetime import datetime
+datetime.utcnow()
                 self._update_device(user_id, device)
                 
                 logger.info(f"TOTP device {device_id} activated for user {user_id}")
@@ -178,7 +181,8 @@ class MFAManager:
             
             totp = pyotp.TOTP(device.secret_key)
             if totp.verify(code, valid_window=2):
-                device.last_used = datetime.utcnow()
+                device.last_used = from datetime import datetime
+datetime.utcnow()
                 self._update_device(user_id, device)
                 return True
             
@@ -255,8 +259,10 @@ class MFAManager:
             mfa_required=mfa_required,
             mfa_completed=not mfa_required,  # If MFA not required, mark as completed
             mfa_methods_completed=[],
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(seconds=self.config.get_session_timeout(False)),
+            created_at=from datetime import datetime
+datetime.utcnow(),
+            expires_at=from datetime import datetime
+datetime.utcnow() + timedelta(seconds=self.config.get_session_timeout(False)),
             ip_address=ip_address,
             user_agent=user_agent
         )
@@ -278,7 +284,8 @@ class MFAManager:
         if any(method in session.mfa_methods_completed for method in required_methods):
             session.mfa_completed = True
             # Extend session timeout for MFA-completed sessions
-            session.expires_at = datetime.utcnow() + timedelta(
+            session.expires_at = from datetime import datetime
+datetime.utcnow() + timedelta(
                 seconds=self.config.get_session_timeout(True)
             )
         
@@ -292,7 +299,8 @@ class MFAManager:
         session = self.sessions_storage[session_id]
         
         # Check expiration
-        if datetime.utcnow() > session.expires_at:
+        if from datetime import datetime
+datetime.utcnow() > session.expires_at:
             del self.sessions_storage[session_id]
             return False
         

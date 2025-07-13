@@ -1,17 +1,19 @@
-"""
-PlexiChat Edge Analytics API
-Advanced analytics, monitoring, and insights for edge computing infrastructure.
-"""
-
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
 
 from ....core.auth import require_auth
 from ....core.logging import get_logger
 from ....core.performance.edge_computing_manager import get_edge_computing_manager
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+"""
+PlexiChat Edge Analytics API
+Advanced analytics, monitoring, and insights for edge computing infrastructure.
+"""
 
 logger = get_logger(__name__)
 
@@ -112,7 +114,7 @@ async def get_edge_overview(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to get edge overview: {e}")
+        logger.error(f" Failed to get edge overview: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/performance")
@@ -214,7 +216,7 @@ async def get_performance_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to get performance analytics: {e}")
+        logger.error(f" Failed to get performance analytics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/geographic")
@@ -293,7 +295,7 @@ async def get_geographic_analytics(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to get geographic analytics: {e}")
+        logger.error(f" Failed to get geographic analytics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/predictions")
@@ -360,5 +362,5 @@ async def get_predictive_analytics(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to get predictive analytics: {e}")
+        logger.error(f" Failed to get predictive analytics: {e}")
         raise HTTPException(status_code=500, detail=str(e))

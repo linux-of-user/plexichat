@@ -1,8 +1,3 @@
-"""
-Advanced Analytics Engine
-Comprehensive analytics, reporting, and monitoring system.
-"""
-
 import statistics
 import threading
 from collections import defaultdict, deque
@@ -14,6 +9,12 @@ from typing import Any, Dict, List, Optional, Union
 from app.core.config.settings import settings
 from app.logger_config import logger
 
+
+
+"""
+Advanced Analytics Engine
+Comprehensive analytics, reporting, and monitoring system.
+"""
 
 class EventType(Enum):
     """Analytics event types."""
@@ -228,7 +229,8 @@ class AnalyticsCollector:
             
     def get_real_time_stats(self) -> Dict[str, Any]:
         """Get real-time statistics."""
-        now = datetime.utcnow()
+        now = from datetime import datetime
+datetime.utcnow()
         
         # Active sessions (last 30 minutes)
         active_sessions = sum(
@@ -314,7 +316,8 @@ class AnalyticsDashboard:
         
     async def get_dashboard_data(self) -> Dict[str, Any]:
         """Get comprehensive dashboard data."""
-        now = datetime.utcnow()
+        now = from datetime import datetime
+datetime.utcnow()
         
         # Time ranges
         last_hour = now - timedelta(hours=1)
@@ -376,7 +379,8 @@ class AnalyticsDashboard:
         
     def _calculate_throughput(self) -> Dict[str, float]:
         """Calculate request throughput."""
-        now = datetime.utcnow()
+        now = from datetime import datetime
+datetime.utcnow()
         
         # Requests in last minute
         last_minute = now - timedelta(minutes=1)
@@ -423,7 +427,8 @@ class AnalyticsEngine:
             
         event = AnalyticsEvent(
             event_type=event_type,
-            timestamp=datetime.utcnow(),
+            timestamp=from datetime import datetime
+datetime.utcnow(),
             **kwargs
         )
         

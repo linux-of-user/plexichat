@@ -1,8 +1,3 @@
-"""
-PlexiChat Microservices Decomposition
-Breaks down monolithic application into microservices
-"""
-
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -11,6 +6,16 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from .service_registry import ServiceEndpoint, ServiceRegistry, ServiceType
+
+        from ...features.security.auth import auth_manager
+        from ...features.messaging import messaging_manager
+        from ...features.backup import backup_manager
+        from ...features.ai import ai_coordinator
+
+"""
+PlexiChat Microservices Decomposition
+Breaks down monolithic application into microservices
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -88,13 +93,13 @@ class BaseMicroservice(ABC):
         )
         
         await self.registry.register_service(self.endpoint)
-        logger.info(f"✅ Registered {self.config.service_name} with service registry")
+        logger.info(f" Registered {self.config.service_name} with service registry")
     
     async def deregister_from_registry(self):
         """Deregister this service from the service registry."""
         if self.endpoint:
             await self.registry.deregister_service(self.service_id)
-            logger.info(f"✅ Deregistered {self.config.service_name} from service registry")
+            logger.info(f" Deregistered {self.config.service_name} from service registry")
 
 
 class AuthenticationMicroservice(BaseMicroservice):
@@ -104,7 +109,6 @@ class AuthenticationMicroservice(BaseMicroservice):
         """Initialize authentication service."""
         logger.info("Initializing Authentication microservice")
         # Initialize authentication components
-        from ...features.security.auth import auth_manager
         self.auth_manager = auth_manager
     
     async def start(self):
@@ -117,7 +121,7 @@ class AuthenticationMicroservice(BaseMicroservice):
         
         self.running = True
         self.start_time = datetime.now(timezone.utc)
-        logger.info(f"✅ Authentication microservice started on port {self.config.port}")
+        logger.info(f" Authentication microservice started on port {self.config.port}")
     
     async def stop(self):
         """Stop authentication service."""
@@ -126,7 +130,7 @@ class AuthenticationMicroservice(BaseMicroservice):
         
         await self.deregister_from_registry()
         self.running = False
-        logger.info("✅ Authentication microservice stopped")
+        logger.info(" Authentication microservice stopped")
     
     async def health_check(self) -> Dict[str, Any]:
         """Authentication service health check."""
@@ -158,7 +162,6 @@ class MessagingMicroservice(BaseMicroservice):
         """Initialize messaging service."""
         logger.info("Initializing Messaging microservice")
         # Initialize messaging components
-        from ...features.messaging import messaging_manager
         self.messaging_manager = messaging_manager
     
     async def start(self):
@@ -171,7 +174,7 @@ class MessagingMicroservice(BaseMicroservice):
         
         self.running = True
         self.start_time = datetime.now(timezone.utc)
-        logger.info(f"✅ Messaging microservice started on port {self.config.port}")
+        logger.info(f" Messaging microservice started on port {self.config.port}")
     
     async def stop(self):
         """Stop messaging service."""
@@ -180,7 +183,7 @@ class MessagingMicroservice(BaseMicroservice):
         
         await self.deregister_from_registry()
         self.running = False
-        logger.info("✅ Messaging microservice stopped")
+        logger.info(" Messaging microservice stopped")
     
     async def health_check(self) -> Dict[str, Any]:
         """Messaging service health check."""
@@ -208,7 +211,6 @@ class FileStorageMicroservice(BaseMicroservice):
         """Initialize file storage service."""
         logger.info("Initializing File Storage microservice")
         # Initialize file storage components
-        from ...features.backup import backup_manager
         self.backup_manager = backup_manager
     
     async def start(self):
@@ -221,7 +223,7 @@ class FileStorageMicroservice(BaseMicroservice):
         
         self.running = True
         self.start_time = datetime.now(timezone.utc)
-        logger.info(f"✅ File Storage microservice started on port {self.config.port}")
+        logger.info(f" File Storage microservice started on port {self.config.port}")
     
     async def stop(self):
         """Stop file storage service."""
@@ -230,7 +232,7 @@ class FileStorageMicroservice(BaseMicroservice):
         
         await self.deregister_from_registry()
         self.running = False
-        logger.info("✅ File Storage microservice stopped")
+        logger.info(" File Storage microservice stopped")
     
     async def health_check(self) -> Dict[str, Any]:
         """File storage service health check."""
@@ -258,7 +260,6 @@ class AIServicesMicroservice(BaseMicroservice):
         """Initialize AI services."""
         logger.info("Initializing AI Services microservice")
         # Initialize AI components
-        from ...features.ai import ai_coordinator
         self.ai_coordinator = ai_coordinator
     
     async def start(self):
@@ -271,7 +272,7 @@ class AIServicesMicroservice(BaseMicroservice):
         
         self.running = True
         self.start_time = datetime.now(timezone.utc)
-        logger.info(f"✅ AI Services microservice started on port {self.config.port}")
+        logger.info(f" AI Services microservice started on port {self.config.port}")
     
     async def stop(self):
         """Stop AI services."""
@@ -280,7 +281,7 @@ class AIServicesMicroservice(BaseMicroservice):
         
         await self.deregister_from_registry()
         self.running = False
-        logger.info("✅ AI Services microservice stopped")
+        logger.info(" AI Services microservice stopped")
     
     async def health_check(self) -> Dict[str, Any]:
         """AI services health check."""
@@ -358,7 +359,7 @@ class MicroservicesOrchestrator:
         if self.running:
             return
         
-        logger.info("🚀 Starting microservices decomposition")
+        logger.info(" Starting microservices decomposition")
         
         # Start service registry first
         await self.registry.start()
@@ -380,30 +381,30 @@ class MicroservicesOrchestrator:
                 try:
                     await service.start()
                 except Exception as e:
-                    logger.error(f"❌ Failed to start {service_name}: {e}")
+                    logger.error(f" Failed to start {service_name}: {e}")
         
         self.running = True
-        logger.info("✅ Microservices orchestrator started")
+        logger.info(" Microservices orchestrator started")
     
     async def stop_all_services(self):
         """Stop all microservices."""
         if not self.running:
             return
         
-        logger.info("🛑 Stopping microservices")
+        logger.info(" Stopping microservices")
         
         # Stop all services
         for service_name, service in self.services.items():
             try:
                 await service.stop()
             except Exception as e:
-                logger.error(f"❌ Failed to stop {service_name}: {e}")
+                logger.error(f" Failed to stop {service_name}: {e}")
         
         # Stop service registry
         await self.registry.stop()
         
         self.running = False
-        logger.info("✅ Microservices orchestrator stopped")
+        logger.info(" Microservices orchestrator stopped")
     
     def get_orchestrator_status(self) -> Dict[str, Any]:
         """Get orchestrator status."""

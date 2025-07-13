@@ -1,10 +1,3 @@
-"""
-PlexiChat Module Isolation and Hot-Loading System
-
-Provides advanced module isolation, hot-loading, and error containment
-to prevent faulty modules from affecting the core system or other modules.
-"""
-
 import asyncio
 import contextlib
 import importlib
@@ -22,9 +15,18 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-import psutil
 
 from ...core_system.logging import get_logger
+
+
+import psutil
+
+"""
+PlexiChat Module Isolation and Hot-Loading System
+
+Provides advanced module isolation, hot-loading, and error containment
+to prevent faulty modules from affecting the core system or other modules.
+"""
 
 logger = get_logger(__name__)
 
@@ -168,7 +170,8 @@ class ModuleIsolationManager:
                 'path': module_path,
                 'config': config,
                 'start_time': time.time(),
-                'memory_baseline': psutil.Process().memory_info().rss / 1024 / 1024
+                'memory_baseline': import psutil
+psutil.Process().memory_info().rss / 1024 / 1024
             }
             
             # Load module in thread with timeout
@@ -250,7 +253,8 @@ class ModuleIsolationManager:
             module = importlib.util.module_from_spec(spec)
             
             # Monitor resource usage during loading
-            process = psutil.Process()
+            process = import psutil
+psutil.Process()
             memory_before = process.memory_info().rss / 1024 / 1024
             
             spec.loader.exec_module(module)
@@ -379,7 +383,7 @@ class ModuleIsolationManager:
                     # Wait for graceful shutdown
                     try:
                         process_info.process.join(timeout=5)
-                    except:
+                    except Exception:
                         pass
                     
                     # Force kill if still alive
@@ -404,7 +408,8 @@ class ModuleIsolationManager:
                 
                 if process_info.pid:
                     try:
-                        proc = psutil.Process(process_info.pid)
+                        proc = import psutil
+psutil.Process(process_info.pid)
                         
                         # Update metrics
                         process_info.memory_usage_mb = proc.memory_info().rss / 1024 / 1024
@@ -420,7 +425,8 @@ class ModuleIsolationManager:
                             logger.warning(f"Module {module_name} exceeded CPU limit")
                             self._record_resource_violation(module_name, "cpu")
                         
-                    except psutil.NoSuchProcess:
+                    except import psutil
+psutil.NoSuchProcess:
                         logger.warning(f"Module process {module_name} no longer exists")
                         break
                 

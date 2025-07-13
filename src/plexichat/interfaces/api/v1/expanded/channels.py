@@ -1,16 +1,18 @@
-"""
-PlexiChat Advanced Channel Management API
-Comprehensive channel management with advanced features, permissions, and automation
-"""
-
 import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+
+
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
+
+"""
+PlexiChat Advanced Channel Management API
+Comprehensive channel management with advanced features, permissions, and automation
+"""
 
 logger = logging.getLogger(__name__)
 

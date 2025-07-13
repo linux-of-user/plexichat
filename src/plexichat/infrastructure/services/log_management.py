@@ -1,8 +1,3 @@
-"""
-Advanced log management service with filtering, search, and archiving.
-Provides comprehensive log viewing and management capabilities.
-"""
-
 import json
 import re
 import zipfile
@@ -11,8 +6,15 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+
+
+
 from plexichat.app.logger_config import logger
 
+"""
+Advanced log management service with filtering, search, and archiving.
+Provides comprehensive log viewing and management capabilities.
+"""
 
 @dataclass
 class LogEntry:
@@ -101,7 +103,8 @@ class LogParser:
         
         # If no pattern matches, create a simple entry
         return LogEntry(
-            timestamp=datetime.now(),
+            timestamp=from datetime import datetime
+datetime.now(),
             level='UNKNOWN',
             message=line,
             module='unknown',
@@ -113,7 +116,8 @@ class LogManager:
     """Advanced log management with filtering and archiving."""
     
     def __init__(self, log_directory: str = "logs"):
-        self.log_directory = Path(log_directory)
+        self.log_directory = from pathlib import Path
+Path(log_directory)
         self.log_directory.mkdir(exist_ok=True)
         
         self.archive_directory = self.log_directory / "archive"
@@ -309,7 +313,8 @@ class LogManager:
         """Archive log files older than specified days."""
         
         archived_files = []
-        cutoff_date = datetime.now() - timedelta(days=days_old)
+        cutoff_date = from datetime import datetime
+datetime.now() - timedelta(days=days_old)
         
         for log_path in self.log_directory.glob("*.log"):
             if log_path.is_file():
@@ -329,7 +334,7 @@ class LogManager:
                         log_path.unlink()
                         
                         archived_files.append(archive_name)
-                        logger.info(f"📦 Archived log file: {log_path.name}")
+                        logger.info(f" Archived log file: {log_path.name}")
                         
                     except Exception as e:
                         logger.error(f"Failed to archive {log_path.name}: {e}")
@@ -340,7 +345,8 @@ class LogManager:
         """Clean up archive files older than specified days."""
         
         cleaned_files = []
-        cutoff_date = datetime.now() - timedelta(days=days_old)
+        cutoff_date = from datetime import datetime
+datetime.now() - timedelta(days=days_old)
         
         for archive_path in self.archive_directory.glob("*.zip"):
             if archive_path.is_file():
@@ -351,7 +357,7 @@ class LogManager:
                     try:
                         archive_path.unlink()
                         cleaned_files.append(archive_path.name)
-                        logger.info(f"🗑️ Cleaned up old archive: {archive_path.name}")
+                        logger.info(f" Cleaned up old archive: {archive_path.name}")
                         
                     except Exception as e:
                         logger.error(f"Failed to cleanup {archive_path.name}: {e}")

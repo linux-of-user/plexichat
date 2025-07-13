@@ -1,26 +1,31 @@
-"""
-Authentication Utilities
-Provides common authentication functions and decorators.
-"""
-
 import logging
 from functools import wraps
 from typing import Any, Dict, Optional
 
-from fastapi import Depends, HTTPException, status
+from typing import Optional, Dict, Any, List, HTTPException, status
+
+        
+
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+        from plexichat.core.auth.manager_token import token_manager
+        from plexichat.core.auth.manager_token import token_manager
+
+"""
+Authentication Utilities
+Provides common authentication functions and decorators.
+"""
 
 logger = logging.getLogger(__name__)
 
 # Security scheme
 security = HTTPBearer()
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def from plexichat.infrastructure.utils.auth import get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Get current user from token."""
     try:
         # Import here to avoid circular imports
-        from plexichat.core.auth.manager_token import token_manager
-        
         if not credentials:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,7 +53,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             detail="Authentication failed"
         )
 
-def get_current_admin_user(current_user: Dict[str, Any] = Depends(get_current_user)):
+def get_current_admin_user(current_user: Dict[str, Any] = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Get current admin user."""
     if not current_user.get("is_admin", False):
         raise HTTPException(
@@ -83,7 +88,7 @@ def require_permissions(*permissions):
         return wrapper
     return decorator
 
-def require_admin(func):
+def from plexichat.infrastructure.utils.auth import require_admin(func):
     """Decorator to require admin access."""
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -99,7 +104,6 @@ def require_admin(func):
 def get_user_from_token(token: str) -> Optional[Dict[str, Any]]:
     """Get user data from token string."""
     try:
-        from plexichat.core.auth.manager_token import token_manager
         return token_manager.validate_token(token)
     except ImportError:
         logger.warning("Token manager not available")
@@ -108,14 +112,14 @@ def get_user_from_token(token: str) -> Optional[Dict[str, Any]]:
         logger.error(f"Token validation error: {e}")
         return None
 
-def get_current_user_from_token(token: str) -> Optional[Dict[str, Any]]:
+def from plexichat.infrastructure.utils.auth import get_current_user_from_token(token: str) -> Optional[Dict[str, Any]]:
     """Get current user from token (alias for compatibility)."""
     return get_user_from_token(token)
 
 # Legacy compatibility functions
-def require_admin_auth(func):
+def from plexichat.infrastructure.utils.auth import require_admin_auth(func):
     """Legacy admin auth decorator."""
-    return require_admin(func)
+    return from plexichat.infrastructure.utils.auth import require_admin(func)
 
 def get_current_admin_user_legacy():
     """Legacy admin user getter."""

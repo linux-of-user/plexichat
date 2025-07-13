@@ -1,3 +1,18 @@
+import base64
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+
+
+
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from pydantic import BaseModel
+
+from plexichat.core.logging import get_logger
+from plexichat.core_system.security.certificate_manager import get_certificate_manager
+from plexichat.core_system.security.unified_security_manager import get_unified_security_manager
+from plexichat.features.security.network_protection import get_network_protection
+
 """
 PlexiChat Unified Security API - SINGLE SOURCE OF TRUTH
 
@@ -14,18 +29,6 @@ Features:
 - Decentralized security node management
 - Real-time threat intelligence
 """
-
-import base64
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
-
-from fastapi import APIRouter, File, HTTPException, UploadFile
-from pydantic import BaseModel
-
-from plexichat.core.logging import get_logger
-from plexichat.core_system.security.certificate_manager import get_certificate_manager
-from plexichat.core_system.security.unified_security_manager import get_unified_security_manager
-from plexichat.features.security.network_protection import get_network_protection
 
 logger = get_logger(__name__)
 

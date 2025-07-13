@@ -1,8 +1,3 @@
-"""
-PlexiChat GitHub-Based Update System
-Handles version checking, downloading, and updating from GitHub releases.
-"""
-
 import asyncio
 import importlib
 import json
@@ -19,6 +14,12 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import requests
+
+
+"""
+PlexiChat GitHub-Based Update System
+Handles version checking, downloading, and updating from GitHub releases.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -312,7 +313,8 @@ class GitHubUpdater:
         """Create a backup of the current installation."""
         try:
             current_version = self.get_current_version()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_name = f"plexichat_backup_{current_version}_{timestamp}.zip"
             backup_file = self.backup_path / backup_name
 
@@ -499,9 +501,11 @@ class GitHubUpdater:
             # Check if we're in a virtual environment
             venv_python = None
             if os.getenv("VIRTUAL_ENV"):
-                venv_python = Path(os.getenv("VIRTUAL_ENV")) / "Scripts" / "python.exe"
+                venv_python = from pathlib import Path
+Path(os.getenv("VIRTUAL_ENV")) / "Scripts" / "python.exe"
                 if not venv_python.exists():
-                    venv_python = Path(os.getenv("VIRTUAL_ENV")) / "bin" / "python"
+                    venv_python = from pathlib import Path
+Path(os.getenv("VIRTUAL_ENV")) / "bin" / "python"
 
             python_cmd = str(venv_python) if venv_python and venv_python.exists() else "python"
 
@@ -585,7 +589,8 @@ class GitHubUpdater:
                         "type": "backup",
                         "path": backup_file,
                         "version": self.get_current_version(),
-                        "timestamp": datetime.now()
+                        "timestamp": from datetime import datetime
+datetime.now()
                     })
 
             # Verify package
@@ -665,12 +670,14 @@ class GitHubUpdater:
             self.rollback_stack.append({
                 "type": "modules",
                 "backup": module_backup,
-                "timestamp": datetime.now()
+                "timestamp": from datetime import datetime
+datetime.now()
             })
 
             # Copy new source files
             dest_src = self.root_path / "src"
-            temp_backup_src = self.temp_path / f"src_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            temp_backup_src = self.temp_path / f"src_backup_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
             # Backup current src
             if dest_src.exists():
@@ -679,7 +686,8 @@ class GitHubUpdater:
                     "type": "files",
                     "backup_path": temp_backup_src,
                     "original_path": dest_src,
-                    "timestamp": datetime.now()
+                    "timestamp": from datetime import datetime
+datetime.now()
                 })
 
             # Copy new files
@@ -726,13 +734,15 @@ class GitHubUpdater:
 
                 if src_file.exists():
                     if dest_file.exists():
-                        backup_file = self.temp_path / f"{file_name}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        backup_file = self.temp_path / f"{file_name}_backup_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
                         shutil.copy2(dest_file, backup_file)
                         self.rollback_stack.append({
                             "type": "file",
                             "backup_path": backup_file,
                             "original_path": dest_file,
-                            "timestamp": datetime.now()
+                            "timestamp": from datetime import datetime
+datetime.now()
                         })
 
                     shutil.copy2(src_file, dest_file)

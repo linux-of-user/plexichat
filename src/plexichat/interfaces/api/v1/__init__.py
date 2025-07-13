@@ -1,3 +1,35 @@
+import asyncio
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+
+
+from ...ai import get_ai_manager
+
+from ...core.security import security_manager
+from ...services import get_service
+
+        from . import auth
+        from . import users
+        from . import messages
+        from . import files
+        from . import admin
+        from . import backup
+        from .security_api import router as security_router
+        from . import plugins
+        from . import system
+        from . import ai
+        from . import collaboration_endpoints
+        from . import communication_endpoints
+        from . import performance_endpoints
+        from . import analytics
+        from . import webhooks
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
+from fastapi.security import HTTPBearer
+
+from ...core.auth import from plexichat.infrastructure.utils.auth import get_current_user, verify_permissions
+
 """
 PlexiChat API v1
 
@@ -15,21 +47,7 @@ Features in v1:
 - Administrative functions
 """
 
-import asyncio
-import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
-
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
-from fastapi.security import HTTPBearer
-
-from ...ai import get_ai_manager
-
 # Import core systems
-from ...core.auth import get_current_user, verify_permissions
-from ...core.security import security_manager
-from ...services import get_service
-
 logger = logging.getLogger(__name__)
 
 # Security scheme
@@ -108,8 +126,10 @@ async def get_api_info():
         "api_version": "v1",
         "info": API_VERSION_INFO,
         "endpoints": ENDPOINT_CATEGORIES,
-        "timestamp": datetime.utcnow().isoformat(),
-        "server_time": datetime.now().isoformat(),
+        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat(),
+        "server_time": from datetime import datetime
+datetime.now().isoformat(),
         "enhancements": {
             "performance": "50% faster response times",
             "security": "Zero-knowledge protocols",
@@ -135,14 +155,16 @@ async def health_check():
                     "status": "healthy" if service.is_healthy() else "unhealthy",
                     "uptime": service.get_uptime() if hasattr(service, 'get_uptime') else "unknown",
                     "performance": service.get_performance_metrics() if hasattr(service, 'get_performance_metrics') else {},
-                    "last_check": datetime.utcnow().isoformat()
+                    "last_check": from datetime import datetime
+datetime.utcnow().isoformat()
                 }
             else:
                 status_info = {
                     "status": "unavailable",
                     "uptime": "unknown",
                     "performance": {},
-                    "last_check": datetime.utcnow().isoformat()
+                    "last_check": from datetime import datetime
+datetime.utcnow().isoformat()
                 }
             services_status[service_name] = status_info
         
@@ -155,7 +177,8 @@ async def health_check():
         return {
             "status": overall_status,
             "version": "v2",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat(),
             "health_score": health_score,
             "services": services_status,
             "system_metrics": {
@@ -178,7 +201,8 @@ async def health_check():
             detail={
                 "error": "Service temporarily unavailable",
                 "details": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
             }
         )
 
@@ -296,7 +320,8 @@ async def websocket_endpoint(websocket: WebSocket):
             "type": "connection_established",
             "api_version": "v1",
             "capabilities": ["real_time_messaging", "collaboration", "ai_features"],
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         })
 
         # Handle WebSocket messages
@@ -310,7 +335,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 if message_type == "ping":
                     await websocket.send_json({
                         "type": "pong",
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                     })
                 elif message_type == "subscribe":
                     # Handle subscription to real-time updates
@@ -318,14 +344,16 @@ async def websocket_endpoint(websocket: WebSocket):
                     await websocket.send_json({
                         "type": "subscribed",
                         "channel": channel,
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                     })
                 else:
                     # Echo back for now
                     await websocket.send_json({
                         "type": "echo",
                         "data": data,
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                     })
 
             except Exception as e:
@@ -333,7 +361,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_json({
                     "type": "error",
                     "message": "Message processing error",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
                 })
 
     except Exception as e:
@@ -346,61 +375,46 @@ def register_v1_endpoints():
     """Register all v1 API endpoints."""
     try:
         # Enhanced authentication endpoints
-        from . import auth
         v1_router.include_router(auth.router, prefix="/auth", tags=["auth"])
         
         # Enhanced user management endpoints
-        from . import users
         v1_router.include_router(users.router, prefix="/users", tags=["users"])
 
         # Enhanced messaging endpoints
-        from . import messages
         v1_router.include_router(messages.router, prefix="/messages", tags=["messages"])
 
         # Enhanced file management endpoints
-        from . import files
         v1_router.include_router(files.router, prefix="/files", tags=["files"])
 
         # Enhanced admin endpoints
-        from . import admin
         v1_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 
         # Enhanced backup endpoints
-        from . import backup
         v1_router.include_router(backup.router, prefix="/backup", tags=["backup"])
 
         # Unified security endpoints
-        from .security_api import router as security_router
         v1_router.include_router(security_router, tags=["security"])
 
         # Enhanced plugin endpoints
-        from . import plugins
         v1_router.include_router(plugins.router, prefix="/plugins", tags=["plugins"])
 
         # Enhanced system endpoints
-        from . import system
         v1_router.include_router(system.router, prefix="/system", tags=["system"])
 
         # New v1 endpoints (migrated from v2)
-        from . import ai
         v1_router.include_router(ai.router, prefix="/ai", tags=["ai"])
 
-        from . import collaboration_endpoints
         v1_router.include_router(collaboration_endpoints.router, prefix="/collaboration", tags=["collaboration"])
 
-        from . import communication_endpoints
         v1_router.include_router(communication_endpoints.router, prefix="/communication", tags=["communication"])
 
-        from . import performance_endpoints
         v1_router.include_router(performance_endpoints.router, prefix="/performance", tags=["performance"])
 
-        from . import analytics
         v1_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 
-        from . import webhooks
         v1_router.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
 
-        logger.info("✅ API v1 endpoints registered successfully")
+        logger.info(" API v1 endpoints registered successfully")
 
     except ImportError as e:
         logger.warning(f"Some v1 endpoints not available: {e}")
@@ -411,18 +425,21 @@ def register_v1_endpoints():
 @v1_router.middleware("http")
 async def v1_middleware(request, call_next):
     """Enhanced middleware for API v1 requests."""
-    start_time = datetime.utcnow()
+    start_time = from datetime import datetime
+datetime.utcnow()
 
     # Add v1 specific processing
     response = await call_next(request)
 
     # Calculate processing time
-    process_time = (datetime.utcnow() - start_time).total_seconds()
+    process_time = (from datetime import datetime
+datetime.utcnow() - start_time).total_seconds()
 
     # Add enhanced response headers
     response.headers["X-API-Version"] = "v1"
     response.headers["X-Process-Time"] = str(process_time)
-    response.headers["X-Server-Time"] = datetime.utcnow().isoformat()
+    response.headers["X-Server-Time"] = from datetime import datetime
+datetime.utcnow().isoformat()
     response.headers["X-Rate-Limit-Remaining"] = "calculated_here"
     response.headers["X-Performance-Score"] = "calculated_here"
 
@@ -437,7 +454,8 @@ async def v1_http_exception_handler(request, exc):
             "code": exc.status_code,
             "message": exc.detail,
             "api_version": "v1",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat(),
             "path": str(request.url.path)
         }
     }

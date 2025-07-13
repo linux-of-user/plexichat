@@ -1,10 +1,3 @@
-"""
-PlexiChat Zero-Knowledge Security Admin Routes
-
-Flask routes for managing zero-knowledge security features through the admin WebUI.
-Provides comprehensive configuration, testing, and monitoring interfaces.
-"""
-
 import asyncio
 import json
 import logging
@@ -16,6 +9,15 @@ from flask import Blueprint, render_template, request, send_file
 from ....core.auth.decorators import admin_required
 from ....core.utils.response_utils import error_response, success_response
 from ....services.zero_knowledge_security_service import (
+        from io import BytesIO
+
+"""
+PlexiChat Zero-Knowledge Security Admin Routes
+
+Flask routes for managing zero-knowledge security features through the admin WebUI.
+Provides comprehensive configuration, testing, and monitoring interfaces.
+"""
+
     AuditEventType,
     MessageType,
     PrivacyLevel,
@@ -228,7 +230,7 @@ async def test_all_systems():
 async def test_encryption():
     """Test client-side encryption functionality."""
     try:
-        test_data = "Test encryption message with special characters: àáâãäåæçèéêë"
+        test_data = "Test encryption message with special characters: "
         user_id = "encryption_test_user"
         
         # Test different privacy levels
@@ -526,7 +528,6 @@ async def export_audit_trail():
         export_json = json.dumps(export_data, indent=2, default=str)
         
         # Return as downloadable file
-        from io import BytesIO
         output = BytesIO()
         output.write(export_json.encode('utf-8'))
         output.seek(0)
@@ -534,7 +535,8 @@ async def export_audit_trail():
         return send_file(
             output,
             as_attachment=True,
-            download_name=f'plexichat_audit_trail_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json',
+            download_name=f'plexichat_audit_trail_{from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")}.json',
             mimetype='application/json'
         )
         

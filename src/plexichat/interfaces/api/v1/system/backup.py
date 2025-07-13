@@ -1,3 +1,35 @@
+import logging
+from typing import Any, Dict, List, Optional
+
+from app.core.backup.distributed_backup import distributed_backup
+
+from ....core_system.security.input_validation import get_input_validator
+from ....core_system.security.unified_audit_system import (
+from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager
+
+        from ..services.universal_backup_service import (
+        from pathlib import Path
+
+        from ..services.universal_backup_service import UniversalBackupService
+
+        from pathlib import Path
+
+        from ..services.universal_backup_service import BackupDataType, UniversalBackupService
+
+        from pathlib import Path
+
+        from ..services.universal_backup_service import UniversalBackupService
+
+        from pathlib import Path
+
+        from ..services.universal_backup_service import UniversalBackupService
+
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel, Field
+
 """
 Backup management API endpoints - SECURED WITH UNIFIED AUTHENTICATION
 Provides access to distributed backup system functionality.
@@ -11,24 +43,11 @@ ENHANCED SECURITY FEATURES:
 - Rate limiting and DDoS protection
 """
 
-import logging
-from typing import Any, Dict, List, Optional
-
-from app.core.backup.distributed_backup import distributed_backup
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel, Field
-
-from ....core_system.security.input_validation import get_input_validator
-from ....core_system.security.unified_audit_system import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
     get_unified_audit_system,
 )
-from ....core_system.security.unified_auth_manager import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backup", tags=["backup"])
 security = HTTPBearer()
@@ -152,7 +171,8 @@ async def get_backup_status(
         raise HTTPException(status_code=500, detail="Failed to get backup status")
 
 @router.get("/list")
-async def list_backups(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
+async def list_backups(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)) -> Dict[str, Any]:
     """
     List all available backups.
     
@@ -180,7 +200,8 @@ async def list_backups(current_user: User = Depends(require_admin)) -> Dict[str,
 async def create_backup(
     request: CreateBackupRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> BackupResponse:
     """
     Create a new distributed backup.
@@ -239,7 +260,8 @@ async def create_backup(
 @router.post("/recover")
 async def recover_backup(
     request: RecoverBackupRequest,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> BackupResponse:
     """
     Recover data from a distributed backup.
@@ -299,7 +321,8 @@ async def recover_backup(
 @router.delete("/{backup_id}")
 async def delete_backup(
     backup_id: str,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> BackupResponse:
     """
     Delete a backup and all its distributed shards.
@@ -335,7 +358,8 @@ async def delete_backup(
 @router.get("/user/{user_id}/storage")
 async def get_user_storage(
     user_id: int,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """
     Get storage information for a specific user.
@@ -405,7 +429,8 @@ async def backup_health_check() -> Dict[str, Any]:
 
 @router.post("/maintenance/cleanup")
 async def run_maintenance_cleanup(
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> BackupResponse:
     """
     Manually trigger maintenance cleanup.
@@ -436,7 +461,8 @@ async def run_maintenance_cleanup(
 # Additional utility endpoints for monitoring and debugging
 
 @router.get("/shards/orphaned")
-async def get_orphaned_shards(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
+async def get_orphaned_shards(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)) -> Dict[str, Any]:
     """
     Get list of orphaned shards (shards without valid backup metadata).
     
@@ -469,7 +495,8 @@ async def get_orphaned_shards(current_user: User = Depends(require_admin)) -> Di
         raise HTTPException(status_code=500, detail="Failed to get orphaned shards")
 
 @router.get("/statistics")
-async def get_backup_statistics(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
+async def get_backup_statistics(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)) -> Dict[str, Any]:
     """
     Get detailed backup system statistics.
 
@@ -514,7 +541,8 @@ async def get_backup_statistics(current_user: User = Depends(require_admin)) -> 
 # Shard Distribution Endpoints
 
 @router.post("/shards/request")
-async def request_shard(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def request_shard(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)) -> Dict[str, Any]:
     """
     Request a backup shard to store.
 
@@ -561,7 +589,8 @@ async def request_shard(current_user: User = Depends(get_current_user)) -> Dict[
         raise HTTPException(status_code=500, detail="Failed to request shard")
 
 @router.get("/shards/my")
-async def get_my_shards(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_my_shards(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)) -> Dict[str, Any]:
     """
     Get all shards stored by the current user.
 
@@ -597,7 +626,8 @@ async def get_my_shards(current_user: User = Depends(get_current_user)) -> Dict[
 async def verify_shard_storage(
     shard_id: str,
     checksum: str,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """
     Verify that a shard is correctly stored.
@@ -640,7 +670,8 @@ async def verify_shard_storage(
 @router.delete("/shards/{shard_id}")
 async def release_shard(
     shard_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """
     Release a shard from user storage.
@@ -675,7 +706,8 @@ async def release_shard(
         raise HTTPException(status_code=500, detail="Failed to release shard")
 
 @router.get("/shards/available")
-async def get_available_shards(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_available_shards(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)) -> Dict[str, Any]:
     """
     Get information about shards available for storage.
 
@@ -753,7 +785,8 @@ class BackupMessagesRequest(BaseModel):
 @router.post("/users/preferences")
 async def set_user_backup_preferences(
     request: UserBackupPreferencesRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Set user backup preferences including opt-out options.
@@ -765,7 +798,6 @@ async def set_user_backup_preferences(
     - complete_opt_out: No backup at all
     """
     try:
-        from ..services.universal_backup_service import (
             BackupDataType,
             BackupOptOutLevel,
             UniversalBackupService,
@@ -773,7 +805,8 @@ async def set_user_backup_preferences(
         )
 
         # Initialize service (in production, this would be a singleton)
-        backup_service = UniversalBackupService(Path("data"))
+        backup_service = UniversalBackupService(from pathlib import Path
+Path("data"))
         await backup_service.initialize()
 
         # Parse excluded data types
@@ -819,15 +852,13 @@ async def set_user_backup_preferences(
 
 @router.get("/users/preferences")
 async def get_user_backup_preferences(
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get current user's backup preferences."""
     try:
-        from pathlib import Path
-
-        from ..services.universal_backup_service import UniversalBackupService
-
-        backup_service = UniversalBackupService(Path("data"))
+        backup_service = UniversalBackupService(from pathlib import Path
+Path("data"))
         await backup_service.initialize()
 
         preferences = await backup_service.get_user_backup_preferences(current_user.id)
@@ -853,7 +884,8 @@ async def get_user_backup_preferences(
 async def backup_user_data(
     request: BackupUserDataRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Backup user data with respect to opt-out preferences.
@@ -864,11 +896,8 @@ async def backup_user_data(
     data that users have consented to backup.
     """
     try:
-        from pathlib import Path
-
-        from ..services.universal_backup_service import BackupDataType, UniversalBackupService
-
-        backup_service = UniversalBackupService(Path("data"))
+        backup_service = UniversalBackupService(from pathlib import Path
+Path("data"))
         await backup_service.initialize()
 
         # Get users to backup (implementation depends on your user model)
@@ -912,7 +941,8 @@ async def backup_user_data(
 async def backup_message_data(
     request: BackupMessagesRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Backup message data with respect to user opt-out preferences.
@@ -924,11 +954,8 @@ async def backup_message_data(
     only metadata backed up based on their preferences.
     """
     try:
-        from pathlib import Path
-
-        from ..services.universal_backup_service import UniversalBackupService
-
-        backup_service = UniversalBackupService(Path("data"))
+        backup_service = UniversalBackupService(from pathlib import Path
+Path("data"))
         await backup_service.initialize()
 
         # Get messages to backup (implementation depends on your message model)
@@ -961,7 +988,8 @@ async def backup_message_data(
 
 @router.get("/statistics")
 async def get_backup_statistics(
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Get comprehensive backup system statistics.
@@ -969,11 +997,8 @@ async def get_backup_statistics(
     **Admin only endpoint**
     """
     try:
-        from pathlib import Path
-
-        from ..services.universal_backup_service import UniversalBackupService
-
-        backup_service = UniversalBackupService(Path("data"))
+        backup_service = UniversalBackupService(from pathlib import Path
+Path("data"))
         await backup_service.initialize()
 
         stats = backup_service.get_statistics()

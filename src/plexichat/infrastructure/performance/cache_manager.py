@@ -1,10 +1,3 @@
-"""
-PlexiChat Secure Caching System
-
-Quantum-encrypted caching with security-aware performance optimization.
-Integrates with the unified security architecture for maximum protection.
-"""
-
 import asyncio
 import hashlib
 import logging
@@ -16,9 +9,21 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-# Import security systems
 from ..security import KeyDomain, distributed_key_manager, quantum_encryption
 
+            from cryptography.fernet import Fernet
+            
+        from ..security.quantum_encryption import SecurityTier
+        
+
+"""
+PlexiChat Secure Caching System
+
+Quantum-encrypted caching with security-aware performance optimization.
+Integrates with the unified security architecture for maximum protection.
+"""
+
+# Import security systems
 logger = logging.getLogger(__name__)
 
 
@@ -113,7 +118,7 @@ class QuantumSecureCache:
         """Initialize the secure cache system."""
         await self._setup_encryption_keys()
         await self._start_maintenance_tasks()
-        logger.info("🔐 Quantum secure cache initialized")
+        logger.info(" Quantum secure cache initialized")
     
     async def _setup_encryption_keys(self):
         """Setup encryption keys for different security levels."""
@@ -202,7 +207,7 @@ class QuantumSecureCache:
             # Enforce size limits
             await self._enforce_size_limits()
             
-            logger.debug(f"🔐 Cached entry: {key} (security: {security_level.name})")
+            logger.debug(f" Cached entry: {key} (security: {security_level.name})")
             return True
             
         except Exception as e:
@@ -249,7 +254,7 @@ class QuantumSecureCache:
             self.stats.hit_count += 1
             self.stats.decryption_time += decryption_time
             
-            logger.debug(f"🔓 Retrieved cached entry: {key}")
+            logger.debug(f" Retrieved cached entry: {key}")
             return value
             
         except Exception as e:
@@ -271,7 +276,7 @@ class QuantumSecureCache:
                 del self.access_frequency[key]
             
             self.stats.total_entries = len(self.cache_entries)
-            logger.debug(f"🗑️ Deleted cached entry: {key}")
+            logger.debug(f" Deleted cached entry: {key}")
             return True
         
         return False
@@ -284,8 +289,6 @@ class QuantumSecureCache:
         
         elif security_level in [CacheLevel.INTERNAL, CacheLevel.CONFIDENTIAL]:
             # Use symmetric encryption
-            from cryptography.fernet import Fernet
-            
             key = self.encryption_cache_keys.get(security_level.name)
             if not key:
                 raise ValueError(f"No encryption key for security level: {security_level.name}")
@@ -344,8 +347,6 @@ class QuantumSecureCache:
     
     def _get_quantum_security_tier(self, cache_level: CacheLevel):
         """Convert cache security level to quantum security tier."""
-        from ..security.quantum_encryption import SecurityTier
-        
         mapping = {
             CacheLevel.RESTRICTED: SecurityTier.GOVERNMENT,
             CacheLevel.TOP_SECRET: SecurityTier.QUANTUM_PROOF
@@ -375,7 +376,7 @@ class QuantumSecureCache:
             await self.delete(key)
         
         if expired_keys:
-            logger.debug(f"🗑️ Cleaned up {len(expired_keys)} expired cache entries")
+            logger.debug(f" Cleaned up {len(expired_keys)} expired cache entries")
     
     async def _enforce_size_limits(self):
         """Enforce cache size limits using eviction strategy."""
@@ -394,7 +395,7 @@ class QuantumSecureCache:
                 break
         
         if evicted_count > 0:
-            logger.info(f"🗑️ Evicted {evicted_count} cache entries to enforce size limits")
+            logger.info(f" Evicted {evicted_count} cache entries to enforce size limits")
     
     def _select_eviction_candidate(self) -> Optional[str]:
         """Select a cache entry for eviction based on strategy."""

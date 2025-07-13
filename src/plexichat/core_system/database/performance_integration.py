@@ -1,3 +1,16 @@
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+    from .enhanced_abstraction import (  # type: ignore
+from .indexing_strategy import IndexRecommendation, index_manager
+from .query_optimizer import performance_monitor
+from .schema_optimizer import DataTypeRecommendation, schema_optimizer
+from .stored_procedures import procedure_manager
+
+
 """
 PlexiChat Database Performance Integration System
 
@@ -15,14 +28,7 @@ unified system that automatically optimizes database performance across
 all supported database types.
 """
 
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
 try:
-    from .enhanced_abstraction import (  # type: ignore
         AbstractDatabaseClient,
         DatabaseType,
         enhanced_db_manager,
@@ -49,11 +55,6 @@ except ImportError:
         async def execute_query(self, query, params=None):
             return {"success": True, "data": []}
     enhanced_db_manager = MockEnhancedDBManager()
-from .indexing_strategy import IndexRecommendation, index_manager
-from .query_optimizer import performance_monitor
-from .schema_optimizer import DataTypeRecommendation, schema_optimizer
-from .stored_procedures import procedure_manager
-
 logger = logging.getLogger(__name__)
 
 
@@ -140,7 +141,7 @@ class DatabasePerformanceOptimizer:
     
     async def analyze_database_performance(self, database_name: str) -> PerformanceReport:
         """Comprehensive database performance analysis."""
-        logger.info(f"🔍 Analyzing performance for database: {database_name}")
+        logger.info(f" Analyzing performance for database: {database_name}")
         
         client = enhanced_db_manager.clients.get(database_name)
         if not client:
@@ -178,12 +179,12 @@ class DatabasePerformanceOptimizer:
             # Store report
             self.performance_reports[database_name] = report
             
-            logger.info(f"✅ Performance analysis completed for {database_name}")
-            logger.info(f"📊 Performance Score: {report.performance_score:.1f}/100")
-            logger.info(f"🎯 Priority: {report.optimization_priority}")
+            logger.info(f" Performance analysis completed for {database_name}")
+            logger.info(f" Performance Score: {report.performance_score:.1f}/100")
+            logger.info(f" Priority: {report.optimization_priority}")
             
         except Exception as e:
-            logger.error(f"❌ Performance analysis failed for {database_name}: {e}")
+            logger.error(f" Performance analysis failed for {database_name}: {e}")
             raise
         
         return report
@@ -191,7 +192,7 @@ class DatabasePerformanceOptimizer:
     async def optimize_database_performance(self, database_name: str, 
                                           auto_apply: bool = False) -> List[OptimizationTask]:
         """Optimize database performance based on analysis."""
-        logger.info(f"🚀 Starting performance optimization for: {database_name}")
+        logger.info(f" Starting performance optimization for: {database_name}")
         
         # First, analyze current performance
         report = await self.analyze_database_performance(database_name)
@@ -238,7 +239,7 @@ class DatabasePerformanceOptimizer:
             task = await self._create_query_optimization_task(database_name, slow_queries)
             optimization_tasks.append(task)
         
-        logger.info(f"✅ Created {len(optimization_tasks)} optimization tasks for {database_name}")
+        logger.info(f" Created {len(optimization_tasks)} optimization tasks for {database_name}")
         
         return optimization_tasks
     
@@ -410,7 +411,8 @@ class DatabasePerformanceOptimizer:
     async def _create_index_optimization_task(self, database_name: str, 
                                             recommendations: List[IndexRecommendation]) -> OptimizationTask:
         """Create index optimization task."""
-        task_id = f"index_opt_{database_name}_{int(datetime.now().timestamp())}"
+        task_id = f"index_opt_{database_name}_{int(from datetime import datetime
+datetime.now().timestamp())}"
         
         task = OptimizationTask(
             task_id=task_id,
@@ -436,7 +438,8 @@ class DatabasePerformanceOptimizer:
     async def _create_schema_optimization_task(self, database_name: str, 
                                              recommendations: List[DataTypeRecommendation]) -> OptimizationTask:
         """Create schema optimization task."""
-        task_id = f"schema_opt_{database_name}_{int(datetime.now().timestamp())}"
+        task_id = f"schema_opt_{database_name}_{int(from datetime import datetime
+datetime.now().timestamp())}"
         
         task = OptimizationTask(
             task_id=task_id,
@@ -463,7 +466,8 @@ class DatabasePerformanceOptimizer:
     async def _create_procedure_optimization_task(self, database_name: str, 
                                                 recommendations: List[str]) -> OptimizationTask:
         """Create stored procedure optimization task."""
-        task_id = f"proc_opt_{database_name}_{int(datetime.now().timestamp())}"
+        task_id = f"proc_opt_{database_name}_{int(from datetime import datetime
+datetime.now().timestamp())}"
         
         task = OptimizationTask(
             task_id=task_id,
@@ -481,7 +485,8 @@ class DatabasePerformanceOptimizer:
     async def _create_query_optimization_task(self, database_name: str, 
                                             slow_queries: List[Dict[str, Any]]) -> OptimizationTask:
         """Create query optimization task."""
-        task_id = f"query_opt_{database_name}_{int(datetime.now().timestamp())}"
+        task_id = f"query_opt_{database_name}_{int(from datetime import datetime
+datetime.now().timestamp())}"
         
         task = OptimizationTask(
             task_id=task_id,
@@ -528,7 +533,7 @@ class DatabasePerformanceOptimizer:
             task.status = OptimizationStatus.FAILED
             task.error_message = str(e)
             task.success = False
-            logger.error(f"❌ Optimization task {task.task_id} failed: {e}")
+            logger.error(f" Optimization task {task.task_id} failed: {e}")
     
     def get_optimization_summary(self) -> Dict[str, Any]:
         """Get summary of all optimization activities."""

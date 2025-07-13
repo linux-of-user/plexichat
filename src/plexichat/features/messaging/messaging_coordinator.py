@@ -1,3 +1,15 @@
+import asyncio
+import logging
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+from .advanced_user_system import (
+from .business_automation import business_automation_manager
+from .group_management import group_manager
+from .voice_video_channels import voice_video_manager
+
+        from .group_management import Permission
+
 """
 PlexiChat Advanced Messaging Coordinator
 
@@ -9,22 +21,12 @@ Central coordinator for all advanced messaging features:
 - Real-time collaboration features
 """
 
-import asyncio
-import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
-from .advanced_user_system import (
     BadgeType,
     RichUserProfile,
     UserStatus,
     UserTier,
     advanced_user_manager,
 )
-from .business_automation import business_automation_manager
-from .group_management import group_manager
-from .voice_video_channels import voice_video_manager
-
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +46,7 @@ class AdvancedMessagingCoordinator:
         
     async def initialize(self):
         """Initialize the messaging coordinator."""
-        logger.info("🚀 Initializing Advanced Messaging Coordinator...")
+        logger.info(" Initializing Advanced Messaging Coordinator...")
         
         # Initialize default users and groups for demo
         await self._create_demo_data()
@@ -53,7 +55,7 @@ class AdvancedMessagingCoordinator:
         asyncio.create_task(self._cleanup_typing_indicators())
         asyncio.create_task(self._update_user_activities())
         
-        logger.info("✅ Advanced Messaging Coordinator initialized")
+        logger.info(" Advanced Messaging Coordinator initialized")
     
     async def _create_demo_data(self):
         """Create demo users and groups."""
@@ -151,12 +153,14 @@ class AdvancedMessagingCoordinator:
             return {"success": False, "error": "Recipient not found"}
         
         # Check if recipient allows direct messages
-        if not recipient.privacy_settings.get("allow_direct_messages", True):
+        if not recipient.privacy_from plexichat.core.config import settings
+settings.get("allow_direct_messages", True):
             return {"success": False, "error": "Recipient doesn't allow direct messages"}
         
         # Create message data
         message_data = {
-            "message_id": f"dm_{int(datetime.now().timestamp())}_{sender.user_id}_{recipient_id}",
+            "message_id": f"dm_{int(from datetime import datetime
+datetime.now().timestamp())}_{sender.user_id}_{recipient_id}",
             "sender_id": sender.user_id,
             "sender_username": sender.username,
             "sender_display_name": sender.display_name,
@@ -175,7 +179,8 @@ class AdvancedMessagingCoordinator:
             if auto_response:
                 # Send automated response
                 response_data = {
-                    "message_id": f"auto_{int(datetime.now().timestamp())}_{recipient_id}_{sender.user_id}",
+                    "message_id": f"auto_{int(from datetime import datetime
+datetime.now().timestamp())}_{recipient_id}_{sender.user_id}",
                     "sender_id": recipient_id,
                     "sender_username": recipient.username,
                     "sender_display_name": recipient.display_name,
@@ -203,7 +208,6 @@ class AdvancedMessagingCoordinator:
         member = group.members[sender.user_id]
         
         # Check permissions
-        from .group_management import Permission
         if not member.has_permission(Permission.SEND_MESSAGES, group.roles):
             return {"success": False, "error": "No permission to send messages"}
         
@@ -211,7 +215,8 @@ class AdvancedMessagingCoordinator:
         group.update_analytics("message", user_id=sender.user_id)
         
         message_data = {
-            "message_id": f"group_{int(datetime.now().timestamp())}_{sender.user_id}_{group_id}",
+            "message_id": f"group_{int(from datetime import datetime
+datetime.now().timestamp())}_{sender.user_id}_{group_id}",
             "sender_id": sender.user_id,
             "sender_username": sender.username,
             "sender_display_name": sender.display_name,
@@ -238,7 +243,8 @@ class AdvancedMessagingCoordinator:
             return {"success": False, "error": "Not in channel"}
         
         message_data = {
-            "message_id": f"channel_{int(datetime.now().timestamp())}_{sender.user_id}_{channel_id}",
+            "message_id": f"channel_{int(from datetime import datetime
+datetime.now().timestamp())}_{sender.user_id}_{channel_id}",
             "sender_id": sender.user_id,
             "sender_username": sender.username,
             "sender_display_name": sender.display_name,

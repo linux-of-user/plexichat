@@ -1,3 +1,11 @@
+from .core.antivirus_engine import AdvancedAntivirusEngine
+from .core.behavioral_analyzer import BehavioralAnalyzer
+from .core.filename_analyzer import FilenameAnalyzer
+from .core.hash_scanner import HashBasedScanner
+from .core.link_scanner import LinkSafetyScanner
+from .core.threat_intelligence import ThreatIntelligenceEngine
+
+
 """
 PlexiChat Advanced Antivirus System
 
@@ -10,13 +18,6 @@ Comprehensive antivirus and security scanning system with:
 - Behavioral analysis and heuristics
 - Integration with public virus databases
 """
-
-from .core.antivirus_engine import AdvancedAntivirusEngine
-from .core.behavioral_analyzer import BehavioralAnalyzer
-from .core.filename_analyzer import FilenameAnalyzer
-from .core.hash_scanner import HashBasedScanner
-from .core.link_scanner import LinkSafetyScanner
-from .core.threat_intelligence import ThreatIntelligenceEngine
 
 __all__ = [
     'AdvancedAntivirusEngine',

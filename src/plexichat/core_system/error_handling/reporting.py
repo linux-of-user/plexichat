@@ -1,9 +1,3 @@
-"""
-PlexiChat Error Reporting System
-
-Comprehensive error reporting with multiple backends and intelligent routing.
-"""
-
 import json
 import logging
 from pathlib import Path
@@ -11,6 +5,13 @@ from typing import Any, Dict, Optional
 
 from .context import ErrorContext, ErrorSeverity
 
+
+
+"""
+PlexiChat Error Reporting System
+
+Comprehensive error reporting with multiple backends and intelligent routing.
+"""
 
 class ErrorReporter:
     """
@@ -129,7 +130,8 @@ class FileReportingBackend(ReportingBackend):
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        self.log_dir = Path(config.get('log_dir', 'logs'))
+        self.log_dir = from pathlib import Path
+Path(config.get('log_dir', 'logs'))
         self.log_dir.mkdir(exist_ok=True)
         self.error_file = self.log_dir / 'errors.jsonl'
     

@@ -1,22 +1,23 @@
+from typing import Any, Dict, List, Optional
+
+from ....core_system.database.dao.base_dao import (
+from ....core_system.database.engines import get_session
+from ....core_system.database.repository.base_repository import BaseRepository
+from ..models.server import Server
+
+
+
 """
 PlexiChat Server Repository
 
 Data access layer for Discord-like servers with business logic.
 """
 
-from typing import Any, Dict, List, Optional
-
-from ....core_system.database.dao.base_dao import (
     BaseDAO,
     FilterCriteria,
     PaginationParams,
     SortCriteria,
 )
-from ....core_system.database.engines import get_session
-from ....core_system.database.repository.base_repository import BaseRepository
-from ..models.server import Server
-
-
 class ServerRepository(BaseRepository[Server, Dict[str, Any], Dict[str, Any]]):
     """
     Server repository with Discord-like server management.

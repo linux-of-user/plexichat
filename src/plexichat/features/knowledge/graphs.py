@@ -1,16 +1,17 @@
-"""
-PlexiChat Semantic Knowledge Graphs
-
-Advanced knowledge representation and reasoning system using
-semantic graphs for intelligent data relationships and AI-powered insights.
-"""
-
 import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
+
+
+"""
+PlexiChat Semantic Knowledge Graphs
+
+Advanced knowledge representation and reasoning system using
+semantic graphs for intelligent data relationships and AI-powered insights.
+"""
 
 logger = logging.getLogger(__name__)
 

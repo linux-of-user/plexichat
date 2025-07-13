@@ -1,10 +1,3 @@
-"""
-PlexiChat Decentralized Identity & Self-Sovereign Identity (SSI) System
-
-Implements verifiable credentials, decentralized identifiers (DIDs),
-and Zero-Trust Network Access (ZTNA) for all PlexiChat resources.
-"""
-
 import hashlib
 import json
 import logging
@@ -14,6 +7,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
+
+
+"""
+PlexiChat Decentralized Identity & Self-Sovereign Identity (SSI) System
+
+Implements verifiable credentials, decentralized identifiers (DIDs),
+and Zero-Trust Network Access (ZTNA) for all PlexiChat resources.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +130,8 @@ class ZeroTrustPolicy:
         # Check additional conditions
         for condition, value in self.conditions.items():
             if condition == "time_range":
-                current_hour = datetime.now().hour
+                current_hour = from datetime import datetime
+datetime.now().hour
                 if not (value["start"] <= current_hour <= value["end"]):
                     return False
             elif condition == "location":

@@ -1,10 +1,3 @@
-"""
-PlexiChat Backup Node Network
-
-Distributed backup node network with encrypted inter-node communication,
-automatic failover, and consensus-based shard verification.
-"""
-
 import asyncio
 import logging
 import secrets
@@ -14,6 +7,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
+
+
+"""
+PlexiChat Backup Node Network
+
+Distributed backup node network with encrypted inter-node communication,
+automatic failover, and consensus-based shard verification.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -146,10 +147,10 @@ class BackupNodeNetwork:
             await self._initialize_node_encryption()
             
             self.initialized = True
-            logger.info("✅ Backup Node Network initialized")
+            logger.info(" Backup Node Network initialized")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Backup Node Network: {e}")
+            logger.error(f" Failed to initialize Backup Node Network: {e}")
             raise
     
     async def register_node(self, node: BackupNode) -> bool:
@@ -168,11 +169,11 @@ class BackupNodeNetwork:
             # Initialize health monitoring
             await self._start_node_monitoring(node.node_id)
             
-            logger.info(f"✅ Registered backup node: {node.node_id}")
+            logger.info(f" Registered backup node: {node.node_id}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to register node {node.node_id}: {e}")
+            logger.error(f" Failed to register node {node.node_id}: {e}")
             return False
     
     async def get_available_nodes(self) -> List[BackupNode]:
@@ -191,7 +192,7 @@ class BackupNodeNetwork:
         distribution_map = {}
         
         try:
-            logger.info(f"🔄 Distributing {len(shards)} shards for backup: {backup_id}")
+            logger.info(f" Distributing {len(shards)} shards for backup: {backup_id}")
             
             # Get available nodes
             available_nodes = await self.get_available_nodes()
@@ -218,17 +219,17 @@ class BackupNodeNetwork:
                 all_nodes = distribution.primary_nodes + distribution.replica_nodes
                 distribution_map[shard.shard_id] = all_nodes
             
-            logger.info(f"✅ Distributed shards for backup: {backup_id}")
+            logger.info(f" Distributed shards for backup: {backup_id}")
             return distribution_map
             
         except Exception as e:
-            logger.error(f"❌ Failed to distribute shards for {backup_id}: {e}")
+            logger.error(f" Failed to distribute shards for {backup_id}: {e}")
             raise
     
     async def start_health_monitoring(self):
         """Start health monitoring for all nodes."""
         asyncio.create_task(self._health_monitoring_loop())
-        logger.info("🔄 Started node health monitoring")
+        logger.info(" Started node health monitoring")
     
     async def get_node_health(self, node_id: str) -> Optional[NodeHealthMetrics]:
         """Get latest health metrics for a node."""
@@ -238,7 +239,7 @@ class BackupNodeNetwork:
     async def failover_node(self, failed_node_id: str) -> bool:
         """Execute failover for a failed node."""
         try:
-            logger.warning(f"🚨 Executing failover for node: {failed_node_id}")
+            logger.warning(f" Executing failover for node: {failed_node_id}")
             
             # Mark node as failed
             if failed_node_id in self.nodes:
@@ -256,28 +257,28 @@ class BackupNodeNetwork:
             for distribution in affected_distributions:
                 await self._redistribute_shard(distribution, failed_node_id)
             
-            logger.info(f"✅ Failover completed for node: {failed_node_id}")
+            logger.info(f" Failover completed for node: {failed_node_id}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failover failed for node {failed_node_id}: {e}")
+            logger.error(f" Failover failed for node {failed_node_id}: {e}")
             return False
     
     async def _load_nodes(self):
         """Load existing nodes from storage."""
         # TODO: Load from persistent storage
-        logger.info("📋 Nodes loaded from storage")
+        logger.info(" Nodes loaded from storage")
     
     async def _discover_nodes(self):
         """Discover available backup nodes on the network."""
         # TODO: Implement node discovery
-        logger.info("🔍 Node discovery completed")
+        logger.info(" Node discovery completed")
     
     async def _initialize_node_encryption(self):
         """Initialize encryption keys for inter-node communication."""
         for node in self.nodes.values():
             await self._generate_node_keys(node)
-        logger.info("🔐 Node encryption initialized")
+        logger.info(" Node encryption initialized")
     
     async def _validate_node(self, node: BackupNode) -> bool:
         """Validate a backup node."""
@@ -288,7 +289,7 @@ class BackupNodeNetwork:
                 async with self.http_session.get(url) as response:
                     if response.status != 200:
                         return False
-        except:
+        except Exception:
             return False
         
         # Check capabilities
@@ -338,7 +339,7 @@ class BackupNodeNetwork:
                 await asyncio.sleep(self.health_check_interval)
                 
             except Exception as e:
-                logger.error(f"❌ Error monitoring node {node_id}: {e}")
+                logger.error(f" Error monitoring node {node_id}: {e}")
                 await asyncio.sleep(self.health_check_interval)
     
     async def _collect_node_metrics(self, node: BackupNode) -> NodeHealthMetrics:
@@ -361,7 +362,7 @@ class BackupNodeNetwork:
                             error_rate=data.get("error_rate", 0.0),
                             availability=data.get("availability", 1.0)
                         )
-        except:
+        except Exception:
             pass
         
         # Return default metrics if collection fails
@@ -412,7 +413,7 @@ class BackupNodeNetwork:
                 await asyncio.sleep(self.heartbeat_interval)
                 
             except Exception as e:
-                logger.error(f"❌ Health monitoring loop error: {e}")
+                logger.error(f" Health monitoring loop error: {e}")
                 await asyncio.sleep(self.heartbeat_interval)
     
     async def _create_shard_distribution(self, shard: Any, available_nodes: List[BackupNode], 
@@ -483,12 +484,12 @@ class BackupNodeNetwork:
     async def _execute_shard_distribution(self, shard: Any, distribution: ShardDistribution):
         """Execute the distribution of a shard to nodes."""
         # TODO: Implement actual shard distribution to nodes
-        logger.info(f"📤 Distributed shard {shard.shard_id} to nodes")
+        logger.info(f" Distributed shard {shard.shard_id} to nodes")
     
     async def _redistribute_shard(self, distribution: ShardDistribution, failed_node_id: str):
         """Redistribute a shard after node failure."""
         # TODO: Implement shard redistribution
-        logger.info(f"🔄 Redistributed shard {distribution.shard_id} after node failure")
+        logger.info(f" Redistributed shard {distribution.shard_id} after node failure")
 
 
 # Global instance

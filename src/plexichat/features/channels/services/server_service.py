@@ -1,14 +1,15 @@
-"""
-PlexiChat Server Service
-
-Business logic service for Discord-like server management.
-"""
-
 import logging
 from typing import Any, Dict, List, Optional
 
 from ..models.server import Server
 from ..repositories.server_repository import ServerRepository
+
+
+"""
+PlexiChat Server Service
+
+Business logic service for Discord-like server management.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,8 @@ class ServerService:
     
     async def update_server(self, server_id: str, user_id: str, update_data: Dict[str, Any]) -> Optional[Server]:
         """
-        Update server settings.
+        Update server from plexichat.core.config import settings
+settings.
         
         Args:
             server_id: Server ID

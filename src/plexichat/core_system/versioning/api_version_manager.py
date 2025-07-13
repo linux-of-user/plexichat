@@ -1,14 +1,39 @@
-"""
-PlexiChat API Version Manager
-Handles API versioning, routing, and compatibility between different API versions.
-"""
-
 import json
 import logging
 from typing import Any, Dict, List, Optional
 
+
+        from ..v1.auth import auth_router_stable
+        from ..v1.files import files_router_stable
+        from ..v1.messages import messages_router_stable
+        from ..v1.users import users_router_stable
+        
+        from ..v1.analytics import analytics_router
+        from ..v1.auth import auth_router
+        from ..v1.collaboration import collaboration_router
+        from ..v1.files import files_router
+        from ..v1.messages import messages_router
+        from ..v1.updates import updates_router
+        from ..v1.users import users_router
+        
+        from ..beta.ai import ai_router
+        from ..beta.quantum import quantum_router
+        from ..v1.analytics import analytics_router
+        from ..v1.auth import auth_router
+        from ..v1.collaboration import collaboration_router
+        from ..v1.files import files_router
+        from ..v1.messages import messages_router
+        from ..v1.updates import updates_router
+        from ..v1.users import users_router
+        
+
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+
+"""
+PlexiChat API Version Manager
+Handles API versioning, routing, and compatibility between different API versions.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -203,11 +228,6 @@ class APIRouterFactory:
         router = APIRouter(prefix="/api", tags=["Stable API"])
         
         # Add stable endpoints here
-        from ..v1.auth import auth_router_stable
-        from ..v1.files import files_router_stable
-        from ..v1.messages import messages_router_stable
-        from ..v1.users import users_router_stable
-        
         router.include_router(auth_router_stable, prefix="/auth")
         router.include_router(messages_router_stable, prefix="/messages")
         router.include_router(files_router_stable, prefix="/files")
@@ -220,14 +240,6 @@ class APIRouterFactory:
         router = APIRouter(prefix="/api/v1", tags=["Current API"])
         
         # Add current endpoints here
-        from ..v1.analytics import analytics_router
-        from ..v1.auth import auth_router
-        from ..v1.collaboration import collaboration_router
-        from ..v1.files import files_router
-        from ..v1.messages import messages_router
-        from ..v1.updates import updates_router
-        from ..v1.users import users_router
-        
         router.include_router(auth_router, prefix="/auth")
         router.include_router(messages_router, prefix="/messages")
         router.include_router(files_router, prefix="/files")
@@ -243,16 +255,6 @@ class APIRouterFactory:
         router = APIRouter(prefix="/api/beta", tags=["Beta API"])
         
         # Add beta endpoints here (includes all current + experimental)
-        from ..beta.ai import ai_router
-        from ..beta.quantum import quantum_router
-        from ..v1.analytics import analytics_router
-        from ..v1.auth import auth_router
-        from ..v1.collaboration import collaboration_router
-        from ..v1.files import files_router
-        from ..v1.messages import messages_router
-        from ..v1.updates import updates_router
-        from ..v1.users import users_router
-        
         router.include_router(auth_router, prefix="/auth")
         router.include_router(messages_router, prefix="/messages")
         router.include_router(files_router, prefix="/files")

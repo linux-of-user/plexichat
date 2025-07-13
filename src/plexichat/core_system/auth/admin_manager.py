@@ -1,8 +1,3 @@
-"""
-Default Admin Credentials System
-Creates secure default admin account on first startup.
-"""
-
 import json
 import logging
 import os
@@ -13,13 +8,22 @@ from typing import Dict, Optional
 
 import bcrypt
 
+        import string
+
+
+"""
+Default Admin Credentials System
+Creates secure default admin account on first startup.
+"""
+
 logger = logging.getLogger("plexichat.auth.default_admin")
 
 class DefaultAdminManager:
     """Manages default admin account creation and credentials."""
     
     def __init__(self):
-        self.config_dir = Path("config")
+        self.config_dir = from pathlib import Path
+Path("config")
         self.config_dir.mkdir(exist_ok=True)
         
         self.admin_file = self.config_dir / "default_admin.json"
@@ -63,7 +67,8 @@ class DefaultAdminManager:
                 "username": username,
                 "password_hash": password_hash,
                 "role": "super_admin",
-                "created_at": datetime.now().isoformat(),
+                "created_at": from datetime import datetime
+datetime.now().isoformat(),
                 "is_default": True,
                 "must_change_password": True,
                 "api_key": secrets.token_urlsafe(32),
@@ -100,8 +105,6 @@ class DefaultAdminManager:
     def _generate_secure_password(self) -> str:
         """Generate a secure random password."""
         # Use a mix of characters for security
-        import string
-
         # Ensure password has at least one of each type
         lowercase = secrets.choice(string.ascii_lowercase)
         uppercase = secrets.choice(string.ascii_uppercase)
@@ -132,23 +135,24 @@ class DefaultAdminManager:
     def _save_credentials_file(self, username: str, password: str):
         """Save credentials to a readable file for first-time setup."""
         credentials_content = f"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                          PLEXICHAT DEFAULT ADMIN CREDENTIALS                  ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  Username: {username:<63} ║
-║  Password: {password:<63} ║
-║                                                                              ║
-║  IMPORTANT SECURITY NOTES:                                                   ║
-║  • Change this password immediately after first login                       ║
-║  • Delete this file after noting the credentials                            ║
-║  • These credentials provide full system access                             ║
-║  • Access is logged and monitored                                           ║
-║                                                                              ║
-║  Admin Panel: http://localhost:8000/ui                                      ║
-║  Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S'):<58} ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+
+                          PLEXICHAT DEFAULT ADMIN CREDENTIALS                  
+
+                                                                              
+  Username: {username:<63} 
+  Password: {password:<63} 
+                                                                              
+  IMPORTANT SECURITY NOTES:                                                   
+   Change this password immediately after first login                       
+   Delete this file after noting the credentials                            
+   These credentials provide full system access                             
+   Access is logged and monitored                                           
+                                                                              
+  Admin Panel: http://localhost:8000/ui                                      
+  Created: {from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S'):<58} 
+                                                                              
+
 
 SECURITY WARNING: This file contains sensitive credentials. 
 Delete it immediately after copying the credentials to a secure location.
@@ -214,7 +218,8 @@ For security, this default account requires a password change on first login.
             # Hash new password
             admin_data["password_hash"] = self._hash_password(new_password)
             admin_data["must_change_password"] = False
-            admin_data["password_changed_at"] = datetime.now().isoformat()
+            admin_data["password_changed_at"] = from datetime import datetime
+datetime.now().isoformat()
             
             # Save updated data
             with open(self.admin_file, 'w', encoding='utf-8') as f:

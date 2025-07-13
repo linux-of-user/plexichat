@@ -1,7 +1,9 @@
 from typing import List
 
-from pydantic import BaseModel, Field
 
+
+
+from pydantic import BaseModel, Field
 
 class TokenResponse(BaseModel):
     access_token: str = Field(..., description="Bearer token to authenticate subsequent requests")

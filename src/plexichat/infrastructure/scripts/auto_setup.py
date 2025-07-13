@@ -1,3 +1,12 @@
+import json
+import sys
+from pathlib import Path
+
+
+import sys
+from pathlib import Path
+
+
 #!/usr/bin/env python3
 """
 PlexiChat Auto-Setup Script
@@ -5,16 +14,12 @@ Automatically creates necessary directories and files on first install.
 This ensures only source code stays in /src while everything else is auto-created.
 """
 
-import json
-import sys
-from pathlib import Path
-
-
 def create_directory_structure():
     """Create the complete directory structure for PlexiChat."""
     
     # Get the project root (parent of scripts directory)
-    project_root = Path(__file__).parent.parent
+    project_root = from pathlib import Path
+Path(__file__).parent.parent
     
     # Directory structure to create
     directories = [
@@ -113,7 +118,8 @@ def create_directory_structure():
 def create_default_config_files():
     """Create default configuration files."""
     
-    project_root = Path(__file__).parent.parent
+    project_root = from pathlib import Path
+Path(__file__).parent.parent
     
     # Default configurations
     configs = {
@@ -266,7 +272,8 @@ server:
 def create_gitignore():
     """Create or update .gitignore file."""
     
-    project_root = Path(__file__).parent.parent
+    project_root = from pathlib import Path
+Path(__file__).parent.parent
     gitignore_path = project_root / ".gitignore"
     
     # Directories and files to ignore
@@ -370,7 +377,8 @@ def create_gitignore():
 def create_startup_validation():
     """Create startup validation to ensure directories exist."""
     
-    project_root = Path(__file__).parent.parent
+    project_root = from pathlib import Path
+Path(__file__).parent.parent
     validation_path = project_root / "scripts" / "startup_validation.py"
     
     validation_code = '''#!/usr/bin/env python3
@@ -379,13 +387,11 @@ PlexiChat Startup Validation
 Ensures all required directories exist before starting the application.
 """
 
-import sys
-from pathlib import Path
-
 def validate_directory_structure():
     """Validate that all required directories exist."""
 
-    project_root = Path(__file__).parent.parent
+    project_root = from pathlib import Path
+Path(__file__).parent.parent
 
     required_dirs = [
         "config", "data", "backups", "logs", "plugins",

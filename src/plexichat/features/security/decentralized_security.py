@@ -1,8 +1,3 @@
-"""
-Decentralized Security Architecture for PlexiChat.
-Implements distributed consensus, security validation, and resilient network topology.
-"""
-
 import hashlib
 import json
 import secrets
@@ -16,8 +11,15 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
+
+
+
 from plexichat.app.logger_config import logger
 
+"""
+Decentralized Security Architecture for PlexiChat.
+Implements distributed consensus, security validation, and resilient network topology.
+"""
 
 class SecurityLevel(Enum):
     """Security levels for different operations."""
@@ -106,7 +108,7 @@ class DecentralizedSecurityManager:
             "max_failed_validations": 5
         }
         
-        logger.info(f"🔐 Decentralized security manager initialized: {self.node_id}")
+        logger.info(f" Decentralized security manager initialized: {self.node_id}")
     
     def _generate_node_id(self) -> str:
         """Generate unique node ID."""
@@ -125,7 +127,7 @@ class DecentralizedSecurityManager:
             )
             self.public_key = self.private_key.public_key()
             
-            logger.info("🔑 Cryptographic keys initialized")
+            logger.info(" Cryptographic keys initialized")
             
         except Exception as e:
             logger.error(f"Failed to initialize keys: {e}")
@@ -191,7 +193,8 @@ class DecentralizedSecurityManager:
                 node_id=node_id,
                 public_key=public_key,
                 trust_score=0.5,  # Start with medium trust
-                last_seen=datetime.now(),
+                last_seen=from datetime import datetime
+datetime.now(),
                 capabilities=capabilities,
                 reputation=100
             )
@@ -206,7 +209,7 @@ class DecentralizedSecurityManager:
                 ConsensusType.SIMPLE_MAJORITY
             )
             
-            logger.info(f"🔐 Node registered: {node_id}")
+            logger.info(f" Node registered: {node_id}")
             return True
             
         except Exception as e:
@@ -254,7 +257,8 @@ class DecentralizedSecurityManager:
             proposer_id=self.node_id,
             proposal_type=proposal_type,
             data=data,
-            timestamp=datetime.now(),
+            timestamp=from datetime import datetime
+datetime.now(),
             required_consensus=consensus_type
         )
         
@@ -429,7 +433,8 @@ class DecentralizedSecurityManager:
                 source_node=self.node_id,
                 target_node=target_node,
                 data=data or {},
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
             
             self.security_events[event_id] = event
@@ -553,7 +558,8 @@ class DecentralizedSecurityManager:
             
             recent_events = len([
                 e for e in self.security_events.values()
-                if e.timestamp > datetime.now() - timedelta(hours=24)
+                if e.timestamp > from datetime import datetime
+datetime.now() - timedelta(hours=24)
             ])
             
             critical_events = len([
@@ -576,7 +582,8 @@ class DecentralizedSecurityManager:
                 "pending_proposals": pending_proposals,
                 "consensus_threshold": self.consensus_threshold,
                 "security_policies": self.security_policies,
-                "last_updated": datetime.now().isoformat()
+                "last_updated": from datetime import datetime
+datetime.now().isoformat()
             }
             
         except Exception as e:
@@ -587,7 +594,8 @@ class DecentralizedSecurityManager:
         """Perform comprehensive security audit."""
         try:
             audit_results = {
-                "audit_timestamp": datetime.now().isoformat(),
+                "audit_timestamp": from datetime import datetime
+datetime.now().isoformat(),
                 "node_analysis": {},
                 "trust_network_analysis": {},
                 "security_events_analysis": {},
@@ -697,7 +705,7 @@ def get_decentralized_security() -> DecentralizedSecurityManager:
 def initialize_decentralized_security():
     """Initialize the decentralized security system."""
     try:
-        logger.info("🔐 Decentralized security system initialized")
+        logger.info(" Decentralized security system initialized")
         return True
     except Exception as e:
         logger.error(f"Failed to initialize decentralized security: {e}")

@@ -1,17 +1,22 @@
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+    from plexichat.core.cluster_manager import cluster_manager
+            from plexichat.core.cluster_manager import ClusterNode
+        from plexichat.core.cluster_manager import ClusterNode
+
 """
 PlexiChat Cluster Router
 Handles cluster coordination API endpoints.
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-
 # Import cluster manager
 try:
-    from plexichat.core.cluster_manager import cluster_manager
 except ImportError:
     cluster_manager = None
 
@@ -103,7 +108,6 @@ async def receive_heartbeat(heartbeat: HeartbeatRequest):
         
         if node_id not in cluster_manager.nodes:
             # Add new node
-            from plexichat.core.cluster_manager import ClusterNode
             node = ClusterNode.from_dict(node_data)
             cluster_manager.nodes[node_id] = node
             print(f"Added new node from heartbeat: {node_id}")
@@ -122,7 +126,8 @@ async def receive_heartbeat(heartbeat: HeartbeatRequest):
         return {
             "status": "ok",
             "node_id": cluster_manager.node_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         }
         
     except Exception as e:
@@ -151,7 +156,8 @@ async def receive_cluster_message(message: ClusterMessage):
         return {
             "status": "received",
             "node_id": cluster_manager.node_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         }
         
     except Exception as e:
@@ -168,7 +174,8 @@ async def broadcast_message(message: Dict[str, Any]):
             "message_type": message.get("type", "general"),
             "data": message.get("data", {}),
             "sender_node_id": cluster_manager.node_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         }
         
         successful_nodes = await cluster_manager.broadcast_message(cluster_message)
@@ -177,7 +184,8 @@ async def broadcast_message(message: Dict[str, Any]):
             "status": "broadcasted",
             "successful_nodes": successful_nodes,
             "total_nodes": len(cluster_manager.nodes) - 1,  # Exclude self
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         }
         
     except Exception as e:
@@ -291,7 +299,6 @@ async def join_cluster(node_info: Dict[str, Any]):
             raise HTTPException(status_code=409, detail="Node already in cluster")
         
         # Create and add node
-        from plexichat.core.cluster_manager import ClusterNode
         node = ClusterNode(
             node_id,
             node_info["host"],

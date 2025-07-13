@@ -1,3 +1,14 @@
+import argparse
+import asyncio
+import json
+import sys
+from pathlib import Path
+
+import yaml
+
+
+    from plexichat.app.backup.backup_node_system import BackupNodeConfig, BackupNodeSystem, NodeMode
+
 #!/usr/bin/env python3
 """
 PlexiChat Standalone Backup Node
@@ -10,28 +21,21 @@ Usage:
     python standalone_backup_node.py --config backup_node_config.yaml
 """
 
-import argparse
-import asyncio
-import json
-import sys
-from pathlib import Path
-
-import yaml
-
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, str(from pathlib import Path
+Path(__file__).parent / "src"))
 
 try:
-    from plexichat.app.backup.backup_node_system import BackupNodeConfig, BackupNodeSystem, NodeMode
 except ImportError:
-    print("❌ Error: Could not import PlexiChat backup system.")
+    print(" Error: Could not import PlexiChat backup system.")
     print("Make sure you're running this from the PlexiChat root directory.")
     sys.exit(1)
 
 def load_config(config_path: str) -> BackupNodeConfig:
     """Load configuration from file."""
     try:
-        config_file = Path(config_path)
+        config_file = from pathlib import Path
+Path(config_path)
         if not config_file.exists():
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
         
@@ -44,7 +48,7 @@ def load_config(config_path: str) -> BackupNodeConfig:
         return BackupNodeConfig(**config_data)
         
     except Exception as e:
-        print(f"❌ Error loading configuration: {e}")
+        print(f" Error loading configuration: {e}")
         sys.exit(1)
 
 def create_default_config(config_path: str, args):
@@ -78,30 +82,30 @@ def create_default_config(config_path: str, args):
             else:
                 json.dump(config, f, indent=2)
         
-        print(f"✅ Created default configuration: {config_path}")
+        print(f" Created default configuration: {config_path}")
         return BackupNodeConfig(**config)
         
     except Exception as e:
-        print(f"❌ Error creating configuration: {e}")
+        print(f" Error creating configuration: {e}")
         sys.exit(1)
 
 def print_banner():
     """Print startup banner."""
     print("=" * 60)
-    print("🚀 PlexiChat Standalone Backup Node v3.0.0")
+    print(" PlexiChat Standalone Backup Node v3.0.0")
     print("   Government-Grade Distributed Backup Storage")
     print("=" * 60)
 
 def print_node_info(config: BackupNodeConfig):
     """Print node information."""
-    print(f"🆔 Node ID: {config.node_id}")
-    print(f"📁 Storage Path: {config.storage_path}")
-    print(f"💾 Max Storage: {config.max_storage_gb} GB")
-    print(f"🌐 Listen Address: {config.host}:{config.port}")
-    print(f"🔐 Encryption: {'Enabled' if config.encryption_enabled else 'Disabled'}")
-    print(f"🗜️ Compression: {'Enabled' if config.compression_enabled else 'Disabled'}")
-    print(f"🌍 Clustering: {'Enabled' if config.cluster_enabled else 'Disabled'}")
-    print(f"🔍 Auto Discovery: {'Enabled' if config.auto_discovery else 'Disabled'}")
+    print(f" Node ID: {config.node_id}")
+    print(f" Storage Path: {config.storage_path}")
+    print(f" Max Storage: {config.max_storage_gb} GB")
+    print(f" Listen Address: {config.host}:{config.port}")
+    print(f" Encryption: {'Enabled' if config.encryption_enabled else 'Disabled'}")
+    print(f" Compression: {'Enabled' if config.compression_enabled else 'Disabled'}")
+    print(f" Clustering: {'Enabled' if config.cluster_enabled else 'Disabled'}")
+    print(f" Auto Discovery: {'Enabled' if config.auto_discovery else 'Disabled'}")
     print("=" * 60)
 
 async def main():
@@ -173,33 +177,34 @@ Examples:
     print_node_info(config)
     
     # Create storage directory
-    storage_path = Path(config.storage_path)
+    storage_path = from pathlib import Path
+Path(config.storage_path)
     storage_path.mkdir(parents=True, exist_ok=True)
     
     # Create and start backup node
     backup_node = BackupNodeSystem(config)
     
     try:
-        print("🚀 Starting backup node...")
+        print(" Starting backup node...")
         await backup_node.start_standalone()
         
     except KeyboardInterrupt:
-        print("\n🛑 Received shutdown signal")
+        print("\n Received shutdown signal")
         
     except Exception as e:
-        print(f"❌ Error starting backup node: {e}")
+        print(f" Error starting backup node: {e}")
         sys.exit(1)
         
     finally:
-        print("🔄 Shutting down...")
+        print(" Shutting down...")
         await backup_node.stop()
-        print("✅ Backup node stopped")
+        print(" Backup node stopped")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\n👋 Goodbye!")
+        print("\n Goodbye!")
     except Exception as e:
-        print(f"❌ Fatal error: {e}")
+        print(f" Fatal error: {e}")
         sys.exit(1)

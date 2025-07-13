@@ -1,16 +1,18 @@
+import functools
+import logging
+from typing import Callable
+
+
+from .auth import SecurityLevel, session_manager
+
+
+from fastapi import HTTPException, Request
+
 """
 PlexiChat Security Decorators
 
 Authentication and authorization decorators for API endpoints.
 """
-
-import functools
-import logging
-from typing import Callable
-
-from fastapi import HTTPException, Request
-
-from .auth import SecurityLevel, session_manager
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +53,7 @@ def require_auth(required_level: SecurityLevel = SecurityLevel.BASIC):
     return decorator
 
 
-def require_admin():
+def from plexichat.infrastructure.utils.auth import require_admin():
     """Decorator to require admin privileges."""
     return require_auth(SecurityLevel.GOVERNMENT)
 

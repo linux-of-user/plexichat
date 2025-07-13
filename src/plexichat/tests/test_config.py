@@ -1,8 +1,3 @@
-"""
-Configuration system tests for PlexiChat.
-Tests config loading, validation, and management.
-"""
-
 import json
 import logging
 import tempfile
@@ -12,6 +7,13 @@ import yaml
 
 from ..core_system.config.manager import ConfigurationManager
 from .test_base import BaseTest, TestResult
+
+            import shutil
+
+"""
+Configuration system tests for PlexiChat.
+Tests config loading, validation, and management.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -26,18 +28,19 @@ class ConfigTest(BaseTest):
     
     async def setup(self):
         """Setup test environment with temporary config directory."""
-        self.temp_dir = Path(tempfile.mkdtemp())
+        self.temp_dir = from pathlib import Path
+Path(tempfile.mkdtemp())
         self.config_manager = ConfigurationManager(self.temp_dir)
     
     async def teardown(self):
         """Cleanup temporary files."""
         if self.temp_dir and self.temp_dir.exists():
-            import shutil
             shutil.rmtree(self.temp_dir)
     
     async def test_config_loading(self):
         """Test configuration file loading."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             # Create test config file
@@ -65,7 +68,8 @@ class ConfigTest(BaseTest):
             assert loaded_config["server"]["port"] == 8080
             assert loaded_config["database"]["type"] == "sqlite"
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="Config Loading",
@@ -79,7 +83,8 @@ class ConfigTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="Config Loading",
                 category="Configuration", 
@@ -92,7 +97,8 @@ class ConfigTest(BaseTest):
     
     async def test_config_validation(self):
         """Test configuration validation."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             # Test invalid config
@@ -105,7 +111,8 @@ class ConfigTest(BaseTest):
             # This should handle validation gracefully
             result = self.config_manager.validate_config(invalid_config)
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="Config Validation",
@@ -119,7 +126,8 @@ class ConfigTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="Config Validation",
                 category="Configuration",
@@ -132,7 +140,8 @@ class ConfigTest(BaseTest):
     
     async def test_config_import_from_file(self):
         """Test importing configuration from external file."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             # Create external config file
@@ -157,7 +166,8 @@ class ConfigTest(BaseTest):
             # Test import functionality
             success = await self.config_manager.import_config_from_file(str(external_file))
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="Config Import from File",
@@ -171,7 +181,8 @@ class ConfigTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="Config Import from File",
                 category="Configuration",

@@ -1,8 +1,3 @@
-"""
-PlexiChat Ultimate CLI - Main Entry Point
-200+ commands for complete system control and management
-"""
-
 import asyncio
 import logging
 from pathlib import Path
@@ -15,13 +10,20 @@ from rich.table import Table
 
 from .cli_coordinator import CommandCategory, ultimate_cli
 
+            from pathlib import Path
+
+"""
+PlexiChat Ultimate CLI - Main Entry Point
+200+ commands for complete system control and management
+"""
+
 logger = logging.getLogger(__name__)
 console = Console()
 
 # Create main Typer app
 app = typer.Typer(
     name="plexichat",
-    help="🚀 PlexiChat Ultimate CLI - 200+ commands for complete system control",
+    help=" PlexiChat Ultimate CLI - 200+ commands for complete system control",
     rich_markup_mode="rich",
     no_args_is_help=True
 )
@@ -40,7 +42,7 @@ def show_help(
             cat = CommandCategory(category)
             ultimate_cli.show_category_commands(cat)
         except ValueError:
-            console.print(f"[red]❌ Unknown category: {category}[/red]")
+            console.print(f"[red] Unknown category: {category}[/red]")
             console.print(f"Available categories: {', '.join([cat.value for cat in CommandCategory])}")
     else:
         show_main_help()
@@ -55,7 +57,7 @@ def list_commands(
     if search:
         results = ultimate_cli.search_commands(search)
         if results:
-            table = Table(title=f"🔍 Search Results for '{search}'")
+            table = Table(title=f" Search Results for '{search}'")
             table.add_column("Command", style="cyan")
             table.add_column("Category", style="yellow")
             table.add_column("Description", style="white")
@@ -71,7 +73,7 @@ def list_commands(
             cat = CommandCategory(category)
             ultimate_cli.show_category_commands(cat)
         except ValueError:
-            console.print(f"[red]❌ Unknown category: {category}[/red]")
+            console.print(f"[red] Unknown category: {category}[/red]")
     else:
         tree = ultimate_cli.get_command_tree()
         console.print(tree)
@@ -93,12 +95,12 @@ def export_commands(
         content = ultimate_cli.export_command_list(format)
         
         if output:
-            Path(output).write_text(content)
-            console.print(f"[green]✅ Commands exported to {output}[/green]")
+Path(output).write_text(content)
+            console.print(f"[green] Commands exported to {output}[/green]")
         else:
             console.print(content)
     except Exception as e:
-        console.print(f"[red]❌ Export failed: {e}[/red]")
+        console.print(f"[red] Export failed: {e}[/red]")
 
 
 @app.command("run")
@@ -116,13 +118,13 @@ def run_command(
 def show_main_help():
     """Show main help screen."""
     console.print(Panel(
-        "🚀 [bold]PlexiChat Ultimate CLI[/bold]\n"
+        " [bold]PlexiChat Ultimate CLI[/bold]\n"
         "Complete system control with 200+ commands across 25+ categories",
         style="bold blue"
     ))
     
     # Show command categories
-    console.print("\n📁 [bold]Command Categories:[/bold]")
+    console.print("\n [bold]Command Categories:[/bold]")
     
     categories_info = [
         ("core", "Essential system operations", "9 commands"),
@@ -163,7 +165,7 @@ def show_main_help():
     console.print(table)
     
     # Quick start examples
-    console.print("\n🚀 [bold]Quick Start Examples:[/bold]")
+    console.print("\n [bold]Quick Start Examples:[/bold]")
     examples = [
         "plexichat status                    # Show system status",
         "plexichat help core                 # Show core commands",
@@ -180,28 +182,28 @@ def show_main_help():
     for example in examples:
         console.print(f"  [cyan]{example}[/cyan]")
     
-    console.print("\n💡 [bold]Tips:[/bold]")
-    console.print("  • Use [cyan]plexichat help <command>[/cyan] for detailed command help")
-    console.print("  • Use [cyan]plexichat list --search <term>[/cyan] to search commands")
-    console.print("  • Use [cyan]plexichat stats[/cyan] to see usage statistics")
-    console.print("  • Commands marked with 🔒 require admin privileges")
-    console.print("  • Commands marked with ⚠️ are potentially dangerous")
+    console.print("\n [bold]Tips:[/bold]")
+    console.print("   Use [cyan]plexichat help <command>[/cyan] for detailed command help")
+    console.print("   Use [cyan]plexichat list --search <term>[/cyan] to search commands")
+    console.print("   Use [cyan]plexichat stats[/cyan] to see usage statistics")
+    console.print("   Commands marked with  require admin privileges")
+    console.print("   Commands marked with  are potentially dangerous")
 
 
 def initialize_ultimate_cli():
     """Initialize the ultimate CLI system."""
-    console.print("🚀 Initializing PlexiChat Ultimate CLI...")
+    console.print(" Initializing PlexiChat Ultimate CLI...")
     
     # Import all command modules to register commands
     # (This happens automatically when modules are imported above)
     
     # Show initialization summary
     stats = ultimate_cli.stats
-    console.print(f"✅ Ultimate CLI initialized with {stats['total_commands']} commands")
-    console.print(f"📁 Categories: {len([cat for cat in ultimate_cli.categories if ultimate_cli.categories[cat]])}")
+    console.print(f" Ultimate CLI initialized with {stats['total_commands']} commands")
+    console.print(f" Categories: {len([cat for cat in ultimate_cli.categories if ultimate_cli.categories[cat]])}")
     
     # Show command breakdown by category
-    console.print("\n📊 Commands by Category:")
+    console.print("\n Commands by Category:")
     for category, count in stats['commands_by_category'].items():
         console.print(f"  {category}: {count} commands")
 
@@ -287,112 +289,112 @@ def register_all_commands():
 def register_database_commands():
     """Register database management commands."""
     # Would register 15 database commands
-    console.print("[blue]📊 Registered 15 database commands[/blue]")
+    console.print("[blue] Registered 15 database commands[/blue]")
 
 def register_networking_commands():
     """Register networking commands."""
     # Would register 12 networking commands
-    console.print("[blue]🌐 Registered 12 networking commands[/blue]")
+    console.print("[blue] Registered 12 networking commands[/blue]")
 
 def register_clustering_commands():
     """Register clustering commands."""
     # Would register 10 clustering commands
-    console.print("[blue]🔗 Registered 10 clustering commands[/blue]")
+    console.print("[blue] Registered 10 clustering commands[/blue]")
 
 def register_ai_commands():
     """Register AI and ML commands."""
     # Would register 14 AI commands
-    console.print("[blue]🤖 Registered 14 AI commands[/blue]")
+    console.print("[blue] Registered 14 AI commands[/blue]")
 
 def register_plugin_commands():
     """Register plugin management commands."""
     # Would register 8 plugin commands
-    console.print("[blue]🔌 Registered 8 plugin commands[/blue]")
+    console.print("[blue] Registered 8 plugin commands[/blue]")
 
 def register_user_commands():
     """Register user management commands."""
     # Would register 16 user commands
-    console.print("[blue]👥 Registered 16 user commands[/blue]")
+    console.print("[blue] Registered 16 user commands[/blue]")
 
 def register_channel_commands():
     """Register channel management commands."""
     # Would register 12 channel commands
-    console.print("[blue]📺 Registered 12 channel commands[/blue]")
+    console.print("[blue] Registered 12 channel commands[/blue]")
 
 def register_message_commands():
     """Register message operation commands."""
     # Would register 10 message commands
-    console.print("[blue]💬 Registered 10 message commands[/blue]")
+    console.print("[blue] Registered 10 message commands[/blue]")
 
 def register_file_commands():
     """Register file management commands."""
     # Would register 11 file commands
-    console.print("[blue]📁 Registered 11 file commands[/blue]")
+    console.print("[blue] Registered 11 file commands[/blue]")
 
 def register_backup_commands():
     """Register backup and recovery commands."""
     # Would register 13 backup commands
-    console.print("[blue]💾 Registered 13 backup commands[/blue]")
+    console.print("[blue] Registered 13 backup commands[/blue]")
 
 def register_monitoring_commands():
     """Register monitoring commands."""
     # Would register 15 monitoring commands
-    console.print("[blue]📊 Registered 15 monitoring commands[/blue]")
+    console.print("[blue] Registered 15 monitoring commands[/blue]")
 
 def register_log_commands():
     """Register log management commands."""
     # Would register 9 log commands
-    console.print("[blue]📋 Registered 9 log commands[/blue]")
+    console.print("[blue] Registered 9 log commands[/blue]")
 
 def register_analytics_commands():
     """Register analytics commands."""
     # Would register 12 analytics commands
-    console.print("[blue]📈 Registered 12 analytics commands[/blue]")
+    console.print("[blue] Registered 12 analytics commands[/blue]")
 
 def register_automation_commands():
     """Register automation commands."""
     # Would register 8 automation commands
-    console.print("[blue]🤖 Registered 8 automation commands[/blue]")
+    console.print("[blue] Registered 8 automation commands[/blue]")
 
 def register_development_commands():
     """Register development commands."""
     # Would register 10 development commands
-    console.print("[blue]⚙️ Registered 10 development commands[/blue]")
+    console.print("[blue] Registered 10 development commands[/blue]")
 
 def register_testing_commands():
     """Register testing commands."""
     # Would register 7 testing commands
-    console.print("[blue]🧪 Registered 7 testing commands[/blue]")
+    console.print("[blue] Registered 7 testing commands[/blue]")
 
 def register_deployment_commands():
     """Register deployment commands."""
     # Would register 9 deployment commands
-    console.print("[blue]🚀 Registered 9 deployment commands[/blue]")
+    console.print("[blue] Registered 9 deployment commands[/blue]")
 
 def register_maintenance_commands():
     """Register maintenance commands."""
     # Would register 6 maintenance commands
-    console.print("[blue]🔧 Registered 6 maintenance commands[/blue]")
+    console.print("[blue] Registered 6 maintenance commands[/blue]")
 
 def register_troubleshooting_commands():
     """Register troubleshooting commands."""
     # Would register 11 troubleshooting commands
-    console.print("[blue]🔍 Registered 11 troubleshooting commands[/blue]")
+    console.print("[blue] Registered 11 troubleshooting commands[/blue]")
 
 def register_integration_commands():
     """Register integration commands."""
     # Would register 8 integration commands
-    console.print("[blue]🔗 Registered 8 integration commands[/blue]")
+    console.print("[blue] Registered 8 integration commands[/blue]")
 
 def register_migration_commands():
     """Register migration commands."""
     # Would register 5 migration commands
-    console.print("[blue]📦 Registered 5 migration commands[/blue]")
+    console.print("[blue] Registered 5 migration commands[/blue]")
 
 def register_performance_commands():
     """Register performance commands."""
     # Would register 7 performance commands
-    console.print("[blue]⚡ Registered 7 performance commands[/blue]")
+    console.print("[blue] Registered 7 performance commands[/blue]")
 
 
 def main():
@@ -405,18 +407,18 @@ def main():
         register_all_commands()
         
         # Show final statistics
-        console.print("\n🎉 [bold green]PlexiChat Ultimate CLI Ready![/bold green]")
-        console.print(f"📊 Total Commands: {ultimate_cli.stats['total_commands']}")
-        console.print(f"📁 Categories: {len([cat for cat in ultimate_cli.categories if ultimate_cli.categories[cat]])}")
-        console.print("🚀 Ready for operation!")
+        console.print("\n [bold green]PlexiChat Ultimate CLI Ready![/bold green]")
+        console.print(f" Total Commands: {ultimate_cli.stats['total_commands']}")
+        console.print(f" Categories: {len([cat for cat in ultimate_cli.categories if ultimate_cli.categories[cat]])}")
+        console.print(" Ready for operation!")
         
         # Run the Typer app
         app()
         
     except KeyboardInterrupt:
-        console.print("\n[yellow]👋 Goodbye![/yellow]")
+        console.print("\n[yellow] Goodbye![/yellow]")
     except Exception as e:
-        console.print(f"[red]❌ CLI initialization failed: {e}[/red]")
+        console.print(f"[red] CLI initialization failed: {e}[/red]")
         logger.error(f"CLI initialization failed: {e}")
 
 

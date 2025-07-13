@@ -1,8 +1,3 @@
-"""
-PlexiChat Phase III AI Integration
-Coordinates all Phase III AI enhancements into a unified intelligent system
-"""
-
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -14,12 +9,18 @@ from .advanced_moderation import advanced_moderator
 from .ai_coordinator import ai_coordinator
 from .multilingual_chatbot import ConversationMode, ResponseStyle, multilingual_chatbot
 from .recommendation_engine import (
+from .semantic_search import SearchMode, SearchQuery, SearchType, semantic_search_engine
+
+
+"""
+PlexiChat Phase III AI Integration
+Coordinates all Phase III AI enhancements into a unified intelligent system
+"""
+
     RecommendationAlgorithm,
     RecommendationType,
     recommendation_engine,
 )
-from .semantic_search import SearchMode, SearchQuery, SearchType, semantic_search_engine
-
 logger = logging.getLogger(__name__)
 
 
@@ -104,7 +105,7 @@ class Phase3AICoordinator:
             return
         
         start_time = datetime.now(timezone.utc)
-        logger.info("🤖 Initializing Phase III AI System")
+        logger.info(" Initializing Phase III AI System")
         
         try:
             # 1. Initialize Advanced Content Moderation
@@ -132,10 +133,10 @@ class Phase3AICoordinator:
             initialization_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             self.stats["initialization_time"] = initialization_time
             
-            logger.info(f"✅ Phase III AI System initialized in {initialization_time:.2f}s")
+            logger.info(f" Phase III AI System initialized in {initialization_time:.2f}s")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Phase III AI system: {e}")
+            logger.error(f" Failed to initialize Phase III AI system: {e}")
             raise
     
     async def _initialize_advanced_moderation(self):
@@ -151,7 +152,7 @@ class Phase3AICoordinator:
         # Enable real-time processing
         self.advanced_moderator.real_time_processing = True
         
-        logger.info("✅ Advanced Content Moderation initialized")
+        logger.info(" Advanced Content Moderation initialized")
     
     async def _initialize_multilingual_chatbot(self):
         """Initialize multilingual chatbot."""
@@ -166,7 +167,7 @@ class Phase3AICoordinator:
             "response_style": ResponseStyle.FRIENDLY
         }
         
-        logger.info("✅ Multilingual Chatbot initialized")
+        logger.info(" Multilingual Chatbot initialized")
     
     async def _initialize_semantic_search(self):
         """Initialize semantic search engine."""
@@ -176,7 +177,7 @@ class Phase3AICoordinator:
         # Start the search engine
         await self.semantic_search.start()
         
-        logger.info("✅ Semantic Search Engine initialized")
+        logger.info(" Semantic Search Engine initialized")
     
     async def _initialize_recommendation_engine(self):
         """Initialize AI recommendation engine."""
@@ -190,29 +191,29 @@ class Phase3AICoordinator:
         # Start the recommendation engine
         await self.recommendation_engine.start()
         
-        logger.info("✅ AI Recommendation Engine initialized")
+        logger.info(" AI Recommendation Engine initialized")
     
     async def _initialize_additional_services(self):
         """Initialize additional AI services."""
         # Anomaly Detection
         if self.components["anomaly_detection"]:
-            logger.info("✅ Anomaly Detection System ready")
+            logger.info(" Anomaly Detection System ready")
         
         # Translation Service
         if self.components["translation_service"]:
-            logger.info("✅ Real-time Translation Service ready")
+            logger.info(" Real-time Translation Service ready")
         
         # Sentiment Analysis
         if self.components["sentiment_analysis"]:
-            logger.info("✅ Advanced Sentiment Analysis ready")
+            logger.info(" Advanced Sentiment Analysis ready")
         
         # Summarization
         if self.components["summarization"]:
-            logger.info("✅ Intelligent Summarization ready")
+            logger.info(" Intelligent Summarization ready")
         
         # Voice Processing
         if self.components["voice_to_text"] and self.components["text_to_speech"]:
-            logger.info("✅ Voice Processing Services ready")
+            logger.info(" Voice Processing Services ready")
     
     async def moderate_content(self, content: str, content_type: str, user_id: str, channel_id: str = None) -> Dict[str, Any]:
         """Moderate content using advanced AI moderation."""
@@ -232,7 +233,8 @@ class Phase3AICoordinator:
             result = await self.advanced_moderator.moderate_content(
                 content=content,
                 content_type=moderation_content_type,
-                content_id=f"{user_id}_{int(datetime.now().timestamp())}",
+                content_id=f"{user_id}_{int(from datetime import datetime
+datetime.now().timestamp())}",
                 user_id=user_id,
                 channel_id=channel_id
             )
@@ -528,13 +530,13 @@ class Phase3AICoordinator:
         try:
             # Check if any metrics are below thresholds
             if self.metrics.moderation_accuracy < 0.9:
-                logger.warning("⚠️ Moderation accuracy below threshold")
+                logger.warning(" Moderation accuracy below threshold")
             
             if self.metrics.search_relevance < 0.8:
-                logger.warning("⚠️ Search relevance below threshold")
+                logger.warning(" Search relevance below threshold")
             
             if self.metrics.ai_availability < 95.0:
-                logger.warning("⚠️ AI availability below threshold")
+                logger.warning(" AI availability below threshold")
                 
         except Exception as e:
             logger.error(f"AI performance evaluation error: {e}")
@@ -574,7 +576,7 @@ class Phase3AICoordinator:
             if self.components["recommendation_engine"]:
                 await self.recommendation_engine.stop()
             
-            logger.info("✅ Phase III AI System shutdown complete")
+            logger.info(" Phase III AI System shutdown complete")
             
         except Exception as e:
             logger.error(f"Error during Phase III AI shutdown: {e}")

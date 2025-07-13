@@ -1,8 +1,3 @@
-"""
-Backup Node Authentication and Authorization System
-Government-level security for backup node API access with restricted shard collection.
-"""
-
 import asyncio
 import hashlib
 import logging
@@ -11,6 +6,15 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
+
+        import aiosqlite
+        
+        import aiosqlite
+
+"""
+Backup Node Authentication and Authorization System
+Government-level security for backup node API access with restricted shard collection.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -113,8 +117,6 @@ class BackupNodeAuthManager:
     
     async def _initialize_database(self):
         """Initialize authentication database."""
-        import aiosqlite
-        
         async with aiosqlite.connect(self.auth_db_path) as db:
             # API keys table
             await db.execute("""
@@ -295,7 +297,6 @@ class BackupNodeAuthManager:
             logger.warning(f"Node {node_id} locked out due to {self.failed_attempts[node_id]} failed attempts")
         
         # Log to database
-        import aiosqlite
         attempt_id = f"fail_{secrets.token_hex(8)}"
         
         async with aiosqlite.connect(self.auth_db_path) as db:

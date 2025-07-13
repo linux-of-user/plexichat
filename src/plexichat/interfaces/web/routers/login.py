@@ -1,26 +1,30 @@
-"""
-PlexiChat Login Router
-Handles login/logout functionality for web UI and desktop app.
-"""
-
 from pathlib import Path
 from typing import Optional
+
+
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
+    from plexichat.core.auth.manager_auth import login_manager
+
+"""
+PlexiChat Login Router
+Handles login/logout functionality for web UI and desktop app.
+"""
+
 # Import login manager
 try:
-    from plexichat.core.auth.manager_auth import login_manager
 except ImportError:
     login_manager = None
 
 router = APIRouter(tags=["login"])
 
 # Templates
-templates_dir = Path(__file__).parent.parent / "web" / "templates"
+templates_dir = from pathlib import Path
+Path(__file__).parent.parent / "web" / "templates"
 templates = Jinja2Templates(directory=str(templates_dir))
 
 # Pydantic models
@@ -45,7 +49,7 @@ class SessionValidationResponse(BaseModel):
     user: Optional[dict] = None
 
 # Authentication dependency
-def get_current_user(request: Request):
+def from plexichat.infrastructure.utils.auth import get_current_user(request: Request):
     """Get current authenticated user."""
     if not login_manager:
         raise HTTPException(status_code=500, detail="Authentication not available")
@@ -148,7 +152,7 @@ async def api_logout(request: Request, response: Response):
     return result
 
 @router.get("/api/auth/me")
-async def get_current_user_info(current_user: dict = Depends(get_current_user)):
+async def from plexichat.infrastructure.utils.auth import get_current_user_info(current_user: dict = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Get current user info."""
     if not login_manager:
         raise HTTPException(status_code=500, detail="Authentication not available")

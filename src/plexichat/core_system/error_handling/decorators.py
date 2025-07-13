@@ -1,10 +1,3 @@
-"""
-PlexiChat Error Handling Decorators
-
-Convenient decorators for applying error handling, circuit breakers,
-retry logic, and crash reporting to functions and methods.
-"""
-
 import asyncio
 import functools
 import logging
@@ -15,6 +8,16 @@ from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 from .crash_reporter import crash_reporter
 from .error_recovery import RecoveryStrategy, recovery_manager
 from .exceptions import ErrorCategory, ErrorSeverity
+
+                from .error_manager import error_manager
+                
+
+"""
+PlexiChat Error Handling Decorators
+
+Convenient decorators for applying error handling, circuit breakers,
+retry logic, and crash reporting to functions and methods.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +49,6 @@ def error_handler(severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                     return func(*args, **kwargs)
             except Exception as e:
                 # Import here to avoid circular imports
-                from .error_manager import error_manager
-                
                 context = {
                     'function_name': func.__name__,
                     'args': args,

@@ -1,8 +1,3 @@
-"""
-Advanced 2FA System for PlexiChat
-Comprehensive two-factor authentication with multiple methods and security features.
-"""
-
 import base64
 import hashlib
 import io
@@ -17,10 +12,18 @@ from typing import Any, Dict, List, Optional
 import pyotp
 import qrcode
 from cryptography.fernet import Fernet
+
+
+
+
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
 
+"""
+Advanced 2FA System for PlexiChat
+Comprehensive two-factor authentication with multiple methods and security features.
+"""
 
 class TwoFactorMethod:
     """2FA method constants."""
@@ -126,7 +129,8 @@ class Advanced2FASystem:
             "user_id": user_id,
             "user_email": user_email,
             "methods": methods,
-            "created_at": datetime.utcnow(),
+            "created_at": from datetime import datetime
+datetime.utcnow(),
             "verified": False
         }
         
@@ -167,7 +171,8 @@ class Advanced2FASystem:
         setup_data = self.pending_setups[setup_token]
         
         # Check if setup has expired (30 minutes)
-        if datetime.utcnow() - setup_data["created_at"] > timedelta(minutes=30):
+        if from datetime import datetime
+datetime.utcnow() - setup_data["created_at"] > timedelta(minutes=30):
             del self.pending_setups[setup_token]
             return {"success": False, "error": "Setup token expired"}
         
@@ -182,7 +187,8 @@ class Advanced2FASystem:
                     enabled_methods=setup_data["methods"],
                     totp_secret=setup_data.get("totp_secret"),
                     backup_codes=setup_data.get("backup_codes_hashed", []),
-                    created_at=datetime.utcnow()
+                    created_at=from datetime import datetime
+datetime.utcnow()
                 )
                 
                 self.user_configs[setup_data["user_id"]] = user_config
@@ -206,7 +212,8 @@ class Advanced2FASystem:
         config = self.user_configs[user_id]
         
         # Check if account is locked
-        if config.locked_until and datetime.utcnow() < config.locked_until:
+        if config.locked_until and from datetime import datetime
+datetime.utcnow() < config.locked_until:
             return {"success": False, "error": "Account temporarily locked due to failed attempts"}
         
         # Try TOTP verification
@@ -219,7 +226,8 @@ class Advanced2FASystem:
                 if totp.verify(code, valid_window=self.totp_window):
                     # Reset failed attempts on success
                     config.failed_attempts = 0
-                    config.last_used = datetime.utcnow()
+                    config.last_used = from datetime import datetime
+datetime.utcnow()
                     config.locked_until = None
                     
                     logger.info(f"2FA TOTP verification successful for user {user_id}")
@@ -234,7 +242,8 @@ class Advanced2FASystem:
                 # Remove used backup code
                 config.backup_codes.remove(code_hash)
                 config.failed_attempts = 0
-                config.last_used = datetime.utcnow()
+                config.last_used = from datetime import datetime
+datetime.utcnow()
                 config.locked_until = None
                 
                 logger.info(f"2FA backup code verification successful for user {user_id}")
@@ -249,7 +258,8 @@ class Advanced2FASystem:
         
         # Lock account if too many failed attempts
         if config.failed_attempts >= self.max_failed_attempts:
-            config.locked_until = datetime.utcnow() + timedelta(minutes=self.lockout_duration)
+            config.locked_until = from datetime import datetime
+datetime.utcnow() + timedelta(minutes=self.lockout_duration)
             logger.warning(f"2FA account locked for user {user_id} due to failed attempts")
         
         logger.warning(f"2FA verification failed for user {user_id}")

@@ -1,10 +1,3 @@
-"""
-Intelligent Node Manager
-
-Manages cluster nodes with intelligent distribution, automatic scaling,
-and performance optimization for tangible performance gains.
-"""
-
 import asyncio
 import logging
 import random
@@ -14,9 +7,18 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import psutil
 
 from . import MAXIMUM_CLUSTER_SIZE, MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, NodeStatus
+
+
+import psutil
+
+"""
+Intelligent Node Manager
+
+Manages cluster nodes with intelligent distribution, automatic scaling,
+and performance optimization for tangible performance gains.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -491,8 +493,10 @@ class IntelligentNodeManager:
 
             # Update performance metrics
             # In a real implementation, this would collect actual performance data
-            current_cpu = psutil.cpu_percent() if node_id == self.cluster_manager.local_node_id else random.uniform(0.1, 0.9)
-            current_memory = psutil.virtual_memory().percent / 100 if node_id == self.cluster_manager.local_node_id else random.uniform(0.1, 0.8)
+            current_cpu = import psutil
+psutil.cpu_percent() if node_id == self.cluster_manager.local_node_id else random.uniform(0.1, 0.9)
+            current_memory = import psutil
+psutil.virtual_memory().percent / 100 if node_id == self.cluster_manager.local_node_id else random.uniform(0.1, 0.8)
 
             # Update node current load
             node.current_load = (current_cpu + current_memory) / 2

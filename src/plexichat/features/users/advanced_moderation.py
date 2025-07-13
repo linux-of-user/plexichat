@@ -1,16 +1,18 @@
-"""
-Advanced moderation models with AI-powered capabilities and human review system.
-Supports fine-grained access control and configurable moderation endpoints.
-"""
-
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, Index, Text
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
+
+
+from sqlalchemy import DateTime, Index, Text
+
+"""
+Advanced moderation models with AI-powered capabilities and human review system.
+Supports fine-grained access control and configurable moderation endpoints.
+"""
 
 class ModerationAction(str, Enum):
     """Types of moderation actions."""

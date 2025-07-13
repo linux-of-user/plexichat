@@ -1,10 +1,3 @@
-"""
-PlexiChat Changelog Management System
-
-Manages changelog generation, parsing, and integration with the version system.
-Supports multiple formats and automatic changelog generation from commits.
-"""
-
 import json
 import logging
 import re
@@ -15,6 +8,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .version_manager import Version
+
+
+"""
+PlexiChat Changelog Management System
+
+Manages changelog generation, parsing, and integration with the version system.
+Supports multiple formats and automatic changelog generation from commits.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -163,8 +164,10 @@ class ChangelogManager:
     
     def __init__(self, changelog_file: Path = None):
         """Initialize changelog manager."""
-        self.changelog_file = changelog_file or Path("CHANGELOG.md")
-        self.changelog_data_file = Path("changelog.json")
+        self.changelog_file = changelog_file or from pathlib import Path
+Path("CHANGELOG.md")
+        self.changelog_data_file = from pathlib import Path
+Path("changelog.json")
         self.version_changelogs: Dict[str, VersionChangelog] = {}
         
         # Load existing changelog
@@ -328,7 +331,7 @@ class ChangelogManager:
         breaking_changes = changelog.get_changes_by_type(ChangeType.BREAKING)
         if breaking_changes:
             lines.extend([
-                "## ⚠️ Breaking Changes",
+                "##  Breaking Changes",
                 "",
                 "**Important**: This version contains breaking changes that may require manual intervention.",
                 ""
@@ -341,7 +344,7 @@ class ChangelogManager:
         for change_type in [ChangeType.ADDED, ChangeType.CHANGED, ChangeType.FIXED, ChangeType.SECURITY]:
             changes = changelog.get_changes_by_type(change_type)
             if changes:
-                icon = {"Added": "✨", "Changed": "🔄", "Fixed": "🐛", "Security": "🔒"}.get(change_type.value, "📝")
+                icon = {"Added": "", "Changed": "", "Fixed": "", "Security": ""}.get(change_type.value, "")
                 lines.extend([
                     f"## {icon} {change_type.value}",
                     ""
@@ -353,7 +356,7 @@ class ChangelogManager:
         # Migration notes
         if changelog.migration_notes:
             lines.extend([
-                "## 🔧 Migration Notes",
+                "##  Migration Notes",
                 ""
             ])
             for note in changelog.migration_notes:

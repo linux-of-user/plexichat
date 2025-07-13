@@ -1,8 +1,3 @@
-"""
-PlexiChat SIEM Integration
-Integrates with Security Information and Event Management systems
-"""
-
 import asyncio
 import json
 import logging
@@ -12,6 +7,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import aiohttp
+
+            import base64
+
+"""
+PlexiChat SIEM Integration
+Integrates with Security Information and Event Management systems
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +185,7 @@ class SIEMIntegration:
             "last_success": None,
             "last_failure": None
         }
-        logger.info(f"✅ Added SIEM provider: {name} ({config.provider.value})")
+        logger.info(f" Added SIEM provider: {name} ({config.provider.value})")
     
     async def start(self):
         """Start the SIEM integration service."""
@@ -192,7 +194,7 @@ class SIEMIntegration:
         
         self.running = True
         self.batch_timer = asyncio.create_task(self._batch_processor())
-        logger.info("✅ SIEM integration service started")
+        logger.info(" SIEM integration service started")
     
     async def stop(self):
         """Stop the SIEM integration service."""
@@ -208,7 +210,7 @@ class SIEMIntegration:
         if self.event_queue:
             await self._send_batch()
         
-        logger.info("✅ SIEM integration service stopped")
+        logger.info(" SIEM integration service stopped")
     
     async def send_event(self, event: SecurityEvent, immediate: bool = False):
         """Send a security event to SIEM systems."""
@@ -326,7 +328,6 @@ class SIEMIntegration:
         if config.api_key:
             headers["Authorization"] = f"ApiKey {config.api_key}"
         elif config.username and config.password:
-            import base64
             credentials = base64.b64encode(f"{config.username}:{config.password}".encode()).decode()
             headers["Authorization"] = f"Basic {credentials}"
         

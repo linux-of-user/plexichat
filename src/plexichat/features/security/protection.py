@@ -1,3 +1,13 @@
+import logging
+import re
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
+
+
 """
 PlexiChat Security Protection System
 
@@ -7,15 +17,6 @@ Consolidates security protection functionality from:
 
 Provides comprehensive protection against various security threats.
 """
-
-import logging
-import re
-import time
-from collections import defaultdict, deque
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ class DDoSProtection:
                 mitigation_action="IP_BLOCKED_DDOS"
             )
             
-            logger.warning(f"🚨 DDoS attack blocked: {ip_address} - {len(recent_requests)} requests/minute")
+            logger.warning(f" DDoS attack blocked: {ip_address} - {len(recent_requests)} requests/minute")
             return False, threat
         
         # Behavioral analysis
@@ -147,7 +148,7 @@ class DDoSProtection:
                     mitigation_action="IP_BLOCKED_SUSPICIOUS"
                 )
                 
-                logger.warning(f"🚨 Suspicious behavior blocked: {ip_address}")
+                logger.warning(f" Suspicious behavior blocked: {ip_address}")
                 return False, threat
         
         return True, None

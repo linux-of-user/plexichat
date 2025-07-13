@@ -1,22 +1,25 @@
-"""
-Comprehensive moderation API for PlexiChat.
-Handles user moderation, message moderation, moderator roles, and appeals.
-"""
-
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
+
+from sqlmodel import Session
+
+
+
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sqlmodel import Session
 
 from plexichat.app.db import get_session
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.models.moderation import ModerationAction, ModerationSeverity
 from plexichat.app.services.moderation_service import ModerationService
-from plexichat.app.utils.auth import get_current_user
+from plexichat.app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
 
+"""
+Comprehensive moderation API for PlexiChat.
+Handles user moderation, message moderation, moderator roles, and appeals.
+"""
 
 # Pydantic models for API
 class UserModerationRequest(BaseModel):
@@ -65,7 +68,8 @@ router = APIRouter(prefix="/api/v1/moderation", tags=["Moderation"])
 async def moderate_user(
     request: UserModerationRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Apply moderation action to a user."""
     moderation_service = ModerationService(session)
@@ -97,7 +101,8 @@ async def moderate_user(
 async def moderate_message(
     request: MessageModerationRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Apply moderation action to a message."""
     moderation_service = ModerationService(session)
@@ -128,7 +133,8 @@ async def moderate_message(
 async def get_user_restrictions(
     user_id: int,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """Get current moderation restrictions for a user."""
     moderation_service = ModerationService(session)
@@ -149,14 +155,16 @@ async def get_user_restrictions(
 async def grant_moderator_role(
     request: ModeratorRoleRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Grant moderator role to a user."""
     moderation_service = ModerationService(session)
     
     expires_at = None
     if request.expires_hours:
-        expires_at = datetime.utcnow() + timedelta(hours=request.expires_hours)
+        expires_at = from datetime import datetime
+datetime.utcnow() + timedelta(hours=request.expires_hours)
     
     success = await moderation_service.grant_moderator_role(
         granter_id=current_user.id,
@@ -185,7 +193,8 @@ async def revoke_moderator_role(
     role_id: int,
     reason: str = Query(..., description="Reason for revoking the role"),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Revoke a moderator role."""
     moderation_service = ModerationService(session)
@@ -212,7 +221,8 @@ async def revoke_moderator_role(
 async def submit_appeal(
     request: AppealRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Submit an appeal for a moderation action."""
     moderation_service = ModerationService(session)
@@ -239,7 +249,8 @@ async def submit_appeal(
 async def review_appeal(
     request: AppealReviewRequest,
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> JSONResponse:
     """Review an appeal for a moderation action."""
     moderation_service = ModerationService(session)
@@ -274,7 +285,8 @@ async def get_moderation_logs(
     limit: int = Query(50, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get moderation logs with filtering."""
     moderation_service = ModerationService(session)
@@ -304,7 +316,8 @@ async def check_moderator_permissions(
     guild_id: Optional[int] = Query(None),
     channel_id: Optional[int] = Query(None),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> Dict[str, Any]:
     """Check current user's moderator permissions."""
     moderation_service = ModerationService(session)
@@ -341,7 +354,8 @@ async def get_user_moderation_history(
     limit: int = Query(20, le=50),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
-    current_user: EnhancedUser = Depends(get_current_user)
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get moderation history for a specific user."""
     moderation_service = ModerationService(session)

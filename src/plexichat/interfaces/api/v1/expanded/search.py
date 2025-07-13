@@ -1,15 +1,17 @@
-"""
-PlexiChat Advanced Search API
-Comprehensive search functionality with semantic search, filters, and AI-powered features
-"""
-
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
+
+"""
+PlexiChat Advanced Search API
+Comprehensive search functionality with semantic search, filters, and AI-powered features
+"""
 
 logger = logging.getLogger(__name__)
 

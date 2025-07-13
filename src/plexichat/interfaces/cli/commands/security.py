@@ -1,14 +1,17 @@
+from datetime import datetime
+from typing import List, Optional
+
+
+from plexichat.app.logger_config import logger
+from plexichat.app.security.permissions import Permission, PermissionManager, PermissionScope, Role
+from plexichat.app.security.rate_limiter import (
+        from plexichat.app.security.rate_limiter import RateLimitRule
+
 """
 Security Management CLI
 Command-line interface for rate limiting and permissions management.
 """
 
-from datetime import datetime
-from typing import List, Optional
-
-from plexichat.app.logger_config import logger
-from plexichat.app.security.permissions import Permission, PermissionManager, PermissionScope, Role
-from plexichat.app.security.rate_limiter import (
     ComprehensiveRateLimiter,
     RateLimitAction,
     RateLimitType,
@@ -39,7 +42,7 @@ class SecurityCLI:
     # Rate Limiting Commands
     async def list_rate_limit_rules(self) -> None:
         """List all rate limiting rules."""
-        self.print_colored("🔒 Rate Limiting Rules", "cyan")
+        self.print_colored(" Rate Limiting Rules", "cyan")
         self.print_colored("=" * 50, "cyan")
         
         if not self.rate_limiter.rules:
@@ -47,8 +50,8 @@ class SecurityCLI:
             return
         
         for rule in self.rate_limiter.rules.values():
-            status = "✅ Enabled" if rule.enabled else "❌ Disabled"
-            self.print_colored(f"\n📋 {rule.name}", "blue")
+            status = " Enabled" if rule.enabled else " Disabled"
+            self.print_colored(f"\n {rule.name}", "blue")
             print(f"   Type: {rule.limit_type.value}")
             print(f"   Limit: {rule.max_requests} requests per {rule.time_window} seconds")
             print(f"   Action: {rule.action.value}")
@@ -79,10 +82,9 @@ class SecurityCLI:
             max_requests_int = int(max_requests)
             time_window_int = int(time_window)
         except ValueError as e:
-            self.print_colored(f"❌ Invalid parameter: {e}", "red")
+            self.print_colored(f" Invalid parameter: {e}", "red")
             return
         
-        from plexichat.app.security.rate_limiter import RateLimitRule
         rule = RateLimitRule(
             name=name,
             limit_type=limit_type_enum,
@@ -92,26 +94,26 @@ class SecurityCLI:
         )
         
         if name in self.rate_limiter.rules:
-            self.print_colored(f"❌ Rule '{name}' already exists", "red")
+            self.print_colored(f" Rule '{name}' already exists", "red")
             return
         
         self.rate_limiter.rules[name] = rule
         self.rate_limiter.save_config()
-        self.print_colored(f"✅ Created rate limiting rule: {name}", "green")
+        self.print_colored(f" Created rate limiting rule: {name}", "green")
     
     async def delete_rate_limit_rule(self, rule_name: str) -> None:
         """Delete a rate limiting rule."""
         if rule_name not in self.rate_limiter.rules:
-            self.print_colored(f"❌ Rule '{rule_name}' not found", "red")
+            self.print_colored(f" Rule '{rule_name}' not found", "red")
             return
         
         del self.rate_limiter.rules[rule_name]
         self.rate_limiter.save_config()
-        self.print_colored(f"✅ Deleted rate limiting rule: {rule_name}", "green")
+        self.print_colored(f" Deleted rate limiting rule: {rule_name}", "green")
     
     async def show_rate_limit_status(self, client_ip: str, user_id: Optional[str] = None) -> None:
         """Show rate limit status for a client."""
-        self.print_colored(f"🔍 Rate Limit Status for {client_ip}", "cyan")
+        self.print_colored(f" Rate Limit Status for {client_ip}", "cyan")
         if user_id:
             self.print_colored(f"   User ID: {user_id}", "cyan")
         self.print_colored("=" * 50, "cyan")
@@ -123,30 +125,30 @@ class SecurityCLI:
             client_key = self.rate_limiter._get_client_key(client_ip, user_id, rule)
             current_count = self.rate_limiter.tracker.get_request_count(client_key, rule.time_window)
             
-            status = "⚠️ EXCEEDED" if current_count >= rule.max_requests else "✅ OK"
-            self.print_colored(f"\n📋 {rule.name}: {status}", "yellow" if current_count >= rule.max_requests else "green")
+            status = " EXCEEDED" if current_count >= rule.max_requests else " OK"
+            self.print_colored(f"\n {rule.name}: {status}", "yellow" if current_count >= rule.max_requests else "green")
             print(f"   Current: {current_count}/{rule.max_requests}")
             print(f"   Window: {rule.time_window} seconds")
     
     async def show_banned_entities(self) -> None:
         """Show all banned IPs and users."""
-        self.print_colored("🚫 Banned Entities", "red")
+        self.print_colored(" Banned Entities", "red")
         self.print_colored("=" * 50, "red")
         
         if self.rate_limiter.tracker.banned_ips:
-            self.print_colored("\n📍 Banned IPs:", "yellow")
+            self.print_colored("\n Banned IPs:", "yellow")
             for ip, until in self.rate_limiter.tracker.banned_ips.items():
                 until_dt = datetime.fromtimestamp(until)
                 print(f"   {ip} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
         
         if self.rate_limiter.tracker.banned_users:
-            self.print_colored("\n👤 Banned Users:", "yellow")
+            self.print_colored("\n Banned Users:", "yellow")
             for user_id, until in self.rate_limiter.tracker.banned_users.items():
                 until_dt = datetime.fromtimestamp(until)
                 print(f"   {user_id} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
         
         if self.rate_limiter.tracker.quarantined_ips:
-            self.print_colored("\n⚠️ Quarantined IPs:", "yellow")
+            self.print_colored("\n Quarantined IPs:", "yellow")
             for ip, until in self.rate_limiter.tracker.quarantined_ips.items():
                 until_dt = datetime.fromtimestamp(until)
                 print(f"   {ip} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -160,22 +162,22 @@ class SecurityCLI:
         """Unban an IP address."""
         if ip in self.rate_limiter.tracker.banned_ips:
             del self.rate_limiter.tracker.banned_ips[ip]
-            self.print_colored(f"✅ Unbanned IP: {ip}", "green")
+            self.print_colored(f" Unbanned IP: {ip}", "green")
         else:
-            self.print_colored(f"❌ IP not found in ban list: {ip}", "red")
+            self.print_colored(f" IP not found in ban list: {ip}", "red")
     
     async def unban_user(self, user_id: str) -> None:
         """Unban a user."""
         if user_id in self.rate_limiter.tracker.banned_users:
             del self.rate_limiter.tracker.banned_users[user_id]
-            self.print_colored(f"✅ Unbanned user: {user_id}", "green")
+            self.print_colored(f" Unbanned user: {user_id}", "green")
         else:
-            self.print_colored(f"❌ User not found in ban list: {user_id}", "red")
+            self.print_colored(f" User not found in ban list: {user_id}", "red")
     
     # Permission Management Commands
     async def list_roles(self) -> None:
         """List all roles."""
-        self.print_colored("👥 User Roles", "cyan")
+        self.print_colored(" User Roles", "cyan")
         self.print_colored("=" * 50, "cyan")
         
         if not self.permission_manager.roles:
@@ -188,7 +190,7 @@ class SecurityCLI:
         for role in sorted_roles:
             system_badge = " [SYSTEM]" if role.is_system else ""
             default_badge = " [DEFAULT]" if role.is_default else ""
-            self.print_colored(f"\n🎭 {role.display_name} ({role.name}){system_badge}{default_badge}", "blue")
+            self.print_colored(f"\n {role.display_name} ({role.name}){system_badge}{default_badge}", "blue")
             print(f"   Description: {role.description}")
             print(f"   Priority: {role.priority}")
             print(f"   Color: {role.color}")
@@ -196,19 +198,19 @@ class SecurityCLI:
             
             if len(role.permissions) <= 10:
                 perms = ", ".join([p.value for p in role.permissions])
-                print(f"   → {perms}")
+                print(f"    {perms}")
             else:
-                print(f"   → {len(role.permissions)} permissions (use 'show-role {role.name}' for details)")
+                print(f"    {len(role.permissions)} permissions (use 'show-role {role.name}' for details)")
     
     async def show_role(self, role_name: str) -> None:
         """Show detailed information about a role."""
         if role_name not in self.permission_manager.roles:
-            self.print_colored(f"❌ Role '{role_name}' not found", "red")
+            self.print_colored(f" Role '{role_name}' not found", "red")
             return
         
         role = self.permission_manager.roles[role_name]
         
-        self.print_colored(f"🎭 Role: {role.display_name} ({role.name})", "cyan")
+        self.print_colored(f" Role: {role.display_name} ({role.name})", "cyan")
         self.print_colored("=" * 50, "cyan")
         
         print(f"Description: {role.description}")
@@ -219,9 +221,9 @@ class SecurityCLI:
         print(f"Created: {role.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Updated: {role.updated_at.strftime('%Y-%m-%d %H:%M:%S')}")
         
-        self.print_colored(f"\n📋 Permissions ({len(role.permissions)}):", "yellow")
+        self.print_colored(f"\n Permissions ({len(role.permissions)}):", "yellow")
         for perm in sorted(role.permissions, key=lambda p: p.value):
-            print(f"   ✓ {perm.value}")
+            print(f"    {perm.value}")
     
     async def create_role(self, args: List[str]) -> None:
         """Create a new role."""
@@ -238,7 +240,7 @@ class SecurityCLI:
         try:
             perm_set = set(Permission(p) for p in permissions)
         except ValueError as e:
-            self.print_colored(f"❌ Invalid permission: {e}", "red")
+            self.print_colored(f" Invalid permission: {e}", "red")
             return
         
         role = Role(
@@ -250,45 +252,45 @@ class SecurityCLI:
         
         success = self.permission_manager.create_role(role)
         if success:
-            self.print_colored(f"✅ Created role: {name}", "green")
+            self.print_colored(f" Created role: {name}", "green")
         else:
-            self.print_colored(f"❌ Failed to create role (may already exist): {name}", "red")
+            self.print_colored(f" Failed to create role (may already exist): {name}", "red")
     
     async def delete_role(self, role_name: str) -> None:
         """Delete a role."""
         success = self.permission_manager.delete_role(role_name)
         if success:
-            self.print_colored(f"✅ Deleted role: {role_name}", "green")
+            self.print_colored(f" Deleted role: {role_name}", "green")
         else:
-            self.print_colored(f"❌ Failed to delete role: {role_name}", "red")
+            self.print_colored(f" Failed to delete role: {role_name}", "red")
     
     async def assign_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
         """Assign a role to a user."""
         try:
             scope_enum = PermissionScope(scope)
         except ValueError:
-            self.print_colored(f"❌ Invalid scope: {scope}", "red")
+            self.print_colored(f" Invalid scope: {scope}", "red")
             return
         
         success = self.permission_manager.assign_role(user_id, role_name, scope_enum, scope_id)
         if success:
-            self.print_colored(f"✅ Assigned role '{role_name}' to user '{user_id}' in scope '{scope}'", "green")
+            self.print_colored(f" Assigned role '{role_name}' to user '{user_id}' in scope '{scope}'", "green")
         else:
-            self.print_colored("❌ Failed to assign role", "red")
+            self.print_colored(" Failed to assign role", "red")
     
     async def revoke_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
         """Revoke a role from a user."""
         try:
             scope_enum = PermissionScope(scope)
         except ValueError:
-            self.print_colored(f"❌ Invalid scope: {scope}", "red")
+            self.print_colored(f" Invalid scope: {scope}", "red")
             return
         
         success = self.permission_manager.revoke_role(user_id, role_name, scope_enum, scope_id)
         if success:
-            self.print_colored(f"✅ Revoked role '{role_name}' from user '{user_id}' in scope '{scope}'", "green")
+            self.print_colored(f" Revoked role '{role_name}' from user '{user_id}' in scope '{scope}'", "green")
         else:
-            self.print_colored("❌ Failed to revoke role", "red")
+            self.print_colored(" Failed to revoke role", "red")
     
     async def check_permission(self, user_id: str, permission: str, scope: str = "global", scope_id: Optional[str] = None) -> None:
         """Check if a user has a specific permission."""
@@ -296,13 +298,13 @@ class SecurityCLI:
             perm_enum = Permission(permission)
             scope_enum = PermissionScope(scope)
         except ValueError as e:
-            self.print_colored(f"❌ Invalid parameter: {e}", "red")
+            self.print_colored(f" Invalid parameter: {e}", "red")
             return
         
         check_result = self.permission_manager.check_permission(user_id, perm_enum, scope_enum, scope_id)
         
-        status = "✅ GRANTED" if check_result.granted else "❌ DENIED"
-        self.print_colored(f"🔍 Permission Check: {status}", "green" if check_result.granted else "red")
+        status = " GRANTED" if check_result.granted else " DENIED"
+        self.print_colored(f" Permission Check: {status}", "green" if check_result.granted else "red")
         print(f"   User: {user_id}")
         print(f"   Permission: {permission}")
         print(f"   Scope: {scope}")
@@ -315,12 +317,12 @@ class SecurityCLI:
     async def show_user_permissions(self, user_id: str) -> None:
         """Show all permissions for a user."""
         if user_id not in self.permission_manager.user_permissions:
-            self.print_colored(f"❌ User permissions not found: {user_id}", "red")
+            self.print_colored(f" User permissions not found: {user_id}", "red")
             return
         
         user_perms = self.permission_manager.user_permissions[user_id]
         
-        self.print_colored(f"👤 User Permissions: {user_id}", "cyan")
+        self.print_colored(f" User Permissions: {user_id}", "cyan")
         self.print_colored("=" * 50, "cyan")
         
         print(f"Active: {'Yes' if user_perms.is_active else 'No'}")
@@ -328,28 +330,28 @@ class SecurityCLI:
         print(f"Updated: {user_perms.updated_at.strftime('%Y-%m-%d %H:%M:%S')}")
         
         if user_perms.global_roles:
-            self.print_colored("\n🌐 Global Roles:", "yellow")
+            self.print_colored("\n Global Roles:", "yellow")
             for role in user_perms.global_roles:
-                print(f"   • {role}")
+                print(f"    {role}")
         
         if user_perms.server_roles:
-            self.print_colored("\n🖥️ Server Roles:", "yellow")
+            self.print_colored("\n Server Roles:", "yellow")
             for server_id, roles in user_perms.server_roles.items():
                 print(f"   Server {server_id}: {', '.join(roles)}")
         
         if user_perms.channel_roles:
-            self.print_colored("\n📺 Channel Roles:", "yellow")
+            self.print_colored("\n Channel Roles:", "yellow")
             for channel_id, roles in user_perms.channel_roles.items():
                 print(f"   Channel {channel_id}: {', '.join(roles)}")
         
         if user_perms.explicit_permissions:
-            self.print_colored("\n✅ Explicit Permissions:", "green")
+            self.print_colored("\n Explicit Permissions:", "green")
             for scope_id, perms in user_perms.explicit_permissions.items():
                 perm_list = [p.value for p in perms]
                 print(f"   {scope_id}: {', '.join(perm_list)}")
         
         if user_perms.denied_permissions:
-            self.print_colored("\n❌ Denied Permissions:", "red")
+            self.print_colored("\n Denied Permissions:", "red")
             for scope_id, perms in user_perms.denied_permissions.items():
                 perm_list = [p.value for p in perms]
                 print(f"   {scope_id}: {', '.join(perm_list)}")
@@ -357,7 +359,7 @@ class SecurityCLI:
 async def handle_security_command(args: List[str]) -> None:
     """Handle security management commands."""
     if not args:
-        print("🔒 Security Management Commands:")
+        print(" Security Management Commands:")
         print("Rate Limiting:")
         print("  list-rules                    - List rate limiting rules")
         print("  create-rule <args>            - Create rate limiting rule")
@@ -421,8 +423,8 @@ async def handle_security_command(args: List[str]) -> None:
         elif command == "show-user" and command_args:
             await cli.show_user_permissions(command_args[0])
         else:
-            print(f"❌ Unknown command or missing arguments: {command}")
+            print(f" Unknown command or missing arguments: {command}")
     
     except Exception as e:
-        print(f"❌ Command failed: {e}")
+        print(f" Command failed: {e}")
         logger.error(f"Security CLI command failed: {e}")

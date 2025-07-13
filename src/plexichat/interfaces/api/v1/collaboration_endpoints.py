@@ -1,3 +1,17 @@
+import json
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Set
+
+
+from ...core.logging import get_logger
+from ...services.collaboration_service import (
+
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
+
+from ...core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin_auth, require_auth
+
 """
 PlexiChat Collaboration API Endpoints
 
@@ -15,17 +29,6 @@ Features:
 - Session management and permissions
 """
 
-import json
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
-
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel
-
-from ...core.auth.dependencies import require_admin_auth, require_auth
-from ...core.logging import get_logger
-from ...services.collaboration_service import (
     CollaborationType,
     Operation,
     OperationType,
@@ -356,7 +359,7 @@ async def leave_collaboration_session(
 
 @router.get("/stats")
 async def get_collaboration_stats(
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get collaboration statistics (admin only)."""
     try:

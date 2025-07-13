@@ -1,3 +1,15 @@
+import logging
+import platform
+import shutil
+import subprocess
+import sys
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+            import tempfile
+
 #!/usr/bin/env python3
 """
 PlexiChat Enhanced Dependency Installer
@@ -17,16 +29,6 @@ Features:
 - Dependency conflict resolution
 - Installation verification
 """
-
-import logging
-import platform
-import shutil
-import subprocess
-import sys
-from dataclasses import dataclass
-from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -227,7 +229,6 @@ class EnhancedInstaller:
         # This is a simplified source installation
         # In practice, you'd need more sophisticated handling
         try:
-            import tempfile
             with tempfile.TemporaryDirectory() as temp_dir:
                 # Clone or download source
                 if package.source_url.endswith('.git'):
@@ -237,7 +238,8 @@ class EnhancedInstaller:
                         return False
                 
                 # Install from source
-                setup_py = Path(temp_dir) / 'setup.py'
+                setup_py = from pathlib import Path
+Path(temp_dir) / 'setup.py'
                 if setup_py.exists():
                     cmd = [sys.executable, str(setup_py), 'install']
                     success, output = self._run_command(cmd, timeout=600)
@@ -270,7 +272,7 @@ class EnhancedInstaller:
         if not available_methods:
             return None
         
-        print(f"\n❌ Failed to install {package.name} ({package.description})")
+        print(f"\n Failed to install {package.name} ({package.description})")
         print("Would you like to try an alternative installation method?")
         
         for i, method in enumerate(available_methods, 1):
@@ -385,20 +387,20 @@ class EnhancedInstaller:
         print(f"\n{'='*60}")
         print("INSTALLATION SUMMARY")
         print(f"{'='*60}")
-        print(f"✅ Successfully installed: {len(self.installed_packages)} packages")
+        print(f" Successfully installed: {len(self.installed_packages)} packages")
         if self.installed_packages:
             for pkg in self.installed_packages:
                 print(f"   - {pkg}")
 
         if self.failed_packages:
-            print(f"\n❌ Failed to install: {len(self.failed_packages)} packages")
+            print(f"\n Failed to install: {len(self.failed_packages)} packages")
             for pkg in self.failed_packages:
                 print(f"   - {pkg}")
-            print("\n⚠️  Some required packages failed to install.")
+            print("\n  Some required packages failed to install.")
             print("The application may not work correctly.")
             return False
         else:
-            print("\n🎉 All packages installed successfully!")
+            print("\n All packages installed successfully!")
             return True
 
 
@@ -517,7 +519,7 @@ def get_plexichat_packages() -> List[PackageInfo]:
 
 def main():
     """Main entry point for the enhanced installer."""
-    print("🚀 PlexiChat Enhanced Dependency Installer")
+    print(" PlexiChat Enhanced Dependency Installer")
     print("=" * 50)
 
     installer = EnhancedInstaller()
@@ -526,11 +528,11 @@ def main():
     success = installer.install_packages(packages)
 
     if success:
-        print("\n✅ Installation completed successfully!")
+        print("\n Installation completed successfully!")
         print("You can now run PlexiChat with: python run.py")
         sys.exit(0)
     else:
-        print("\n❌ Installation completed with errors.")
+        print("\n Installation completed with errors.")
         print("Some packages failed to install. Check the logs above.")
         sys.exit(1)
 

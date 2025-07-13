@@ -1,3 +1,13 @@
+import asyncio
+import hashlib
+import logging
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
+
 """
 PlexiChat Data Partitioning Strategy
 
@@ -15,16 +25,7 @@ Features:
 - Cross-database partitioning support
 """
 
-import asyncio
-import hashlib
-import logging
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-
 try:
-    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     ENHANCED_ABSTRACTION_AVAILABLE = False
@@ -206,13 +207,13 @@ class PartitionManager:
                         self.partition_info[config.table_name] = []
                     self.partition_info[config.table_name].append(partition_info)
                     
-                    logger.info(f"✅ Created time partition: {partition_name}")
+                    logger.info(f" Created time partition: {partition_name}")
                 else:
                     error = _get_result_attribute(result, 'error', 'Unknown error')
-                    logger.error(f"❌ Failed to create partition {partition_name}: {error}")
+                    logger.error(f" Failed to create partition {partition_name}: {error}")
                     
             except Exception as e:
-                logger.error(f"❌ Error creating partition {partition_name}: {e}")
+                logger.error(f" Error creating partition {partition_name}: {e}")
         
         return created_partitions
     
@@ -256,13 +257,13 @@ class PartitionManager:
                 success = _get_result_attribute(result, 'success', True)
                 if success:
                     created_partitions.append(partition_name)
-                    logger.info(f"✅ Created hash partition: {partition_name}")
+                    logger.info(f" Created hash partition: {partition_name}")
                 else:
                     error = _get_result_attribute(result, 'error', 'Unknown error')
-                    logger.error(f"❌ Failed to create hash partition {partition_name}: {error}")
+                    logger.error(f" Failed to create hash partition {partition_name}: {error}")
                     
             except Exception as e:
-                logger.error(f"❌ Error creating hash partition {partition_name}: {e}")
+                logger.error(f" Error creating hash partition {partition_name}: {e}")
         
         return created_partitions
     
@@ -311,13 +312,13 @@ class PartitionManager:
                 success = _get_result_attribute(result, 'success', True)
                 if success:
                     created_partitions.append(partition_name)
-                    logger.info(f"✅ Created range partition: {partition_name}")
+                    logger.info(f" Created range partition: {partition_name}")
                 else:
                     error = _get_result_attribute(result, 'error', 'Unknown error')
-                    logger.error(f"❌ Failed to create range partition {partition_name}: {error}")
+                    logger.error(f" Failed to create range partition {partition_name}: {error}")
                     
             except Exception as e:
-                logger.error(f"❌ Error creating range partition {partition_name}: {e}")
+                logger.error(f" Error creating range partition {partition_name}: {e}")
         
         return created_partitions
     
@@ -443,13 +444,13 @@ class PartitionManager:
                     if success:
                         dropped_partitions.append(partition.name)
                         partitions.remove(partition)
-                        logger.info(f"✅ Dropped old partition: {partition.name}")
+                        logger.info(f" Dropped old partition: {partition.name}")
                     else:
                         error = _get_result_attribute(result, 'error', 'Unknown error')
-                        logger.error(f"❌ Failed to drop partition {partition.name}: {error}")
+                        logger.error(f" Failed to drop partition {partition.name}: {error}")
                         
                 except Exception as e:
-                    logger.error(f"❌ Error dropping partition {partition.name}: {e}")
+                    logger.error(f" Error dropping partition {partition.name}: {e}")
         
         return dropped_partitions
     

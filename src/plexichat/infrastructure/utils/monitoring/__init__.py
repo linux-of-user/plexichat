@@ -1,10 +1,11 @@
+from .error_handler import (
+
 # app/utils/monitoring/__init__.py
 """
 Monitoring and error handling package for Chat API.
 Provides comprehensive system monitoring, error handling, and alerting.
 """
 
-from .error_handler import (
     ErrorHandler,
     ErrorSeverity,
     SystemMonitor,

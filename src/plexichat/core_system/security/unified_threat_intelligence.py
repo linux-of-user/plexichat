@@ -1,3 +1,21 @@
+import asyncio
+import csv
+import hashlib
+import json
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
+import aiohttp
+import aiosqlite
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+from .unified_audit_system import (
+
 """
 PlexiChat Unified Threat Intelligence Service - SINGLE SOURCE OF TRUTH
 
@@ -16,23 +34,6 @@ Features:
 - Post-quantum cryptography threat awareness
 """
 
-import asyncio
-import csv
-import hashlib
-import json
-import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-
-import aiohttp
-import aiosqlite
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
-from .unified_audit_system import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
@@ -346,7 +347,8 @@ class UnifiedThreatIntelligence:
         }
 
         # Database path
-        self.db_path = Path(self.config.get("database_path", "data/threat_intelligence.db"))
+        self.db_path = from pathlib import Path
+Path(self.config.get("database_path", "data/threat_intelligence.db"))
 
         logger.info("Unified Threat Intelligence Service initialized")
 
@@ -371,11 +373,11 @@ class UnifiedThreatIntelligence:
             asyncio.create_task(self._cleanup_scheduler())
 
             self.initialized = True
-            logger.info("✅ Unified Threat Intelligence Service fully initialized")
+            logger.info(" Unified Threat Intelligence Service fully initialized")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Threat Intelligence initialization failed: {e}")
+            logger.error(f" Threat Intelligence initialization failed: {e}")
             return False
 
     async def _initialize_database(self):
@@ -806,7 +808,7 @@ class UnifiedThreatIntelligence:
 
                 elif action == "enable_quantum_safe_mode":
                     # Enable quantum-safe cryptography mode
-                    logger.critical("🔒 QUANTUM SAFE MODE ACTIVATED - Potential quantum attack detected")
+                    logger.critical(" QUANTUM SAFE MODE ACTIVATED - Potential quantum attack detected")
 
                     # Log quantum threat
                     self.audit_system.log_security_event(

@@ -1,16 +1,18 @@
-"""
-AI Monitoring Dashboard WebUI
-Comprehensive web interface for AI system monitoring, analytics, and alerting.
-"""
-
 import logging
 from datetime import datetime, timedelta, timezone
+
+
+from ..monitoring.analytics_engine import AlertRule, analytics_engine
+
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from ..monitoring.analytics_engine import AlertRule, analytics_engine
+"""
+AI Monitoring Dashboard WebUI
+Comprehensive web interface for AI system monitoring, analytics, and alerting.
+"""
 
 logger = logging.getLogger(__name__)
 

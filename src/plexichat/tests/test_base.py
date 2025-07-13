@@ -1,13 +1,14 @@
-"""
-Base test class with common utilities for PlexiChat tests.
-Provides test data generation, authentication helpers, and result tracking.
-"""
-
 import logging
 import random
 import string
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
+
+"""
+Base test class with common utilities for PlexiChat tests.
+Provides test data generation, authentication helpers, and result tracking.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -81,11 +82,11 @@ class BaseTest:
         
         # Log result
         if result.status == "passed":
-            logger.info(f"✅ {result.test_name}: {result.status}")
+            logger.info(f" {result.test_name}: {result.status}")
         elif result.status == "failed":
-            logger.error(f"❌ {result.test_name}: {result.error_message}")
+            logger.error(f" {result.test_name}: {result.error_message}")
         elif result.status == "warning":
-            logger.warning(f"⚠️ {result.test_name}: {result.error_message}")
+            logger.warning(f" {result.test_name}: {result.error_message}")
     
     def get_summary(self) -> Dict[str, Any]:
         """Get test summary statistics."""

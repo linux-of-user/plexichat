@@ -1,14 +1,21 @@
-"""
-PlexiChat Authentication Middleware
-
-Middleware for web frameworks to handle authentication automatically.
-"""
-
 import logging
 from typing import Any, Callable, Dict
 
 from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
+
+        from flask import g, request
+
+                import asyncio
+                    from flask import jsonify
+
+                    from fastapi import HTTPException
+
+"""
+PlexiChat Authentication Middleware
+
+Middleware for web frameworks to handle authentication automatically.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +110,6 @@ class FlaskAuthMiddleware:
     
     def before_request(self):
         """Flask before_request handler."""
-        from flask import g, request
-
         # Check if path should be excluded
         if request.path in self.config.get("exclude_paths", []):
             return
@@ -122,7 +127,6 @@ class FlaskAuthMiddleware:
         
         if token:
             try:
-                import asyncio
                 loop = asyncio.get_event_loop()
                 g.auth_context = loop.run_until_complete(
                     auth_manager.require_authentication(token, "BASIC")
@@ -130,7 +134,6 @@ class FlaskAuthMiddleware:
                 g.authenticated = True
             except (AuthenticationError, AuthorizationError):
                 if self.config.get("require_auth_by_default", False):
-                    from flask import jsonify
                     return jsonify({"error": "Authentication failed"}), 401
 
 
@@ -160,7 +163,6 @@ class FastAPIAuthMiddleware:
                 auth_context = await auth_manager.require_authentication(token, "BASIC")
             except (AuthenticationError, AuthorizationError):
                 if self.config.get("require_auth_by_default", False):
-                    from fastapi import HTTPException
                     raise HTTPException(status_code=401, detail="Authentication failed")
         
         # Add to request state

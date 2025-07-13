@@ -1,8 +1,3 @@
-"""
-PlexiChat Content Security Policy (CSP) Manager
-Implements strict CSP to prevent XSS and other injection attacks
-"""
-
 import hashlib
 import logging
 import secrets
@@ -10,6 +5,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
+
+
+"""
+PlexiChat Content Security Policy (CSP) Manager
+Implements strict CSP to prevent XSS and other injection attacks
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -216,7 +217,7 @@ class ContentSecurityPolicyManager:
         # Set default active policy
         self.active_policy = "production"
         
-        logger.info(f"✅ Initialized {len(self.policies)} CSP policies")
+        logger.info(f" Initialized {len(self.policies)} CSP policies")
     
     def generate_nonce(self, session_id: str) -> str:
         """Generate a cryptographically secure nonce for a session."""

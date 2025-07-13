@@ -1,3 +1,18 @@
+import asyncio
+import json
+import logging
+
+import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+
+from plexichat.backup.core.shard_manager import ImmutableShardManager
+
 """
 PlexiChat Archive System Plugin
 
@@ -15,21 +30,9 @@ Features:
 - Archive search and filtering
 """
 
-import asyncio
-import json
-import logging
-
 # Import PlexiChat backup system components
-import sys
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-sys.path.append(str(Path(__file__).parent.parent / "src"))
-
-from plexichat.backup.core.shard_manager import ImmutableShardManager
+sys.path.append(str(from pathlib import Path
+Path(__file__).parent.parent / "src"))
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +80,8 @@ class ArchiveSystemPlugin:
     """
     
     def __init__(self, data_dir: Path, shard_manager: ImmutableShardManager):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.archive_dir = self.data_dir / "archives"
         self.db_path = self.archive_dir / "archive_system.db"
         

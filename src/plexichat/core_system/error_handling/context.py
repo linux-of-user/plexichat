@@ -1,10 +1,3 @@
-"""
-PlexiChat Error Context and Boundary Management
-
-Provides error context tracking and error boundary management
-for fault isolation and recovery.
-"""
-
 import asyncio
 import logging
 import traceback
@@ -14,6 +7,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, Optional
+
+
+"""
+PlexiChat Error Context and Boundary Management
+
+Provides error context tracking and error boundary management
+for fault isolation and recovery.
+"""
 
 logger = logging.getLogger(__name__)
 

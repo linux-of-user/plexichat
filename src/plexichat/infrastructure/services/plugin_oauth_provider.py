@@ -1,10 +1,3 @@
-"""
-OAuth Provider for Plugin Marketplace
-
-Provides OAuth 2.0 authentication and authorization for plugin developers
-to publish and manage their plugins in the PlexiChat marketplace.
-"""
-
 import asyncio
 import base64
 import hashlib
@@ -19,6 +12,14 @@ from typing import Any, Dict, List, Optional
 import aiofiles
 
 from ..core.logging import get_logger
+
+
+"""
+OAuth Provider for Plugin Marketplace
+
+Provides OAuth 2.0 authentication and authorization for plugin developers
+to publish and manage their plugins in the PlexiChat marketplace.
+"""
 
 logger = get_logger(__name__)
 
@@ -96,7 +97,8 @@ class PluginOAuthProvider:
     
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
-        self.data_dir = Path(self.config.get("data_dir", "data/oauth"))
+        self.data_dir = from pathlib import Path
+Path(self.config.get("data_dir", "data/oauth"))
         
         # Ensure directories exist
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -111,7 +113,7 @@ class PluginOAuthProvider:
         self.jwt_secret = self.config.get("jwt_secret", secrets.token_urlsafe(32))
         self.jwt_algorithm = "HS256"
         
-        logger.info("🔐 Plugin OAuth Provider initialized")
+        logger.info(" Plugin OAuth Provider initialized")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default OAuth configuration."""
@@ -129,7 +131,7 @@ class PluginOAuthProvider:
     async def initialize(self) -> bool:
         """Initialize the OAuth provider."""
         try:
-            logger.info("🚀 Initializing Plugin OAuth Provider...")
+            logger.info(" Initializing Plugin OAuth Provider...")
             
             # Load existing data
             await self._load_oauth_data()
@@ -141,11 +143,11 @@ class PluginOAuthProvider:
             # Start cleanup task
             asyncio.create_task(self._cleanup_expired_tokens())
             
-            logger.info("✅ Plugin OAuth Provider initialized successfully")
+            logger.info(" Plugin OAuth Provider initialized successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize OAuth Provider: {e}")
+            logger.error(f" Failed to initialize OAuth Provider: {e}")
             return False
     
     async def register_client(self, client_name: str, redirect_uris: List[str],
@@ -188,7 +190,7 @@ class PluginOAuthProvider:
             self.clients[client_id] = client
             await self._save_oauth_data()
             
-            logger.info(f"📝 Registered OAuth client: {client_name}")
+            logger.info(f" Registered OAuth client: {client_name}")
             
             return {
                 "success": True,
@@ -467,7 +469,7 @@ class PluginOAuthProvider:
                 grant_types=["authorization_code", "client_credentials"]
             )
             
-            logger.info("📝 Created default OAuth client")
+            logger.info(" Created default OAuth client")
             
         except Exception as e:
             logger.error(f"Failed to create default client: {e}")
@@ -503,7 +505,7 @@ class PluginOAuthProvider:
                     del self.refresh_tokens[token]
                 
                 if expired_codes or expired_access or expired_refresh:
-                    logger.debug(f"🧹 Cleaned up {len(expired_codes)} codes, {len(expired_access)} access tokens, {len(expired_refresh)} refresh tokens")
+                    logger.debug(f" Cleaned up {len(expired_codes)} codes, {len(expired_access)} access tokens, {len(expired_refresh)} refresh tokens")
                 
                 # Sleep for 5 minutes
                 await asyncio.sleep(300)
@@ -525,7 +527,7 @@ class PluginOAuthProvider:
                     client = self._dict_to_client(client_data)
                     self.clients[client.client_id] = client
             
-            logger.info(f"📚 Loaded {len(self.clients)} OAuth clients")
+            logger.info(f" Loaded {len(self.clients)} OAuth clients")
             
         except Exception as e:
             logger.error(f"Failed to load OAuth data: {e}")
@@ -539,7 +541,7 @@ class PluginOAuthProvider:
             async with aiofiles.open(clients_file, 'w') as f:
                 await f.write(json.dumps(clients_data, indent=2, default=str))
             
-            logger.debug("💾 OAuth data saved successfully")
+            logger.debug(" OAuth data saved successfully")
             
         except Exception as e:
             logger.error(f"Failed to save OAuth data: {e}")

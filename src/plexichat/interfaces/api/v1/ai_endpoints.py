@@ -1,3 +1,28 @@
+import logging
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+
+        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+        
+        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+        
+        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+        
+        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+        
+        from ....features.ai.moderation.content_moderator import ContentModerator
+        
+        from ....features.ai.monitoring.metrics_collector import MetricsCollector
+        
+        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+        
+        from ....features.ai.monitoring.request_logger import RequestLogger
+        
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from pydantic import BaseModel, Field
+
 """
 PlexiChat AI API Endpoints
 
@@ -14,13 +39,6 @@ Merged from:
 - features/ai/api/monitoring_endpoints.py
 - features/ai/api/provider_endpoints.py
 """
-
-import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
-from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -111,8 +129,6 @@ async def process_ai_request(
     """Process an AI request."""
     try:
         # Import AI layer here to avoid circular imports
-        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-        
         ai_layer = AIAbstractionLayer()
         
         # Convert API model to internal model
@@ -145,7 +161,8 @@ async def process_ai_request(
             cost=response.get("cost", 0.0),
             latency_ms=response.get("latency_ms", 0),
             provider=response.get("provider", ""),
-            timestamp=response.get("timestamp", datetime.now()),
+            timestamp=response.get("timestamp", from datetime import datetime
+datetime.now()),
             success=response.get("success", False),
             error=response.get("error")
         )
@@ -158,8 +175,6 @@ async def process_ai_request(
 async def list_available_models():
     """List all available AI models."""
     try:
-        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-        
         ai_layer = AIAbstractionLayer()
         models = await ai_layer.get_available_models()
         
@@ -186,8 +201,6 @@ async def list_available_models():
 async def list_providers():
     """List all AI providers."""
     try:
-        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-        
         ai_layer = AIAbstractionLayer()
         providers = await ai_layer.get_providers()
         return providers
@@ -203,8 +216,6 @@ async def configure_provider(
 ):
     """Configure an AI provider."""
     try:
-        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-        
         ai_layer = AIAbstractionLayer()
         await ai_layer.configure_provider(provider_name, config.dict())
         
@@ -219,8 +230,6 @@ async def configure_provider(
 async def moderate_content(request: ModerationRequest):
     """Moderate content using AI."""
     try:
-        from ....features.ai.moderation.content_moderator import ContentModerator
-        
         moderator = ContentModerator()
         result = await moderator.moderate(
             content=request.content,
@@ -249,14 +258,14 @@ async def get_ai_metrics(
 ):
     """Get AI system metrics."""
     try:
-        from ....features.ai.monitoring.metrics_collector import MetricsCollector
-        
         collector = MetricsCollector()
         
         if not start_time:
-            start_time = datetime.now() - timedelta(hours=24)
+            start_time = from datetime import datetime
+datetime.now() - timedelta(hours=24)
         if not end_time:
-            end_time = datetime.now()
+            end_time = from datetime import datetime
+datetime.now()
             
         metrics = await collector.get_metrics(start_time, end_time)
         
@@ -278,8 +287,6 @@ async def get_ai_metrics(
 async def ai_health_check():
     """Check AI system health."""
     try:
-        from ....features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-        
         ai_layer = AIAbstractionLayer()
         health = await ai_layer.health_check()
         
@@ -287,7 +294,8 @@ async def ai_health_check():
             "status": "healthy" if health.get("healthy", False) else "unhealthy",
             "providers": health.get("providers", {}),
             "models": health.get("models", {}),
-            "timestamp": datetime.now()
+            "timestamp": from datetime import datetime
+datetime.now()
         }
         
     except Exception as e:
@@ -295,15 +303,14 @@ async def ai_health_check():
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.now()
+            "timestamp": from datetime import datetime
+datetime.now()
         }
 
 # Helper functions
 async def log_ai_request(request: AIRequestModel, response: Dict[str, Any]):
     """Log AI request for monitoring and analytics."""
     try:
-        from ....features.ai.monitoring.request_logger import RequestLogger
-        
         logger_instance = RequestLogger()
         await logger_instance.log_request(request.dict(), response)
         

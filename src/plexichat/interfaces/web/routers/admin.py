@@ -1,9 +1,3 @@
-# app/routers/admin.py
-"""
-Admin console router providing web-based administration interface
-with comprehensive system management capabilities.
-"""
-
 import json
 import logging
 import os
@@ -16,10 +10,13 @@ import logger
 import monitoring_logger
 import selftest_logger
 import settings
+from sqlmodel import Session, func, select
+
+
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
-from sqlmodel import Session, func, select
 
 from plexichat.core.config import config_manager
 from plexichat.core.database import get_session
@@ -27,20 +24,27 @@ from plexichat.features.users.message import Message
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.monitoring import error_handler, system_monitor
 from plexichat.infrastructure.utils.scheduling import (
-    get_scheduler_status,
-    run_comprehensive_self_tests,
-)
 from plexichat.utils.self_tests.connectivity import run_connectivity_tests
 from plexichat.utils.self_tests.database import run_database_tests
 from plexichat.utils.self_tests.endpoints import run_endpoint_tests
 from plexichat.utils.self_tests.test_executor import test_executor
 from plexichat.utils.self_tests.users import run_user_tests
 
+# app/routers/admin.py
+"""
+Admin console router providing web-based administration interface
+with comprehensive system management capabilities.
+"""
+
+    get_scheduler_status,
+    run_comprehensive_self_tests,
+)
 router = APIRouter(prefix="/admin", tags=["admin"])
 security = HTTPBearer()
 
 # Static file serving
-STATIC_DIR = Path(__file__).parent.parent / "web_console" / "static"
+STATIC_DIR = from pathlib import Path
+Path(__file__).parent.parent / "web_console" / "static"
 
 
 async def verify_admin_access(request: Request):
@@ -227,7 +231,8 @@ async def get_configuration():
 
 @router.post("/configuration")
 async def update_configuration(config_data: Dict[str, Any]):
-    """Update configuration settings."""
+    """Update configuration from plexichat.core.config import settings
+settings."""
     try:
         # In a real implementation, you would validate and save the configuration
         # For now, we'll just log the attempt
@@ -306,7 +311,9 @@ async def run_quick_test():
 async def get_logs(log_type: str = "latest", lines: int = 100):
     """Get system logs."""
     try:
-        log_dir = Path(settings.LOG_DIR)
+        log_dir = from pathlib import Path
+Path(from plexichat.core.config import settings
+settings.LOG_DIR)
         
         log_files = {
             "latest": log_dir / "latest.log",

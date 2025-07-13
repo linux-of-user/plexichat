@@ -1,3 +1,24 @@
+from typing import Any, Callable, Dict, List, Optional
+
+from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
+from .crash_reporter import CrashContext, CrashReporter, crash_reporter
+from .enhanced_error_handler import EnhancedErrorHandler
+
+from .exceptions import (
+    from .error_manager import ErrorManager, error_manager
+    from .error_recovery import ErrorRecoveryManager, recovery_manager
+    from .error_monitor import ErrorMonitor, error_monitor
+    from .error_analytics import ErrorAnalytics, error_analytics
+    from .decorators import circuit_breaker, crash_handler, error_handler, retry
+    from .middleware import ErrorHandlingMiddleware
+    from .context import ErrorBoundary, ErrorContext
+    from .reporting import ErrorReporter, error_reporter
+        import logging
+        import logging
+        from .context import ErrorContext, ErrorSeverity
+
+        from .context import ErrorSeverity
+
 """
 PlexiChat Core Error Handling System - Unified Error Management
 
@@ -21,15 +42,8 @@ Features:
 - Error boundary management for fault isolation
 """
 
-from typing import Any, Callable, Dict, List, Optional
-
-from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
-from .crash_reporter import CrashContext, CrashReporter, crash_reporter
-from .enhanced_error_handler import EnhancedErrorHandler
-
 # Import existing error handling components (consolidated)
 # Note: Import from existing modules and create missing ones
-from .exceptions import (
     AuthenticationError,
     AuthorizationError,
     BaseAPIException,
@@ -46,35 +60,30 @@ from .exceptions import (
 
 # Import new unified components with error handling
 try:
-    from .error_manager import ErrorManager, error_manager
 except ImportError as e:
     print(f"Warning: Could not import error_manager: {e}")
     ErrorManager = None
     error_manager = None
 
 try:
-    from .error_recovery import ErrorRecoveryManager, recovery_manager
 except ImportError as e:
     print(f"Warning: Could not import error_recovery: {e}")
     ErrorRecoveryManager = None
     recovery_manager = None
 
 try:
-    from .error_monitor import ErrorMonitor, error_monitor
 except ImportError as e:
     print(f"Warning: Could not import error_monitor: {e}")
     ErrorMonitor = None
     error_monitor = None
 
 try:
-    from .error_analytics import ErrorAnalytics, error_analytics
 except ImportError as e:
     print(f"Warning: Could not import error_analytics: {e}")
     ErrorAnalytics = None
     error_analytics = None
 
 try:
-    from .decorators import circuit_breaker, crash_handler, error_handler, retry
 except ImportError as e:
     print(f"Warning: Could not import decorators: {e}")
     error_handler = None
@@ -83,20 +92,17 @@ except ImportError as e:
     retry = None
 
 try:
-    from .middleware import ErrorHandlingMiddleware
 except ImportError as e:
     print(f"Warning: Could not import middleware: {e}")
     ErrorHandlingMiddleware = None
 
 try:
-    from .context import ErrorBoundary, ErrorContext
 except ImportError as e:
     print(f"Warning: Could not import context: {e}")
     ErrorContext = None
     ErrorBoundary = None
 
 try:
-    from .reporting import ErrorReporter, error_reporter
 except ImportError as e:
     print(f"Warning: Could not import reporting: {e}")
     ErrorReporter = None
@@ -410,7 +416,6 @@ async def initialize_error_handling_system(config: Optional[Dict[str, Any]] = No
         return True
         
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error during error handling system initialization: {e}", exc_info=True)
         return False
@@ -439,7 +444,6 @@ async def shutdown_error_handling_system():
                 print(f"Warning: Failed to shutdown {name}: {e}")
 
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error during error handling system shutdown: {e}")
 
@@ -447,8 +451,6 @@ async def shutdown_error_handling_system():
 def handle_error(exception: Exception, context: Optional[Dict[str, Any]] = None, severity: str = "MEDIUM") -> Optional['ErrorContext']:
     """Handle an error with comprehensive logging and recovery."""
     try:
-        from .context import ErrorContext, ErrorSeverity
-
         # Convert string severity to enum
         severity_map = {
             "LOW": ErrorSeverity.LOW,
@@ -470,7 +472,6 @@ def handle_error(exception: Exception, context: Optional[Dict[str, Any]] = None,
 def report_crash(exception: Exception, context: Optional[Dict[str, Any]] = None):
     """Report a crash with detailed context."""
     try:
-        from .context import ErrorSeverity
         if crash_reporter:
             return crash_reporter.report_crash(exception, ErrorSeverity.CRITICAL, additional_context=context or {})
         else:

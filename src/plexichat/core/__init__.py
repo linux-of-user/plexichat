@@ -1,3 +1,33 @@
+from .auth import *
+
+from .config import *
+
+from .database import *
+
+from .error import *
+
+from .integration import *
+
+from .logging import *
+
+from .maintenance import *
+
+from .resilience import *
+
+from .runtime import *
+
+from .security import *
+
+from .updates import *
+
+from .versioning import *
+
+import warnings
+
+
+import sys
+
+
 """
 PlexiChat Core System - Unified Core Module
 Refactored from src/plexichat/core_system/ following new naming convention
@@ -30,41 +60,17 @@ Domains:
 """
 
 # Core authentication system
-from .auth import *
-
 # Core configuration system  
-from .config import *
-
 # Core database system
-from .database import *
-
 # Core error handling
-from .error import *
-
 # Core integration
-from .integration import *
-
 # Core logging
-from .logging import *
-
 # Core maintenance
-from .maintenance import *
-
 # Core resilience
-from .resilience import *
-
 # Core runtime
-from .runtime import *
-
 # Core security
-from .security import *
-
 # Core updates
-from .updates import *
-
 # Core versioning
-from .versioning import *
-
 __version__ = "3.0.0"
 __all__ = [
     # Authentication exports
@@ -106,9 +112,6 @@ __all__ = [
 
 # Backward compatibility aliases
 # These maintain compatibility with old import paths
-import warnings
-
-
 def _deprecated_import_warning(old_path, new_path):
     """Issue deprecation warning for old import paths."""
     warnings.warn(
@@ -143,8 +146,6 @@ class _LegacyImportHelper:
         raise AttributeError(f"module 'plexichat.core' has no attribute '{name}'")
 
 # Install legacy import helper
-import sys
-
 sys.modules['plexichat.core_system'] = _LegacyImportHelper()
 
 # Core system information

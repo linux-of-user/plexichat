@@ -1,3 +1,29 @@
+import logging
+from datetime import datetime
+from typing import Dict, Optional
+
+
+        from ....core_system.auth.auth_manager import AuthManager
+        
+        from ....core_system.auth.auth_manager import AuthManager
+
+        from ....core_system.auth.auth_manager import AuthManager
+        
+        from ....core_system.auth.auth_manager import AuthManager
+
+        from ....core_system.auth.auth_manager import AuthManager
+        
+        from ....core_system.auth.auth_manager import AuthManager
+        
+        from ....core_system.auth.auth_manager import AuthManager
+
+        from ....core_system.auth.auth_manager import AuthManager
+
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, EmailStr, Field
+
 """
 PlexiChat Authentication API Endpoints
 
@@ -14,14 +40,6 @@ Merged from:
 - auth/auth_advanced.py
 - core/auth.py
 """
-
-import logging
-from datetime import datetime
-from typing import Dict, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, EmailStr, Field
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +117,6 @@ class UserInfo(BaseModel):
 async def login(request: LoginRequest, response: Response):
     """Authenticate user and return tokens."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-        
         auth_manager = AuthManager()
         
         # Validate credentials
@@ -159,8 +175,6 @@ async def login(request: LoginRequest, response: Response):
 async def register(request: RegisterRequest):
     """Register a new user."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-
         # Validate password confirmation
         if request.password != request.confirm_password:
             raise HTTPException(
@@ -205,8 +219,6 @@ async def logout(
 ):
     """Logout user and invalidate tokens."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-        
         auth_manager = AuthManager()
         
         # Invalidate access token
@@ -233,8 +245,6 @@ async def logout(
 async def refresh_token(request: Request):
     """Refresh access token using refresh token."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-
         # Get refresh token from cookie
         refresh_token = request.cookies.get("refresh_token")
         if not refresh_token:
@@ -276,13 +286,11 @@ async def refresh_token(request: Request):
         )
 
 @router.get("/me", response_model=UserInfo)
-async def get_current_user(
+async def from plexichat.infrastructure.utils.auth import get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     """Get current user information."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-        
         auth_manager = AuthManager()
         
         # Validate token and get user
@@ -320,8 +328,6 @@ async def get_current_user(
 async def request_password_reset(request: PasswordResetRequest):
     """Request password reset."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-        
         auth_manager = AuthManager()
         
         # Send password reset email
@@ -339,8 +345,6 @@ async def request_password_reset(request: PasswordResetRequest):
 async def confirm_password_reset(request: PasswordResetConfirm):
     """Confirm password reset with token."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-
         # Validate password confirmation
         if request.new_password != request.confirm_password:
             raise HTTPException(
@@ -380,8 +384,6 @@ async def change_password(
 ):
     """Change user password."""
     try:
-        from ....core_system.auth.auth_manager import AuthManager
-
         # Validate password confirmation
         if request.new_password != request.confirm_password:
             raise HTTPException(

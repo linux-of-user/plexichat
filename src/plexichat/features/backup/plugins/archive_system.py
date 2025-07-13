@@ -1,8 +1,3 @@
-"""
-Archive System Plugin for PlexiChat Backup System
-Provides versioning and archival capabilities through the shard system.
-"""
-
 import asyncio
 import gzip
 import hashlib
@@ -12,6 +7,20 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Union
+
+        import aiosqlite
+        
+        import aiosqlite
+        
+        import aiosqlite
+        
+        import aiosqlite
+        
+
+"""
+Archive System Plugin for PlexiChat Backup System
+Provides versioning and archival capabilities through the shard system.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -115,8 +124,6 @@ class ArchiveSystemPlugin:
     
     async def _initialize_database(self):
         """Initialize archive database."""
-        import aiosqlite
-        
         async with aiosqlite.connect(self.archive_db_path) as db:
             # Archives table
             await db.execute("""
@@ -408,8 +415,6 @@ class ArchiveSystemPlugin:
     
     async def _save_archive(self, archive: ArchiveEntry):
         """Save archive to database."""
-        import aiosqlite
-        
         async with aiosqlite.connect(self.archive_db_path) as db:
             await db.execute("""
                 INSERT OR REPLACE INTO archives 
@@ -428,8 +433,6 @@ class ArchiveSystemPlugin:
     
     async def _save_archive_version(self, version: ArchiveVersion):
         """Save archive version to database."""
-        import aiosqlite
-        
         async with aiosqlite.connect(self.archive_db_path) as db:
             await db.execute("""
                 INSERT OR REPLACE INTO archive_versions 
@@ -451,8 +454,6 @@ class ArchiveSystemPlugin:
         action: str, success: bool, details: str, ip_address: str = None
     ):
         """Log archive access."""
-        import aiosqlite
-        
         log_id = f"log_{hashlib.sha256(f'{archive_id}_{user_id}_{action}_{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:16]}"
         
         async with aiosqlite.connect(self.archive_db_path) as db:

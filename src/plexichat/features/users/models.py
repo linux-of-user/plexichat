@@ -1,21 +1,23 @@
+import uuid
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Optional
+
+from sqlmodel import JSON, Column
+from sqlmodel import Field as SQLField
+from sqlmodel import Index, SQLModel
+
+
+
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy.sql import func
+
 """
 PlexiChat User Data Models
 
 Consolidated user models from models.py and enhanced_models.py.
 Includes both Pydantic models for API validation and SQLModel for database operations.
 """
-
-import uuid
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, Optional
-
-from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy.sql import func
-from sqlmodel import JSON, Column
-from sqlmodel import Field as SQLField
-from sqlmodel import Index, SQLModel
-
 
 # Enums
 class UserRole(str, Enum):

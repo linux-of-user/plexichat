@@ -1,23 +1,24 @@
-"""
-Anthropic Provider for PlexiChat AI Abstraction Layer
-Enhanced Anthropic Claude integration with advanced features.
-"""
-
 import json
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-try:
     import anthropic
     from anthropic import AsyncAnthropic
+from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
+
+
+"""
+Anthropic Provider for PlexiChat AI Abstraction Layer
+Enhanced Anthropic Claude integration with advanced features.
+"""
+
+try:
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
     anthropic = None
     AsyncAnthropic = None
-
-from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
 logger = logging.getLogger(__name__)
 

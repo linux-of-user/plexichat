@@ -1,3 +1,8 @@
+from .backup_node_auth import BackupNodeAuthManager
+from .backup_node_client import BackupNodeClient, BackupNodeManager
+from .user_message_backup import UniversalBackupManager
+
+
 """
 PlexiChat Unified Backup System - Core Module
 
@@ -26,10 +31,6 @@ Features:
 # Removed: backup_manager.py, shard_manager.py, encryption_manager.py
 # Removed: distribution_manager.py, recovery_manager.py, proxy_manager.py
 # All functionality now provided by ../unified_backup_manager.py
-from .backup_node_auth import BackupNodeAuthManager
-from .backup_node_client import BackupNodeClient, BackupNodeManager
-from .user_message_backup import UniversalBackupManager
-
 __version__ = "3.0.0"
 __all__ = [
     # Note: Core backup managers consolidated into unified system

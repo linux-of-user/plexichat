@@ -1,12 +1,13 @@
+from .models import *
+from .repositories import *
+from .services import *
+
+
 """
 PlexiChat Spaces Feature Package
 
 Reddit-like community spaces with posts, comments, and voting.
 """
-
-from .models import *
-from .repositories import *
-from .services import *
 
 __version__ = "1.0.0"
 __all__ = [

@@ -1,18 +1,21 @@
-"""
-Enhanced Plugin Management API endpoints for PlexiChat.
-Provides comprehensive plugin management with zip installation, security scanning,
-auto-updates, and dashboard functionality.
-"""
-
 import tempfile
 from pathlib import Path
 from typing import Optional
+
+
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
 from plexichat.app.plugins.enhanced_plugin_manager import (
+
+"""
+Enhanced Plugin Management API endpoints for PlexiChat.
+Provides comprehensive plugin management with zip installation, security scanning,
+auto-updates, and dashboard functionality.
+"""
+
     PluginSource,
     PluginStatus,
     get_enhanced_plugin_manager,
@@ -76,7 +79,8 @@ async def install_plugin_from_zip(
         with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_file:
             content = await file.read()
             temp_file.write(content)
-            temp_path = Path(temp_file.name)
+            temp_path = from pathlib import Path
+Path(temp_file.name)
         
         try:
             # Parse source

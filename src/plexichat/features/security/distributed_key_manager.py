@@ -1,11 +1,3 @@
-"""
-NetLink Distributed Key Management System
-
-Implements multiple independent key hierarchies where breaking one key
-doesn't compromise the entire system. Uses threshold cryptography,
-key sharding, and distributed consensus for maximum security.
-"""
-
 import hashlib
 import json
 import logging
@@ -19,6 +11,15 @@ from typing import Any, Dict, List, Optional, Set
 import aiosqlite
 
 from .quantum_encryption import SecurityTier
+
+
+"""
+NetLink Distributed Key Management System
+
+Implements multiple independent key hierarchies where breaking one key
+doesn't compromise the entire system. Uses threshold cryptography,
+key sharding, and distributed consensus for maximum security.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,8 @@ class DistributedKeyManager:
     """
     
     def __init__(self, config_dir: str = "config/security/distributed"):
-        self.config_dir = Path(config_dir)
+        self.config_dir = from pathlib import Path
+Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Database for distributed keys
@@ -120,7 +122,7 @@ class DistributedKeyManager:
         await self._load_distributed_keys()
         await self._initialize_vaults()
         await self._ensure_domain_keys()
-        logger.info("🔐 Distributed key management system initialized")
+        logger.info(" Distributed key management system initialized")
     
     async def _init_database(self):
         """Initialize the distributed keys database."""
@@ -306,7 +308,7 @@ class DistributedKeyManager:
         self.distributed_keys[key_id] = distributed_key
         await self._save_distributed_key(distributed_key)
         
-        logger.info(f"🔑 Created distributed key: {key_id} ({threshold}/{total_shards} scheme)")
+        logger.info(f" Created distributed key: {key_id} ({threshold}/{total_shards} scheme)")
         return distributed_key
     
     def _generate_shamir_shares(self, secret: bytes, threshold: int, total_shares: int) -> List[bytes]:
@@ -393,7 +395,7 @@ class DistributedKeyManager:
                     logger.error(f"Key reconstruction verification failed for {key_id}")
                     return None
 
-            logger.info(f"🔓 Successfully reconstructed key: {key_id}")
+            logger.info(f" Successfully reconstructed key: {key_id}")
             return secret
 
         except Exception as e:
@@ -420,16 +422,16 @@ class DistributedKeyManager:
         compromised_count = sum(1 for v in self.key_vaults.values() if v.is_compromised)
 
         if compromised_count > self.max_compromised_vaults:
-            logger.critical(f"🚨 CRITICAL: Too many vaults compromised ({compromised_count}). System security may be at risk!")
+            logger.critical(f" CRITICAL: Too many vaults compromised ({compromised_count}). System security may be at risk!")
             await self._trigger_emergency_key_rotation()
         else:
-            logger.warning(f"⚠️ Vault {vault_id} marked as compromised. System remains secure ({compromised_count}/{self.max_compromised_vaults} compromised)")
+            logger.warning(f" Vault {vault_id} marked as compromised. System remains secure ({compromised_count}/{self.max_compromised_vaults} compromised)")
 
         await self._save_vault(vault)
 
     async def _trigger_emergency_key_rotation(self):
         """Trigger emergency rotation of all keys."""
-        logger.info("🔄 Triggering emergency key rotation...")
+        logger.info(" Triggering emergency key rotation...")
 
         for key_id, distributed_key in list(self.distributed_keys.items()):
             try:
@@ -450,7 +452,7 @@ class DistributedKeyManager:
                     distributed_key.metadata["rotation_reason"] = "emergency_vault_compromise"
                     await self._save_distributed_key(distributed_key)
 
-                    logger.info(f"🔄 Emergency rotated key: {key_id} -> {new_key.key_id}")
+                    logger.info(f" Emergency rotated key: {key_id} -> {new_key.key_id}")
 
             except Exception as e:
                 logger.error(f"Failed to rotate key {key_id}: {e}")

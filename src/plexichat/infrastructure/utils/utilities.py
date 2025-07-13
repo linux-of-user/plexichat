@@ -1,8 +1,3 @@
-"""
-Common Utilities Module for PlexiChat
-Provides shared functionality to reduce code duplication across the application.
-"""
-
 import hashlib
 import json
 import logging
@@ -14,6 +9,20 @@ from datetime import datetime
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+
+        import secrets
+
+            from pathlib import Path
+        import re
+
+        import re
+        import re
+            import warnings
+
+"""
+Common Utilities Module for PlexiChat
+Provides shared functionality to reduce code duplication across the application.
+"""
 
 T = TypeVar('T')
 
@@ -40,7 +49,8 @@ class ConfigManager:
     """Centralized configuration management."""
     
     def __init__(self, config_file: str = "config/plexichat.json"):
-        self.config_file = Path(config_file)
+        self.config_file = from pathlib import Path
+Path(config_file)
         self.config = {}
         self.lock = threading.RLock()
         self.logger = logging.getLogger(__name__)
@@ -61,8 +71,6 @@ class ConfigManager:
     
     def _create_default_config(self):
         """Create default configuration."""
-        import secrets
-
         self.config = {
             "server": {
                 "host": "0.0.0.0",
@@ -186,7 +194,7 @@ class FileManager:
     def ensure_directory(path: Union[str, Path]) -> bool:
         """Ensure directory exists."""
         try:
-            Path(path).mkdir(parents=True, exist_ok=True)
+Path(path).mkdir(parents=True, exist_ok=True)
             return True
         except Exception:
             return False
@@ -195,7 +203,8 @@ class FileManager:
     def safe_write_file(filepath: Union[str, Path], content: Union[str, bytes], backup: bool = True) -> Result[str]:
         """Safely write file with optional backup."""
         try:
-            filepath = Path(filepath)
+            filepath = from pathlib import Path
+Path(filepath)
             
             # Create backup if requested and file exists
             if backup and filepath.exists():
@@ -219,7 +228,8 @@ class FileManager:
     def safe_read_file(filepath: Union[str, Path], binary: bool = False) -> Result[Union[str, bytes]]:
         """Safely read file."""
         try:
-            filepath = Path(filepath)
+            filepath = from pathlib import Path
+Path(filepath)
             
             if not filepath.exists():
                 return Result.error_result("File not found", "FILE_NOT_FOUND")
@@ -237,7 +247,8 @@ class FileManager:
     def get_file_info(filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Get file information."""
         try:
-            filepath = Path(filepath)
+            filepath = from pathlib import Path
+Path(filepath)
             if not filepath.exists():
                 return None
             
@@ -259,12 +270,14 @@ class DateTimeUtils:
     @staticmethod
     def now() -> datetime:
         """Get current datetime."""
-        return datetime.now()
+        return from datetime import datetime
+datetime.now()
     
     @staticmethod
     def utc_now() -> datetime:
         """Get current UTC datetime."""
-        return datetime.utcnow()
+        return from datetime import datetime
+datetime.utcnow()
     
     @staticmethod
     def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
@@ -282,7 +295,8 @@ class DateTimeUtils:
     @staticmethod
     def time_ago(dt: datetime) -> str:
         """Get human-readable time ago string."""
-        now = datetime.now()
+        now = from datetime import datetime
+datetime.now()
         diff = now - dt
         
         if diff.days > 0:
@@ -333,8 +347,6 @@ class StringUtils:
     @staticmethod
     def sanitize_filename(filename: str) -> str:
         """Sanitize filename for safe filesystem use."""
-        import re
-
         # Remove or replace invalid characters
         sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
         # Remove leading/trailing spaces and dots
@@ -357,14 +369,12 @@ class ValidationUtils:
     @staticmethod
     def is_valid_email(email: str) -> bool:
         """Validate email format."""
-        import re
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return re.match(pattern, email) is not None
     
     @staticmethod
     def is_valid_url(url: str) -> bool:
         """Validate URL format."""
-        import re
         pattern = r'^https?://(?:[-\w.])+(?:\:[0-9]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:[\w.])*)?)?$'
         return re.match(pattern, url) is not None
     
@@ -461,7 +471,6 @@ def deprecated(reason: str = ""):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            import warnings
             warnings.warn(
                 f"{func.__name__} is deprecated. {reason}",
                 DeprecationWarning,

@@ -1,9 +1,3 @@
-"""
-PlexiChat Permission Overwrite Repository
-
-Data access layer for channel-specific permission overrides.
-"""
-
 from typing import Any, Dict, List, Optional
 
 from ....core_system.database.dao.base_dao import BaseDAO, FilterCriteria
@@ -12,6 +6,13 @@ from ....core_system.database.repository.base_repository import BaseRepository
 from ..models.permission_overwrite import OverwriteType, PermissionOverwrite
 from ..models.role import Permissions
 
+
+
+"""
+PlexiChat Permission Overwrite Repository
+
+Data access layer for channel-specific permission overrides.
+"""
 
 class PermissionOverwriteRepository(BaseRepository[PermissionOverwrite, Dict[str, Any], Dict[str, Any]]):
     """

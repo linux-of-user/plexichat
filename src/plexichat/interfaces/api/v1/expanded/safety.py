@@ -1,16 +1,18 @@
-"""
-PlexiChat Safety and Moderation API
-Comprehensive safety features including reporting, moderation, and automated content filtering
-"""
-
 import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
+
+"""
+PlexiChat Safety and Moderation API
+Comprehensive safety features including reporting, moderation, and automated content filtering
+"""
 
 logger = logging.getLogger(__name__)
 

@@ -1,22 +1,23 @@
+from typing import Any, Dict, List, Optional
+
+from ....core_system.database.dao.base_dao import (
+from ....core_system.database.engines import get_session
+from ....core_system.database.repository.base_repository import BaseRepository
+from ..models.channel import Channel, ChannelType
+
+
+
 """
 PlexiChat Channel Repository
 
 Data access layer for Discord-like channels with business logic.
 """
 
-from typing import Any, Dict, List, Optional
-
-from ....core_system.database.dao.base_dao import (
     BaseDAO,
     FilterCriteria,
     PaginationParams,
     SortCriteria,
 )
-from ....core_system.database.engines import get_session
-from ....core_system.database.repository.base_repository import BaseRepository
-from ..models.channel import Channel, ChannelType
-
-
 class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]]):
     """
     Channel repository with Discord-like channel management.
@@ -165,7 +166,8 @@ class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]])
     # Business logic methods
     
     async def create_channel_with_defaults(self, channel_data: Dict[str, Any]) -> Channel:
-        """Create channel with default settings."""
+        """Create channel with default from plexichat.core.config import settings
+settings."""
         # Set default position if not provided
         if "position" not in channel_data:
             channel_data["position"] = await self.get_next_position(

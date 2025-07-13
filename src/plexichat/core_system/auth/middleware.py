@@ -1,14 +1,20 @@
-"""
-PlexiChat Authentication Middleware
-
-Middleware for web frameworks to handle authentication automatically.
-"""
-
 import logging
 from typing import Any, Callable, Dict, Optional
 
 from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
+
+            from flask import g, request  # type: ignore
+                import asyncio
+                        from flask import jsonify  # type: ignore
+
+                    from fastapi import HTTPException
+
+"""
+PlexiChat Authentication Middleware
+
+Middleware for web frameworks to handle authentication automatically.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +110,6 @@ class FlaskAuthMiddleware:
     def before_request(self):
         """Flask before_request handler."""
         try:
-            from flask import g, request  # type: ignore
         except ImportError:
             # Flask not available, skip Flask-specific functionality
             return
@@ -126,7 +131,6 @@ class FlaskAuthMiddleware:
         
         if token:
             try:
-                import asyncio
                 loop = asyncio.get_event_loop()
                 g.auth_context = loop.run_until_complete(
                     auth_manager.require_authentication(token, "BASIC")
@@ -135,7 +139,6 @@ class FlaskAuthMiddleware:
             except (AuthenticationError, AuthorizationError):
                 if self.config.get("require_auth_by_default", False):
                     try:
-                        from flask import jsonify  # type: ignore
                         return jsonify({"error": "Authentication failed"}), 401
                     except ImportError:
                         # Flask not available, return None
@@ -168,7 +171,6 @@ class FastAPIAuthMiddleware:
                 auth_context = await auth_manager.require_authentication(token, "BASIC")
             except (AuthenticationError, AuthorizationError):
                 if self.config.get("require_auth_by_default", False):
-                    from fastapi import HTTPException
                     raise HTTPException(status_code=401, detail="Authentication failed")
         
         # Add to request state

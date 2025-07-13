@@ -1,8 +1,3 @@
-"""
-PlexiChat Ultimate CLI - Core System Commands
-Essential system operations and management commands
-"""
-
 import asyncio
 import logging
 import os
@@ -11,7 +6,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import psutil
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -19,6 +13,15 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
+
+            import json
+
+import psutil
+
+"""
+PlexiChat Ultimate CLI - Core System Commands
+Essential system operations and management commands
+"""
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -30,7 +33,7 @@ async def cmd_status(detailed: bool = False, json_output: bool = False):
     """Show comprehensive system status."""
     try:
         if detailed:
-            console.print("🔍 Gathering detailed system information...")
+            console.print(" Gathering detailed system information...")
         
         # System information
         system_info = {
@@ -39,12 +42,20 @@ async def cmd_status(detailed: bool = False, json_output: bool = False):
             "architecture": platform.architecture()[0],
             "hostname": platform.node(),
             "python_version": platform.python_version(),
-            "cpu_count": psutil.cpu_count(),
-            "memory_total": psutil.virtual_memory().total,
-            "memory_available": psutil.virtual_memory().available,
-            "disk_usage": psutil.disk_usage('/').percent if os.name != 'nt' else psutil.disk_usage('C:').percent,
-            "uptime": datetime.now() - datetime.fromtimestamp(psutil.boot_time()),
-            "load_average": psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
+            "cpu_count": import psutil
+psutil.cpu_count(),
+            "memory_total": import psutil
+psutil.virtual_memory().total,
+            "memory_available": import psutil
+psutil.virtual_memory().available,
+            "disk_usage": import psutil
+psutil.disk_usage('/').percent if os.name != 'nt' else import psutil
+psutil.disk_usage('C:').percent,
+            "uptime": from datetime import datetime
+datetime.now() - datetime.fromtimestamp(import psutil
+psutil.boot_time()),
+            "load_average": import psutil
+psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
         }
         
         # PlexiChat specific status
@@ -52,22 +63,22 @@ async def cmd_status(detailed: bool = False, json_output: bool = False):
             "version": "3.0.0",
             "status": "running",
             "pid": os.getpid(),
-            "start_time": datetime.now().isoformat(),
+            "start_time": from datetime import datetime
+datetime.now().isoformat(),
             "config_loaded": True,
             "database_connected": True,
             "services_running": ["api", "websocket", "background_tasks"]
         }
         
         if json_output:
-            import json
             result = {"system": system_info, "plexichat": plexichat_status}
             console.print(json.dumps(result, indent=2, default=str))
         else:
             # Display formatted status
-            console.print(Panel("🚀 PlexiChat System Status", style="bold green"))
+            console.print(Panel(" PlexiChat System Status", style="bold green"))
             
             # System table
-            system_table = Table(title="💻 System Information")
+            system_table = Table(title=" System Information")
             system_table.add_column("Property", style="cyan")
             system_table.add_column("Value", style="white")
             
@@ -83,22 +94,22 @@ async def cmd_status(detailed: bool = False, json_output: bool = False):
             console.print(system_table)
             
             # PlexiChat table
-            plexichat_table = Table(title="🎯 PlexiChat Status")
+            plexichat_table = Table(title=" PlexiChat Status")
             plexichat_table.add_column("Component", style="cyan")
             plexichat_table.add_column("Status", style="green")
             
             plexichat_table.add_row("Version", plexichat_status['version'])
-            plexichat_table.add_row("Status", "🟢 Running")
+            plexichat_table.add_row("Status", " Running")
             plexichat_table.add_row("Process ID", str(plexichat_status['pid']))
-            plexichat_table.add_row("Database", "🟢 Connected")
-            plexichat_table.add_row("Services", "🟢 " + ", ".join(plexichat_status['services_running']))
+            plexichat_table.add_row("Database", " Connected")
+            plexichat_table.add_row("Services", " " + ", ".join(plexichat_status['services_running']))
             
             console.print(plexichat_table)
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get system status: {e}[/red]")
+        console.print(f"[red] Failed to get system status: {e}[/red]")
         return False
 
 
@@ -114,7 +125,7 @@ async def cmd_version(check_updates: bool = False):
             "platform": platform.system()
         }
         
-        console.print(Panel("📋 Version Information", style="bold blue"))
+        console.print(Panel(" Version Information", style="bold blue"))
         
         table = Table()
         table.add_column("Property", style="cyan")
@@ -130,21 +141,21 @@ async def cmd_version(check_updates: bool = False):
         console.print(table)
         
         if check_updates:
-            console.print("\n🔍 Checking for updates...")
+            console.print("\n Checking for updates...")
             # This would check for actual updates
-            console.print("[green]✅ You are running the latest version[/green]")
+            console.print("[green] You are running the latest version[/green]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get version information: {e}[/red]")
+        console.print(f"[red] Failed to get version information: {e}[/red]")
         return False
 
 
 async def cmd_health(component: Optional[str] = None):
     """Perform comprehensive health checks."""
     try:
-        console.print("🏥 Performing health checks...")
+        console.print(" Performing health checks...")
         
         components = {
             "database": {"status": "healthy", "response_time": "5ms"},
@@ -160,23 +171,23 @@ async def cmd_health(component: Optional[str] = None):
         if component:
             if component in components:
                 comp_info = components[component]
-                console.print(f"🔍 Health check for {component}:")
+                console.print(f" Health check for {component}:")
                 for key, value in comp_info.items():
                     console.print(f"  {key}: {value}")
             else:
-                console.print(f"[red]❌ Unknown component: {component}[/red]")
+                console.print(f"[red] Unknown component: {component}[/red]")
                 console.print(f"Available components: {', '.join(components.keys())}")
                 return False
         else:
             # Show all components
-            table = Table(title="🏥 System Health Check")
+            table = Table(title=" System Health Check")
             table.add_column("Component", style="cyan")
             table.add_column("Status", style="green")
             table.add_column("Details", style="white")
             
             for comp_name, comp_info in components.items():
                 status = comp_info.get("status", "unknown")
-                status_icon = "🟢" if status == "healthy" else "🔴"
+                status_icon = "" if status == "healthy" else ""
                 
                 details = []
                 for key, value in comp_info.items():
@@ -194,7 +205,7 @@ async def cmd_health(component: Optional[str] = None):
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Health check failed: {e}[/red]")
+        console.print(f"[red] Health check failed: {e}[/red]")
         return False
 
 
@@ -202,35 +213,35 @@ async def cmd_restart(component: Optional[str] = None, force: bool = False):
     """Restart system or specific components."""
     try:
         if not force:
-            if not Confirm.ask("⚠️ Are you sure you want to restart?"):
+            if not Confirm.ask(" Are you sure you want to restart?"):
                 console.print("[yellow]Restart cancelled[/yellow]")
                 return True
         
         if component:
-            console.print(f"🔄 Restarting component: {component}")
+            console.print(f" Restarting component: {component}")
             # Component-specific restart logic would go here
-            console.print(f"[green]✅ Component {component} restarted successfully[/green]")
+            console.print(f"[green] Component {component} restarted successfully[/green]")
         else:
-            console.print("🔄 Restarting PlexiChat system...")
+            console.print(" Restarting PlexiChat system...")
             # Full system restart logic would go here
-            console.print("[green]✅ System restart initiated[/green]")
+            console.print("[green] System restart initiated[/green]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Restart failed: {e}[/red]")
+        console.print(f"[red] Restart failed: {e}[/red]")
         return False
 
 
 async def cmd_shutdown(graceful: bool = True, timeout: int = 30):
     """Shutdown the system gracefully or forcefully."""
     try:
-        if not Confirm.ask("⚠️ Are you sure you want to shutdown PlexiChat?"):
+        if not Confirm.ask(" Are you sure you want to shutdown PlexiChat?"):
             console.print("[yellow]Shutdown cancelled[/yellow]")
             return True
         
         if graceful:
-            console.print(f"🛑 Initiating graceful shutdown (timeout: {timeout}s)...")
+            console.print(f" Initiating graceful shutdown (timeout: {timeout}s)...")
             
             with Progress(
                 SpinnerColumn(),
@@ -249,15 +260,15 @@ async def cmd_shutdown(graceful: bool = True, timeout: int = 30):
                 await asyncio.sleep(1)
                 progress.update(task, description="Cleanup complete")
             
-            console.print("[green]✅ Graceful shutdown completed[/green]")
+            console.print("[green] Graceful shutdown completed[/green]")
         else:
-            console.print("🛑 Forcing immediate shutdown...")
-            console.print("[yellow]⚠️ Forced shutdown completed[/yellow]")
+            console.print(" Forcing immediate shutdown...")
+            console.print("[yellow] Forced shutdown completed[/yellow]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Shutdown failed: {e}[/red]")
+        console.print(f"[red] Shutdown failed: {e}[/red]")
         return False
 
 
@@ -280,10 +291,10 @@ async def cmd_config_get(key: Optional[str] = None):
             if key in config:
                 console.print(f"{key}: {config[key]}")
             else:
-                console.print(f"[red]❌ Configuration key not found: {key}[/red]")
+                console.print(f"[red] Configuration key not found: {key}[/red]")
                 return False
         else:
-            table = Table(title="⚙️ Configuration")
+            table = Table(title=" Configuration")
             table.add_column("Key", style="cyan")
             table.add_column("Value", style="white")
             
@@ -295,32 +306,32 @@ async def cmd_config_get(key: Optional[str] = None):
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get configuration: {e}[/red]")
+        console.print(f"[red] Failed to get configuration: {e}[/red]")
         return False
 
 
 async def cmd_config_set(key: str, value: str):
     """Set configuration values."""
     try:
-        console.print(f"⚙️ Setting configuration: {key} = {value}")
+        console.print(f" Setting configuration: {key} = {value}")
         
         # Configuration validation would go here
         # Actual configuration update would go here
         
-        console.print("[green]✅ Configuration updated successfully[/green]")
-        console.print("[yellow]⚠️ Restart may be required for changes to take effect[/yellow]")
+        console.print("[green] Configuration updated successfully[/green]")
+        console.print("[yellow] Restart may be required for changes to take effect[/yellow]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to set configuration: {e}[/red]")
+        console.print(f"[red] Failed to set configuration: {e}[/red]")
         return False
 
 
 async def cmd_config_validate():
     """Validate current configuration."""
     try:
-        console.print("🔍 Validating configuration...")
+        console.print(" Validating configuration...")
         
         # Mock validation results
         validation_results = [
@@ -331,17 +342,17 @@ async def cmd_config_validate():
             {"key": "security.encryption_key", "status": "valid", "message": "Strong encryption key"},
         ]
         
-        table = Table(title="✅ Configuration Validation")
+        table = Table(title=" Configuration Validation")
         table.add_column("Key", style="cyan")
         table.add_column("Status", style="white")
         table.add_column("Message", style="white")
         
         for result in validation_results:
             status_icon = {
-                "valid": "🟢",
-                "warning": "🟡",
-                "error": "🔴"
-            }.get(result["status"], "❓")
+                "valid": "",
+                "warning": "",
+                "error": ""
+            }.get(result["status"], "")
             
             table.add_row(
                 result["key"],
@@ -356,44 +367,49 @@ async def cmd_config_validate():
         warning_count = sum(1 for r in validation_results if r["status"] == "warning")
         error_count = sum(1 for r in validation_results if r["status"] == "error")
         
-        console.print(f"\n📊 Summary: {valid_count} valid, {warning_count} warnings, {error_count} errors")
+        console.print(f"\n Summary: {valid_count} valid, {warning_count} warnings, {error_count} errors")
         
         return error_count == 0
         
     except Exception as e:
-        console.print(f"[red]❌ Configuration validation failed: {e}[/red]")
+        console.print(f"[red] Configuration validation failed: {e}[/red]")
         return False
 
 
 async def cmd_info():
     """Show comprehensive system information."""
     try:
-        console.print(Panel("ℹ️ PlexiChat System Information", style="bold blue"))
+        console.print(Panel(" PlexiChat System Information", style="bold blue"))
         
         # System info
-        console.print("\n💻 System:")
+        console.print("\n System:")
         console.print(f"  OS: {platform.system()} {platform.release()}")
         console.print(f"  Architecture: {platform.architecture()[0]}")
         console.print(f"  Hostname: {platform.node()}")
         console.print(f"  Python: {platform.python_version()}")
         
         # Hardware info
-        console.print("\n🔧 Hardware:")
-        console.print(f"  CPU Cores: {psutil.cpu_count()}")
-        console.print(f"  Memory: {psutil.virtual_memory().total // (1024**3)} GB")
-        console.print(f"  Disk: {psutil.disk_usage('/').total // (1024**3) if os.name != 'nt' else psutil.disk_usage('C:').total // (1024**3)} GB")
+        console.print("\n Hardware:")
+        console.print(f"  CPU Cores: {import psutil
+psutil.cpu_count()}")
+        console.print(f"  Memory: {import psutil
+psutil.virtual_memory().total // (1024**3)} GB")
+        console.print(f"  Disk: {import psutil
+psutil.disk_usage('/').total // (1024**3) if os.name != 'nt' else import psutil
+psutil.disk_usage('C:').total // (1024**3)} GB")
         
         # PlexiChat info
-        console.print("\n🚀 PlexiChat:")
+        console.print("\n PlexiChat:")
         console.print("  Version: 3.0.0")
         console.print(f"  Installation: {Path.cwd()}")
         console.print(f"  Process ID: {os.getpid()}")
-        console.print(f"  Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        console.print(f"  Start Time: {from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get system information: {e}[/red]")
+        console.print(f"[red] Failed to get system information: {e}[/red]")
         return False
 
 
@@ -523,7 +539,7 @@ def register_core_commands():
     for command in commands:
         ultimate_cli.register_command(command)
     
-    console.print("[green]✅ Registered 9 core system commands[/green]")
+    console.print("[green] Registered 9 core system commands[/green]")
 
 
 # Auto-register when module is imported

@@ -1,8 +1,3 @@
-"""
-Common Utilities
-Shared utility functions to reduce code duplication across the codebase.
-"""
-
 import asyncio
 import hashlib
 import logging
@@ -11,6 +6,16 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
+
+        import secrets
+        import bcrypt
+        
+        import bcrypt
+
+"""
+Common Utilities
+Shared utility functions to reduce code duplication across the codebase.
+"""
 
 logger = logging.getLogger("plexichat.utils.common")
 
@@ -82,14 +87,11 @@ class SecurityUtils:
     @staticmethod
     def generate_secure_token(length: int = 32) -> str:
         """Generate secure random token."""
-        import secrets
         return secrets.token_urlsafe(length)
     
     @staticmethod
     def hash_password(password: str, salt: str = None) -> Dict[str, str]:
         """Hash password with salt."""
-        import bcrypt
-        
         if salt is None:
             salt = bcrypt.gensalt()
         elif isinstance(salt, str):
@@ -105,7 +107,6 @@ class SecurityUtils:
     @staticmethod
     def verify_password(password: str, hashed: str) -> bool:
         """Verify password against hash."""
-        import bcrypt
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     
     @staticmethod
@@ -137,7 +138,8 @@ class DateTimeUtils:
     @staticmethod
     def now_iso() -> str:
         """Get current datetime in ISO format."""
-        return datetime.now().isoformat()
+        return from datetime import datetime
+datetime.now().isoformat()
     
     @staticmethod
     def parse_iso(iso_string: str) -> Optional[datetime]:
@@ -150,7 +152,8 @@ class DateTimeUtils:
     @staticmethod
     def format_relative_time(dt: datetime) -> str:
         """Format datetime as relative time (e.g., '2 hours ago')."""
-        now = datetime.now()
+        now = from datetime import datetime
+datetime.now()
         if dt.tzinfo is not None:
             now = now.replace(tzinfo=dt.tzinfo)
         
@@ -170,7 +173,8 @@ class DateTimeUtils:
     @staticmethod
     def is_expired(dt: datetime, ttl_seconds: int) -> bool:
         """Check if datetime is expired based on TTL."""
-        now = datetime.now()
+        now = from datetime import datetime
+datetime.now()
         if dt.tzinfo is not None:
             now = now.replace(tzinfo=dt.tzinfo)
         
@@ -182,7 +186,8 @@ class FileUtils:
     @staticmethod
     def ensure_directory(path: Union[str, Path]) -> Path:
         """Ensure directory exists."""
-        path = Path(path)
+        path = from pathlib import Path
+Path(path)
         path.mkdir(parents=True, exist_ok=True)
         return path
     

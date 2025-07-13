@@ -1,3 +1,10 @@
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
+
 """
 PlexiChat Advanced Group Management System
 
@@ -9,12 +16,6 @@ Comprehensive group management with Discord/Telegram/WhatsApp Business features:
 - Automated moderation and bots
 - Group analytics and insights
 """
-
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,8 @@ class GroupType(Enum):
 
 
 class GroupVisibility(Enum):
-    """Group visibility settings."""
+    """Group visibility from plexichat.core.config import settings
+settings."""
     PUBLIC = "public"
     PRIVATE = "private"
     INVITE_ONLY = "invite_only"
@@ -331,10 +333,14 @@ class AdvancedGroup:
             "online_members": len(self.get_online_members()),
             "created_at": self.created_at.isoformat(),
             "settings": {
-                "allow_member_invites": self.settings.allow_member_invites,
-                "require_approval": self.settings.require_approval_for_join,
-                "slow_mode_delay": self.settings.slow_mode_delay,
-                "max_members": self.settings.max_members
+                "allow_member_invites": self.from plexichat.core.config import settings
+settings.allow_member_invites,
+                "require_approval": self.from plexichat.core.config import settings
+settings.require_approval_for_join,
+                "slow_mode_delay": self.from plexichat.core.config import settings
+settings.slow_mode_delay,
+                "max_members": self.from plexichat.core.config import settings
+settings.max_members
             },
             "analytics": {
                 "total_messages": self.analytics.total_messages,

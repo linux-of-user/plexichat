@@ -1,16 +1,18 @@
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+from sqlmodel import Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index, Text
+
 """
 PlexiChat Comment Model
 
 Reddit-like comment model for posts with threading support.
 """
-
-from datetime import datetime
-from typing import Any, Dict, Optional
-
-from sqlalchemy import DateTime, Index, Text
-from sqlmodel import Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for comments
 comment_snowflake = SnowflakeGenerator(datacenter_id=2, worker_id=3)

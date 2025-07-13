@@ -1,8 +1,3 @@
-"""
-PlexiChat System Resilience Manager
-Comprehensive system testing, error recovery, and resilience management.
-"""
-
 import asyncio
 import subprocess
 import sys
@@ -14,10 +9,40 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+
+
+
+            import aiohttp
+
+                from pathlib import Path
+                from pathlib import Path
+                from pathlib import Path
+                from pathlib import Path
+                from pathlib import Path
+            import socket
+
+            import shutil
+            import tempfile
+            import socket
+            import gc
+
 import psutil
 
 from plexichat.app.logger_config import logger
+                from plexichat.app.db.enhanced_database_manager import EnhancedDatabaseManager
+                    from plexichat.app.db.database_manager import DatabaseManager
+                from plexichat.core.security.government_auth import government_auth
+                from plexichat.plugins.plugin_manager import PluginManager
+            from plexichat.app.core.bug_fixes import BugFixRegistry
+            from plexichat.app.db import engine
+            from plexichat.app.models import Base
+            from plexichat.app.core.bug_fixes import BugFixRegistry
+            from plexichat.app.core.bug_fixes import BugFixRegistry
 
+"""
+PlexiChat System Resilience Manager
+Comprehensive system testing, error recovery, and resilience management.
+"""
 
 class SystemStatus(Enum):
     """System status levels."""
@@ -74,7 +99,8 @@ class SystemResilienceManager:
     """Comprehensive system resilience and recovery manager."""
     
     def __init__(self):
-        self.start_time = datetime.now()
+        self.start_time = from datetime import datetime
+datetime.now()
         self.checks_history: List[SystemCheck] = []
         self.recovery_functions: Dict[ComponentType, List[Callable]] = {}
         self.monitoring_enabled = True
@@ -94,7 +120,8 @@ class SystemResilienceManager:
             failed_checks=0,
             recovery_attempts=0,
             successful_recoveries=0,
-            last_check=datetime.now(),
+            last_check=from datetime import datetime
+datetime.now(),
             system_load={}
         )
     
@@ -154,7 +181,7 @@ class SystemResilienceManager:
     
     async def run_comprehensive_check(self) -> Dict[str, Any]:
         """Run comprehensive system check."""
-        logger.info("🔍 Starting comprehensive system check...")
+        logger.info(" Starting comprehensive system check...")
         
         checks = []
         start_time = time.time()
@@ -181,7 +208,8 @@ class SystemResilienceManager:
                     status=SystemStatus.FAILED,
                     message=f"Check failed with exception: {str(e)}",
                     details={"error": str(e), "traceback": traceback.format_exc()},
-                    timestamp=datetime.now(),
+                    timestamp=from datetime import datetime
+datetime.now(),
                     error=str(e)
                 )
                 checks.append(error_check)
@@ -198,7 +226,8 @@ class SystemResilienceManager:
         
         # Generate report
         report = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.now().isoformat(),
             "duration_seconds": check_duration,
             "overall_status": self._determine_overall_status(checks),
             "checks": [asdict(check) for check in checks],
@@ -206,7 +235,7 @@ class SystemResilienceManager:
             "recommendations": self._generate_recommendations(checks)
         }
         
-        logger.info(f"✅ System check completed in {check_duration:.2f}s")
+        logger.info(f" System check completed in {check_duration:.2f}s")
         return report
     
     async def _check_component(self, component: ComponentType) -> SystemCheck:
@@ -240,7 +269,8 @@ class SystemResilienceManager:
                     status=SystemStatus.WARNING,
                     message="Unknown component type",
                     details={},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
                 
         except Exception as e:
@@ -249,7 +279,8 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Component check failed: {str(e)}",
                 details={"error": str(e), "traceback": traceback.format_exc()},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
@@ -259,11 +290,9 @@ class SystemResilienceManager:
             # Try multiple database manager imports
             db_manager = None
             try:
-                from plexichat.app.db.enhanced_database_manager import EnhancedDatabaseManager
                 db_manager = EnhancedDatabaseManager()
             except ImportError:
                 try:
-                    from plexichat.app.db.database_manager import DatabaseManager
                     db_manager = DatabaseManager()
                 except ImportError:
                     pass
@@ -274,7 +303,8 @@ class SystemResilienceManager:
                     status=SystemStatus.CRITICAL,
                     message="Database manager not available",
                     details={"error": "No database manager found"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
             # Test connection
@@ -289,7 +319,8 @@ class SystemResilienceManager:
                     status=SystemStatus.HEALTHY,
                     message="Database connection successful",
                     details={"connection": "active"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -297,7 +328,8 @@ class SystemResilienceManager:
                     status=SystemStatus.CRITICAL,
                     message="Database connection failed",
                     details={"connection": "failed"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
         except Exception as e:
@@ -306,15 +338,14 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Database check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
     async def _check_api(self) -> SystemCheck:
         """Check API endpoints health."""
         try:
-            import aiohttp
-
             # Test basic API endpoints
             endpoints_to_test = [
                 "http://localhost:8000/",
@@ -331,7 +362,7 @@ class SystemResilienceManager:
                         async with session.get(endpoint) as response:
                             if response.status < 500:
                                 working_endpoints += 1
-                    except:
+                    except Exception:
                         pass
 
             if working_endpoints == total_endpoints:
@@ -353,7 +384,8 @@ class SystemResilienceManager:
                     "total_endpoints": total_endpoints,
                     "endpoints_tested": endpoints_to_test
                 },
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
 
         except ImportError:
@@ -362,7 +394,8 @@ class SystemResilienceManager:
                 status=SystemStatus.WARNING,
                 message="aiohttp not available for API testing",
                 details={"error": "Missing aiohttp dependency"},
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
         except Exception as e:
             return SystemCheck(
@@ -370,7 +403,8 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"API check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
@@ -389,7 +423,8 @@ class SystemResilienceManager:
                     status=SystemStatus.HEALTHY,
                     message="WebSocket handler available",
                     details={"handler": "available"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -397,7 +432,8 @@ class SystemResilienceManager:
                     status=SystemStatus.WARNING,
                     message="WebSocket handler not available",
                     details={"handler": "missing"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
         except Exception as e:
@@ -406,7 +442,8 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"WebSocket check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
@@ -415,7 +452,6 @@ class SystemResilienceManager:
         try:
             # Check if auth system is available
             try:
-                from plexichat.core.security.government_auth import government_auth
                 auth_available = government_auth is not None
             except ImportError:
                 auth_available = False
@@ -426,7 +462,8 @@ class SystemResilienceManager:
                     status=SystemStatus.HEALTHY,
                     message="Authentication system available",
                     details={"auth_system": "available"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -434,7 +471,8 @@ class SystemResilienceManager:
                     status=SystemStatus.CRITICAL,
                     message="Authentication system not available",
                     details={"auth_system": "missing"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
         except Exception as e:
@@ -443,7 +481,8 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Authentication check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
@@ -452,11 +491,11 @@ class SystemResilienceManager:
         try:
             # Check critical directories
             critical_dirs = [
-                Path("data"),
-                Path("logs"),
-                Path("config"),
-                Path("backups"),
-                Path("plugins")
+Path("data"),
+Path("logs"),
+Path("config"),
+Path("backups"),
+Path("plugins")
             ]
 
             missing_dirs = []
@@ -480,7 +519,8 @@ class SystemResilienceManager:
                     status=SystemStatus.HEALTHY,
                     message="Filesystem healthy",
                     details={"directories": "all_present", "permissions": "ok"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
             elif missing_dirs:
                 return SystemCheck(
@@ -488,7 +528,8 @@ class SystemResilienceManager:
                     status=SystemStatus.WARNING,
                     message=f"Missing directories: {missing_dirs}",
                     details={"missing_dirs": missing_dirs, "permission_issues": permission_issues},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -496,7 +537,8 @@ class SystemResilienceManager:
                     status=SystemStatus.CRITICAL,
                     message=f"Permission issues: {permission_issues}",
                     details={"permission_issues": permission_issues},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
         except Exception as e:
@@ -505,21 +547,20 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Filesystem check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
     async def _check_network(self) -> SystemCheck:
         """Check network connectivity."""
         try:
-            import socket
-
             # Test local connectivity
             local_tests = []
             try:
                 socket.create_connection(("127.0.0.1", 8000), timeout=5)
                 local_tests.append("localhost:8000")
-            except:
+            except Exception:
                 pass
 
             # Test external connectivity
@@ -530,7 +571,7 @@ class SystemResilienceManager:
                 try:
                     socket.create_connection((host, port), timeout=5)
                     external_tests.append(f"{host}:{port}")
-                except:
+                except Exception:
                     pass
 
             if local_tests and external_tests:
@@ -554,7 +595,8 @@ class SystemResilienceManager:
                     "local_tests": local_tests,
                     "external_tests": external_tests
                 },
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
 
         except Exception as e:
@@ -563,14 +605,16 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Network check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
     async def _check_memory(self) -> SystemCheck:
         """Check memory usage."""
         try:
-            memory = psutil.virtual_memory()
+            memory = import psutil
+psutil.virtual_memory()
 
             memory_percent = memory.percent
             available_gb = memory.available / (1024**3)
@@ -594,7 +638,8 @@ class SystemResilienceManager:
                     "available_gb": available_gb,
                     "total_gb": memory.total / (1024**3)
                 },
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
 
         except Exception as e:
@@ -603,16 +648,20 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Memory check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
     async def _check_cpu(self) -> SystemCheck:
         """Check CPU usage."""
         try:
-            cpu_percent = psutil.cpu_percent(interval=1)
-            cpu_count = psutil.cpu_count()
-            load_avg = psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
+            cpu_count = import psutil
+psutil.cpu_count()
+            load_avg = import psutil
+psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
 
             if cpu_percent < 70:
                 status = SystemStatus.HEALTHY
@@ -637,7 +686,8 @@ class SystemResilienceManager:
                 status=status,
                 message=message,
                 details=details,
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
 
         except Exception as e:
@@ -646,7 +696,8 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"CPU check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
@@ -655,7 +706,6 @@ class SystemResilienceManager:
         try:
             # Check if plugin manager is available
             try:
-                from plexichat.plugins.plugin_manager import PluginManager
                 PluginManager()
                 plugins_available = True
             except ImportError:
@@ -667,18 +717,21 @@ class SystemResilienceManager:
                     status=SystemStatus.WARNING,
                     message="Plugin system not available",
                     details={"plugin_manager": "missing"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
             # Check plugin directory
-            plugin_dir = Path("plugins")
+            plugin_dir = from pathlib import Path
+Path("plugins")
             if not plugin_dir.exists():
                 return SystemCheck(
                     component=ComponentType.PLUGINS,
                     status=SystemStatus.WARNING,
                     message="Plugin directory missing",
                     details={"plugin_dir": "missing"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
             return SystemCheck(
@@ -686,7 +739,8 @@ class SystemResilienceManager:
                 status=SystemStatus.HEALTHY,
                 message="Plugin system available",
                 details={"plugin_manager": "available", "plugin_dir": "exists"},
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
 
         except Exception as e:
@@ -695,7 +749,8 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Plugin check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
@@ -714,18 +769,21 @@ class SystemResilienceManager:
                     status=SystemStatus.WARNING,
                     message="Backup system not available",
                     details={"backup_manager": "missing"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
             # Check backup directory
-            backup_dir = Path("backups")
+            backup_dir = from pathlib import Path
+Path("backups")
             if not backup_dir.exists():
                 return SystemCheck(
                     component=ComponentType.BACKUP,
                     status=SystemStatus.WARNING,
                     message="Backup directory missing",
                     details={"backup_dir": "missing"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
             return SystemCheck(
@@ -733,7 +791,8 @@ class SystemResilienceManager:
                 status=SystemStatus.HEALTHY,
                 message="Backup system available",
                 details={"backup_manager": "available", "backup_dir": "exists"},
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
 
         except Exception as e:
@@ -742,7 +801,8 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Backup check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
@@ -761,7 +821,8 @@ class SystemResilienceManager:
                     status=SystemStatus.WARNING,
                     message="Clustering system not available",
                     details={"cluster_manager": "missing"},
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
 
             return SystemCheck(
@@ -769,7 +830,8 @@ class SystemResilienceManager:
                 status=SystemStatus.HEALTHY,
                 message="Clustering system available",
                 details={"cluster_manager": "available"},
-                timestamp=datetime.now()
+                timestamp=from datetime import datetime
+datetime.now()
             )
 
         except Exception as e:
@@ -778,13 +840,14 @@ class SystemResilienceManager:
                 status=SystemStatus.FAILED,
                 message=f"Clustering check failed: {str(e)}",
                 details={"error": str(e)},
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 error=str(e)
             )
 
     async def _attempt_recovery(self, component: ComponentType, check: SystemCheck) -> bool:
         """Attempt to recover a failed component."""
-        logger.info(f"🔧 Attempting recovery for {component.value}...")
+        logger.info(f" Attempting recovery for {component.value}...")
 
         recovery_functions = self.recovery_functions.get(component, [])
 
@@ -792,19 +855,21 @@ class SystemResilienceManager:
             try:
                 success = await recovery_func() if asyncio.iscoroutinefunction(recovery_func) else recovery_func()
                 if success:
-                    logger.info(f"✅ Recovery successful for {component.value}")
+                    logger.info(f" Recovery successful for {component.value}")
                     return True
             except Exception as e:
-                logger.warning(f"⚠️ Recovery function failed for {component.value}: {e}")
+                logger.warning(f" Recovery function failed for {component.value}: {e}")
 
-        logger.error(f"❌ All recovery attempts failed for {component.value}")
+        logger.error(f" All recovery attempts failed for {component.value}")
         return False
 
     def _update_metrics(self, checks: List[SystemCheck]):
         """Update system metrics based on checks."""
-        self.metrics.uptime_seconds = (datetime.now() - self.start_time).total_seconds()
+        self.metrics.uptime_seconds = (from datetime import datetime
+datetime.now() - self.start_time).total_seconds()
         self.metrics.total_checks += len(checks)
-        self.metrics.last_check = datetime.now()
+        self.metrics.last_check = from datetime import datetime
+datetime.now()
 
         for check in checks:
             if check.status == SystemStatus.HEALTHY:
@@ -819,11 +884,14 @@ class SystemResilienceManager:
         # Update system load
         try:
             self.metrics.system_load = {
-                "cpu_percent": psutil.cpu_percent(),
-                "memory_percent": psutil.virtual_memory().percent,
-                "disk_percent": psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
+                "cpu_percent": import psutil
+psutil.cpu_percent(),
+                "memory_percent": import psutil
+psutil.virtual_memory().percent,
+                "disk_percent": import psutil
+psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
             }
-        except:
+        except Exception:
             pass
 
     def _determine_overall_status(self, checks: List[SystemCheck]) -> str:
@@ -868,7 +936,6 @@ class SystemResilienceManager:
         """Attempt to recover database connection."""
         try:
             # Apply database fixes from bug_fixes.py
-            from plexichat.app.core.bug_fixes import BugFixRegistry
             bug_fixes = BugFixRegistry()
             return bug_fixes._fix_database_connections()
         except Exception as e:
@@ -878,8 +945,6 @@ class SystemResilienceManager:
     async def _recreate_database_tables(self) -> bool:
         """Recreate database tables if needed."""
         try:
-            from plexichat.app.db import engine
-            from plexichat.app.models import Base
             Base.metadata.create_all(bind=engine)
             return True
         except Exception as e:
@@ -967,7 +1032,6 @@ class SystemResilienceManager:
     async def _fix_file_permissions(self) -> bool:
         """Fix file permissions."""
         try:
-            from plexichat.app.core.bug_fixes import BugFixRegistry
             bug_fixes = BugFixRegistry()
             return bug_fixes._fix_file_permissions()
         except Exception as e:
@@ -979,7 +1043,8 @@ class SystemResilienceManager:
         try:
             critical_dirs = ["data", "logs", "config", "backups", "plugins"]
             for dir_name in critical_dirs:
-                dir_path = Path(dir_name)
+                dir_path = from pathlib import Path
+Path(dir_name)
                 dir_path.mkdir(exist_ok=True)
             return True
         except Exception as e:
@@ -989,9 +1054,8 @@ class SystemResilienceManager:
     async def _cleanup_temp_files(self) -> bool:
         """Clean up temporary files."""
         try:
-            import shutil
-            import tempfile
-            temp_dir = Path(tempfile.gettempdir())
+            temp_dir = from pathlib import Path
+Path(tempfile.gettempdir())
             for temp_file in temp_dir.glob("plexichat_*"):
                 if temp_file.is_file():
                     temp_file.unlink()
@@ -1023,7 +1087,6 @@ class SystemResilienceManager:
     async def _test_external_connectivity(self) -> bool:
         """Test external connectivity."""
         try:
-            import socket
             socket.create_connection(("8.8.8.8", 53), timeout=5)
             return True
         except Exception as e:
@@ -1033,7 +1096,6 @@ class SystemResilienceManager:
     async def _garbage_collect(self) -> bool:
         """Force garbage collection."""
         try:
-            import gc
             gc.collect()
             return True
         except Exception as e:
@@ -1130,7 +1192,7 @@ class SystemResilienceManager:
 
     async def start_monitoring(self):
         """Start continuous system monitoring."""
-        logger.info("🔍 Starting continuous system monitoring...")
+        logger.info(" Starting continuous system monitoring...")
         self.monitoring_enabled = True
 
         while self.monitoring_enabled:
@@ -1143,7 +1205,7 @@ class SystemResilienceManager:
 
     def stop_monitoring(self):
         """Stop continuous system monitoring."""
-        logger.info("⏹️ Stopping system monitoring...")
+        logger.info(" Stopping system monitoring...")
         self.monitoring_enabled = False
 
     def get_system_report(self) -> Dict[str, Any]:
@@ -1151,8 +1213,10 @@ class SystemResilienceManager:
         recent_checks = self.checks_history[-50:] if self.checks_history else []
 
         return {
-            "timestamp": datetime.now().isoformat(),
-            "uptime_seconds": (datetime.now() - self.start_time).total_seconds(),
+            "timestamp": from datetime import datetime
+datetime.now().isoformat(),
+            "uptime_seconds": (from datetime import datetime
+datetime.now() - self.start_time).total_seconds(),
             "metrics": asdict(self.metrics),
             "recent_checks": [asdict(check) for check in recent_checks],
             "monitoring_enabled": self.monitoring_enabled,
@@ -1161,13 +1225,12 @@ class SystemResilienceManager:
 
     async def run_emergency_recovery(self) -> Dict[str, Any]:
         """Run emergency recovery procedures."""
-        logger.warning("🚨 Running emergency recovery procedures...")
+        logger.warning(" Running emergency recovery procedures...")
 
         recovery_results = {}
 
         # Apply all bug fixes
         try:
-            from plexichat.app.core.bug_fixes import BugFixRegistry
             bug_fixes = BugFixRegistry()
             bug_fixes.apply_all_fixes()
             recovery_results["bug_fixes"] = "applied"
@@ -1202,7 +1265,7 @@ class SystemResilienceManager:
         except Exception as e:
             recovery_results["garbage_collection"] = f"failed: {e}"
 
-        logger.info("✅ Emergency recovery procedures completed")
+        logger.info(" Emergency recovery procedures completed")
         return recovery_results
 
 

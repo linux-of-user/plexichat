@@ -1,3 +1,21 @@
+import asyncio
+import shutil
+import ssl
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+
+
 """
 PlexiChat Certificate Manager - SINGLE SOURCE OF TRUTH
 
@@ -18,23 +36,6 @@ Features:
 - Certificate backup and recovery
 - Unified security integration
 """
-
-import asyncio
-import shutil
-import ssl
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -91,7 +92,8 @@ class ConsolidatedCertificateManager:
         self.certificates: Dict[str, CertificateInfo] = {}
 
         # Configuration
-        self.cert_directory = Path(self.config.get("cert_directory", "./certificates"))
+        self.cert_directory = from pathlib import Path
+Path(self.config.get("cert_directory", "./certificates"))
         self.lets_encrypt_email = self.config.get("lets_encrypt_email", "admin@example.com")
         self.lets_encrypt_staging = self.config.get("lets_encrypt_staging", False)
         self.auto_renewal_enabled = self.config.get("auto_renewal_enabled", True)
@@ -122,11 +124,11 @@ class ConsolidatedCertificateManager:
                 asyncio.create_task(self._certificate_monitoring_task())
 
             self.initialized = True
-            logger.info("✅ Certificate Manager initialized successfully")
+            logger.info(" Certificate Manager initialized successfully")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Certificate Manager initialization failed: {e}")
+            logger.error(f" Certificate Manager initialization failed: {e}")
             return False
 
     async def _load_existing_certificates(self) -> None:
@@ -340,8 +342,10 @@ class ConsolidatedCertificateManager:
 
             if process.returncode == 0:
                 # Find certificate files
-                cert_path = Path(f"/etc/letsencrypt/live/{domain}/fullchain.pem")
-                key_path = Path(f"/etc/letsencrypt/live/{domain}/privkey.pem")
+                cert_path = from pathlib import Path
+Path(f"/etc/letsencrypt/live/{domain}/fullchain.pem")
+                key_path = from pathlib import Path
+Path(f"/etc/letsencrypt/live/{domain}/privkey.pem")
 
                 if cert_path.exists() and key_path.exists():
                     # Copy to our certificate directory

@@ -1,7 +1,9 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
 
+
+
+from pydantic import BaseModel, Field
 
 class MessageBase(BaseModel):
     recipient_id: int = Field(..., description="User ID of the recipient")

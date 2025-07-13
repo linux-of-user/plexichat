@@ -1,3 +1,11 @@
+import asyncio
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+
 """
 NetLink Global Data Distribution System
 
@@ -9,13 +17,6 @@ Advanced global data distribution with:
 - Automatic failover and disaster recovery
 - Data sovereignty and compliance management
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 

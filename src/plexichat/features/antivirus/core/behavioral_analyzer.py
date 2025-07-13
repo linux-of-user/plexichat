@@ -1,10 +1,3 @@
-"""
-Behavioral Analyzer
-
-Analyzes file behavior and characteristics to detect suspicious patterns
-and potential malware through heuristic analysis.
-"""
-
 import hashlib
 import json
 import logging
@@ -18,6 +11,14 @@ import magic
 import pefile
 
 from . import ScanResult, ScanType, ThreatLevel, ThreatType
+
+
+"""
+Behavioral Analyzer
+
+Analyzes file behavior and characteristics to detect suspicious patterns
+and potential malware through heuristic analysis.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,8 @@ class BehavioralAnalyzer:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.behavioral_db_path = self.data_dir / "behavioral_analysis.db"
         
         # Suspicious API imports that malware commonly uses
@@ -154,7 +156,8 @@ class BehavioralAnalyzer:
             ScanResult with behavioral analysis results
         """
         start_time = datetime.now(timezone.utc)
-        path = Path(file_path)
+        path = from pathlib import Path
+Path(file_path)
         
         if not path.exists():
             return ScanResult(
@@ -234,7 +237,7 @@ class BehavioralAnalyzer:
             mime_type = "unknown"
             try:
                 mime_type = magic.from_file(str(file_path), mime=True)
-            except:
+            except Exception:
                 # Fallback to extension-based detection
                 ext = file_path.suffix.lower()
                 if ext in ['.exe', '.dll', '.sys']:

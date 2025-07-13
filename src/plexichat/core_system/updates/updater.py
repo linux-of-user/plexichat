@@ -1,8 +1,3 @@
-"""
-PlexiChat Self-Update System
-Handles automatic updates from GitHub repository.
-"""
-
 import os
 import shutil
 import subprocess
@@ -15,8 +10,21 @@ from typing import Any, Dict, List
 
 import requests
 
-try:
     from packaging import version
+            from app.logger_config import settings
+                from ...core.versioning.version_manager import version_manager
+                    from pathlib import Path
+import shutil
+from pathlib import Path
+
+                    from pathlib import Path
+
+"""
+PlexiChat Self-Update System
+Handles automatic updates from GitHub repository.
+"""
+
+try:
 except ImportError:
     # Fallback version comparison
     class version:
@@ -40,19 +48,19 @@ class PlexiChatUpdater:
         self.repo_name = repo_name or os.getenv("PLEXICHAT_REPO_NAME", "plexichat")
         self.github_api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
         self.github_releases_url = f"{self.github_api_url}/releases"
-        self.project_root = Path(__file__).parent.parent.parent
+        self.project_root = from pathlib import Path
+Path(__file__).parent.parent.parent
         self.backup_dir = self.project_root / "backups"
         self.update_log_file = self.project_root / "logs" / "updates.log"
         self.ensure_directories()
     
     def get_current_version(self) -> str:
-        """Get current version from settings."""
+        """Get current version from from plexichat.core.config import settings
+settings."""
         try:
-            from app.logger_config import settings
             return getattr(settings, 'APP_VERSION', '1.0.0-alpha.1')
         except ImportError:
             try:
-                from ...core.versioning.version_manager import version_manager
                 return str(version_manager.get_current_version())
             except ImportError:
                 return '1.0.0-alpha.1'
@@ -64,7 +72,8 @@ class PlexiChatUpdater:
     
     def log_update(self, message: str, level: str = "INFO"):
         """Log update activity."""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = from datetime import datetime
+datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{timestamp}] [{level}] {message}\n"
         
         try:
@@ -135,7 +144,8 @@ class PlexiChatUpdater:
     def create_backup(self) -> str:
         """Create backup of current installation."""
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_name = f"plexichat_backup_{self.current_version}_{timestamp}"
             backup_path = self.backup_dir / f"{backup_name}.zip"
             
@@ -178,7 +188,8 @@ class PlexiChatUpdater:
             
             # Create temporary file
             temp_dir = tempfile.mkdtemp()
-            temp_file = Path(temp_dir) / "plexichat_update.zip"
+            temp_file = from pathlib import Path
+Path(temp_dir) / "plexichat_update.zip"
             
             # Download with progress
             response = requests.get(download_url, stream=True, timeout=30)
@@ -212,7 +223,8 @@ class PlexiChatUpdater:
 
             # Extract update to temporary directory
             temp_dir = tempfile.mkdtemp()
-            extract_dir = Path(temp_dir) / "plexichat_update"
+            extract_dir = from pathlib import Path
+Path(temp_dir) / "plexichat_update"
 
             with zipfile.ZipFile(update_file, 'r') as update_zip:
                 update_zip.extractall(extract_dir)
@@ -307,7 +319,7 @@ class PlexiChatUpdater:
                 if 'temp_dir' in locals():
                     shutil.rmtree(temp_dir)
                 if 'update_file' in locals():
-                    Path(update_file).unlink(missing_ok=True)
+Path(update_file).unlink(missing_ok=True)
             except Exception:
                 pass
 
@@ -315,11 +327,9 @@ class PlexiChatUpdater:
         """Create script to complete update on restart."""
         script_content = f"""#!/usr/bin/env python3
 # PlexiChat Update Completion Script
-import shutil
-from pathlib import Path
-
 def complete_update():
-    project_root = Path(__file__).parent
+    project_root = from pathlib import Path
+Path(__file__).parent
     staging_dir = project_root / ".update_staging"
 
     if not staging_dir.exists():
@@ -383,13 +393,15 @@ if __name__ == "__main__":
         try:
             self.log_update(f"Restoring from backup: {backup_path}")
             
-            backup_file = Path(backup_path)
+            backup_file = from pathlib import Path
+Path(backup_path)
             if not backup_file.exists():
                 raise FileNotFoundError(f"Backup file not found: {backup_path}")
             
             # Extract backup
             temp_dir = tempfile.mkdtemp()
-            extract_dir = Path(temp_dir) / "restore"
+            extract_dir = from pathlib import Path
+Path(temp_dir) / "restore"
             
             with zipfile.ZipFile(backup_file, 'r') as backup_zip:
                 backup_zip.extractall(extract_dir)
@@ -536,7 +548,8 @@ if __name__ == "__main__":
                 "update_available": update_info.get("update_available", False),
                 "latest_version": update_info.get("latest_version"),
                 "has_pending_restart": has_pending,
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": from datetime import datetime
+datetime.utcnow().isoformat(),
                 "recent_logs": recent_logs,
                 "update_system_healthy": True
             }
@@ -546,7 +559,8 @@ if __name__ == "__main__":
                 "current_version": self.current_version,
                 "update_available": False,
                 "has_pending_restart": False,
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": from datetime import datetime
+datetime.utcnow().isoformat(),
                 "error": str(e),
                 "update_system_healthy": False
             }
@@ -596,7 +610,7 @@ if __name__ == "__main__":
             removed_count = 0
             for backup in backups[keep_count:]:
                 try:
-                    Path(backup["path"]).unlink()
+Path(backup["path"]).unlink()
                     removed_count += 1
                     self.log_update(f"Removed old backup: {backup['name']}")
                 except Exception as e:

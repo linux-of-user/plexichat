@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-PlexiChat Backup Node Startup Script
-Provides easy startup and management for the backup node.
-"""
-
 import argparse
 import json
 import os
@@ -11,6 +5,19 @@ import subprocess
 import sys
 from pathlib import Path
 
+
+        from pathlib import Path
+    import httpx
+    
+        
+
+        import psutil
+
+#!/usr/bin/env python3
+"""
+PlexiChat Backup Node Startup Script
+Provides easy startup and management for the backup node.
+"""
 
 def check_dependencies():
     """Check if required dependencies are installed."""
@@ -30,7 +37,7 @@ def check_dependencies():
             missing_packages.append(package)
     
     if missing_packages:
-        print("❌ Missing required dependencies:")
+        print(" Missing required dependencies:")
         for package in missing_packages:
             print(f"   - {package}")
         print("\nInstall with: pip install -r requirements.txt")
@@ -49,16 +56,17 @@ def create_directories():
     ]
     
     for directory in directories:
-        Path(directory).mkdir(parents=True, exist_ok=True)
-        print(f"📁 Created directory: {directory}")
+Path(directory).mkdir(parents=True, exist_ok=True)
+        print(f" Created directory: {directory}")
 
 
 def setup_config(args):
     """Setup configuration based on arguments."""
-    config_file = Path("config/backup_node.json")
+    config_file = from pathlib import Path
+Path("config/backup_node.json")
 
     if config_file.exists() and not args.force_config:
-        print(f"⚙️ Using existing config: {config_file}")
+        print(f" Using existing config: {config_file}")
         return
 
     # Ensure config directory exists
@@ -81,15 +89,15 @@ def setup_config(args):
     with open(config_file, 'w') as f:
         json.dump(config, f, indent=2)
     
-    print(f"⚙️ Created config file: {config_file}")
-    print(f"🆔 Node ID: {config['node_id']}")
-    print(f"💾 Storage Limit: {config['max_storage_gb']} GB")
-    print(f"🌐 Port: {config['port']}")
+    print(f" Created config file: {config_file}")
+    print(f" Node ID: {config['node_id']}")
+    print(f" Storage Limit: {config['max_storage_gb']} GB")
+    print(f" Port: {config['port']}")
 
 
 def start_backup_node(args):
     """Start the backup node."""
-    print("🚀 Starting PlexiChat Backup Node...")
+    print(" Starting PlexiChat Backup Node...")
     
     # Check dependencies
     if not check_dependencies():
@@ -120,31 +128,29 @@ def start_backup_node(args):
                 "from src.plexichat.backup.core.backup_node_server import BackupNodeServer; import asyncio; asyncio.run(BackupNodeServer().start())"
             ]
         
-        print(f"🔧 Running command: {' '.join(cmd)}")
+        print(f" Running command: {' '.join(cmd)}")
         subprocess.run(cmd, check=True)
         
     except KeyboardInterrupt:
-        print("\n🛑 Backup node stopped by user")
+        print("\n Backup node stopped by user")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to start backup node: {e}")
+        print(f" Failed to start backup node: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        print(f" Unexpected error: {e}")
         sys.exit(1)
 
 
 def show_status():
     """Show backup node status."""
-    import httpx
-    
     try:
         # Try to connect to backup node
         response = httpx.get("http://localhost:8001/health", timeout=5)
         
         if response.status_code == 200:
             data = response.json()
-            print("✅ Backup Node Status: RUNNING")
-            print(f"🆔 Node ID: {data.get('node_status', {}).get('node_id', 'Unknown')}")
+            print(" Backup Node Status: RUNNING")
+            print(f" Node ID: {data.get('node_status', {}).get('node_id', 'Unknown')}")
             
             storage = data.get('node_status', {}).get('storage', {})
             if storage:
@@ -152,48 +158,49 @@ def show_status():
                 max_gb = storage.get('max_bytes', 0) / (1024**3)
                 usage_pct = storage.get('used_percentage', 0)
                 
-                print(f"💾 Storage: {used_gb:.2f} GB / {max_gb:.2f} GB ({usage_pct:.1f}%)")
+                print(f" Storage: {used_gb:.2f} GB / {max_gb:.2f} GB ({usage_pct:.1f}%)")
             
             shards = data.get('node_status', {}).get('shards', {})
             if shards:
-                print(f"📦 Shards: {shards.get('total_count', 0)}")
+                print(f" Shards: {shards.get('total_count', 0)}")
             
             network = data.get('node_status', {}).get('network', {})
             if network:
-                print(f"🌐 Connected Nodes: {network.get('connected_nodes', 0)}")
+                print(f" Connected Nodes: {network.get('connected_nodes', 0)}")
         else:
-            print("❌ Backup Node Status: ERROR")
+            print(" Backup Node Status: ERROR")
             print(f"HTTP {response.status_code}: {response.text}")
             
     except httpx.ConnectError:
-        print("❌ Backup Node Status: OFFLINE")
+        print(" Backup Node Status: OFFLINE")
         print("The backup node is not running or not accessible")
     except Exception as e:
-        print(f"❌ Failed to check status: {e}")
+        print(f" Failed to check status: {e}")
 
 
 def stop_backup_node():
     """Stop the backup node."""
-    print("🛑 Stopping backup node...")
+    print(" Stopping backup node...")
     
     try:
         # Try to find and kill the process
-        import psutil
-        
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        for proc in import psutil
+psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
                 cmdline = proc.info['cmdline']
                 if cmdline and 'backup_node_main.py' in ' '.join(cmdline):
                     proc.terminate()
-                    print(f"🛑 Terminated backup node process (PID: {proc.info['pid']})")
+                    print(f" Terminated backup node process (PID: {proc.info['pid']})")
                     return
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
+            except (import psutil
+psutil.NoSuchProcess, import psutil
+psutil.AccessDenied):
                 continue
         
-        print("⚠️ No backup node process found")
+        print(" No backup node process found")
         
     except ImportError:
-        print("⚠️ psutil not available, cannot stop process automatically")
+        print(" psutil not available, cannot stop process automatically")
         print("Please stop the backup node manually (Ctrl+C)")
 
 
@@ -238,7 +245,7 @@ Examples:
         parser.print_help()
         return
     
-    print("🔧 PlexiChat Backup Node Manager")
+    print(" PlexiChat Backup Node Manager")
     print("=" * 40)
     
     if args.command == 'start':

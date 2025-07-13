@@ -1,10 +1,3 @@
-"""
-Universal Backup Manager
-
-Manages backup of user messages and data with opt-out capabilities
-and comprehensive data type support.
-"""
-
 import json
 import logging
 from dataclasses import dataclass
@@ -13,6 +6,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import aiosqlite
+
+
+"""
+Universal Backup Manager
+
+Manages backup of user messages and data with opt-out capabilities
+and comprehensive data type support.
+"""
 
 logger = logging.getLogger(__name__)
 

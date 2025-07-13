@@ -1,7 +1,9 @@
 from typing import Dict, List
 
-from pydantic import BaseModel, Field
 
+
+
+from pydantic import BaseModel, Field
 
 class ErrorDetail(BaseModel):
     code: str

@@ -1,3 +1,12 @@
+import asyncio
+import logging
+import re
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
 """
 PlexiChat Advanced AI System
 
@@ -9,14 +18,6 @@ Comprehensive AI-powered features with multiple provider support:
 - Sentiment analysis and emotion detection
 - Smart summarization and insights
 """
-
-import asyncio
-import logging
-import re
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -357,8 +358,10 @@ class ContentModerationEngine:
     
     async def moderate_content(self, content: str, content_id: str = None) -> ModerationResult:
         """Moderate content using AI and rules."""
-        content_id = content_id or f"content_{int(datetime.now().timestamp())}"
-        start_time = datetime.now()
+        content_id = content_id or f"content_{int(from datetime import datetime
+datetime.now().timestamp())}"
+        start_time = from datetime import datetime
+datetime.now()
         
         # Initialize result
         result = ModerationResult(
@@ -379,7 +382,8 @@ class ContentModerationEngine:
         self._determine_final_action(result)
         
         # Calculate processing time
-        processing_time = (datetime.now() - start_time).total_seconds() * 1000
+        processing_time = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
         result.processing_time_ms = int(processing_time)
         
         return result
@@ -639,17 +643,17 @@ class TranslationEngine:
         # In production, this would use a proper language detection model
 
         # Basic heuristics
-        if any(char in text for char in "áéíóúñ"):
+        if any(char in text for char in ""):
             return "es"
-        elif any(char in text for char in "àâäéèêëïîôöùûüÿç"):
+        elif any(char in text for char in ""):
             return "fr"
-        elif any(char in text for char in "äöüß"):
+        elif any(char in text for char in ""):
             return "de"
-        elif any(char in text for char in "ひらがなカタカナ"):
+        elif any(char in text for char in ""):
             return "ja"
-        elif any(char in text for char in "한글"):
+        elif any(char in text for char in ""):
             return "ko"
-        elif any(char in text for char in "中文"):
+        elif any(char in text for char in ""):
             return "zh"
         else:
             return "en"  # Default to English

@@ -1,19 +1,23 @@
-"""
-Government-Level Security Middleware
-Protects all endpoints except /docs with ultra-secure authentication.
-"""
-
 import json
 import logging
 import time
 from datetime import datetime
 from typing import Any, Dict
 
-from fastapi import Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from typing import Optional, Dict, Any, List, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
+
+
+from fastapi import Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+
 from plexichat.core.security.government_auth import government_auth
+
+"""
+Government-Level Security Middleware
+Protects all endpoints except /docs with ultra-secure authentication.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -362,12 +366,12 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
 <body>
     <div class="login-container">
         <div class="logo">
-            <h1>🔒 PlexiChat</h1>
+            <h1> PlexiChat</h1>
             <p>Secure Communication Platform</p>
         </div>
         
         <div class="security-notice">
-            <h3>⚠️ GOVERNMENT-LEVEL SECURITY</h3>
+            <h3> GOVERNMENT-LEVEL SECURITY</h3>
             <p>This system is protected by advanced security measures. Unauthorized access is prohibited.</p>
         </div>
         
@@ -390,12 +394,12 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
             </div>
             
             <button type="submit" class="login-btn" id="loginBtn">
-                🔐 Secure Login
+                 Secure Login
             </button>
         </form>
         
         <div class="footer">
-            <p><a href="/docs">📚 Documentation</a> | System Time: <span id="currentTime"></span></p>
+            <p><a href="/docs"> Documentation</a> | System Time: <span id="currentTime"></span></p>
         </div>
     </div>
     
@@ -421,7 +425,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
             
             // Disable button and show loading
             loginBtn.disabled = true;
-            loginBtn.textContent = '🔄 Authenticating...';
+            loginBtn.textContent = ' Authenticating...';
             errorDiv.style.display = 'none';
             
             try {
@@ -462,7 +466,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
             
             // Re-enable button
             loginBtn.disabled = false;
-            loginBtn.textContent = '🔐 Secure Login';
+            loginBtn.textContent = ' Secure Login';
         });
         
         // Auto-focus username field
@@ -493,7 +497,8 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
     async def _log_access(self, request: Request, response: Response, duration: float):
         """Log access attempt."""
         access_log = {
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': from datetime import datetime
+datetime.utcnow().isoformat(),
             'method': request.method,
             'path': str(request.url.path),
             'client_ip': request.client.host if request.client else 'unknown',

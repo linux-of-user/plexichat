@@ -1,10 +1,3 @@
-"""
-PlexiChat Enhanced Module System
-
-Advanced module architecture with quantum security integration,
-intelligent dependency resolution, and seamless service integration.
-"""
-
 import asyncio
 import hashlib
 import importlib
@@ -20,17 +13,28 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-# Import security and services (with fallbacks for missing modules)
-try:
     from ...features.security import security_manager
     from ...features.security.distributed_key_manager import distributed_key_manager
+    from ..services import SecureService, ServiceMetadata, ServicePriority, ServiceType
+    from ..services.loader import ServiceLoader
+    from ..performance.cache_manager import CacheManager
+        from ..security.quantum_encryption import SecurityTier
+        
+
+"""
+PlexiChat Enhanced Module System
+
+Advanced module architecture with quantum security integration,
+intelligent dependency resolution, and seamless service integration.
+"""
+
+# Import security and services (with fallbacks for missing modules)
+try:
 except ImportError:
     security_manager = None
     distributed_key_manager = None
 
 try:
-    from ..services import SecureService, ServiceMetadata, ServicePriority, ServiceType
-    from ..services.loader import ServiceLoader
 except ImportError:
     ServiceLoader = None
     ServiceMetadata = None
@@ -39,7 +43,6 @@ except ImportError:
     SecureService = None
 
 try:
-    from ..performance.cache_manager import CacheManager
 except ImportError:
     CacheManager = None
 
@@ -183,7 +186,7 @@ class SecureModule:
             self.load_time = datetime.now(timezone.utc)
             self.health.load_time = (self.load_time - load_start).total_seconds()
             
-            logger.info(f"📦 Module loaded: {self.metadata.name}")
+            logger.info(f" Module loaded: {self.metadata.name}")
             await self._emit_event("module_loaded")
             
             return True
@@ -194,7 +197,7 @@ class SecureModule:
             self.health.last_error = str(e)
             self.health.error_count += 1
             
-            logger.error(f"❌ Failed to load module {self.metadata.name}: {e}")
+            logger.error(f" Failed to load module {self.metadata.name}: {e}")
             return False
     
     async def activate(self) -> bool:
@@ -215,7 +218,7 @@ class SecureModule:
             self.status = ModuleStatus.ACTIVE
             self.health.status = ModuleStatus.ACTIVE
             
-            logger.info(f"✅ Module activated: {self.metadata.name}")
+            logger.info(f" Module activated: {self.metadata.name}")
             await self._emit_event("module_activated")
             
             return True
@@ -226,7 +229,7 @@ class SecureModule:
             self.health.last_error = str(e)
             self.health.error_count += 1
             
-            logger.error(f"❌ Failed to activate module {self.metadata.name}: {e}")
+            logger.error(f" Failed to activate module {self.metadata.name}: {e}")
             return False
     
     async def deactivate(self) -> bool:
@@ -246,7 +249,7 @@ class SecureModule:
             self.status = ModuleStatus.LOADED
             self.health.status = ModuleStatus.LOADED
             
-            logger.info(f"⏸️ Module deactivated: {self.metadata.name}")
+            logger.info(f" Module deactivated: {self.metadata.name}")
             await self._emit_event("module_deactivated")
             
             return True
@@ -257,7 +260,7 @@ class SecureModule:
             self.health.last_error = str(e)
             self.health.error_count += 1
             
-            logger.error(f"❌ Failed to deactivate module {self.metadata.name}: {e}")
+            logger.error(f" Failed to deactivate module {self.metadata.name}: {e}")
             return False
     
     async def unload(self) -> bool:
@@ -281,7 +284,7 @@ class SecureModule:
             self.status = ModuleStatus.UNLOADED
             self.health.status = ModuleStatus.UNLOADED
             
-            logger.info(f"📤 Module unloaded: {self.metadata.name}")
+            logger.info(f" Module unloaded: {self.metadata.name}")
             await self._emit_event("module_unloaded")
             
             return True
@@ -292,7 +295,7 @@ class SecureModule:
             self.health.last_error = str(e)
             self.health.error_count += 1
             
-            logger.error(f"❌ Failed to unload module {self.metadata.name}: {e}")
+            logger.error(f" Failed to unload module {self.metadata.name}: {e}")
             return False
     
     async def _setup_module_security(self):
@@ -326,8 +329,6 @@ class SecureModule:
     
     def _get_security_tier(self):
         """Get quantum security tier based on module security level."""
-        from ..security.quantum_encryption import SecurityTier
-        
         mapping = {
             "STANDARD": SecurityTier.STANDARD,
             "ENHANCED": SecurityTier.ENHANCED,

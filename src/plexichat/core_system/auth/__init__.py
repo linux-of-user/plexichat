@@ -1,3 +1,28 @@
+from typing import Any, Dict, Optional
+
+from .audit_manager import AuthAuditManager, auth_audit_manager
+
+from .auth_manager import AuthManager, auth_manager
+from .biometric_manager import BiometricManager, biometric_manager
+
+from .device_manager import DeviceManager, device_manager
+from .exceptions import (
+from .mfa_manager import Advanced2FASystem as MFAManager
+from .mfa_manager import tfa_system as mfa_manager
+from .middleware import AuthenticationMiddleware, FastAPIAuthMiddleware, FlaskAuthMiddleware
+from .oauth_manager import OAuthManager, oauth_manager
+from .password_manager import PasswordManager, password_manager
+from .session_manager import SessionManager, session_manager
+from .token_manager import TokenManager, token_manager
+from .validators import BiometricValidator, PasswordValidator, TokenValidator
+
+        import logging
+        import logging
+    from .auth_manager import AuthenticationRequest
+
+
+from .decorators import optional_auth, from plexichat.infrastructure.utils.auth import require_admin, require_auth, require_level, require_mfa
+
 """
 PlexiChat Core Authentication System - Unified Authentication Management
 
@@ -26,18 +51,8 @@ Features:
 - Audit logging and compliance reporting
 """
 
-from typing import Any, Dict, Optional
-
-from .audit_manager import AuthAuditManager, auth_audit_manager
-
 # Import new unified components
-from .auth_manager import AuthManager, auth_manager
-from .biometric_manager import BiometricManager, biometric_manager
-
 # Import authentication utilities
-from .decorators import optional_auth, require_admin, require_auth, require_level, require_mfa
-from .device_manager import DeviceManager, device_manager
-from .exceptions import (
     AccountLockError,
     AuthenticationError,
     AuthorizationError,
@@ -50,15 +65,6 @@ from .exceptions import (
     SessionError,
     TokenError,
 )
-from .mfa_manager import Advanced2FASystem as MFAManager
-from .mfa_manager import tfa_system as mfa_manager
-from .middleware import AuthenticationMiddleware, FastAPIAuthMiddleware, FlaskAuthMiddleware
-from .oauth_manager import OAuthManager, oauth_manager
-from .password_manager import PasswordManager, password_manager
-from .session_manager import SessionManager, session_manager
-from .token_manager import TokenManager, token_manager
-from .validators import BiometricValidator, PasswordValidator, TokenValidator
-
 # Import existing authentication components (consolidated)
 # Note: Removed duplicate authentication systems - now using unified core system
 # Removed: features/security/advanced_auth.py (CONSOLIDATED)
@@ -121,7 +127,7 @@ __all__ = [
 
     # Decorators
     "require_auth",
-    "require_admin",
+    "from plexichat.infrastructure.utils.auth import require_admin",
     "require_mfa",
     "require_level",
     "optional_auth",
@@ -415,13 +421,13 @@ RISK_THRESHOLDS = {
         "score_threshold": 0.8,
         "additional_auth_required": True,
         "session_timeout_multiplier": 0.25,
-        "require_admin_approval": True
+        "from plexichat.infrastructure.utils.auth import require_admin_approval": True
     },
     "critical_risk": {
         "score_threshold": 1.0,
         "additional_auth_required": True,
         "session_timeout_multiplier": 0.1,
-        "require_admin_approval": True,
+        "from plexichat.infrastructure.utils.auth import require_admin_approval": True,
         "block_access": True
     }
 }
@@ -457,9 +463,8 @@ async def initialize_auth_system(config: Optional[dict] = None) -> bool:
         return True
         
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Failed to initialize authentication system: {e}")
+        logger.error(f" Failed to initialize authentication system: {e}")
         return False
 
 async def shutdown_auth_system():
@@ -478,16 +483,13 @@ async def shutdown_auth_system():
         await auth_manager.shutdown()
         
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Error during authentication system shutdown: {e}")
+        logger.error(f" Error during authentication system shutdown: {e}")
 
 # Convenience functions for common operations
 async def authenticate_user(username: str, password: str, mfa_code: Optional[str] = None) -> dict:
     """Authenticate user with username/password and optional MFA."""
     # Import the request class locally to avoid circular imports
-    from .auth_manager import AuthenticationRequest
-
     # Create authentication request
     request = AuthenticationRequest(
         username=username,

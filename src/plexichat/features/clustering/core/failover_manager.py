@@ -1,10 +1,3 @@
-"""
-Automatic Failover Manager
-
-Advanced failover management system with intelligent failure detection,
-automatic recovery, and seamless service continuity.
-"""
-
 import asyncio
 import logging
 import secrets
@@ -15,6 +8,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from . import (
+
+"""
+Automatic Failover Manager
+
+Advanced failover management system with intelligent failure detection,
+automatic recovery, and seamless service continuity.
+"""
+
     FAILOVER_TIMEOUT_SECONDS,
     MAX_FAILOVER_ATTEMPTS,
     RECOVERY_VERIFICATION_TIME,

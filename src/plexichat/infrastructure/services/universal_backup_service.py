@@ -1,10 +1,3 @@
-"""
-Universal Backup Service
-
-Extends the shard system to backup all data types (users, messages, etc.)
-with opt-out capabilities and enhanced security features.
-"""
-
 import json
 import logging
 from dataclasses import dataclass, field
@@ -20,6 +13,14 @@ from ...backup.core.shard_location_database import EnhancedShardLocationDatabase
 from ...backup.core.shard_manager import ImmutableShardManager
 from ..models.message import Message
 from ..models.user import User
+
+
+"""
+Universal Backup Service
+
+Extends the shard system to backup all data types (users, messages, etc.)
+with opt-out capabilities and enhanced security features.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,8 @@ class UniversalBackupService:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.backup_dir = self.data_dir / "universal_backup"
         self.backup_dir.mkdir(parents=True, exist_ok=True)
         

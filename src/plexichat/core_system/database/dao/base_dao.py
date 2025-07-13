@@ -1,22 +1,24 @@
-"""
-PlexiChat Base Data Access Object (DAO) Pattern
-Provides a standardized interface for database operations with advanced features
-"""
-
 import logging
 import uuid
 
-# ABC removed - BaseDAO is now concrete
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
+from sqlmodel import SQLModel
+
+
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import SQLModel
 
+"""
+PlexiChat Base Data Access Object (DAO) Pattern
+Provides a standardized interface for database operations with advanced features
+"""
+
+# ABC removed - BaseDAO is now concrete
 logger = logging.getLogger(__name__)
 
 # Type variables for generic DAO

@@ -1,17 +1,19 @@
+from datetime import datetime
+from enum import IntFlag
+from typing import Any, Dict, Optional
+
+from sqlmodel import Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index
+
 """
 PlexiChat Role Model
 
 Discord-like role model with comprehensive permission system.
 """
-
-from datetime import datetime
-from enum import IntFlag
-from typing import Any, Dict, Optional
-
-from sqlalchemy import DateTime, Index
-from sqlmodel import Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for roles
 role_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=3)

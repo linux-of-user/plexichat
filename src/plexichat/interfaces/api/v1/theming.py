@@ -1,9 +1,8 @@
-"""
-Theming API endpoints.
-Provides comprehensive theming capabilities for all interfaces.
-"""
-
 from typing import Any, Dict, Optional
+
+
+
+
 
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
@@ -11,6 +10,10 @@ from pydantic import BaseModel
 from plexichat.app.logger_config import logger
 from plexichat.app.services.theming_service import theming_service
 
+"""
+Theming API endpoints.
+Provides comprehensive theming capabilities for all interfaces.
+"""
 
 # Pydantic models for API
 class ThemeCreateRequest(BaseModel):

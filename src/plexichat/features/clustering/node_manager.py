@@ -1,8 +1,3 @@
-"""
-Multi-Node Clustering System for PlexiChat
-Distributed architecture with load balancing and intelligent request routing.
-"""
-
 import asyncio
 import json
 import logging
@@ -17,13 +12,24 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
+
+
+            import redis
+
+
 import psutil
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+            from sqlalchemy import create_engine
+from fastapi import APIRouter, Depends
 
+"""
+Multi-Node Clustering System for PlexiChat
+Distributed architecture with load balancing and intelligent request routing.
+"""
 
 class NodeRole(Enum):
     """Node roles in the cluster."""
@@ -138,10 +144,14 @@ class NodeManager:
                 "hostname": socket.gethostname(),
                 "ip_address": socket.gethostbyname(socket.gethostname()),
                 "port": 8000,  # Default port
-                "cpu_count": psutil.cpu_count(),
-                "memory_total": psutil.virtual_memory().total,
-                "disk_total": psutil.disk_usage('/').total,
-                "platform": psutil.LINUX if hasattr(psutil, 'LINUX') else "unknown"
+                "cpu_count": import psutil
+psutil.cpu_count(),
+                "memory_total": import psutil
+psutil.virtual_memory().total,
+                "disk_total": import psutil
+psutil.disk_usage('/').total,
+                "platform": import psutil
+psutil.LINUX if hasattr(psutil, 'LINUX') else "unknown"
             }
         except Exception as e:
             self.logger.error(f"Failed to get server info: {e}")
@@ -157,7 +167,8 @@ class NodeManager:
     
     def _load_cluster_config(self) -> ClusterConfig:
         """Load cluster configuration."""
-        config_file = Path("config/cluster.json")
+        config_file = from pathlib import Path
+Path("config/cluster.json")
         
         if config_file.exists():
             try:
@@ -199,7 +210,6 @@ class NodeManager:
         """Initialize storage for cluster state."""
         try:
             # Redis for cluster coordination
-            import redis
             self.redis_client = redis.Redis(host='localhost', port=6379, db=2, decode_responses=True)
             self.redis_client.ping()
             self.logger.info("Redis connected for cluster coordination")
@@ -208,7 +218,6 @@ class NodeManager:
         
         # Database for persistent cluster state
         try:
-            from sqlalchemy import create_engine
             self.engine = create_engine('sqlite:///cluster.db')
             self._create_cluster_tables()
             Session = sessionmaker(bind=self.engine)
@@ -278,8 +287,10 @@ class NodeManager:
                 disk_usage=0.0,
                 network_latency=0.0,
                 active_connections=0,
-                last_heartbeat=datetime.now(),
-                joined_at=datetime.now(),
+                last_heartbeat=from datetime import datetime
+datetime.now(),
+                joined_at=from datetime import datetime
+datetime.now(),
                 metadata={}
             )
             
@@ -506,22 +517,30 @@ class NodeManager:
             # Update node metrics
             node_info = self.cluster_nodes.get(self.node_id)
             if node_info:
-                node_info.cpu_usage = psutil.cpu_percent()
-                node_info.memory_usage = psutil.virtual_memory().percent
-                node_info.disk_usage = psutil.disk_usage('/').percent
-                node_info.last_heartbeat = datetime.now()
+                node_info.cpu_usage = import psutil
+psutil.cpu_percent()
+                node_info.memory_usage = import psutil
+psutil.virtual_memory().percent
+                node_info.disk_usage = import psutil
+psutil.disk_usage('/').percent
+                node_info.last_heartbeat = from datetime import datetime
+datetime.now()
                 node_info.active_connections = len(self.connection_counts)
             
             # Update cluster state
             if self.redis_client:
                 heartbeat_data = {
                     "node_id": self.node_id,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": from datetime import datetime
+datetime.now().isoformat(),
                     "status": self.status.value,
                     "metrics": {
-                        "cpu_usage": psutil.cpu_percent(),
-                        "memory_usage": psutil.virtual_memory().percent,
-                        "disk_usage": psutil.disk_usage('/').percent,
+                        "cpu_usage": import psutil
+psutil.cpu_percent(),
+                        "memory_usage": import psutil
+psutil.virtual_memory().percent,
+                        "disk_usage": import psutil
+psutil.disk_usage('/').percent,
                         "active_connections": len(self.connection_counts)
                     }
                 }
@@ -554,7 +573,8 @@ class NodeManager:
         if not self.redis_client:
             return
         
-        current_time = datetime.now()
+        current_time = from datetime import datetime
+datetime.now()
         timeout_threshold = timedelta(seconds=self.config.failure_timeout)
         
         for node_id in list(self.cluster_nodes.keys()):
@@ -626,8 +646,6 @@ async def get_node_manager():
     return node_manager
 
 # Clustering API Router
-from fastapi import APIRouter, Depends
-
 cluster_router = APIRouter(prefix="/api/v1/cluster", tags=["Cluster Management"])
 
 @cluster_router.post("/join")

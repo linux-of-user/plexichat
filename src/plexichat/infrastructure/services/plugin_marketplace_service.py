@@ -1,10 +1,3 @@
-"""
-PlexiChat Plugin Marketplace Service
-
-Comprehensive plugin marketplace with discovery, ratings, reviews, categories,
-external service integrations, and developer tools.
-"""
-
 import asyncio
 import hashlib
 import hmac
@@ -21,6 +14,14 @@ import aiofiles
 import aiohttp
 
 from ..core.logging import get_logger
+
+
+"""
+PlexiChat Plugin Marketplace Service
+
+Comprehensive plugin marketplace with discovery, ratings, reviews, categories,
+external service integrations, and developer tools.
+"""
 
 logger = get_logger(__name__)
 
@@ -176,8 +177,10 @@ class PluginMarketplaceService:
     
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
-        self.data_dir = Path(self.config.get("data_dir", "data/plugin_marketplace"))
-        self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
+        self.data_dir = from pathlib import Path
+Path(self.config.get("data_dir", "data/plugin_marketplace"))
+        self.cache_dir = from pathlib import Path
+Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
         
         # Ensure directories exist
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -208,7 +211,7 @@ class PluginMarketplaceService:
             "featured_plugins": 0
         }
         
-        logger.info("🏪 Plugin Marketplace Service initialized")
+        logger.info(" Plugin Marketplace Service initialized")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default marketplace configuration."""
@@ -246,7 +249,7 @@ class PluginMarketplaceService:
     async def initialize(self) -> bool:
         """Initialize the marketplace service."""
         try:
-            logger.info("🚀 Initializing Plugin Marketplace...")
+            logger.info(" Initializing Plugin Marketplace...")
             
             # Load existing data
             await self._load_marketplace_data()
@@ -257,11 +260,11 @@ class PluginMarketplaceService:
             # Update statistics
             await self._update_statistics()
             
-            logger.info("✅ Plugin Marketplace initialized successfully")
+            logger.info(" Plugin Marketplace initialized successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Plugin Marketplace: {e}")
+            logger.error(f" Failed to initialize Plugin Marketplace: {e}")
             return False
     
     async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,
@@ -580,20 +583,20 @@ class PluginMarketplaceService:
     def _get_category_icon(self, category: PluginCategory) -> str:
         """Get icon for plugin category."""
         icons = {
-            PluginCategory.COMMUNICATION: "💬",
-            PluginCategory.SECURITY: "🔒",
-            PluginCategory.PRODUCTIVITY: "⚡",
-            PluginCategory.ENTERTAINMENT: "🎮",
-            PluginCategory.DEVELOPMENT: "💻",
-            PluginCategory.INTEGRATION: "🔗",
-            PluginCategory.UTILITY: "🛠️",
-            PluginCategory.AI_ML: "🤖",
-            PluginCategory.BACKUP: "💾",
-            PluginCategory.MONITORING: "📊",
-            PluginCategory.CUSTOMIZATION: "🎨",
-            PluginCategory.OTHER: "📦"
+            PluginCategory.COMMUNICATION: "",
+            PluginCategory.SECURITY: "",
+            PluginCategory.PRODUCTIVITY: "",
+            PluginCategory.ENTERTAINMENT: "",
+            PluginCategory.DEVELOPMENT: "",
+            PluginCategory.INTEGRATION: "",
+            PluginCategory.UTILITY: "",
+            PluginCategory.AI_ML: "",
+            PluginCategory.BACKUP: "",
+            PluginCategory.MONITORING: "",
+            PluginCategory.CUSTOMIZATION: "",
+            PluginCategory.OTHER: ""
         }
-        return icons.get(category, "📦")
+        return icons.get(category, "")
 
     async def _get_related_plugins(self, plugin_id: str, limit: int = 5) -> List[Dict[str, Any]]:
         """Get plugins related to the specified plugin."""
@@ -820,7 +823,7 @@ class PluginMarketplaceService:
                     developer = self._dict_to_developer(dev_data)
                     self.developers[developer.developer_id] = developer
 
-            logger.info(f"📚 Loaded {len(self.plugins)} plugins, {len(self.developers)} developers")
+            logger.info(f" Loaded {len(self.plugins)} plugins, {len(self.developers)} developers")
 
         except Exception as e:
             logger.error(f"Failed to load marketplace data: {e}")
@@ -852,7 +855,7 @@ class PluginMarketplaceService:
             async with aiofiles.open(developers_file, 'w') as f:
                 await f.write(json.dumps(developers_data, indent=2, default=str))
 
-            logger.debug("💾 Marketplace data saved successfully")
+            logger.debug(" Marketplace data saved successfully")
 
         except Exception as e:
             logger.error(f"Failed to save marketplace data: {e}")
@@ -935,7 +938,7 @@ class PluginMarketplaceService:
                 if not repo.get("enabled", True):
                     continue
 
-                logger.info(f"🔄 Syncing with repository: {repo['name']}")
+                logger.info(f" Syncing with repository: {repo['name']}")
 
                 try:
                     async with aiohttp.ClientSession() as session:
@@ -1001,7 +1004,7 @@ class PluginMarketplaceService:
             )
 
             self.plugins[plugin_id] = plugin
-            logger.debug(f"📦 Synced plugin: {plugin.name} v{plugin.version}")
+            logger.debug(f" Synced plugin: {plugin.name} v{plugin.version}")
 
         except Exception as e:
             logger.error(f"Failed to sync external plugin: {e}")
@@ -1033,7 +1036,7 @@ class PluginMarketplaceService:
             self.webhook_endpoints[endpoint_id] = endpoint
             await self._save_marketplace_data()
 
-            logger.info(f"📡 Registered webhook endpoint: {url}")
+            logger.info(f" Registered webhook endpoint: {url}")
 
             return {
                 "success": True,
@@ -1123,10 +1126,10 @@ class PluginMarketplaceService:
                     endpoint.last_triggered = datetime.now(timezone.utc)
                     if 200 <= response.status < 300:
                         endpoint.success_count += 1
-                        logger.debug(f"✅ Webhook delivered: {endpoint.url} ({response.status})")
+                        logger.debug(f" Webhook delivered: {endpoint.url} ({response.status})")
                     else:
                         endpoint.failure_count += 1
-                        logger.warning(f"⚠️ Webhook failed: {endpoint.url} ({response.status})")
+                        logger.warning(f" Webhook failed: {endpoint.url} ({response.status})")
 
         except Exception as e:
             # Record failed delivery
@@ -1141,7 +1144,7 @@ class PluginMarketplaceService:
             self.webhook_deliveries.append(delivery)
             endpoint.failure_count += 1
 
-            logger.error(f"❌ Webhook delivery failed: {endpoint.url} - {e}")
+            logger.error(f" Webhook delivery failed: {endpoint.url} - {e}")
 
     def _generate_webhook_signature(self, payload: str, secret: str) -> str:
         """Generate HMAC signature for webhook payload."""

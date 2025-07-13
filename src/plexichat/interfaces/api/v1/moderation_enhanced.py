@@ -1,20 +1,23 @@
-"""
-Enhanced Moderation API endpoints for PlexiChat.
-Provides comprehensive moderation capabilities with role-based permissions.
-"""
-
 from typing import Any, Dict, Optional
+
+from sqlmodel import Session
+
+
+
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlmodel import Session
 
-from plexichat.app.auth import get_current_user
+from plexichat.app.auth import from plexichat.infrastructure.utils.auth import get_current_user
 from plexichat.app.database import get_session
 from plexichat.app.logger_config import logger
 from plexichat.app.models.moderation import ModerationAction
 from plexichat.app.services.moderation_service import ModerationService, Permission, UserRole
 
+"""
+Enhanced Moderation API endpoints for PlexiChat.
+Provides comprehensive moderation capabilities with role-based permissions.
+"""
 
 # Pydantic models for API
 class RoleAssignmentRequest(BaseModel):
@@ -92,7 +95,7 @@ async def get_user_role(
     user_id: int,
     guild_id: Optional[int] = None,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get the current role of a user."""
     try:
@@ -115,7 +118,7 @@ async def get_user_role(
 async def assign_user_role(
     request: RoleAssignmentRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Assign a role to a user."""
     try:
@@ -171,7 +174,7 @@ async def assign_user_role(
 async def check_user_permission(
     request: PermissionCheckRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Check if a user has a specific permission."""
     try:
@@ -208,7 +211,7 @@ async def check_user_permission(
 async def execute_moderation_action(
     request: ModerationActionRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Execute a moderation action with enhanced role-based permissions."""
     try:
@@ -253,7 +256,7 @@ async def execute_moderation_action(
 async def create_moderation_appeal(
     request: AppealRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Create an appeal for a moderation action."""
     try:
@@ -286,7 +289,7 @@ async def create_moderation_appeal(
 async def review_moderation_appeal(
     request: AppealReviewRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Review a moderation appeal."""
     try:
@@ -325,7 +328,7 @@ async def get_user_moderation_summary(
     user_id: int,
     guild_id: Optional[int] = None,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get comprehensive moderation summary for a user."""
     try:
@@ -357,7 +360,7 @@ async def get_user_moderation_summary(
 @router.get("/role_permissions")
 async def get_role_permissions(
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get permissions for all roles."""
     try:
@@ -390,7 +393,7 @@ async def get_role_permissions(
 async def get_moderation_statistics(
     guild_id: Optional[int] = None,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get moderation statistics."""
     try:

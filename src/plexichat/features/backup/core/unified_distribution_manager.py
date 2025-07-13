@@ -1,3 +1,10 @@
+import asyncio
+from enum import Enum
+from typing import Any, Dict, List
+
+from ...core_system.logging import get_logger
+
+
 """
 Unified Distribution Manager
 
@@ -7,12 +14,6 @@ Consolidates all shard distribution functionality with:
 - Load balancing and performance optimization
 - Automatic rebalancing
 """
-
-import asyncio
-from enum import Enum
-from typing import Any, Dict, List
-
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 

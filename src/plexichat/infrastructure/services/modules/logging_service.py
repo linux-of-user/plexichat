@@ -1,9 +1,3 @@
-"""
-PlexiChat Logging Service Module
-
-Small modular service for centralized logging with advanced features.
-"""
-
 import asyncio
 import gzip
 import json
@@ -13,6 +7,16 @@ from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
+
+        from logging.handlers import RotatingFileHandler
+        
+            import shutil
+
+"""
+PlexiChat Logging Service Module
+
+Small modular service for centralized logging with advanced features.
+"""
 
 # Service metadata
 SERVICE_METADATA = {
@@ -60,7 +64,8 @@ class LoggingService:
         """Initialize the logging service."""
         try:
             # Setup log directory
-            self.log_dir = Path("logs")
+            self.log_dir = from pathlib import Path
+Path("logs")
             self.log_dir.mkdir(exist_ok=True)
             
             # Setup rotating file handler
@@ -105,8 +110,6 @@ class LoggingService:
     
     def _setup_file_handler(self):
         """Setup rotating file handler."""
-        from logging.handlers import RotatingFileHandler
-        
         log_file = self.log_dir / "plexichat.log"
         max_bytes = self._parse_size(self.config.get("max_file_size", "10MB"))
         backup_count = self.config.get("backup_count", 5)
@@ -304,7 +307,6 @@ class LoggingService:
     def _get_disk_space(self) -> int:
         """Get available disk space in bytes."""
         try:
-            import shutil
             return shutil.disk_usage(self.log_dir).free
         except Exception:
             return 0

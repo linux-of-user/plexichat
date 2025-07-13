@@ -1,18 +1,21 @@
-"""
-Comprehensive file permissions service for PlexiChat.
-Handles all file access control, permission validation, and audit logging.
-"""
-
 import hashlib
 import secrets
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 
-from fastapi import HTTPException, status
 from sqlmodel import Session, select
+
+
+from fastapi import HTTPException, status
 
 from plexichat.app.logger_config import logger
 from plexichat.app.models.files import (
+
+"""
+Comprehensive file permissions service for PlexiChat.
+Handles all file access control, permission validation, and audit logging.
+"""
+
     FileAccessLevel,
     FileAccessLog,
     FilePermission,
@@ -87,7 +90,8 @@ class FilePermissionService:
             permission = await self._get_user_permission(file_id, user_id)
             if permission and permission.is_active:
                 # Check if permission has expired
-                if permission.expires_at and permission.expires_at < datetime.utcnow():
+                if permission.expires_at and permission.expires_at < from datetime import datetime
+datetime.utcnow():
                     await self._log_access(file_id, user_id, permission_type.value, False,
                                          ip_address, user_agent, access_context, "Permission expired")
                     return False, "Permission expired", None
@@ -116,7 +120,8 @@ class FilePermissionService:
             share = await self._get_user_share(file_id, user_id)
             if share and share.is_active:
                 # Check if share has expired
-                if share.expires_at and share.expires_at < datetime.utcnow():
+                if share.expires_at and share.expires_at < from datetime import datetime
+datetime.utcnow():
                     await self._log_access(file_id, user_id, permission_type.value, False,
                                          ip_address, user_agent, access_context, "Share expired")
                     return False, "Share expired", None
@@ -183,7 +188,8 @@ class FilePermissionService:
                 existing_permission.expires_at = expires_at
                 existing_permission.max_downloads = max_downloads
                 existing_permission.granted_by = granted_by_user_id
-                existing_permission.granted_at = datetime.utcnow()
+                existing_permission.granted_at = from datetime import datetime
+datetime.utcnow()
                 existing_permission.is_active = True
                 existing_permission.revoked_at = None
             else:
@@ -228,7 +234,8 @@ class FilePermissionService:
             permission = await self._get_user_permission(file_id, target_user_id)
             if permission:
                 permission.is_active = False
-                permission.revoked_at = datetime.utcnow()
+                permission.revoked_at = from datetime import datetime
+datetime.utcnow()
                 self.session.commit()
                 logger.info(f"Revoked permissions for user {target_user_id} on file {file_id}")
                 return True

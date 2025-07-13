@@ -1,32 +1,36 @@
-"""
-PlexiChat Web Interface
-Provides HTML pages and web-based interfaces.
-"""
-
 import asyncio
 import os
 from pathlib import Path
+
+
+    import logging
+
+    import import
+    import settings
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+    from plexichat.core.auth.manager_auth import login_manager
+    from plexichat.interfaces.web.routers.login import from plexichat.infrastructure.utils.auth import get_current_user
+    from plexichat.infrastructure.utils.auth import get_current_user = None
+    from plexichat.core.updater import updater
+
+"""
+PlexiChat Web Interface
+Provides HTML pages and web-based interfaces.
+"""
+
 # Import authentication (with fallback)
 try:
-    from plexichat.core.auth.manager_auth import login_manager
-    from plexichat.interfaces.web.routers.login import get_current_user
     AUTH_AVAILABLE = True
 except ImportError:
     AUTH_AVAILABLE = False
-    get_current_user = None
     login_manager = None
 
 # Import settings
 try:
-    import logging
-
-    import import
-    import settings
 except ImportError:
     class MockSettings:
         APP_NAME = "PlexiChat"
@@ -35,14 +39,14 @@ except ImportError:
 
 # Import updater
 try:
-    from plexichat.core.updater import updater
     UPDATE_AVAILABLE = True
 except ImportError:
     UPDATE_AVAILABLE = False
     updater = None
 
 # Setup templates
-templates_dir = Path(__file__).parent.parent / "web" / "templates"
+templates_dir = from pathlib import Path
+Path(__file__).parent.parent / "web" / "templates"
 templates = Jinja2Templates(directory=str(templates_dir))
 
 router = APIRouter(prefix="/web", tags=["web"])
@@ -52,9 +56,9 @@ def require_auth():
     """Require authentication for protected routes."""
     if not AUTH_AVAILABLE:
         raise HTTPException(status_code=500, detail="Authentication not available")
-    return get_current_user
+    return from plexichat.infrastructure.utils.auth import get_current_user
 
-def require_admin():
+def from plexichat.infrastructure.utils.auth import require_admin():
     """Require admin privileges."""
     if not AUTH_AVAILABLE:
         raise HTTPException(status_code=500, detail="Authentication not available")
@@ -66,9 +70,12 @@ async def web_dashboard(request: Request):
     """Main web dashboard."""
     return templates.TemplateResponse("dashboard/index.html", {
         "request": request,
-        "title": f"{settings.APP_NAME} Dashboard",
-        "app_name": settings.APP_NAME,
-        "version": settings.APP_VERSION
+        "title": f"{from plexichat.core.config import settings
+settings.APP_NAME} Dashboard",
+        "app_name": from plexichat.core.config import settings
+settings.APP_NAME,
+        "version": from plexichat.core.config import settings
+settings.APP_VERSION
     })
 
 @router.get("/admin", response_class=HTMLResponse)
@@ -77,8 +84,10 @@ async def admin_dashboard(request: Request):
     return templates.TemplateResponse("admin/dashboard.html", {
         "request": request,
         "title": "Admin Dashboard",
-        "app_name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
+        "app_name": from plexichat.core.config import settings
+settings.APP_NAME,
+        "version": from plexichat.core.config import settings
+settings.APP_VERSION,
         "update_available": UPDATE_AVAILABLE
     })
 
@@ -88,8 +97,10 @@ async def file_editor(request: Request):
     return templates.TemplateResponse("admin/file_editor.html", {
         "request": request,
         "title": "File Editor - PlexiChat Admin",
-        "app_name": settings.APP_NAME,
-        "version": settings.APP_VERSION
+        "app_name": from plexichat.core.config import settings
+settings.APP_NAME,
+        "version": from plexichat.core.config import settings
+settings.APP_VERSION
     })
 
 @router.get("/admin/setup-tutorials", response_class=HTMLResponse)
@@ -98,8 +109,10 @@ async def setup_tutorials(request: Request):
     return templates.TemplateResponse("admin/setup_tutorials.html", {
         "request": request,
         "title": "Setup Tutorials - PlexiChat Admin",
-        "app_name": settings.APP_NAME,
-        "version": settings.APP_VERSION
+        "app_name": from plexichat.core.config import settings
+settings.APP_NAME,
+        "version": from plexichat.core.config import settings
+settings.APP_VERSION
     })
 
 @router.get("/docs/interactive", response_class=HTMLResponse)
@@ -107,8 +120,10 @@ async def interactive_api_docs(request: Request):
     """Interactive API documentation with live testing capabilities."""
     return templates.TemplateResponse("api_docs.html", {
         "request": request,
-        "api_version": settings.APP_VERSION,
-        "app_name": settings.APP_NAME,
+        "api_version": from plexichat.core.config import settings
+settings.APP_VERSION,
+        "app_name": from plexichat.core.config import settings
+settings.APP_NAME,
         "title": "API Documentation"
     })
 
@@ -122,8 +137,10 @@ async def updates_page(request: Request):
     return templates.TemplateResponse("admin/updates.html", {
         "request": request,
         "title": "System Updates",
-        "app_name": settings.APP_NAME,
-        "current_version": settings.APP_VERSION
+        "app_name": from plexichat.core.config import settings
+settings.APP_NAME,
+        "current_version": from plexichat.core.config import settings
+settings.APP_VERSION
     })
 
 @router.post("/admin/updates/check")
@@ -174,12 +191,14 @@ async def update_status():
         return {"error": "Update system not available"}
 
     # Check if staging directory exists (indicates pending restart update)
-    staging_dir = Path(".update_staging")
+    staging_dir = from pathlib import Path
+Path(".update_staging")
     has_pending_restart = staging_dir.exists()
 
     return {
         "update_available": UPDATE_AVAILABLE,
-        "current_version": settings.APP_VERSION,
+        "current_version": from plexichat.core.config import settings
+settings.APP_VERSION,
         "has_pending_restart": has_pending_restart,
         "last_check": "Not implemented yet"
     }
@@ -205,7 +224,8 @@ async def perform_hot_update(update_info):
         print(f"Hot update error: {e}")
 
 @router.get("/testing", response_class=HTMLResponse)
-async def testing_interface(request: Request, current_user: User = Depends(get_current_user)):
+async def testing_interface(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Self-testing interface."""
     return templates.TemplateResponse("testing/interface.html", {
         "request": request,
@@ -214,7 +234,8 @@ async def testing_interface(request: Request, current_user: User = Depends(get_c
     })
 
 @router.get("/cli", response_class=HTMLResponse)
-async def web_cli_interface(request: Request, current_user: User = Depends(get_current_user)):
+async def web_cli_interface(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Web-based CLI interface."""
     return templates.TemplateResponse("cli.html", {
         "request": request,
@@ -223,7 +244,8 @@ async def web_cli_interface(request: Request, current_user: User = Depends(get_c
     })
 
 @router.get("/backup", response_class=HTMLResponse)
-async def backup_management(request: Request, current_user: User = Depends(require_admin)):
+async def backup_management(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)):
     """Backup management interface."""
     return templates.TemplateResponse("admin/backup.html", {
         "request": request,
@@ -232,7 +254,8 @@ async def backup_management(request: Request, current_user: User = Depends(requi
     })
 
 @router.get("/analytics", response_class=HTMLResponse)
-async def analytics_dashboard(request: Request, current_user: User = Depends(require_admin)):
+async def analytics_dashboard(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)):
     """Analytics and monitoring dashboard."""
     return templates.TemplateResponse("admin/analytics.html", {
         "request": request,
@@ -257,7 +280,8 @@ async def register_page(request: Request):
     })
 
 @router.get("/profile", response_class=HTMLResponse)
-async def user_profile(request: Request, current_user: User = Depends(get_current_user)):
+async def user_profile(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """User profile page."""
     return templates.TemplateResponse("user/profile.html", {
         "request": request,
@@ -266,7 +290,8 @@ async def user_profile(request: Request, current_user: User = Depends(get_curren
     })
 
 @router.get("/chat", response_class=HTMLResponse)
-async def chat_interface(request: Request, current_user: User = Depends(get_current_user)):
+async def chat_interface(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Main chat interface."""
     return templates.TemplateResponse("chat/interface.html", {
         "request": request,
@@ -275,7 +300,8 @@ async def chat_interface(request: Request, current_user: User = Depends(get_curr
     })
 
 @router.get("/files", response_class=HTMLResponse)
-async def file_manager(request: Request, current_user: User = Depends(get_current_user)):
+async def file_manager(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """File management interface."""
     return templates.TemplateResponse("files/manager.html", {
         "request": request,
@@ -284,9 +310,11 @@ async def file_manager(request: Request, current_user: User = Depends(get_curren
     })
 
 @router.get("/settings", response_class=HTMLResponse)
-async def user_settings(request: Request, current_user: User = Depends(get_current_user)):
+async def user_settings(request: Request, current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """User settings page."""
-    return templates.TemplateResponse("user/settings.html", {
+    return templates.TemplateResponse("user/from plexichat.core.config import settings
+settings.html", {
         "request": request,
         "user": current_user,
         "title": "Settings"
@@ -326,7 +354,8 @@ async def analytics_redirect():
 
 # API for web interface data
 @router.get("/api/dashboard/stats")
-async def dashboard_stats(current_user: User = Depends(get_current_user)):
+async def dashboard_stats(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Get dashboard statistics."""
     # This would return real statistics
     return {
@@ -357,7 +386,8 @@ async def web_system_health():
     }
 
 @router.get("/api/notifications")
-async def get_notifications(current_user: User = Depends(get_current_user)):
+async def get_notifications(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)):
     """Get user notifications."""
     return {
         "notifications": [

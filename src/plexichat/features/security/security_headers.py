@@ -1,12 +1,13 @@
-"""
-PlexiChat Advanced Security Headers
-Implements comprehensive security headers for maximum protection
-"""
-
 import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+"""
+PlexiChat Advanced Security Headers
+Implements comprehensive security headers for maximum protection
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +208,7 @@ class AdvancedSecurityHeaders:
             description="Certificate Transparency enforcement"
         )
         
-        logger.info(f"✅ Initialized {len(self.headers)} security headers")
+        logger.info(f" Initialized {len(self.headers)} security headers")
     
     def set_security_level(self, level: str):
         """Set the security level (minimal, standard, strict, paranoid)."""
@@ -215,7 +216,7 @@ class AdvancedSecurityHeaders:
             raise ValueError(f"Invalid security level: {level}")
         
         self.security_level = level
-        logger.info(f"✅ Security level set to: {level}")
+        logger.info(f" Security level set to: {level}")
     
     def get_headers_for_response(self, 
                                 path: str = "/", 
@@ -279,13 +280,13 @@ class AdvancedSecurityHeaders:
     def add_custom_header(self, name: str, value: str):
         """Add a custom security header."""
         self.custom_headers[name.lower()] = value
-        logger.info(f"✅ Added custom header: {name}")
+        logger.info(f" Added custom header: {name}")
     
     def remove_custom_header(self, name: str):
         """Remove a custom security header."""
         if name.lower() in self.custom_headers:
             del self.custom_headers[name.lower()]
-            logger.info(f"✅ Removed custom header: {name}")
+            logger.info(f" Removed custom header: {name}")
     
     def validate_headers(self, headers: Dict[str, str]) -> Dict[str, List[str]]:
         """Validate security headers and return recommendations."""
@@ -340,9 +341,9 @@ class AdvancedSecurityHeaders:
         for header, points in essential_checks.items():
             if header in headers:
                 score += points
-                details[header] = "✅ Present"
+                details[header] = " Present"
             else:
-                details[header] = "❌ Missing"
+                details[header] = " Missing"
         
         # Additional security headers (60 points)
         additional_checks = {
@@ -357,9 +358,9 @@ class AdvancedSecurityHeaders:
         for header, points in additional_checks.items():
             if header in headers:
                 score += points
-                details[header] = "✅ Present"
+                details[header] = " Present"
             else:
-                details[header] = "⚠️ Optional but recommended"
+                details[header] = " Optional but recommended"
         
         # Calculate grade
         if score >= 90:

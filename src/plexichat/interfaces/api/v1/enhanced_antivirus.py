@@ -1,11 +1,9 @@
-"""
-Enhanced Antivirus API Endpoints
-REST API for managing the enhanced antivirus system.
-"""
-
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+
+
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
@@ -13,6 +11,11 @@ from pydantic import BaseModel, Field
 from plexichat.antivirus.core import ScanType
 from plexichat.antivirus.enhanced_antivirus_manager import EnhancedAntivirusManager
 from plexichat.app.logger_config import logger
+
+"""
+Enhanced Antivirus API Endpoints
+REST API for managing the enhanced antivirus system.
+"""
 
 # Initialize router
 router = APIRouter(prefix="/antivirus", tags=["Enhanced Antivirus"])
@@ -132,7 +135,8 @@ async def scan_file(
     """Scan a file for threats."""
     try:
         # Validate file exists
-        if not Path(request.file_path).exists():
+        if not from pathlib import Path
+Path(request.file_path).exists():
             raise HTTPException(status_code=404, detail="File not found")
         
         # Convert scan type strings to enums
@@ -194,10 +198,12 @@ async def scan_uploaded_file(
     """Scan an uploaded file for threats."""
     try:
         # Save uploaded file temporarily
-        temp_dir = Path("temp/antivirus_scans")
+        temp_dir = from pathlib import Path
+Path("temp/antivirus_scans")
         temp_dir.mkdir(parents=True, exist_ok=True)
         
-        temp_file_path = temp_dir / f"upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+        temp_file_path = temp_dir / f"upload_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
         
         with open(temp_file_path, "wb") as temp_file:
             content = await file.read()
@@ -235,7 +241,8 @@ async def scan_plugin(
     """Scan a plugin file with comprehensive security checks."""
     try:
         # Validate file exists
-        if not Path(request.file_path).exists():
+        if not from pathlib import Path
+Path(request.file_path).exists():
             raise HTTPException(status_code=404, detail="Plugin file not found")
         
         # Perform plugin scan

@@ -1,12 +1,13 @@
+from .models import *
+from .repositories import *
+from .services import *
+
+
 """
 PlexiChat Channels Feature Package
 
 Discord-like server and channel system with comprehensive role-based permissions.
 """
-
-from .models import *
-from .repositories import *
-from .services import *
 
 __version__ = "1.0.0"
 __all__ = [

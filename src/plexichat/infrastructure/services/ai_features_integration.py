@@ -1,10 +1,3 @@
-"""
-PlexiChat AI-Powered Features Service Integration
-
-Handles initialization, lifecycle management, and integration of AI-powered features
-with PlexiChat's main application and service management framework.
-"""
-
 import asyncio
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -13,6 +6,14 @@ from ..ai.features.ai_powered_features_service import AIPoweredFeaturesService
 from ..core.config import get_config
 from ..core.logging import get_logger
 from ..core.service_manager import BaseService, ServiceManager
+
+
+"""
+PlexiChat AI-Powered Features Service Integration
+
+Handles initialization, lifecycle management, and integration of AI-powered features
+with PlexiChat's main application and service management framework.
+"""
 
 logger = get_logger(__name__)
 
@@ -29,7 +30,7 @@ class AIPoweredFeaturesIntegration(BaseService):
     async def initialize(self) -> bool:
         """Initialize the AI-powered features service."""
         try:
-            logger.info("🤖 Initializing AI-Powered Features service...")
+            logger.info(" Initializing AI-Powered Features service...")
             
             # Load configuration
             config = await self._load_configuration()
@@ -40,7 +41,7 @@ class AIPoweredFeaturesIntegration(BaseService):
             # Perform health check
             health = await self.ai_features_service.health_check()
             if health.get("service_state") != "running":
-                logger.warning("⚠️ AI-Powered Features service health check failed")
+                logger.warning(" AI-Powered Features service health check failed")
                 return False
             
             # Initialize semantic search index if needed
@@ -52,7 +53,7 @@ class AIPoweredFeaturesIntegration(BaseService):
                 service_manager.register_service("ai_powered_features", self)
             
             self._initialized = True
-            logger.info("✅ AI-Powered Features service initialized successfully")
+            logger.info(" AI-Powered Features service initialized successfully")
             
             # Log available features
             await self._log_available_features()
@@ -60,7 +61,7 @@ class AIPoweredFeaturesIntegration(BaseService):
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize AI-Powered Features service: {e}")
+            logger.error(f" Failed to initialize AI-Powered Features service: {e}")
             return False
     
     async def start(self) -> bool:
@@ -70,7 +71,7 @@ class AIPoweredFeaturesIntegration(BaseService):
                 return False
         
         try:
-            logger.info("🚀 Starting AI-Powered Features service...")
+            logger.info(" Starting AI-Powered Features service...")
             
             # Start background tasks
             await self._start_background_tasks()
@@ -79,18 +80,18 @@ class AIPoweredFeaturesIntegration(BaseService):
             await self._warm_up_caches()
             
             self.status = "running"
-            logger.info("✅ AI-Powered Features service started successfully")
+            logger.info(" AI-Powered Features service started successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to start AI-Powered Features service: {e}")
+            logger.error(f" Failed to start AI-Powered Features service: {e}")
             self.status = "error"
             return False
     
     async def stop(self) -> bool:
         """Stop the AI-powered features service."""
         try:
-            logger.info("🛑 Stopping AI-Powered Features service...")
+            logger.info(" Stopping AI-Powered Features service...")
             
             # Stop background tasks
             await self._stop_background_tasks()
@@ -100,11 +101,11 @@ class AIPoweredFeaturesIntegration(BaseService):
                 await self.ai_features_service.save_configuration()
             
             self.status = "stopped"
-            logger.info("✅ AI-Powered Features service stopped successfully")
+            logger.info(" AI-Powered Features service stopped successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to stop AI-Powered Features service: {e}")
+            logger.error(f" Failed to stop AI-Powered Features service: {e}")
             return False
     
     async def health_check(self) -> Dict[str, Any]:
@@ -143,12 +144,14 @@ class AIPoweredFeaturesIntegration(BaseService):
             ai_features_config = base_config.get("ai_powered_features", {})
             
             # Set default configuration paths
-            config_dir = Path("config")
+            config_dir = from pathlib import Path
+Path("config")
             config_dir.mkdir(exist_ok=True)
             
             default_config = {
                 "config_path": str(config_dir / "ai_powered_features.yaml"),
-                "cache_dir": str(Path("data") / "ai_features_cache"),
+                "cache_dir": str(from pathlib import Path
+Path("data") / "ai_features_cache"),
                 "summarization": {
                     "enabled": True,
                     "model_preference": ["gpt-4", "claude-3-sonnet", "gpt-3.5-turbo"],
@@ -180,11 +183,11 @@ class AIPoweredFeaturesIntegration(BaseService):
             # Merge with user configuration
             merged_config = {**default_config, **ai_features_config}
             
-            logger.info("📋 AI-Powered Features configuration loaded")
+            logger.info(" AI-Powered Features configuration loaded")
             return merged_config
             
         except Exception as e:
-            logger.error(f"❌ Failed to load AI-Powered Features configuration: {e}")
+            logger.error(f" Failed to load AI-Powered Features configuration: {e}")
             raise
     
     async def _initialize_semantic_index(self):
@@ -198,7 +201,7 @@ class AIPoweredFeaturesIntegration(BaseService):
             index_size = stats.get("cache_sizes", {}).get("semantic_search", 0)
             
             if index_size == 0:
-                logger.info("📚 Initializing semantic search index with default content...")
+                logger.info(" Initializing semantic search index with default content...")
                 
                 # Add some default content for testing
                 default_content = [
@@ -221,10 +224,10 @@ class AIPoweredFeaturesIntegration(BaseService):
                         metadata=item["metadata"]
                     )
                 
-                logger.info("✅ Semantic search index initialized with default content")
+                logger.info(" Semantic search index initialized with default content")
             
         except Exception as e:
-            logger.warning(f"⚠️ Failed to initialize semantic search index: {e}")
+            logger.warning(f" Failed to initialize semantic search index: {e}")
     
     async def _start_background_tasks(self):
         """Start background tasks for AI-powered features."""
@@ -237,10 +240,10 @@ class AIPoweredFeaturesIntegration(BaseService):
             stats_task = asyncio.create_task(self._statistics_collection_task())
             self._startup_tasks.append(stats_task)
             
-            logger.info("🔄 AI-Powered Features background tasks started")
+            logger.info(" AI-Powered Features background tasks started")
             
         except Exception as e:
-            logger.error(f"❌ Failed to start background tasks: {e}")
+            logger.error(f" Failed to start background tasks: {e}")
     
     async def _stop_background_tasks(self):
         """Stop background tasks."""
@@ -254,10 +257,10 @@ class AIPoweredFeaturesIntegration(BaseService):
                         pass
             
             self._startup_tasks.clear()
-            logger.info("🛑 AI-Powered Features background tasks stopped")
+            logger.info(" AI-Powered Features background tasks stopped")
             
         except Exception as e:
-            logger.error(f"❌ Failed to stop background tasks: {e}")
+            logger.error(f" Failed to stop background tasks: {e}")
     
     async def _cache_cleanup_task(self):
         """Background task for cache cleanup."""
@@ -266,11 +269,11 @@ class AIPoweredFeaturesIntegration(BaseService):
                 await asyncio.sleep(3600)  # Run every hour
                 if self.ai_features_service:
                     await self.ai_features_service._cleanup_expired_cache()
-                    logger.debug("🧹 Cache cleanup completed")
+                    logger.debug(" Cache cleanup completed")
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Cache cleanup task error: {e}")
+                logger.error(f" Cache cleanup task error: {e}")
     
     async def _statistics_collection_task(self):
         """Background task for statistics collection."""
@@ -279,11 +282,11 @@ class AIPoweredFeaturesIntegration(BaseService):
                 await asyncio.sleep(300)  # Run every 5 minutes
                 if self.ai_features_service:
                     stats = await self.ai_features_service.get_feature_statistics()
-                    logger.debug(f"📊 AI Features statistics: {stats.get('feature_stats', {})}")
+                    logger.debug(f" AI Features statistics: {stats.get('feature_stats', {})}")
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Statistics collection task error: {e}")
+                logger.error(f" Statistics collection task error: {e}")
     
     async def _warm_up_caches(self):
         """Warm up caches with common operations."""
@@ -291,7 +294,7 @@ class AIPoweredFeaturesIntegration(BaseService):
             if not self.ai_features_service:
                 return
             
-            logger.info("🔥 Warming up AI-Powered Features caches...")
+            logger.info(" Warming up AI-Powered Features caches...")
             
             # Warm up with a simple test operation
             await self.ai_features_service.semantic_search(
@@ -300,10 +303,10 @@ class AIPoweredFeaturesIntegration(BaseService):
                 similarity_threshold=0.9
             )
             
-            logger.info("✅ Cache warm-up completed")
+            logger.info(" Cache warm-up completed")
             
         except Exception as e:
-            logger.warning(f"⚠️ Cache warm-up failed: {e}")
+            logger.warning(f" Cache warm-up failed: {e}")
     
     async def _log_available_features(self):
         """Log available AI-powered features."""
@@ -315,29 +318,29 @@ class AIPoweredFeaturesIntegration(BaseService):
             enabled_features = []
             
             if config.get("summarization", {}).get("enabled", False):
-                enabled_features.append("📝 Text Summarization")
+                enabled_features.append(" Text Summarization")
             
             if config.get("content_suggestions", {}).get("enabled", False):
-                enabled_features.append("💡 Content Suggestions")
+                enabled_features.append(" Content Suggestions")
             
             if config.get("sentiment_analysis", {}).get("enabled", False):
-                enabled_features.append("😊 Sentiment Analysis")
+                enabled_features.append(" Sentiment Analysis")
             
             if config.get("semantic_search", {}).get("enabled", False):
-                enabled_features.append("🔍 Semantic Search")
+                enabled_features.append(" Semantic Search")
             
             if config.get("automated_moderation", {}).get("enabled", False):
-                enabled_features.append("🛡️ Content Moderation")
+                enabled_features.append(" Content Moderation")
             
             if enabled_features:
-                logger.info("🤖 Available AI-Powered Features:")
+                logger.info(" Available AI-Powered Features:")
                 for feature in enabled_features:
                     logger.info(f"   {feature}")
             else:
-                logger.warning("⚠️ No AI-Powered Features are enabled")
+                logger.warning(" No AI-Powered Features are enabled")
                 
         except Exception as e:
-            logger.error(f"❌ Failed to log available features: {e}")
+            logger.error(f" Failed to log available features: {e}")
 
 
 # Global integration instance
@@ -365,14 +368,14 @@ async def startup_ai_features():
         
         success = await integration.start()
         if success:
-            logger.info("🚀 AI-Powered Features integration started successfully")
+            logger.info(" AI-Powered Features integration started successfully")
         else:
-            logger.error("❌ Failed to start AI-Powered Features integration")
+            logger.error(" Failed to start AI-Powered Features integration")
         
         return success
         
     except Exception as e:
-        logger.error(f"❌ AI-Powered Features startup failed: {e}")
+        logger.error(f" AI-Powered Features startup failed: {e}")
         return False
 
 
@@ -383,12 +386,12 @@ async def shutdown_ai_features():
         if integration:
             success = await integration.stop()
             if success:
-                logger.info("🛑 AI-Powered Features integration stopped successfully")
+                logger.info(" AI-Powered Features integration stopped successfully")
             else:
-                logger.error("❌ Failed to stop AI-Powered Features integration")
+                logger.error(" Failed to stop AI-Powered Features integration")
             return success
         return True
         
     except Exception as e:
-        logger.error(f"❌ AI-Powered Features shutdown failed: {e}")
+        logger.error(f" AI-Powered Features shutdown failed: {e}")
         return False

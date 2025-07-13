@@ -1,10 +1,3 @@
-"""
-Advanced Antivirus Engine
-
-Main antivirus engine that coordinates all scanning components
-and provides comprehensive threat detection capabilities.
-"""
-
 import asyncio
 import hashlib
 import logging
@@ -23,6 +16,14 @@ from .hash_scanner import HashBasedScanner
 from .link_scanner import LinkSafetyScanner
 from .threat_intelligence import ThreatIntelligenceEngine
 
+
+"""
+Advanced Antivirus Engine
+
+Main antivirus engine that coordinates all scanning components
+and provides comprehensive threat detection capabilities.
+"""
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,7 +41,8 @@ class AdvancedAntivirusEngine:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.antivirus_dir = self.data_dir / "antivirus"
         self.quarantine_dir = self.antivirus_dir / "quarantine"
         self.db_path = self.antivirus_dir / "antivirus.db"
@@ -104,7 +106,8 @@ class AdvancedAntivirusEngine:
             ScanResult with detection details
         """
         start_time = time.time()
-        file_path = Path(file_path)
+        file_path = from pathlib import Path
+Path(file_path)
         
         logger.debug(f"Scanning file: {file_path} with {scan_type.value} scan")
         
@@ -350,7 +353,8 @@ class AdvancedAntivirusEngine:
     async def _quarantine_file(self, scan_result: ScanResult):
         """Quarantine a threatening file."""
         try:
-            source_path = Path(scan_result.file_path)
+            source_path = from pathlib import Path
+Path(scan_result.file_path)
             if not source_path.exists():
                 return
 

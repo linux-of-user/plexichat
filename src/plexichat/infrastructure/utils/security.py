@@ -1,9 +1,3 @@
-# app/utils/security.py
-"""
-Comprehensive security utilities including input sanitization,
-password management, session handling, and advanced security features.
-"""
-
 import base64
 import hashlib
 import json
@@ -18,26 +12,77 @@ import bleach
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from typing import Optional, Dict, Any, List
+from passlib.context import CryptContext
+
+    import magic
+    from PIL import Image
+
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+
+        import base64
+
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
+
+        import base64
+
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
+
+        from cryptography.fernet import Fernet
+        from cryptography.fernet import Fernet
+        from cryptography.fernet import Fernet
+        import secrets
+
+        import base32
+        import base64
+        import hashlib
+        import hmac
+        import struct
+        import time
+
+        import time
+
+        import base64
+
+        from cryptography.fernet import Fernet
+
+        import base64
+
+        from cryptography.fernet import Fernet
+
+        import base64
+
+        from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+        from io import BytesIO
+
 from fastapi import Request
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+
+from plexichat.app.logger_config import logger, settings
+
+# app/utils/security.py
+"""
+Comprehensive security utilities including input sanitization,
+password management, session handling, and advanced security features.
+"""
 
 # Additional imports for file security
 try:
-    import magic
     MAGIC_AVAILABLE = True
 except ImportError:
     MAGIC_AVAILABLE = False
     logger.warning("python-magic not available, file type detection limited")
 
 try:
-    from PIL import Image
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
     logger.warning("Pillow not available, image validation disabled")
-
-from plexichat.app.logger_config import logger, settings
 
 # Legacy support
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -54,10 +99,13 @@ def create_access_token(data: Dict, scopes: List[str] = []) -> str:
     """Legacy function for backward compatibility."""
     to_encode = data.copy()
     to_encode.update({
-        "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+        "exp": from datetime import datetime
+datetime.utcnow() + timedelta(minutes=from plexichat.core.config import settings
+settings.ACCESS_TOKEN_EXPIRE_MINUTES),
         "scopes": scopes
     })
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm="HS256")
+    return jwt.encode(to_encode, from plexichat.core.config import settings
+settings.SECRET_KEY, algorithm="HS256")
 
 
 class InputSanitizer:
@@ -168,9 +216,6 @@ class AdvancedEncryption:
     @staticmethod
     def generate_key_pair():
         """Generate RSA key pair for end-to-end encryption."""
-        from cryptography.hazmat.primitives import serialization
-        from cryptography.hazmat.primitives.asymmetric import rsa
-
         # Generate private key
         private_key = rsa.generate_private_key(
             public_exponent=65537,
@@ -198,11 +243,6 @@ class AdvancedEncryption:
     @staticmethod
     def encrypt_message(message: str, public_key_pem: str) -> str:
         """Encrypt message using RSA public key."""
-        import base64
-
-        from cryptography.hazmat.primitives import hashes, serialization
-        from cryptography.hazmat.primitives.asymmetric import padding
-
         # Load public key
         public_key = serialization.load_pem_public_key(public_key_pem.encode('utf-8'))
 
@@ -221,11 +261,6 @@ class AdvancedEncryption:
     @staticmethod
     def decrypt_message(encrypted_message: str, private_key_pem: str) -> str:
         """Decrypt message using RSA private key."""
-        import base64
-
-        from cryptography.hazmat.primitives import hashes, serialization
-        from cryptography.hazmat.primitives.asymmetric import padding
-
         # Load private key
         private_key = serialization.load_pem_private_key(
             private_key_pem.encode('utf-8'),
@@ -248,20 +283,17 @@ class AdvancedEncryption:
     @staticmethod
     def generate_symmetric_key() -> str:
         """Generate symmetric key for AES encryption."""
-        from cryptography.fernet import Fernet
         return Fernet.generate_key().decode('utf-8')
 
     @staticmethod
     def encrypt_symmetric(data: str, key: str) -> str:
         """Encrypt data using symmetric encryption."""
-        from cryptography.fernet import Fernet
         f = Fernet(key.encode('utf-8'))
         return f.encrypt(data.encode('utf-8')).decode('utf-8')
 
     @staticmethod
     def decrypt_symmetric(encrypted_data: str, key: str) -> str:
         """Decrypt data using symmetric encryption."""
-        from cryptography.fernet import Fernet
         f = Fernet(key.encode('utf-8'))
         return f.decrypt(encrypted_data.encode('utf-8')).decode('utf-8')
 
@@ -272,20 +304,11 @@ class TimeBasedSecurity:
     @staticmethod
     def generate_totp_secret() -> str:
         """Generate TOTP secret for 2FA."""
-        import secrets
-
-        import base32
         return base32.b32encode(secrets.token_bytes(20)).decode('utf-8')
 
     @staticmethod
     def generate_totp_code(secret: str, time_step: int = 30) -> str:
         """Generate TOTP code."""
-        import base64
-        import hashlib
-        import hmac
-        import struct
-        import time
-
         # Convert secret from base32
         key = base64.b32decode(secret.upper() + '=' * (8 - len(secret) % 8))
 
@@ -305,8 +328,6 @@ class TimeBasedSecurity:
     @staticmethod
     def verify_totp_code(secret: str, code: str, window: int = 1) -> bool:
         """Verify TOTP code with time window tolerance."""
-        import time
-
         current_time = int(time.time()) // 30
 
         # Check current time and adjacent windows
@@ -321,10 +342,6 @@ class TimeBasedSecurity:
     @staticmethod
     def create_time_locked_message(message: str, unlock_time: datetime) -> Dict[str, Any]:
         """Create a message that can only be decrypted after a specific time."""
-        import base64
-
-        from cryptography.fernet import Fernet
-
         # Generate encryption key
         key = Fernet.generate_key()
         f = Fernet(key)
@@ -349,10 +366,6 @@ class TimeBasedSecurity:
     @staticmethod
     def unlock_time_locked_message(container: Dict[str, Any]) -> Optional[str]:
         """Unlock a time-locked message if the time has passed."""
-        import base64
-
-        from cryptography.fernet import Fernet
-
         unlock_time = datetime.fromisoformat(container['unlock_time'])
         current_time = datetime.now(timezone.utc)
 
@@ -385,11 +398,6 @@ class TimeBasedSecurity:
     @staticmethod
     def _derive_time_key(unlock_time: datetime) -> str:
         """Derive encryption key based on unlock time."""
-        import base64
-
-        from cryptography.hazmat.primitives import hashes
-        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-
         # Use unlock time as salt
         salt = unlock_time.isoformat().encode('utf-8')
 
@@ -408,9 +416,11 @@ class SecurityManager:
     """Comprehensive security management."""
 
     def __init__(self):
-        self.secret_key = settings.SECRET_KEY
+        self.secret_key = from plexichat.core.config import settings
+settings.SECRET_KEY
         self.algorithm = "HS256"
-        self.access_token_expire_minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        self.access_token_expire_minutes = from plexichat.core.config import settings
+settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
         # Initialize encryption
         self._init_encryption()
@@ -520,7 +530,8 @@ class SecurityManager:
             raise JWTError("Token has been revoked")
 
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            payload = import jwt
+jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
             if payload.get("type") != "access":
                 raise JWTError("Invalid token type")
@@ -534,7 +545,8 @@ class SecurityManager:
     def validate_refresh_token(self, token: str) -> Dict[str, Any]:
         """Validate and decode refresh token."""
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            payload = import jwt
+jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
             if payload.get("type") != "refresh":
                 raise JWTError("Invalid token type")
@@ -647,7 +659,8 @@ def sanitize_filename(filename: str) -> Optional[str]:
         'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
     }
 
-    name_without_ext = Path(filename).stem.upper()
+    name_without_ext = from pathlib import Path
+Path(filename).stem.upper()
     if name_without_ext in reserved_names:
         filename = f"file_{filename}"
 
@@ -735,7 +748,6 @@ def validate_image_file(content: bytes) -> bool:
         return True  # Skip validation if PIL not available
 
     try:
-        from io import BytesIO
         with Image.open(BytesIO(content)) as img:
             # Check image dimensions (prevent zip bombs)
             if img.width * img.height > 50000000:  # 50MP limit

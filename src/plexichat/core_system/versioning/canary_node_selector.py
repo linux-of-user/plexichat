@@ -1,3 +1,12 @@
+import logging
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
+from .canary_deployment_manager import CanaryNode, CanaryStrategy
+
+
 """
 PlexiChat Canary Node Selector
 
@@ -8,14 +17,6 @@ Intelligent node selection for canary deployments with:
 - Risk assessment and mitigation
 - Custom selection strategies
 """
-
-import logging
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-
-from .canary_deployment_manager import CanaryNode, CanaryStrategy
 
 logger = logging.getLogger(__name__)
 

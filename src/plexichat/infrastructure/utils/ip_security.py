@@ -1,9 +1,3 @@
-# app/utils/ip_security.py
-"""
-IP-based security system with whitelist/blacklist management,
-geolocation blocking, and advanced access control.
-"""
-
 import ipaddress
 import json
 from datetime import datetime, timedelta, timezone
@@ -13,14 +7,25 @@ from typing import Dict, List, Optional, Set, Tuple
 import geoip2.database
 import geoip2.errors
 from app.logger_config import logger, settings
+from typing import Optional, Dict, Any, List
+
+
+
 from fastapi import Request
 
+# app/utils/ip_security.py
+"""
+IP-based security system with whitelist/blacklist management,
+geolocation blocking, and advanced access control.
+"""
 
 class IPSecurityManager:
     """Comprehensive IP-based security management."""
     
     def __init__(self, config_file: Optional[str] = None):
-        self.config_file = config_file or str(Path(settings.LOG_DIR) / "ip_security.json")
+        self.config_file = config_file or str(from pathlib import Path
+Path(from plexichat.core.config import settings
+settings.LOG_DIR) / "ip_security.json")
         
         # IP lists
         self.whitelist: Set[str] = set()
@@ -71,11 +76,14 @@ class IPSecurityManager:
                 '/usr/share/GeoIP/GeoLite2-Country.mmdb',
                 '/opt/GeoIP/GeoLite2-Country.mmdb',
                 './GeoLite2-Country.mmdb',
-                str(Path(settings.LOG_DIR) / 'GeoLite2-Country.mmdb')
+                str(from pathlib import Path
+Path(from plexichat.core.config import settings
+settings.LOG_DIR) / 'GeoLite2-Country.mmdb')
             ]
             
             for path in possible_paths:
-                if Path(path).exists():
+                if from pathlib import Path
+Path(path).exists():
                     self.geoip_db = geoip2.database.Reader(path)
                     logger.info("GeoIP database loaded from %s", path)
                     break
@@ -106,7 +114,8 @@ class IPSecurityManager:
     def _load_config(self):
         """Load IP security configuration from file."""
         try:
-            config_path = Path(self.config_file)
+            config_path = from pathlib import Path
+Path(self.config_file)
             if config_path.exists():
                 with open(config_path, 'r') as f:
                     data = json.load(f)
@@ -166,7 +175,8 @@ class IPSecurityManager:
                 }
             }
             
-            config_path = Path(self.config_file)
+            config_path = from pathlib import Path
+Path(self.config_file)
             config_path.parent.mkdir(parents=True, exist_ok=True)
             
             with open(config_path, 'w') as f:

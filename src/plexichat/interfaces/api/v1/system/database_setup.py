@@ -1,8 +1,3 @@
-"""
-Enhanced Database Setup API with Encryption Support
-Provides comprehensive database configuration, external hosting setup, and encryption management.
-"""
-
 import os
 import secrets
 from typing import Any, Dict, Optional
@@ -11,16 +6,24 @@ from app.db import get_session
 from app.logger_config import logger
 from app.security.database_encryption import EncryptedDatabaseManager, get_encryption_manager
 from core.external_database import (
+from sqlmodel import Session
+
+
+        from app.db import engine
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+
+"""
+Enhanced Database Setup API with Encryption Support
+Provides comprehensive database configuration, external hosting setup, and encryption management.
+"""
+
     DatabaseEngine,
     DatabaseProvider,
     ExternalDatabaseConfig,
     ExternalDatabaseManager,
 )
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlmodel import Session
-
-
 # Pydantic models for API
 class DatabaseEncryptionSetupRequest(BaseModel):
     enable_encryption: bool = True
@@ -78,7 +81,6 @@ async def setup_database_encryption(
         encryption_manager = EncryptedDatabaseManager(master_key)
         
         # Setup encryption for current database engine
-        from app.db import engine
         encryption_manager.setup_engine_encryption(engine)
         
         # Store encryption key securely (in production, use proper key management)

@@ -1,3 +1,9 @@
+from .test_base import BaseTest, TestResult
+from .test_config import ConfigTest
+from .test_database import DatabaseTest
+from .test_ssl import SSLTest
+
+
 """
 PlexiChat Test Suite
 
@@ -9,11 +15,6 @@ Comprehensive testing framework for PlexiChat functionality including:
 - Security feature tests
 - Optional feature tests
 """
-
-from .test_base import BaseTest, TestResult
-from .test_config import ConfigTest
-from .test_database import DatabaseTest
-from .test_ssl import SSLTest
 
 __all__ = [
     'BaseTest',

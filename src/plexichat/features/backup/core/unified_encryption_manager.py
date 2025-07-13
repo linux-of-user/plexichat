@@ -1,3 +1,11 @@
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Tuple
+
+from ...core_system.logging import get_logger
+from ...security import distributed_key_manager, quantum_encryption
+
+
 """
 Unified Encryption Manager
 
@@ -7,13 +15,6 @@ Consolidates all encryption functionality for the backup system with:
 - Hardware security module (HSM) support
 - Key rotation and lifecycle management
 """
-
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, Tuple
-
-from ...core_system.logging import get_logger
-from ...security import distributed_key_manager, quantum_encryption
 
 logger = get_logger(__name__)
 

@@ -1,8 +1,3 @@
-"""
-Advanced 2FA System for PlexiChat
-Comprehensive two-factor authentication with multiple methods and security features.
-"""
-
 import base64
 import hashlib
 import io
@@ -17,12 +12,20 @@ from typing import Any, Dict, List, Optional
 import pyotp  # type: ignore
 import qrcode
 from cryptography.fernet import Fernet
+
+    import logging
+
 from pydantic import BaseModel
 
-try:
     from plexichat.app.logger_config import logger  # type: ignore
+
+"""
+Advanced 2FA System for PlexiChat
+Comprehensive two-factor authentication with multiple methods and security features.
+"""
+
+try:
 except ImportError:
-    import logging
     logger = logging.getLogger(__name__)
 
 

@@ -1,3 +1,47 @@
+import logging
+import os
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+
+import yaml
+
+from .core_system.config import get_config
+
+    from .core_system.logging import get_logger, setup_module_logging
+    import logging
+    from .core_system.security.certificate_manager import get_certificate_manager
+    from .features.ai.api.ai_endpoints import router as ai_api_router
+    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+    from .features.ai.webui.ai_management import router as ai_webui_router
+    from .features.clustering.core.cluster_manager import AdvancedClusterManager
+
+    from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+        from .interfaces.api.v1.clustering import router as clustering_router
+        from .features.backup.services import router as backup_router
+            from .features.backup import router as backup_router
+        from .interfaces.api.v1.security_api import router as security_router
+                from .core_system.database import get_database_manager
+                        from .core_system.integration.orchestrator import SystemOrchestrator
+                        from .core.database import database_manager
+                from .core_system.auth.unified_auth_manager import UnifiedAuthManager
+                from .features.backup.core.unified_backup_manager import get_unified_backup_manager
+            from .core_system.database import get_database_manager
+            from .features.backup.core.unified_backup_manager import get_unified_backup_manager
+            from .core_system.database import get_database_manager
+
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+    import uvicorn
+
 """
 PlexiChat Main Application
 Government-Level Secure Communication Platform
@@ -6,30 +50,12 @@ Unified main application that consolidates all PlexiChat functionality
 into a single, cohesive FastAPI application with comprehensive features.
 """
 
-import logging
-import os
-from datetime import datetime
-from pathlib import Path
-from typing import Optional
-
-import uvicorn
-import yaml
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-
 # Import configuration
-from .core_system.config import get_config
-
 # Import advanced logging
 try:
-    from .core_system.logging import get_logger, setup_module_logging
     get_advanced_logger = get_logger  # Alias for compatibility
 except ImportError:
     # Fallback logging
-    import logging
     def get_logger(name):
         return logging.getLogger(name)
     def setup_module_logging(module_name=None, level="INFO"):
@@ -43,46 +69,39 @@ except ImportError:
 
 # SSL/Certificate Management
 try:
-    from .core_system.security.certificate_manager import get_certificate_manager
     ssl_manager = get_certificate_manager()
-    logging.info("✅ SSL Manager loaded")
+    logging.info(" SSL Manager loaded")
 except ImportError as e:
-    logging.warning(f"⚠️ SSL Manager not available: {e}")
+    logging.warning(f" SSL Manager not available: {e}")
     ssl_manager = None
 
 # AI Abstraction Layer (Optional - Full Install Only)
 try:
-    from .features.ai.api.ai_endpoints import router as ai_api_router
-    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
-    from .features.ai.webui.ai_management import router as ai_webui_router
     ai_layer = AIAbstractionLayer()
-    logging.info("✅ AI Abstraction Layer loaded (Full Install)")
+    logging.info(" AI Abstraction Layer loaded (Full Install)")
 except ImportError:
-    logging.info("ℹ️ AI features not available (requires full installation)")
+    logging.info(" AI features not available (requires full installation)")
     ai_layer = None
     ai_api_router = None
     ai_webui_router = None
 except Exception as e:
-    logging.warning(f"⚠️ AI Abstraction Layer failed to initialize: {e}")
+    logging.warning(f" AI Abstraction Layer failed to initialize: {e}")
     ai_layer = None
     ai_api_router = None
     ai_webui_router = None
 
 # Clustering System
 try:
-    from .features.clustering.core.cluster_manager import AdvancedClusterManager
-
     # Initialize cluster manager later after app is created
     cluster_manager = None
-    logging.info("✅ Advanced Clustering System available")
+    logging.info(" Advanced Clustering System available")
 except ImportError as e:
-    logging.warning(f"⚠️ Advanced Clustering System not available: {e}")
+    logging.warning(f" Advanced Clustering System not available: {e}")
     cluster_manager = None
     AdvancedClusterManager = None
 
 # Import security middleware (with fallback)
 try:
-    from .features.security.middleware import AuthenticationMiddleware, SecurityMiddleware
 except ImportError:
     # Fallback middleware if security module not available
     class SecurityMiddleware:
@@ -146,22 +165,22 @@ async def initialize_ssl():
     global ssl_context
 
     if not SSL_CONFIG["enabled"]:
-        logging.info("🔓 HTTPS disabled - running in HTTP mode")
+        logging.info(" HTTPS disabled - running in HTTP mode")
         return None
 
     if not ssl_manager:
-        logging.error("❌ SSL Manager not available - cannot enable HTTPS")
+        logging.error(" SSL Manager not available - cannot enable HTTPS")
         return None
 
     try:
-        logging.info("🔐 Initializing HTTPS/SSL...")
+        logging.info(" Initializing HTTPS/SSL...")
 
         # Initialize SSL manager
         result = await ssl_manager.initialize()
 
         if isinstance(result, dict) and result.get("ssl_enabled"):
             ssl_context = result.get("ssl_context")
-            logging.info("✅ HTTPS/SSL initialized successfully")
+            logging.info(" HTTPS/SSL initialized successfully")
 
             # Setup automatic certificate management
             if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
@@ -180,15 +199,15 @@ async def initialize_ssl():
                     )
         elif result:
             # If result is just True/False, create basic SSL context
-            logging.info("✅ HTTPS/SSL initialized successfully")
+            logging.info(" HTTPS/SSL initialized successfully")
 
             return ssl_context
         else:
-            logging.error("❌ Failed to initialize SSL/TLS")
+            logging.error(" Failed to initialize SSL/TLS")
             return None
 
     except Exception as e:
-        logging.error(f"❌ SSL initialization failed: {e}")
+        logging.error(f" SSL initialization failed: {e}")
         return None
 
 # Initialize unified logging system
@@ -196,7 +215,8 @@ def initialize_unified_logging():
     """Initialize the unified logging system that consolidates all logging approaches."""
     try:
         # Load logging configuration
-        config_file = Path("config/logging.yaml")
+        config_file = from pathlib import Path
+Path("config/logging.yaml")
         if config_file.exists():
             with open(config_file, 'r') as f:
                 logging_config = yaml.safe_load(f)
@@ -211,7 +231,8 @@ def initialize_unified_logging():
             }
 
         # Ensure logs directory exists
-        log_dir = Path(logging_config.get("global", {}).get("log_directory", "logs"))
+        log_dir = from pathlib import Path
+Path(logging_config.get("global", {}).get("log_directory", "logs"))
         log_dir.mkdir(exist_ok=True)
 
         # Create subdirectories for different log types
@@ -238,10 +259,10 @@ def initialize_unified_logging():
 
         # Generate initial startup logs
         startup_logger = logging.getLogger("plexichat.startup")
-        startup_logger.info("🚀 PlexiChat unified logging system initialized")
-        startup_logger.info(f"📁 Log directory: {log_dir}")
-        startup_logger.info(f"📊 Log level: {logging_config.get('global', {}).get('log_level', 'INFO')}")
-        startup_logger.info("✅ All logging subsystems consolidated and active")
+        startup_logger.info(" PlexiChat unified logging system initialized")
+        startup_logger.info(f" Log directory: {log_dir}")
+        startup_logger.info(f" Log level: {logging_config.get('global', {}).get('log_level', 'INFO')}")
+        startup_logger.info(" All logging subsystems consolidated and active")
 
         return True
     except Exception as e:
@@ -255,7 +276,7 @@ logger = setup_module_logging(__name__, "INFO")
 
 def _load_web_routers(app: FastAPI):
     """Load routers from the consolidated web/routers directory."""
-    logger.info("🔄 Loading web routers...")
+    logger.info(" Loading web routers...")
 
     # Load routers from web/routers (new consolidated location)
     router_modules = [
@@ -283,16 +304,16 @@ def _load_web_routers(app: FastAPI):
             router = getattr(module, router_name, None)
             if router:
                 app.include_router(router)
-                logger.info(f"✅ {module_path} router loaded")
+                logger.info(f" {module_path} router loaded")
         except ImportError as e:
-            logger.debug(f"⚠️ {module_path} not available: {e}")
+            logger.debug(f" {module_path} not available: {e}")
         except Exception as e:
-            logger.warning(f"❌ Failed to load {module_path}: {e}")
+            logger.warning(f" Failed to load {module_path}: {e}")
 
 
 def _load_api_routers(app: FastAPI):
     """Load API routers from the api directory."""
-    logger.info("🔄 Loading API routers...")
+    logger.info(" Loading API routers...")
 
     # API v1 routers
     api_v1_modules = [
@@ -318,63 +339,59 @@ def _load_api_routers(app: FastAPI):
             router = getattr(module, router_name, None)
             if router:
                 app.include_router(router)
-                logger.info(f"✅ API {router_name} loaded from {module_path}")
+                logger.info(f" API {router_name} loaded from {module_path}")
         except ImportError as e:
-            logger.debug(f"⚠️ {module_path} not available: {e}")
+            logger.debug(f" {module_path} not available: {e}")
         except Exception as e:
-            logger.warning(f"❌ Failed to load {module_path}: {e}")
+            logger.warning(f" Failed to load {module_path}: {e}")
 
 
 def _load_specialized_routers(app: FastAPI):
     """Load specialized routers (AI, clustering, etc.)."""
-    logger.info("🔄 Loading specialized routers...")
+    logger.info(" Loading specialized routers...")
 
     # AI routers
     if ai_api_router:
         app.include_router(ai_api_router)
-        logger.info("✅ AI API endpoints registered")
+        logger.info(" AI API endpoints registered")
 
     if ai_webui_router:
         app.include_router(ai_webui_router)
-        logger.info("✅ AI WebUI endpoints registered")
+        logger.info(" AI WebUI endpoints registered")
 
     # Clustering routers
     try:
-        from .interfaces.api.v1.clustering import router as clustering_router
         app.include_router(clustering_router)
-        logger.info("✅ Clustering API router loaded")
+        logger.info(" Clustering API router loaded")
     except ImportError:
-        logger.debug("⚠️ Clustering API router not available")
+        logger.debug(" Clustering API router not available")
 
     # Backup system routers
     try:
-        from .features.backup.services import router as backup_router
         app.include_router(backup_router)
-        logger.info("✅ Backup API router loaded")
+        logger.info(" Backup API router loaded")
     except ImportError:
         try:
             # Try alternative import path
-            from .features.backup import router as backup_router
             app.include_router(backup_router)
-            logger.info("✅ Backup API router loaded")
+            logger.info(" Backup API router loaded")
         except ImportError:
-            logger.debug("⚠️ Backup API router not available")
+            logger.debug(" Backup API router not available")
 
     # Security routers
     try:
-        from .interfaces.api.v1.security_api import router as security_router
         app.include_router(security_router)
-        logger.info("✅ Security API router loaded")
+        logger.info(" Security API router loaded")
     except ImportError:
-        logger.debug("⚠️ Security API router not available")
+        logger.debug(" Security API router not available")
 
 
 def create_app() -> FastAPI:
     """Create and configure the PlexiChat application."""
-    logger.info("🚀 Creating PlexiChat FastAPI application...")
+    logger.info(" Creating PlexiChat FastAPI application...")
 
     config = get_config()
-    logger.info(f"📋 Configuration loaded: {getattr(config, 'app_name', 'PlexiChat')} v{getattr(config, 'app_version', '3.0.0')}")
+    logger.info(f" Configuration loaded: {getattr(config, 'app_name', 'PlexiChat')} v{getattr(config, 'app_version', '3.0.0')}")
 
     # Create FastAPI app
     app = FastAPI(
@@ -385,7 +402,7 @@ def create_app() -> FastAPI:
         docs_url="/docs" if config.debug else None,
         redoc_url="/redoc" if config.debug else None
     )
-    logger.info("✅ FastAPI application created")
+    logger.info(" FastAPI application created")
 
     # Add CORS middleware
     app.add_middleware(
@@ -418,9 +435,9 @@ def create_app() -> FastAPI:
     try:
         app.add_middleware(SecurityMiddleware)
         app.add_middleware(AuthenticationMiddleware)
-        logger.info("✅ Security middleware loaded")
+        logger.info(" Security middleware loaded")
     except Exception as e:
-        logger.warning(f"⚠️ Security middleware failed to load: {e}")
+        logger.warning(f" Security middleware failed to load: {e}")
     
     # Load all routers using the new consolidated approach
     _load_web_routers(app)
@@ -430,18 +447,20 @@ def create_app() -> FastAPI:
     # Mount static files from multiple locations
     try:
         # Mount from web/static (new consolidated location)
-        web_static_path = Path("src/plexichat/web/static")
+        web_static_path = from pathlib import Path
+Path("src/plexichat/web/static")
         if web_static_path.exists():
             app.mount("/static", StaticFiles(directory=str(web_static_path)), name="static")
-            logger.info("✅ Web static files mounted from web/static")
+            logger.info(" Web static files mounted from web/static")
         else:
             # Fallback to old static location
-            static_dir = Path("src/plexichat/static")
+            static_dir = from pathlib import Path
+Path("src/plexichat/static")
             if static_dir.exists():
                 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-                logger.info("✅ Static files mounted from legacy location")
+                logger.info(" Static files mounted from legacy location")
     except Exception as e:
-        logger.warning(f"⚠️ Static files failed to mount: {e}")
+        logger.warning(f" Static files failed to mount: {e}")
 
     # Basic routes are defined later with more comprehensive implementations
     
@@ -449,11 +468,11 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def startup_event():
         """Initialize all systems on startup."""
-        logger.info("🚀 Starting PlexiChat application...")
+        logger.info(" Starting PlexiChat application...")
 
         # Generate startup logs for monitoring
-        logger.info("🔄 Initializing PlexiChat core systems...")
-        logger.info("📊 System startup sequence beginning")
+        logger.info(" Initializing PlexiChat core systems...")
+        logger.info(" System startup sequence beginning")
 
         # Initialize core systems with lazy loading to prevent hanging
         try:
@@ -463,15 +482,14 @@ def create_app() -> FastAPI:
                 try:
                     cluster_manager = AdvancedClusterManager(app)
                     await cluster_manager.initialize()
-                    logger.info("✅ Advanced Clustering System initialized")
+                    logger.info(" Advanced Clustering System initialized")
                 except Exception as e:
-                    logger.warning(f"⚠️ Clustering system initialization failed: {e}")
+                    logger.warning(f" Clustering system initialization failed: {e}")
                     cluster_manager = None
 
             # Enhanced Database System initialization
-            logger.info("🗄️ Initializing enhanced database system...")
+            logger.info(" Initializing enhanced database system...")
             try:
-                from .core_system.database import get_database_manager
                 database_manager = await get_database_manager()
                 success = await database_manager.initialize()
                 # Compatibility wrapper
@@ -479,12 +497,11 @@ def create_app() -> FastAPI:
                     return success
                 success = await initialize_enhanced_database_system()
                 if success:
-                    logger.info("✅ Enhanced database system initialized successfully")
+                    logger.info(" Enhanced database system initialized successfully")
 
                     # Initialize comprehensive system integration
-                    logger.info("🚀 Initializing comprehensive system integration...")
+                    logger.info(" Initializing comprehensive system integration...")
                     try:
-                        from .core_system.integration.orchestrator import SystemOrchestrator
                         orchestrator = SystemOrchestrator()
                         await orchestrator.initialize()
                         # Compatibility wrapper
@@ -500,111 +517,105 @@ def create_app() -> FastAPI:
                         integration_results = await initialize_plexichat_system()
 
                         if integration_results["summary"]["overall_success"]:
-                            logger.info("✅ All PlexiChat systems initialized successfully")
-                            logger.info(f"📊 Systems: {integration_results['summary']['systems_initialized']}")
-                            logger.info(f"📦 Modules: {integration_results['summary']['modules_imported']}")
+                            logger.info(" All PlexiChat systems initialized successfully")
+                            logger.info(f" Systems: {integration_results['summary']['systems_initialized']}")
+                            logger.info(f" Modules: {integration_results['summary']['modules_imported']}")
                         else:
-                            logger.warning("⚠️ Some PlexiChat systems failed to initialize")
-                            logger.warning(f"📊 Systems: {integration_results['summary']['systems_initialized']}")
-                            logger.warning(f"📦 Modules: {integration_results['summary']['modules_imported']}")
+                            logger.warning(" Some PlexiChat systems failed to initialize")
+                            logger.warning(f" Systems: {integration_results['summary']['systems_initialized']}")
+                            logger.warning(f" Modules: {integration_results['summary']['modules_imported']}")
 
                         # Start background performance monitoring if enabled
                         if os.getenv("PLEXICHAT_AUTO_OPTIMIZATION", "false").lower() == "true":
-                            logger.info("🔍 Auto-optimization enabled - background monitoring active")
+                            logger.info(" Auto-optimization enabled - background monitoring active")
 
                     except Exception as integration_e:
-                        logger.warning(f"⚠️ System integration failed: {integration_e}")
+                        logger.warning(f" System integration failed: {integration_e}")
                         logger.debug(f"Integration error details: {integration_e}", exc_info=True)
                 else:
-                    logger.warning("⚠️ Enhanced database system initialization failed")
+                    logger.warning(" Enhanced database system initialization failed")
 
                 # Fallback to legacy database manager if enhanced system fails
                 if not success:
                     try:
-                        from .core.database import database_manager
                         await database_manager.initialize()
-                        logger.info("✅ Legacy database manager initialized as fallback")
+                        logger.info(" Legacy database manager initialized as fallback")
                     except ImportError:
-                        logger.warning("⚠️ Legacy database manager not available")
+                        logger.warning(" Legacy database manager not available")
 
             except Exception as e:
-                logger.warning(f"⚠️ Database system initialization failed: {e}")
+                logger.warning(f" Database system initialization failed: {e}")
                 logger.debug(f"Database error details: {e}", exc_info=True)
 
             # Auth system initialization
-            logger.info("🔐 Initializing authentication manager...")
+            logger.info(" Initializing authentication manager...")
             try:
-                from .core_system.auth.unified_auth_manager import UnifiedAuthManager
                 auth_manager = UnifiedAuthManager()
                 if hasattr(auth_manager, 'initialize'):
                     await auth_manager.initialize()
-                logger.info("✅ Auth manager initialized successfully")
+                logger.info(" Auth manager initialized successfully")
             except Exception as e:
-                logger.warning(f"⚠️ Auth manager initialization failed: {e}")
+                logger.warning(f" Auth manager initialization failed: {e}")
                 logger.debug(f"Auth error details: {e}", exc_info=True)
 
             # Backup system initialization
-            logger.info("💾 Initializing backup manager...")
+            logger.info(" Initializing backup manager...")
             try:
-                from .features.backup.core.unified_backup_manager import get_unified_backup_manager
                 backup_manager = get_unified_backup_manager()
                 await backup_manager.initialize()
-                logger.info("✅ Backup manager initialized successfully")
+                logger.info(" Backup manager initialized successfully")
             except Exception as e:
-                logger.warning(f"⚠️ Backup manager initialization failed: {e}")
+                logger.warning(f" Backup manager initialization failed: {e}")
                 logger.debug(f"Backup error details: {e}", exc_info=True)
 
             # Additional system checks
-            logger.info("🔍 Running system health checks...")
-            logger.info("📊 Checking memory usage...")
-            logger.info("💽 Checking disk space...")
-            logger.info("🌐 Checking network connectivity...")
-            logger.info("✅ System health checks completed")
+            logger.info(" Running system health checks...")
+            logger.info(" Checking memory usage...")
+            logger.info(" Checking disk space...")
+            logger.info(" Checking network connectivity...")
+            logger.info(" System health checks completed")
 
         except Exception as e:
-            logger.error(f"❌ Critical startup error: {e}")
+            logger.error(f" Critical startup error: {e}")
             logger.critical(f"Startup failure details: {e}", exc_info=True)
             # Continue startup even if some components fail
 
-        logger.info("✅ PlexiChat application started successfully")
-        logger.info("🌐 Server is ready to accept connections")
-        logger.info("📡 API endpoints are now available")
-        logger.info("🖥️ WebUI is ready for user access")
+        logger.info(" PlexiChat application started successfully")
+        logger.info(" Server is ready to accept connections")
+        logger.info(" API endpoints are now available")
+        logger.info(" WebUI is ready for user access")
 
     @app.on_event("shutdown")
     async def shutdown_event():
         """Cleanup on shutdown."""
-        logger.info("🔄 Shutting down PlexiChat application...")
+        logger.info(" Shutting down PlexiChat application...")
 
         # Shutdown systems safely
         try:
             # Shutdown enhanced database system
-            from .core_system.database import get_database_manager
             database_manager = await get_database_manager()
             if hasattr(database_manager, 'shutdown'):
                 await database_manager.shutdown()
         except Exception as e:
-            logger.warning(f"⚠️ Enhanced database system shutdown failed: {e}")
+            logger.warning(f" Enhanced database system shutdown failed: {e}")
 
         try:
-            from .features.backup.core.unified_backup_manager import get_unified_backup_manager
             backup_manager = get_unified_backup_manager()
             if hasattr(backup_manager, 'shutdown'):
                 await backup_manager.shutdown()
             elif hasattr(backup_manager, 'cleanup'):
                 await backup_manager.cleanup()
         except Exception as e:
-            logger.warning(f"⚠️ Backup manager shutdown failed: {e}")
+            logger.warning(f" Backup manager shutdown failed: {e}")
 
         try:
-            from .core_system.database import get_database_manager
             legacy_manager = await get_database_manager()
             if hasattr(legacy_manager, 'shutdown'):
                 await legacy_manager.shutdown()
         except Exception as e:
-            logger.warning(f"⚠️ Legacy database manager shutdown failed: {e}")
+            logger.warning(f" Legacy database manager shutdown failed: {e}")
 
-        logger.info("✅ PlexiChat application shutdown complete")
+        logger.info(" PlexiChat application shutdown complete")
     
     # Root endpoint
     @app.get("/", response_class=HTMLResponse)
@@ -624,7 +635,7 @@ def create_app() -> FastAPI:
             </style>
         </head>
         <body>
-            <h1 class="header">💬 PlexiChat</h1>
+            <h1 class="header"> PlexiChat</h1>
             <div class="info">
                 <p><strong>Government-Level Secure Communication Platform</strong></p>
                 <p>Version: 3.0.0</p>
@@ -644,13 +655,14 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health_check():
         """Health check endpoint that generates logs."""
-        logger.info("🏥 Health check requested")
+        logger.info(" Health check requested")
         logger.debug("Checking system components...")
 
         health_status = {
             "status": "healthy",
             "version": getattr(config, 'version', '1.0.0'),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.now().isoformat(),
             "services": {
                 "api": "running",
                 "database": "connected",
@@ -658,7 +670,7 @@ def create_app() -> FastAPI:
             }
         }
 
-        logger.info("✅ Health check completed successfully")
+        logger.info(" Health check completed successfully")
         return health_status
 
     return app
@@ -668,7 +680,6 @@ def create_app() -> FastAPI:
 app = create_app()
 
 if __name__ == "__main__":
-    import uvicorn
     config = get_config()
     
     uvicorn.run(

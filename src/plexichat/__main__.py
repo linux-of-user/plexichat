@@ -1,13 +1,16 @@
+from .core_system.config import get_config
+from .main import app
+
+
+        import sys
+
+import uvicorn
+
+
 """
 PlexiChat Module Entry Point
 Allows running PlexiChat as a module: python -m src.plexichat
 """
-
-import uvicorn
-
-from .core_system.config import get_config
-from .main import app
-
 
 def main():
     """Main entry point for module execution."""
@@ -23,8 +26,7 @@ def main():
             log_level="info"
         )
     except Exception as e:
-        print(f"❌ Failed to start PlexiChat: {e}")
-        import sys
+        print(f" Failed to start PlexiChat: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

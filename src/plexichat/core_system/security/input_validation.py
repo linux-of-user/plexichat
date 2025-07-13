@@ -1,3 +1,16 @@
+import html
+import json
+import re
+import time
+from dataclasses import dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+
+
 """
 PlexiChat Unified Input Validation Framework - SINGLE SOURCE OF TRUTH
 
@@ -19,18 +32,6 @@ Features:
 - Biometric data validation
 - Universal API entry point validation
 """
-
-import html
-import json
-import re
-import time
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -245,10 +246,10 @@ class UnifiedInputValidator:
         """Initialize the input validator."""
         try:
             self.initialized = True
-            logger.info("✅ Unified Input Validator initialized successfully")
+            logger.info(" Unified Input Validator initialized successfully")
             return True
         except Exception as e:
-            logger.error(f"❌ Input Validator initialization failed: {e}")
+            logger.error(f" Input Validator initialization failed: {e}")
             return False
     
     def validate(self, 
@@ -602,7 +603,8 @@ class UnifiedInputValidator:
                 return path, False
 
             # Normalize path
-            normalized_path = Path(path).resolve()
+            normalized_path = from pathlib import Path
+Path(path).resolve()
             return str(normalized_path), True
         except (OSError, ValueError):
             return path, False

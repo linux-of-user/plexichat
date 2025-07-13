@@ -1,15 +1,17 @@
-"""
-File management database models.
-"""
-
 import uuid
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, Index, Text
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
+
+
+from sqlalchemy import DateTime, Index, Text
+
+"""
+File management database models.
+"""
 
 class FilePermissionType(str, Enum):
     """File permission types."""

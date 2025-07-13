@@ -1,3 +1,14 @@
+import asyncio
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+from .unified_audit_system import (
+
 """
 PlexiChat Unified Hardware Security Module (HSM) Manager - SINGLE SOURCE OF TRUTH
 
@@ -15,16 +26,6 @@ Features:
 - Post-quantum cryptography readiness
 """
 
-import asyncio
-import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
-from .unified_audit_system import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
@@ -371,11 +372,11 @@ class UnifiedHSMManager:
             asyncio.create_task(self._performance_monitor())
 
             self.initialized = True
-            logger.info("✅ Unified HSM Manager fully initialized")
+            logger.info(" Unified HSM Manager fully initialized")
             return True
 
         except Exception as e:
-            logger.error(f"❌ HSM Manager initialization failed: {e}")
+            logger.error(f" HSM Manager initialization failed: {e}")
             return False
 
     async def _initialize_virtual_hsm(self):

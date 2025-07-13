@@ -1,16 +1,18 @@
-"""
-Moderation system models for PlexiChat.
-Handles user moderation, message moderation, and server-specific moderation roles.
-"""
-
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, Index, Text
 from sqlmodel import JSON, Column, Field, SQLModel
 
+
+
+from sqlalchemy import DateTime, Index, Text
+
+"""
+Moderation system models for PlexiChat.
+Handles user moderation, message moderation, and server-specific moderation roles.
+"""
 
 class ModerationAction(str, Enum):
     """Types of moderation actions."""

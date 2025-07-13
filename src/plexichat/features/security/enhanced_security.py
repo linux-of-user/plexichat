@@ -1,8 +1,3 @@
-"""
-Enhanced Security Module for PlexiChat
-Provides comprehensive security features including authentication, authorization, input validation, and security headers.
-"""
-
 import hashlib
 import ipaddress
 import logging
@@ -15,8 +10,16 @@ from enum import Enum
 from functools import wraps
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
     import bcrypt
+        import string
+        
+
+"""
+Enhanced Security Module for PlexiChat
+Provides comprehensive security features including authentication, authorization, input validation, and security headers.
+"""
+
+try:
     BCRYPT_AVAILABLE = True
 except ImportError:
     BCRYPT_AVAILABLE = False
@@ -118,8 +121,6 @@ class EnhancedPasswordManager:
     
     def generate_secure_password(self, length: int = 16) -> str:
         """Generate a secure random password."""
-        import string
-        
         chars = string.ascii_letters + string.digits + self.special_chars
         password = ''.join(secrets.choice(chars) for _ in range(length))
         
@@ -437,7 +438,8 @@ class SecurityAuditLogger:
     
     def get_failed_login_attempts(self, hours: int = 24) -> List[SecurityEvent]:
         """Get failed login attempts in the last N hours."""
-        cutoff_time = datetime.now() - timedelta(hours=hours)
+        cutoff_time = from datetime import datetime
+datetime.now() - timedelta(hours=hours)
         return [
             event for event in self.events
             if event.event_type == "login_attempt" 

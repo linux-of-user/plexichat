@@ -1,3 +1,36 @@
+import asyncio
+import hashlib
+import json
+import secrets
+import zlib
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import aiofiles
+import aiosqlite
+
+from ...core_system.config import get_config
+from ...core_system.logging import get_logger
+
+        from .unified_analytics_manager import UnifiedAnalyticsManager
+        from .unified_distribution_manager import UnifiedDistributionManager
+        from .unified_encryption_manager import UnifiedEncryptionManager
+        from .unified_node_manager import UnifiedNodeManager
+        from .unified_recovery_manager import UnifiedRecoveryManager
+        from .unified_shard_manager import UnifiedShardManager
+
+        import io
+        import tarfile
+
+        import shutil
+
+        import glob
+        import os
+
+
 """
 Unified Backup Manager
 
@@ -21,24 +54,7 @@ Features:
 - GDPR compliance and user privacy controls
 """
 
-import asyncio
-import hashlib
-import json
-import secrets
-import zlib
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-import aiofiles
-import aiosqlite
-
 # Import core infrastructure
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
-
 # Import unified security systems
 
 
@@ -210,7 +226,8 @@ class UnifiedBackupManager:
         self.initialized = False
         
         # Core directories
-        self.backup_dir = Path(self.config.get("backup_dir", "data/backups"))
+        self.backup_dir = from pathlib import Path
+Path(self.config.get("backup_dir", "data/backups"))
         self.shard_dir = self.backup_dir / "shards"
         self.metadata_dir = self.backup_dir / "metadata"
         self.temp_dir = self.backup_dir / "temp"
@@ -392,13 +409,6 @@ class UnifiedBackupManager:
     async def _initialize_components(self) -> None:
         """Initialize component managers."""
         # Import component managers
-        from .unified_analytics_manager import UnifiedAnalyticsManager
-        from .unified_distribution_manager import UnifiedDistributionManager
-        from .unified_encryption_manager import UnifiedEncryptionManager
-        from .unified_node_manager import UnifiedNodeManager
-        from .unified_recovery_manager import UnifiedRecoveryManager
-        from .unified_shard_manager import UnifiedShardManager
-
         # Initialize components
         self.shard_manager = UnifiedShardManager(self)
         self.encryption_manager = UnifiedEncryptionManager(self)
@@ -699,7 +709,8 @@ class UnifiedBackupManager:
 
     async def _read_source_data(self, operation: BackupOperation) -> bytes:
         """Read data from the source path."""
-        source_path = Path(operation.source_path)
+        source_path = from pathlib import Path
+Path(operation.source_path)
 
         if source_path.is_file():
             async with aiofiles.open(source_path, 'rb') as f:
@@ -712,9 +723,6 @@ class UnifiedBackupManager:
 
     async def _create_directory_archive(self, directory: Path) -> bytes:
         """Create an archive of a directory."""
-        import io
-        import tarfile
-
         archive_buffer = io.BytesIO()
 
         with tarfile.open(fileobj=archive_buffer, mode='w:gz') as tar:
@@ -950,8 +958,6 @@ class UnifiedBackupManager:
 
     async def _get_storage_statistics(self) -> Dict[str, int]:
         """Get storage statistics."""
-        import shutil
-
         total, used, free = shutil.disk_usage(self.backup_dir)
 
         return {
@@ -1031,14 +1037,12 @@ class UnifiedBackupManager:
 
     async def _cleanup_temp_files(self) -> None:
         """Clean up temporary files."""
-        import glob
-        import os
-
         temp_pattern = str(self.temp_dir / "*")
         for temp_file in glob.glob(temp_pattern):
             try:
                 # Remove files older than 1 hour
-                if os.path.getmtime(temp_file) < (datetime.now().timestamp() - 3600):
+                if os.path.getmtime(temp_file) < (from datetime import datetime
+datetime.now().timestamp() - 3600):
                     os.remove(temp_file)
             except Exception as e:
                 logger.warning(f"Failed to remove temp file {temp_file}: {e}")

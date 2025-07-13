@@ -1,3 +1,20 @@
+import asyncio
+import logging
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Type
+
+    from .manager import DatabaseType
+
+from .analytics_clients import ClickHouseClient, TimescaleDBClient
+from .lakehouse import MinIOLakehouseClient
+from .nosql_clients import MongoDBClient, RedisClient
+from .sql_clients import MySQLClient, PostgreSQLClient, SQLiteClient
+
+        from .manager import database_manager
+        from .manager import database_manager
+
+    from plexichat.core_system.database.enhanced_abstraction import (  # type: ignore
+
 """
 PlexiChat Database Factory
 
@@ -6,13 +23,7 @@ based on configuration. Supports automatic client selection, connection
 pooling, failover, and load balancing across multiple database types.
 """
 
-import asyncio
-import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Type
-
 try:
-    from plexichat.core_system.database.enhanced_abstraction import (  # type: ignore
         AbstractDatabaseClient,
         DatabaseConfig,
         DatabaseType,
@@ -75,13 +86,6 @@ except ImportError:
             self.config = config
 
     # Import DatabaseType from manager since it's always available
-    from .manager import DatabaseType
-
-from .analytics_clients import ClickHouseClient, TimescaleDBClient
-from .lakehouse import MinIOLakehouseClient
-from .nosql_clients import MongoDBClient, RedisClient
-from .sql_clients import MySQLClient, PostgreSQLClient, SQLiteClient
-
 logger = logging.getLogger(__name__)
 
 
@@ -116,13 +120,11 @@ class DatabaseClientFactory:
     @classmethod
     def register_repository(cls, name: str, repository_class):
         """Register a repository class for dependency injection."""
-        from .manager import database_manager
         return database_manager.register_repository(name, repository_class)
 
     @classmethod
     def get_repository(cls, name: str, session_factory=None):
         """Get a repository instance by name."""
-        from .manager import database_manager
         return database_manager.get_repository(name, session_factory)
     
     @classmethod
@@ -180,14 +182,14 @@ class DatabaseManager:
             self.connection_status[name] = connected
             
             if connected:
-                logger.info(f"✅ Database '{name}' added and connected successfully")
+                logger.info(f" Database '{name}' added and connected successfully")
             else:
-                logger.warning(f"⚠️ Database '{name}' added but connection failed")
+                logger.warning(f" Database '{name}' added but connection failed")
             
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to add database '{name}': {e}")
+            logger.error(f" Failed to add database '{name}': {e}")
             return False
     
     async def remove_database(self, name: str) -> bool:
@@ -201,14 +203,14 @@ class DatabaseManager:
                 del self.configs[name]
                 del self.connection_status[name]
                 
-                logger.info(f"✅ Database '{name}' removed successfully")
+                logger.info(f" Database '{name}' removed successfully")
                 return True
             else:
-                logger.warning(f"⚠️ Database '{name}' not found")
+                logger.warning(f" Database '{name}' not found")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ Failed to remove database '{name}': {e}")
+            logger.error(f" Failed to remove database '{name}': {e}")
             return False
     
     def get_client(self, name: str) -> Optional[AbstractDatabaseClient]:
@@ -233,12 +235,12 @@ class DatabaseManager:
                 results[name] = connected
                 
                 if connected:
-                    logger.info(f"✅ Connected to database: {name}")
+                    logger.info(f" Connected to database: {name}")
                 else:
-                    logger.error(f"❌ Failed to connect to database: {name}")
+                    logger.error(f" Failed to connect to database: {name}")
                     
             except Exception as e:
-                logger.error(f"❌ Connection error for database '{name}': {e}")
+                logger.error(f" Connection error for database '{name}': {e}")
                 results[name] = False
                 self.connection_status[name] = False
         
@@ -255,12 +257,12 @@ class DatabaseManager:
                 results[name] = disconnected
                 
                 if disconnected:
-                    logger.info(f"✅ Disconnected from database: {name}")
+                    logger.info(f" Disconnected from database: {name}")
                 else:
-                    logger.warning(f"⚠️ Disconnect issue for database: {name}")
+                    logger.warning(f" Disconnect issue for database: {name}")
                     
             except Exception as e:
-                logger.error(f"❌ Disconnect error for database '{name}': {e}")
+                logger.error(f" Disconnect error for database '{name}': {e}")
                 results[name] = False
         
         return results
@@ -368,7 +370,7 @@ class DatabaseManager:
             return
         
         self._health_check_task = asyncio.create_task(self._health_monitor_loop())
-        logger.info("✅ Started database health monitoring")
+        logger.info(" Started database health monitoring")
     
     async def stop_health_monitoring(self):
         """Stop background health monitoring."""
@@ -378,7 +380,7 @@ class DatabaseManager:
                 await self._health_check_task
             except asyncio.CancelledError:
                 pass
-            logger.info("✅ Stopped database health monitoring")
+            logger.info(" Stopped database health monitoring")
     
     async def _health_monitor_loop(self):
         """Background health monitoring loop."""
@@ -391,7 +393,7 @@ class DatabaseManager:
                 # Log any unhealthy databases
                 for db_name, health in health_results.items():
                     if health["status"] != "healthy":
-                        logger.warning(f"⚠️ Database '{db_name}' health check failed: {health.get('error', 'Unknown error')}")
+                        logger.warning(f" Database '{db_name}' health check failed: {health.get('error', 'Unknown error')}")
                         
                         # Attempt to reconnect
                         if db_name in self.clients:
@@ -400,15 +402,15 @@ class DatabaseManager:
                                 await client.disconnect()
                                 connected = await client.connect()
                                 if connected:
-                                    logger.info(f"✅ Reconnected to database: {db_name}")
+                                    logger.info(f" Reconnected to database: {db_name}")
                                     self.connection_status[db_name] = True
                             except Exception as e:
-                                logger.error(f"❌ Failed to reconnect to database '{db_name}': {e}")
+                                logger.error(f" Failed to reconnect to database '{db_name}': {e}")
                 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Health monitoring error: {e}")
+                logger.error(f" Health monitoring error: {e}")
     
     def get_status_summary(self) -> Dict[str, Any]:
         """Get summary of all database statuses."""

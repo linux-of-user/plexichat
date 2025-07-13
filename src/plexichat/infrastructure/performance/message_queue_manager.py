@@ -1,3 +1,17 @@
+import asyncio
+import json
+import logging
+import time
+import uuid
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+    import aio_pika
+    from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+    import redis.asyncio as redis
+
 """
 PlexiChat Message Queue System
 
@@ -20,31 +34,18 @@ Features:
 - Horizontal scaling with consumer groups
 """
 
-import asyncio
-import json
-import logging
-import time
-import uuid
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
-
 # Optional dependencies - graceful degradation
 try:
-    import aio_pika
     RABBITMQ_AVAILABLE = True
 except ImportError:
     RABBITMQ_AVAILABLE = False
 
 try:
-    from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
     KAFKA_AVAILABLE = True
 except ImportError:
     KAFKA_AVAILABLE = False
 
 try:
-    import redis.asyncio as redis
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -184,7 +185,7 @@ class MessageQueueManager:
         # Dead letter queue
         self.dead_letter_queue: List[Message] = []
         
-        logger.info("🚀 Message Queue Manager initialized")
+        logger.info(" Message Queue Manager initialized")
     
     async def initialize(self) -> Dict[str, Any]:
         """Initialize message queue connections."""
@@ -203,17 +204,17 @@ class MessageQueueManager:
             
             self.initialized = True
             
-            logger.info("✅ Message Queue Manager fully initialized")
+            logger.info(" Message Queue Manager fully initialized")
             return results
             
         except Exception as e:
-            logger.error(f"❌ Message queue initialization failed: {e}")
+            logger.error(f" Message queue initialization failed: {e}")
             raise
     
     async def _initialize_rabbitmq(self) -> bool:
         """Initialize RabbitMQ connection."""
         if not RABBITMQ_AVAILABLE:
-            logger.warning("⚠️ RabbitMQ not available")
+            logger.warning(" RabbitMQ not available")
             return False
         
         try:
@@ -236,17 +237,17 @@ class MessageQueueManager:
             self.rabbitmq_channel = await self.rabbitmq_connection.channel()
             await self.rabbitmq_channel.set_qos(prefetch_count=rabbitmq_config.get("prefetch", 10))
             
-            logger.info("✅ RabbitMQ initialized")
+            logger.info(" RabbitMQ initialized")
             return True
             
         except Exception as e:
-            logger.warning(f"⚠️ RabbitMQ initialization failed: {e}")
+            logger.warning(f" RabbitMQ initialization failed: {e}")
             return False
     
     async def _initialize_kafka(self) -> bool:
         """Initialize Kafka connection."""
         if not KAFKA_AVAILABLE:
-            logger.warning("⚠️ Kafka not available")
+            logger.warning(" Kafka not available")
             return False
         
         try:
@@ -264,17 +265,17 @@ class MessageQueueManager:
             
             await self.kafka_producer.start()
             
-            logger.info("✅ Kafka initialized")
+            logger.info(" Kafka initialized")
             return True
             
         except Exception as e:
-            logger.warning(f"⚠️ Kafka initialization failed: {e}")
+            logger.warning(f" Kafka initialization failed: {e}")
             return False
     
     async def _initialize_redis(self) -> bool:
         """Initialize Redis Streams connection."""
         if not REDIS_AVAILABLE:
-            logger.warning("⚠️ Redis not available")
+            logger.warning(" Redis not available")
             return False
         
         try:
@@ -294,11 +295,11 @@ class MessageQueueManager:
             # Test connection
             await self.redis_client.ping()
             
-            logger.info("✅ Redis Streams initialized")
+            logger.info(" Redis Streams initialized")
             return True
             
         except Exception as e:
-            logger.warning(f"⚠️ Redis Streams initialization failed: {e}")
+            logger.warning(f" Redis Streams initialization failed: {e}")
             return False
 
     async def publish(self, topic: str, payload: Any, headers: Optional[Dict[str, Any]] = None,
@@ -331,7 +332,7 @@ class MessageQueueManager:
                 for broker in self.fallback_brokers:
                     success = await self._publish_to_broker(broker, message)
                     if success:
-                        logger.warning(f"⚠️ Used fallback broker {broker.value} for topic {topic}")
+                        logger.warning(f" Used fallback broker {broker.value} for topic {topic}")
                         break
 
             if success:
@@ -342,14 +343,14 @@ class MessageQueueManager:
                 self.stats_by_topic[topic].messages_sent += 1
                 self.global_stats.messages_sent += 1
 
-                logger.debug(f"📤 Message published to topic {topic}")
+                logger.debug(f" Message published to topic {topic}")
                 return True
             else:
-                logger.error(f"❌ Failed to publish message to topic {topic}")
+                logger.error(f" Failed to publish message to topic {topic}")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Publish error for topic {topic}: {e}")
+            logger.error(f" Publish error for topic {topic}: {e}")
             return False
 
     async def _publish_to_broker(self, broker: MessageBroker, message: Message) -> bool:
@@ -365,7 +366,7 @@ class MessageQueueManager:
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Broker {broker.value} publish error: {e}")
+            logger.error(f" Broker {broker.value} publish error: {e}")
             return False
 
     async def _publish_rabbitmq(self, message: Message) -> bool:
@@ -399,7 +400,7 @@ class MessageQueueManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ RabbitMQ publish error: {e}")
+            logger.error(f" RabbitMQ publish error: {e}")
             return False
 
     async def _publish_kafka(self, message: Message) -> bool:
@@ -425,7 +426,7 @@ class MessageQueueManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ Kafka publish error: {e}")
+            logger.error(f" Kafka publish error: {e}")
             return False
 
     async def _publish_redis(self, message: Message) -> bool:
@@ -457,7 +458,7 @@ class MessageQueueManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ Redis Streams publish error: {e}")
+            logger.error(f" Redis Streams publish error: {e}")
             return False
 
     async def subscribe(self, topic: str, handler: Callable[[Message], Any],
@@ -465,7 +466,7 @@ class MessageQueueManager:
         """Subscribe to topic with message handler."""
         try:
             if topic in self.message_handlers:
-                logger.warning(f"⚠️ Handler already exists for topic {topic}")
+                logger.warning(f" Handler already exists for topic {topic}")
                 return False
 
             self.message_handlers[topic] = handler
@@ -476,11 +477,11 @@ class MessageQueueManager:
             )
             self.consumer_tasks.append(consumer_task)
 
-            logger.info(f"✅ Subscribed to topic {topic}")
+            logger.info(f" Subscribed to topic {topic}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Subscribe error for topic {topic}: {e}")
+            logger.error(f" Subscribe error for topic {topic}: {e}")
             return False
 
     async def _start_consumer(self, broker: MessageBroker, topic: str, consumer_group: Optional[str]):
@@ -493,10 +494,10 @@ class MessageQueueManager:
             elif broker == MessageBroker.REDIS_STREAMS and self.redis_client:
                 await self._consume_redis(topic, consumer_group)
             else:
-                logger.warning(f"⚠️ No consumer available for broker {broker.value}")
+                logger.warning(f" No consumer available for broker {broker.value}")
 
         except Exception as e:
-            logger.error(f"❌ Consumer error for {broker.value} topic {topic}: {e}")
+            logger.error(f" Consumer error for {broker.value} topic {topic}: {e}")
 
     async def _consume_rabbitmq(self, topic: str):
         """Consume messages from RabbitMQ."""
@@ -522,11 +523,11 @@ class MessageQueueManager:
                             await rabbitmq_message.nack(requeue=message.can_retry())
 
                     except Exception as e:
-                        logger.error(f"❌ RabbitMQ message processing error: {e}")
+                        logger.error(f" RabbitMQ message processing error: {e}")
                         await rabbitmq_message.nack(requeue=False)
 
         except Exception as e:
-            logger.error(f"❌ RabbitMQ consumer error for topic {topic}: {e}")
+            logger.error(f" RabbitMQ consumer error for topic {topic}: {e}")
 
     async def _consume_kafka(self, topic: str, consumer_group: Optional[str]):
         """Consume messages from Kafka."""
@@ -568,14 +569,14 @@ class MessageQueueManager:
                             await consumer.commit()  # Commit to avoid reprocessing
 
                     except Exception as e:
-                        logger.error(f"❌ Kafka message processing error: {e}")
+                        logger.error(f" Kafka message processing error: {e}")
                         await consumer.commit()  # Commit to avoid infinite retry
 
             finally:
                 await consumer.stop()
 
         except Exception as e:
-            logger.error(f"❌ Kafka consumer error for topic {topic}: {e}")
+            logger.error(f" Kafka consumer error for topic {topic}: {e}")
 
     async def _consume_redis(self, topic: str, consumer_group: Optional[str]):
         """Consume messages from Redis Streams."""
@@ -642,7 +643,7 @@ class MessageQueueManager:
                                         await self.redis_client.xack(stream_key, group_name, message_id)
 
                             except Exception as e:
-                                logger.error(f"❌ Redis message processing error: {e}")
+                                logger.error(f" Redis message processing error: {e}")
                                 await self.redis_client.xack(stream_key, group_name, message_id)
 
                 except Exception as e:
@@ -653,11 +654,11 @@ class MessageQueueManager:
                         except Exception:
                             pass
                     else:
-                        logger.error(f"❌ Redis consumer read error: {e}")
+                        logger.error(f" Redis consumer read error: {e}")
                         await asyncio.sleep(5)  # Wait before retrying
 
         except Exception as e:
-            logger.error(f"❌ Redis consumer error for topic {topic}: {e}")
+            logger.error(f" Redis consumer error for topic {topic}: {e}")
 
     async def _process_message(self, message: Message) -> bool:
         """Process message with registered handler."""
@@ -667,7 +668,7 @@ class MessageQueueManager:
             # Get handler for topic
             handler = self.message_handlers.get(message.topic)
             if not handler:
-                logger.warning(f"⚠️ No handler for topic {message.topic}")
+                logger.warning(f" No handler for topic {message.topic}")
                 return False
 
             # Update statistics
@@ -699,7 +700,7 @@ class MessageQueueManager:
             else:
                 topic_stats.average_processing_time_ms = processing_time
 
-            logger.debug(f"✅ Message processed for topic {message.topic} in {processing_time:.2f}ms")
+            logger.debug(f" Message processed for topic {message.topic} in {processing_time:.2f}ms")
             return True
 
         except Exception as e:
@@ -708,7 +709,7 @@ class MessageQueueManager:
                 self.stats_by_topic[message.topic].messages_failed += 1
             self.global_stats.messages_failed += 1
 
-            logger.error(f"❌ Message processing failed for topic {message.topic}: {e}")
+            logger.error(f" Message processing failed for topic {message.topic}: {e}")
             return False
 
     async def get_stats(self) -> Dict[str, Any]:
@@ -763,7 +764,7 @@ class MessageQueueManager:
             }
 
         except Exception as e:
-            logger.error(f"❌ Error getting message queue stats: {e}")
+            logger.error(f" Error getting message queue stats: {e}")
             return {"error": str(e)}
 
     # Background tasks
@@ -783,10 +784,10 @@ class MessageQueueManager:
                 # Log warnings for high failure rates
                 for topic, stats in self.stats_by_topic.items():
                     if stats.success_rate < 0.8 and stats.messages_processed > 10:
-                        logger.warning(f"⚠️ Low success rate for topic {topic}: {stats.success_rate:.2%}")
+                        logger.warning(f" Low success rate for topic {topic}: {stats.success_rate:.2%}")
 
             except Exception as e:
-                logger.error(f"❌ Stats collection task error: {e}")
+                logger.error(f" Stats collection task error: {e}")
                 await asyncio.sleep(30)
 
     async def _dead_letter_processor_task(self):
@@ -798,7 +799,7 @@ class MessageQueueManager:
                 if not self.dead_letter_queue:
                     continue
 
-                logger.info(f"🔄 Processing {len(self.dead_letter_queue)} dead letter messages")
+                logger.info(f" Processing {len(self.dead_letter_queue)} dead letter messages")
 
                 # Process dead letter messages
                 processed_count = 0
@@ -816,22 +817,22 @@ class MessageQueueManager:
                             failed_messages.append(message)
 
                     except Exception as e:
-                        logger.error(f"❌ Dead letter processing error: {e}")
+                        logger.error(f" Dead letter processing error: {e}")
                         failed_messages.append(message)
 
                 # Update dead letter queue
                 self.dead_letter_queue = failed_messages
 
                 if processed_count > 0:
-                    logger.info(f"✅ Reprocessed {processed_count} dead letter messages")
+                    logger.info(f" Reprocessed {processed_count} dead letter messages")
 
                 # Limit dead letter queue size
                 if len(self.dead_letter_queue) > 1000:
                     self.dead_letter_queue = self.dead_letter_queue[-1000:]
-                    logger.warning("⚠️ Dead letter queue truncated to 1000 messages")
+                    logger.warning(" Dead letter queue truncated to 1000 messages")
 
             except Exception as e:
-                logger.error(f"❌ Dead letter processor task error: {e}")
+                logger.error(f" Dead letter processor task error: {e}")
                 await asyncio.sleep(60)
 
     async def _health_check_task(self):
@@ -842,12 +843,12 @@ class MessageQueueManager:
 
                 # Check RabbitMQ connection
                 if self.rabbitmq_connection and self.rabbitmq_connection.is_closed:
-                    logger.warning("⚠️ RabbitMQ connection lost, attempting reconnection...")
+                    logger.warning(" RabbitMQ connection lost, attempting reconnection...")
                     await self._initialize_rabbitmq()
 
                 # Check Kafka producer
                 if self.kafka_producer and hasattr(self.kafka_producer, '_closed') and self.kafka_producer._closed:
-                    logger.warning("⚠️ Kafka producer lost, attempting reconnection...")
+                    logger.warning(" Kafka producer lost, attempting reconnection...")
                     await self._initialize_kafka()
 
                 # Check Redis connection
@@ -855,18 +856,18 @@ class MessageQueueManager:
                     try:
                         await self.redis_client.ping()
                     except Exception:
-                        logger.warning("⚠️ Redis connection lost, attempting reconnection...")
+                        logger.warning(" Redis connection lost, attempting reconnection...")
                         await self._initialize_redis()
 
             except Exception as e:
-                logger.error(f"❌ Health check task error: {e}")
+                logger.error(f" Health check task error: {e}")
                 await asyncio.sleep(60)
 
     async def unsubscribe(self, topic: str) -> bool:
         """Unsubscribe from topic."""
         try:
             if topic not in self.message_handlers:
-                logger.warning(f"⚠️ No subscription found for topic {topic}")
+                logger.warning(f" No subscription found for topic {topic}")
                 return False
 
             # Remove handler
@@ -877,11 +878,11 @@ class MessageQueueManager:
                 await self.kafka_consumers[topic].stop()
                 del self.kafka_consumers[topic]
 
-            logger.info(f"✅ Unsubscribed from topic {topic}")
+            logger.info(f" Unsubscribed from topic {topic}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Unsubscribe error for topic {topic}: {e}")
+            logger.error(f" Unsubscribe error for topic {topic}: {e}")
             return False
 
     async def purge_topic(self, topic: str) -> bool:
@@ -899,7 +900,7 @@ class MessageQueueManager:
                     await queue.purge()
                     success_count += 1
                 except Exception as e:
-                    logger.warning(f"⚠️ RabbitMQ purge error for topic {topic}: {e}")
+                    logger.warning(f" RabbitMQ purge error for topic {topic}: {e}")
 
             # Purge Redis stream
             if self.redis_client:
@@ -908,25 +909,25 @@ class MessageQueueManager:
                     await self.redis_client.delete(stream_key)
                     success_count += 1
                 except Exception as e:
-                    logger.warning(f"⚠️ Redis purge error for topic {topic}: {e}")
+                    logger.warning(f" Redis purge error for topic {topic}: {e}")
 
             # Note: Kafka topic purging requires admin privileges and is not implemented here
 
             if success_count > 0:
-                logger.info(f"✅ Purged topic {topic}")
+                logger.info(f" Purged topic {topic}")
                 return True
             else:
-                logger.warning(f"⚠️ No queues purged for topic {topic}")
+                logger.warning(f" No queues purged for topic {topic}")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Purge error for topic {topic}: {e}")
+            logger.error(f" Purge error for topic {topic}: {e}")
             return False
 
     async def shutdown(self):
         """Gracefully shutdown message queue manager."""
         try:
-            logger.info("🔄 Shutting down Message Queue Manager...")
+            logger.info(" Shutting down Message Queue Manager...")
 
             # Stop consumer tasks
             for task in self.consumer_tasks:
@@ -939,24 +940,24 @@ class MessageQueueManager:
             # Close connections
             if self.rabbitmq_connection:
                 await self.rabbitmq_connection.close()
-                logger.info("✅ RabbitMQ connection closed")
+                logger.info(" RabbitMQ connection closed")
 
             if self.kafka_producer:
                 await self.kafka_producer.stop()
-                logger.info("✅ Kafka producer stopped")
+                logger.info(" Kafka producer stopped")
 
             for consumer in self.kafka_consumers.values():
                 await consumer.stop()
-            logger.info("✅ Kafka consumers stopped")
+            logger.info(" Kafka consumers stopped")
 
             if self.redis_client:
                 await self.redis_client.close()
-                logger.info("✅ Redis connection closed")
+                logger.info(" Redis connection closed")
 
-            logger.info("✅ Message Queue Manager shutdown complete")
+            logger.info(" Message Queue Manager shutdown complete")
 
         except Exception as e:
-            logger.error(f"❌ Message queue shutdown error: {e}")
+            logger.error(f" Message queue shutdown error: {e}")
 
 
 # Global message queue manager instance

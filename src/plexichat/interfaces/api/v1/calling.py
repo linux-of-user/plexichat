@@ -1,10 +1,9 @@
-"""
-Encrypted voice and video calling API endpoints.
-Provides WebRTC signaling, call management, and encryption.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+
+
+
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
@@ -13,6 +12,10 @@ from plexichat.app.logger_config import logger
 from plexichat.app.models.calling import CallType
 from plexichat.app.services.calling_service import calling_service
 
+"""
+Encrypted voice and video calling API endpoints.
+Provides WebRTC signaling, call management, and encryption.
+"""
 
 # Pydantic models for API
 class CallInitiateRequest(BaseModel):
@@ -182,7 +185,8 @@ async def get_call_quality(call_id: str):
                 "video_quality": quality.video_quality,
                 "connection_stability": quality.connection_stability
             },
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
         
     except Exception as e:
@@ -290,7 +294,7 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
     await websocket.accept()
     
     try:
-        logger.info(f"🔌 WebSocket connected for call {call_id}")
+        logger.info(f" WebSocket connected for call {call_id}")
         
         while True:
             # Receive signaling data
@@ -302,7 +306,7 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
             if message_type == "ice-candidate":
                 # Handle ICE candidate
                 candidate = data.get("candidate")
-                logger.info(f"📡 Received ICE candidate for call {call_id}")
+                logger.info(f" Received ICE candidate for call {call_id}")
                 
                 # Broadcast to other participants (simplified)
                 await websocket.send_json({
@@ -314,7 +318,7 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
             elif message_type == "offer":
                 # Handle WebRTC offer
                 offer = data.get("offer")
-                logger.info(f"📞 Received WebRTC offer for call {call_id}")
+                logger.info(f" Received WebRTC offer for call {call_id}")
                 
                 await websocket.send_json({
                     "type": "offer",
@@ -325,7 +329,7 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
             elif message_type == "answer":
                 # Handle WebRTC answer
                 answer = data.get("answer")
-                logger.info(f"✅ Received WebRTC answer for call {call_id}")
+                logger.info(f" Received WebRTC answer for call {call_id}")
                 
                 await websocket.send_json({
                     "type": "answer",
@@ -337,14 +341,15 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
                 # Handle ping for connection keepalive
                 await websocket.send_json({
                     "type": "pong",
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": from datetime import datetime
+datetime.now().isoformat()
                 })
                 
             else:
                 logger.warning(f"Unknown signaling message type: {message_type}")
                 
     except WebSocketDisconnect:
-        logger.info(f"🔌 WebSocket disconnected for call {call_id}")
+        logger.info(f" WebSocket disconnected for call {call_id}")
     except Exception as e:
         logger.error(f"WebSocket error for call {call_id}: {e}")
         await websocket.close(code=1011, reason="Internal server error")

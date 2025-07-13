@@ -1,3 +1,5 @@
+from .ai_powered_features_service import (
+
 """
 PlexiChat AI-Powered Features Module
 
@@ -12,7 +14,6 @@ All features are built on top of PlexiChat's AI abstraction layer and support
 multiple AI providers with intelligent fallbacks.
 """
 
-from .ai_powered_features_service import (
     AIPoweredFeaturesService,
     ContentSuggestion,
     ModerationAction,

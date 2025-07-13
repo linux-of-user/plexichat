@@ -1,17 +1,19 @@
+from datetime import datetime
+from enum import IntEnum
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import JSON, Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index, Text
+
 """
 PlexiChat Server Model
 
 Discord-like server (guild) model with comprehensive features.
 """
-
-from datetime import datetime
-from enum import IntEnum
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import DateTime, Index, Text
-from sqlmodel import JSON, Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for servers
 server_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=1)
@@ -27,7 +29,8 @@ class VerificationLevel(IntEnum):
 
 
 class DefaultMessageNotifications(IntEnum):
-    """Default message notification settings."""
+    """Default message notification from plexichat.core.config import settings
+settings."""
     ALL_MESSAGES = 0
     ONLY_MENTIONS = 1
 

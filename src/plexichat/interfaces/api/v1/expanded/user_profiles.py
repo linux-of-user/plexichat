@@ -1,15 +1,17 @@
-"""
-PlexiChat Advanced User Profiles API
-Comprehensive user profile management with advanced features
-"""
-
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+
+
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
+
+"""
+PlexiChat Advanced User Profiles API
+Comprehensive user profile management with advanced features
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +109,7 @@ async def setup_user_profile_endpoints(router: APIRouter):
     security = HTTPBearer()
     
     @router.get("/me", response_model=UserProfile, summary="Get Current User Profile")
-    async def get_current_user_profile(token: str = Depends(security)):
+    async def from plexichat.infrastructure.utils.auth import get_current_user_profile(token: str = Depends(security)):
         """Get the current user's complete profile."""
         try:
             # Extract user from token (placeholder)
@@ -242,7 +244,8 @@ async def setup_user_profile_endpoints(router: APIRouter):
     
     @router.get("/{user_id}/privacy", response_model=PrivacySettings, summary="Get Privacy Settings")
     async def get_privacy_settings(user_id: str, token: str = Depends(security)):
-        """Get user privacy settings."""
+        """Get user privacy from plexichat.core.config import settings
+settings."""
         try:
             # Validate user permissions
             if not await _can_modify_profile(user_id, "current_user_id"):
@@ -261,7 +264,8 @@ async def setup_user_profile_endpoints(router: APIRouter):
         privacy_settings: PrivacySettings,
         token: str = Depends(security)
     ):
-        """Update user privacy settings."""
+        """Update user privacy from plexichat.core.config import settings
+settings."""
         try:
             # Validate user permissions
             if not await _can_modify_profile(user_id, "current_user_id"):

@@ -1,11 +1,12 @@
+import logging
+from typing import Any, Dict
+
+
 """
 PlexiChat Biometric Manager
 
 Biometric authentication management for fingerprint, face, and voice recognition.
 """
-
-import logging
-from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +22,11 @@ class BiometricManager:
         """Initialize biometric manager."""
         self.config = config
         self.initialized = True
-        logger.info("✅ Biometric Manager initialized")
+        logger.info(" Biometric Manager initialized")
     
     async def shutdown(self):
         """Shutdown biometric manager."""
-        logger.info("✅ Biometric Manager shutdown complete")
+        logger.info(" Biometric Manager shutdown complete")
 
 
 # Global instance

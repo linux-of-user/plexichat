@@ -1,3 +1,20 @@
+from .manager_database import (  # <-- Add this line
+from .backup_integration import DatabaseBackupIntegration, db_backup
+from .cluster import DatabaseCluster, db_cluster  # <-- Add this line
+
+from .config import DatabaseConfig, DatabaseProvider, DatabaseRole, DatabaseType
+from .exceptions import ConnectionError, DatabaseError, EncryptionError, MigrationError
+from .migration import MigrationManager, migration_manager  # <-- Add this line
+
+from .models import *
+from .monitor import DatabaseMonitor, database_monitor  # <-- Add this line
+from .schemas import *
+
+from .utils import DatabaseUtils, db_utils
+
+        import logging
+        import logging
+
 """
 PlexiChat Core Database System - Unified Database Management
 
@@ -21,7 +38,6 @@ Features:
 """
 
 # Import consolidated database components
-from .manager_database import (  # <-- Add this line
     ConnectionStatus,
     ConsolidatedDatabaseManager,
     DatabaseConfig,
@@ -37,22 +53,9 @@ from .manager_database import (  # <-- Add this line
 # Legacy imports maintained for backward compatibility
 DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibility
 
-from .backup_integration import DatabaseBackupIntegration, db_backup
-from .cluster import DatabaseCluster, db_cluster  # <-- Add this line
-
 # Database configuration and types
-from .config import DatabaseConfig, DatabaseProvider, DatabaseRole, DatabaseType
-from .exceptions import ConnectionError, DatabaseError, EncryptionError, MigrationError
-from .migration import MigrationManager, migration_manager  # <-- Add this line
-
 # Import database models and schemas
-from .models import *
-from .monitor import DatabaseMonitor, database_monitor  # <-- Add this line
-from .schemas import *
-
 # Import database utilities
-from .utils import DatabaseUtils, db_utils
-
 __version__ = "3.0.0"
 __all__ = [
     # Consolidated database management (SINGLE SOURCE OF TRUTH)
@@ -328,9 +331,8 @@ async def initialize_database_system_legacy(config: dict = None) -> bool:
     try:
         return await database_manager.initialize(config)
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Failed to initialize database system: {e}")
+        logger.error(f" Failed to initialize database system: {e}")
         return False
 
 async def shutdown_database_system():
@@ -346,9 +348,8 @@ async def shutdown_database_system():
         await database_manager.shutdown()
         
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Error during database system shutdown: {e}")
+        logger.error(f" Error during database system shutdown: {e}")
 
 # Convenience functions for common operations
 async def get_session(role: str = "primary", read_only: bool = False):

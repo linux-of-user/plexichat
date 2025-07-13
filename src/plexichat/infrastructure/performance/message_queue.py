@@ -1,3 +1,16 @@
+import logging
+from typing import Any, Dict, List, Optional
+
+
+
+    from the dead letter queue.
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from plexichat.core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin, require_auth
+from plexichat.core.performance.message_queue_manager import MessagePriority, get_queue_manager
+
 """
 PlexiChat Message Queue API Endpoints
 
@@ -15,15 +28,6 @@ Endpoints:
 - GET /api/queue/health - Get queue system health
 - GET /api/queue/dead-letter - Get dead letter queue messages
 """
-
-import logging
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
-
-from plexichat.core.auth.dependencies import require_admin, require_auth
-from plexichat.core.performance.message_queue_manager import MessagePriority, get_queue_manager
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +99,7 @@ async def get_queue_status(current_user: Dict = Depends(require_auth)):
         }
         
     except Exception as e:
-        logger.error(f"❌ Queue status error: {e}")
+        logger.error(f" Queue status error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get queue status: {str(e)}")
 
 
@@ -149,7 +153,7 @@ async def get_queue_stats(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Queue stats error: {e}")
+        logger.error(f" Queue stats error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get queue statistics: {str(e)}")
 
 
@@ -205,14 +209,14 @@ async def publish_message(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Message publish error: {e}")
+        logger.error(f" Message publish error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to publish message: {str(e)}")
 
 
 @router.post("/subscribe", response_model=QueueResponse)
 async def subscribe_to_topic(
     request: SubscribeRequest,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Subscribe to topic.
@@ -229,7 +233,7 @@ async def subscribe_to_topic(
         # Create a simple message handler for demonstration
         # In practice, you'd register actual handler functions
         async def demo_handler(message):
-            logger.info(f"📨 Received message on topic {message.topic}: {message.payload}")
+            logger.info(f" Received message on topic {message.topic}: {message.payload}")
             return True
         
         success = await queue_manager.subscribe(
@@ -254,14 +258,14 @@ async def subscribe_to_topic(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Topic subscription error: {e}")
+        logger.error(f" Topic subscription error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to subscribe to topic: {str(e)}")
 
 
 @router.delete("/subscribe/{topic}", response_model=QueueResponse)
 async def unsubscribe_from_topic(
     topic: str,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Unsubscribe from topic.
@@ -290,7 +294,7 @@ async def unsubscribe_from_topic(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Topic unsubscription error: {e}")
+        logger.error(f" Topic unsubscription error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to unsubscribe from topic: {str(e)}")
 
 
@@ -329,7 +333,7 @@ async def list_topics(current_user: Dict = Depends(require_auth)):
         }
         
     except Exception as e:
-        logger.error(f"❌ List topics error: {e}")
+        logger.error(f" List topics error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list topics: {str(e)}")
 
 
@@ -337,7 +341,7 @@ async def list_topics(current_user: Dict = Depends(require_auth)):
 async def purge_topic(
     topic: str,
     request: PurgeTopicRequest,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Purge topic messages.
@@ -372,7 +376,7 @@ async def purge_topic(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Topic purge error: {e}")
+        logger.error(f" Topic purge error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to purge topic: {str(e)}")
 
 
@@ -414,14 +418,14 @@ async def get_queue_health(current_user: Dict = Depends(require_auth)):
         }
         
     except Exception as e:
-        logger.error(f"❌ Queue health check error: {e}")
+        logger.error(f" Queue health check error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get queue health: {str(e)}")
 
 
 @router.get("/dead-letter", response_model=Dict[str, Any])
 async def get_dead_letter_queue(
     limit: int = Query(10, description="Maximum number of messages to return"),
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Get dead letter queue messages.
@@ -450,20 +454,19 @@ async def get_dead_letter_queue(
         }
         
     except Exception as e:
-        logger.error(f"❌ Dead letter queue error: {e}")
+        logger.error(f" Dead letter queue error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get dead letter queue: {str(e)}")
 
 
 @router.post("/dead-letter/reprocess", response_model=QueueResponse)
 async def reprocess_dead_letter_messages(
     message_ids: Optional[List[str]] = Body(None, description="Specific message IDs to reprocess"),
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Reprocess dead letter messages.
     
     Administrative endpoint to retry processing of failed messages
-    from the dead letter queue.
     """
     try:
         queue_manager = get_queue_manager()
@@ -488,5 +491,5 @@ async def reprocess_dead_letter_messages(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Dead letter reprocessing error: {e}")
+        logger.error(f" Dead letter reprocessing error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to reprocess dead letter messages: {str(e)}")

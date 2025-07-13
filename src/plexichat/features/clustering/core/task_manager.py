@@ -1,14 +1,3 @@
-"""
-Advanced Task Manager for PlexiChat Clustering System
-
-Provides comprehensive task management with:
-- Intelligent task scheduling and distribution
-- Priority-based task queuing
-- Resource-aware task assignment
-- Task monitoring and recovery
-- Cross-node task coordination
-"""
-
 import asyncio
 import json
 import logging
@@ -20,6 +9,18 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 import aiosqlite
+
+
+"""
+Advanced Task Manager for PlexiChat Clustering System
+
+Provides comprehensive task management with:
+- Intelligent task scheduling and distribution
+- Priority-based task queuing
+- Resource-aware task assignment
+- Task monitoring and recovery
+- Cross-node task coordination
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +123,7 @@ class AdvancedTaskManager:
         
     async def initialize(self):
         """Initialize the task manager."""
-        logger.info("🚀 Initializing Advanced Task Manager")
+        logger.info(" Initializing Advanced Task Manager")
         
         # Setup database
         await self._setup_database()
@@ -133,7 +134,7 @@ class AdvancedTaskManager:
         # Start background monitoring
         self._start_background_tasks()
         
-        logger.info("✅ Advanced Task Manager initialized")
+        logger.info(" Advanced Task Manager initialized")
         
     async def _setup_database(self):
         """Setup SQLite database for task persistence."""
@@ -196,7 +197,7 @@ class AdvancedTaskManager:
                     elif task.status == TaskStatus.RUNNING:
                         self.running_tasks[task.task_id] = task.assigned_node
                         
-        logger.info(f"✅ Loaded {len(self.tasks)} tasks from database")
+        logger.info(f" Loaded {len(self.tasks)} tasks from database")
         
     def _start_background_tasks(self):
         """Start background monitoring tasks."""
@@ -239,7 +240,7 @@ class AdvancedTaskManager:
         # Save to database
         await self._save_task_to_db(task)
         
-        logger.info(f"📋 Submitted task {task_id} ({task_type.value}) with priority {priority.value}")
+        logger.info(f" Submitted task {task_id} ({task_type.value}) with priority {priority.value}")
         return task_id
         
     def _add_to_queue(self, task_id: str):
@@ -265,7 +266,7 @@ class AdvancedTaskManager:
                 await self._schedule_pending_tasks()
                 await asyncio.sleep(5)  # Check every 5 seconds
             except Exception as e:
-                logger.error(f"❌ Task scheduler error: {e}")
+                logger.error(f" Task scheduler error: {e}")
                 await asyncio.sleep(10)
                 
     async def _schedule_pending_tasks(self):
@@ -360,10 +361,10 @@ class AdvancedTaskManager:
             task.started_at = datetime.now(timezone.utc)
             await self._update_task_in_db(task)
 
-            logger.info(f"✅ Task {task.task_id} assigned to node {node.node_id}")
+            logger.info(f" Task {task.task_id} assigned to node {node.node_id}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to send task {task.task_id} to node {node.node_id}: {e}")
+            logger.error(f" Failed to send task {task.task_id} to node {node.node_id}: {e}")
             task.status = TaskStatus.FAILED
             task.error = str(e)
             await self._update_task_in_db(task)
@@ -380,7 +381,7 @@ class AdvancedTaskManager:
                 await self._monitor_running_tasks()
                 await asyncio.sleep(10)  # Check every 10 seconds
             except Exception as e:
-                logger.error(f"❌ Task monitor error: {e}")
+                logger.error(f" Task monitor error: {e}")
                 await asyncio.sleep(15)
 
     async def _monitor_running_tasks(self):
@@ -397,7 +398,7 @@ class AdvancedTaskManager:
             if task.started_at:
                 elapsed = (current_time - task.started_at).total_seconds()
                 if elapsed > task.timeout_seconds:
-                    logger.warning(f"⏰ Task {task_id} timed out after {elapsed} seconds")
+                    logger.warning(f" Task {task_id} timed out after {elapsed} seconds")
                     task.status = TaskStatus.TIMEOUT
                     task.error = f"Task timed out after {elapsed} seconds"
                     tasks_to_retry.append(task_id)
@@ -425,13 +426,13 @@ class AdvancedTaskManager:
             # Add back to queue
             self._add_to_queue(task_id)
 
-            logger.info(f"🔄 Retrying task {task_id} (attempt {task.retry_count}/{task.max_retries})")
+            logger.info(f" Retrying task {task_id} (attempt {task.retry_count}/{task.max_retries})")
 
         else:
             task.status = TaskStatus.FAILED
             task.completed_at = datetime.now(timezone.utc)
 
-            logger.error(f"❌ Task {task_id} failed permanently after {task.retry_count} retries")
+            logger.error(f" Task {task_id} failed permanently after {task.retry_count} retries")
 
         await self._update_task_in_db(task)
 
@@ -442,7 +443,7 @@ class AdvancedTaskManager:
                 await self._update_metrics()
                 await asyncio.sleep(30)  # Update every 30 seconds
             except Exception as e:
-                logger.error(f"❌ Metrics updater error: {e}")
+                logger.error(f" Metrics updater error: {e}")
                 await asyncio.sleep(60)
 
     async def _update_metrics(self):
@@ -566,12 +567,12 @@ class AdvancedTaskManager:
 
         await self._update_task_in_db(task)
 
-        logger.info(f"🚫 Task {task_id} cancelled")
+        logger.info(f" Task {task_id} cancelled")
         return True
 
     async def shutdown(self):
         """Shutdown the task manager."""
-        logger.info("🛑 Shutting down Advanced Task Manager")
+        logger.info(" Shutting down Advanced Task Manager")
 
         # Cancel background tasks
         for task in self.background_tasks:
@@ -581,4 +582,4 @@ class AdvancedTaskManager:
         if self.background_tasks:
             await asyncio.gather(*self.background_tasks, return_exceptions=True)
 
-        logger.info("✅ Advanced Task Manager shutdown complete")
+        logger.info(" Advanced Task Manager shutdown complete")

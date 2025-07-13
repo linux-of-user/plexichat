@@ -1,8 +1,3 @@
-"""
-SSL/TLS functionality tests for PlexiChat.
-Tests certificate generation, validation, and secure connections.
-"""
-
 import logging
 import socket
 import ssl
@@ -12,6 +7,13 @@ from datetime import datetime
 from pathlib import Path
 
 from .test_base import BaseTest, TestResult
+
+            import shutil
+
+"""
+SSL/TLS functionality tests for PlexiChat.
+Tests certificate generation, validation, and secure connections.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -27,19 +29,20 @@ class SSLTest(BaseTest):
     
     async def setup(self):
         """Setup test environment with temporary certificates."""
-        self.temp_dir = Path(tempfile.mkdtemp())
+        self.temp_dir = from pathlib import Path
+Path(tempfile.mkdtemp())
         self.cert_file = self.temp_dir / "test_cert.pem"
         self.key_file = self.temp_dir / "test_key.pem"
     
     async def teardown(self):
         """Cleanup temporary files."""
         if self.temp_dir and self.temp_dir.exists():
-            import shutil
             shutil.rmtree(self.temp_dir)
     
     async def test_certificate_generation(self):
         """Test SSL certificate generation."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             # Generate self-signed certificate using openssl
@@ -57,7 +60,8 @@ class SSLTest(BaseTest):
             cert_exists = self.cert_file.exists()
             key_exists = self.key_file.exists()
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             if cert_exists and key_exists:
                 self.add_result(TestResult(
@@ -82,7 +86,8 @@ class SSLTest(BaseTest):
                 ))
                 
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="Certificate Generation",
                 category="SSL",
@@ -95,7 +100,8 @@ class SSLTest(BaseTest):
     
     async def test_certificate_validation(self):
         """Test SSL certificate validation."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not self.cert_file.exists():
@@ -111,7 +117,8 @@ class SSLTest(BaseTest):
             # Basic validation - check if it's a valid certificate
             is_valid = len(cert) > 0
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="Certificate Validation",
@@ -125,7 +132,8 @@ class SSLTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="Certificate Validation",
                 category="SSL",
@@ -138,7 +146,8 @@ class SSLTest(BaseTest):
     
     async def test_ssl_context_creation(self):
         """Test SSL context creation."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not self.cert_file.exists() or not self.key_file.exists():
@@ -151,7 +160,8 @@ class SSLTest(BaseTest):
             # Verify context was created successfully
             context_created = context is not None
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="SSL Context Creation",
@@ -165,7 +175,8 @@ class SSLTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="SSL Context Creation",
                 category="SSL",
@@ -178,7 +189,8 @@ class SSLTest(BaseTest):
     
     async def test_ssl_socket_creation(self):
         """Test SSL socket creation."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not self.cert_file.exists() or not self.key_file.exists():
@@ -197,7 +209,8 @@ class SSLTest(BaseTest):
             # Clean up
             ssl_sock.close()
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="SSL Socket Creation",
@@ -211,7 +224,8 @@ class SSLTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="SSL Socket Creation",
                 category="SSL",

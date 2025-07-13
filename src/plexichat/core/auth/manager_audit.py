@@ -1,11 +1,12 @@
+import logging
+from typing import Any, Dict
+
+
 """
 PlexiChat Authentication Audit Manager
 
 Comprehensive audit logging for authentication events and compliance.
 """
-
-import logging
-from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class AuthAuditManager:
         """Initialize audit manager."""
         self.config = config
         self.initialized = True
-        logger.info("✅ Auth Audit Manager initialized")
+        logger.info(" Auth Audit Manager initialized")
     
     async def log_auth_attempt(self, audit_id: str, username: str, ip_address: str,
                              user_agent: str, auth_method: str, device_info: Dict[str, Any]):
@@ -41,7 +42,7 @@ class AuthAuditManager:
     
     async def shutdown(self):
         """Shutdown audit manager."""
-        logger.info("✅ Auth Audit Manager shutdown complete")
+        logger.info(" Auth Audit Manager shutdown complete")
 
 
 # Global instance

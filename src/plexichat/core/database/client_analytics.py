@@ -1,3 +1,15 @@
+import logging
+import time
+from typing import Any, AsyncGenerator, Dict, List
+
+from .enhanced_abstraction import (
+            from clickhouse_driver import Client
+
+            import asyncpg
+
+from .enhanced_abstraction import DatabaseClientFactory
+
+
 """
 PlexiChat Analytics Database Clients
 
@@ -17,11 +29,6 @@ Features:
 - Compression and optimization
 """
 
-import logging
-import time
-from typing import Any, AsyncGenerator, Dict, List
-
-from .enhanced_abstraction import (
     AbstractDatabaseClient,
     DatabaseConfig,
     DatabaseType,
@@ -42,8 +49,6 @@ class ClickHouseClient(AbstractDatabaseClient):
     async def connect(self) -> bool:
         """Connect to ClickHouse."""
         try:
-            from clickhouse_driver import Client
-
             # Build connection parameters
             connection_params = {
                 "host": self.config.host,
@@ -66,13 +71,13 @@ class ClickHouseClient(AbstractDatabaseClient):
             if result == [(1,)]:
                 self.is_connected = True
                 self.metrics["connections_created"] += 1
-                logger.info(f"✅ Connected to ClickHouse: {self.config.host}")
+                logger.info(f" Connected to ClickHouse: {self.config.host}")
                 return True
             else:
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ ClickHouse connection failed: {e}")
+            logger.error(f" ClickHouse connection failed: {e}")
             return False
     
     async def disconnect(self) -> bool:
@@ -83,7 +88,7 @@ class ClickHouseClient(AbstractDatabaseClient):
                 self.is_connected = False
             return True
         except Exception as e:
-            logger.error(f"❌ ClickHouse disconnect failed: {e}")
+            logger.error(f" ClickHouse disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Dict[str, Any] = None, 
@@ -191,11 +196,11 @@ class ClickHouseClient(AbstractDatabaseClient):
             
             # Execute CREATE TABLE
             await self.execute_query(create_sql, query_type=QueryType.INSERT)
-            logger.info(f"✅ Created ClickHouse table: {table_name}")
+            logger.info(f" Created ClickHouse table: {table_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to create ClickHouse table {table_name}: {e}")
+            logger.error(f" Failed to create ClickHouse table {table_name}: {e}")
             return False
     
     async def create_materialized_view(self, view_name: str, source_table: str, 
@@ -218,11 +223,11 @@ class ClickHouseClient(AbstractDatabaseClient):
                 """
             
             await self.execute_query(create_sql, query_type=QueryType.INSERT)
-            logger.info(f"✅ Created ClickHouse materialized view: {view_name}")
+            logger.info(f" Created ClickHouse materialized view: {view_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to create materialized view {view_name}: {e}")
+            logger.error(f" Failed to create materialized view {view_name}: {e}")
             return False
     
     async def optimize_table(self, table_name: str) -> bool:
@@ -230,10 +235,10 @@ class ClickHouseClient(AbstractDatabaseClient):
         try:
             optimize_sql = f"OPTIMIZE TABLE {table_name} FINAL"
             await self.execute_query(optimize_sql, query_type=QueryType.INSERT)
-            logger.info(f"✅ Optimized ClickHouse table: {table_name}")
+            logger.info(f" Optimized ClickHouse table: {table_name}")
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to optimize table {table_name}: {e}")
+            logger.error(f" Failed to optimize table {table_name}: {e}")
             return False
     
     async def health_check(self) -> Dict[str, Any]:
@@ -361,8 +366,6 @@ class TimescaleDBClient(AbstractDatabaseClient):
     async def connect(self) -> bool:
         """Connect to TimescaleDB."""
         try:
-            import asyncpg
-
             # Build connection string
             connection_string = f"postgresql://{self.config.username}:{self.config.password}@{self.config.host}:{self.config.port or 5432}/{self.config.database}"
             
@@ -380,13 +383,13 @@ class TimescaleDBClient(AbstractDatabaseClient):
                 if result == 1:
                     self.is_connected = True
                     self.metrics["connections_created"] += 1
-                    logger.info(f"✅ Connected to TimescaleDB: {self.config.host}")
+                    logger.info(f" Connected to TimescaleDB: {self.config.host}")
                     return True
             
             return False
             
         except Exception as e:
-            logger.error(f"❌ TimescaleDB connection failed: {e}")
+            logger.error(f" TimescaleDB connection failed: {e}")
             return False
     
     async def disconnect(self) -> bool:
@@ -397,7 +400,7 @@ class TimescaleDBClient(AbstractDatabaseClient):
                 self.is_connected = False
             return True
         except Exception as e:
-            logger.error(f"❌ TimescaleDB disconnect failed: {e}")
+            logger.error(f" TimescaleDB disconnect failed: {e}")
             return False
     
     async def execute_query(self, query: str, params: Dict[str, Any] = None, 
@@ -466,11 +469,11 @@ class TimescaleDBClient(AbstractDatabaseClient):
             """
             
             await self.execute_query(create_sql, query_type=QueryType.INSERT)
-            logger.info(f"✅ Created TimescaleDB hypertable: {table_name}")
+            logger.info(f" Created TimescaleDB hypertable: {table_name}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to create hypertable {table_name}: {e}")
+            logger.error(f" Failed to create hypertable {table_name}: {e}")
             return False
     
     async def execute_batch(self, queries: List[Dict[str, Any]]) -> List[QueryResult]:
@@ -532,7 +535,5 @@ class TimescaleDBClient(AbstractDatabaseClient):
 
 
 # Register analytics clients
-from .enhanced_abstraction import DatabaseClientFactory
-
 DatabaseClientFactory.register_client(DatabaseType.CLICKHOUSE, ClickHouseClient)
 DatabaseClientFactory.register_client(DatabaseType.TIMESCALEDB, TimescaleDBClient)

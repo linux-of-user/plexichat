@@ -1,10 +1,3 @@
-"""
-Intelligent Shard Distribution System for NetLink
-
-AI-powered shard distribution with geographic redundancy, automatic rebalancing,
-and intelligent placement based on access patterns and node capabilities.
-"""
-
 import asyncio
 import hashlib
 import secrets
@@ -17,6 +10,14 @@ from typing import Any, Dict, List, Optional
 from ...core.config import get_config
 from ...core.logging import get_logger
 from ..security.quantum_encryption import EncryptedData, QuantumEncryptionEngine
+
+
+"""
+Intelligent Shard Distribution System for NetLink
+
+AI-powered shard distribution with geographic redundancy, automatic rebalancing,
+and intelligent placement based on access patterns and node capabilities.
+"""
 
 logger = get_logger(__name__)
 
@@ -156,7 +157,7 @@ class IntelligentShardDistributor:
         # Initialize encryption engine
         self.encryption_engine = QuantumEncryptionEngine()
         
-        logger.info(f"🧠 Intelligent Shard Distributor initialized with {self.strategy.value} strategy")
+        logger.info(f" Intelligent Shard Distributor initialized with {self.strategy.value} strategy")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default shard distribution configuration."""
@@ -177,7 +178,7 @@ class IntelligentShardDistributor:
     async def initialize_distribution_system(self) -> Dict[str, Any]:
         """Initialize the intelligent distribution system."""
         try:
-            logger.info("🚀 Initializing intelligent shard distribution system...")
+            logger.info(" Initializing intelligent shard distribution system...")
             
             # Initialize AI models
             await self._initialize_ai_models()
@@ -191,7 +192,7 @@ class IntelligentShardDistributor:
             # Start background tasks
             await self._start_background_tasks()
             
-            logger.info(f"✅ Distribution system initialized with {len(self.nodes)} nodes")
+            logger.info(f" Distribution system initialized with {len(self.nodes)} nodes")
             
             return {
                 "success": True,
@@ -202,7 +203,7 @@ class IntelligentShardDistributor:
             }
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize distribution system: {e}")
+            logger.error(f" Failed to initialize distribution system: {e}")
             return {"success": False, "error": str(e)}
     
     async def _initialize_ai_models(self):
@@ -232,10 +233,10 @@ class IntelligentShardDistributor:
                 "learning_rate": 0.01
             }
             
-            logger.info("🤖 AI models initialized for intelligent placement")
+            logger.info(" AI models initialized for intelligent placement")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize AI models: {e}")
+            logger.error(f" Failed to initialize AI models: {e}")
     
     async def _discover_backup_nodes(self):
         """Discover available backup nodes in the network."""
@@ -290,12 +291,12 @@ class IntelligentShardDistributor:
             
             self.nodes[node.node_id] = node
         
-        logger.info(f"🔍 Discovered {len(self.nodes)} backup nodes")
+        logger.info(f" Discovered {len(self.nodes)} backup nodes")
     
     async def _analyze_existing_shards(self):
         """Analyze existing shards for optimization opportunities."""
         # Placeholder for shard analysis
-        logger.info("📊 Analyzing existing shards for optimization")
+        logger.info(" Analyzing existing shards for optimization")
     
     async def _start_background_tasks(self):
         """Start background tasks for monitoring and optimization."""
@@ -308,7 +309,7 @@ class IntelligentShardDistributor:
         # Start node monitoring
         asyncio.create_task(self._node_monitoring_loop())
         
-        logger.info("🔄 Background optimization tasks started")
+        logger.info(" Background optimization tasks started")
     
     async def distribute_shard(self, data: bytes, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """Distribute a data shard using intelligent placement."""
@@ -355,7 +356,7 @@ class IntelligentShardDistributor:
                 # Record successful placement
                 await self._record_placement_success(shard, selected_nodes)
                 
-                logger.info(f"✅ Shard {shard_id} distributed to {len(selected_nodes)} nodes")
+                logger.info(f" Shard {shard_id} distributed to {len(selected_nodes)} nodes")
                 
                 return {
                     "success": True,
@@ -367,7 +368,7 @@ class IntelligentShardDistributor:
             else:
                 # Handle partial failures
                 failed_nodes = [r["node_id"] for r in placement_results if not r["success"]]
-                logger.warning(f"⚠️ Partial failure distributing shard {shard_id}: {failed_nodes}")
+                logger.warning(f" Partial failure distributing shard {shard_id}: {failed_nodes}")
                 
                 return {
                     "success": False,
@@ -376,7 +377,7 @@ class IntelligentShardDistributor:
                 }
                 
         except Exception as e:
-            logger.error(f"❌ Failed to distribute shard: {e}")
+            logger.error(f" Failed to distribute shard: {e}")
             return {"success": False, "error": str(e)}
     
     async def _select_optimal_nodes(self, data_size: int, metadata: Dict[str, Any]) -> List[str]:
@@ -406,7 +407,7 @@ class IntelligentShardDistributor:
             return selected[:self.redundancy_factor]
             
         except Exception as e:
-            logger.error(f"❌ Node selection failed: {e}")
+            logger.error(f" Node selection failed: {e}")
             raise
     
     async def _ai_node_selection(self, candidates: List[str], data_size: int, metadata: Dict[str, Any]) -> List[str]:
@@ -504,7 +505,7 @@ class IntelligentShardDistributor:
                 results.append(result)
                 
             except Exception as e:
-                logger.error(f"❌ Failed to store shard on node {node_id}: {e}")
+                logger.error(f" Failed to store shard on node {node_id}: {e}")
                 results.append({
                     "node_id": node_id,
                     "success": False,
@@ -551,7 +552,7 @@ class IntelligentShardDistributor:
                 await self._perform_rebalancing()
                 
             except Exception as e:
-                logger.error(f"❌ Rebalancing loop error: {e}")
+                logger.error(f" Rebalancing loop error: {e}")
     
     async def _access_pattern_analysis_loop(self):
         """Background task for access pattern analysis."""
@@ -561,7 +562,7 @@ class IntelligentShardDistributor:
                 await self._analyze_access_patterns()
                 
             except Exception as e:
-                logger.error(f"❌ Access pattern analysis error: {e}")
+                logger.error(f" Access pattern analysis error: {e}")
     
     async def _node_monitoring_loop(self):
         """Background task for node health monitoring."""
@@ -571,11 +572,11 @@ class IntelligentShardDistributor:
                 await self._monitor_node_health()
                 
             except Exception as e:
-                logger.error(f"❌ Node monitoring error: {e}")
+                logger.error(f" Node monitoring error: {e}")
     
     async def _perform_rebalancing(self):
         """Perform intelligent shard rebalancing."""
-        logger.info("⚖️ Starting intelligent shard rebalancing...")
+        logger.info(" Starting intelligent shard rebalancing...")
         
         # Analyze current distribution
         distribution_analysis = await self._analyze_current_distribution()
@@ -587,9 +588,9 @@ class IntelligentShardDistributor:
             # Execute migrations
             await self._execute_migration_plan(migration_plan)
             
-            logger.info(f"✅ Rebalancing completed: {len(migration_plan)} migrations")
+            logger.info(f" Rebalancing completed: {len(migration_plan)} migrations")
         else:
-            logger.info("✅ Distribution is optimal, no rebalancing needed")
+            logger.info(" Distribution is optimal, no rebalancing needed")
     
     async def _analyze_current_distribution(self) -> Dict[str, Any]:
         """Analyze current shard distribution for optimization opportunities."""
@@ -651,10 +652,10 @@ class IntelligentShardDistributor:
                     migration["from_node"],
                     migration["to_node"]
                 )
-                logger.info(f"✅ Migrated shard {migration['shard_id']} from {migration['from_node']} to {migration['to_node']}")
+                logger.info(f" Migrated shard {migration['shard_id']} from {migration['from_node']} to {migration['to_node']}")
                 
             except Exception as e:
-                logger.error(f"❌ Migration failed for shard {migration['shard_id']}: {e}")
+                logger.error(f" Migration failed for shard {migration['shard_id']}: {e}")
     
     async def _migrate_shard(self, shard_id: str, from_node: str, to_node: str):
         """Migrate a shard from one node to another."""
@@ -677,7 +678,7 @@ class IntelligentShardDistributor:
     
     async def _analyze_access_patterns(self):
         """Analyze shard access patterns for optimization."""
-        logger.info("📈 Analyzing access patterns...")
+        logger.info(" Analyzing access patterns...")
         
         # This would analyze actual access logs
         # For now, simulate pattern analysis
@@ -694,7 +695,7 @@ class IntelligentShardDistributor:
     
     async def _monitor_node_health(self):
         """Monitor backup node health and availability."""
-        logger.debug("💓 Monitoring node health...")
+        logger.debug(" Monitoring node health...")
         
         for node_id, node in self.nodes.items():
             # In production, this would ping nodes and check health
@@ -704,7 +705,7 @@ class IntelligentShardDistributor:
             # Simulate occasional node issues
             if secrets.randbelow(1000) < 1:  # 0.1% chance
                 node.is_active = False
-                logger.warning(f"⚠️ Node {node_id} appears to be offline")
+                logger.warning(f" Node {node_id} appears to be offline")
     
     async def get_distribution_status(self) -> Dict[str, Any]:
         """Get current distribution system status."""

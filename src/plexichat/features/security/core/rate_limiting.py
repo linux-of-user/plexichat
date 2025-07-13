@@ -1,10 +1,3 @@
-"""
-PlexiChat Rate Limiting System
-
-Advanced rate limiting with sliding window, token bucket, and behavioral analysis.
-Includes DDoS protection, IP-based limiting, and adaptive thresholds.
-"""
-
 import hashlib
 import logging
 import time
@@ -12,6 +5,14 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
+
+
+"""
+PlexiChat Rate Limiting System
+
+Advanced rate limiting with sliding window, token bucket, and behavioral analysis.
+Includes DDoS protection, IP-based limiting, and adaptive thresholds.
+"""
 
 logger = logging.getLogger(__name__)
 

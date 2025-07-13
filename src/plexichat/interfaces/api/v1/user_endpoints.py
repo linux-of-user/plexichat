@@ -1,11 +1,13 @@
-"""User API router."""
 from typing import List
 
-from fastapi import APIRouter, HTTPException
 
 from .schemas import UserCreate, UserResponse, UserUpdate
 from .service import user_service
 
+
+from fastapi import APIRouter, HTTPException
+
+"""User API router."""
 router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("/", response_model=UserResponse)

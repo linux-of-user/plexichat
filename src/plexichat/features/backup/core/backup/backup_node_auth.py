@@ -1,10 +1,3 @@
-"""
-Backup Node Authentication Manager
-
-Manages authentication and authorization for backup nodes in the distributed system.
-Implements secure API key management and node permission levels.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -16,6 +9,14 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 import aiosqlite
+
+
+"""
+Backup Node Authentication Manager
+
+Manages authentication and authorization for backup nodes in the distributed system.
+Implements secure API key management and node permission levels.
+"""
 
 logger = logging.getLogger(__name__)
 

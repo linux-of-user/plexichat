@@ -1,9 +1,3 @@
-"""
-Comprehensive Security & Anti-Virus System for PlexiChat.
-Implements file scanning, link safety checking, SQL injection detection,
-and multi-layer input sanitization with witty responses.
-"""
-
 import hashlib
 import re
 import time
@@ -13,8 +7,18 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+
+
+        import random
+
+
 from plexichat.app.logger_config import logger
 
+"""
+Comprehensive Security & Anti-Virus System for PlexiChat.
+Implements file scanning, link safety checking, SQL injection detection,
+and multi-layer input sanitization with witty responses.
+"""
 
 class ThreatLevel(Enum):
     """Security threat levels."""
@@ -93,7 +97,7 @@ class SecurityService:
         self._initialize_malicious_domains()
         self._initialize_witty_responses()
 
-        logger.info("🛡️ Security service initialized")
+        logger.info(" Security service initialized")
     
     def _initialize_file_signatures(self):
         """Initialize file signatures for malware detection."""
@@ -148,54 +152,54 @@ class SecurityService:
         self.witty_responses = {
             ThreatType.SQL_INJECTION: {
                 'level_0': [  # First few attempts
-                    "SQL injection failed, try a longer needle! 🪡 To send SQL safely, wrap it in quotes and brackets like: \"[SELECT * FROM table]\"",
-                    "Nice try, Bobby Tables! 🍽️ Your SQL injection has been logged. Use quotes and brackets for legitimate SQL: \"[YOUR SQL HERE]\"",
-                    "DROP TABLE? More like DROP your hacking career! 😂 For real SQL, use: \"[SELECT example]\"",
-                    "SELECT * FROM hackers WHERE skill_level > 0; -- 0 rows returned. Try \"[SQL]\" format instead! 🤖",
-                    "Your SQL injection is about as effective as a chocolate teapot! ☕ Use \"[SQL]\" for legitimate queries."
+                    "SQL injection failed, try a longer needle!  To send SQL safely, wrap it in quotes and brackets like: \"[SELECT * FROM table]\"",
+                    "Nice try, Bobby Tables!  Your SQL injection has been logged. Use quotes and brackets for legitimate SQL: \"[YOUR SQL HERE]\"",
+                    "DROP TABLE? More like DROP your hacking career!  For real SQL, use: \"[SELECT example]\"",
+                    "SELECT * FROM hackers WHERE skill_level > 0; -- 0 rows returned. Try \"[SQL]\" format instead! ",
+                    "Your SQL injection is about as effective as a chocolate teapot!  Use \"[SQL]\" for legitimate queries."
                 ],
                 'level_1': [  # After a few attempts
-                    "Still trying SQL injection? 🙄 We've explained the \"[SQL]\" format multiple times now!",
-                    "Error 418: I'm a teapot, not a vulnerable database! Use \"[SQL]\" or give up! 🫖",
-                    "Your persistence is admirable but misguided. Use \"[SQL]\" format for legitimate queries! 🎯",
-                    "SQL injection attempt #N detected. Maybe try learning proper syntax instead? \"[SQL]\" works! 📚",
-                    "Still fishing for vulnerabilities? 🎣 Use \"[SQL]\" format or find a new hobby!"
+                    "Still trying SQL injection?  We've explained the \"[SQL]\" format multiple times now!",
+                    "Error 418: I'm a teapot, not a vulnerable database! Use \"[SQL]\" or give up! ",
+                    "Your persistence is admirable but misguided. Use \"[SQL]\" format for legitimate queries! ",
+                    "SQL injection attempt #N detected. Maybe try learning proper syntax instead? \"[SQL]\" works! ",
+                    "Still fishing for vulnerabilities?  Use \"[SQL]\" format or find a new hobby!"
                 ],
                 'level_2': [  # Getting annoying
-                    "Right, this is quite enough now, stop hacking us! 😤 Final warning before timeout!",
-                    "Seriously? Still trying? 🤦‍♂️ You're about to get a timeout for being persistently annoying!",
-                    "Your SQL injection attempts are more repetitive than elevator music! 🎵 Last chance!",
-                    "We're running out of patience faster than your creativity! 😮‍💨 Stop or face consequences!",
-                    "This is your final warning before we show you the digital door! 🚪"
+                    "Right, this is quite enough now, stop hacking us!  Final warning before timeout!",
+                    "Seriously? Still trying?  You're about to get a timeout for being persistently annoying!",
+                    "Your SQL injection attempts are more repetitive than elevator music!  Last chance!",
+                    "We're running out of patience faster than your creativity!  Stop or face consequences!",
+                    "This is your final warning before we show you the digital door! "
                 ],
                 'level_3': [  # Blocked
-                    "That's it! You're blocked for being persistently annoying! 🚫 Come back when you've learned manners!",
-                    "Congratulations! You've won a timeout! 🏆 Maybe use this time to learn legitimate programming!",
-                    "Access denied! Your hacking attempts have earned you a digital time-out! ⏰",
-                    "Blocked! Your SQL injection skills are matched only by your inability to take a hint! 🛑",
-                    "You've been temporarily banned for excessive hackery! 🔨 Try being less suspicious next time!"
+                    "That's it! You're blocked for being persistently annoying!  Come back when you've learned manners!",
+                    "Congratulations! You've won a timeout!  Maybe use this time to learn legitimate programming!",
+                    "Access denied! Your hacking attempts have earned you a digital time-out! ",
+                    "Blocked! Your SQL injection skills are matched only by your inability to take a hint! ",
+                    "You've been temporarily banned for excessive hackery!  Try being less suspicious next time!"
                 ]
             },
             ThreatType.XSS: [
-                "Cross-site scripting? More like cross-site NOPE! 🚫 Your XSS attempt blocked.",
-                "Alert('You tried!'); But our XSS protection says otherwise! 🛡️",
-                "Your script injection has been sanitized faster than hand sanitizer in 2020! 🧴",
-                "XSS blocked! Maybe try learning legitimate web development instead? 📚"
+                "Cross-site scripting? More like cross-site NOPE!  Your XSS attempt blocked.",
+                "Alert('You tried!'); But our XSS protection says otherwise! ",
+                "Your script injection has been sanitized faster than hand sanitizer in 2020! ",
+                "XSS blocked! Maybe try learning legitimate web development instead? "
             ],
             ThreatType.MALWARE: [
-                "Malware detected! Our antivirus is more effective than your virus! 🦠➡️🗑️",
-                "File quarantined! Your malware is now in digital jail. Do not pass GO. 🚔",
-                "Virus blocked! Even our AI thinks your code is infectious... in a bad way! 🤖"
+                "Malware detected! Our antivirus is more effective than your virus! ",
+                "File quarantined! Your malware is now in digital jail. Do not pass GO. ",
+                "Virus blocked! Even our AI thinks your code is infectious... in a bad way! "
             ],
             ThreatType.PHISHING: [
-                "Phishing attempt detected! We're not biting your bait! 🎣❌",
-                "Nice try, but we don't fall for phishing hooks! 🐟 Blocked.",
-                "Your phishing attempt is fishier than a seafood market! 🐠 Blocked."
+                "Phishing attempt detected! We're not biting your bait! ",
+                "Nice try, but we don't fall for phishing hooks!  Blocked.",
+                "Your phishing attempt is fishier than a seafood market!  Blocked."
             ],
             ThreatType.BRUTE_FORCE: [
-                "Brute force attack detected! Your password guessing game is weaker than your WiFi signal! 📶",
-                "Too many failed attempts! Take a break and maybe read a book on cybersecurity ethics! 📖",
-                "Brute force blocked! Your attack is more predictable than a rom-com ending! 🎬"
+                "Brute force attack detected! Your password guessing game is weaker than your WiFi signal! ",
+                "Too many failed attempts! Take a break and maybe read a book on cybersecurity ethics! ",
+                "Brute force blocked! Your attack is more predictable than a rom-com ending! "
             ]
         }
     
@@ -205,14 +209,12 @@ class SecurityService:
     
     def _get_witty_response(self, threat_type: ThreatType, source: str = "unknown", escalation_level: int = 0) -> str:
         """Get a random witty response for a threat type with escalation support."""
-        import random
-
-        responses = self.witty_responses.get(threat_type, ["Security threat detected and blocked! 🛡️"])
+        responses = self.witty_responses.get(threat_type, ["Security threat detected and blocked! "])
 
         # Handle SQL injection escalation
         if threat_type == ThreatType.SQL_INJECTION and isinstance(responses, dict):
             level_key = f'level_{min(escalation_level, 3)}'
-            level_responses = responses.get(level_key, responses.get('level_0', ["SQL injection blocked! 🛡️"]))
+            level_responses = responses.get(level_key, responses.get('level_0', ["SQL injection blocked! "]))
             response = random.choice(level_responses)
 
             # Replace #N with actual attempt count if present
@@ -226,7 +228,7 @@ class SecurityService:
         if isinstance(responses, list):
             return random.choice(responses)
 
-        return "Security threat detected and blocked! 🛡️"
+        return "Security threat detected and blocked! "
     
     def scan_file_content(self, file_content: bytes, filename: str) -> Tuple[bool, Optional[SecurityThreat]]:
         """Scan file content for malware and threats."""
@@ -239,8 +241,9 @@ class SecurityService:
                     threat_level=ThreatLevel.MEDIUM,
                     source=filename,
                     description=f"File too large: {len(file_content)} bytes",
-                    detected_at=datetime.now(),
-                    witty_response="File rejected! That's bigger than my attention span! 📏"
+                    detected_at=from datetime import datetime
+datetime.now(),
+                    witty_response="File rejected! That's bigger than my attention span! "
                 )
                 return False, threat
             
@@ -253,13 +256,14 @@ class SecurityService:
                         threat_level=signature.threat_level,
                         source=filename,
                         description=f"Matched signature: {signature.name}",
-                        detected_at=datetime.now(),
+                        detected_at=from datetime import datetime
+datetime.now(),
                         metadata={"signature_id": signature.signature_id},
                         witty_response=self._get_witty_response(signature.threat_type)
                     )
                     
                     self.detected_threats[threat.threat_id] = threat
-                    logger.warning(f"🚨 Malware detected in {filename}: {signature.name}")
+                    logger.warning(f" Malware detected in {filename}: {signature.name}")
                     return False, threat
             
             # Check file extension against dangerous types
@@ -273,16 +277,17 @@ class SecurityService:
                     threat_level=ThreatLevel.MEDIUM,
                     source=filename,
                     description=f"Potentially dangerous file extension: .{file_ext}",
-                    detected_at=datetime.now(),
-                    witty_response="Executable file blocked! We don't run random programs here! 🏃‍♂️❌"
+                    detected_at=from datetime import datetime
+datetime.now(),
+                    witty_response="Executable file blocked! We don't run random programs here! "
                 )
                 
                 self.detected_threats[threat.threat_id] = threat
-                logger.warning(f"⚠️ Suspicious file extension: {filename}")
+                logger.warning(f" Suspicious file extension: {filename}")
                 return False, threat
             
             # File appears safe
-            logger.info(f"✅ File scan passed: {filename}")
+            logger.info(f" File scan passed: {filename}")
             return True, None
             
         except Exception as e:
@@ -293,8 +298,9 @@ class SecurityService:
                 threat_level=ThreatLevel.MEDIUM,
                 source=filename,
                 description=f"Scan error: {str(e)}",
-                detected_at=datetime.now(),
-                witty_response="File scan failed! When in doubt, block it out! 🚫"
+                detected_at=from datetime import datetime
+datetime.now(),
+                witty_response="File scan failed! When in doubt, block it out! "
             )
             return False, threat
     
@@ -316,12 +322,13 @@ class SecurityService:
                     threat_level=ThreatLevel.HIGH,
                     source=url,
                     description=f"Known malicious domain: {domain}",
-                    detected_at=datetime.now(),
+                    detected_at=from datetime import datetime
+datetime.now(),
                     witty_response=self._get_witty_response(ThreatType.PHISHING)
                 )
                 
                 self.detected_threats[threat.threat_id] = threat
-                logger.warning(f"🚨 Malicious link blocked: {url}")
+                logger.warning(f" Malicious link blocked: {url}")
                 return False, threat
             
             # Check for suspicious patterns
@@ -340,16 +347,17 @@ class SecurityService:
                         threat_level=ThreatLevel.MEDIUM,
                         source=url,
                         description="Suspicious URL pattern detected",
-                        detected_at=datetime.now(),
-                        witty_response="Suspicious link detected! We don't click on sketchy links here! 🔗❌"
+                        detected_at=from datetime import datetime
+datetime.now(),
+                        witty_response="Suspicious link detected! We don't click on sketchy links here! "
                     )
                     
                     self.detected_threats[threat.threat_id] = threat
-                    logger.warning(f"⚠️ Suspicious link pattern: {url}")
+                    logger.warning(f" Suspicious link pattern: {url}")
                     return False, threat
             
             # URL appears safe
-            logger.info(f"✅ Link safety check passed: {url}")
+            logger.info(f" Link safety check passed: {url}")
             return True, None
             
         except Exception as e:
@@ -360,8 +368,9 @@ class SecurityService:
                 threat_level=ThreatLevel.MEDIUM,
                 source=url,
                 description=f"Link check error: {str(e)}",
-                detected_at=datetime.now(),
-                witty_response="Link check failed! Better safe than sorry! 🔒"
+                detected_at=from datetime import datetime
+datetime.now(),
+                witty_response="Link check failed! Better safe than sorry! "
             )
             return False, threat
     
@@ -379,18 +388,21 @@ class SecurityService:
             # Check if IP is currently blocked
             if source in self.sql_injection_blocks:
                 block_time = self.sql_injection_blocks[source]
-                if datetime.now() < block_time:
+                if from datetime import datetime
+datetime.now() < block_time:
                     # Still blocked
-                    remaining_time = (block_time - datetime.now()).total_seconds()
+                    remaining_time = (block_time - from datetime import datetime
+datetime.now()).total_seconds()
                     threat = SecurityThreat(
                         threat_id=self._generate_threat_id(),
                         threat_type=ThreatType.SQL_INJECTION,
                         threat_level=ThreatLevel.CRITICAL,
                         source=source,
                         description=f"Blocked IP attempting SQL injection. Block expires in {int(remaining_time)}s",
-                        detected_at=datetime.now(),
+                        detected_at=from datetime import datetime
+datetime.now(),
                         metadata={"blocked_until": block_time.isoformat(), "remaining_seconds": int(remaining_time)},
-                        witty_response="You're still blocked! ⏰ Maybe use this time for self-reflection?"
+                        witty_response="You're still blocked!  Maybe use this time for self-reflection?"
                     )
                     return True, threat
                 else:
@@ -407,7 +419,7 @@ class SecurityService:
             # If input matches quoted format, it's allowed
             for pattern in quoted_sql_patterns:
                 if re.fullmatch(pattern, input_text.strip(), re.DOTALL):
-                    logger.info(f"✅ Properly quoted SQL allowed from {source}: {input_text[:50]}...")
+                    logger.info(f" Properly quoted SQL allowed from {source}: {input_text[:50]}...")
                     return False, None
 
             # Enhanced SQL injection patterns
@@ -450,7 +462,8 @@ class SecurityService:
 
             if detected_patterns:
                 # Track attempt
-                current_time = datetime.now()
+                current_time = from datetime import datetime
+datetime.now()
                 if source not in self.sql_injection_attempts:
                     self.sql_injection_attempts[source] = []
 
@@ -480,7 +493,7 @@ class SecurityService:
                     block_until = current_time + timedelta(seconds=block_duration)
                     self.sql_injection_blocks[source] = block_until
 
-                    logger.critical(f"🚫 IP {source} blocked for SQL injection attempts until {block_until}")
+                    logger.critical(f" IP {source} blocked for SQL injection attempts until {block_until}")
 
                 # Create threat with escalation-aware response
                 threat = SecurityThreat(
@@ -501,7 +514,7 @@ class SecurityService:
                 )
 
                 self.detected_threats[threat.threat_id] = threat
-                logger.warning(f"🚨 SQL injection detected from {source} (attempt #{attempt_count}, level {escalation_level})")
+                logger.warning(f" SQL injection detected from {source} (attempt #{attempt_count}, level {escalation_level})")
                 return True, threat
 
             return False, None
@@ -519,7 +532,8 @@ class SecurityService:
         """
         if source in self.sql_injection_blocks:
             block_time = self.sql_injection_blocks[source]
-            if datetime.now() < block_time:
+            if from datetime import datetime
+datetime.now() < block_time:
                 escalation_level = self.sql_injection_escalation.get(source, 0)
                 return True, block_time, escalation_level
             else:
@@ -531,7 +545,8 @@ class SecurityService:
 
     def get_sql_injection_stats(self, source: str) -> Dict[str, Any]:
         """Get SQL injection attempt statistics for a source."""
-        current_time = datetime.now()
+        current_time = from datetime import datetime
+datetime.now()
         attempts = self.sql_injection_attempts.get(source, [])
 
         # Clean old attempts
@@ -631,12 +646,13 @@ class SecurityService:
                     threat_level=ThreatLevel.MEDIUM,
                     source=identifier,
                     description=f"Rate limit exceeded: {len(self.rate_limits[identifier])} requests in last minute",
-                    detected_at=datetime.now(),
-                    witty_response="Slow down there, Speed Racer! 🏎️ Rate limit exceeded."
+                    detected_at=from datetime import datetime
+datetime.now(),
+                    witty_response="Slow down there, Speed Racer!  Rate limit exceeded."
                 )
                 
                 self.detected_threats[threat.threat_id] = threat
-                logger.warning(f"⚠️ Rate limit exceeded for {identifier}")
+                logger.warning(f" Rate limit exceeded for {identifier}")
                 return False, threat
             
             # Add current timestamp
@@ -653,7 +669,7 @@ class SecurityService:
             self.blocked_ips.add(ip_address)
             duration = duration_minutes or self.block_duration_minutes
             
-            logger.warning(f"🚫 Blocked IP address: {ip_address} for {duration} minutes")
+            logger.warning(f" Blocked IP address: {ip_address} for {duration} minutes")
             
             # In a real implementation, you might want to store this in a database
             # with expiration times and implement automatic unblocking
@@ -683,7 +699,8 @@ class SecurityService:
             # Recent threats (last 24 hours)
             recent_threats = [
                 threat for threat in self.detected_threats.values()
-                if datetime.now() - threat.detected_at < timedelta(hours=24)
+                if from datetime import datetime
+datetime.now() - threat.detected_at < timedelta(hours=24)
             ]
             
             return {
@@ -695,7 +712,8 @@ class SecurityService:
                 "threat_counts_by_level": level_counts,
                 "file_signatures_loaded": len(self.file_signatures),
                 "rate_limited_identifiers": len(self.rate_limits),
-                "last_updated": datetime.now().isoformat()
+                "last_updated": from datetime import datetime
+datetime.now().isoformat()
             }
             
         except Exception as e:

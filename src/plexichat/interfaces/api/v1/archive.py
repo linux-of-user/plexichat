@@ -1,18 +1,29 @@
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+from ...logger_config import logger
+from ...models.user import User
+
+        from ....plugins.archive_system.archive_plugin import ArchiveSystemPlugin
+        
+        from ....plugins.archive_system.archive_plugin import ArchiveType, ServerArchiveConfig
+        
+        from ....plugins.archive_system.archive_plugin import ArchiveType
+        
+        from ....plugins.archive_system.archive_plugin import ArchiveAccessLevel, ArchiveType
+        
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from ...core.auth.dependencies import from plexichat.infrastructure.utils.auth import get_current_user, from plexichat.infrastructure.utils.auth import require_admin
+
 """
 Archive System API Endpoints
 
 Provides API access to the archive system plugin for versioning functionality.
 """
-
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
-
-from ...core.auth.dependencies import get_current_user, require_admin
-from ...logger_config import logger
-from ...models.user import User
 
 router = APIRouter(prefix="/archive", tags=["archive"])
 
@@ -51,9 +62,8 @@ class ArchiveResponse(BaseModel):
 async def get_archive_plugin():
     """Get the archive system plugin instance."""
     try:
-        from ....plugins.archive_system.archive_plugin import ArchiveSystemPlugin
-        
-        plugin = ArchiveSystemPlugin(Path("data"))
+        plugin = ArchiveSystemPlugin(from pathlib import Path
+Path("data"))
         await plugin.initialize()
         return plugin
     except Exception as e:
@@ -64,7 +74,8 @@ async def get_archive_plugin():
 @router.get("/config/{server_id}")
 async def get_server_archive_config(
     server_id: str,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Get archive configuration for a server.
@@ -108,7 +119,8 @@ async def get_server_archive_config(
 async def set_server_archive_config(
     server_id: str,
     request: ServerArchiveConfigRequest,
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Set archive configuration for a server.
@@ -116,8 +128,6 @@ async def set_server_archive_config(
     **Admin only endpoint**
     """
     try:
-        from ....plugins.archive_system.archive_plugin import ArchiveType, ServerArchiveConfig
-        
         plugin = await get_archive_plugin()
         
         # Parse enabled types
@@ -165,7 +175,8 @@ async def set_server_archive_config(
 async def get_archive_versions(
     original_id: str,
     archive_type: str = Query(..., description="Type of archive"),
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Get all archive versions for an object.
@@ -173,8 +184,6 @@ async def get_archive_versions(
     Returns versions based on user's access level and premium status.
     """
     try:
-        from ....plugins.archive_system.archive_plugin import ArchiveType
-        
         plugin = await get_archive_plugin()
         
         # Parse archive type
@@ -231,7 +240,8 @@ async def get_archive_versions(
 @router.post("/create")
 async def create_archive_version(
     request: CreateArchiveRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Create a new archive version.
@@ -239,8 +249,6 @@ async def create_archive_version(
     Archives the provided data with versioning and access control.
     """
     try:
-        from ....plugins.archive_system.archive_plugin import ArchiveAccessLevel, ArchiveType
-        
         plugin = await get_archive_plugin()
         
         # Parse types
@@ -289,7 +297,8 @@ async def create_archive_version(
 @router.post("/restore/{archive_id}")
 async def restore_archive_version(
     archive_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Restore data from an archive version.
@@ -332,7 +341,8 @@ async def restore_archive_version(
 
 @router.get("/statistics")
 async def get_archive_statistics(
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Get comprehensive archive system statistics.
@@ -357,7 +367,8 @@ async def get_archive_statistics(
 
 @router.get("/servers")
 async def list_configured_servers(
-    current_user: User = Depends(require_admin)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     List all servers with archive configuration.

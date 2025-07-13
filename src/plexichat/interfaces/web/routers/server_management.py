@@ -1,11 +1,9 @@
-"""
-PlexiChat Server Management API
-Comprehensive server management endpoints for hot reload, updates, and monitoring.
-"""
-
 import logging
 from datetime import datetime
 from typing import List, Optional
+
+
+
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.security import HTTPBearer
@@ -13,6 +11,11 @@ from pydantic import BaseModel
 
 from plexichat.core.server_manager import ServerState, UpdateInfo, UpdateType, server_manager
 from plexichat.infrastructure.utils.auth import verify_admin_token
+
+"""
+PlexiChat Server Management API
+Comprehensive server management endpoints for hot reload, updates, and monitoring.
+"""
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/server", tags=["server-management"])
@@ -128,7 +131,8 @@ async def restart_server(
     try:
         # Create backup if requested
         if request.backup:
-            backup_name = f"pre_restart_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            backup_name = f"pre_restart_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
             server_manager.create_backup(backup_name)
         
         # Restart server in background
@@ -296,7 +300,8 @@ async def get_server_metrics():
         return {
             "success": True,
             "data": {
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": from datetime import datetime
+datetime.now().isoformat(),
                 "server_info": status['server_info'],
                 "resources": resources,
                 "health": status.get('health', {}),

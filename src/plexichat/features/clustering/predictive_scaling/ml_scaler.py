@@ -1,3 +1,11 @@
+import asyncio
+import logging
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+
 """
 PlexiChat Predictive Scaling with Machine Learning
 
@@ -10,13 +18,6 @@ Advanced ML-powered auto-scaling system with:
 - Real-time model adaptation
 - Integration with hybrid cloud and service mesh
 """
-
-import asyncio
-import logging
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -463,7 +464,8 @@ class PredictiveScaler:
 
     async def execute_scaling_action(self, prediction: ScalingPrediction) -> ScalingAction:
         """Execute scaling action based on prediction."""
-        action_id = f"scale_{prediction.service_name}_{int(datetime.now().timestamp())}"
+        action_id = f"scale_{prediction.service_name}_{int(from datetime import datetime
+datetime.now().timestamp())}"
 
         action = ScalingAction(
             action_id=action_id,

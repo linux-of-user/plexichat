@@ -1,13 +1,3 @@
-"""
-PlexiChat Unified Authentication System
-
-Consolidates authentication functionality from:
-- src/plexichat/core/auth/ (unified auth managers)
-- src/plexichat/app/auth/ (advanced auth features)
-
-Provides comprehensive authentication with government-level security.
-"""
-
 import hashlib
 import json
 import logging
@@ -17,6 +7,17 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+
+"""
+PlexiChat Unified Authentication System
+
+Consolidates authentication functionality from:
+- src/plexichat/core/auth/ (unified auth managers)
+- src/plexichat/app/auth/ (advanced auth features)
+
+Provides comprehensive authentication with government-level security.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,8 @@ class AuthManager:
     """
 
     def __init__(self, config_dir: str = "data/auth"):
-        self.config_dir = Path(config_dir)
+        self.config_dir = from pathlib import Path
+Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage
@@ -238,8 +240,8 @@ class AuthManager:
         }
         
         self._save_data()
-        logger.info(f"🔐 Default admin account created with password: {default_password}")
-        logger.warning("⚠️ Please change the default admin password immediately!")
+        logger.info(f" Default admin account created with password: {default_password}")
+        logger.warning(" Please change the default admin password immediately!")
 
     async def authenticate(self, username: str, password: str, ip_address: str,
                           user_agent: str, security_level: SecurityLevel = SecurityLevel.BASIC) -> Tuple[bool, Optional[str], Optional[AuthSession]]:
@@ -333,9 +335,9 @@ class AuthManager:
 
         # Log to system logger
         if success:
-            logger.info(f"✅ Auth success: {username} - {action.value} from {ip_address}")
+            logger.info(f" Auth success: {username} - {action.value} from {ip_address}")
         else:
-            logger.warning(f"❌ Auth failure: {username} - {action.value} from {ip_address}: {failure_reason}")
+            logger.warning(f" Auth failure: {username} - {action.value} from {ip_address}: {failure_reason}")
 
 class TokenManager:
     """JWT Token management for API authentication."""

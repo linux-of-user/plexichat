@@ -1,3 +1,15 @@
+import asyncio
+import hashlib
+import json
+import logging
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import aiohttp
+
+
 """
 PlexiChat Backup Node Client
 Government-Grade Independent Backup Storage System Client
@@ -9,17 +21,6 @@ A comprehensive client library for interacting with PlexiChat backup nodes with:
 - Large shard storage capabilities
 - Seeding and synchronization features
 """
-
-import asyncio
-import hashlib
-import json
-import logging
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-
-import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -177,14 +178,14 @@ class BackupNodeClient:
             async with self.session.post(f"{self.base_url}/store", data=data) as response:
                 if response.status == 200:
                     result = await response.json()
-                    logger.info(f"✅ Shard {shard_id} stored on node {self.node_id}")
+                    logger.info(f" Shard {shard_id} stored on node {self.node_id}")
                     return result.get('success', False)
                 else:
-                    logger.error(f"❌ Failed to store shard {shard_id} on node {self.node_id}: HTTP {response.status}")
+                    logger.error(f" Failed to store shard {shard_id} on node {self.node_id}: HTTP {response.status}")
                     return False
                     
         except Exception as e:
-            logger.error(f"❌ Error storing shard {shard_id} on node {self.node_id}: {e}")
+            logger.error(f" Error storing shard {shard_id} on node {self.node_id}: {e}")
             return False
             
     async def retrieve_shard(self, shard_id: str) -> Optional[bytes]:
@@ -194,17 +195,17 @@ class BackupNodeClient:
             async with self.session.get(f"{self.base_url}/retrieve/{shard_id}") as response:
                 if response.status == 200:
                     shard_data = await response.read()
-                    logger.info(f"✅ Shard {shard_id} retrieved from node {self.node_id}")
+                    logger.info(f" Shard {shard_id} retrieved from node {self.node_id}")
                     return shard_data
                 elif response.status == 404:
-                    logger.warning(f"⚠️ Shard {shard_id} not found on node {self.node_id}")
+                    logger.warning(f" Shard {shard_id} not found on node {self.node_id}")
                     return None
                 else:
-                    logger.error(f"❌ Failed to retrieve shard {shard_id} from node {self.node_id}: HTTP {response.status}")
+                    logger.error(f" Failed to retrieve shard {shard_id} from node {self.node_id}: HTTP {response.status}")
                     return None
                     
         except Exception as e:
-            logger.error(f"❌ Error retrieving shard {shard_id} from node {self.node_id}: {e}")
+            logger.error(f" Error retrieving shard {shard_id} from node {self.node_id}: {e}")
             return None
             
     async def verify_shard(self, shard_id: str) -> bool:
@@ -215,14 +216,14 @@ class BackupNodeClient:
                 if response.status == 200:
                     result = await response.json()
                     is_valid = result.get('valid', False)
-                    logger.info(f"✅ Shard {shard_id} verification on node {self.node_id}: {'VALID' if is_valid else 'INVALID'}")
+                    logger.info(f" Shard {shard_id} verification on node {self.node_id}: {'VALID' if is_valid else 'INVALID'}")
                     return is_valid
                 else:
-                    logger.error(f"❌ Failed to verify shard {shard_id} on node {self.node_id}: HTTP {response.status}")
+                    logger.error(f" Failed to verify shard {shard_id} on node {self.node_id}: HTTP {response.status}")
                     return False
                     
         except Exception as e:
-            logger.error(f"❌ Error verifying shard {shard_id} on node {self.node_id}: {e}")
+            logger.error(f" Error verifying shard {shard_id} on node {self.node_id}: {e}")
             return False
             
     async def delete_shard(self, shard_id: str) -> bool:
@@ -231,17 +232,17 @@ class BackupNodeClient:
             await self.connect()
             async with self.session.delete(f"{self.base_url}/delete/{shard_id}") as response:
                 if response.status == 200:
-                    logger.info(f"✅ Shard {shard_id} deleted from node {self.node_id}")
+                    logger.info(f" Shard {shard_id} deleted from node {self.node_id}")
                     return True
                 elif response.status == 404:
-                    logger.warning(f"⚠️ Shard {shard_id} not found on node {self.node_id}")
+                    logger.warning(f" Shard {shard_id} not found on node {self.node_id}")
                     return True  # Already deleted
                 else:
-                    logger.error(f"❌ Failed to delete shard {shard_id} from node {self.node_id}: HTTP {response.status}")
+                    logger.error(f" Failed to delete shard {shard_id} from node {self.node_id}: HTTP {response.status}")
                     return False
                     
         except Exception as e:
-            logger.error(f"❌ Error deleting shard {shard_id} from node {self.node_id}: {e}")
+            logger.error(f" Error deleting shard {shard_id} from node {self.node_id}: {e}")
             return False
             
     async def list_shards(self) -> List[ShardInfo]:
@@ -267,11 +268,11 @@ class BackupNodeClient:
                         shards.append(shard)
                     return shards
                 else:
-                    logger.error(f"❌ Failed to list shards on node {self.node_id}: HTTP {response.status}")
+                    logger.error(f" Failed to list shards on node {self.node_id}: HTTP {response.status}")
                     return []
                     
         except Exception as e:
-            logger.error(f"❌ Error listing shards on node {self.node_id}: {e}")
+            logger.error(f" Error listing shards on node {self.node_id}: {e}")
             return []
 
 
@@ -303,14 +304,14 @@ class BackupNodeManager:
         )
         self.nodes[node_id] = client
         self.node_priorities[node_id] = priority
-        logger.info(f"✅ Added backup node {node_id} ({address}:{port}) with priority {priority}")
+        logger.info(f" Added backup node {node_id} ({address}:{port}) with priority {priority}")
 
     def remove_node(self, node_id: str):
         """Remove a backup node from the manager."""
         if node_id in self.nodes:
             del self.nodes[node_id]
             del self.node_priorities[node_id]
-            logger.info(f"✅ Removed backup node {node_id}")
+            logger.info(f" Removed backup node {node_id}")
 
     async def health_check_all(self) -> Dict[str, Dict[str, Any]]:
         """Perform health check on all nodes."""
@@ -357,11 +358,11 @@ class BackupNodeManager:
         online_nodes = self.get_online_nodes()
 
         if len(online_nodes) < redundancy_level:
-            logger.warning(f"⚠️ Only {len(online_nodes)} nodes available, requested redundancy: {redundancy_level}")
+            logger.warning(f" Only {len(online_nodes)} nodes available, requested redundancy: {redundancy_level}")
             redundancy_level = len(online_nodes)
 
         if redundancy_level == 0:
-            logger.error("❌ No online nodes available for shard storage")
+            logger.error(" No online nodes available for shard storage")
             return False, []
 
         # Select nodes for storage
@@ -377,16 +378,16 @@ class BackupNodeManager:
         successful_nodes = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
-                logger.error(f"❌ Failed to store shard {shard_id} on node {selected_nodes[i].node_id}: {result}")
+                logger.error(f" Failed to store shard {shard_id} on node {selected_nodes[i].node_id}: {result}")
             elif result:
                 successful_nodes.append(selected_nodes[i].node_id)
 
         success = len(successful_nodes) >= (redundancy_level // 2 + 1)  # Majority success
 
         if success:
-            logger.info(f"✅ Shard {shard_id} stored successfully on {len(successful_nodes)} nodes")
+            logger.info(f" Shard {shard_id} stored successfully on {len(successful_nodes)} nodes")
         else:
-            logger.error(f"❌ Failed to store shard {shard_id} with sufficient redundancy")
+            logger.error(f" Failed to store shard {shard_id} with sufficient redundancy")
 
         return success, successful_nodes
 
@@ -398,13 +399,13 @@ class BackupNodeManager:
             try:
                 shard_data = await node.retrieve_shard(shard_id)
                 if shard_data:
-                    logger.info(f"✅ Shard {shard_id} retrieved from node {node.node_id}")
+                    logger.info(f" Shard {shard_id} retrieved from node {node.node_id}")
                     return shard_data
             except Exception as e:
-                logger.warning(f"⚠️ Failed to retrieve shard {shard_id} from node {node.node_id}: {e}")
+                logger.warning(f" Failed to retrieve shard {shard_id} from node {node.node_id}: {e}")
                 continue
 
-        logger.error(f"❌ Failed to retrieve shard {shard_id} from any node")
+        logger.error(f" Failed to retrieve shard {shard_id} from any node")
         return None
 
     async def verify_shard_all(self, shard_id: str) -> Dict[str, bool]:
@@ -419,7 +420,7 @@ class BackupNodeManager:
                 node_ids.append(node_id)
 
         if not tasks:
-            logger.warning("⚠️ No online nodes available for shard verification")
+            logger.warning(" No online nodes available for shard verification")
             return {}
 
         verification_results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -427,7 +428,7 @@ class BackupNodeManager:
         for i, result in enumerate(verification_results):
             node_id = node_ids[i]
             if isinstance(result, Exception):
-                logger.error(f"❌ Verification failed for shard {shard_id} on node {node_id}: {result}")
+                logger.error(f" Verification failed for shard {shard_id} on node {node_id}: {result}")
                 results[node_id] = False
             else:
                 results[node_id] = result

@@ -1,8 +1,3 @@
-# app/utils/rate_limiting.py
-"""
-Advanced rate limiting system with multiple strategies and storage backends.
-"""
-
 import json
 import logging
 import threading
@@ -12,6 +7,15 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+                from pathlib import Path
+
+    from plexichat.core.config.settings import settings
+
+# app/utils/rate_limiting.py
+"""
+Advanced rate limiting system with multiple strategies and storage backends.
+"""
+
 logger = logging.getLogger(__name__)
 
 # Settings fallback
@@ -19,7 +23,6 @@ class Settings:
     LOG_DIR = "logs"
 
 try:
-    from plexichat.core.config.settings import settings
 except ImportError:
     settings = Settings()
 
@@ -37,7 +40,9 @@ class RateLimiter:
     """
     
     def __init__(self, storage_file: Optional[str] = None):
-        self.storage_file = storage_file or str(Path(settings.LOG_DIR) / "rate_limits.json")
+        self.storage_file = storage_file or str(from pathlib import Path
+Path(from plexichat.core.config import settings
+settings.LOG_DIR) / "rate_limits.json")
         
         # In-memory storage for rate limiting data
         self.token_buckets: Dict[str, Dict] = {}
@@ -58,7 +63,8 @@ class RateLimiter:
     def _load_data(self):
         """Load rate limiting data from persistent storage."""
         try:
-            storage_path = Path(self.storage_file)
+            storage_path = from pathlib import Path
+Path(self.storage_file)
             if storage_path.exists():
                 with open(storage_path, 'r') as f:
                     data = json.load(f)
@@ -84,7 +90,8 @@ class RateLimiter:
                 }
             }
             
-            storage_path = Path(self.storage_file)
+            storage_path = from pathlib import Path
+Path(self.storage_file)
             storage_path.parent.mkdir(parents=True, exist_ok=True)
             
             with open(storage_path, 'w') as f:
@@ -356,7 +363,7 @@ class RateLimiter:
             
             # Remove storage file
             try:
-                Path(self.storage_file).unlink(missing_ok=True)
+Path(self.storage_file).unlink(missing_ok=True)
             except Exception as e:
                 logger.warning("Failed to remove rate limiting storage file: %s", e)
         

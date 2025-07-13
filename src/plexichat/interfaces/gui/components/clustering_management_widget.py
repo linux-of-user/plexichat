@@ -1,3 +1,15 @@
+import asyncio
+import json
+import logging
+import threading
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+    import tkinter as tk
+    from tkinter import filedialog, messagebox, simpledialog, ttk
+    from ...features.clustering import AdvancedClusterManager
+
 """
 Enhanced Clustering Management GUI Widget
 Comprehensive GUI component for cluster management, load balancing, and failover.
@@ -10,19 +22,9 @@ Features:
 - Performance analytics and optimization
 """
 
-import asyncio
-import json
-import logging
-import threading
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-
 # GUI imports with proper fallbacks
 GUI_AVAILABLE = False
 try:
-    import tkinter as tk
-    from tkinter import filedialog, messagebox, simpledialog, ttk
     GUI_AVAILABLE = True
 except ImportError:
     pass
@@ -38,7 +40,6 @@ CLUSTERING_AVAILABLE = False
 cluster_manager = None
 
 try:
-    from ...features.clustering import AdvancedClusterManager
     cluster_manager = AdvancedClusterManager()
     CLUSTERING_AVAILABLE = True
 except ImportError:
@@ -57,7 +58,8 @@ except ImportError:
                 'cluster_load_percentage': 45.5,
                 'performance_improvement_percentage': 150.0,
                 'total_failover_events': 2,
-                'last_failover_timestamp': datetime.now() - timedelta(hours=2)
+                'last_failover_timestamp': from datetime import datetime
+datetime.now() - timedelta(hours=2)
             })()
         
         async def get_cluster_health(self):
@@ -250,7 +252,7 @@ class EnhancedClusteringManagementWidget:
             # Title
             title_label = ttk.Label(
                 header_frame,
-                text="🌐 Enhanced Clustering Management",
+                text=" Enhanced Clustering Management",
                 font=("Arial", 18, "bold")
             )
             title_label.pack(side=tk.LEFT)
@@ -258,7 +260,7 @@ class EnhancedClusteringManagementWidget:
             # Status indicator
             self.status_indicator = ttk.Label(
                 header_frame,
-                text="● Connecting...",
+                text=" Connecting...",
                 foreground="orange",
                 font=("Arial", 10, "bold")
             )
@@ -385,9 +387,9 @@ class EnhancedClusteringManagementWidget:
             # Update status indicator
             if self.status_indicator:
                 if self.status_data.active_nodes > 0:
-                    self.status_indicator.config(text="● Connected", foreground="green")
+                    self.status_indicator.config(text=" Connected", foreground="green")
                 else:
-                    self.status_indicator.config(text="● Disconnected", foreground="red")
+                    self.status_indicator.config(text=" Disconnected", foreground="red")
 
             # Update overview metrics
             if self.total_nodes_label:
@@ -406,7 +408,8 @@ class EnhancedClusteringManagementWidget:
                 self.status_text.config(state=tk.NORMAL)
                 self.status_text.delete(1.0, tk.END)
 
-                status_info = f"Cluster Status Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                status_info = f"Cluster Status Report - {from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                 status_info += f"{'='*60}\n"
                 status_info += f"Total Nodes: {self.status_data.total_nodes}\n"
                 status_info += f"Active Nodes: {self.status_data.active_nodes}\n"
@@ -477,7 +480,7 @@ class EnhancedClusteringManagementWidget:
 
         try:
             self.overview_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.overview_frame, text="📊 Overview")
+            self.notebook.add(self.overview_frame, text=" Overview")
 
             # Metrics frame
             metrics_frame = ttk.LabelFrame(self.overview_frame, text="Cluster Metrics", padding=10)
@@ -550,7 +553,7 @@ class EnhancedClusteringManagementWidget:
 
         try:
             self.nodes_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.nodes_frame, text="🖥️ Nodes")
+            self.notebook.add(self.nodes_frame, text=" Nodes")
 
             # Node controls
             control_frame = ttk.Frame(self.nodes_frame)
@@ -558,25 +561,25 @@ class EnhancedClusteringManagementWidget:
 
             ttk.Button(
                 control_frame,
-                text="➕ Add Node",
+                text=" Add Node",
                 command=self.add_cluster_node_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="➖ Remove Node",
+                text=" Remove Node",
                 command=self.remove_cluster_node_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="🔄 Refresh",
+                text=" Refresh",
                 command=self.refresh_nodes
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             ttk.Button(
                 control_frame,
-                text="🔧 Maintenance",
+                text=" Maintenance",
                 command=self.toggle_maintenance_mode
             ).pack(side=tk.LEFT)
 
@@ -627,7 +630,7 @@ class EnhancedClusteringManagementWidget:
 
         try:
             self.performance_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.performance_frame, text="📈 Performance")
+            self.notebook.add(self.performance_frame, text=" Performance")
 
             # Performance metrics
             perf_metrics_frame = ttk.LabelFrame(self.performance_frame, text="Performance Metrics", padding=10)
@@ -645,7 +648,7 @@ class EnhancedClusteringManagementWidget:
 
         try:
             self.loadbalancer_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.loadbalancer_frame, text="⚖️ Load Balancer")
+            self.notebook.add(self.loadbalancer_frame, text=" Load Balancer")
 
             # Load balancer settings
             lb_settings_frame = ttk.LabelFrame(self.loadbalancer_frame, text="Load Balancer Settings", padding=10)
@@ -663,7 +666,7 @@ class EnhancedClusteringManagementWidget:
 
         try:
             self.failover_frame = ttk.Frame(self.notebook)
-            self.notebook.add(self.failover_frame, text="🔄 Failover")
+            self.notebook.add(self.failover_frame, text=" Failover")
 
             # Failover settings
             failover_settings_frame = ttk.LabelFrame(self.failover_frame, text="Failover Management", padding=10)
@@ -696,14 +699,14 @@ class EnhancedClusteringManagementWidget:
             # Manual refresh button
             ttk.Button(
                 control_frame,
-                text="🔄 Refresh Now",
+                text=" Refresh Now",
                 command=self.manual_refresh
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             # Export button
             ttk.Button(
                 control_frame,
-                text="📊 Export Data",
+                text=" Export Data",
                 command=self.export_cluster_data
             ).pack(side=tk.LEFT)
 
@@ -885,7 +888,8 @@ class EnhancedClusteringManagementWidget:
 
             if filename:
                 export_data = {
-                    'timestamp': datetime.now().isoformat(),
+                    'timestamp': from datetime import datetime
+datetime.now().isoformat(),
                     'cluster_status': {
                         'total_nodes': self.status_data.total_nodes,
                         'active_nodes': self.status_data.active_nodes,

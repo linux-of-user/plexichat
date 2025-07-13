@@ -1,3 +1,16 @@
+from datetime import datetime
+from typing import List, Optional
+
+
+from ...core.logging import get_logger
+from ...services.communication_service import (
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
+
+from ...core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin_auth, require_auth
+
 """
 PlexiChat Advanced Communication API Endpoints
 
@@ -5,16 +18,6 @@ REST API endpoints for advanced communication features including
 voice messages, reactions, threads, translations, and smart notifications.
 """
 
-from datetime import datetime
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
-from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
-
-from ...core.auth.dependencies import require_admin_auth, require_auth
-from ...core.logging import get_logger
-from ...services.communication_service import (
     NotificationPriority,
     ReactionType,
     ThreadStatus,
@@ -504,7 +507,7 @@ async def mark_notification_read(
 
 # Admin Endpoints
 
-@router.get("/admin/stats", dependencies=[Depends(require_admin_auth)])
+@router.get("/admin/stats", dependencies=[Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)])
 async def get_communication_stats():
     """Get communication service statistics (admin only)."""
     try:

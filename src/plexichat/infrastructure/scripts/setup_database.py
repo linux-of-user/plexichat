@@ -1,42 +1,45 @@
+import argparse
+import asyncio
+import sys
+from pathlib import Path
+
+
+    from src.plexichat.core.database_setup_wizard import database_wizard
+
 #!/usr/bin/env python3
 """
 PlexiChat Database Setup CLI Tool
 Command-line interface for database configuration and setup.
 """
 
-import argparse
-import asyncio
-import sys
-from pathlib import Path
-
 # Add the project root to the Python path
-project_root = Path(__file__).parent.parent
+project_root = from pathlib import Path
+Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from src.plexichat.core.database_setup_wizard import database_wizard
 except ImportError as e:
-    print(f"❌ Failed to import PlexiChat modules: {e}")
+    print(f" Failed to import PlexiChat modules: {e}")
     print("Make sure you're running this from the PlexiChat project directory")
     sys.exit(1)
 
 def print_banner():
     """Print the PlexiChat database setup banner."""
     print("=" * 60)
-    print("🗄️  PlexiChat Database Setup Tool")
+    print("  PlexiChat Database Setup Tool")
     print("=" * 60)
     print()
 
 def print_status(message: str, status: str = "info"):
     """Print a status message with appropriate formatting."""
     icons = {
-        "info": "ℹ️",
-        "success": "✅",
-        "warning": "⚠️",
-        "error": "❌",
-        "question": "❓"
+        "info": "",
+        "success": "",
+        "warning": "",
+        "error": "",
+        "question": ""
     }
-    print(f"{icons.get(status, 'ℹ️')} {message}")
+    print(f"{icons.get(status, '')} {message}")
 
 async def interactive_setup():
     """Run interactive database setup."""
@@ -192,7 +195,7 @@ async def interactive_setup():
         if "troubleshooting" in result:
             print("\nTroubleshooting tips:")
             for tip in result["troubleshooting"]:
-                print(f"   • {tip}")
+                print(f"    {tip}")
         
         retry = input("\nWould you like to retry with different settings? (y/N): ").strip().lower()
         if retry == 'y':
@@ -231,14 +234,14 @@ async def interactive_setup():
         print_status("Configuration saved successfully!", "success")
         print("Files created:")
         for file_path in result["files_created"]:
-            print(f"   • {file_path}")
+            print(f"    {file_path}")
         print()
     else:
         print_status(f"Failed to save configuration: {result['error']}", "error")
         return False
     
     # Setup complete
-    print("🎉 Database Setup Complete!")
+    print(" Database Setup Complete!")
     print("-" * 30)
     print("Your PlexiChat database is now configured and ready to use.")
     print("You can start the PlexiChat server with: python -m src.plexichat.app.main")

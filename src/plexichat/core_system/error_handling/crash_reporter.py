@@ -1,10 +1,3 @@
-"""
-PlexiChat Crash Reporter
-
-Comprehensive crash reporting system with detailed context collection,
-automatic recovery suggestions, and integration with monitoring systems.
-"""
-
 import json
 import platform
 import sys
@@ -15,10 +8,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import psutil
 
 from .exceptions import ErrorCategory, ErrorSeverity
 
+
+
+import psutil
+
+"""
+PlexiChat Crash Reporter
+
+Comprehensive crash reporting system with detailed context collection,
+automatic recovery suggestions, and integration with monitoring systems.
+"""
 
 @dataclass
 class CrashContext:
@@ -60,7 +62,8 @@ class CrashReporter:
     """Advanced crash reporting system."""
     
     def __init__(self, crash_log_dir: str = "logs/crashes"):
-        self.crash_log_dir = Path(crash_log_dir)
+        self.crash_log_dir = from pathlib import Path
+Path(crash_log_dir)
         self.crash_log_dir.mkdir(parents=True, exist_ok=True)
         
         self.crash_history: List[CrashContext] = []
@@ -98,7 +101,8 @@ class CrashReporter:
     async def initialize(self, config: Dict[str, Any] = None):
         """Initialize the crash reporter."""
         if config:
-            self.crash_log_dir = Path(config.get('crash_log_dir', self.crash_log_dir))
+            self.crash_log_dir = from pathlib import Path
+Path(config.get('crash_log_dir', self.crash_log_dir))
             self.max_history_size = config.get('max_history_size', self.max_history_size)
         
         self.crash_log_dir.mkdir(parents=True, exist_ok=True)
@@ -132,7 +136,8 @@ class CrashReporter:
         # Create crash context
         crash_context = CrashContext(
             error_id=error_id,
-            timestamp=datetime.now(),
+            timestamp=from datetime import datetime
+datetime.now(),
             exception_type=exception_type,
             exception_message=str(exception),
             stack_trace=stack_trace,
@@ -163,8 +168,10 @@ class CrashReporter:
     def _collect_system_info(self) -> Dict[str, Any]:
         """Collect comprehensive system information."""
         try:
-            memory = psutil.virtual_memory()
-            cpu_percent = psutil.cpu_percent(interval=1)
+            memory = import psutil
+psutil.virtual_memory()
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
             
             return {
                 'python_version': sys.version,
@@ -235,7 +242,8 @@ class CrashReporter:
                     json.dump({
                         'total_crashes': len(self.crash_history),
                         'statistics': self.get_crash_statistics(),
-                        'shutdown_time': datetime.now().isoformat()
+                        'shutdown_time': from datetime import datetime
+datetime.now().isoformat()
                     }, f, indent=2, default=str)
 
             self.initialized = False

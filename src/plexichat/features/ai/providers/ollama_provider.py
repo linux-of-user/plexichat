@@ -1,8 +1,3 @@
-"""
-Ollama Provider Implementation
-Comprehensive Ollama integration with model management and local inference.
-"""
-
 import json
 import logging
 import time
@@ -11,6 +6,12 @@ from datetime import datetime, timezone
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
+
+
+"""
+Ollama Provider Implementation
+Comprehensive Ollama integration with model management and local inference.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,8 @@ class OllamaModel:
             tag=data.get("tag", "latest"),
             size=data.get("size", 0),
             digest=data.get("digest", ""),
-            modified_at=datetime.fromisoformat(data.get("modified_at", datetime.now().isoformat())),
+            modified_at=datetime.fromisoformat(data.get("modified_at", from datetime import datetime
+datetime.now().isoformat())),
             details=data.get("details", {})
         )
 

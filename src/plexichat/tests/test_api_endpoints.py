@@ -1,18 +1,19 @@
+import logging
+from datetime import datetime
+
+    import httpx
+from .test_base import BaseTest, TestResult
+
+
 """
 API endpoint tests for PlexiChat.
 Tests authentication, user management, and core API functionality.
 """
 
-import logging
-from datetime import datetime
-
 try:
-    import httpx
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
-
-from .test_base import BaseTest, TestResult
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,8 @@ class APIEndpointTest(BaseTest):
     
     async def test_health_endpoint(self):
         """Test health check endpoint."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not HTTPX_AVAILABLE:
@@ -53,7 +55,8 @@ class APIEndpointTest(BaseTest):
             
             response = await self.client.get(f"{self.base_url}/health")
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="Health Endpoint",
@@ -67,7 +70,8 @@ class APIEndpointTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="Health Endpoint",
                 category="API",
@@ -80,7 +84,8 @@ class APIEndpointTest(BaseTest):
     
     async def test_auth_registration(self):
         """Test user registration endpoint."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not HTTPX_AVAILABLE:
@@ -107,7 +112,8 @@ class APIEndpointTest(BaseTest):
                 json=user_data
             )
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             # Check if registration was successful or if endpoint exists
             success = response.status_code in [200, 201, 400, 409]  # 400/409 for validation/duplicate
@@ -125,7 +131,8 @@ class APIEndpointTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="User Registration",
                 category="Authentication",
@@ -138,7 +145,8 @@ class APIEndpointTest(BaseTest):
     
     async def test_auth_login(self):
         """Test user login endpoint."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not HTTPX_AVAILABLE:
@@ -164,7 +172,8 @@ class APIEndpointTest(BaseTest):
                 json=login_data
             )
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             # Check if login endpoint exists (even if credentials are wrong)
             endpoint_exists = response.status_code != 404
@@ -182,7 +191,8 @@ class APIEndpointTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="User Login",
                 category="Authentication",
@@ -195,7 +205,8 @@ class APIEndpointTest(BaseTest):
     
     async def test_api_info_endpoint(self):
         """Test API info endpoint."""
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
         
         try:
             if not HTTPX_AVAILABLE:
@@ -212,7 +223,8 @@ class APIEndpointTest(BaseTest):
             
             response = await self.client.get(f"{self.base_url}/api/v1/info")
             
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             
             self.add_result(TestResult(
                 test_name="API Info",
@@ -226,7 +238,8 @@ class APIEndpointTest(BaseTest):
             ))
             
         except Exception as e:
-            duration = (datetime.now() - start_time).total_seconds() * 1000
+            duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
             self.add_result(TestResult(
                 test_name="API Info",
                 category="API",

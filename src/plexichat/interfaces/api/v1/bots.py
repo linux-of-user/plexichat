@@ -1,8 +1,3 @@
-"""
-Enhanced bot management API with comprehensive features and regulation.
-Handles bot creation, management, permissions, and monitoring.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -10,11 +5,20 @@ from app.db import get_session
 from app.logger_config import logger
 from app.models.enhanced_models import BotAccount, BotType, EnhancedUser
 from app.services.user_management import UserManagementService
-from app.utils.auth import get_current_user
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
+
+        import secrets
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+
+from app.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user
+
+"""
+Enhanced bot management API with comprehensive features and regulation.
+Handles bot creation, management, permissions, and monitoring.
+"""
 
 # Pydantic models for API
 class BotCreateRequest(BaseModel):
@@ -66,7 +70,8 @@ router = APIRouter(prefix="/api/v1/bots", tags=["Bot Management"])
 @router.post("/create", response_model=BotResponse)
 async def create_bot(
     request: BotCreateRequest,
-    current_user: EnhancedUser = Depends(get_current_user),
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user),
     session: Session = Depends(get_session)
 ) -> BotResponse:
     """Create a new bot account."""
@@ -111,7 +116,8 @@ async def create_bot(
 
 @router.get("/my-bots", response_model=BotListResponse)
 async def get_my_bots(
-    current_user: EnhancedUser = Depends(get_current_user),
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user),
     session: Session = Depends(get_session)
 ) -> BotListResponse:
     """Get all bots owned by the current user."""
@@ -150,7 +156,8 @@ async def get_my_bots(
 async def update_bot_permissions(
     bot_id: int,
     request: BotPermissionUpdateRequest,
-    current_user: EnhancedUser = Depends(get_current_user),
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Update bot permissions."""
@@ -177,7 +184,8 @@ async def update_bot_permissions(
 @router.delete("/{bot_id}")
 async def delete_bot(
     bot_id: int,
-    current_user: EnhancedUser = Depends(get_current_user),
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Delete a bot account."""
@@ -205,7 +213,8 @@ async def delete_bot(
 @router.get("/{bot_id}/stats")
 async def get_bot_stats(
     bot_id: int,
-    current_user: EnhancedUser = Depends(get_current_user),
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Get bot usage statistics."""
@@ -241,7 +250,8 @@ async def get_bot_stats(
 @router.post("/{bot_id}/regenerate-token")
 async def regenerate_bot_token(
     bot_id: int,
-    current_user: EnhancedUser = Depends(get_current_user),
+    current_user: Enhancedfrom plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Regenerate bot token for security."""
@@ -258,11 +268,11 @@ async def regenerate_bot_token(
             raise HTTPException(status_code=404, detail="Bot not found or access denied")
         
         # Generate new token
-        import secrets
         new_token = secrets.token_urlsafe(32)
         
         bot_account.bot_token = new_token
-        bot_account.updated_at = datetime.now()
+        bot_account.updated_at = from datetime import datetime
+datetime.now()
         
         session.commit()
         

@@ -1,10 +1,3 @@
-"""
-PlexiChat Error Monitor
-
-Real-time error monitoring system with metrics collection,
-alerting, and health status tracking.
-"""
-
 import asyncio
 import logging
 from collections import defaultdict, deque
@@ -13,6 +6,14 @@ from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
 from .exceptions import ErrorCategory, ErrorSeverity
+
+
+"""
+PlexiChat Error Monitor
+
+Real-time error monitoring system with metrics collection,
+alerting, and health status tracking.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +74,13 @@ class AlertRule:
         if self.last_triggered is None:
             return True
         
-        return datetime.now() - self.last_triggered > timedelta(minutes=self.cooldown_minutes)
+        return from datetime import datetime
+datetime.now() - self.last_triggered > timedelta(minutes=self.cooldown_minutes)
     
     def trigger(self, metrics: ErrorMetrics) -> str:
         """Trigger the alert and return the message."""
-        self.last_triggered = datetime.now()
+        self.last_triggered = from datetime import datetime
+datetime.now()
         return self.message_template.format(metrics=metrics)
 
 
@@ -154,7 +157,8 @@ class ErrorMonitor:
     
     async def record_error(self, error_info: Dict[str, Any]):
         """Record an error for monitoring."""
-        timestamp = error_info.get('timestamp', datetime.now())
+        timestamp = error_info.get('timestamp', from datetime import datetime
+datetime.now())
         severity = error_info.get('severity', ErrorSeverity.MEDIUM)
         category = error_info.get('category', ErrorCategory.UNKNOWN)
         component = error_info.get('component', 'unknown')
@@ -179,7 +183,8 @@ class ErrorMonitor:
     
     async def _update_metrics(self):
         """Update error metrics based on recent history."""
-        now = datetime.now()
+        now = from datetime import datetime
+datetime.now()
         window_start = now - timedelta(minutes=self.error_rate_window_minutes)
         
         # Filter recent errors
@@ -229,7 +234,8 @@ class ErrorMonitor:
         alert_data = {
             'alert_name': alert_name,
             'message': message,
-            'timestamp': datetime.now(),
+            'timestamp': from datetime import datetime
+datetime.now(),
             'metrics': asdict(self.metrics)
         }
         

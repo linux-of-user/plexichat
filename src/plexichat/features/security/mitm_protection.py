@@ -1,8 +1,3 @@
-"""
-MITM (Man-in-the-Middle) Attack Protection for PlexiChat
-Comprehensive protection against various MITM attack vectors.
-"""
-
 import base64
 import hashlib
 import hmac
@@ -13,10 +8,18 @@ import ssl
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Tuple
 
+
+
+
+
 from fastapi import HTTPException, Request
 
 from plexichat.app.logger_config import logger
 
+"""
+MITM (Man-in-the-Middle) Attack Protection for PlexiChat
+Comprehensive protection against various MITM attack vectors.
+"""
 
 class CertificatePinning:
     """Certificate pinning for enhanced security."""
@@ -70,10 +73,11 @@ class RequestIntegrityChecker:
         """Check if timestamp is within acceptable range."""
         try:
             request_time = datetime.fromisoformat(timestamp)
-            current_time = datetime.utcnow()
+            current_time = from datetime import datetime
+datetime.utcnow()
             age = (current_time - request_time).total_seconds()
             return 0 <= age <= max_age_seconds
-        except:
+        except Exception:
             return False
 
 
@@ -115,7 +119,8 @@ class AntiReplayProtection:
         
     def is_nonce_valid(self, nonce: str) -> bool:
         """Check if nonce hasn't been used before."""
-        current_time = datetime.utcnow()
+        current_time = from datetime import datetime
+datetime.utcnow()
         
         # Clean old nonces
         self._cleanup_old_nonces(current_time)
@@ -290,7 +295,8 @@ class MITMProtectionSystem:
         
     def generate_security_token(self, user_id: int, session_id: str) -> str:
         """Generate security token for client."""
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = from datetime import datetime
+datetime.utcnow().isoformat()
         nonce = self.replay_protection.generate_nonce()
         
         token_data = {

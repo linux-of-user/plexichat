@@ -1,3 +1,25 @@
+import ipaddress
+import re
+import time
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+from typing import Optional, Dict, Any, List, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+from ....core_system.config import get_config
+from ....core_system.logging import get_logger
+from ....core_system.security.input_validation import (
+from ....core_system.security.unified_audit_system import (
+from ....core_system.security.unified_auth_manager import get_unified_auth_manager
+from ....core_system.security.unified_security_manager import get_unified_security_manager
+from ....features.security.network_protection import RateLimitRequest, get_network_protection
+
+                from ....core_system.security.unified_auth_manager import (
+
+from fastapi import Request
+
 """
 PlexiChat Unified Security Middleware - SINGLE SOURCE OF TRUTH
 
@@ -18,33 +40,15 @@ Features:
 - Zero-trust security enforcement
 """
 
-import ipaddress
-import re
-import time
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
-
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
-
-from ....core_system.config import get_config
-from ....core_system.logging import get_logger
-from ....core_system.security.input_validation import (
     InputType,
     ValidationLevel,
     get_input_validator,
 )
-from ....core_system.security.unified_audit_system import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
     get_unified_audit_system,
 )
-from ....core_system.security.unified_auth_manager import get_unified_auth_manager
-from ....core_system.security.unified_security_manager import get_unified_security_manager
-from ....features.security.network_protection import RateLimitRequest, get_network_protection
-
 logger = get_logger(__name__)
 
 
@@ -523,7 +527,6 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
 
             # Validate token with auth manager
             if self.auth_manager:
-                from ....core_system.security.unified_auth_manager import (
                     SecurityLevel as AuthSecurityLevel,
                 )
 

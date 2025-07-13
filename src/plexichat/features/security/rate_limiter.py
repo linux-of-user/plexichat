@@ -1,8 +1,3 @@
-"""
-Advanced Per-User Rate Limiting System for PlexiChat
-Comprehensive rate limiting with granular controls for different resource types.
-"""
-
 import asyncio
 import json
 import logging
@@ -15,11 +10,25 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+
+
+            import redis
+from functools import wraps
+
+
+
+            import json
+
 from fastapi import HTTPException, Request
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+            from sqlalchemy import create_engine
 
+"""
+Advanced Per-User Rate Limiting System for PlexiChat
+Comprehensive rate limiting with granular controls for different resource types.
+"""
 
 class LimitType(Enum):
     """Types of rate limits."""
@@ -136,7 +145,8 @@ class AdvancedRateLimiter:
         self.memory_store = defaultdict(lambda: defaultdict(deque))
         
         # Configuration
-        self.config_file = Path("config/rate_limits.json")
+        self.config_file = from pathlib import Path
+Path("config/rate_limits.json")
         self.default_limits = self._load_default_limits()
         self.user_limits = {}
         
@@ -187,7 +197,6 @@ class AdvancedRateLimiter:
         """Initialize storage backends."""
         try:
             # Try Redis first
-            import redis
             self.redis_client = redis.Redis(host='localhost', port=6379, db=1, decode_responses=True)
             self.redis_client.ping()
             self.logger.info("Redis connected for rate limiting")
@@ -197,7 +206,6 @@ class AdvancedRateLimiter:
         
         # Initialize SQLite for persistent storage
         try:
-            from sqlalchemy import create_engine
             self.engine = create_engine('sqlite:///rate_limits.db')
             self._create_tables()
             Session = sessionmaker(bind=self.engine)
@@ -290,7 +298,8 @@ class AdvancedRateLimiter:
                         "X-RateLimit-Limit": str(max_allowed),
                         "X-RateLimit-Remaining": str(status.remaining),
                         "X-RateLimit-Reset": str(int(reset_time.timestamp())),
-                        "Retry-After": str(int((reset_time - datetime.now()).total_seconds()))
+                        "Retry-After": str(int((reset_time - from datetime import datetime
+datetime.now()).total_seconds()))
                     }
                 )
             
@@ -309,7 +318,8 @@ class AdvancedRateLimiter:
                 limit_type=limit_type,
                 current_count=0,
                 max_allowed=999999,
-                reset_time=datetime.now() + timedelta(hours=1),
+                reset_time=from datetime import datetime
+datetime.now() + timedelta(hours=1),
                 is_exceeded=False,
                 remaining=999999
             )
@@ -326,7 +336,8 @@ class AdvancedRateLimiter:
                 self.logger.warning(f"Redis get failed: {e}")
         
         # Fallback to memory store
-        now = datetime.now()
+        now = from datetime import datetime
+datetime.now()
         usage_queue = self.memory_store[user_id][limit_type.value]
         
         # Remove expired entries
@@ -356,7 +367,8 @@ class AdvancedRateLimiter:
                 self.logger.warning(f"Redis update failed: {e}")
         
         # Fallback to memory store
-        expire_time = datetime.now() + timedelta(seconds=self._get_period_seconds(
+        expire_time = from datetime import datetime
+datetime.now() + timedelta(seconds=self._get_period_seconds(
             self._get_limit_config(self._get_user_limits(user_id), limit_type).period
         ))
         self.memory_store[user_id][limit_type.value].append((amount, expire_time))
@@ -392,7 +404,8 @@ class AdvancedRateLimiter:
             username=f"user_{user_id}",
             user_tier="standard",
             is_active=True,
-            created_at=datetime.now()
+            created_at=from datetime import datetime
+datetime.now()
         )
     
     def _get_limit_config(self, user_limits: UserLimits, limit_type: LimitType) -> Optional[RateLimit]:
@@ -407,7 +420,8 @@ class AdvancedRateLimiter:
     
     def _get_reset_time(self, period: LimitPeriod) -> datetime:
         """Calculate when the rate limit resets."""
-        now = datetime.now()
+        now = from datetime import datetime
+datetime.now()
         
         if period == LimitPeriod.SECOND:
             return now.replace(microsecond=0) + timedelta(seconds=1)
@@ -457,8 +471,10 @@ class AdvancedRateLimiter:
             user_tier=user_tier,
             custom_limits=custom_limits,
             is_active=True,
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            created_at=from datetime import datetime
+datetime.now(),
+            updated_at=from datetime import datetime
+datetime.now()
         )
         
         # Store in memory
@@ -473,8 +489,10 @@ class AdvancedRateLimiter:
                     user_tier=user_tier,
                     custom_limits=json.dumps(custom_limits) if custom_limits else None,
                     is_active=True,
-                    created_at=datetime.now(),
-                    updated_at=datetime.now()
+                    created_at=from datetime import datetime
+datetime.now(),
+                    updated_at=from datetime import datetime
+datetime.now()
                 )
                 self.db_session.merge(config)
                 self.db_session.commit()
@@ -513,7 +531,8 @@ class AdvancedRateLimiter:
             while True:
                 try:
                     # Clean up expired memory entries
-                    now = datetime.now()
+                    now = from datetime import datetime
+datetime.now()
                     for user_id in list(self.memory_store.keys()):
                         for limit_type in list(self.memory_store[user_id].keys()):
                             queue = self.memory_store[user_id][limit_type]
@@ -579,10 +598,6 @@ class AdvancedRateLimiter:
         return status
 
 # Rate limiting decorators and middleware
-from functools import wraps
-
-
-
 def rate_limit(limit_type: LimitType, request_size: int = 1):
     """Decorator for rate limiting endpoints."""
     def decorator(func):
@@ -696,7 +711,6 @@ class RateLimitMiddleware:
                 ],
             })
 
-            import json
             await send({
                 "type": "http.response.body",
                 "body": json.dumps(response).encode(),

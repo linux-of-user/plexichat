@@ -1,8 +1,3 @@
-"""
-Beautiful Error Handler System
-Comprehensive error handling with attractive error pages and detailed logging.
-"""
-
 import json
 import logging
 import traceback
@@ -11,9 +6,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from typing import Optional, Dict, Any, List
+
+
 from fastapi import Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+
+"""
+Beautiful Error Handler System
+Comprehensive error handling with attractive error pages and detailed logging.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -47,10 +50,13 @@ class BeautifulErrorHandler:
     """Beautiful error handler with comprehensive logging and user-friendly pages."""
     
     def __init__(self, templates_dir: str = "src/plexichat/app/web/templates"):
-        self.templates_dir = Path(templates_dir)
+        self.templates_dir = from pathlib import Path
+Path(templates_dir)
         self.templates = Jinja2Templates(directory=str(self.templates_dir))
-        self.error_log_file = Path("error_log.json")
-        self.crash_log_file = Path("crash_log.json")
+        self.error_log_file = from pathlib import Path
+Path("error_log.json")
+        self.crash_log_file = from pathlib import Path
+Path("crash_log.json")
         
         # Error statistics
         self.error_stats: Dict[str, int] = {}
@@ -76,7 +82,8 @@ class BeautifulErrorHandler:
             data = {
                 'stats': self.error_stats,
                 'recent': self.recent_errors[-100:],  # Keep last 100
-                'last_updated': datetime.now().isoformat()
+                'last_updated': from datetime import datetime
+datetime.now().isoformat()
             }
             with open(self.error_log_file, 'w') as f:
                 json.dump(data, f, indent=2, default=str)
@@ -90,7 +97,8 @@ class BeautifulErrorHandler:
             'error_id': error_id,
             'error_code': error_code,
             'message': error_message,
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': from datetime import datetime
+datetime.now().isoformat(),
             'request_info': self._extract_request_info(request) if request else None,
             'exception_info': self._extract_exception_info(exception) if exception else None
         }
@@ -141,7 +149,8 @@ class BeautifulErrorHandler:
             'error_code': error_code,
             'error_message': error_message,
             'status_code': status_code,
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC'),
+            'timestamp': from datetime import datetime
+datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC'),
             'server_id': 'PlexiChat-Server-01',  # Could be dynamic
             'request': request,
             'support_url': '/support',
@@ -220,7 +229,8 @@ class BeautifulErrorHandler:
             'error_code': error_code,
             'message': error_message,
             'status_code': status_code,
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': from datetime import datetime
+datetime.now().isoformat(),
             'details': details or {}
         }
         
@@ -236,7 +246,8 @@ class BeautifulErrorHandler:
         # Calculate error rates
         recent_24h = [
             e for e in self.recent_errors 
-            if datetime.fromisoformat(e['timestamp']) > datetime.now().replace(hour=0, minute=0, second=0)
+            if datetime.fromisoformat(e['timestamp']) > from datetime import datetime
+datetime.now().replace(hour=0, minute=0, second=0)
         ]
         
         return {
@@ -254,7 +265,8 @@ class BeautifulErrorHandler:
         
         crash_report = {
             'crash_id': crash_id,
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': from datetime import datetime
+datetime.now().isoformat(),
             'exception': self._extract_exception_info(exception),
             'context': context or {},
             'system_info': {

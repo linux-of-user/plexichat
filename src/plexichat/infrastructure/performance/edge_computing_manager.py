@@ -1,10 +1,3 @@
-"""
-PlexiChat Edge Computing & Auto-scaling Manager
-
-Provides distributed computing at network edges with automatic resource scaling
-based on load and intelligent traffic routing for optimal performance.
-"""
-
 import asyncio
 import statistics
 import time
@@ -15,10 +8,23 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-import psutil
 
 from ...core.config import get_config
 from ...core.logging import get_logger
+
+        import math
+
+            import random
+            
+
+import psutil
+
+"""
+PlexiChat Edge Computing & Auto-scaling Manager
+
+Provides distributed computing at network edges with automatic resource scaling
+based on load and intelligent traffic routing for optimal performance.
+"""
 
 logger = get_logger(__name__)
 
@@ -177,8 +183,6 @@ class EdgeNode:
             return float('inf')
 
         # Haversine formula for more accurate distance calculation
-        import math
-
         R = 6371  # Earth's radius in kilometers
 
         lat1_rad = math.radians(self.latitude)
@@ -326,7 +330,7 @@ class EdgeComputingManager:
         self.initialized = False
         self.start_time = datetime.now(timezone.utc)
         
-        logger.info("🌐 Edge Computing & Auto-scaling Manager initialized")
+        logger.info(" Edge Computing & Auto-scaling Manager initialized")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default edge computing configuration."""
@@ -354,7 +358,7 @@ class EdgeComputingManager:
             if self.initialized:
                 return {"success": True, "message": "Already initialized"}
             
-            logger.info("🚀 Initializing edge computing manager...")
+            logger.info(" Initializing edge computing manager...")
             
             # Discover and register initial edge nodes
             await self._discover_edge_nodes()
@@ -370,7 +374,7 @@ class EdgeComputingManager:
             
             self.initialized = True
             
-            logger.info(f"✅ Edge computing manager initialized with {len(self.edge_nodes)} nodes")
+            logger.info(f" Edge computing manager initialized with {len(self.edge_nodes)} nodes")
             
             return {
                 "success": True,
@@ -380,13 +384,13 @@ class EdgeComputingManager:
             }
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize edge computing manager: {e}")
+            logger.error(f" Failed to initialize edge computing manager: {e}")
             return {"success": False, "error": str(e)}
     
     async def _discover_edge_nodes(self):
         """Discover and register edge nodes."""
         try:
-            logger.info("🔍 Discovering edge nodes...")
+            logger.info(" Discovering edge nodes...")
             
             # Add local node as primary edge node
             local_node = EdgeNode(
@@ -395,9 +399,12 @@ class EdgeComputingManager:
                 location="local",
                 ip_address="127.0.0.1",
                 port=8080,
-                cpu_cores=psutil.cpu_count(),
-                memory_gb=psutil.virtual_memory().total / (1024**3),
-                storage_gb=psutil.disk_usage('/').total / (1024**3),
+                cpu_cores=import psutil
+psutil.cpu_count(),
+                memory_gb=import psutil
+psutil.virtual_memory().total / (1024**3),
+                storage_gb=import psutil
+psutil.disk_usage('/').total / (1024**3),
                 network_bandwidth_mbps=1000.0,  # Assumed
                 supported_services=["api", "web", "backup", "ai", "collaboration"]
             )
@@ -457,10 +464,10 @@ class EdgeComputingManager:
             for node in simulated_nodes:
                 await self.register_edge_node(node)
             
-            logger.info(f"🔍 Node discovery completed: {len(self.edge_nodes)} nodes registered")
+            logger.info(f" Node discovery completed: {len(self.edge_nodes)} nodes registered")
             
         except Exception as e:
-            logger.error(f"❌ Failed to discover edge nodes: {e}")
+            logger.error(f" Failed to discover edge nodes: {e}")
     
     async def register_edge_node(self, node: EdgeNode) -> bool:
         """Register a new edge node."""
@@ -475,18 +482,18 @@ class EdgeComputingManager:
             # Initialize routing for this node
             await self._update_routing_table()
             
-            logger.info(f"✅ Edge node registered: {node.node_id} ({node.node_type.value}) at {node.location}")
+            logger.info(f" Edge node registered: {node.node_id} ({node.node_type.value}) at {node.location}")
             
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to register edge node {node.node_id}: {e}")
+            logger.error(f" Failed to register edge node {node.node_id}: {e}")
             return False
     
     async def _load_monitoring_loop(self):
         """Monitor system load and performance."""
         try:
-            logger.info("📊 Starting load monitoring loop...")
+            logger.info(" Starting load monitoring loop...")
             
             while True:
                 try:
@@ -504,13 +511,13 @@ class EdgeComputingManager:
                     ).total_seconds()
                     
                 except Exception as e:
-                    logger.error(f"❌ Error in load monitoring loop: {e}")
+                    logger.error(f" Error in load monitoring loop: {e}")
                     continue
                     
         except asyncio.CancelledError:
-            logger.info("🛑 Load monitoring loop cancelled")
+            logger.info(" Load monitoring loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Load monitoring loop failed: {e}")
+            logger.error(f" Load monitoring loop failed: {e}")
     
     async def _collect_load_metrics(self):
         """Collect load metrics from all edge nodes."""
@@ -577,15 +584,13 @@ class EdgeComputingManager:
                 self.edge_stats["average_response_time_ms"] = load_metrics.average_response_time_ms
             
         except Exception as e:
-            logger.error(f"❌ Failed to collect load metrics: {e}")
+            logger.error(f" Failed to collect load metrics: {e}")
     
     async def _get_node_metrics(self, node_id: str) -> Dict[str, float]:
         """Get metrics from a specific node."""
         try:
             # TODO: Implement actual node metrics collection
             # For now, simulate realistic metrics
-            
-            import random
             
             base_load = 0.3 + (0.4 * random.random())  # 30-70% base load
             
@@ -601,7 +606,7 @@ class EdgeComputingManager:
             }
             
         except Exception as e:
-            logger.error(f"❌ Failed to get metrics for node {node_id}: {e}")
+            logger.error(f" Failed to get metrics for node {node_id}: {e}")
             return {}
     
     async def _analyze_load_patterns(self):
@@ -623,7 +628,7 @@ class EdgeComputingManager:
             self.performance_metrics["response_time_trend"].append(response_time_trend)
             
         except Exception as e:
-            logger.error(f"❌ Failed to analyze load patterns: {e}")
+            logger.error(f" Failed to analyze load patterns: {e}")
     
     def _calculate_trend(self, values: List[float]) -> float:
         """Calculate trend slope for a series of values."""
@@ -639,13 +644,13 @@ class EdgeComputingManager:
             return float(slope)
             
         except Exception as e:
-            logger.error(f"❌ Failed to calculate trend: {e}")
+            logger.error(f" Failed to calculate trend: {e}")
             return 0.0
 
     async def _auto_scaling_loop(self):
         """Auto-scaling decision and execution loop."""
         try:
-            logger.info("⚖️ Starting auto-scaling loop...")
+            logger.info(" Starting auto-scaling loop...")
 
             while True:
                 try:
@@ -665,13 +670,13 @@ class EdgeComputingManager:
                         await self._execute_scaling_decision(scaling_decision)
 
                 except Exception as e:
-                    logger.error(f"❌ Error in auto-scaling loop: {e}")
+                    logger.error(f" Error in auto-scaling loop: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Auto-scaling loop cancelled")
+            logger.info(" Auto-scaling loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Auto-scaling loop failed: {e}")
+            logger.error(f" Auto-scaling loop failed: {e}")
 
     async def _make_scaling_decision(self) -> Optional[ScalingDecision]:
         """Make intelligent scaling decision based on current metrics."""
@@ -776,7 +781,7 @@ class EdgeComputingManager:
             )
 
         except Exception as e:
-            logger.error(f"❌ Failed to make scaling decision: {e}")
+            logger.error(f" Failed to make scaling decision: {e}")
             return None
 
     async def _select_scaling_targets(self, action: ScalingAction) -> List[str]:
@@ -808,13 +813,13 @@ class EdgeComputingManager:
             return []
 
         except Exception as e:
-            logger.error(f"❌ Failed to select scaling targets: {e}")
+            logger.error(f" Failed to select scaling targets: {e}")
             return []
 
     async def _execute_scaling_decision(self, decision: ScalingDecision):
         """Execute scaling decision."""
         try:
-            logger.info(f"⚖️ Executing scaling decision: {decision.action.value} - {decision.reason}")
+            logger.info(f" Executing scaling decision: {decision.action.value} - {decision.reason}")
 
             if decision.action == ScalingAction.SCALE_UP:
                 success = await self._scale_up_nodes(decision.target_nodes)
@@ -837,12 +842,12 @@ class EdgeComputingManager:
                 self.last_scaling_action = datetime.now(timezone.utc)
                 self.edge_stats["scaling_actions_taken"] += 1
 
-                logger.info(f"✅ Scaling action completed: {decision.action.value}")
+                logger.info(f" Scaling action completed: {decision.action.value}")
             else:
-                logger.warning(f"⚠️ Scaling action failed: {decision.action.value}")
+                logger.warning(f" Scaling action failed: {decision.action.value}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to execute scaling decision: {e}")
+            logger.error(f" Failed to execute scaling decision: {e}")
 
     async def _scale_up_nodes(self, target_nodes: List[str]) -> bool:
         """Scale up by adding new nodes."""
@@ -854,7 +859,7 @@ class EdgeComputingManager:
             # 3. Registering the new nodes
             # 4. Updating load balancer configuration
 
-            logger.info(f"🚀 Scaling up: Adding {len(target_nodes)} nodes")
+            logger.info(f" Scaling up: Adding {len(target_nodes)} nodes")
 
             # For demonstration, simulate adding nodes
             for i, target in enumerate(target_nodes):
@@ -876,13 +881,13 @@ class EdgeComputingManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to scale up nodes: {e}")
+            logger.error(f" Failed to scale up nodes: {e}")
             return False
 
     async def _scale_down_nodes(self, target_nodes: List[str]) -> bool:
         """Scale down by removing nodes."""
         try:
-            logger.info(f"📉 Scaling down: Removing {len(target_nodes)} nodes")
+            logger.info(f" Scaling down: Removing {len(target_nodes)} nodes")
 
             for node_id in target_nodes:
                 if node_id in self.edge_nodes:
@@ -895,12 +900,12 @@ class EdgeComputingManager:
                     # Deactivate node
                     self.edge_nodes[node_id].is_active = False
 
-                    logger.info(f"📉 Node deactivated: {node_id}")
+                    logger.info(f" Node deactivated: {node_id}")
 
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to scale down nodes: {e}")
+            logger.error(f" Failed to scale down nodes: {e}")
             return False
 
     async def _drain_node_connections(self, node_id: str):
@@ -912,18 +917,18 @@ class EdgeComputingManager:
             # 2. Wait for existing connections to complete
             # 3. Redirect remaining connections to other nodes
 
-            logger.info(f"🔄 Draining connections from node: {node_id}")
+            logger.info(f" Draining connections from node: {node_id}")
 
             # Simulate draining delay
             await asyncio.sleep(5)
 
         except Exception as e:
-            logger.error(f"❌ Failed to drain connections from node {node_id}: {e}")
+            logger.error(f" Failed to drain connections from node {node_id}: {e}")
 
     async def _redistribute_load(self, target_nodes: List[str]) -> bool:
         """Redistribute load across nodes."""
         try:
-            logger.info(f"🔄 Redistributing load across {len(target_nodes)} nodes")
+            logger.info(f" Redistributing load across {len(target_nodes)} nodes")
 
             # Update routing weights based on current node capacity
             await self._update_routing_weights()
@@ -931,13 +936,13 @@ class EdgeComputingManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to redistribute load: {e}")
+            logger.error(f" Failed to redistribute load: {e}")
             return False
 
     async def _health_monitoring_loop(self):
         """Monitor node health and perform failover if needed."""
         try:
-            logger.info("🏥 Starting health monitoring loop...")
+            logger.info(" Starting health monitoring loop...")
 
             while True:
                 try:
@@ -950,13 +955,13 @@ class EdgeComputingManager:
                     await self._handle_node_failures()
 
                 except Exception as e:
-                    logger.error(f"❌ Error in health monitoring loop: {e}")
+                    logger.error(f" Error in health monitoring loop: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Health monitoring loop cancelled")
+            logger.info(" Health monitoring loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Health monitoring loop failed: {e}")
+            logger.error(f" Health monitoring loop failed: {e}")
 
     async def _check_node_health(self):
         """Check health status of all nodes."""
@@ -971,7 +976,7 @@ class EdgeComputingManager:
                 heartbeat_timeout = timedelta(seconds=self.config.get("heartbeat_timeout_seconds", 120))
                 if current_time - node.last_heartbeat > heartbeat_timeout:
                     node.is_healthy = False
-                    logger.warning(f"⚠️ Node {node_id} heartbeat timeout")
+                    logger.warning(f" Node {node_id} heartbeat timeout")
                     continue
 
                 # Check resource thresholds
@@ -979,16 +984,16 @@ class EdgeComputingManager:
                     node.memory_usage_percent > 95 or
                     node.request_queue_size > node.max_connections * 0.9):
                     node.is_healthy = False
-                    logger.warning(f"⚠️ Node {node_id} resource exhaustion")
+                    logger.warning(f" Node {node_id} resource exhaustion")
                     continue
 
                 # Node is healthy
                 if not node.is_healthy:
                     node.is_healthy = True
-                    logger.info(f"✅ Node {node_id} recovered")
+                    logger.info(f" Node {node_id} recovered")
 
         except Exception as e:
-            logger.error(f"❌ Failed to check node health: {e}")
+            logger.error(f" Failed to check node health: {e}")
 
     async def _handle_node_failures(self):
         """Handle failed nodes with automatic failover."""
@@ -999,7 +1004,7 @@ class EdgeComputingManager:
             if not failed_nodes:
                 return
 
-            logger.warning(f"🚨 Handling {len(failed_nodes)} failed nodes")
+            logger.warning(f" Handling {len(failed_nodes)} failed nodes")
 
             for node_id in failed_nodes:
                 # Remove from routing
@@ -1013,10 +1018,10 @@ class EdgeComputingManager:
 
                 self.edge_stats["failovers_performed"] += 1
 
-                logger.warning(f"🚨 Node {node_id} failed over")
+                logger.warning(f" Node {node_id} failed over")
 
         except Exception as e:
-            logger.error(f"❌ Failed to handle node failures: {e}")
+            logger.error(f" Failed to handle node failures: {e}")
 
     async def _remove_node_from_routing(self, node_id: str):
         """Remove node from routing table."""
@@ -1031,10 +1036,10 @@ class EdgeComputingManager:
                 if node_id in nodes:
                     nodes.remove(node_id)
 
-            logger.info(f"🔄 Node {node_id} removed from routing")
+            logger.info(f" Node {node_id} removed from routing")
 
         except Exception as e:
-            logger.error(f"❌ Failed to remove node from routing: {e}")
+            logger.error(f" Failed to remove node from routing: {e}")
 
     async def _redistribute_node_load(self, failed_node_id: str):
         """Redistribute load from a failed node."""
@@ -1048,7 +1053,7 @@ class EdgeComputingManager:
                            if node.is_active and node.is_healthy and node.node_id != failed_node_id]
 
             if not healthy_nodes:
-                logger.error("❌ No healthy nodes available for load redistribution")
+                logger.error(" No healthy nodes available for load redistribution")
                 return
 
             # Distribute connections across healthy nodes
@@ -1057,15 +1062,15 @@ class EdgeComputingManager:
             for node in healthy_nodes:
                 node.current_connections += connections_per_node
 
-            logger.info(f"🔄 Redistributed {failed_node.current_connections} connections from {failed_node_id}")
+            logger.info(f" Redistributed {failed_node.current_connections} connections from {failed_node_id}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to redistribute node load: {e}")
+            logger.error(f" Failed to redistribute node load: {e}")
 
     async def _traffic_routing_optimization_loop(self):
         """Optimize traffic routing based on performance metrics."""
         try:
-            logger.info("🛣️ Starting traffic routing optimization loop...")
+            logger.info(" Starting traffic routing optimization loop...")
 
             while True:
                 try:
@@ -1078,13 +1083,13 @@ class EdgeComputingManager:
                     await self._update_routing_weights()
 
                 except Exception as e:
-                    logger.error(f"❌ Error in traffic routing optimization: {e}")
+                    logger.error(f" Error in traffic routing optimization: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Traffic routing optimization loop cancelled")
+            logger.info(" Traffic routing optimization loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Traffic routing optimization loop failed: {e}")
+            logger.error(f" Traffic routing optimization loop failed: {e}")
 
     async def _optimize_routing_table(self):
         """Optimize routing table based on node performance."""
@@ -1102,10 +1107,10 @@ class EdgeComputingManager:
             # Update routing table
             self.routing_table = dict(service_nodes)
 
-            logger.debug(f"🛣️ Routing table updated: {len(self.routing_table)} services")
+            logger.debug(f" Routing table updated: {len(self.routing_table)} services")
 
         except Exception as e:
-            logger.error(f"❌ Failed to optimize routing table: {e}")
+            logger.error(f" Failed to optimize routing table: {e}")
 
     async def _update_routing_weights(self):
         """Update routing weights based on node performance."""
@@ -1135,7 +1140,7 @@ class EdgeComputingManager:
                 self.traffic_patterns[service] = weights
 
         except Exception as e:
-            logger.error(f"❌ Failed to update routing weights: {e}")
+            logger.error(f" Failed to update routing weights: {e}")
 
     async def _update_routing_table(self):
         """Update routing table with current healthy nodes."""
@@ -1143,12 +1148,12 @@ class EdgeComputingManager:
             await self._optimize_routing_table()
 
         except Exception as e:
-            logger.error(f"❌ Failed to update routing table: {e}")
+            logger.error(f" Failed to update routing table: {e}")
 
     async def _predictive_scaling_loop(self):
         """Predictive scaling based on historical patterns."""
         try:
-            logger.info("🔮 Starting predictive scaling loop...")
+            logger.info(" Starting predictive scaling loop...")
 
             while True:
                 try:
@@ -1162,13 +1167,13 @@ class EdgeComputingManager:
                         await self._execute_predictive_scaling(prediction)
 
                 except Exception as e:
-                    logger.error(f"❌ Error in predictive scaling: {e}")
+                    logger.error(f" Error in predictive scaling: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Predictive scaling loop cancelled")
+            logger.info(" Predictive scaling loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Predictive scaling loop failed: {e}")
+            logger.error(f" Predictive scaling loop failed: {e}")
 
     async def _analyze_scaling_patterns(self) -> List[Dict[str, Any]]:
         """Analyze historical patterns for predictive scaling."""
@@ -1215,7 +1220,7 @@ class EdgeComputingManager:
             return predictions
 
         except Exception as e:
-            logger.error(f"❌ Failed to analyze scaling patterns: {e}")
+            logger.error(f" Failed to analyze scaling patterns: {e}")
             return []
 
     async def _execute_predictive_scaling(self, prediction: Dict[str, Any]):
@@ -1224,7 +1229,7 @@ class EdgeComputingManager:
             if prediction["confidence"] < 0.6:
                 return  # Skip low-confidence predictions
 
-            logger.info(f"🔮 Executing predictive scaling: {prediction['reason']}")
+            logger.info(f" Executing predictive scaling: {prediction['reason']}")
 
             # Create scaling decision
             if prediction["action"] == "scale_up":
@@ -1241,7 +1246,7 @@ class EdgeComputingManager:
                 await self._execute_scaling_decision(decision)
 
         except Exception as e:
-            logger.error(f"❌ Failed to execute predictive scaling: {e}")
+            logger.error(f" Failed to execute predictive scaling: {e}")
 
     async def get_edge_status(self) -> Dict[str, Any]:
         """Get comprehensive edge computing status."""
@@ -1292,7 +1297,7 @@ class EdgeComputingManager:
             }
 
         except Exception as e:
-            logger.error(f"❌ Failed to get edge status: {e}")
+            logger.error(f" Failed to get edge status: {e}")
             return {}
 
     async def get_node_details(self, node_id: str) -> Optional[Dict[str, Any]]:
@@ -1342,7 +1347,7 @@ class EdgeComputingManager:
             }
 
         except Exception as e:
-            logger.error(f"❌ Failed to get node details for {node_id}: {e}")
+            logger.error(f" Failed to get node details for {node_id}: {e}")
             return None
 
     # ==================== ENHANCED EDGE COMPUTING METHODS ====================
@@ -1384,7 +1389,7 @@ class EdgeComputingManager:
                     }
                 }
 
-                logger.info(f"✅ Service {service_name} deployed to node {node_id}")
+                logger.info(f" Service {service_name} deployed to node {node_id}")
 
             return {
                 "service_name": service_name,
@@ -1394,7 +1399,7 @@ class EdgeComputingManager:
             }
 
         except Exception as e:
-            logger.error(f"❌ Failed to deploy service {service_name}: {e}")
+            logger.error(f" Failed to deploy service {service_name}: {e}")
             return {"error": str(e)}
 
     async def get_optimal_node_for_request(self, client_lat: float, client_lon: float,
@@ -1456,7 +1461,7 @@ class EdgeComputingManager:
             return candidate_nodes[0]["node_id"]
 
         except Exception as e:
-            logger.error(f"❌ Failed to find optimal node: {e}")
+            logger.error(f" Failed to find optimal node: {e}")
             return None
 
     async def remove_edge_node(self, node_id: str) -> bool:
@@ -1476,11 +1481,11 @@ class EdgeComputingManager:
             # Update routing table
             await self._update_routing_table()
 
-            logger.info(f"✅ Edge node {node_id} removed successfully")
+            logger.info(f" Edge node {node_id} removed successfully")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to remove edge node {node_id}: {e}")
+            logger.error(f" Failed to remove edge node {node_id}: {e}")
             return False
 
 

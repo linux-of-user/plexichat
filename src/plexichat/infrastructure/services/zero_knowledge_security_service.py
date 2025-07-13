@@ -1,15 +1,3 @@
-"""
-PlexiChat Zero-Knowledge Security Service
-
-Comprehensive zero-knowledge security implementation with:
-- Client-side encryption for all data
-- Disappearing messages with automatic cleanup
-- Anonymous messaging with privacy protection
-- Comprehensive audit trails with zero-knowledge proofs
-- Biometric authentication with privacy preservation
-- End-to-end encryption for all communications
-"""
-
 import asyncio
 import hashlib
 import json
@@ -28,6 +16,19 @@ from ..core.auth.audit_manager import AuditManager
 from ..core.auth.biometric_manager import BiometricManager
 from ..core.services.base_service import BaseService
 from ..security import e2e_encryption, quantum_encryption
+
+
+"""
+PlexiChat Zero-Knowledge Security Service
+
+Comprehensive zero-knowledge security implementation with:
+- Client-side encryption for all data
+- Disappearing messages with automatic cleanup
+- Anonymous messaging with privacy protection
+- Comprehensive audit trails with zero-knowledge proofs
+- Biometric authentication with privacy preservation
+- End-to-end encryption for all communications
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +116,8 @@ class ZeroKnowledgeSecurityService(BaseService):
         super().__init__("zero_knowledge_security")
         
         # Configuration management
-        self.config_path = config_path or Path("config/zero_knowledge_security.yaml")
+        self.config_path = config_path or from pathlib import Path
+Path("config/zero_knowledge_security.yaml")
         self.config = self._load_configuration()
         
         # Core components
@@ -201,7 +203,8 @@ class ZeroKnowledgeSecurityService(BaseService):
         }
     
     def _initialize_privacy_settings(self):
-        """Initialize privacy-preserving settings."""
+        """Initialize privacy-preserving from plexichat.core.config import settings
+settings."""
         # Set up quantum-resistant encryption
         if self.config["security_settings"]["quantum_resistant_encryption"]:
             self.quantum_encryption = quantum_encryption

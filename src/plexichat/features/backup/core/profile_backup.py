@@ -1,3 +1,15 @@
+import asyncio
+import hashlib
+import json
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
+import aiosqlite
+
+
 """
 PlexiChat Profile Backup Integration
 
@@ -10,17 +22,6 @@ Comprehensive profile backup system integrated with government-level backup:
 - Cross-device profile synchronization
 - Privacy-compliant backup with opt-out controls
 """
-
-import asyncio
-import hashlib
-import json
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-
-import aiosqlite
 
 logger = logging.getLogger(__name__)
 
@@ -286,7 +287,8 @@ class ProfileBackupManager:
             checksum = hashlib.sha256(backup_data).hexdigest()
             
             # Use main backup system to create shards
-            backup_id = f"profile_{user_id}_{int(datetime.now().timestamp())}"
+            backup_id = f"profile_{user_id}_{int(from datetime import datetime
+datetime.now().timestamp())}"
             
             # This would integrate with the main backup system's shard creation
             shard_ids = await self._create_profile_shards(backup_id, backup_data)

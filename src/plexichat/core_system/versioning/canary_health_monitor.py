@@ -1,14 +1,3 @@
-"""
-PlexiChat Canary Health Monitor
-
-Real-time health monitoring for canary deployments with:
-- Continuous health checks during rollouts
-- Anomaly detection and alerting
-- Performance regression detection
-- Automatic rollback triggers
-- Custom metric collection
-"""
-
 import asyncio
 import logging
 import statistics
@@ -20,6 +9,18 @@ from typing import Any, Callable, Dict, List, Optional
 import aiohttp
 
 from .canary_deployment_manager import CanaryNode, HealthCheck, HealthCheckType
+
+
+"""
+PlexiChat Canary Health Monitor
+
+Real-time health monitoring for canary deployments with:
+- Continuous health checks during rollouts
+- Anomaly detection and alerting
+- Performance regression detection
+- Automatic rollback triggers
+- Custom metric collection
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +164,8 @@ class CanaryHealthMonitor:
                              health_checks: List[HealthCheck],
                              duration_minutes: int = 30) -> str:
         """Start monitoring canary nodes."""
-        monitoring_id = f"monitor_{int(datetime.now().timestamp())}"
+        monitoring_id = f"monitor_{int(from datetime import datetime
+datetime.now().timestamp())}"
         
         # Create monitoring task
         task = asyncio.create_task(
@@ -259,11 +261,13 @@ class CanaryHealthMonitor:
             # Construct URL (this would need actual node endpoint)
             url = f"http://{node.node_id}:8000{check.endpoint}"
             
-            start_time = datetime.now()
+            start_time = from datetime import datetime
+datetime.now()
             if self.session is None or self.session.closed:
                 self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
             async with self.session.get(url, timeout=check.timeout_seconds) as response:
-                response_time = (datetime.now() - start_time).total_seconds() * 1000
+                response_time = (from datetime import datetime
+datetime.now() - start_time).total_seconds() * 1000
                 
                 if check.metric_name == "response_time":
                     return response_time
@@ -324,7 +328,8 @@ class CanaryHealthMonitor:
             return
         
         alert = HealthAlert(
-            alert_id=f"alert_{int(datetime.now().timestamp())}",
+            alert_id=f"alert_{int(from datetime import datetime
+datetime.now().timestamp())}",
             node_id=node.node_id,
             severity=AlertSeverity.WARNING,
             message=f"Threshold violation: {check.metric_name or check.check_type.value} = {value:.2f} (threshold: {check.threshold})",
@@ -345,7 +350,8 @@ class CanaryHealthMonitor:
             return
         
         alert = HealthAlert(
-            alert_id=f"alert_{int(datetime.now().timestamp())}",
+            alert_id=f"alert_{int(from datetime import datetime
+datetime.now().timestamp())}",
             node_id=node.node_id,
             severity=AlertSeverity.ERROR,
             message=f"Anomalous value detected: {check.metric_name or check.check_type.value} = {value:.2f}",

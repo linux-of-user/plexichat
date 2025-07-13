@@ -1,3 +1,16 @@
+import asyncio
+import signal
+import sys
+from abc import ABC, abstractmethod
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from ..core.config import get_config
+from ..core.logging import get_logger
+
+
+
 """
 PlexiChat Base Service
 
@@ -13,18 +26,6 @@ Features:
 - Graceful shutdown handling
 - Error handling and recovery
 """
-
-import asyncio
-import signal
-import sys
-from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from ..core.config import get_config
-from ..core.logging import get_logger
-
 
 class ServiceState(Enum):
     """Service state enumeration."""

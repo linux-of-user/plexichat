@@ -1,17 +1,19 @@
+from datetime import datetime
+from enum import IntFlag
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import JSON, Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index, Text
+
 """
 PlexiChat Message Model
 
 Enhanced message model with Discord-like features including embeds, attachments, and replies.
 """
-
-from datetime import datetime
-from enum import IntFlag
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import DateTime, Index, Text
-from sqlmodel import JSON, Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for messages
 message_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=5)

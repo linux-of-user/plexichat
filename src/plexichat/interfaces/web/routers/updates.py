@@ -1,16 +1,31 @@
-"""
-PlexiChat Update API Endpoints
-Provides API access to the GitHub-based update system.
-"""
-
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+
+
+        from core.updates.github_updater import github_updater
+        
+        from core.updates.github_updater import github_updater
+        
+        from core.updates.github_updater import github_updater
+        
+        from core.updates.github_updater import github_updater
+        
+        from core.updates.github_updater import github_updater
+        
+        from core.updates.github_updater import github_updater
+        
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from plexichat.interfaces.web.routers.auth import get_current_admin_user
+
+"""
+PlexiChat Update API Endpoints
+Provides API access to the GitHub-based update system.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +69,6 @@ async def check_for_updates(current_user=Depends(get_current_admin_user)):
     """Check for available updates."""
     try:
         # Import here to avoid circular imports
-        from core.updates.github_updater import github_updater
-        
         logger.info(f"Admin {current_user.username} checking for updates")
         
         update_info = await github_updater.check_for_updates()
@@ -99,8 +112,6 @@ async def download_update(
 ):
     """Download the latest update."""
     try:
-        from core.updates.github_updater import github_updater
-        
         logger.info(f"Admin {current_user.username} initiating update download")
         
         # Check for updates first
@@ -152,8 +163,6 @@ async def install_update(
 ):
     """Install a downloaded update."""
     try:
-        from core.updates.github_updater import github_updater
-        
         logger.info(f"Admin {current_user.username} initiating update installation")
         
         # Check for updates
@@ -216,8 +225,6 @@ async def install_update(
 async def get_update_history(current_user=Depends(get_current_admin_user)):
     """Get update history."""
     try:
-        from core.updates.github_updater import github_updater
-        
         history = github_updater.get_update_history()
         
         return UpdateHistoryResponse(
@@ -242,10 +249,9 @@ async def configure_updates(
     config: UpdateConfigRequest,
     current_user=Depends(get_current_admin_user)
 ):
-    """Configure automatic update settings."""
+    """Configure automatic update from plexichat.core.config import settings
+settings."""
     try:
-        from core.updates.github_updater import github_updater
-        
         logger.info(f"Admin {current_user.username} configuring auto-updates")
         
         # Update configuration
@@ -285,8 +291,6 @@ async def get_releases(
 ):
     """Get available releases from GitHub."""
     try:
-        from core.updates.github_updater import github_updater
-        
         releases = await github_updater.get_releases(include_prerelease)
         
         release_data = []

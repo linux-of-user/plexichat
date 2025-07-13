@@ -1,11 +1,3 @@
-"""
-Quantum-Proof Encryption Architecture for PlexiChat
-
-Implements post-quantum cryptography with distributed multi-key security
-using lattice-based and hash-based algorithms. Breaking one key doesn't
-compromise the entire system through threshold cryptography.
-"""
-
 import hashlib
 import secrets
 from dataclasses import dataclass, field
@@ -16,7 +8,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from cryptography.hazmat.backends import default_backend
 
-# Cryptographic libraries
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -25,6 +16,18 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from ...core.config import get_config
 from ...core.logging import get_logger
 
+        from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+
+
+"""
+Quantum-Proof Encryption Architecture for PlexiChat
+
+Implements post-quantum cryptography with distributed multi-key security
+using lattice-based and hash-based algorithms. Breaking one key doesn't
+compromise the entire system through threshold cryptography.
+"""
+
+# Cryptographic libraries
 logger = get_logger(__name__)
 
 
@@ -114,10 +117,11 @@ class QuantumEncryptionEngine:
         self.enable_hsm = self.config.get("enable_hsm", False)
         
         # Initialize key storage directory
-        self.key_dir = Path(self.config.get("key_dir", "data/keys"))
+        self.key_dir = from pathlib import Path
+Path(self.config.get("key_dir", "data/keys"))
         self.key_dir.mkdir(parents=True, exist_ok=True)
         
-        logger.info(f"🔐 Quantum Encryption Engine initialized with {self.default_algorithm.value}")
+        logger.info(f" Quantum Encryption Engine initialized with {self.default_algorithm.value}")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default quantum encryption configuration."""
@@ -136,7 +140,7 @@ class QuantumEncryptionEngine:
     async def initialize_key_system(self) -> Dict[str, Any]:
         """Initialize the distributed key system."""
         try:
-            logger.info("🔑 Initializing quantum-proof key system...")
+            logger.info(" Initializing quantum-proof key system...")
             
             # Generate master key set
             master_keys = await self._generate_master_keys()
@@ -150,7 +154,7 @@ class QuantumEncryptionEngine:
             # Save key system state
             await self._save_key_system()
             
-            logger.info(f"✅ Key system initialized with {len(master_keys)} master keys")
+            logger.info(f" Key system initialized with {len(master_keys)} master keys")
             
             return {
                 "success": True,
@@ -161,7 +165,7 @@ class QuantumEncryptionEngine:
             }
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize key system: {e}")
+            logger.error(f" Failed to initialize key system: {e}")
             return {"success": False, "error": str(e)}
     
     async def _generate_master_keys(self) -> List[QuantumKey]:
@@ -348,11 +352,11 @@ class QuantumEncryptionEngine:
                 integrity_hash=integrity_hash
             )
             
-            logger.debug(f"🔒 Encrypted {len(data)} bytes using {self.default_algorithm.value}")
+            logger.debug(f" Encrypted {len(data)} bytes using {self.default_algorithm.value}")
             return encrypted_data
             
         except Exception as e:
-            logger.error(f"❌ Encryption failed: {e}")
+            logger.error(f" Encryption failed: {e}")
             raise
     
     async def decrypt_data(self, encrypted_data: EncryptedData, available_key_ids: List[str]) -> bytes:
@@ -392,11 +396,11 @@ class QuantumEncryptionEngine:
             decryptor = cipher.decryptor()
             plaintext = decryptor.update(ciphertext) + decryptor.finalize()
             
-            logger.debug(f"🔓 Decrypted {len(plaintext)} bytes")
+            logger.debug(f" Decrypted {len(plaintext)} bytes")
             return plaintext
             
         except Exception as e:
-            logger.error(f"❌ Decryption failed: {e}")
+            logger.error(f" Decryption failed: {e}")
             raise
     
     async def _derive_encryption_key(self, key_ids: List[str], salt: bytes) -> bytes:
@@ -426,18 +430,18 @@ class QuantumEncryptionEngine:
         # This would integrate with a task scheduler
         # For now, just log the schedule
         next_rotation = datetime.now(timezone.utc) + timedelta(days=self.key_rotation_days)
-        logger.info(f"📅 Next key rotation scheduled for: {next_rotation}")
+        logger.info(f" Next key rotation scheduled for: {next_rotation}")
     
     async def _save_key_system(self):
         """Save key system state to secure storage."""
         # In production, this would save to encrypted storage
         # For now, just log the operation
-        logger.info("💾 Key system state saved to secure storage")
+        logger.info(" Key system state saved to secure storage")
     
     async def rotate_keys(self) -> Dict[str, Any]:
         """Rotate encryption keys for forward secrecy."""
         try:
-            logger.info("🔄 Starting key rotation...")
+            logger.info(" Starting key rotation...")
             
             # Generate new master keys
             new_keys = await self._generate_master_keys()
@@ -454,7 +458,7 @@ class QuantumEncryptionEngine:
             # Save updated key system
             await self._save_key_system()
             
-            logger.info(f"✅ Key rotation completed: {len(new_keys)} new keys generated")
+            logger.info(f" Key rotation completed: {len(new_keys)} new keys generated")
             
             return {
                 "success": True,
@@ -463,7 +467,7 @@ class QuantumEncryptionEngine:
             }
             
         except Exception as e:
-            logger.error(f"❌ Key rotation failed: {e}")
+            logger.error(f" Key rotation failed: {e}")
             return {"success": False, "error": str(e)}
     
     async def get_key_status(self) -> Dict[str, Any]:
@@ -561,8 +565,6 @@ class QuantumKeyManager:
     async def secure_key_derivation(self, master_key: bytes, context: str, salt: bytes) -> bytes:
         """Derive keys using quantum-resistant KDF."""
         # Use Argon2id for memory-hard key derivation
-        from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-
         kdf = Scrypt(
             algorithm=hashes.SHA256(),
             length=32,
@@ -609,7 +611,7 @@ class QuantumSecurityAuditor:
         }
 
         self.audit_log.append(audit_entry)
-        logger.info(f"🔍 Security audit: {operation}")
+        logger.info(f" Security audit: {operation}")
 
     async def detect_quantum_threats(self, encrypted_data: EncryptedData) -> Dict[str, Any]:
         """Detect potential quantum computing threats."""

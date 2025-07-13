@@ -1,8 +1,3 @@
-"""
-PlexiChat Phase II Scalability Integration
-Coordinates all Phase II scalability and modularity enhancements
-"""
-
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -15,6 +10,14 @@ from ..messaging.async_task_queue import task_queue_manager
 from ..microservices.decomposition import microservices_orchestrator
 from ..microservices.service_registry import service_registry
 from ..performance.distributed_cache import CacheNode, distributed_cache
+
+        from ..messaging.async_task_queue import TaskPriority
+        
+
+"""
+PlexiChat Phase II Scalability Integration
+Coordinates all Phase II scalability and modularity enhancements
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +106,7 @@ class Phase2ScalabilityCoordinator:
             return
         
         start_time = datetime.now(timezone.utc)
-        logger.info("🚀 Initializing Phase II Scalability System")
+        logger.info(" Initializing Phase II Scalability System")
         
         try:
             # 1. Initialize Service Registry
@@ -144,16 +147,16 @@ class Phase2ScalabilityCoordinator:
             initialization_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             self.stats["initialization_time"] = initialization_time
             
-            logger.info(f"✅ Phase II Scalability System initialized in {initialization_time:.2f}s")
+            logger.info(f" Phase II Scalability System initialized in {initialization_time:.2f}s")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Phase II scalability system: {e}")
+            logger.error(f" Failed to initialize Phase II scalability system: {e}")
             raise
     
     async def _initialize_service_registry(self):
         """Initialize service registry."""
         await self.service_registry.start()
-        logger.info("✅ Service Registry initialized")
+        logger.info(" Service Registry initialized")
     
     async def _initialize_distributed_cache(self):
         """Initialize distributed caching system."""
@@ -180,7 +183,7 @@ class Phase2ScalabilityCoordinator:
                 logger.warning(f"Failed to add cache node {node.node_id}: {e}")
         
         await self.distributed_cache.start()
-        logger.info("✅ Distributed Cache initialized")
+        logger.info(" Distributed Cache initialized")
     
     async def _initialize_task_queues(self):
         """Initialize asynchronous task queue system."""
@@ -188,7 +191,7 @@ class Phase2ScalabilityCoordinator:
         self._register_default_task_handlers()
         
         await self.task_queue_manager.start()
-        logger.info("✅ Task Queue System initialized")
+        logger.info(" Task Queue System initialized")
     
     def _register_default_task_handlers(self):
         """Register default task handlers."""
@@ -222,20 +225,20 @@ class Phase2ScalabilityCoordinator:
     async def _initialize_microservices(self):
         """Initialize microservices decomposition."""
         await self.microservices_orchestrator.start_all_services()
-        logger.info("✅ Microservices initialized")
+        logger.info(" Microservices initialized")
     
     async def _initialize_service_mesh(self):
         """Initialize service mesh."""
         try:
             await self.service_mesh_manager.initialize()
-            logger.info("✅ Service Mesh initialized")
+            logger.info(" Service Mesh initialized")
         except Exception as e:
             logger.warning(f"Service Mesh initialization failed: {e}")
     
     async def _initialize_containerization(self):
         """Initialize container orchestration."""
         # This would typically deploy containers in production
-        logger.info("✅ Container Orchestration ready")
+        logger.info(" Container Orchestration ready")
     
     async def _setup_auto_scaling(self):
         """Setup horizontal pod autoscaling."""
@@ -249,7 +252,7 @@ class Phase2ScalabilityCoordinator:
             "scale_up_cooldown": 300,  # 5 minutes
             "scale_down_cooldown": 600  # 10 minutes
         }
-        logger.info("✅ Auto-scaling configured")
+        logger.info(" Auto-scaling configured")
     
     async def _setup_load_balancing(self):
         """Setup load balancing configuration."""
@@ -260,7 +263,7 @@ class Phase2ScalabilityCoordinator:
             "max_failures": 3,
             "sticky_sessions": False
         }
-        logger.info("✅ Load Balancing configured")
+        logger.info(" Load Balancing configured")
     
     async def _monitoring_loop(self):
         """Continuous monitoring and metrics collection."""
@@ -337,7 +340,7 @@ class Phase2ScalabilityCoordinator:
         if self.stats["total_services"] >= self.max_replicas:
             return
         
-        logger.info("🔼 Scaling up services due to high load")
+        logger.info(" Scaling up services due to high load")
         # Implementation would scale up specific services
         self.stats["scaling_events_count"] += 1
         self.stats["last_scaling_event"] = datetime.now(timezone.utc)
@@ -347,15 +350,13 @@ class Phase2ScalabilityCoordinator:
         if self.stats["total_services"] <= self.min_replicas:
             return
         
-        logger.info("🔽 Scaling down services due to low load")
+        logger.info(" Scaling down services due to low load")
         # Implementation would scale down specific services
         self.stats["scaling_events_count"] += 1
         self.stats["last_scaling_event"] = datetime.now(timezone.utc)
     
     async def submit_background_task(self, task_type: str, payload: Dict[str, Any], priority: str = "normal") -> str:
         """Submit a background task to the queue system."""
-        from ..messaging.async_task_queue import TaskPriority
-        
         priority_map = {
             "critical": TaskPriority.CRITICAL,
             "high": TaskPriority.HIGH,
@@ -414,7 +415,7 @@ class Phase2ScalabilityCoordinator:
             await self.microservices_orchestrator.stop_all_services()
             await self.service_registry.stop()
             
-            logger.info("✅ Phase II Scalability System shutdown complete")
+            logger.info(" Phase II Scalability System shutdown complete")
             
         except Exception as e:
             logger.error(f"Error during Phase II scalability shutdown: {e}")

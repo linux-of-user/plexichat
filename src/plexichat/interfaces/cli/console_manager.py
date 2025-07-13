@@ -1,8 +1,3 @@
-"""
-Enhanced Split-Screen Console Interface
-Provides advanced split-screen functionality with real-time updates, interactive features, and improved layout.
-"""
-
 import os
 import queue
 import threading
@@ -12,7 +7,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-try:
     from rich.align import Align
     from rich.console import Console
     from rich.layout import Layout
@@ -20,6 +14,20 @@ try:
     from rich.panel import Panel
     from rich.table import Table
     from rich.text import Text
+
+
+            import keyboard
+
+
+            import psutil
+            import psutil
+
+"""
+Enhanced Split-Screen Console Interface
+Provides advanced split-screen functionality with real-time updates, interactive features, and improved layout.
+"""
+
+try:
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -72,7 +80,8 @@ class EnhancedSplitScreen:
             'errors': 0,
             'warnings': 0,
             'requests': 0,
-            'start_time': datetime.now(),
+            'start_time': from datetime import datetime
+datetime.now(),
             'last_error': None,
             'peak_memory': 0,
             'peak_cpu': 0
@@ -213,7 +222,8 @@ class EnhancedSplitScreen:
     
     def _update_header(self):
         """Update the header panel."""
-        uptime = datetime.now() - self.stats['start_time']
+        uptime = from datetime import datetime
+datetime.now() - self.stats['start_time']
         uptime_str = str(uptime).split('.')[0]  # Remove microseconds
         
         status_text = (
@@ -313,7 +323,8 @@ class EnhancedSplitScreen:
     def add_log_entry(self, level: str, module: str, message: str, **kwargs):
         """Add a log entry to the display."""
         entry = LogEntry(
-            timestamp=datetime.now(),
+            timestamp=from datetime import datetime
+datetime.now(),
             level=level,
             module=module,
             message=message,
@@ -380,11 +391,11 @@ class EnhancedSplitScreen:
     def _update_metrics_panel(self):
         """Update the metrics panel."""
         try:
-            import psutil
-
             # Get current system metrics
-            cpu_percent = psutil.cpu_percent(interval=None)
-            memory = psutil.virtual_memory()
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=None)
+            memory = import psutil
+psutil.virtual_memory()
 
             # Update peak values
             self.stats['peak_cpu'] = max(self.stats['peak_cpu'], cpu_percent)
@@ -401,8 +412,8 @@ class EnhancedSplitScreen:
             metrics_table.add_row("Active Ops", str(len(self.active_operations)))
 
             # Add performance indicators
-            cpu_indicator = "🔴" if cpu_percent > 80 else "🟡" if cpu_percent > 60 else "🟢"
-            memory_indicator = "🔴" if memory.percent > 85 else "🟡" if memory.percent > 70 else "🟢"
+            cpu_indicator = "" if cpu_percent > 80 else "" if cpu_percent > 60 else ""
+            memory_indicator = "" if memory.percent > 85 else "" if memory.percent > 70 else ""
 
             self.layout["metrics"].update(Panel(
                 metrics_table,
@@ -426,11 +437,11 @@ class EnhancedSplitScreen:
     def _update_system_panel(self):
         """Update the system information panel."""
         try:
-            import psutil
-
             # Network and disk info
-            disk = psutil.disk_usage('/')
-            network = psutil.net_io_counters()
+            disk = import psutil
+psutil.disk_usage('/')
+            network = import psutil
+psutil.net_io_counters()
 
             system_table = Table(show_header=False, expand=True)
             system_table.add_column("Item", style="bold")
@@ -442,7 +453,8 @@ class EnhancedSplitScreen:
             system_table.add_row("Network Recv", f"{network.bytes_recv // (1024**2):.1f} MB")
 
             # Process info
-            process = psutil.Process()
+            process = import psutil
+psutil.Process()
             system_table.add_row("Process PID", str(process.pid))
             system_table.add_row("Threads", str(process.num_threads()))
 
@@ -463,26 +475,26 @@ class EnhancedSplitScreen:
         """Update the commands/help panel."""
         commands_text = Text()
         commands_text.append("Available Commands:\n", style="bold")
-        commands_text.append("• ", style="dim")
+        commands_text.append(" ", style="dim")
         commands_text.append("f", style="bold green")
         commands_text.append(" - Filter logs\n", style="dim")
-        commands_text.append("• ", style="dim")
+        commands_text.append(" ", style="dim")
         commands_text.append("c", style="bold green")
         commands_text.append(" - Clear logs\n", style="dim")
-        commands_text.append("• ", style="dim")
+        commands_text.append(" ", style="dim")
         commands_text.append("s", style="bold green")
         commands_text.append(" - Show stats\n", style="dim")
-        commands_text.append("• ", style="dim")
+        commands_text.append(" ", style="dim")
         commands_text.append("r", style="bold green")
         commands_text.append(" - Refresh rate\n", style="dim")
-        commands_text.append("• ", style="dim")
+        commands_text.append(" ", style="dim")
         commands_text.append("q", style="bold red")
         commands_text.append(" - Quit\n", style="dim")
 
         if self.command_history:
             commands_text.append("\nRecent Commands:\n", style="bold")
             for cmd in list(self.command_history)[-3:]:
-                commands_text.append(f"• {cmd}\n", style="dim cyan")
+                commands_text.append(f" {cmd}\n", style="dim cyan")
 
         self.layout["commands"].update(Panel(
             commands_text,
@@ -506,14 +518,12 @@ class EnhancedSplitScreen:
     def _input_handler(self):
         """Handle keyboard input for interactive features."""
         try:
-            import keyboard
-
             while self.active:
                 try:
                     event = keyboard.read_event()
                     if event.event_type == keyboard.KEY_DOWN:
                         self._handle_key_press(event.name)
-                except:
+                except Exception:
                     # Fallback if keyboard module not available
                     time.sleep(1)
 
@@ -546,7 +556,8 @@ class EnhancedSplitScreen:
 
     def _show_detailed_stats(self):
         """Show detailed statistics."""
-        uptime = datetime.now() - self.stats['start_time']
+        uptime = from datetime import datetime
+datetime.now() - self.stats['start_time']
 
         stats_info = {
             'uptime': str(uptime).split('.')[0],
@@ -564,7 +575,8 @@ class EnhancedSplitScreen:
             self.logger.info("Detailed statistics", extra={'stats': stats_info})
 
     def set_config(self, **config_updates):
-        """Update configuration settings."""
+        """Update configuration from plexichat.core.config import settings
+settings."""
         self.config.update(config_updates)
         if self.logger:
             self.logger.info(f"Configuration updated: {config_updates}")
@@ -575,18 +587,21 @@ class EnhancedSplitScreen:
             **self.stats,
             'active_operations': len(self.active_operations),
             'log_buffer_size': len(self.log_buffer),
-            'uptime_seconds': (datetime.now() - self.stats['start_time']).total_seconds()
+            'uptime_seconds': (from datetime import datetime
+datetime.now() - self.stats['start_time']).total_seconds()
         }
 
     def export_logs(self, filename: str = None) -> str:
         """Export current logs to file."""
         if not filename:
-            filename = f"plexichat_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            filename = f"plexichat_logs_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
 
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write("PlexiChat Console Logs Export\n")
-                f.write(f"Generated: {datetime.now().isoformat()}\n")
+                f.write(f"Generated: {from datetime import datetime
+datetime.now().isoformat()}\n")
                 f.write(f"Total Entries: {len(self.log_buffer)}\n")
                 f.write("=" * 80 + "\n\n")
 

@@ -1,8 +1,3 @@
-"""
-PlexiChat Database Setup Wizard
-Comprehensive database configuration and setup system with support for external databases.
-"""
-
 import asyncio
 import json
 import logging
@@ -12,7 +7,26 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
+
+            import time
+            from sqlmodel import SQLModel
+
+            from sqlmodel import Session
+
+
 from sqlalchemy import create_engine, text
+
+                from plexichat.app.models.guild import Guild  # type: ignore
+                from plexichat.app.models.message import Message  # type: ignore
+                from plexichat.app.models.user import User  # type: ignore
+                    from plexichat.app.models.user import User  # type: ignore
+                    from plexichat.app.models.guild import Guild  # type: ignore
+                    from plexichat.app.models.message import Message  # type: ignore
+
+"""
+PlexiChat Database Setup Wizard
+Comprehensive database configuration and setup system with support for external databases.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +131,8 @@ class DatabaseSetupWizard:
     
     def __init__(self):
         self.progress = SetupProgress()
-        self.config_dir = Path("config")
+        self.config_dir = from pathlib import Path
+Path("config")
         self.config_dir.mkdir(exist_ok=True)
         
         # Database type configurations
@@ -355,7 +370,8 @@ class DatabaseSetupWizard:
             }
     
     def set_advanced_settings(self, settings: Dict[str, Any]) -> Dict[str, Any]:
-        """Set advanced database settings."""
+        """Set advanced database from plexichat.core.config import settings
+settings."""
         if not self.progress.connection_config:
             return {
                 "success": False,
@@ -366,13 +382,20 @@ class DatabaseSetupWizard:
             config = self.progress.connection_config
             
             # Update advanced settings
-            config.pool_size = settings.get("pool_size", config.pool_size)
-            config.max_overflow = settings.get("max_overflow", config.max_overflow)
-            config.pool_timeout = settings.get("pool_timeout", config.pool_timeout)
-            config.pool_recycle = settings.get("pool_recycle", config.pool_recycle)
-            config.ssl_mode = settings.get("ssl_mode", config.ssl_mode)
-            config.charset = settings.get("charset", config.charset)
-            config.connect_timeout = settings.get("connect_timeout", config.connect_timeout)
+            config.pool_size = from plexichat.core.config import settings
+settings.get("pool_size", config.pool_size)
+            config.max_overflow = from plexichat.core.config import settings
+settings.get("max_overflow", config.max_overflow)
+            config.pool_timeout = from plexichat.core.config import settings
+settings.get("pool_timeout", config.pool_timeout)
+            config.pool_recycle = from plexichat.core.config import settings
+settings.get("pool_recycle", config.pool_recycle)
+            config.ssl_mode = from plexichat.core.config import settings
+settings.get("ssl_mode", config.ssl_mode)
+            config.charset = from plexichat.core.config import settings
+settings.get("charset", config.charset)
+            config.connect_timeout = from plexichat.core.config import settings
+settings.get("connect_timeout", config.connect_timeout)
             
             # Mark step as completed
             self._add_completed_step(SetupStep.ADVANCED_SETTINGS)
@@ -436,7 +459,6 @@ class DatabaseSetupWizard:
                 "error_details": None
             }
 
-            import time
             start_time = time.time()
 
             if config.db_type == DatabaseType.SQLITE:
@@ -484,7 +506,8 @@ class DatabaseSetupWizard:
         """Test SQLite connection."""
         try:
             # Ensure directory exists
-            db_path = Path(config.file_path or "data/plexichat.db")
+            db_path = from pathlib import Path
+Path(config.file_path or "data/plexichat.db")
             db_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Test connection
@@ -643,15 +666,10 @@ class DatabaseSetupWizard:
 
             # Import models to ensure they're registered
             try:
-                from plexichat.app.models.guild import Guild  # type: ignore
-                from plexichat.app.models.message import Message  # type: ignore
-                from plexichat.app.models.user import User  # type: ignore
             except ImportError:
                 logger.warning("PlexiChat models not available, skipping model registration")
 
             # Create all tables
-            from sqlmodel import SQLModel
-
             if drop_existing:
                 SQLModel.metadata.drop_all(engine)
 
@@ -696,12 +714,9 @@ class DatabaseSetupWizard:
     async def _create_sample_data(self, engine) -> bool:
         """Create sample data for testing."""
         try:
-            from sqlmodel import Session
-
             with Session(engine) as session:
                 # Create sample admin user
                 try:
-                    from plexichat.app.models.user import User  # type: ignore
                 except ImportError:
                     logger.warning("User model not available")
                     return False
@@ -715,7 +730,6 @@ class DatabaseSetupWizard:
 
                 # Create sample guild
                 try:
-                    from plexichat.app.models.guild import Guild  # type: ignore
                 except ImportError:
                     logger.warning("Guild model not available")
                     return False
@@ -728,7 +742,6 @@ class DatabaseSetupWizard:
 
                 # Create sample message
                 try:
-                    from plexichat.app.models.message import Message  # type: ignore
                 except ImportError:
                     logger.warning("Message model not available")
                     return False
@@ -787,7 +800,8 @@ class DatabaseSetupWizard:
                 json.dump(db_config, f, indent=2)
 
             # Update environment file
-            env_file = Path(".env")
+            env_file = from pathlib import Path
+Path(".env")
             env_content = []
 
             if env_file.exists():

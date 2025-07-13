@@ -1,10 +1,9 @@
-"""
-Peer-to-peer messaging API endpoints.
-Provides P2P messaging with database fallback capabilities.
-"""
-
 from datetime import datetime
 from typing import Any, Dict, Optional
+
+
+
+
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
@@ -12,6 +11,10 @@ from pydantic import BaseModel
 from plexichat.core.logging import logger
 from plexichat.infrastructure.services.p2p_messaging import p2p_messaging_service
 
+"""
+Peer-to-peer messaging API endpoints.
+Provides P2P messaging with database fallback capabilities.
+"""
 
 # Pydantic models for API
 class P2PMessageRequest(BaseModel):
@@ -126,7 +129,8 @@ async def get_p2p_status():
                 "offline_caching": True,
                 "automatic_sync": True
             },
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         }
         
     except Exception as e:
@@ -246,14 +250,15 @@ async def websocket_p2p_connection(websocket: WebSocket):
         # Connect peer to P2P network
         connection_id = await p2p_messaging_service.connect_peer(user_id, websocket)
         
-        logger.info(f"🔗 P2P WebSocket connected for user {user_id}")
+        logger.info(f" P2P WebSocket connected for user {user_id}")
         
         # Send connection confirmation
         await websocket.send_json({
             "type": "connection_established",
             "connection_id": connection_id,
             "user_id": user_id,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": from datetime import datetime
+datetime.now().isoformat()
         })
         
         while True:
@@ -265,11 +270,13 @@ async def websocket_p2p_connection(websocket: WebSocket):
             if message_type == "ping":
                 # Handle ping for connection keepalive
                 if user_id in p2p_messaging_service.peers:
-                    p2p_messaging_service.peers[user_id].last_seen = datetime.now()
+                    p2p_messaging_service.peers[user_id].last_seen = from datetime import datetime
+datetime.now()
                 
                 await websocket.send_json({
                     "type": "pong",
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": from datetime import datetime
+datetime.now().isoformat()
                 })
                 
             elif message_type == "send_message":
@@ -297,14 +304,15 @@ async def websocket_p2p_connection(websocket: WebSocket):
                 await websocket.send_json({
                     "type": "status_update",
                     "status": status,
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": from datetime import datetime
+datetime.now().isoformat()
                 })
                 
             else:
                 logger.warning(f"Unknown P2P message type: {message_type}")
                 
     except WebSocketDisconnect:
-        logger.info(f"🔗 P2P WebSocket disconnected for user {user_id}")
+        logger.info(f" P2P WebSocket disconnected for user {user_id}")
     except Exception as e:
         logger.error(f"P2P WebSocket error for user {user_id}: {e}")
     finally:

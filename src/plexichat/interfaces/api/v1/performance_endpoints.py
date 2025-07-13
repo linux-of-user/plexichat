@@ -1,3 +1,17 @@
+import asyncio
+import json
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+
+from plexichat.core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin_auth, require_auth
+from plexichat.core.logging import get_logger
+from plexichat.infrastructure.services.performance_service import get_performance_service
+
 """
 PlexiChat Performance Monitoring API Endpoints
 
@@ -15,17 +29,6 @@ Features:
 - Health scoring
 - Trend analysis
 """
-
-import asyncio
-import json
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
-
-from plexichat.core.auth.dependencies import require_admin_auth, require_auth
-from plexichat.core.logging import get_logger
-from plexichat.infrastructure.services.performance_service import get_performance_service
 
 # Initialize router and logger
 router = APIRouter(prefix="/performance", tags=["Performance Monitoring"])
@@ -259,7 +262,7 @@ async def record_custom_metric(
 async def get_performance_alerts(
     active_only: bool = Query(True, description="Return only active alerts"),
     hours: int = Query(24, description="Hours of alert history", ge=1, le=168),
-    current_user: dict = Depends(require_admin_auth)
+    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get performance alerts."""
     try:

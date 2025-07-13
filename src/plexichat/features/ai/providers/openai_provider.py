@@ -1,22 +1,23 @@
+import logging
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+    import openai
+    from openai import AsyncOpenAI
+from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
+
+
 """
 OpenAI Provider for PlexiChat AI Abstraction Layer
 Enhanced OpenAI integration with advanced features and error handling.
 """
 
-import logging
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
 try:
-    import openai
-    from openai import AsyncOpenAI
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
     openai = None
     AsyncOpenAI = None
-
-from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig, ProviderStatus
 
 logger = logging.getLogger(__name__)
 

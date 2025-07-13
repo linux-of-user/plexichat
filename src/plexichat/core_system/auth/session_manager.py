@@ -1,14 +1,15 @@
-"""
-PlexiChat Session Manager
-
-Comprehensive session management with security levels and device tracking.
-"""
-
 import logging
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
+
+
+"""
+PlexiChat Session Manager
+
+Comprehensive session management with security levels and device tracking.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class SessionManager:
         """Initialize session manager."""
         self.config = config
         self.initialized = True
-        logger.info("✅ Session Manager initialized")
+        logger.info(" Session Manager initialized")
     
     async def create_session(self, user_id: str, device_info: Optional[Dict[str, Any]] = None,
                            security_level: str = "GOVERNMENT", risk_score: float = 0.0) -> str:
@@ -83,7 +84,7 @@ class SessionManager:
     
     async def shutdown(self):
         """Shutdown session manager."""
-        logger.info("✅ Session Manager shutdown complete")
+        logger.info(" Session Manager shutdown complete")
 
 
 # Global instance

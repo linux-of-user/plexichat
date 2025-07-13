@@ -1,3 +1,13 @@
+import hashlib
+import logging
+import re
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
 """
 PlexiChat Message Antivirus Scanner
 
@@ -8,15 +18,6 @@ Specialized antivirus scanner for message content with:
 - Suspicious content analysis
 - Integration with threat intelligence
 """
-
-import hashlib
-import logging
-import re
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,8 @@ class MessageAntivirusScanner:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.scanner_dir = self.data_dir / "message_scanner"
         self.scanner_dir.mkdir(parents=True, exist_ok=True)
         
@@ -83,7 +85,7 @@ class MessageAntivirusScanner:
             "scan_time_total": 0
         }
         
-        logger.info("🔍 Message Antivirus Scanner initialized")
+        logger.info(" Message Antivirus Scanner initialized")
     
     def _initialize_threat_patterns(self):
         """Initialize threat detection patterns."""

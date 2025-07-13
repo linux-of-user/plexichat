@@ -1,14 +1,15 @@
-"""
-PlexiChat Version Management System
-Provides centralized version tracking and management.
-"""
-
 import json
 import logging
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+
+"""
+PlexiChat Version Management System
+Provides centralized version tracking and management.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,8 @@ class VersionManager:
     """Centralized version management system."""
     
     def __init__(self, version_file: str = "version.json"):
-        self.version_file = Path(version_file)
+        self.version_file = from pathlib import Path
+Path(version_file)
         self.current_version: Optional[Version] = None
         self._load_version()
     

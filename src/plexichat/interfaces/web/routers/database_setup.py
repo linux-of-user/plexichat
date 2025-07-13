@@ -1,24 +1,29 @@
+import logging
+from typing import Optional
+
+
+
+
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPBearer
+from pydantic import BaseModel
+        from sqlalchemy import create_engine
+
+from plexichat.core.database_setup_wizard import database_wizard
+from plexichat.core.external_database import (
+from plexichat.infrastructure.utils.auth import verify_admin_token
+        from plexichat.core.external_database import ExternalDatabaseManager
+
 """
 PlexiChat Database Setup API
 Comprehensive database configuration and setup endpoints.
 """
 
-import logging
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel
-
-from plexichat.core.database_setup_wizard import database_wizard
-from plexichat.core.external_database import (
     DatabaseEngine,
     DatabaseProvider,
     ExternalDatabaseConfig,
     external_db_manager,
 )
-from plexichat.infrastructure.utils.auth import verify_admin_token
-
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/database/setup", tags=["database-setup"])
 security = HTTPBearer()
@@ -186,7 +191,8 @@ async def set_advanced_settings(
     request: AdvancedSettingsRequest,
     token: str = Depends(security)
 ):
-    """Set advanced database settings."""
+    """Set advanced database from plexichat.core.config import settings
+settings."""
     verify_admin_token(token.credentials)
     
     try:
@@ -497,11 +503,9 @@ async def test_external_database(
         )
 
         # Create temporary manager for testing
-        from plexichat.core.external_database import ExternalDatabaseManager
         temp_manager = ExternalDatabaseManager()
         temp_manager.config = config
 
-        from sqlalchemy import create_engine
         temp_manager.engine = create_engine(config.get_connection_string())
 
         result = await temp_manager._test_external_connection()

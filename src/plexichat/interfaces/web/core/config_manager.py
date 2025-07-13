@@ -1,10 +1,3 @@
-"""
-PlexiChat WebUI Configuration Manager
-
-Enhanced configuration system for WebUI with configurable ports,
-distributed authentication storage, and advanced security features.
-"""
-
 import json
 import logging
 import os
@@ -15,6 +8,14 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 from cryptography.fernet import Fernet
+
+
+"""
+PlexiChat WebUI Configuration Manager
+
+Enhanced configuration system for WebUI with configurable ports,
+distributed authentication storage, and advanced security features.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +107,8 @@ class WebUIConfigManager:
     """Enhanced WebUI configuration manager."""
     
     def __init__(self, config_dir: str = "config"):
-        self.config_dir = Path(config_dir)
+        self.config_dir = from pathlib import Path
+Path(config_dir)
         self.config_dir.mkdir(exist_ok=True)
         
         self.config_file = self.config_dir / "webui_config.yaml"
@@ -212,7 +214,8 @@ class WebUIConfigManager:
             # Prepare main configuration data
             config_data = {
                 'version': '1.0.0',
-                'last_updated': datetime.utcnow().isoformat(),
+                'last_updated': from datetime import datetime
+datetime.utcnow().isoformat(),
                 'ports': asdict(self.port_config),
                 'mfa': asdict(self.mfa_config),
                 'auth_storage': asdict(self.auth_storage_config),
@@ -227,7 +230,8 @@ class WebUIConfigManager:
             # Save authentication configuration (encrypted)
             auth_data = {
                 'version': '1.0.0',
-                'last_updated': datetime.utcnow().isoformat(),
+                'last_updated': from datetime import datetime
+datetime.utcnow().isoformat(),
                 'storage_config': asdict(self.auth_storage_config)
             }
             

@@ -1,22 +1,3 @@
-"""
-PlexiChat Advanced Update System
-
-Revolutionary update system with government-level security and reliability:
-- Atomic updates with complete rollback capability
-- Decentralized P2P update distribution
-- Live patching and hot swapping
-- Staged rollouts with canary deployments
-- Cryptographically signed updates with multi-key verification
-- Zero-downtime updates for critical systems
-- In-place upgrades and downgrades
-- Configuration migration
-- Database schema updates
-- Dependency management
-- Clustering integration
-- Comprehensive rollback capabilities
-- Changelog integration
-"""
-
 import asyncio
 import hashlib
 import logging
@@ -35,6 +16,34 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 from .changelog_manager import ChangelogManager, ChangeType
 from .version_manager import Version, VersionType, version_manager
+
+                from pathlib import Path
+            from ...clustering.core.cluster_manager import AdvancedClusterManager
+            from ...config.config_migration import ConfigMigrationManager
+            
+            from ...database.migrations import MigrationManager
+            
+            from ...database.migrations import MigrationManager
+
+
+"""
+PlexiChat Advanced Update System
+
+Revolutionary update system with government-level security and reliability:
+- Atomic updates with complete rollback capability
+- Decentralized P2P update distribution
+- Live patching and hot swapping
+- Staged rollouts with canary deployments
+- Cryptographically signed updates with multi-key verification
+- Zero-downtime updates for critical systems
+- In-place upgrades and downgrades
+- Configuration migration
+- Database schema updates
+- Dependency management
+- Clustering integration
+- Comprehensive rollback capabilities
+- Changelog integration
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -350,7 +359,8 @@ class P2PUpdateDistributor:
             "p2p_percentage": 0.0
         }
 
-        start_time = datetime.now()
+        start_time = from datetime import datetime
+datetime.now()
 
         try:
             # Select best nodes for download
@@ -370,7 +380,8 @@ class P2PUpdateDistributor:
             # - Bandwidth optimization
 
             download_result["success"] = True
-            download_result["download_time"] = (datetime.now() - start_time).total_seconds()
+            download_result["download_time"] = (from datetime import datetime
+datetime.now() - start_time).total_seconds()
 
         except Exception as e:
             logger.error(f"P2P download failed: {e}")
@@ -388,14 +399,17 @@ class AtomicUpdateManager:
 
     def __init__(self):
         self.active_transactions: Dict[str, AtomicUpdateTransaction] = {}
-        self.transaction_log_path = Path("logs/atomic_updates.log")
-        self.checkpoint_dir = Path("data/update_checkpoints")
+        self.transaction_log_path = from pathlib import Path
+Path("logs/atomic_updates.log")
+        self.checkpoint_dir = from pathlib import Path
+Path("data/update_checkpoints")
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     def create_transaction(self, update_id: str) -> AtomicUpdateTransaction:
         """Create new atomic update transaction."""
         transaction = AtomicUpdateTransaction(
-            transaction_id=f"atomic_{update_id}_{int(datetime.now().timestamp())}",
+            transaction_id=f"atomic_{update_id}_{int(from datetime import datetime
+datetime.now().timestamp())}",
             state=AtomicUpdateState.PREPARING
         )
 
@@ -410,7 +424,8 @@ class AtomicUpdateManager:
         try:
             # Create backup before staging
             backup_path = None
-            if Path(target).exists():
+            if from pathlib import Path
+Path(target).exists():
                 backup_path = self._create_backup(target, transaction.transaction_id)
 
             # Stage the operation
@@ -481,8 +496,10 @@ class AtomicUpdateManager:
 
     def _create_backup(self, file_path: str, transaction_id: str) -> str:
         """Create backup of file for rollback."""
-        source_path = Path(file_path)
-        backup_dir = Path(f"backups/atomic/{transaction_id}")
+        source_path = from pathlib import Path
+Path(file_path)
+        backup_dir = from pathlib import Path
+Path(f"backups/atomic/{transaction_id}")
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         backup_path = backup_dir / source_path.name
@@ -492,7 +509,8 @@ class AtomicUpdateManager:
 
     def _create_system_checkpoint(self, transaction_id: str) -> str:
         """Create system checkpoint for rollback."""
-        checkpoint_id = f"checkpoint_{transaction_id}_{int(datetime.now().timestamp())}"
+        checkpoint_id = f"checkpoint_{transaction_id}_{int(from datetime import datetime
+datetime.now().timestamp())}"
         checkpoint_path = self.checkpoint_dir / checkpoint_id
 
         # Create comprehensive system snapshot
@@ -523,9 +541,10 @@ class AtomicUpdateManager:
             if op_type == "copy":
                 shutil.copy2(operation["source"], operation["target"])
             elif op_type == "delete":
-                Path(operation["target"]).unlink(missing_ok=True)
+Path(operation["target"]).unlink(missing_ok=True)
             elif op_type == "restore":
-                if operation["source"] and Path(operation["source"]).exists():
+                if operation["source"] and from pathlib import Path
+Path(operation["source"]).exists():
                     shutil.copy2(operation["source"], operation["target"])
             elif op_type == "custom_rollback":
                 # Handle custom rollback operations
@@ -554,10 +573,14 @@ class UpdateSystem:
                  config_dir: Path = None,
                  data_dir: Path = None):
         """Initialize enhanced update system with atomic operations and P2P distribution."""
-        self.backup_dir = backup_dir or Path("backups/updates")
-        self.config_dir = config_dir or Path("config")
-        self.data_dir = data_dir or Path("data")
-        self.update_cache_dir = Path("cache/updates")
+        self.backup_dir = backup_dir or from pathlib import Path
+Path("backups/updates")
+        self.config_dir = config_dir or from pathlib import Path
+Path("config")
+        self.data_dir = data_dir or from pathlib import Path
+Path("data")
+        self.update_cache_dir = from pathlib import Path
+Path("cache/updates")
 
         # Ensure directories exist
         for directory in [self.backup_dir, self.update_cache_dir]:
@@ -594,7 +617,6 @@ class UpdateSystem:
     def _initialize_cluster_integration(self):
         """Initialize cluster integration if available."""
         try:
-            from ...clustering.core.cluster_manager import AdvancedClusterManager
             self.cluster_manager = AdvancedClusterManager()
         except ImportError:
             logger.info("Cluster manager not available, running in standalone mode")
@@ -655,7 +677,8 @@ class UpdateSystem:
     async def create_update_plan(self, target_version: Version, update_type: UpdateType = UpdateType.UPGRADE) -> UpdatePlan:
         """Create update execution plan."""
         current_version = self.version_manager.get_current_version()
-        update_id = f"update_{current_version}_{target_version}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        update_id = f"update_{current_version}_{target_version}_{from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
         plan = UpdatePlan(
             update_id=update_id,
@@ -906,7 +929,8 @@ class UpdateSystem:
             dirs_to_backup = [
                 ("config", self.config_dir),
                 ("data", self.data_dir),
-                ("src", Path("src"))
+                ("src", from pathlib import Path
+Path("src"))
             ]
             
             for name, source_dir in dirs_to_backup:
@@ -931,7 +955,8 @@ class UpdateSystem:
                 return True
             
             # Update requirements.txt if needed
-            requirements_file = Path("requirements.txt")
+            requirements_file = from pathlib import Path
+Path("requirements.txt")
             if requirements_file.exists():
                 result.add_log("Updating Python dependencies")
                 
@@ -962,8 +987,6 @@ class UpdateSystem:
         """Migrate configuration files."""
         try:
             # Import config migration system
-            from ...config.config_migration import ConfigMigrationManager
-            
             migration_manager = ConfigMigrationManager(self.config_dir)
             success = await migration_manager.migrate_to_version(str(plan.to_version))
             
@@ -982,8 +1005,6 @@ class UpdateSystem:
         """Migrate database schema."""
         try:
             # Import database migration system
-            from ...database.migrations import MigrationManager
-            
             migration_manager = MigrationManager()
             target_version = self.version_manager.get_version_info(plan.to_version)
             
@@ -1091,7 +1112,8 @@ class UpdateSystem:
             logger.info("Reinstalling dependencies...")
 
             # Reinstall Python dependencies
-            requirements_file = Path("requirements.txt")
+            requirements_file = from pathlib import Path
+Path("requirements.txt")
             if requirements_file.exists():
                 cmd = [sys.executable, "-m", "pip", "install", "-r", str(requirements_file), "--force-reinstall"]
                 process = await asyncio.create_subprocess_exec(
@@ -1146,8 +1168,6 @@ class UpdateSystem:
     async def upgrade_database_only(self, target_version: str = None) -> bool:
         """Upgrade database schema only."""
         try:
-            from ...database.migrations import MigrationManager
-
             migration_manager = MigrationManager()
             success = await migration_manager.migrate_up(target_version)
 
@@ -1173,7 +1193,8 @@ class UpdateSystem:
 
     async def _load_verification_keys(self):
         """Load cryptographic verification keys."""
-        keys_dir = Path("config/update_keys")
+        keys_dir = from pathlib import Path
+Path("config/update_keys")
         if keys_dir.exists():
             for key_file in keys_dir.glob("*.pem"):
                 try:

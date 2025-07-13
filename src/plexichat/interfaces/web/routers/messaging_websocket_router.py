@@ -1,19 +1,22 @@
-"""
-Messaging WebSocket Router
-FastAPI router for real-time messaging WebSocket endpoints.
-"""
-
 import json
 import logging
 from datetime import datetime
 from typing import Optional
 
+
+
+
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import JSONResponse
 
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import get_current_user_from_token
+from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user_from_token
 from plexichat.websockets.messaging_websocket import messaging_websocket_manager
+
+"""
+Messaging WebSocket Router
+FastAPI router for real-time messaging WebSocket endpoints.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +37,7 @@ async def get_websocket_user(websocket: WebSocket, token: Optional[str] = None) 
             return None
         
         # Validate token and get user
-        user = await get_current_user_from_token(token)
+        user = await from plexichat.infrastructure.utils.auth import get_current_user_from_token(token)
         if not user:
             await websocket.close(code=4001, reason="Invalid authentication token")
             return None
@@ -96,7 +99,7 @@ async def messaging_websocket(websocket: WebSocket):
                 # Send error to client but continue connection
                 try:
                     await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
-                except:
+                except Exception:
                     break  # Connection is broken
     
     except WebSocketDisconnect:
@@ -139,7 +142,7 @@ async def channel_messaging_websocket(websocket: WebSocket, channel_id: int):
                 logger.error(f"Error handling channel WebSocket message for user {user.id}: {e}")
                 try:
                     await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
-                except:
+                except Exception:
                     break
     
     except WebSocketDisconnect:
@@ -181,7 +184,7 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
                 logger.error(f"Error handling guild WebSocket message for user {user.id}: {e}")
                 try:
                     await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
-                except:
+                except Exception:
                     break
     
     except WebSocketDisconnect:
@@ -193,7 +196,8 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
 
 
 @router.get("/messaging/stats")
-async def get_messaging_stats(current_user: User = Depends(get_current_user_from_token)):
+async def get_messaging_stats(current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user_from_token)):
     """
     Get real-time messaging statistics.
     Requires admin access.
@@ -224,7 +228,8 @@ async def broadcast_admin_message(
     message: str,
     channel_id: Optional[int] = None,
     guild_id: Optional[int] = None,
-    current_user: User = Depends(get_current_user_from_token)
+    current_user: from plexichat.features.users.user import User
+User = Depends(from plexichat.infrastructure.utils.auth import get_current_user_from_token)
 ):
     """
     Broadcast an admin message to all connected users or specific channel/guild.
@@ -243,7 +248,8 @@ async def broadcast_admin_message(
             'data': {
                 'message': message,
                 'sender': current_user.username,
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': from datetime import datetime
+datetime.utcnow().isoformat(),
                 'channel_id': channel_id,
                 'guild_id': guild_id
             }
@@ -267,7 +273,7 @@ async def broadcast_admin_message(
             try:
                 await websocket.send_text(json.dumps(admin_message))
                 sent_count += 1
-            except:
+            except Exception:
                 pass  # Skip failed connections
         
         return JSONResponse(content={
@@ -299,7 +305,8 @@ async def websocket_health_check():
             "service": "WebSocket Messaging",
             "connections": stats.get('total_connections', 0),
             "active_users": stats.get('active_users', 0),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
         })
         
     except Exception as e:
@@ -310,6 +317,7 @@ async def websocket_health_check():
                 "status": "unhealthy",
                 "service": "WebSocket Messaging",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": from datetime import datetime
+datetime.utcnow().isoformat()
             }
         )

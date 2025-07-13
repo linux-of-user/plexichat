@@ -1,10 +1,3 @@
-"""
-PlexiChat Token Manager
-
-Comprehensive JWT token management with security features including
-token rotation, blacklisting, and quantum-resistant algorithms.
-"""
-
 import asyncio
 import hashlib
 import logging
@@ -14,9 +7,19 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import jwt
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+
+
+import jwt
+            import jwt
+
+"""
+PlexiChat Token Manager
+
+Comprehensive JWT token management with security features including
+token rotation, blacklisting, and quantum-resistant algorithms.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -131,10 +134,10 @@ class TokenManager:
                 self.cleanup_task = asyncio.create_task(self._cleanup_loop())
             
             self.initialized = True
-            logger.info("✅ Token Manager initialized")
+            logger.info(" Token Manager initialized")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Token Manager: {e}")
+            logger.error(f" Failed to initialize Token Manager: {e}")
             raise
     
     async def create_access_token(self, user_id: str, session_id: str, 
@@ -196,11 +199,11 @@ class TokenManager:
             # Store token data
             self.active_tokens[token_id] = token_data
             
-            logger.debug(f"🎫 Access token created for user {user_id}")
+            logger.debug(f" Access token created for user {user_id}")
             return token
             
         except Exception as e:
-            logger.error(f"❌ Failed to create access token: {e}")
+            logger.error(f" Failed to create access token: {e}")
             raise
     
     async def create_refresh_token(self, user_id: str, session_id: str,
@@ -259,18 +262,19 @@ class TokenManager:
                 self.token_families[family_id] = []
             self.token_families[family_id].append(token_id)
             
-            logger.debug(f"🔄 Refresh token created for user {user_id}")
+            logger.debug(f" Refresh token created for user {user_id}")
             return token
             
         except Exception as e:
-            logger.error(f"❌ Failed to create refresh token: {e}")
+            logger.error(f" Failed to create refresh token: {e}")
             raise
     
     async def validate_token(self, token: str) -> TokenValidationResult:
         """Validate a JWT token."""
         try:
             # Decode token without verification first to get token ID
-            unverified_payload = jwt.decode(token, options={"verify_signature": False})
+            unverified_payload = import jwt
+jwt.decode(token, options={"verify_signature": False})
             token_id = unverified_payload.get("jti")
             
             # Check if token is blacklisted
@@ -282,7 +286,7 @@ class TokenManager:
                 )
             
             # Verify and decode token
-            jwt.decode(
+jwt.decode(
                 token,
                 self.public_key,
                 algorithms=[self.algorithm],
@@ -331,7 +335,7 @@ class TokenManager:
                 error_message=f"Invalid token: {str(e)}"
             )
         except Exception as e:
-            logger.error(f"❌ Token validation error: {e}")
+            logger.error(f" Token validation error: {e}")
             return TokenValidationResult(
                 valid=False,
                 status=TokenStatus.INVALID,
@@ -383,14 +387,15 @@ class TokenManager:
             }
             
         except Exception as e:
-            logger.error(f"❌ Token refresh error: {e}")
+            logger.error(f" Token refresh error: {e}")
             raise
     
     async def blacklist_token(self, token: str):
         """Add token to blacklist."""
         try:
             # Decode token to get token ID
-            unverified_payload = jwt.decode(token, options={"verify_signature": False})
+            unverified_payload = import jwt
+jwt.decode(token, options={"verify_signature": False})
             token_id = unverified_payload.get("jti")
             
             if token_id:
@@ -400,10 +405,10 @@ class TokenManager:
                 if token_id in self.active_tokens:
                     del self.active_tokens[token_id]
                 
-                logger.debug(f"🚫 Token blacklisted: {token_id}")
+                logger.debug(f" Token blacklisted: {token_id}")
             
         except Exception as e:
-            logger.error(f"❌ Failed to blacklist token: {e}")
+            logger.error(f" Failed to blacklist token: {e}")
     
     async def revoke_user_tokens(self, user_id: str):
         """Revoke all tokens for a user."""
@@ -418,10 +423,10 @@ class TokenManager:
                 self.blacklisted_tokens.add(token_id)
                 del self.active_tokens[token_id]
             
-            logger.info(f"🚫 Revoked {len(tokens_to_revoke)} tokens for user {user_id}")
+            logger.info(f" Revoked {len(tokens_to_revoke)} tokens for user {user_id}")
             
         except Exception as e:
-            logger.error(f"❌ Failed to revoke user tokens: {e}")
+            logger.error(f" Failed to revoke user tokens: {e}")
     
     async def revoke_session_tokens(self, session_id: str):
         """Revoke all tokens for a session."""
@@ -436,10 +441,10 @@ class TokenManager:
                 self.blacklisted_tokens.add(token_id)
                 del self.active_tokens[token_id]
             
-            logger.info(f"🚫 Revoked {len(tokens_to_revoke)} tokens for session {session_id}")
+            logger.info(f" Revoked {len(tokens_to_revoke)} tokens for session {session_id}")
             
         except Exception as e:
-            logger.error(f"❌ Failed to revoke session tokens: {e}")
+            logger.error(f" Failed to revoke session tokens: {e}")
     
     async def get_token_expiry(self, token: str) -> Optional[datetime]:
         """Get token expiry time."""
@@ -450,7 +455,7 @@ class TokenManager:
             return None
             
         except Exception as e:
-            logger.error(f"❌ Failed to get token expiry: {e}")
+            logger.error(f" Failed to get token expiry: {e}")
             return None
     
     async def introspect_token(self, token: str) -> Dict[str, Any]:
@@ -482,7 +487,7 @@ class TokenManager:
             }
             
         except Exception as e:
-            logger.error(f"❌ Token introspection error: {e}")
+            logger.error(f" Token introspection error: {e}")
             return {"active": False, "error": "Introspection failed"}
     
     async def shutdown(self):
@@ -496,10 +501,10 @@ class TokenManager:
                 except asyncio.CancelledError:
                     pass
             
-            logger.info("✅ Token Manager shutdown complete")
+            logger.info(" Token Manager shutdown complete")
             
         except Exception as e:
-            logger.error(f"❌ Error during Token Manager shutdown: {e}")
+            logger.error(f" Error during Token Manager shutdown: {e}")
     
     # Private helper methods
     async def _initialize_keys(self):
@@ -525,10 +530,10 @@ class TokenManager:
             # Generate key ID
             self.key_id = hashlib.sha256(self.public_key).hexdigest()[:16]
             
-            logger.info(f"🔑 JWT keys initialized (Key ID: {self.key_id})")
+            logger.info(f" JWT keys initialized (Key ID: {self.key_id})")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize keys: {e}")
+            logger.error(f" Failed to initialize keys: {e}")
             raise
     
     async def _cleanup_loop(self):
@@ -540,7 +545,7 @@ class TokenManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Token cleanup error: {e}")
+                logger.error(f" Token cleanup error: {e}")
                 await asyncio.sleep(self.cleanup_interval)
     
     async def _cleanup_expired_tokens(self):
@@ -558,10 +563,10 @@ class TokenManager:
                 self.blacklisted_tokens.discard(token_id)
             
             if expired_tokens:
-                logger.debug(f"🧹 Cleaned up {len(expired_tokens)} expired tokens")
+                logger.debug(f" Cleaned up {len(expired_tokens)} expired tokens")
             
         except Exception as e:
-            logger.error(f"❌ Token cleanup error: {e}")
+            logger.error(f" Token cleanup error: {e}")
 
 
 # Global instance

@@ -1,23 +1,3 @@
-"""
-PlexiChat Unified Plugin Manager - SINGLE SOURCE OF TRUTH
-
-CONSOLIDATED from multiple plugin management systems:
-- infrastructure/modules/loader.py - REMOVED
-- features/plugins/plugin_manager.py - REMOVED
-- features/plugins/advanced_plugin_system.py - REMOVED
-- features/plugins/enhanced_plugin_manager.py - REMOVED
-
-Features:
-- Dynamic module loading with error isolation
-- Plugin discovery and lifecycle management
-- Security scanning and validation
-- Hot-reloading and dependency management
-- Plugin marketplace integration
-- Comprehensive plugin interfaces with strict contracts
-- Advanced sandboxing and isolation
-- Contract validation and compliance checking
-"""
-
 import asyncio
 import importlib
 import importlib.util
@@ -39,13 +19,41 @@ from ...features.ai.phase3_integration import phase3_ai
 from ...features.security.phase1_integration import phase1_security
 from ...infrastructure.scalability.phase2_integration import phase2_scalability
 
-# Import system coordinators for plugin access
 from ...integration.master_coordinator import master_coordinator
 from .config_manager import get_plugin_config_manager
 from .contracts import get_contract_validator
 from .interfaces import BaseModule, ModuleCapability, ModulePermissions, ModuleState
 from .isolation import IsolationConfig, get_isolation_manager
 
+            from pathlib import Path
+            from pathlib import Path
+            from pathlib import Path
+            from pathlib import Path
+            from watchdog.events import FileSystemEventHandler
+            from watchdog.observers import Observer
+
+
+"""
+PlexiChat Unified Plugin Manager - SINGLE SOURCE OF TRUTH
+
+CONSOLIDATED from multiple plugin management systems:
+- infrastructure/modules/loader.py - REMOVED
+- features/plugins/plugin_manager.py - REMOVED
+- features/plugins/advanced_plugin_system.py - REMOVED
+- features/plugins/enhanced_plugin_manager.py - REMOVED
+
+Features:
+- Dynamic module loading with error isolation
+- Plugin discovery and lifecycle management
+- Security scanning and validation
+- Hot-reloading and dependency management
+- Plugin marketplace integration
+- Comprehensive plugin interfaces with strict contracts
+- Advanced sandboxing and isolation
+- Contract validation and compliance checking
+"""
+
+# Import system coordinators for plugin access
 logger = get_logger(__name__)
 
 
@@ -310,16 +318,17 @@ class UnifiedPluginManager:
         
         # Plugin directories
         self.plugin_paths: List[Path] = [
-            Path("plugins"),
-            Path("src/plexichat/features/plugins"),
-            Path("user_plugins"),
-            Path("system_plugins")
+Path("plugins"),
+Path("src/plexichat/features/plugins"),
+Path("user_plugins"),
+Path("system_plugins")
         ]
         
         # Add custom paths from config
         custom_paths = self.config.get("plugin_paths", [])
         for path in custom_paths:
-            self.plugin_paths.append(Path(path))
+            self.plugin_paths.append(from pathlib import Path
+Path(path))
         
         # Event hooks
         self.hooks: Dict[str, List[Callable]] = {
@@ -391,11 +400,11 @@ class UnifiedPluginManager:
                 asyncio.create_task(self._hot_reload_monitor())
 
             self.initialized = True
-            logger.info("✅ Unified Plugin Manager initialized successfully")
+            logger.info(" Unified Plugin Manager initialized successfully")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Plugin Manager initialization failed: {e}")
+            logger.error(f" Plugin Manager initialization failed: {e}")
             return False
     
     async def discover_plugins(self) -> List[str]:
@@ -443,7 +452,7 @@ class UnifiedPluginManager:
             # Execute discovery hooks
             self._execute_hooks('on_discovery', discovered)
         
-        logger.info(f"🔍 Discovered {len(discovered)} plugins")
+        logger.info(f" Discovered {len(discovered)} plugins")
         return discovered
     
     async def _load_plugin_metadata(self, plugin_name: str, manifest_file: Path):
@@ -498,7 +507,8 @@ class UnifiedPluginManager:
                 return False
 
             try:
-                start_time = datetime.now()
+                start_time = from datetime import datetime
+datetime.now()
                 module_info.status = ModuleStatus.LOADING
 
                 # Execute before_load hooks
@@ -549,14 +559,15 @@ class UnifiedPluginManager:
                 self.loaded_plugins[plugin_name] = plugin_instance
 
                 # Update statistics
-                load_duration = (datetime.now() - start_time).total_seconds()
+                load_duration = (from datetime import datetime
+datetime.now() - start_time).total_seconds()
                 self.stats["total_loaded"] += 1
                 self.stats["load_time_total"] += load_duration
 
                 # Execute after_load hooks
                 self._execute_hooks('after_load', plugin_name)
 
-                logger.info(f"✅ Loaded plugin: {plugin_name} ({load_duration:.2f}s, compliance: {validation_result.score:.1f}%)")
+                logger.info(f" Loaded plugin: {plugin_name} ({load_duration:.2f}s, compliance: {validation_result.score:.1f}%)")
                 return True
 
             except Exception as e:
@@ -748,7 +759,7 @@ class UnifiedPluginManager:
                 # Execute after_unload hooks
                 self._execute_hooks('after_unload', plugin_name)
 
-                logger.info(f"✅ Unloaded plugin: {plugin_name}")
+                logger.info(f" Unloaded plugin: {plugin_name}")
                 return True
 
             except Exception as e:
@@ -776,7 +787,7 @@ class UnifiedPluginManager:
         loaded_count = sum(results.values())
         total_count = len([m for m in self.modules.values() if m.metadata and m.metadata.enabled])
 
-        logger.info(f"🔌 Loaded {loaded_count}/{total_count} enabled plugins")
+        logger.info(f" Loaded {loaded_count}/{total_count} enabled plugins")
         return results
 
     def _execute_hooks(self, event: str, plugin_name: str, **kwargs):
@@ -874,7 +885,7 @@ class UnifiedPluginManager:
 
                 if success:
                     module_info.status = ModuleStatus.LOADED
-                    logger.info(f"✅ Plugin loaded with isolation: {plugin_name}")
+                    logger.info(f" Plugin loaded with isolation: {plugin_name}")
                 else:
                     module_info.status = ModuleStatus.FAILED
                     self.stats["total_failed"] += 1
@@ -932,9 +943,9 @@ class UnifiedPluginManager:
 
                 if success:
                     self.stats["total_hot_reloaded"] += 1
-                    logger.info(f"✅ Plugin hot-reloaded successfully: {plugin_name}")
+                    logger.info(f" Plugin hot-reloaded successfully: {plugin_name}")
                 else:
-                    logger.error(f"❌ Plugin hot-reload failed: {plugin_name}")
+                    logger.error(f" Plugin hot-reload failed: {plugin_name}")
 
                 return success
 
@@ -945,9 +956,6 @@ class UnifiedPluginManager:
     async def _hot_reload_monitor(self):
         """Monitor plugin files for changes and trigger hot-reload."""
         try:
-            from watchdog.events import FileSystemEventHandler
-            from watchdog.observers import Observer
-
             class PluginFileHandler(FileSystemEventHandler):
                 def __init__(self, plugin_manager):
                     self.plugin_manager = plugin_manager
@@ -957,7 +965,8 @@ class UnifiedPluginManager:
                         return
 
                     # Check if it's a Python file in a plugin directory
-                    file_path = Path(event.src_path)
+                    file_path = from pathlib import Path
+Path(event.src_path)
                     if file_path.suffix == '.py':
                         # Find which plugin this file belongs to
                         for plugin_name, module_info in self.plugin_manager.modules.items():

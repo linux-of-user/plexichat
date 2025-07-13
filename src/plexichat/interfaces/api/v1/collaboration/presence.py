@@ -1,19 +1,22 @@
-"""
-Presence and activity tracking endpoints.
-Handles user presence, typing indicators, and activity status.
-"""
-
 import json
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+
+from ....core.logging import get_logger
+from ....core.security.rate_limiting import rate_limiter
+
+
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field
 
-from ....core.auth.dependencies import get_current_user
-from ....core.logging import get_logger
-from ....core.security.rate_limiting import rate_limiter
+from ....core.auth.dependencies import from plexichat.infrastructure.utils.auth import get_current_user
+
+"""
+Presence and activity tracking endpoints.
+Handles user presence, typing indicators, and activity status.
+"""
 
 logger = get_logger(__name__)
 
@@ -75,7 +78,7 @@ websocket_connections: Dict[int, List[WebSocket]] = {}
 )
 async def update_presence(
     presence_data: PresenceUpdate,
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Update user presence status."""
     try:
@@ -132,7 +135,7 @@ async def update_presence(
 )
 async def get_presence(
     user_ids: Optional[str] = None,
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get presence information for specified users or all users."""
     try:
@@ -164,7 +167,7 @@ async def get_presence(
 )
 async def update_typing_indicator(
     typing_data: TypingIndicator,
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Update typing indicator."""
     try:
@@ -219,7 +222,7 @@ async def update_typing_indicator(
 )
 async def get_typing_indicators(
     context: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Get typing indicators for a specific context."""
     try:
@@ -309,7 +312,7 @@ async def broadcast_presence_update(presence: UserPresence):
         for websocket in connections[:]:  # Copy list to avoid modification during iteration
             try:
                 await websocket.send_text(json.dumps(message))
-            except:
+            except Exception:
                 # Remove dead connections
                 connections.remove(websocket)
 
@@ -331,5 +334,5 @@ async def broadcast_typing_update(context: str, user_id: int, is_typing: bool):
         for websocket in connections[:]:
             try:
                 await websocket.send_text(json.dumps(message))
-            except:
+            except Exception:
                 connections.remove(websocket)

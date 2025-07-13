@@ -1,10 +1,3 @@
-"""
-PlexiChat Core Error Manager
-
-Unified error management system that consolidates all error handling
-functionality into a single, comprehensive manager.
-"""
-
 import asyncio
 import logging
 import threading
@@ -18,20 +11,28 @@ from typing import Any, Callable, Dict, List, Optional, Type
 
 from .context import ErrorCategory, ErrorContext, ErrorSeverity
 
+    from .enhanced_error_handler import EnhancedErrorHandler
+    from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
+    from .crash_reporter import CrashReporter
+
+"""
+PlexiChat Core Error Manager
+
+Unified error management system that consolidates all error handling
+functionality into a single, comprehensive manager.
+"""
+
 # Import with error handling
 try:
-    from .enhanced_error_handler import EnhancedErrorHandler
 except ImportError:
     EnhancedErrorHandler = None
 
 try:
-    from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 except ImportError:
     CircuitBreaker = None
     CircuitBreakerConfig = None
 
 try:
-    from .crash_reporter import CrashReporter
 except ImportError:
     CrashReporter = None
 
@@ -148,10 +149,10 @@ class ErrorManager:
                 ])
             
             self.initialized = True
-            logger.info("✅ Error Manager initialized")
+            logger.info(" Error Manager initialized")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Error Manager: {e}")
+            logger.error(f" Failed to initialize Error Manager: {e}")
             raise
     
     def handle_error(self, exception: Exception, context: Optional[Dict[str, Any]] = None,
@@ -216,10 +217,10 @@ class ErrorManager:
             # Handle severity-specific actions
             self._handle_severity_actions(error_context)
             
-            logger.info(f"🔍 Error handled: {error_id} - {type(exception).__name__}")
+            logger.info(f" Error handled: {error_id} - {type(exception).__name__}")
             
         except Exception as handling_error:
-            logger.error(f"❌ Error in error handling: {handling_error}")
+            logger.error(f" Error in error handling: {handling_error}")
             # Fallback to basic error context
             error_context.additional_data["handling_error"] = str(handling_error)
         
@@ -251,11 +252,11 @@ class ErrorManager:
                 attempt_recovery=False
             )
             
-            logger.critical(f"💥 Crash reported: {crash_context.error_id}")
+            logger.critical(f" Crash reported: {crash_context.error_id}")
             return crash_context.error_id
             
         except Exception as e:
-            logger.error(f"❌ Failed to report crash: {e}")
+            logger.error(f" Failed to report crash: {e}")
             return str(uuid.uuid4())
     
     def create_circuit_breaker(self, name: str, config: Optional[Dict[str, Any]] = None) -> CircuitBreaker:
@@ -278,7 +279,7 @@ class ErrorManager:
             self.circuit_breakers[name] = circuit_breaker
             self.circuit_breaker_configs[name] = breaker_config
         
-        logger.info(f"🔌 Circuit breaker created: {name}")
+        logger.info(f" Circuit breaker created: {name}")
         return circuit_breaker
     
     def get_circuit_breaker(self, name: str) -> Optional[CircuitBreaker]:
@@ -290,14 +291,14 @@ class ErrorManager:
         with self.lock:
             self.recovery_strategies[exception_type] = strategy
         
-        logger.info(f"🔧 Recovery strategy registered for {exception_type.__name__}")
+        logger.info(f" Recovery strategy registered for {exception_type.__name__}")
     
     def register_error_callback(self, callback: Callable):
         """Register a callback to be called when errors occur."""
         with self.lock:
             self.error_callbacks.append(callback)
         
-        logger.info("📞 Error callback registered")
+        logger.info(" Error callback registered")
     
     def register_severity_handler(self, severity: ErrorSeverity, handler: Callable):
         """Register a handler for specific error severity."""
@@ -305,7 +306,7 @@ class ErrorManager:
             severity_key = severity.value if hasattr(severity, 'value') else str(severity)
             self.severity_handlers[severity_key].append(handler)
 
-        logger.info(f"⚠️ Severity handler registered for {severity_key}")
+        logger.info(f" Severity handler registered for {severity_key}")
     
     def get_error_metrics(self) -> ErrorMetrics:
         """Get current error metrics."""
@@ -360,10 +361,10 @@ class ErrorManager:
             if self.crash_reporter:
                 await self.crash_reporter.shutdown()
             
-            logger.info("✅ Error Manager shutdown complete")
+            logger.info(" Error Manager shutdown complete")
             
         except Exception as e:
-            logger.error(f"❌ Error during Error Manager shutdown: {e}")
+            logger.error(f" Error during Error Manager shutdown: {e}")
     
     def _load_default_circuit_breakers(self):
         """Load default circuit breaker configurations."""
@@ -404,7 +405,7 @@ class ErrorManager:
             try:
                 callback(error_context)
             except Exception as e:
-                logger.error(f"❌ Error callback failed: {e}")
+                logger.error(f" Error callback failed: {e}")
     
     def _handle_severity_actions(self, error_context: ErrorContext):
         """Handle severity-specific actions."""
@@ -414,7 +415,7 @@ class ErrorManager:
             try:
                 handler(error_context)
             except Exception as e:
-                logger.error(f"❌ Severity handler failed: {e}")
+                logger.error(f" Severity handler failed: {e}")
     
     async def _metrics_collection_loop(self):
         """Collect metrics periodically."""
@@ -425,7 +426,7 @@ class ErrorManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Metrics collection error: {e}")
+                logger.error(f" Metrics collection error: {e}")
                 await asyncio.sleep(60)
     
     async def _pattern_detection_loop(self):
@@ -437,7 +438,7 @@ class ErrorManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Pattern detection error: {e}")
+                logger.error(f" Pattern detection error: {e}")
                 await asyncio.sleep(300)
     
     async def _health_monitoring_loop(self):
@@ -449,7 +450,7 @@ class ErrorManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Health monitoring error: {e}")
+                logger.error(f" Health monitoring error: {e}")
                 await asyncio.sleep(30)
     
     async def _cleanup_loop(self):
@@ -461,7 +462,7 @@ class ErrorManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Cleanup error: {e}")
+                logger.error(f" Cleanup error: {e}")
                 await asyncio.sleep(3600)
     
     async def _collect_metrics(self):

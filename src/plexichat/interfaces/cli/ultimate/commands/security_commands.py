@@ -1,8 +1,3 @@
-"""
-PlexiChat Ultimate CLI - Security Commands
-Comprehensive security management and monitoring commands
-"""
-
 import asyncio
 import base64
 import hashlib
@@ -18,6 +13,13 @@ from rich.table import Table
 
 from ..cli_coordinator import CommandCategory, UltimateCommand, ultimate_cli
 
+            import string
+
+"""
+PlexiChat Ultimate CLI - Security Commands
+Comprehensive security management and monitoring commands
+"""
+
 logger = logging.getLogger(__name__)
 console = Console()
 
@@ -27,7 +29,7 @@ console = Console()
 async def cmd_security_scan(target: str = "all", deep: bool = False):
     """Perform comprehensive security scan."""
     try:
-        console.print("🔍 Starting security scan...")
+        console.print(" Starting security scan...")
         
         scan_targets = {
             "all": ["system", "network", "database", "files", "users", "permissions"],
@@ -40,14 +42,14 @@ async def cmd_security_scan(target: str = "all", deep: bool = False):
         }
         
         if target not in scan_targets:
-            console.print(f"[red]❌ Unknown scan target: {target}[/red]")
+            console.print(f"[red] Unknown scan target: {target}[/red]")
             console.print(f"Available targets: {', '.join(scan_targets.keys())}")
             return False
         
         targets = scan_targets[target]
         scan_type = "Deep" if deep else "Quick"
         
-        console.print(f"🎯 {scan_type} scan targeting: {', '.join(targets)}")
+        console.print(f" {scan_type} scan targeting: {', '.join(targets)}")
         
         results = []
         
@@ -85,7 +87,7 @@ async def cmd_security_scan(target: str = "all", deep: bool = False):
         
         # Display results
         if results:
-            table = Table(title="🔍 Security Scan Results")
+            table = Table(title=" Security Scan Results")
             table.add_column("Severity", style="white")
             table.add_column("Category", style="cyan")
             table.add_column("Issue", style="yellow")
@@ -95,12 +97,12 @@ async def cmd_security_scan(target: str = "all", deep: bool = False):
             for result in results:
                 severity = result["severity"]
                 severity_icon = {
-                    "critical": "🔴",
-                    "high": "🟠",
-                    "medium": "🟡",
-                    "low": "🟢",
-                    "info": "🔵"
-                }.get(severity, "❓")
+                    "critical": "",
+                    "high": "",
+                    "medium": "",
+                    "low": "",
+                    "info": ""
+                }.get(severity, "")
                 
                 table.add_row(
                     f"{severity_icon} {severity.upper()}",
@@ -117,28 +119,29 @@ async def cmd_security_scan(target: str = "all", deep: bool = False):
                 severity = result["severity"]
                 severity_counts[severity] = severity_counts.get(severity, 0) + 1
             
-            console.print(f"\n📊 Summary: {len(results)} issues found")
+            console.print(f"\n Summary: {len(results)} issues found")
             for severity, count in severity_counts.items():
                 console.print(f"  {severity}: {count}")
         else:
-            console.print("[green]✅ No security issues found[/green]")
+            console.print("[green] No security issues found[/green]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Security scan failed: {e}[/red]")
+        console.print(f"[red] Security scan failed: {e}[/red]")
         return False
 
 
 async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Optional[str] = None):
     """View and analyze audit logs."""
     try:
-        console.print(f"📋 Retrieving audit logs for the last {days} days...")
+        console.print(f" Retrieving audit logs for the last {days} days...")
         
         # Mock audit log entries
         audit_entries = [
             {
-                "timestamp": datetime.now() - timedelta(hours=2),
+                "timestamp": from datetime import datetime
+datetime.now() - timedelta(hours=2),
                 "user": "admin",
                 "action": "user_login",
                 "resource": "system",
@@ -147,7 +150,8 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
                 "details": "Admin login successful"
             },
             {
-                "timestamp": datetime.now() - timedelta(hours=4),
+                "timestamp": from datetime import datetime
+datetime.now() - timedelta(hours=4),
                 "user": "john_doe",
                 "action": "file_upload",
                 "resource": "channel_123",
@@ -156,7 +160,8 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
                 "details": "Uploaded document.pdf"
             },
             {
-                "timestamp": datetime.now() - timedelta(hours=6),
+                "timestamp": from datetime import datetime
+datetime.now() - timedelta(hours=6),
                 "user": "unknown",
                 "action": "failed_login",
                 "resource": "system",
@@ -165,7 +170,8 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
                 "details": "Invalid credentials"
             },
             {
-                "timestamp": datetime.now() - timedelta(days=1),
+                "timestamp": from datetime import datetime
+datetime.now() - timedelta(days=1),
                 "user": "admin",
                 "action": "config_change",
                 "resource": "security_settings",
@@ -187,7 +193,7 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
             return True
         
         # Display audit logs
-        table = Table(title="📋 Audit Log Entries")
+        table = Table(title=" Audit Log Entries")
         table.add_column("Timestamp", style="cyan")
         table.add_column("User", style="white")
         table.add_column("Action", style="yellow")
@@ -197,7 +203,7 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
         table.add_column("Details", style="white")
         
         for entry in filtered_entries:
-            status_icon = "✅" if entry["status"] == "success" else "❌"
+            status_icon = "" if entry["status"] == "success" else ""
             
             table.add_row(
                 entry["timestamp"].strftime("%Y-%m-%d %H:%M:%S"),
@@ -212,7 +218,7 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
         console.print(table)
         
         # Statistics
-        console.print("\n📊 Statistics:")
+        console.print("\n Statistics:")
         console.print(f"  Total entries: {len(filtered_entries)}")
         console.print(f"  Successful actions: {len([e for e in filtered_entries if e['status'] == 'success'])}")
         console.print(f"  Failed actions: {len([e for e in filtered_entries if e['status'] == 'failed'])}")
@@ -222,7 +228,7 @@ async def cmd_audit_logs(days: int = 7, user: Optional[str] = None, action: Opti
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to retrieve audit logs: {e}[/red]")
+        console.print(f"[red] Failed to retrieve audit logs: {e}[/red]")
         return False
 
 
@@ -230,7 +236,7 @@ async def cmd_permissions(user: Optional[str] = None, resource: Optional[str] = 
     """View and manage user permissions."""
     try:
         if user:
-            console.print(f"👤 Permissions for user: {user}")
+            console.print(f" Permissions for user: {user}")
             
             # Mock user permissions
             user_permissions = {
@@ -240,7 +246,7 @@ async def cmd_permissions(user: Optional[str] = None, resource: Optional[str] = 
                 "admin": ["read", "write", "delete"] if user == "admin" else []
             }
             
-            table = Table(title=f"👤 Permissions for {user}")
+            table = Table(title=f" Permissions for {user}")
             table.add_column("Resource", style="cyan")
             table.add_column("Permissions", style="green")
             
@@ -253,7 +259,7 @@ async def cmd_permissions(user: Optional[str] = None, resource: Optional[str] = 
             console.print(table)
             
         elif resource:
-            console.print(f"🔒 Permissions for resource: {resource}")
+            console.print(f" Permissions for resource: {resource}")
             
             # Mock resource permissions
             resource_permissions = [
@@ -264,7 +270,7 @@ async def cmd_permissions(user: Optional[str] = None, resource: Optional[str] = 
                 {"role": "users", "permissions": ["read"]}
             ]
             
-            table = Table(title=f"🔒 Permissions for {resource}")
+            table = Table(title=f" Permissions for {resource}")
             table.add_column("Principal", style="cyan")
             table.add_column("Type", style="yellow")
             table.add_column("Permissions", style="green")
@@ -278,7 +284,7 @@ async def cmd_permissions(user: Optional[str] = None, resource: Optional[str] = 
             console.print(table)
             
         else:
-            console.print("🔒 System Permissions Overview")
+            console.print(" System Permissions Overview")
             
             # Mock permission summary
             permission_summary = {
@@ -291,7 +297,7 @@ async def cmd_permissions(user: Optional[str] = None, resource: Optional[str] = 
                 "Last Policy Update": "2024-01-01 10:30:00"
             }
             
-            table = Table(title="🔒 Permission Summary")
+            table = Table(title=" Permission Summary")
             table.add_column("Metric", style="cyan")
             table.add_column("Value", style="white")
             
@@ -303,14 +309,14 @@ async def cmd_permissions(user: Optional[str] = None, resource: Optional[str] = 
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to retrieve permissions: {e}[/red]")
+        console.print(f"[red] Failed to retrieve permissions: {e}[/red]")
         return False
 
 
 async def cmd_generate_key(key_type: str = "api", length: int = 32):
     """Generate secure keys and tokens."""
     try:
-        console.print(f"🔑 Generating {key_type} key...")
+        console.print(f" Generating {key_type} key...")
         
         if key_type == "api":
             # Generate API key
@@ -318,7 +324,7 @@ async def cmd_generate_key(key_type: str = "api", length: int = 32):
             prefix = "plx_"
             full_key = f"{prefix}{key}"
             
-            console.print("🔑 Generated API Key:")
+            console.print(" Generated API Key:")
             console.print(f"  Key: [green]{full_key}[/green]")
             console.print(f"  Length: {len(full_key)} characters")
             console.print("  Type: API Key")
@@ -327,7 +333,7 @@ async def cmd_generate_key(key_type: str = "api", length: int = 32):
             # Generate session token
             token = secrets.token_hex(length)
             
-            console.print("🎫 Generated Session Token:")
+            console.print(" Generated Session Token:")
             console.print(f"  Token: [green]{token}[/green]")
             console.print(f"  Length: {len(token)} characters")
             console.print("  Type: Session Token")
@@ -337,33 +343,32 @@ async def cmd_generate_key(key_type: str = "api", length: int = 32):
             key = secrets.token_bytes(length)
             b64_key = base64.b64encode(key).decode()
             
-            console.print("🔐 Generated Encryption Key:")
+            console.print(" Generated Encryption Key:")
             console.print(f"  Key (Base64): [green]{b64_key}[/green]")
             console.print(f"  Length: {length} bytes ({len(b64_key)} base64 chars)")
             console.print("  Type: Encryption Key")
             
         elif key_type == "password":
             # Generate secure password
-            import string
             alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
             password = ''.join(secrets.choice(alphabet) for _ in range(length))
             
-            console.print("🔒 Generated Password:")
+            console.print(" Generated Password:")
             console.print(f"  Password: [green]{password}[/green]")
             console.print(f"  Length: {len(password)} characters")
             console.print("  Type: Secure Password")
             
         else:
-            console.print(f"[red]❌ Unknown key type: {key_type}[/red]")
+            console.print(f"[red] Unknown key type: {key_type}[/red]")
             console.print("Available types: api, session, encryption, password")
             return False
         
-        console.print("\n⚠️ [yellow]Store this key securely - it cannot be recovered![/yellow]")
+        console.print("\n [yellow]Store this key securely - it cannot be recovered![/yellow]")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Key generation failed: {e}[/red]")
+        console.print(f"[red] Key generation failed: {e}[/red]")
         return False
 
 
@@ -374,17 +379,17 @@ async def cmd_hash_password(password: Optional[str] = None):
             password = Prompt.ask("Enter password to hash", password=True)
         
         if not password:
-            console.print("[red]❌ Password cannot be empty[/red]")
+            console.print("[red] Password cannot be empty[/red]")
             return False
         
-        console.print("🔐 Hashing password...")
+        console.print(" Hashing password...")
         
         # Generate salt and hash
         salt = secrets.token_hex(16)
         password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
         hash_b64 = base64.b64encode(password_hash).decode()
         
-        console.print("✅ Password hashed successfully:")
+        console.print(" Password hashed successfully:")
         console.print(f"  Salt: [cyan]{salt}[/cyan]")
         console.print(f"  Hash: [green]{hash_b64}[/green]")
         console.print("  Algorithm: PBKDF2-SHA256")
@@ -422,24 +427,24 @@ async def cmd_hash_password(password: Optional[str] = None):
         strength_levels = ["Very Weak", "Weak", "Fair", "Good", "Strong"]
         strength = strength_levels[min(strength_score, 4)]
         
-        console.print(f"\n🎯 Password Strength: [{'green' if strength_score >= 4 else 'yellow' if strength_score >= 3 else 'red'}]{strength}[/]")
+        console.print(f"\n Password Strength: [{'green' if strength_score >= 4 else 'yellow' if strength_score >= 3 else 'red'}]{strength}[/]")
         
         if feedback:
-            console.print("💡 Suggestions:")
+            console.print(" Suggestions:")
             for suggestion in feedback:
-                console.print(f"  • {suggestion}")
+                console.print(f"   {suggestion}")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Password hashing failed: {e}[/red]")
+        console.print(f"[red] Password hashing failed: {e}[/red]")
         return False
 
 
 async def cmd_security_status():
     """Show comprehensive security status."""
     try:
-        console.print("🔒 Security Status Overview")
+        console.print(" Security Status Overview")
         
         # Security metrics
         security_metrics = {
@@ -455,7 +460,7 @@ async def cmd_security_status():
             "Audit Logging": "Enabled"
         }
         
-        table = Table(title="🔒 Security Status")
+        table = Table(title=" Security Status")
         table.add_column("Metric", style="cyan")
         table.add_column("Status", style="white")
         
@@ -479,7 +484,7 @@ async def cmd_security_status():
         console.print(table)
         
         # Recent security events
-        console.print("\n🚨 Recent Security Events:")
+        console.print("\n Recent Security Events:")
         events = [
             {"time": "2 hours ago", "event": "Suspicious login attempt blocked", "severity": "medium"},
             {"time": "6 hours ago", "event": "Security scan completed", "severity": "info"},
@@ -489,18 +494,18 @@ async def cmd_security_status():
         
         for event in events:
             severity_icon = {
-                "high": "🔴",
-                "medium": "🟡",
-                "low": "🟢",
-                "info": "🔵"
-            }.get(event["severity"], "❓")
+                "high": "",
+                "medium": "",
+                "low": "",
+                "info": ""
+            }.get(event["severity"], "")
             
             console.print(f"  {severity_icon} {event['time']}: {event['event']}")
         
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Failed to get security status: {e}[/red]")
+        console.print(f"[red] Failed to get security status: {e}[/red]")
         return False
 
 
@@ -595,7 +600,7 @@ def register_security_commands():
     for command in commands:
         ultimate_cli.register_command(command)
     
-    console.print("[green]✅ Registered 6 security commands[/green]")
+    console.print("[green] Registered 6 security commands[/green]")
 
 
 # Auto-register when module is imported

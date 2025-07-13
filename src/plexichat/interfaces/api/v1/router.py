@@ -1,12 +1,20 @@
+import logging
+
+
+    from ...users.router import router as users_router
+    from ...security.auth import auth_manager
+    from ...backups.manager import backup_manager
+    from ...clustering import cluster_manager
+    from ...ai import ai_router, moderation_router, monitoring_router, provider_router
+    from ...plugins.router import router as plugins_router
+
+from fastapi import APIRouter
+
 """
 PlexiChat API v1 Router
 
 Consolidated router that includes all feature-based API endpoints.
 """
-
-import logging
-
-from fastapi import APIRouter
 
 logger = logging.getLogger(__name__)
 
@@ -22,51 +30,45 @@ provider_router = None
 plugins_router = None
 
 try:
-    from ...users.router import router as users_router
-    logger.info("✅ Users router loaded")
+    logger.info(" Users router loaded")
 except ImportError as e:
-    logger.warning(f"⚠️ Users router not available: {e}")
+    logger.warning(f" Users router not available: {e}")
     users_router = APIRouter()
 
 try:
-    from ...security.auth import auth_manager
-    logger.info("✅ Auth manager loaded")
+    logger.info(" Auth manager loaded")
 except ImportError as e:
-    logger.warning(f"⚠️ Auth manager not available: {e}")
+    logger.warning(f" Auth manager not available: {e}")
     class MockAuthManager:
         initialized = False
     auth_manager = MockAuthManager()
 
 try:
-    from ...backups.manager import backup_manager
-    logger.info("✅ Backup manager loaded")
+    logger.info(" Backup manager loaded")
 except ImportError as e:
-    logger.warning(f"⚠️ Backup manager not available: {e}")
+    logger.warning(f" Backup manager not available: {e}")
     class MockBackupManager:
         initialized = False
     backup_manager = MockBackupManager()
 
 try:
-    from ...clustering import cluster_manager
-    logger.info("✅ Cluster manager loaded")
+    logger.info(" Cluster manager loaded")
 except ImportError as e:
-    logger.warning(f"⚠️ Cluster manager not available: {e}")
+    logger.warning(f" Cluster manager not available: {e}")
 
 try:
-    from ...ai import ai_router, moderation_router, monitoring_router, provider_router
-    logger.info("✅ AI routers loaded")
+    logger.info(" AI routers loaded")
 except ImportError as e:
-    logger.warning(f"⚠️ AI routers not available: {e}")
+    logger.warning(f" AI routers not available: {e}")
     ai_router = APIRouter()
     moderation_router = APIRouter()
     monitoring_router = APIRouter()
     provider_router = APIRouter()
 
 try:
-    from ...plugins.router import router as plugins_router
-    logger.info("✅ Plugins router loaded")
+    logger.info(" Plugins router loaded")
 except ImportError as e:
-    logger.warning(f"⚠️ Plugins router not available: {e}")
+    logger.warning(f" Plugins router not available: {e}")
     plugins_router = APIRouter()
 
 # Create main v1 router
@@ -76,45 +78,45 @@ router = APIRouter(prefix="/api/v1", tags=["v1"])
 if users_router:
     try:
         router.include_router(users_router, prefix="/users", tags=["users"])
-        logger.info("✅ Users router included")
+        logger.info(" Users router included")
     except Exception as e:
-        logger.warning(f"⚠️ Failed to include users router: {e}")
+        logger.warning(f" Failed to include users router: {e}")
 
 if plugins_router:
     try:
         router.include_router(plugins_router, prefix="/plugins", tags=["plugins"])
-        logger.info("✅ Plugins router included")
+        logger.info(" Plugins router included")
     except Exception as e:
-        logger.warning(f"⚠️ Failed to include plugins router: {e}")
+        logger.warning(f" Failed to include plugins router: {e}")
 
 # AI routers
 if ai_router:
     try:
         router.include_router(ai_router, prefix="/ai", tags=["ai"])
-        logger.info("✅ AI router included")
+        logger.info(" AI router included")
     except Exception as e:
-        logger.warning(f"⚠️ Failed to include AI router: {e}")
+        logger.warning(f" Failed to include AI router: {e}")
 
 if moderation_router:
     try:
         router.include_router(moderation_router, prefix="/moderation", tags=["moderation"])
-        logger.info("✅ Moderation router included")
+        logger.info(" Moderation router included")
     except Exception as e:
-        logger.warning(f"⚠️ Failed to include moderation router: {e}")
+        logger.warning(f" Failed to include moderation router: {e}")
 
 if monitoring_router:
     try:
         router.include_router(monitoring_router, prefix="/monitoring", tags=["monitoring"])
-        logger.info("✅ Monitoring router included")
+        logger.info(" Monitoring router included")
     except Exception as e:
-        logger.warning(f"⚠️ Failed to include monitoring router: {e}")
+        logger.warning(f" Failed to include monitoring router: {e}")
 
 if provider_router:
     try:
         router.include_router(provider_router, prefix="/providers", tags=["providers"])
-        logger.info("✅ Provider router included")
+        logger.info(" Provider router included")
     except Exception as e:
-        logger.warning(f"⚠️ Failed to include provider router: {e}")
+        logger.warning(f" Failed to include provider router: {e}")
 
 # Health check endpoint
 @router.get("/health")

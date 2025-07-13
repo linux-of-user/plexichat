@@ -1,11 +1,3 @@
-"""
-PlexiChat Health Check Service
-
-Comprehensive health monitoring service for application health and dependencies
-in production environments. Monitors system resources, database connections,
-external services, and application components.
-"""
-
 import asyncio
 import logging
 import time
@@ -15,7 +7,19 @@ from enum import Enum
 from typing import Any, Callable, Dict, Optional
 
 import aiohttp
+
+        from ...core_system.database import database_manager
+
+
 import psutil
+
+"""
+PlexiChat Health Check Service
+
+Comprehensive health monitoring service for application health and dependencies
+in production environments. Monitors system resources, database connections,
+external services, and application components.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +69,8 @@ class HealthCheckService:
         self.running = False
         self.check_task = None
         self.failure_threshold = 3
-        self.startup_time = datetime.now()
+        self.startup_time = from datetime import datetime
+datetime.now()
         
     def register_check(self, health_check: HealthCheck):
         """Register a new health check."""
@@ -131,7 +136,8 @@ class HealthCheckService:
             check.consecutive_failures += 1
             check.last_error = str(e)
         
-        check.last_check = datetime.now()
+        check.last_check = from datetime import datetime
+datetime.now()
         check.last_status = status
         
         return HealthResult(
@@ -166,7 +172,8 @@ class HealthCheckService:
                     status=HealthStatus.UNHEALTHY,
                     message=f"Unexpected error: {e}",
                     duration_ms=0,
-                    timestamp=datetime.now()
+                    timestamp=from datetime import datetime
+datetime.now()
                 )
         
         return results
@@ -198,8 +205,10 @@ class HealthCheckService:
         
         return {
             "status": overall_status.value,
-            "timestamp": datetime.now(),
-            "uptime": (datetime.now() - self.startup_time).total_seconds(),
+            "timestamp": from datetime import datetime
+datetime.now(),
+            "uptime": (from datetime import datetime
+datetime.now() - self.startup_time).total_seconds(),
             "checks": {name: {
                 "status": result.status.value,
                 "message": result.message,
@@ -220,10 +229,12 @@ class HealthCheckService:
         """Get system performance metrics."""
         try:
             # CPU usage
-            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_percent = import psutil
+psutil.cpu_percent(interval=1)
             
             # Memory usage
-            memory = psutil.virtual_memory()
+            memory = import psutil
+psutil.virtual_memory()
             memory_usage = {
                 "total": memory.total,
                 "available": memory.available,
@@ -232,7 +243,8 @@ class HealthCheckService:
             }
             
             # Disk usage
-            disk = psutil.disk_usage('/')
+            disk = import psutil
+psutil.disk_usage('/')
             disk_usage = {
                 "total": disk.total,
                 "used": disk.used,
@@ -241,7 +253,8 @@ class HealthCheckService:
             }
             
             # Network stats
-            network = psutil.net_io_counters()
+            network = import psutil
+psutil.net_io_counters()
             network_stats = {
                 "bytes_sent": network.bytes_sent,
                 "bytes_recv": network.bytes_recv,
@@ -250,7 +263,8 @@ class HealthCheckService:
             }
             
             # Process info
-            process = psutil.Process()
+            process = import psutil
+psutil.Process()
             process_info = {
                 "pid": process.pid,
                 "memory_percent": process.memory_percent(),
@@ -300,7 +314,8 @@ class HealthCheckService:
         while self.running:
             try:
                 # Run checks that are due
-                current_time = datetime.now()
+                current_time = from datetime import datetime
+datetime.now()
                 
                 for check in self.checks.values():
                     if (check.last_check is None or 
@@ -323,8 +338,6 @@ class HealthCheckService:
 async def database_health_check() -> Dict[str, Any]:
     """Check database connectivity."""
     try:
-        from ...core_system.database import database_manager
-
         # Test database connection
         is_connected = await database_manager.test_connection()
         

@@ -1,14 +1,3 @@
-"""
-Advanced Behavioral Analysis System with Anti-Hijacking Measures
-
-This system provides:
-- Machine learning-based behavioral pattern detection
-- Cryptographic integrity protection against tampering
-- Advanced fingerprinting and anomaly detection
-- Real-time threat correlation and adaptation
-- Anti-hijacking measures with tamper detection
-"""
-
 import asyncio
 import base64
 import hashlib
@@ -30,6 +19,18 @@ from sklearn.cluster import DBSCAN
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
+
+
+"""
+Advanced Behavioral Analysis System with Anti-Hijacking Measures
+
+This system provides:
+- Machine learning-based behavioral pattern detection
+- Cryptographic integrity protection against tampering
+- Advanced fingerprinting and anomaly detection
+- Real-time threat correlation and adaptation
+- Anti-hijacking measures with tamper detection
+"""
 
 class BehavioralThreatType(Enum):
     """Types of behavioral threats."""

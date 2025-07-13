@@ -1,17 +1,21 @@
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+
+from ....core.logging import get_logger
+from ....core.performance.edge_computing_manager import get_edge_computing_manager
+
+        import statistics
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from ....core.auth import from plexichat.infrastructure.utils.auth import require_admin, require_auth
+
 """
 PlexiChat Edge Computing API Endpoints
 
 Provides REST API endpoints for managing edge computing and auto-scaling functionality.
 """
-
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-
-from ....core.auth import require_admin, require_auth
-from ....core.logging import get_logger
-from ....core.performance.edge_computing_manager import get_edge_computing_manager
 
 logger = get_logger(__name__)
 
@@ -39,7 +43,7 @@ async def get_edge_status(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to get edge status: {e}")
+        logger.error(f" Failed to get edge status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -86,7 +90,7 @@ async def list_edge_nodes(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to list edge nodes: {e}")
+        logger.error(f" Failed to list edge nodes: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -113,14 +117,14 @@ async def get_node_details(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to get node details for {node_id}: {e}")
+        logger.error(f" Failed to get node details for {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/nodes/{node_id}/actions/drain")
 async def drain_node(
     node_id: str,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Gracefully drain connections from a node."""
     try:
@@ -132,7 +136,7 @@ async def drain_node(
         # Start draining process
         await manager._drain_node_connections(node_id)
         
-        logger.info(f"🔄 Node {node_id} draining initiated by {current_user.get('username')}")
+        logger.info(f" Node {node_id} draining initiated by {current_user.get('username')}")
         
         return {
             "success": True,
@@ -143,14 +147,14 @@ async def drain_node(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to drain node {node_id}: {e}")
+        logger.error(f" Failed to drain node {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/nodes/{node_id}/actions/activate")
 async def activate_node(
     node_id: str,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Activate a deactivated node."""
     try:
@@ -166,7 +170,7 @@ async def activate_node(
         # Update routing table
         await manager._update_routing_table()
         
-        logger.info(f"✅ Node {node_id} activated by {current_user.get('username')}")
+        logger.info(f" Node {node_id} activated by {current_user.get('username')}")
         
         return {
             "success": True,
@@ -177,14 +181,14 @@ async def activate_node(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to activate node {node_id}: {e}")
+        logger.error(f" Failed to activate node {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/nodes/{node_id}/actions/deactivate")
 async def deactivate_node(
     node_id: str,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Deactivate a node (remove from routing)."""
     try:
@@ -203,7 +207,7 @@ async def deactivate_node(
         node = manager.edge_nodes[node_id]
         node.is_active = False
         
-        logger.info(f"📉 Node {node_id} deactivated by {current_user.get('username')}")
+        logger.info(f" Node {node_id} deactivated by {current_user.get('username')}")
         
         return {
             "success": True,
@@ -214,7 +218,7 @@ async def deactivate_node(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to deactivate node {node_id}: {e}")
+        logger.error(f" Failed to deactivate node {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -258,14 +262,14 @@ async def get_scaling_status(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to get scaling status: {e}")
+        logger.error(f" Failed to get scaling status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/scaling/actions/scale-up")
 async def manual_scale_up(
     node_count: int = Query(1, description="Number of nodes to add"),
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Manually trigger scale-up operation."""
     try:
@@ -292,7 +296,7 @@ async def manual_scale_up(
             manager.edge_stats["scaling_actions_taken"] += 1
             manager.edge_stats["nodes_added"] += node_count
             
-            logger.info(f"🚀 Manual scale-up of {node_count} nodes by {current_user.get('username')}")
+            logger.info(f" Manual scale-up of {node_count} nodes by {current_user.get('username')}")
             
             return {
                 "success": True,
@@ -306,7 +310,7 @@ async def manual_scale_up(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to execute manual scale-up: {e}")
+        logger.error(f" Failed to execute manual scale-up: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -359,7 +363,7 @@ async def get_routing_status(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to get routing status: {e}")
+        logger.error(f" Failed to get routing status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -409,7 +413,6 @@ async def get_edge_metrics(
             })
         
         # Calculate summary statistics
-        import statistics
         summary = {
             "avg_requests_per_second": statistics.mean([m.total_requests_per_second for m in recent_metrics]),
             "avg_response_time_ms": statistics.mean([m.average_response_time_ms for m in recent_metrics]),
@@ -434,13 +437,13 @@ async def get_edge_metrics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to get edge metrics: {e}")
+        logger.error(f" Failed to get edge metrics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/initialize")
 async def initialize_edge_computing(
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Initialize or reinitialize the edge computing system."""
     try:
@@ -448,7 +451,7 @@ async def initialize_edge_computing(
         
         result = await manager.initialize()
         
-        logger.info(f"🚀 Edge computing system initialized by {current_user.get('username')}")
+        logger.info(f" Edge computing system initialized by {current_user.get('username')}")
         
         return {
             "success": True,
@@ -457,5 +460,5 @@ async def initialize_edge_computing(
         }
         
     except Exception as e:
-        logger.error(f"❌ Failed to initialize edge computing: {e}")
+        logger.error(f" Failed to initialize edge computing: {e}")
         raise HTTPException(status_code=500, detail=str(e))

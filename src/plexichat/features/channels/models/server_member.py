@@ -1,16 +1,18 @@
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from sqlmodel import JSON, Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index
+
 """
 PlexiChat Server Member Model
 
 Server membership model tracking user participation in servers.
 """
-
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from sqlalchemy import DateTime, Index
-from sqlmodel import JSON, Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for server members
 member_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=7)
@@ -156,13 +158,15 @@ class ServerMember(SQLModel, table=True):
         """Check if member is currently timed out."""
         if self.timeout_until is None:
             return False
-        return datetime.utcnow() < self.timeout_until
+        return from datetime import datetime
+datetime.utcnow() < self.timeout_until
     
     def is_communication_disabled(self) -> bool:
         """Check if member's communication is disabled."""
         if self.communication_disabled_until is None:
             return False
-        return datetime.utcnow() < self.communication_disabled_until
+        return from datetime import datetime
+datetime.utcnow() < self.communication_disabled_until
     
     def get_display_name(self, fallback_username: str = None) -> str:
         """Get the display name for this member."""
@@ -170,7 +174,8 @@ class ServerMember(SQLModel, table=True):
     
     def days_since_joined(self) -> int:
         """Get number of days since member joined."""
-        return (datetime.utcnow() - self.joined_at).days
+        return (from datetime import datetime
+datetime.utcnow() - self.joined_at).days
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert server member to dictionary."""

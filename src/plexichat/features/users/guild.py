@@ -1,15 +1,17 @@
-"""
-Guild (Server) models for Discord-like functionality.
-Includes servers, channels, roles, and permissions.
-"""
-
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, Index, Text
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
+
+
+from sqlalchemy import DateTime, Index, Text
+
+"""
+Guild (Server) models for Discord-like functionality.
+Includes servers, channels, roles, and permissions.
+"""
 
 class GuildFeature(str, Enum):
     """Guild feature flags."""

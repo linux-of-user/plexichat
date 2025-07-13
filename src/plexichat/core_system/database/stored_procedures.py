@@ -1,3 +1,17 @@
+import hashlib
+import json
+import logging
+import re
+import time
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+    from .enhanced_abstraction import (  # type: ignore
+from .query_optimizer import performance_monitor, sql_analyzer
+
+
 """
 PlexiChat Stored Procedures and Prepared Statements Manager
 
@@ -19,18 +33,7 @@ Benefits:
 - Centralized complex business logic
 """
 
-import hashlib
-import json
-import logging
-import re
-import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
 try:
-    from .enhanced_abstraction import (  # type: ignore
         AbstractDatabaseClient,
         DatabaseType,
         QueryType,
@@ -55,8 +58,6 @@ except ImportError:
         INSERT = "insert"
         UPDATE = "update"
         DELETE = "delete"
-from .query_optimizer import performance_monitor, sql_analyzer
-
 logger = logging.getLogger(__name__)
 
 
@@ -334,7 +335,7 @@ class PreparedStatementManager:
         )
         
         self.prepared_statements[name] = stmt
-        logger.info(f"✅ Prepared statement: {name}")
+        logger.info(f" Prepared statement: {name}")
         
         return stmt
     
@@ -563,12 +564,12 @@ class StoredProcedureManager:
             procedure.status = ProcedureStatus.ACTIVE
             procedure.created_at = datetime.now(timezone.utc)
             
-            logger.info(f"✅ Created stored procedure: {procedure.name}")
+            logger.info(f" Created stored procedure: {procedure.name}")
             return True
             
         except Exception as e:
             procedure.status = ProcedureStatus.FAILED
-            logger.error(f"❌ Failed to create stored procedure {procedure.name}: {e}")
+            logger.error(f" Failed to create stored procedure {procedure.name}: {e}")
             return False
     
     async def execute_procedure(self, client: AbstractDatabaseClient, 

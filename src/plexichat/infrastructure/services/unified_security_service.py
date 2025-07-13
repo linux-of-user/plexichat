@@ -1,3 +1,18 @@
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+            from app.services.security_service import SecurityService
+            from pathlib import Path
+
+            from app.services.enhanced_ddos_service import enhanced_ddos_service
+            from app.utils.rate_limiting import rate_limiter
+        import random
+
+            from plexichat.antivirus.core.message_scanner import MessageAntivirusScanner
+
 """
 Unified Security Integration Layer
 
@@ -9,12 +24,6 @@ Coordinates all security systems including:
 - Threat intelligence and reporting
 - Security metrics and monitoring
 """
-
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -140,67 +149,62 @@ class UnifiedSecurityService:
         # Witty response templates
         self.witty_responses = {
             SecurityThreatType.SQL_INJECTION: [
-                "SQL injection detected! 💉 Nice try, but we're not that easy!",
-                "Injection attempt blocked! 🛡️ Our database is well protected!",
-                "SQL shenanigans detected! 🕵️ Try using proper quotes: \"[SQL]\"",
-                "Database attack thwarted! 🏰 Our castle walls are strong!"
+                "SQL injection detected!  Nice try, but we're not that easy!",
+                "Injection attempt blocked!  Our database is well protected!",
+                "SQL shenanigans detected!  Try using proper quotes: \"[SQL]\"",
+                "Database attack thwarted!  Our castle walls are strong!"
             ],
             SecurityThreatType.XSS_ATTEMPT: [
-                "XSS attempt blocked! 🚫 Keep your scripts to yourself!",
-                "Cross-site scripting detected! ⚔️ We don't fall for that!",
-                "Script injection stopped! 🛑 Nice try, hacker!",
-                "XSS attack prevented! 🛡️ Our users are safe!"
+                "XSS attempt blocked!  Keep your scripts to yourself!",
+                "Cross-site scripting detected!  We don't fall for that!",
+                "Script injection stopped!  Nice try, hacker!",
+                "XSS attack prevented!  Our users are safe!"
             ],
             SecurityThreatType.MALICIOUS_CONTENT: [
-                "Malicious content detected! 🦠 Our antivirus is on duty!",
-                "Threat neutralized! 💪 Security systems working perfectly!",
-                "Suspicious content blocked! 🔍 We see everything!",
-                "Malware attempt stopped! 🚨 Nice try, but no dice!"
+                "Malicious content detected!  Our antivirus is on duty!",
+                "Threat neutralized!  Security systems working perfectly!",
+                "Suspicious content blocked!  We see everything!",
+                "Malware attempt stopped!  Nice try, but no dice!"
             ],
             SecurityThreatType.RATE_LIMIT_VIOLATION: [
-                "Rate limit exceeded! 🚦 Slow down, speed racer!",
-                "Too many requests! ⏰ Patience is a virtue!",
-                "Request flood detected! 🌊 Let's keep it reasonable!",
-                "Slow down there! 🐌 Quality over quantity!"
+                "Rate limit exceeded!  Slow down, speed racer!",
+                "Too many requests!  Patience is a virtue!",
+                "Request flood detected!  Let's keep it reasonable!",
+                "Slow down there!  Quality over quantity!"
             ],
             SecurityThreatType.DDOS_ATTACK: [
-                "DDoS attack detected! 🛡️ Our shields are up!",
-                "Attack repelled! ⚔️ You shall not pass!",
-                "Flood attack blocked! 🌊 We're unsinkable!",
-                "DDoS protection active! 🚨 System secured!"
+                "DDoS attack detected!  Our shields are up!",
+                "Attack repelled!  You shall not pass!",
+                "Flood attack blocked!  We're unsinkable!",
+                "DDoS protection active!  System secured!"
             ]
         }
         
-        logger.info("🔒 Unified Security Service initialized")
+        logger.info(" Unified Security Service initialized")
     
     def _initialize_security_services(self):
         """Initialize all security service components."""
         # Import and initialize security services
         try:
-            from app.services.security_service import SecurityService
             self.security_service = SecurityService()
         except ImportError:
             logger.warning("Security service not available")
             self.security_service = None
         
         try:
-            from pathlib import Path
-
-            from plexichat.antivirus.core.message_scanner import MessageAntivirusScanner
-            self.message_scanner = MessageAntivirusScanner(Path("data"))
+            self.message_scanner = MessageAntivirusScanner(from pathlib import Path
+Path("data"))
         except ImportError:
             logger.warning("Message antivirus scanner not available")
             self.message_scanner = None
         
         try:
-            from app.services.enhanced_ddos_service import enhanced_ddos_service
             self.ddos_service = enhanced_ddos_service
         except ImportError:
             logger.warning("Enhanced DDoS service not available")
             self.ddos_service = None
         
         try:
-            from app.utils.rate_limiting import rate_limiter
             self.rate_limiter = rate_limiter
         except ImportError:
             logger.warning("Rate limiter not available")
@@ -454,8 +458,7 @@ class UnifiedSecurityService:
     
     def _get_witty_response(self, threat_type: SecurityThreatType) -> str:
         """Get a witty response for the threat type."""
-        import random
-        responses = self.witty_responses.get(threat_type, ["Security violation detected! 🛡️"])
+        responses = self.witty_responses.get(threat_type, ["Security violation detected! "])
         return random.choice(responses)
     
     def get_security_status(self) -> Dict[str, Any]:
@@ -529,7 +532,7 @@ class UnifiedSecurityService:
                 "status": "escalated",
                 "error": "Critical Security Violation",
                 "message": "Request escalated to security team",
-                "witty_response": "🚨 Security team has been notified! This incident will be reported!",
+                "witty_response": " Security team has been notified! This incident will be reported!",
                 "threat_level": assessment.threat_level,
                 "confidence": assessment.confidence_score,
                 "request_id": assessment.request_id

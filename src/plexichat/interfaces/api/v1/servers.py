@@ -1,16 +1,19 @@
+from typing import List, Optional
+
+
+from ....features.channels.models.server import (
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+
+from ....core_system.auth.auth_manager import from plexichat.infrastructure.utils.auth import get_current_user
+
 """
 PlexiChat Server API Endpoints
 
 Discord-like server management endpoints.
 """
 
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
-
-from ....core_system.auth.auth_manager import get_current_user
-from ....features.channels.models.server import (
     DefaultMessageNotifications,
     ExplicitContentFilter,
     Server,
@@ -80,7 +83,7 @@ class ServerResponse(BaseModel):
 @router.post("/", response_model=ServerResponse, status_code=status.HTTP_201_CREATED)
 async def create_server(
     request: ServerCreateRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Create a new server.
@@ -140,7 +143,7 @@ async def create_server(
 
 @router.get("/", response_model=List[ServerResponse])
 async def list_user_servers(
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     List servers the current user is a member of.
@@ -166,7 +169,7 @@ async def list_user_servers(
 @router.get("/{server_id}", response_model=ServerResponse)
 async def get_server(
     server_id: str,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Get server details.
@@ -202,10 +205,11 @@ async def get_server(
 async def update_server(
     server_id: str,
     request: ServerUpdateRequest,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
-    Update server settings.
+    Update server from plexichat.core.config import settings
+settings.
     
     Updates server configuration. Requires MANAGE_GUILD permission.
     """
@@ -235,7 +239,7 @@ async def update_server(
 @router.delete("/{server_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_server(
     server_id: str,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
     Delete server.
@@ -272,7 +276,7 @@ async def delete_server(
 @router.post("/{server_id}/join", status_code=status.HTTP_200_OK)
 async def join_server(
     server_id: str,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Join a server via invite or public access."""
     # TODO: Implement server joining logic
@@ -285,7 +289,7 @@ async def join_server(
 @router.post("/{server_id}/leave", status_code=status.HTTP_200_OK)
 async def leave_server(
     server_id: str,
-    current_user = Depends(get_current_user)
+    current_user = Depends(from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Leave a server."""
     # TODO: Implement server leaving logic

@@ -1,3 +1,11 @@
+import asyncio
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from ...core_system.logging import get_logger
+
+
 """
 Unified Analytics Manager
 
@@ -7,13 +15,6 @@ Provides comprehensive analytics and monitoring for the backup system with:
 - Capacity planning
 - Security monitoring
 """
-
-import asyncio
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from ...core_system.logging import get_logger
 
 logger = get_logger(__name__)
 

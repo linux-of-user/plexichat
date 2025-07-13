@@ -1,3 +1,16 @@
+import logging
+from typing import Any, Dict, List, Optional
+
+
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from plexichat.core.auth.dependencies import from plexichat.infrastructure.utils.auth import require_admin, require_auth
+from plexichat.core.performance.multi_tier_cache_manager import MessagePriority, get_cache_manager
+            from plexichat.core.performance.multi_tier_cache_manager import CacheTier
+
 """
 PlexiChat Multi-Tier Cache API Endpoints
 
@@ -16,15 +29,6 @@ Endpoints:
 - GET /api/cache/config - Get cache configuration
 - POST /api/cache/invalidate - Invalidate cache patterns
 """
-
-import logging
-from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
-
-from plexichat.core.auth.dependencies import require_admin, require_auth
-from plexichat.core.performance.multi_tier_cache_manager import MessagePriority, get_cache_manager
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +90,7 @@ async def get_cache_status(current_user: Dict = Depends(require_auth)):
         }
         
     except Exception as e:
-        logger.error(f"❌ Cache status error: {e}")
+        logger.error(f" Cache status error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get cache status: {str(e)}")
 
 
@@ -139,7 +143,7 @@ async def get_cache_stats(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Cache stats error: {e}")
+        logger.error(f" Cache stats error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get cache statistics: {str(e)}")
 
 
@@ -176,7 +180,7 @@ async def get_cached_value(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Cache get error for key {key}: {e}")
+        logger.error(f" Cache get error for key {key}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get cached value: {str(e)}")
 
 
@@ -227,7 +231,7 @@ async def set_cached_value(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Cache set error for key {key}: {e}")
+        logger.error(f" Cache set error for key {key}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to set cached value: {str(e)}")
 
 
@@ -268,14 +272,14 @@ async def delete_cached_value(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Cache delete error for key {key}: {e}")
+        logger.error(f" Cache delete error for key {key}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete cached value: {str(e)}")
 
 
 @router.post("/clear", response_model=CacheResponse)
 async def clear_cache(
     request: CacheClearRequest,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Clear cache tier(s).
@@ -308,7 +312,6 @@ async def clear_cache(
                 raise HTTPException(status_code=400, detail=f"Invalid tier: {request.tier}")
             
             # Import the enum here to avoid circular imports
-            from plexichat.core.performance.multi_tier_cache_manager import CacheTier
             tier_enum = getattr(CacheTier, tier_map[request.tier])
             success = await cache_manager.clear(tier_enum)
             message = f"Successfully cleared {request.tier} cache tier"
@@ -329,7 +332,7 @@ async def clear_cache(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Cache clear error: {e}")
+        logger.error(f" Cache clear error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
 
 
@@ -369,14 +372,14 @@ async def get_cache_health(current_user: Dict = Depends(require_auth)):
         }
         
     except Exception as e:
-        logger.error(f"❌ Cache health check error: {e}")
+        logger.error(f" Cache health check error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get cache health: {str(e)}")
 
 
 @router.post("/warm", response_model=CacheResponse)
 async def trigger_cache_warming(
     request: CacheWarmRequest,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Trigger cache warming.
@@ -404,12 +407,12 @@ async def trigger_cache_warming(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Cache warming error: {e}")
+        logger.error(f" Cache warming error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to trigger cache warming: {str(e)}")
 
 
 @router.get("/config", response_model=Dict[str, Any])
-async def get_cache_config(current_user: Dict = Depends(require_admin)):
+async def get_cache_config(current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)):
     """
     Get cache configuration.
     
@@ -431,14 +434,14 @@ async def get_cache_config(current_user: Dict = Depends(require_admin)):
         }
         
     except Exception as e:
-        logger.error(f"❌ Cache config error: {e}")
+        logger.error(f" Cache config error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get cache configuration: {str(e)}")
 
 
 @router.post("/invalidate", response_model=CacheResponse)
 async def invalidate_cache_patterns(
     request: CacheInvalidateRequest,
-    current_user: Dict = Depends(require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ):
     """
     Invalidate cache patterns.
@@ -470,5 +473,5 @@ async def invalidate_cache_patterns(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Cache invalidation error: {e}")
+        logger.error(f" Cache invalidation error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to invalidate cache patterns: {str(e)}")

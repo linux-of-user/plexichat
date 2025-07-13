@@ -1,3 +1,18 @@
+import asyncio
+import gzip
+import json
+import logging
+import pickle
+import time
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+    import redis.asyncio as redis
+    import aiomcache
+    import aiohttp
+
 """
 PlexiChat Multi-Tier Caching System
 
@@ -18,32 +33,18 @@ Features:
 - Cache stampede protection
 """
 
-import asyncio
-import gzip
-import json
-import logging
-import pickle
-import time
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-
 # Optional dependencies - graceful degradation if not available
 try:
-    import redis.asyncio as redis
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
 
 try:
-    import aiomcache
     MEMCACHED_AVAILABLE = True
 except ImportError:
     MEMCACHED_AVAILABLE = False
 
 try:
-    import aiohttp
     CDN_AVAILABLE = True
 except ImportError:
     CDN_AVAILABLE = False
@@ -157,7 +158,7 @@ class MultiTierCacheManager:
         self.warming_enabled = config.get("warming_enabled", True)
         self.warming_patterns: List[str] = config.get("warming_patterns", [])
         
-        logger.info("🚀 Multi-Tier Cache Manager initialized")
+        logger.info(" Multi-Tier Cache Manager initialized")
     
     async def initialize(self) -> Dict[str, Any]:
         """Initialize all cache tiers."""
@@ -181,17 +182,17 @@ class MultiTierCacheManager:
             
             self.initialized = True
             
-            logger.info("✅ Multi-Tier Cache Manager fully initialized")
+            logger.info(" Multi-Tier Cache Manager fully initialized")
             return results
             
         except Exception as e:
-            logger.error(f"❌ Cache manager initialization failed: {e}")
+            logger.error(f" Cache manager initialization failed: {e}")
             raise
     
     async def _initialize_redis(self) -> bool:
         """Initialize Redis connection."""
         if not REDIS_AVAILABLE:
-            logger.warning("⚠️ Redis not available - L2 cache disabled")
+            logger.warning(" Redis not available - L2 cache disabled")
             return False
         
         try:
@@ -210,18 +211,18 @@ class MultiTierCacheManager:
             
             # Test connection
             await self.redis_client.ping()
-            logger.info("✅ Redis L2 cache initialized")
+            logger.info(" Redis L2 cache initialized")
             return True
             
         except Exception as e:
-            logger.warning(f"⚠️ Redis L2 cache initialization failed: {e}")
+            logger.warning(f" Redis L2 cache initialization failed: {e}")
             self.redis_client = None
             return False
     
     async def _initialize_memcached(self) -> bool:
         """Initialize Memcached connection."""
         if not MEMCACHED_AVAILABLE:
-            logger.warning("⚠️ Memcached not available - L3 cache disabled")
+            logger.warning(" Memcached not available - L3 cache disabled")
             return False
         
         try:
@@ -235,18 +236,18 @@ class MultiTierCacheManager:
             await self.memcached_client.set(b"test_key", b"test_value", exptime=1)
             await self.memcached_client.delete(b"test_key")
             
-            logger.info("✅ Memcached L3 cache initialized")
+            logger.info(" Memcached L3 cache initialized")
             return True
             
         except Exception as e:
-            logger.warning(f"⚠️ Memcached L3 cache initialization failed: {e}")
+            logger.warning(f" Memcached L3 cache initialization failed: {e}")
             self.memcached_client = None
             return False
     
     async def _initialize_cdn(self) -> bool:
         """Initialize CDN connection."""
         if not CDN_AVAILABLE:
-            logger.warning("⚠️ CDN client not available - L4 cache disabled")
+            logger.warning(" CDN client not available - L4 cache disabled")
             return False
         
         try:
@@ -266,11 +267,11 @@ class MultiTierCacheManager:
                 )
             )
             
-            logger.info("✅ CDN L4 cache initialized")
+            logger.info(" CDN L4 cache initialized")
             return True
             
         except Exception as e:
-            logger.warning(f"⚠️ CDN L4 cache initialization failed: {e}")
+            logger.warning(f" CDN L4 cache initialization failed: {e}")
             self.cdn_session = None
             return False
     
@@ -349,7 +350,7 @@ class MultiTierCacheManager:
             return default
             
         except Exception as e:
-            logger.error(f"❌ Cache get error for key {key}: {e}")
+            logger.error(f" Cache get error for key {key}: {e}")
             self.global_stats.errors += 1
             return default
         finally:
@@ -410,7 +411,7 @@ class MultiTierCacheManager:
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Cache set error for key {key}: {e}")
+            logger.error(f" Cache set error for key {key}: {e}")
             self.global_stats.errors += 1
             return False
 
@@ -463,7 +464,7 @@ class MultiTierCacheManager:
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Cache delete error for key {key}: {e}")
+            logger.error(f" Cache delete error for key {key}: {e}")
             self.global_stats.errors += 1
             return False
 
@@ -480,28 +481,28 @@ class MultiTierCacheManager:
 
             if tier == CacheTier.L1_MEMORY:
                 self.l1_cache.clear()
-                logger.info("🧹 L1 memory cache cleared")
+                logger.info(" L1 memory cache cleared")
                 return True
 
             elif tier == CacheTier.L2_REDIS and self.redis_client:
                 await self.redis_client.flushdb()
-                logger.info("🧹 L2 Redis cache cleared")
+                logger.info(" L2 Redis cache cleared")
                 return True
 
             elif tier == CacheTier.L3_MEMCACHED and self.memcached_client:
                 await self.memcached_client.flush_all()
-                logger.info("🧹 L3 Memcached cache cleared")
+                logger.info(" L3 Memcached cache cleared")
                 return True
 
             elif tier == CacheTier.L4_CDN:
                 # CDN clearing would require specific API calls
-                logger.info("🧹 L4 CDN cache clear requested (manual intervention may be required)")
+                logger.info(" L4 CDN cache clear requested (manual intervention may be required)")
                 return True
 
             return False
 
         except Exception as e:
-            logger.error(f"❌ Cache clear error for tier {tier}: {e}")
+            logger.error(f" Cache clear error for tier {tier}: {e}")
             return False
 
     async def exists(self, key: str) -> bool:
@@ -532,7 +533,7 @@ class MultiTierCacheManager:
             return False
 
         except Exception as e:
-            logger.error(f"❌ Cache exists check error for key {key}: {e}")
+            logger.error(f" Cache exists check error for key {key}: {e}")
             return False
 
     async def get_stats(self) -> Dict[str, Any]:
@@ -593,7 +594,7 @@ class MultiTierCacheManager:
             }
 
         except Exception as e:
-            logger.error(f"❌ Error getting cache stats: {e}")
+            logger.error(f" Error getting cache stats: {e}")
             return {"error": str(e)}
 
     # Helper methods for tier-specific operations
@@ -625,7 +626,7 @@ class MultiTierCacheManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ L1 cache set error for key {key}: {e}")
+            logger.error(f" L1 cache set error for key {key}: {e}")
             return False
 
     async def _set_l2(self, key: str, value: Any, ttl_seconds: int) -> bool:
@@ -644,7 +645,7 @@ class MultiTierCacheManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ L2 Redis cache set error for key {key}: {e}")
+            logger.error(f" L2 Redis cache set error for key {key}: {e}")
             return False
 
     async def _set_l3(self, key: str, value: Any, ttl_seconds: int) -> bool:
@@ -665,7 +666,7 @@ class MultiTierCacheManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ L3 Memcached cache set error for key {key}: {e}")
+            logger.error(f" L3 Memcached cache set error for key {key}: {e}")
             return False
 
     async def _set_l4(self, key: str, value: Any, ttl_seconds: int) -> bool:
@@ -690,7 +691,7 @@ class MultiTierCacheManager:
                 return response.status in [200, 201, 204]
 
         except Exception as e:
-            logger.error(f"❌ L4 CDN cache set error for key {key}: {e}")
+            logger.error(f" L4 CDN cache set error for key {key}: {e}")
             return False
 
     def _select_cache_tiers(self, key: str, value: Any, ttl_seconds: int) -> List[CacheTier]:
@@ -733,7 +734,7 @@ class MultiTierCacheManager:
                 return serialized, False
 
         except Exception as e:
-            logger.error(f"❌ Serialization error: {e}")
+            logger.error(f" Serialization error: {e}")
             return str(value).encode(), False
 
     def _deserialize(self, data: bytes) -> Any:
@@ -743,18 +744,18 @@ class MultiTierCacheManager:
             try:
                 decompressed = gzip.decompress(data)
                 data = decompressed
-            except:
+            except Exception:
                 pass  # Not compressed
 
             # Try JSON first (faster)
             try:
                 return json.loads(data.decode())
-            except:
+            except Exception:
                 # Fall back to pickle
                 return pickle.loads(data)
 
         except Exception as e:
-            logger.error(f"❌ Deserialization error: {e}")
+            logger.error(f" Deserialization error: {e}")
             return data.decode() if isinstance(data, bytes) else data
 
     def _is_cdn_cacheable(self, key: str) -> bool:
@@ -807,7 +808,7 @@ class MultiTierCacheManager:
                 return response.status in [200, 202]
 
         except Exception as e:
-            logger.error(f"❌ CDN invalidation error for key {key}: {e}")
+            logger.error(f" CDN invalidation error for key {key}: {e}")
             return False
 
     async def _evict_l1_if_needed(self):
@@ -850,7 +851,7 @@ class MultiTierCacheManager:
                     self.stats_by_tier[CacheTier.L1_MEMORY].evictions += 1
 
         except Exception as e:
-            logger.error(f"❌ L1 cache eviction error: {e}")
+            logger.error(f" L1 cache eviction error: {e}")
 
     def _update_stats(self, tier: CacheTier, operation: str, access_time: float):
         """Update statistics for cache operations."""
@@ -878,7 +879,7 @@ class MultiTierCacheManager:
                     tier_stats.average_access_time_ms = access_time * 1000
 
         except Exception as e:
-            logger.error(f"❌ Stats update error: {e}")
+            logger.error(f" Stats update error: {e}")
 
     # Background tasks
 
@@ -899,13 +900,13 @@ class MultiTierCacheManager:
                     self.stats_by_tier[CacheTier.L1_MEMORY].evictions += 1
 
                 if expired_keys:
-                    logger.info(f"🧹 Cleaned {len(expired_keys)} expired L1 cache entries")
+                    logger.info(f" Cleaned {len(expired_keys)} expired L1 cache entries")
 
                 # Update last cleanup time
                 self.last_cleanup = datetime.now(timezone.utc)
 
             except Exception as e:
-                logger.error(f"❌ Cache cleanup task error: {e}")
+                logger.error(f" Cache cleanup task error: {e}")
                 await asyncio.sleep(60)  # Wait before retrying
 
     async def _stats_collection_task(self):
@@ -925,10 +926,10 @@ class MultiTierCacheManager:
                 if total_hits + total_misses > 0:
                     hit_ratio = total_hits / (total_hits + total_misses)
                     if hit_ratio < 0.5:  # Log warning if hit ratio is low
-                        logger.warning(f"⚠️ Low cache hit ratio: {hit_ratio:.2%}")
+                        logger.warning(f" Low cache hit ratio: {hit_ratio:.2%}")
 
             except Exception as e:
-                logger.error(f"❌ Stats collection task error: {e}")
+                logger.error(f" Stats collection task error: {e}")
                 await asyncio.sleep(30)  # Wait before retrying
 
     async def _cache_warming_task(self):
@@ -939,7 +940,7 @@ class MultiTierCacheManager:
         try:
             await asyncio.sleep(30)  # Wait for system to stabilize
 
-            logger.info("🔥 Starting cache warming...")
+            logger.info(" Starting cache warming...")
 
             # Warm cache with predefined patterns
             for pattern in self.warming_patterns:
@@ -952,12 +953,12 @@ class MultiTierCacheManager:
                             await self.set(key, value, self.default_ttl_seconds)
 
                 except Exception as e:
-                    logger.warning(f"⚠️ Cache warming error for pattern {pattern}: {e}")
+                    logger.warning(f" Cache warming error for pattern {pattern}: {e}")
 
-            logger.info("✅ Cache warming completed")
+            logger.info(" Cache warming completed")
 
         except Exception as e:
-            logger.error(f"❌ Cache warming task error: {e}")
+            logger.error(f" Cache warming task error: {e}")
 
     async def _generate_warm_data(self, pattern: str) -> Dict[str, Any]:
         """Generate warm data for cache warming."""
@@ -982,28 +983,28 @@ class MultiTierCacheManager:
     async def shutdown(self):
         """Gracefully shutdown cache manager."""
         try:
-            logger.info("🔄 Shutting down Multi-Tier Cache Manager...")
+            logger.info(" Shutting down Multi-Tier Cache Manager...")
 
             # Close connections
             if self.redis_client:
                 await self.redis_client.close()
-                logger.info("✅ Redis connection closed")
+                logger.info(" Redis connection closed")
 
             if self.memcached_client:
                 await self.memcached_client.close()
-                logger.info("✅ Memcached connection closed")
+                logger.info(" Memcached connection closed")
 
             if self.cdn_session:
                 await self.cdn_session.close()
-                logger.info("✅ CDN session closed")
+                logger.info(" CDN session closed")
 
             # Clear L1 cache
             self.l1_cache.clear()
 
-            logger.info("✅ Multi-Tier Cache Manager shutdown complete")
+            logger.info(" Multi-Tier Cache Manager shutdown complete")
 
         except Exception as e:
-            logger.error(f"❌ Cache manager shutdown error: {e}")
+            logger.error(f" Cache manager shutdown error: {e}")
 
 
 # Global cache manager instance

@@ -1,10 +1,3 @@
-"""
-PlexiChat Advanced Communication Service
-
-Enhanced communication features including voice messages, reactions,
-thread management, translation, and AI-powered smart notifications.
-"""
-
 import asyncio
 import uuid
 from dataclasses import dataclass, field
@@ -18,6 +11,14 @@ import yaml
 from ..ai import get_ai_manager
 from ..core.logging import get_logger
 from .base_service import BaseService, ServiceState
+
+
+"""
+PlexiChat Advanced Communication Service
+
+Enhanced communication features including voice messages, reactions,
+thread management, translation, and AI-powered smart notifications.
+"""
 
 logger = get_logger(__name__)
 
@@ -34,14 +35,14 @@ class MessageType(Enum):
 
 class ReactionType(Enum):
     """Available reaction types."""
-    LIKE = "👍"
-    LOVE = "❤️"
-    LAUGH = "😂"
-    WOW = "😮"
-    SAD = "😢"
-    ANGRY = "😠"
-    CELEBRATE = "🎉"
-    THUMBS_DOWN = "👎"
+    LIKE = ""
+    LOVE = ""
+    LAUGH = ""
+    WOW = ""
+    SAD = ""
+    ANGRY = ""
+    CELEBRATE = ""
+    THUMBS_DOWN = ""
 
 class NotificationPriority(Enum):
     """Notification priority levels."""
@@ -131,7 +132,8 @@ class CommunicationService(BaseService):
         super().__init__("communication")
 
         # Configuration management
-        self.config_path = config_path or Path("config/communication.yaml")
+        self.config_path = config_path or from pathlib import Path
+Path("config/communication.yaml")
 
         # Storage for communication data
         self.voice_messages: Dict[str, VoiceMessage] = {}
@@ -277,7 +279,8 @@ class CommunicationService(BaseService):
         self.config = self._load_configuration()
 
         # Configuration-derived properties
-        self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
+        self.voice_storage_path = from pathlib import Path
+Path(self.config["voice_messages"]["storage_path"])
         self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
         self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -484,7 +487,7 @@ class CommunicationService(BaseService):
             self._cleanup_task = asyncio.create_task(self._cleanup_loop())
             self._notification_task = asyncio.create_task(self._notification_loop())
             
-            logger.info("✅ Communication service started successfully")
+            logger.info(" Communication service started successfully")
             
         except Exception as e:
             logger.error(f"Failed to start communication service: {e}")
@@ -501,7 +504,7 @@ class CommunicationService(BaseService):
                 self._notification_task.cancel()
             
             await super().stop()
-            logger.info("✅ Communication service stopped")
+            logger.info(" Communication service stopped")
             
         except Exception as e:
             logger.error(f"Error stopping communication service: {e}")
@@ -979,7 +982,8 @@ class CommunicationService(BaseService):
             self.config = self._deep_merge_config(self.config, config_updates)
 
             # Update derived properties
-            self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
+            self.voice_storage_path = from pathlib import Path
+Path(self.config["voice_messages"]["storage_path"])
             self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
             self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -1008,7 +1012,8 @@ class CommunicationService(BaseService):
 
                 # Update derived properties if needed
                 if section == "voice_messages":
-                    self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
+                    self.voice_storage_path = from pathlib import Path
+Path(self.config["voice_messages"]["storage_path"])
                     self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
                     self.voice_storage_path.mkdir(parents=True, exist_ok=True)
                 elif section == "translation":

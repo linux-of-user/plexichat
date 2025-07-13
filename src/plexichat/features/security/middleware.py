@@ -1,18 +1,21 @@
-"""
-PlexiChat Security Middleware
-
-Unified middleware for authentication and security enforcement.
-"""
-
 import logging
 from typing import Any, Dict
 
-from fastapi import Request, Response
+from typing import Optional, Dict, Any, List, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .auth import session_manager
 from .exceptions import SecurityError
 from .protection import ddos_protection, rate_limiter
+
+
+from fastapi import Request
+
+"""
+PlexiChat Security Middleware
+
+Unified middleware for authentication and security enforcement.
+"""
 
 logger = logging.getLogger(__name__)
 

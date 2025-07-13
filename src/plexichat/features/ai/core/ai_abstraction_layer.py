@@ -1,8 +1,3 @@
-"""
-PlexiChat AI Abstraction Layer
-Comprehensive AI management system with multiple providers, fallbacks, and access control.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -19,10 +14,16 @@ from cryptography.fernet import Fernet
 
 from ..monitoring.analytics_engine import PerformanceMetric, UsageMetric, analytics_engine
 
-# Import new provider system
 from ..providers import BaseAIProvider, OllamaConfig, OllamaProvider, ProviderStatus
 from ..providers.base_provider import AIRequest as ProviderAIRequest
 
+
+"""
+PlexiChat AI Abstraction Layer
+Comprehensive AI management system with multiple providers, fallbacks, and access control.
+"""
+
+# Import new provider system
 logger = logging.getLogger(__name__)
 
 class AIProvider(str, Enum):
@@ -94,9 +95,11 @@ class AIModel:
         if self.fallback_models is None:
             self.fallback_models = []
         if self.created_at is None:
-            self.created_at = datetime.now()
+            self.created_at = from datetime import datetime
+datetime.now()
         if self.updated_at is None:
-            self.updated_at = datetime.now()
+            self.updated_at = from datetime import datetime
+datetime.now()
 
 @dataclass
 class AIRequest:
@@ -203,13 +206,15 @@ class AIAccessControl:
         usage["total_tokens"] += tokens
         usage["total_cost"] += cost
         usage["request_count"] += 1
-        usage["last_request"] = datetime.now()
+        usage["last_request"] = from datetime import datetime
+datetime.now()
 
 class AIAbstractionLayer:
     """Main AI abstraction layer managing all providers and models."""
 
     def __init__(self, config_path: str = "config/ai_config.json"):
-        self.config_path = Path(config_path)
+        self.config_path = from pathlib import Path
+Path(config_path)
         self.models: Dict[str, AIModel] = {}
         self.providers: Dict[AIProvider, Dict[str, Any]] = {}
         self.access_control = AIAccessControl()
@@ -244,7 +249,8 @@ class AIAbstractionLayer:
         
     def _get_or_create_encryption_key(self) -> Fernet:
         """Get or create encryption key for API keys."""
-        key_path = Path("config/ai_encryption.key")
+        key_path = from pathlib import Path
+Path("config/ai_encryption.key")
         key_path.parent.mkdir(exist_ok=True)
         
         if key_path.exists():
@@ -473,7 +479,8 @@ class AIAbstractionLayer:
                     "user_permissions": self.access_control.user_permissions,
                     "admin_users": self.access_control.admin_users
                 },
-                "last_updated": datetime.now().isoformat()
+                "last_updated": from datetime import datetime
+datetime.now().isoformat()
             }
 
             with open(self.config_path, 'w') as f:
@@ -525,7 +532,8 @@ class AIAbstractionLayer:
                 cost=0.0,
                 latency_ms=0,
                 provider=AIProvider.CUSTOM,
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 success=False,
                 error=f"Model not found: {request.model_id}"
             )
@@ -541,7 +549,8 @@ class AIAbstractionLayer:
                 cost=0.0,
                 latency_ms=0,
                 provider=model.provider,
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 success=False,
                 error=f"Permission denied for {capability}"
             )
@@ -556,7 +565,8 @@ class AIAbstractionLayer:
                 cost=0.0,
                 latency_ms=0,
                 provider=model.provider,
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 success=False,
                 error="Rate limit exceeded"
             )
@@ -567,7 +577,8 @@ class AIAbstractionLayer:
             cached_response = self.request_cache[cache_key]
             cached_response.cached = True
             cached_response.request_id = request.request_id
-            cached_response.timestamp = datetime.now()
+            cached_response.timestamp = from datetime import datetime
+datetime.now()
             return cached_response
 
         # Try primary model
@@ -643,7 +654,8 @@ class AIAbstractionLayer:
                 cost=0.0,
                 latency_ms=int((time.time() - start_time) * 1000),
                 provider=model.provider,
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 success=False,
                 error="All models failed"
             )
@@ -730,7 +742,8 @@ class AIAbstractionLayer:
                     cost=self._calculate_cost(model, response_data.get('usage', {})),
                     latency_ms=latency_ms,
                     provider=model.provider,
-                    timestamp=datetime.now(),
+                    timestamp=from datetime import datetime
+datetime.now(),
                     success=True,
                     metadata=response_data.get('metadata')
                 )
@@ -788,7 +801,8 @@ class AIAbstractionLayer:
                 cost=0.0,
                 latency_ms=latency_ms,
                 provider=model.provider,
-                timestamp=datetime.now(),
+                timestamp=from datetime import datetime
+datetime.now(),
                 success=False,
                 error=str(e)
             )
@@ -984,7 +998,8 @@ class AIAbstractionLayer:
 
         if success:
             health["successful_requests"] += 1
-            health["last_success"] = datetime.now()
+            health["last_success"] = from datetime import datetime
+datetime.now()
 
             # Update average latency
             current_avg = health["average_latency_ms"]
@@ -993,7 +1008,8 @@ class AIAbstractionLayer:
 
         else:
             health["failed_requests"] += 1
-            health["last_failure"] = datetime.now()
+            health["last_failure"] = from datetime import datetime
+datetime.now()
 
         # Update status based on recent performance
         success_rate = health["successful_requests"] / health["total_requests"]

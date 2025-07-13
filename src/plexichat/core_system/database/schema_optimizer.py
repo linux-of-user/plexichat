@@ -1,3 +1,12 @@
+import json
+import logging
+import re
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
+
 """
 PlexiChat Schema and Data Type Optimizer
 
@@ -20,15 +29,7 @@ Key Optimization Areas:
 - Index-friendly schema design
 """
 
-import json
-import logging
-import re
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Dict, List, Optional
-
 try:
-    from .enhanced_abstraction import AbstractDatabaseClient, DatabaseType  # type: ignore
     ENHANCED_ABSTRACTION_AVAILABLE = True
 except ImportError:
     ENHANCED_ABSTRACTION_AVAILABLE = False

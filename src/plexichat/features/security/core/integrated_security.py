@@ -1,8 +1,3 @@
-"""
-PlexiChat Integrated Security System
-Deep integration of security, rate limiting, and behavioral analysis across all endpoints.
-"""
-
 import hashlib
 import ipaddress
 import json
@@ -13,6 +8,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from ..logging import get_logger
+
+        import re
+
+"""
+PlexiChat Integrated Security System
+Deep integration of security, rate limiting, and behavioral analysis across all endpoints.
+"""
 
 logger = get_logger(__name__)
 
@@ -122,7 +124,7 @@ class IntegratedSecurityManager:
                         return True
             
             return False
-        except:
+        except Exception:
             return ip in ["127.0.0.1", "localhost"]
     
     async def check_rate_limit(
@@ -196,7 +198,8 @@ class IntegratedSecurityManager:
             self.user_profiles[user_id] = UserBehaviorProfile(user_id=user_id)
         
         profile = self.user_profiles[user_id]
-        current_hour = datetime.now().hour
+        current_hour = from datetime import datetime
+datetime.now().hour
         
         # Calculate anomaly factors
         anomaly_factors = []
@@ -365,7 +368,6 @@ class IntegratedSecurityManager:
     def _normalize_endpoint(self, endpoint: str) -> str:
         """Normalize endpoint for pattern matching."""
         # Replace IDs with placeholders
-        import re
         normalized = re.sub(r'/\d+', '/{id}', endpoint)
         normalized = re.sub(r'/[a-f0-9-]{36}', '/{uuid}', normalized)
         return normalized

@@ -1,3 +1,19 @@
+    from .core.versioning.version_manager import Version, VersionType, version_manager
+
+        from .core.versioning.version_manager import version_manager
+        from .core_system.versioning.version_manager import version_manager
+    from .main import app
+    from .core.launcher import PlexiChatLauncher
+        from .features.security import security_manager
+        from .infrastructure.performance import get_edge_computing_manager
+        from .infrastructure.services.service_manager import service_manager
+        from .features.backup import quantum_backup_system
+        from .interfaces.web import get_web_manager
+        from .interfaces.web import get_web_manager
+        from .cli.integrated_cli import PlexiChatCLI
+        from .features.ai.ai_coordinator import ai_coordinator
+        from .infrastructure.modules.plugin_manager import get_plugin_manager
+
 """
 PlexiChat - Government-Level Secure Communication Platform
 
@@ -31,8 +47,6 @@ __url__ = "https://github.com/linux-of-user/plexichat"
 
 # Import version management system
 try:
-    from .core.versioning.version_manager import Version, VersionType, version_manager
-
     # Ensure version consistency
     version_manager.set_current_version(__version__)
 
@@ -43,7 +57,6 @@ except ImportError:
 def get_version():
     """Get version string using new versioning system."""
     try:
-        from .core.versioning.version_manager import version_manager
         current_version = version_manager.get_current_version()
         return str(current_version) if current_version else __version__
     except ImportError:
@@ -52,7 +65,6 @@ def get_version():
 def get_version_info():
     """Get detailed version information."""
     try:
-        from .core_system.versioning.version_manager import version_manager
         current_version = version_manager.get_current_version()
         if current_version:
             version_info = version_manager.get_version_info(current_version)
@@ -92,18 +104,15 @@ def get_version_info():
 # Export main components (lazy imports to avoid circular dependencies)
 def get_app():
     """Get the FastAPI app instance."""
-    from .main import app
     return app
 
 def get_launcher():
     """Get the PlexiChat launcher."""
-    from .core.launcher import PlexiChatLauncher
     return PlexiChatLauncher
 
 def get_security_manager():
     """Get the security manager."""
     try:
-        from .features.security import security_manager
         return security_manager
     except ImportError:
         return None
@@ -111,7 +120,6 @@ def get_security_manager():
 def get_optimization_manager():
     """Get the optimization manager."""
     try:
-        from .infrastructure.performance import get_edge_computing_manager
         return get_edge_computing_manager()
     except ImportError:
         return None
@@ -119,7 +127,6 @@ def get_optimization_manager():
 def get_service_manager():
     """Get the service manager."""
     try:
-        from .infrastructure.services.service_manager import service_manager
         return service_manager
     except ImportError:
         return None
@@ -127,7 +134,6 @@ def get_service_manager():
 def get_backup_system():
     """Get the quantum backup system."""
     try:
-        from .features.backup import quantum_backup_system
         return quantum_backup_system
     except ImportError:
         return None
@@ -136,7 +142,6 @@ def get_api_manager():
     """Get the API manager."""
     try:
         # API functionality is integrated with the web interface
-        from .interfaces.web import get_web_manager
         return get_web_manager()
     except ImportError:
         return None
@@ -144,7 +149,6 @@ def get_api_manager():
 def get_web_manager():
     """Get the web interface manager."""
     try:
-        from .interfaces.web import get_web_manager
         return get_web_manager()
     except ImportError:
         return None
@@ -152,7 +156,6 @@ def get_web_manager():
 def get_cli():
     """Get the CLI interface."""
     try:
-        from .cli.integrated_cli import PlexiChatCLI
         return PlexiChatCLI()
     except ImportError:
         return None
@@ -160,7 +163,6 @@ def get_cli():
 def get_ai_manager():
     """Get the AI manager."""
     try:
-        from .features.ai.ai_coordinator import ai_coordinator
         return ai_coordinator
     except ImportError:
         return None
@@ -168,7 +170,6 @@ def get_ai_manager():
 def get_plugin_manager():
     """Get the plugin manager."""
     try:
-        from .infrastructure.modules.plugin_manager import get_plugin_manager
         return get_plugin_manager()
     except ImportError:
         return None

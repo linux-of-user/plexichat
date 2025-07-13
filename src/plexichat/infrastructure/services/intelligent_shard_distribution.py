@@ -1,25 +1,26 @@
-"""
-Intelligent shard distribution service for NetLink.
-Implements device-based shard placement with smart algorithms and user preferences.
-"""
-
 from dataclasses import dataclass
 from typing import List, Optional
 
 from netlink.app.logger_config import logger
 from netlink.app.models.device_management import (
-    DeviceCapabilityReport,
-    DeviceShardAssignment,
-    DeviceStatus,
-    ShardDistributionStrategy,
-    StorageDevice,
-)
 from netlink.app.models.enhanced_backup import EnhancedBackup, EnhancedBackupShard
 from netlink.app.models.enhanced_models import EnhancedUser
 from netlink.app.models.message import Message
 from sqlmodel import Session, select
 
 
+
+"""
+Intelligent shard distribution service for NetLink.
+Implements device-based shard placement with smart algorithms and user preferences.
+"""
+
+    DeviceCapabilityReport,
+    DeviceShardAssignment,
+    DeviceStatus,
+    ShardDistributionStrategy,
+    StorageDevice,
+)
 @dataclass
 class DeviceScore:
     """Scoring information for device selection."""

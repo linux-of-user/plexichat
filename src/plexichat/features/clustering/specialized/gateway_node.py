@@ -1,3 +1,19 @@
+import asyncio
+import logging
+
+import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+
+from plexichat.app.middleware.rate_limiting import RateLimitingMiddleware
+from plexichat.app.middleware.security_middleware import SecurityMiddleware
+from plexichat.clustering.core.base_node import BaseClusterNode
+
 """
 Specialized Gateway Cluster Node
 
@@ -9,22 +25,9 @@ Dedicated cluster node for gateway operations with:
 - Performance optimization for gateway workloads
 """
 
-import asyncio
-import logging
-
 # Import PlexiChat components
-import sys
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from plexichat.app.middleware.rate_limiting import RateLimitingMiddleware
-from plexichat.app.middleware.security_middleware import SecurityMiddleware
-from plexichat.clustering.core.base_node import BaseClusterNode
+sys.path.append(str(from pathlib import Path
+Path(__file__).parent.parent.parent))
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,3 @@
-"""User business logic service."""
 import logging
 from datetime import datetime
 from typing import List, Optional
@@ -6,6 +5,8 @@ from typing import List, Optional
 from .models import User
 from .schemas import UserCreate, UserUpdate
 
+
+"""User business logic service."""
 logger = logging.getLogger(__name__)
 
 class UserService:
@@ -24,7 +25,8 @@ class UserService:
             username=user_data.username,
             email=user_data.email,
             role=user_data.role,
-            created_at=datetime.now()
+            created_at=from datetime import datetime
+datetime.now()
         )
         self.users[user_id] = user
         logger.info(f"Created user: {user.username}")
@@ -51,7 +53,8 @@ class UserService:
         for field, value in update_data.items():
             setattr(user, field, value)
         
-        user.updated_at = datetime.now()
+        user.updated_at = from datetime import datetime
+datetime.now()
         logger.info(f"Updated user: {user.username}")
         return user
     

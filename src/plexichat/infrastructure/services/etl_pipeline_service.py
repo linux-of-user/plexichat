@@ -1,3 +1,20 @@
+import asyncio
+import json
+import logging
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+                import hashlib
+            from ..database.enhanced_abstraction import enhanced_db_manager
+            
+            from ..database.enhanced_abstraction import enhanced_db_manager
+            
+            from ..database.enhanced_abstraction import enhanced_db_manager
+            
+
 """
 PlexiChat ETL/ELT Pipeline Service
 
@@ -26,15 +43,6 @@ Transformations:
 - Data enrichment
 - Format conversions
 """
-
-import asyncio
-import json
-import logging
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -402,7 +410,6 @@ class DataTransformer:
             elif enrichment_type == "uuid":
                 enriched_record["processing_id"] = str(uuid.uuid4())
             elif enrichment_type == "hash":
-                import hashlib
                 record_str = json.dumps(record, sort_keys=True)
                 enriched_record["record_hash"] = hashlib.md5(record_str.encode()).hexdigest()
             
@@ -437,14 +444,14 @@ class ETLPipelineService:
             return
         
         self.is_running = True
-        logger.info("🚀 Starting ETL pipeline service...")
+        logger.info(" Starting ETL pipeline service...")
         
         # Start background scheduler
         self.background_tasks.append(
             asyncio.create_task(self._pipeline_scheduler())
         )
         
-        logger.info("✅ ETL pipeline service started")
+        logger.info(" ETL pipeline service started")
     
     async def stop(self):
         """Stop the pipeline service."""
@@ -452,7 +459,7 @@ class ETLPipelineService:
             return
         
         self.is_running = False
-        logger.info("🛑 Stopping ETL pipeline service...")
+        logger.info(" Stopping ETL pipeline service...")
         
         # Cancel background tasks
         for task in self.background_tasks:
@@ -460,12 +467,12 @@ class ETLPipelineService:
         
         await asyncio.gather(*self.background_tasks, return_exceptions=True)
         
-        logger.info("✅ ETL pipeline service stopped")
+        logger.info(" ETL pipeline service stopped")
     
     def register_pipeline(self, config: PipelineConfig):
         """Register a new pipeline."""
         self.pipelines[config.name] = config
-        logger.info(f"✅ Registered pipeline: {config.name}")
+        logger.info(f" Registered pipeline: {config.name}")
     
     async def execute_pipeline(self, pipeline_name: str, 
                              trigger_data: Dict[str, Any] = None) -> PipelineRun:
@@ -483,7 +490,7 @@ class ETLPipelineService:
         self.active_runs[run.run_id] = run
         
         try:
-            logger.info(f"🚀 Executing pipeline: {pipeline_name}")
+            logger.info(f" Executing pipeline: {pipeline_name}")
             
             # Extract data
             data = await self._extract_data(config, trigger_data)
@@ -506,7 +513,7 @@ class ETLPipelineService:
             if run.duration_seconds:
                 self.metrics["total_execution_time"] += run.duration_seconds
             
-            logger.info(f"✅ Pipeline completed: {pipeline_name} ({run.records_processed} records)")
+            logger.info(f" Pipeline completed: {pipeline_name} ({run.records_processed} records)")
             
         except Exception as e:
             run.status = PipelineStatus.FAILED
@@ -514,7 +521,7 @@ class ETLPipelineService:
             run.error_message = str(e)
             
             self.metrics["failed_pipelines"] += 1
-            logger.error(f"❌ Pipeline failed: {pipeline_name} - {e}")
+            logger.error(f" Pipeline failed: {pipeline_name} - {e}")
         
         return run
     
@@ -526,8 +533,6 @@ class ETLPipelineService:
         
         if source_type == "lakehouse":
             # Extract from lakehouse
-            from ..database.enhanced_abstraction import enhanced_db_manager
-            
             lakehouse_client = enhanced_db_manager.clients.get("lakehouse")
             if lakehouse_client:
                 query = source_config.get("query", "SELECT * FROM raw_user_events LIMIT 1000")
@@ -536,8 +541,6 @@ class ETLPipelineService:
         
         elif source_type == "database":
             # Extract from database
-            from ..database.enhanced_abstraction import enhanced_db_manager
-            
             db_name = source_config.get("database", "default")
             query = source_config.get("query", "SELECT * FROM messages LIMIT 1000")
             
@@ -561,8 +564,6 @@ class ETLPipelineService:
         
         if target_type == "analytics_warehouse":
             # Load to analytics warehouse (ClickHouse)
-            from ..database.enhanced_abstraction import enhanced_db_manager
-            
             analytics_client = enhanced_db_manager.clients.get("analytics")
             if analytics_client:
                 target_config.get("table", "processed_events")
@@ -598,7 +599,7 @@ class ETLPipelineService:
                         pass
                 
             except Exception as e:
-                logger.error(f"❌ Pipeline scheduler error: {e}")
+                logger.error(f" Pipeline scheduler error: {e}")
     
     def get_pipeline_status(self, run_id: str) -> Optional[PipelineRun]:
         """Get pipeline run status."""

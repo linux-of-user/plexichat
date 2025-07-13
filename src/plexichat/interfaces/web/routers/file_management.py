@@ -1,10 +1,3 @@
-"""
-PlexiChat File Management API
-
-Provides comprehensive file management capabilities for the WebUI file editor.
-Handles configuration files, module configs, templates, and other system files.
-"""
-
 import json
 import logging
 import os
@@ -14,11 +7,22 @@ from typing import Any, Dict, List
 
 import aiofiles
 import yaml
+
+
+        from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from plexichat.core.auth.dependencies import get_current_admin_user
 from plexichat.features.users.user import User
+
+"""
+PlexiChat File Management API
+
+Provides comprehensive file management capabilities for the WebUI file editor.
+Handles configuration files, module configs, templates, and other system files.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +56,8 @@ class FileManager:
     """Comprehensive file management system."""
     
     def __init__(self):
-        self.root_path = Path(".")
+        self.root_path = from pathlib import Path
+Path(".")
         self.allowed_extensions = {
             '.yaml', '.yml', '.json', '.py', '.js', '.html', '.css', 
             '.md', '.txt', '.log', '.conf', '.cfg', '.ini', '.toml'
@@ -229,7 +234,8 @@ class FileManager:
             backup_dir = self.root_path / "backups" / "file_editor"
             backup_dir.mkdir(parents=True, exist_ok=True)
             
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = from datetime import datetime
+datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_name = f"{file_path.name}.{timestamp}.bak"
             backup_path = backup_dir / backup_name
             
@@ -295,14 +301,16 @@ class FileManager:
 file_manager = FileManager()
 
 @router.get("/tree", response_model=FileTreeResponse)
-async def get_file_tree(current_user: User = Depends(get_current_admin_user)):
+async def get_file_tree(current_user: from plexichat.features.users.user import User
+User = Depends(get_current_admin_user)):
     """Get organized file tree for the editor."""
     return await file_manager.get_file_tree()
 
 @router.get("/content")
 async def get_file_content(
     path: str,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(get_current_admin_user)
 ):
     """Get file content and metadata."""
     return await file_manager.read_file(path)
@@ -310,7 +318,8 @@ async def get_file_content(
 @router.post("/save")
 async def save_file_content(
     file_data: FileContent,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(get_current_admin_user)
 ):
     """Save file content."""
     success = await file_manager.write_file(file_data.path, file_data.content)
@@ -320,11 +329,13 @@ async def save_file_content(
 async def validate_file_content(
     path: str,
     content: str,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(get_current_admin_user)
 ):
     """Validate file content without saving."""
     try:
-        full_path = Path(path)
+        full_path = from pathlib import Path
+Path(path)
         await file_manager._validate_content(full_path, content)
         return {"valid": True, "message": "Content is valid"}
     except HTTPException as e:
@@ -333,12 +344,15 @@ async def validate_file_content(
 @router.get("/backups")
 async def list_file_backups(
     path: str,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(get_current_admin_user)
 ):
     """List available backups for a file."""
     try:
-        file_path = Path(path)
-        backup_dir = Path("backups/file_editor")
+        file_path = from pathlib import Path
+Path(path)
+        backup_dir = from pathlib import Path
+Path("backups/file_editor")
         
         if not backup_dir.exists():
             return {"backups": []}
@@ -368,12 +382,14 @@ async def list_file_backups(
 async def restore_file_backup(
     backup_path: str,
     target_path: str,
-    current_user: User = Depends(get_current_admin_user)
+    current_user: from plexichat.features.users.user import User
+User = Depends(get_current_admin_user)
 ):
     """Restore file from backup."""
     try:
-        backup_file = Path(backup_path)
-        Path(target_path)
+        backup_file = from pathlib import Path
+Path(backup_path)
+Path(target_path)
         
         if not backup_file.exists():
             raise HTTPException(status_code=404, detail="Backup file not found")

@@ -1,10 +1,3 @@
-"""
-Enhanced Shard Location Database
-
-Encrypted and redundant database for storing shard locations with access control.
-Prevents non-backup nodes from accessing all shard locations for security.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -19,6 +12,14 @@ from typing import Any, Dict, List, Optional, Set
 import aiosqlite
 
 from .encryption_manager import EncryptionAlgorithm, QuantumResistantEncryptionManager
+
+
+"""
+Enhanced Shard Location Database
+
+Encrypted and redundant database for storing shard locations with access control.
+Prevents non-backup nodes from accessing all shard locations for security.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,8 @@ class EnhancedShardLocationDatabase:
     """
     
     def __init__(self, data_dir: Path, encryption_manager: QuantumResistantEncryptionManager):
-        self.data_dir = Path(data_dir)
+        self.data_dir = from pathlib import Path
+Path(data_dir)
         self.encryption_manager = encryption_manager
         
         # Database paths for redundancy

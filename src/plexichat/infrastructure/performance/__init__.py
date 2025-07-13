@@ -1,3 +1,5 @@
+from .edge_computing_manager import (
+
 """
 PlexiChat Performance & Edge Computing Module
 
@@ -23,7 +25,6 @@ Components:
 - API endpoints for management and monitoring
 """
 
-from .edge_computing_manager import (
     EdgeComputingManager,
     EdgeNode,
     LoadLevel,

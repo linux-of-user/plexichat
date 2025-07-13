@@ -1,3 +1,21 @@
+    from .manager_auth import AuthManager, auth_manager
+    from .manager_token import TokenManager, token_manager
+    from .manager_session import SessionManager, session_manager
+    from .manager_password import PasswordManager, password_manager
+    from .manager_mfa import MFAManager, mfa_manager
+    from .manager_biometric import BiometricManager, biometric_manager
+    from .manager_oauth import OAuthManager, oauth_manager
+    from .manager_device import DeviceManager, device_manager
+    from .manager_audit import AuthAuditManager, auth_audit_manager
+    from .decorators_auth import (
+    from .middleware_auth import (
+    from .validators_auth import BiometricValidator, PasswordValidator, TokenValidator
+    from .exceptions_auth import (
+        import logging
+        import logging
+
+        from plexichat.infrastructure.utils.auth import require_admin,
+
 """
 PlexiChat Core Authentication System - Unified Authentication Management
 
@@ -35,64 +53,52 @@ Features:
 
 # Import new unified components
 try:
-    from .manager_auth import AuthManager, auth_manager
 except ImportError:
     AuthManager = auth_manager = None
 
 try:
-    from .manager_token import TokenManager, token_manager
 except ImportError:
     TokenManager = token_manager = None
 
 try:
-    from .manager_session import SessionManager, session_manager
 except ImportError:
     SessionManager = session_manager = None
 
 try:
-    from .manager_password import PasswordManager, password_manager
 except ImportError:
     PasswordManager = password_manager = None
 
 try:
-    from .manager_mfa import MFAManager, mfa_manager
 except ImportError:
     MFAManager = mfa_manager = None
 
 try:
-    from .manager_biometric import BiometricManager, biometric_manager
 except ImportError:
     BiometricManager = biometric_manager = None
 
 try:
-    from .manager_oauth import OAuthManager, oauth_manager
 except ImportError:
     OAuthManager = oauth_manager = None
 
 try:
-    from .manager_device import DeviceManager, device_manager
 except ImportError:
     DeviceManager = device_manager = None
 
 try:
-    from .manager_audit import AuthAuditManager, auth_audit_manager
 except ImportError:
     AuthAuditManager = auth_audit_manager = None
 
 # Import authentication utilities
 try:
-    from .decorators_auth import (
         optional_auth,
-        require_admin,
         require_auth,
         require_level,
         require_mfa,
     )
 except ImportError:
-    require_auth = require_admin = require_mfa = require_level = optional_auth = None
+    require_auth = from plexichat.infrastructure.utils.auth import require_admin = require_mfa = require_level = optional_auth = None
 
 try:
-    from .middleware_auth import (
         AuthenticationMiddleware,
         FastAPIAuthMiddleware,
         FlaskAuthMiddleware,
@@ -101,12 +107,10 @@ except ImportError:
     AuthenticationMiddleware = FlaskAuthMiddleware = FastAPIAuthMiddleware = None
 
 try:
-    from .validators_auth import BiometricValidator, PasswordValidator, TokenValidator
 except ImportError:
     PasswordValidator = TokenValidator = BiometricValidator = None
 
 try:
-    from .exceptions_auth import (
         AccountLockError,
         AuthenticationError,
         AuthorizationError,
@@ -177,7 +181,7 @@ __all__ = [
 
     # Decorators
     "require_auth",
-    "require_admin",
+    "from plexichat.infrastructure.utils.auth import require_admin",
     "require_mfa",
     "require_level",
     "optional_auth",
@@ -471,13 +475,13 @@ RISK_THRESHOLDS = {
         "score_threshold": 0.8,
         "additional_auth_required": True,
         "session_timeout_multiplier": 0.25,
-        "require_admin_approval": True
+        "from plexichat.infrastructure.utils.auth import require_admin_approval": True
     },
     "critical_risk": {
         "score_threshold": 1.0,
         "additional_auth_required": True,
         "session_timeout_multiplier": 0.1,
-        "require_admin_approval": True,
+        "from plexichat.infrastructure.utils.auth import require_admin_approval": True,
         "block_access": True
     }
 }
@@ -512,9 +516,8 @@ async def initialize_auth_system(config: dict = None) -> bool:
         return True
         
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Failed to initialize authentication system: {e}")
+        logger.error(f" Failed to initialize authentication system: {e}")
         return False
 
 async def shutdown_auth_system():
@@ -532,9 +535,8 @@ async def shutdown_auth_system():
         await auth_manager.shutdown()
         
     except Exception as e:
-        import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"❌ Error during authentication system shutdown: {e}")
+        logger.error(f" Error during authentication system shutdown: {e}")
 
 # Convenience functions for common operations
 async def authenticate_user(username: str, password: str, mfa_code: str = None) -> dict:

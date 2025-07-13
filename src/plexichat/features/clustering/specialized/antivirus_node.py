@@ -1,3 +1,19 @@
+import asyncio
+import logging
+
+import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+
+from plexichat.antivirus.core import ScanResult, ScanType
+from plexichat.antivirus.core.antivirus_engine import AdvancedAntivirusEngine
+from plexichat.clustering.core.cluster_node import ClusterNode
+
 """
 Specialized Antivirus Cluster Node
 
@@ -9,22 +25,9 @@ Dedicated cluster node for antivirus scanning operations with:
 - Performance optimization for scanning workloads
 """
 
-import asyncio
-import logging
-
 # Import PlexiChat components
-import sys
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from plexichat.antivirus.core import ScanResult, ScanType
-from plexichat.antivirus.core.antivirus_engine import AdvancedAntivirusEngine
-from plexichat.clustering.core.cluster_node import ClusterNode
+sys.path.append(str(from pathlib import Path
+Path(__file__).parent.parent.parent))
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +137,8 @@ class AntivirusClusterNode(ClusterNode):
         Returns:
             Request ID for tracking
         """
-        request_id = f"scan_{self.node_id}_{datetime.now().timestamp()}"
+        request_id = f"scan_{self.node_id}_{from datetime import datetime
+datetime.now().timestamp()}"
         
         scan_request = ScanRequest(
             request_id=request_id,

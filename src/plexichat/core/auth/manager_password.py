@@ -1,14 +1,15 @@
-"""
-PlexiChat Password Manager
-
-Comprehensive password management with strength validation and policies.
-"""
-
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 import bcrypt
+
+
+"""
+PlexiChat Password Manager
+
+Comprehensive password management with strength validation and policies.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class PasswordManager:
         """Initialize password manager."""
         self.config = config
         self.initialized = True
-        logger.info("✅ Password Manager initialized")
+        logger.info(" Password Manager initialized")
     
     async def verify_password(self, username: str, password: str) -> PasswordVerificationResult:
         """Verify user password."""
@@ -65,7 +66,7 @@ class PasswordManager:
     
     async def shutdown(self):
         """Shutdown password manager."""
-        logger.info("✅ Password Manager shutdown complete")
+        logger.info(" Password Manager shutdown complete")
 
 
 # Global instance

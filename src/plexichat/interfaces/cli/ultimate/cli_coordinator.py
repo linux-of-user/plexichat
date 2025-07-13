@@ -1,8 +1,3 @@
-"""
-PlexiChat Ultimate CLI Coordinator
-Manages 200+ commands organized into logical groups for complete system control
-"""
-
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -15,6 +10,17 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
+
+        import json
+        
+        import csv
+        import io
+        
+
+"""
+PlexiChat Ultimate CLI Coordinator
+Manages 200+ commands organized into logical groups for complete system control
+"""
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -164,11 +170,11 @@ class UltimateCLICoordinator:
     
     def get_command_tree(self) -> Tree:
         """Get command tree organized by categories."""
-        tree = Tree("🚀 PlexiChat Ultimate CLI Commands")
+        tree = Tree(" PlexiChat Ultimate CLI Commands")
         
         for category in CommandCategory:
             if self.categories[category]:
-                category_node = tree.add(f"📁 {category.value.title()} ({len(self.categories[category])} commands)")
+                category_node = tree.add(f" {category.value.title()} ({len(self.categories[category])} commands)")
                 
                 for command_name in sorted(self.categories[category]):
                     command = self.commands[command_name]
@@ -176,18 +182,18 @@ class UltimateCLICoordinator:
                     # Add command with status indicators
                     status_icons = []
                     if command.admin_only:
-                        status_icons.append("🔒")
+                        status_icons.append("")
                     if command.dangerous:
-                        status_icons.append("⚠️")
+                        status_icons.append("")
                     if command.aliases:
-                        status_icons.append("🔗")
+                        status_icons.append("")
                     
                     status_str = " ".join(status_icons)
-                    command_node = category_node.add(f"⚡ {command.name} {status_str}")
-                    command_node.add(f"📝 {command.description}")
+                    command_node = category_node.add(f" {command.name} {status_str}")
+                    command_node.add(f" {command.description}")
                     
                     if command.aliases:
-                        command_node.add(f"🔗 Aliases: {', '.join(command.aliases)}")
+                        command_node.add(f" Aliases: {', '.join(command.aliases)}")
         
         return tree
     
@@ -195,7 +201,7 @@ class UltimateCLICoordinator:
         """Show detailed help for a specific command."""
         command = self.get_command(command_name)
         if not command:
-            console.print(f"[red]❌ Command not found: {command_name}[/red]")
+            console.print(f"[red] Command not found: {command_name}[/red]")
             return
         
         # Create help panel
@@ -211,11 +217,11 @@ class UltimateCLICoordinator:
         # Security indicators
         security_info = []
         if command.requires_auth:
-            security_info.append("🔐 Requires authentication")
+            security_info.append(" Requires authentication")
         if command.admin_only:
-            security_info.append("👑 Admin only")
+            security_info.append(" Admin only")
         if command.dangerous:
-            security_info.append("⚠️ Dangerous operation")
+            security_info.append(" Dangerous operation")
         
         if security_info:
             help_content.append("")
@@ -235,7 +241,7 @@ class UltimateCLICoordinator:
         
         panel = Panel(
             "\n".join(help_content),
-            title=f"📖 Help: {command.name}",
+            title=f" Help: {command.name}",
             border_style="blue"
         )
         console.print(panel)
@@ -247,7 +253,7 @@ class UltimateCLICoordinator:
             console.print(f"[yellow]No commands found in category: {category.value}[/yellow]")
             return
         
-        table = Table(title=f"📁 {category.value.title()} Commands")
+        table = Table(title=f" {category.value.title()} Commands")
         table.add_column("Command", style="cyan", no_wrap=True)
         table.add_column("Description", style="white")
         table.add_column("Status", style="yellow")
@@ -255,11 +261,11 @@ class UltimateCLICoordinator:
         for command in sorted(commands, key=lambda x: x.name):
             status_icons = []
             if command.admin_only:
-                status_icons.append("🔒")
+                status_icons.append("")
             if command.dangerous:
-                status_icons.append("⚠️")
+                status_icons.append("")
             if command.aliases:
-                status_icons.append(f"🔗({len(command.aliases)})")
+                status_icons.append(f"({len(command.aliases)})")
             
             table.add_row(
                 command.name,
@@ -271,7 +277,7 @@ class UltimateCLICoordinator:
     
     def show_statistics(self):
         """Show CLI usage statistics."""
-        table = Table(title="📊 CLI Statistics")
+        table = Table(title=" CLI Statistics")
         table.add_column("Metric", style="cyan")
         table.add_column("Value", style="green")
         
@@ -284,7 +290,7 @@ class UltimateCLICoordinator:
         console.print(table)
         
         # Show commands by category
-        console.print("\n📁 Commands by Category:")
+        console.print("\n Commands by Category:")
         for category in CommandCategory:
             count = len(self.categories[category])
             if count > 0:
@@ -294,7 +300,7 @@ class UltimateCLICoordinator:
         """Execute a command by name."""
         command = self.get_command(command_name)
         if not command:
-            console.print(f"[red]❌ Unknown command: {command_name}[/red]")
+            console.print(f"[red] Unknown command: {command_name}[/red]")
             self._suggest_similar_commands(command_name)
             return False
         
@@ -304,20 +310,22 @@ class UltimateCLICoordinator:
         
         # Show warning for dangerous commands
         if command.dangerous:
-            if not typer.confirm("⚠️ This is a dangerous operation. Are you sure you want to continue?"):
+            if not typer.confirm(" This is a dangerous operation. Are you sure you want to continue?"):
                 console.print("[yellow]Operation cancelled.[/yellow]")
                 return False
         
         try:
             # Execute command
-            start_time = datetime.now()
+            start_time = from datetime import datetime
+datetime.now()
             
             if asyncio.iscoroutinefunction(command.handler):
                 result = await command.handler(*args, **kwargs)
             else:
                 result = command.handler(*args, **kwargs)
             
-            execution_time = (datetime.now() - start_time).total_seconds()
+            execution_time = (from datetime import datetime
+datetime.now() - start_time).total_seconds()
             
             # Update statistics
             self.stats["total_executions"] += 1
@@ -337,10 +345,10 @@ class UltimateCLICoordinator:
             return result if isinstance(result, bool) else True
             
         except KeyboardInterrupt:
-            console.print("\n[yellow]⚠️ Operation cancelled by user[/yellow]")
+            console.print("\n[yellow] Operation cancelled by user[/yellow]")
             return False
         except Exception as e:
-            console.print(f"[red]❌ Command failed: {e}[/red]")
+            console.print(f"[red] Command failed: {e}[/red]")
             logger.error(f"Command {command_name} failed: {e}")
             self.stats["failed_executions"] += 1
             return False
@@ -430,8 +438,6 @@ class UltimateCLICoordinator:
     
     def _export_json(self) -> str:
         """Export commands as JSON."""
-        import json
-        
         data = {
             "commands": {},
             "categories": {},
@@ -460,9 +466,6 @@ class UltimateCLICoordinator:
     
     def _export_csv(self) -> str:
         """Export commands as CSV."""
-        import csv
-        import io
-        
         output = io.StringIO()
         writer = csv.writer(output)
         

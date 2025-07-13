@@ -1,16 +1,17 @@
-"""
-PlexiChat Circuit Breaker
-
-Advanced circuit breaker implementation for fault tolerance and system resilience.
-Prevents cascading failures by temporarily disabling failing services.
-"""
-
 import asyncio
 import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Type
+
+
+"""
+PlexiChat Circuit Breaker
+
+Advanced circuit breaker implementation for fault tolerance and system resilience.
+Prevents cascading failures by temporarily disabling failing services.
+"""
 
 logger = logging.getLogger(__name__)
 

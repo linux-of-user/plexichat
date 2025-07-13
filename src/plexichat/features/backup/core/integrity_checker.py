@@ -1,3 +1,15 @@
+import asyncio
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+from ....core_system.config import get_config
+from ....core_system.logging import get_logger
+from .verification import ComprehensiveBackupVerifier, VerificationLevel, VerificationStatus
+
+
 """
 PlexiChat Backup Integrity Checker
 Advanced integrity checking with automated repair and continuous monitoring
@@ -30,17 +42,6 @@ Security Features:
 - Forensic logging capabilities
 - Compliance reporting
 """
-
-import asyncio
-import secrets
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
-
-from ....core_system.config import get_config
-from ....core_system.logging import get_logger
-from .verification import ComprehensiveBackupVerifier, VerificationLevel, VerificationStatus
 
 logger = get_logger(__name__)
 
@@ -165,10 +166,10 @@ class AdvancedIntegrityChecker:
             # Initialize system
             self._initialize_system()
 
-            logger.info("🔍 Advanced Integrity Checker initialized with enhanced monitoring and security")
+            logger.info(" Advanced Integrity Checker initialized with enhanced monitoring and security")
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize integrity checker: {e}")
+            logger.error(f" Failed to initialize integrity checker: {e}")
             raise
 
     def _initialize_system(self) -> None:
@@ -194,10 +195,10 @@ class AdvancedIntegrityChecker:
             health_task = asyncio.create_task(self._health_monitoring_loop())
             self.background_tasks.append(health_task)
 
-            logger.debug("🔄 Integrity checker system components initialized")
+            logger.debug(" Integrity checker system components initialized")
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize system components: {e}")
+            logger.error(f" Failed to initialize system components: {e}")
 
     async def _performance_monitoring_loop(self) -> None:
         """Monitor integrity checker performance."""
@@ -217,7 +218,7 @@ class AdvancedIntegrityChecker:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Performance monitoring error: {e}")
+                logger.error(f" Performance monitoring error: {e}")
                 await asyncio.sleep(60)
 
     async def _cache_cleanup_loop(self) -> None:
@@ -237,12 +238,12 @@ class AdvancedIntegrityChecker:
                     del self.check_cache[key]
 
                 if expired_keys:
-                    logger.debug(f"🧹 Cleaned up {len(expired_keys)} expired cache entries")
+                    logger.debug(f" Cleaned up {len(expired_keys)} expired cache entries")
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Cache cleanup error: {e}")
+                logger.error(f" Cache cleanup error: {e}")
                 await asyncio.sleep(300)
 
     async def _health_monitoring_loop(self) -> None:
@@ -254,12 +255,12 @@ class AdvancedIntegrityChecker:
                 # Check quarantine levels
                 quarantine_count = len(self.quarantined_items)
                 if quarantine_count > 10:
-                    logger.warning(f"⚠️ High quarantine count: {quarantine_count} items")
+                    logger.warning(f" High quarantine count: {quarantine_count} items")
 
                 # Check repair queue size
                 queue_size = len(self.repair_queue)
                 if queue_size > 20:
-                    logger.warning(f"⚠️ Large repair queue: {queue_size} items")
+                    logger.warning(f" Large repair queue: {queue_size} items")
 
                 # Check for stuck sessions
                 current_time = datetime.now(timezone.utc)
@@ -267,12 +268,12 @@ class AdvancedIntegrityChecker:
                     if session.status == "running":
                         runtime = (current_time - session.start_time).total_seconds()
                         if runtime > 7200:  # 2 hours
-                            logger.warning(f"⚠️ Long-running session detected: {session_id} ({runtime:.0f}s)")
+                            logger.warning(f" Long-running session detected: {session_id} ({runtime:.0f}s)")
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Health monitoring error: {e}")
+                logger.error(f" Health monitoring error: {e}")
                 await asyncio.sleep(300)
 
     def _load_integrity_config(self) -> Dict[str, Any]:
@@ -344,7 +345,7 @@ class AdvancedIntegrityChecker:
             user_config = self.config.get("integrity_checker", {})
             base_config.update(user_config)
         except Exception as e:
-            logger.warning(f"⚠️ Failed to load user integrity config: {e}")
+            logger.warning(f" Failed to load user integrity config: {e}")
 
         return base_config
 
@@ -387,7 +388,7 @@ class AdvancedIntegrityChecker:
                 self.integrity_stats["system_uptime_seconds"] = uptime
 
         except Exception as e:
-            logger.error(f"❌ Error updating performance metrics: {e}")
+            logger.error(f" Error updating performance metrics: {e}")
 
     async def _check_performance_alerts(self) -> None:
         """Check for performance issues and generate alerts."""
@@ -395,30 +396,30 @@ class AdvancedIntegrityChecker:
             # Check checks per hour
             checks_per_hour = self.integrity_stats["checks_per_hour"]
             if checks_per_hour < 5:  # Less than 5 checks per hour
-                logger.warning(f"⚠️ Low integrity check rate: {checks_per_hour:.1f}/hour")
+                logger.warning(f" Low integrity check rate: {checks_per_hour:.1f}/hour")
 
             # Check repair success rate
             repair_success_rate = self.integrity_stats["repair_success_rate"]
             if repair_success_rate < 80:  # Less than 80% success rate
-                logger.warning(f"⚠️ Low repair success rate: {repair_success_rate:.1f}%")
+                logger.warning(f" Low repair success rate: {repair_success_rate:.1f}%")
 
             # Check quarantine rate
             quarantine_rate = self.integrity_stats["quarantine_rate"]
             if quarantine_rate > 10:  # More than 10% quarantined
-                logger.warning(f"⚠️ High quarantine rate: {quarantine_rate:.1f}%")
+                logger.warning(f" High quarantine rate: {quarantine_rate:.1f}%")
 
             # Check escalation rate
             escalation_rate = self.integrity_stats["escalation_rate"]
             if escalation_rate > 5:  # More than 5% escalated
-                logger.warning(f"⚠️ High escalation rate: {escalation_rate:.1f}%")
+                logger.warning(f" High escalation rate: {escalation_rate:.1f}%")
 
             # Check average check time
             avg_time = self.integrity_stats["average_check_time_ms"]
             if avg_time > 60000:  # More than 1 minute
-                logger.warning(f"⚠️ High average check time: {avg_time:.1f}ms")
+                logger.warning(f" High average check time: {avg_time:.1f}ms")
 
         except Exception as e:
-            logger.error(f"❌ Error checking performance alerts: {e}")
+            logger.error(f" Error checking performance alerts: {e}")
 
     async def _update_system_health_score(self) -> None:
         """Update the overall system health score."""
@@ -452,19 +453,19 @@ class AdvancedIntegrityChecker:
             # Log health status changes
             if final_score < self.health_thresholds["critical"]:
                 if not hasattr(self, '_last_health_status') or self._last_health_status != "critical":
-                    logger.critical(f"🚨 System integrity CRITICAL: {final_score:.1f}%")
+                    logger.critical(f" System integrity CRITICAL: {final_score:.1f}%")
                     self._last_health_status = "critical"
             elif final_score < self.health_thresholds["warning"]:
                 if not hasattr(self, '_last_health_status') or self._last_health_status != "warning":
-                    logger.warning(f"⚠️ System integrity WARNING: {final_score:.1f}%")
+                    logger.warning(f" System integrity WARNING: {final_score:.1f}%")
                     self._last_health_status = "warning"
             elif final_score >= self.health_thresholds["healthy"]:
                 if not hasattr(self, '_last_health_status') or self._last_health_status != "healthy":
-                    logger.info(f"✅ System integrity HEALTHY: {final_score:.1f}%")
+                    logger.info(f" System integrity HEALTHY: {final_score:.1f}%")
                     self._last_health_status = "healthy"
 
         except Exception as e:
-            logger.error(f"❌ Error updating system health score: {e}")
+            logger.error(f" Error updating system health score: {e}")
 
     async def start_integrity_check(self, scope: str = "system", 
                                   mode: IntegrityCheckMode = None) -> str:
@@ -473,7 +474,7 @@ class AdvancedIntegrityChecker:
             session_id = f"integrity_check_{secrets.token_hex(8)}"
             mode = mode or self.integrity_config["default_check_mode"]
             
-            logger.info(f"🔍 Starting integrity check: {scope} (mode: {mode.value})")
+            logger.info(f" Starting integrity check: {scope} (mode: {mode.value})")
             
             session = IntegrityCheckSession(
                 session_id=session_id,
@@ -491,13 +492,13 @@ class AdvancedIntegrityChecker:
             return session_id
             
         except Exception as e:
-            logger.error(f"❌ Failed to start integrity check: {e}")
+            logger.error(f" Failed to start integrity check: {e}")
             raise
 
     async def _run_integrity_check(self, session: IntegrityCheckSession) -> None:
         """Run the integrity check session."""
         try:
-            logger.info(f"🔍 Running integrity check session: {session.session_id}")
+            logger.info(f" Running integrity check session: {session.session_id}")
             
             # Determine what to check based on scope
             if session.scope == "system":
@@ -520,19 +521,19 @@ class AdvancedIntegrityChecker:
             # Update system integrity score
             await self._update_system_integrity_score()
             
-            logger.info(f"✅ Integrity check completed: {session.session_id} - "
+            logger.info(f" Integrity check completed: {session.session_id} - "
                        f"{session.issues_found} issues found, "
                        f"{session.repairs_successful} repairs successful")
             
         except Exception as e:
-            logger.error(f"❌ Integrity check session failed: {session.session_id}: {e}")
+            logger.error(f" Integrity check session failed: {session.session_id}: {e}")
             session.status = "failed"
             session.end_time = datetime.now(timezone.utc)
 
     async def _check_system_integrity(self, session: IntegrityCheckSession) -> None:
         """Check integrity of the entire system."""
         try:
-            logger.info("🔍 Checking system-wide integrity")
+            logger.info(" Checking system-wide integrity")
             
             # Check all backups
             await self._check_backup_integrity(session)
@@ -547,7 +548,7 @@ class AdvancedIntegrityChecker:
             await self._check_node_connectivity(session)
             
         except Exception as e:
-            logger.error(f"❌ System integrity check failed: {e}")
+            logger.error(f" System integrity check failed: {e}")
             raise
 
     async def _check_backup_integrity(self, session: IntegrityCheckSession) -> None:
@@ -576,14 +577,14 @@ class AdvancedIntegrityChecker:
                         await self._handle_verification_failure(session, result)
                     
                 except Exception as e:
-                    logger.error(f"❌ Failed to check backup {backup_id}: {e}")
+                    logger.error(f" Failed to check backup {backup_id}: {e}")
                     await self._create_integrity_issue(
                         session, "critical", "verification_error", backup_id, "backup",
                         f"Failed to verify backup: {str(e)}", "integrity_checker"
                     )
             
         except Exception as e:
-            logger.error(f"❌ Backup integrity check failed: {e}")
+            logger.error(f" Backup integrity check failed: {e}")
             raise
 
     async def _check_shard_integrity(self, session: IntegrityCheckSession) -> None:
@@ -608,20 +609,20 @@ class AdvancedIntegrityChecker:
                         await self._handle_verification_failure(session, result)
                     
                 except Exception as e:
-                    logger.error(f"❌ Failed to check shard {shard_id}: {e}")
+                    logger.error(f" Failed to check shard {shard_id}: {e}")
                     await self._create_integrity_issue(
                         session, "high", "verification_error", shard_id, "shard",
                         f"Failed to verify shard: {str(e)}", "integrity_checker"
                     )
             
         except Exception as e:
-            logger.error(f"❌ Shard integrity check failed: {e}")
+            logger.error(f" Shard integrity check failed: {e}")
             raise
 
     async def _check_metadata_consistency(self, session: IntegrityCheckSession) -> None:
         """Check metadata consistency across the system."""
         try:
-            logger.info("🔍 Checking metadata consistency")
+            logger.info(" Checking metadata consistency")
             
             # Check backup metadata consistency
             await self._check_backup_metadata_consistency(session)
@@ -633,13 +634,13 @@ class AdvancedIntegrityChecker:
             await self._check_metadata_cross_references(session)
             
         except Exception as e:
-            logger.error(f"❌ Metadata consistency check failed: {e}")
+            logger.error(f" Metadata consistency check failed: {e}")
             raise
 
     async def _check_node_connectivity(self, session: IntegrityCheckSession) -> None:
         """Check connectivity to backup nodes."""
         try:
-            logger.info("🔍 Checking node connectivity")
+            logger.info(" Checking node connectivity")
             
             # Get list of backup nodes (placeholder)
             node_ids = await self._get_all_node_ids()
@@ -658,14 +659,14 @@ class AdvancedIntegrityChecker:
                         )
                     
                 except Exception as e:
-                    logger.error(f"❌ Failed to check node {node_id}: {e}")
+                    logger.error(f" Failed to check node {node_id}: {e}")
                     await self._create_integrity_issue(
                         session, "medium", "connectivity_error", node_id, "node",
                         f"Failed to test node connectivity: {str(e)}", "connectivity_checker"
                     )
             
         except Exception as e:
-            logger.error(f"❌ Node connectivity check failed: {e}")
+            logger.error(f" Node connectivity check failed: {e}")
             raise
 
     async def _handle_verification_failure(self, session: IntegrityCheckSession, 
@@ -693,7 +694,7 @@ class AdvancedIntegrityChecker:
             )
             
         except Exception as e:
-            logger.error(f"❌ Failed to handle verification failure: {e}")
+            logger.error(f" Failed to handle verification failure: {e}")
 
     async def _create_integrity_issue(self, session: IntegrityCheckSession, 
                                     severity: str, issue_type: str, 
@@ -721,13 +722,13 @@ class AdvancedIntegrityChecker:
                 self.repair_queue.append(issue)
             
             # Log the issue
-            logger.warning(f"⚠️ Integrity issue detected: {issue.issue_id} - {description}")
+            logger.warning(f" Integrity issue detected: {issue.issue_id} - {description}")
             
             # Update statistics
             self.integrity_stats["total_issues_found"] += 1
             
         except Exception as e:
-            logger.error(f"❌ Failed to create integrity issue: {e}")
+            logger.error(f" Failed to create integrity issue: {e}")
 
     def _determine_repair_actions(self, severity: str, issue_type: str, item_type: str) -> List[RepairAction]:
         """Determine appropriate repair actions for an issue."""
@@ -768,7 +769,7 @@ class AdvancedIntegrityChecker:
     async def _process_repair_queue(self, session: IntegrityCheckSession) -> None:
         """Process the repair queue."""
         try:
-            logger.info(f"🔧 Processing {len(self.repair_queue)} repair items")
+            logger.info(f" Processing {len(self.repair_queue)} repair items")
 
             # Process repairs with concurrency limit
             max_concurrent = self.integrity_config["max_concurrent_repairs"]
@@ -787,7 +788,7 @@ class AdvancedIntegrityChecker:
             self.repair_queue.clear()
 
         except Exception as e:
-            logger.error(f"❌ Failed to process repair queue: {e}")
+            logger.error(f" Failed to process repair queue: {e}")
 
     async def _process_repair_item(self, session: IntegrityCheckSession,
                                  issue: IntegrityIssue, semaphore: asyncio.Semaphore) -> None:
@@ -798,7 +799,7 @@ class AdvancedIntegrityChecker:
                 issue.repair_attempted = True
                 issue.repair_timestamp = datetime.now(timezone.utc)
 
-                logger.info(f"🔧 Attempting repair for issue: {issue.issue_id}")
+                logger.info(f" Attempting repair for issue: {issue.issue_id}")
 
                 # Try each repair action in order
                 repair_successful = False
@@ -808,7 +809,7 @@ class AdvancedIntegrityChecker:
                             repair_successful = True
                             break
                     except Exception as e:
-                        logger.error(f"❌ Repair action {action.value} failed for {issue.issue_id}: {e}")
+                        logger.error(f" Repair action {action.value} failed for {issue.issue_id}: {e}")
                         continue
 
                 issue.repair_successful = repair_successful
@@ -816,25 +817,25 @@ class AdvancedIntegrityChecker:
                 if repair_successful:
                     session.repairs_successful += 1
                     self.integrity_stats["total_repairs_successful"] += 1
-                    logger.info(f"✅ Repair successful for issue: {issue.issue_id}")
+                    logger.info(f" Repair successful for issue: {issue.issue_id}")
 
                     # Verify repair if required
                     if self.integrity_config["repair_verification_required"]:
                         await self._verify_repair(issue)
                 else:
-                    logger.warning(f"❌ Repair failed for issue: {issue.issue_id}")
+                    logger.warning(f" Repair failed for issue: {issue.issue_id}")
                     await self._handle_repair_failure(issue)
 
                 self.integrity_stats["total_repairs_attempted"] += 1
 
             except Exception as e:
-                logger.error(f"❌ Failed to process repair item {issue.issue_id}: {e}")
+                logger.error(f" Failed to process repair item {issue.issue_id}: {e}")
                 issue.repair_successful = False
 
     async def _execute_repair_action(self, issue: IntegrityIssue, action: RepairAction) -> bool:
         """Execute a specific repair action."""
         try:
-            logger.info(f"🔧 Executing repair action: {action.value} for {issue.issue_id}")
+            logger.info(f" Executing repair action: {action.value} for {issue.issue_id}")
 
             if action == RepairAction.RESTORE_FROM_REPLICA:
                 return await self._restore_from_replica(issue)
@@ -853,78 +854,78 @@ class AdvancedIntegrityChecker:
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Failed to execute repair action {action.value}: {e}")
+            logger.error(f" Failed to execute repair action {action.value}: {e}")
             return False
 
     async def _restore_from_replica(self, issue: IntegrityIssue) -> bool:
         """Restore item from replica."""
         try:
-            logger.info(f"🔧 Restoring {issue.affected_item_id} from replica")
+            logger.info(f" Restoring {issue.affected_item_id} from replica")
             # Placeholder implementation
             await asyncio.sleep(1)  # Simulate restore time
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to restore from replica: {e}")
+            logger.error(f" Failed to restore from replica: {e}")
             return False
 
     async def _rebuild_from_shards(self, issue: IntegrityIssue) -> bool:
         """Rebuild item from shards."""
         try:
-            logger.info(f"🔧 Rebuilding {issue.affected_item_id} from shards")
+            logger.info(f" Rebuilding {issue.affected_item_id} from shards")
             # Placeholder implementation
             await asyncio.sleep(2)  # Simulate rebuild time
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to rebuild from shards: {e}")
+            logger.error(f" Failed to rebuild from shards: {e}")
             return False
 
     async def _regenerate_checksums(self, issue: IntegrityIssue) -> bool:
         """Regenerate checksums for item."""
         try:
-            logger.info(f"🔧 Regenerating checksums for {issue.affected_item_id}")
+            logger.info(f" Regenerating checksums for {issue.affected_item_id}")
             # Placeholder implementation
             await asyncio.sleep(0.5)  # Simulate checksum generation time
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to regenerate checksums: {e}")
+            logger.error(f" Failed to regenerate checksums: {e}")
             return False
 
     async def _repair_metadata(self, issue: IntegrityIssue) -> bool:
         """Repair metadata for item."""
         try:
-            logger.info(f"🔧 Repairing metadata for {issue.affected_item_id}")
+            logger.info(f" Repairing metadata for {issue.affected_item_id}")
             # Placeholder implementation
             await asyncio.sleep(0.3)  # Simulate metadata repair time
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to repair metadata: {e}")
+            logger.error(f" Failed to repair metadata: {e}")
             return False
 
     async def _quarantine_item(self, issue: IntegrityIssue) -> bool:
         """Quarantine corrupted item."""
         try:
-            logger.warning(f"🚨 Quarantining {issue.affected_item_id}")
+            logger.warning(f" Quarantining {issue.affected_item_id}")
             self.quarantined_items.add(issue.affected_item_id)
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to quarantine item: {e}")
+            logger.error(f" Failed to quarantine item: {e}")
             return False
 
     async def _escalate_to_admin(self, issue: IntegrityIssue) -> bool:
         """Escalate issue to administrator."""
         try:
-            logger.critical(f"🚨 ESCALATING TO ADMIN: {issue.issue_id} - {issue.description}")
+            logger.critical(f" ESCALATING TO ADMIN: {issue.issue_id} - {issue.description}")
             issue.escalated = True
             # In real implementation, this would send notifications
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to escalate to admin: {e}")
+            logger.error(f" Failed to escalate to admin: {e}")
             return False
 
     async def _verify_repair(self, issue: IntegrityIssue) -> bool:
         """Verify that a repair was successful."""
         try:
-            logger.info(f"🔍 Verifying repair for {issue.issue_id}")
+            logger.info(f" Verifying repair for {issue.issue_id}")
 
             # Re-verify the item
             if issue.affected_item_type == "backup":
@@ -937,7 +938,7 @@ class AdvancedIntegrityChecker:
             return result.status == VerificationStatus.PASSED
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify repair: {e}")
+            logger.error(f" Failed to verify repair: {e}")
             return False
 
     async def _handle_repair_failure(self, issue: IntegrityIssue) -> None:
@@ -956,7 +957,7 @@ class AdvancedIntegrityChecker:
                 await self._escalate_to_admin(issue)
 
         except Exception as e:
-            logger.error(f"❌ Failed to handle repair failure: {e}")
+            logger.error(f" Failed to handle repair failure: {e}")
 
     async def start_continuous_monitoring(self) -> None:
         """Start continuous integrity monitoring."""
@@ -968,10 +969,10 @@ class AdvancedIntegrityChecker:
             self.continuous_monitoring_enabled = True
             self.monitoring_task = asyncio.create_task(self._continuous_monitoring_loop())
 
-            logger.info("🔄 Continuous integrity monitoring started")
+            logger.info(" Continuous integrity monitoring started")
 
         except Exception as e:
-            logger.error(f"❌ Failed to start continuous monitoring: {e}")
+            logger.error(f" Failed to start continuous monitoring: {e}")
 
     async def stop_continuous_monitoring(self) -> None:
         """Stop continuous integrity monitoring."""
@@ -986,14 +987,14 @@ class AdvancedIntegrityChecker:
                     pass
                 self.monitoring_task = None
 
-            logger.info("🛑 Continuous integrity monitoring stopped")
+            logger.info(" Continuous integrity monitoring stopped")
 
         except Exception as e:
-            logger.error(f"❌ Failed to stop continuous monitoring: {e}")
+            logger.error(f" Failed to stop continuous monitoring: {e}")
 
     async def _continuous_monitoring_loop(self) -> None:
         """Continuous monitoring loop."""
-        logger.info("🔄 Starting continuous monitoring loop")
+        logger.info(" Starting continuous monitoring loop")
 
         while self.continuous_monitoring_enabled:
             try:
@@ -1006,7 +1007,7 @@ class AdvancedIntegrityChecker:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"❌ Continuous monitoring error: {e}")
+                logger.error(f" Continuous monitoring error: {e}")
                 await asyncio.sleep(60)  # Wait 1 minute on error
 
     async def _update_system_integrity_score(self) -> None:
@@ -1031,10 +1032,10 @@ class AdvancedIntegrityChecker:
 
             self.integrity_stats["system_integrity_score"] = score
 
-            logger.info(f"📊 System integrity score updated: {score:.1f}%")
+            logger.info(f" System integrity score updated: {score:.1f}%")
 
         except Exception as e:
-            logger.error(f"❌ Failed to update integrity score: {e}")
+            logger.error(f" Failed to update integrity score: {e}")
 
     # Placeholder methods for data access
 
@@ -1100,17 +1101,17 @@ class AdvancedIntegrityChecker:
         try:
             if item_id in self.quarantined_items:
                 self.quarantined_items.remove(item_id)
-                logger.info(f"📤 Removed {item_id} from quarantine")
+                logger.info(f" Removed {item_id} from quarantine")
                 return True
             return False
         except Exception as e:
-            logger.error(f"❌ Failed to remove from quarantine: {e}")
+            logger.error(f" Failed to remove from quarantine: {e}")
             return False
 
     async def shutdown(self) -> None:
         """Gracefully shutdown the integrity checker."""
         try:
-            logger.info("🛑 Shutting down Advanced Integrity Checker")
+            logger.info(" Shutting down Advanced Integrity Checker")
 
             # Stop continuous monitoring
             await self.stop_continuous_monitoring()
@@ -1124,7 +1125,7 @@ class AdvancedIntegrityChecker:
 
             # Complete any active repair operations
             if self.repair_queue:
-                logger.info(f"⏳ Completing {len(self.repair_queue)} pending repairs")
+                logger.info(f" Completing {len(self.repair_queue)} pending repairs")
                 # Give repairs a chance to complete
                 await asyncio.sleep(5)
 
@@ -1133,7 +1134,7 @@ class AdvancedIntegrityChecker:
                 if session.status == "running":
                     session.status = "cancelled"
                     session.end_time = datetime.now(timezone.utc)
-                    logger.info(f"🛑 Cancelled active session: {session_id}")
+                    logger.info(f" Cancelled active session: {session_id}")
 
             # Clear caches and state
             self.check_cache.clear()
@@ -1142,16 +1143,16 @@ class AdvancedIntegrityChecker:
             await self._update_system_health_score()
 
             # Log final statistics
-            logger.info("📊 Final integrity statistics:")
+            logger.info(" Final integrity statistics:")
             logger.info(f"   Total checks: {self.integrity_stats['total_checks_performed']}")
             logger.info(f"   Issues found: {self.integrity_stats['total_issues_found']}")
             logger.info(f"   Repairs successful: {self.integrity_stats['total_repairs_successful']}")
             logger.info(f"   Final integrity score: {self.integrity_stats['system_integrity_score']:.1f}%")
 
-            logger.info("✅ Advanced Integrity Checker shutdown complete")
+            logger.info(" Advanced Integrity Checker shutdown complete")
 
         except Exception as e:
-            logger.error(f"❌ Error during integrity checker shutdown: {e}")
+            logger.error(f" Error during integrity checker shutdown: {e}")
 
     async def get_comprehensive_status(self) -> Dict[str, Any]:
         """Get comprehensive system status and health information."""
@@ -1200,7 +1201,7 @@ class AdvancedIntegrityChecker:
             }
 
         except Exception as e:
-            logger.error(f"❌ Error getting comprehensive status: {e}")
+            logger.error(f" Error getting comprehensive status: {e}")
             return {"system_status": "error", "error": str(e)}
 
     async def force_integrity_check(self, target_id: str = None) -> str:
@@ -1209,11 +1210,11 @@ class AdvancedIntegrityChecker:
             scope = target_id if target_id else "system"
             session_id = await self.start_integrity_check(scope, IntegrityCheckMode.COMPREHENSIVE)
 
-            logger.info(f"🔍 Forced integrity check started: {session_id}")
+            logger.info(f" Forced integrity check started: {session_id}")
             return session_id
 
         except Exception as e:
-            logger.error(f"❌ Failed to force integrity check: {e}")
+            logger.error(f" Failed to force integrity check: {e}")
             raise
 
     async def clear_quarantine(self, item_id: str = None) -> bool:
@@ -1222,18 +1223,18 @@ class AdvancedIntegrityChecker:
             if item_id:
                 if item_id in self.quarantined_items:
                     self.quarantined_items.remove(item_id)
-                    logger.info(f"📤 Cleared quarantine for item: {item_id}")
+                    logger.info(f" Cleared quarantine for item: {item_id}")
                     return True
                 else:
-                    logger.warning(f"⚠️ Item not in quarantine: {item_id}")
+                    logger.warning(f" Item not in quarantine: {item_id}")
                     return False
             else:
                 # Clear all quarantine
                 count = len(self.quarantined_items)
                 self.quarantined_items.clear()
-                logger.info(f"📤 Cleared quarantine for all {count} items")
+                logger.info(f" Cleared quarantine for all {count} items")
                 return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to clear quarantine: {e}")
+            logger.error(f" Failed to clear quarantine: {e}")
             return False

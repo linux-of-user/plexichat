@@ -1,10 +1,3 @@
-"""
-PlexiChat Immutable Shard Management System
-
-Provides immutable shard storage with cryptographic integrity verification,
-tamper detection, and blockchain-inspired audit trails for distributed backup.
-"""
-
 import asyncio
 import hashlib
 import json
@@ -22,6 +15,14 @@ from ...core.config import get_config
 from ...core.logging import get_logger
 from ..security.quantum_encryption import QuantumEncryptionEngine
 from .zero_knowledge_protocol import ZeroKnowledgeBackupProtocol
+
+
+"""
+PlexiChat Immutable Shard Management System
+
+Provides immutable shard storage with cryptographic integrity verification,
+tamper detection, and blockchain-inspired audit trails for distributed backup.
+"""
 
 logger = get_logger(__name__)
 
@@ -171,7 +172,7 @@ class ImmutableShardManager:
         
         self.initialized = False
         
-        logger.info("🔒 Immutable Shard Manager initialized")
+        logger.info(" Immutable Shard Manager initialized")
     
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default immutable shard configuration."""
@@ -198,7 +199,7 @@ class ImmutableShardManager:
             if self.initialized:
                 return {"success": True, "message": "Already initialized"}
             
-            logger.info("🚀 Initializing immutable shard management system...")
+            logger.info(" Initializing immutable shard management system...")
             
             # Initialize quantum encryption
             await self.quantum_engine.initialize_key_system()
@@ -220,7 +221,7 @@ class ImmutableShardManager:
             
             self.initialized = True
             
-            logger.info("✅ Immutable shard management system initialized")
+            logger.info(" Immutable shard management system initialized")
             
             return {
                 "success": True,
@@ -232,7 +233,7 @@ class ImmutableShardManager:
             }
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize immutable shard manager: {e}")
+            logger.error(f" Failed to initialize immutable shard manager: {e}")
             return {"success": False, "error": str(e)}
     
     async def _generate_signing_keys(self):
@@ -242,10 +243,10 @@ class ImmutableShardManager:
             self.signing_key = ed25519.Ed25519PrivateKey.generate()
             self.verify_key = self.signing_key.public_key()
             
-            logger.info("🔑 Signing keys generated for shard authentication")
+            logger.info(" Signing keys generated for shard authentication")
             
         except Exception as e:
-            logger.error(f"❌ Failed to generate signing keys: {e}")
+            logger.error(f" Failed to generate signing keys: {e}")
             raise
     
     async def _initialize_audit_system(self):
@@ -266,10 +267,10 @@ class ImmutableShardManager:
             
             self.audit_log.append(genesis_entry)
             
-            logger.info("📋 Audit system initialized with genesis entry")
+            logger.info(" Audit system initialized with genesis entry")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize audit system: {e}")
+            logger.error(f" Failed to initialize audit system: {e}")
             raise
     
     async def _load_existing_shards(self):
@@ -278,10 +279,10 @@ class ImmutableShardManager:
             # TODO: Implement persistent storage loading
             # For now, start with empty shard storage
             
-            logger.info(f"📂 Loaded {len(self.shards)} existing shards")
+            logger.info(f" Loaded {len(self.shards)} existing shards")
             
         except Exception as e:
-            logger.error(f"❌ Failed to load existing shards: {e}")
+            logger.error(f" Failed to load existing shards: {e}")
             raise
 
     async def create_immutable_shard(self, data: bytes, creator_id: str,
@@ -291,7 +292,7 @@ class ImmutableShardManager:
             if not self.initialized:
                 await self.initialize()
 
-            logger.info(f"🔒 Creating immutable shard ({len(data)} bytes)...")
+            logger.info(f" Creating immutable shard ({len(data)} bytes)...")
 
             # Generate unique shard ID
             shard_id = f"shard_{secrets.token_hex(32)}"
@@ -380,12 +381,12 @@ class ImmutableShardManager:
             # Update statistics
             self.stats["shards_created"] += 1
 
-            logger.info(f"✅ Immutable shard created: {shard_id}")
+            logger.info(f" Immutable shard created: {shard_id}")
 
             return shard
 
         except Exception as e:
-            logger.error(f"❌ Failed to create immutable shard: {e}")
+            logger.error(f" Failed to create immutable shard: {e}")
             raise
 
     async def verify_shard_integrity(self, shard_id: str) -> Dict[str, Any]:
@@ -396,7 +397,7 @@ class ImmutableShardManager:
 
             shard = self.shards[shard_id]
 
-            logger.debug(f"🔍 Verifying integrity of shard {shard_id}...")
+            logger.debug(f" Verifying integrity of shard {shard_id}...")
 
             verification_results = {
                 "shard_id": shard_id,
@@ -474,17 +475,17 @@ class ImmutableShardManager:
                     details=verification_results
                 )
 
-                logger.warning(f"⚠️ Integrity violation detected in shard {shard_id}")
+                logger.warning(f" Integrity violation detected in shard {shard_id}")
             else:
                 if shard.metadata.state == ShardState.CREATED:
                     shard.metadata.state = ShardState.VERIFIED
 
-                logger.debug(f"✅ Shard integrity verified: {shard_id}")
+                logger.debug(f" Shard integrity verified: {shard_id}")
 
             return verification_results
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify shard integrity for {shard_id}: {e}")
+            logger.error(f" Failed to verify shard integrity for {shard_id}: {e}")
             return {"valid": False, "error": str(e)}
 
     async def _generate_merkle_proof(self, data: bytes) -> Tuple[str, List[str]]:
@@ -529,7 +530,7 @@ class ImmutableShardManager:
             return merkle_root, merkle_proof
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate Merkle proof: {e}")
+            logger.error(f" Failed to generate Merkle proof: {e}")
             return "", []
 
     async def _sign_shard_data(self, data: bytes, metadata: ShardMetadata) -> bytes:
@@ -552,7 +553,7 @@ class ImmutableShardManager:
             return signature
 
         except Exception as e:
-            logger.error(f"❌ Failed to sign shard data: {e}")
+            logger.error(f" Failed to sign shard data: {e}")
             raise
 
     async def _calculate_integrity_hash(self, data: bytes, metadata: ShardMetadata) -> str:
@@ -574,7 +575,7 @@ class ImmutableShardManager:
             return integrity_hash
 
         except Exception as e:
-            logger.error(f"❌ Failed to calculate integrity hash: {e}")
+            logger.error(f" Failed to calculate integrity hash: {e}")
             raise
 
     async def _create_tamper_seal(self, data: bytes, metadata: ShardMetadata,
@@ -600,7 +601,7 @@ class ImmutableShardManager:
             return tamper_seal
 
         except Exception as e:
-            logger.error(f"❌ Failed to create tamper seal: {e}")
+            logger.error(f" Failed to create tamper seal: {e}")
             raise
 
     async def _generate_proof_of_work(self, data: bytes, metadata: ShardMetadata) -> Dict[str, Any]:
@@ -609,7 +610,7 @@ class ImmutableShardManager:
             if not self.enable_proof_of_work:
                 return {}
 
-            logger.info(f"⛏️ Generating proof of work (difficulty: {self.pow_difficulty})...")
+            logger.info(f" Generating proof of work (difficulty: {self.pow_difficulty})...")
 
             # Create challenge from shard data
             challenge = hashlib.sha256(
@@ -635,7 +636,7 @@ class ImmutableShardManager:
 
                 # Prevent infinite loops
                 if nonce > 10000000:  # 10M attempts max
-                    logger.warning("⚠️ Proof of work generation timeout")
+                    logger.warning(" Proof of work generation timeout")
                     break
 
             elapsed_time = time.time() - start_time
@@ -648,12 +649,12 @@ class ImmutableShardManager:
                 "computation_time": elapsed_time
             }
 
-            logger.info(f"✅ Proof of work generated (nonce: {nonce}, time: {elapsed_time:.2f}s)")
+            logger.info(f" Proof of work generated (nonce: {nonce}, time: {elapsed_time:.2f}s)")
 
             return proof_of_work
 
         except Exception as e:
-            logger.error(f"❌ Failed to generate proof of work: {e}")
+            logger.error(f" Failed to generate proof of work: {e}")
             return {}
 
     async def _verify_shard_signature(self, shard: ImmutableShard) -> bool:
@@ -678,7 +679,7 @@ class ImmutableShardManager:
                 return False
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify shard signature: {e}")
+            logger.error(f" Failed to verify shard signature: {e}")
             return False
 
     async def _verify_merkle_proof(self, shard: ImmutableShard) -> bool:
@@ -691,7 +692,7 @@ class ImmutableShardManager:
             return calculated_root == shard.metadata.merkle_root
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify Merkle proof: {e}")
+            logger.error(f" Failed to verify Merkle proof: {e}")
             return False
 
     async def _verify_integrity_hash(self, shard: ImmutableShard) -> bool:
@@ -704,7 +705,7 @@ class ImmutableShardManager:
             return calculated_hash == shard.integrity_hash
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify integrity hash: {e}")
+            logger.error(f" Failed to verify integrity hash: {e}")
             return False
 
     async def _verify_tamper_seal(self, shard: ImmutableShard) -> bool:
@@ -720,7 +721,7 @@ class ImmutableShardManager:
             return len(calculated_seal) == len(shard.tamper_seal)
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify tamper seal: {e}")
+            logger.error(f" Failed to verify tamper seal: {e}")
             return False
 
     async def _verify_proof_of_work(self, shard: ImmutableShard) -> bool:
@@ -747,7 +748,7 @@ class ImmutableShardManager:
                    proof_hash == shard.proof_of_work.get("proof_hash", ""))
 
         except Exception as e:
-            logger.error(f"❌ Failed to verify proof of work: {e}")
+            logger.error(f" Failed to verify proof of work: {e}")
             return False
 
     async def _create_audit_entry(self, shard_id: str, operation: str, node_id: str,
@@ -798,10 +799,10 @@ class ImmutableShardManager:
                 self.audit_index[shard_id] = []
             self.audit_index[shard_id].append(entry_id)
 
-            logger.debug(f"📋 Audit entry created: {operation} for shard {shard_id}")
+            logger.debug(f" Audit entry created: {operation} for shard {shard_id}")
 
         except Exception as e:
-            logger.error(f"❌ Failed to create audit entry: {e}")
+            logger.error(f" Failed to create audit entry: {e}")
 
     async def get_shard_audit_trail(self, shard_id: str) -> List[Dict[str, Any]]:
         """Get complete audit trail for a shard."""
@@ -830,13 +831,13 @@ class ImmutableShardManager:
             return audit_trail
 
         except Exception as e:
-            logger.error(f"❌ Failed to get audit trail for shard {shard_id}: {e}")
+            logger.error(f" Failed to get audit trail for shard {shard_id}: {e}")
             return []
 
     async def _background_verification_loop(self):
         """Background task for periodic shard verification."""
         try:
-            logger.info("🔄 Starting background verification loop...")
+            logger.info(" Starting background verification loop...")
 
             while True:
                 try:
@@ -846,7 +847,7 @@ class ImmutableShardManager:
                     if not self.shards:
                         continue
 
-                    logger.info(f"🔍 Starting periodic verification of {len(self.shards)} shards...")
+                    logger.info(f" Starting periodic verification of {len(self.shards)} shards...")
 
                     verification_results = []
 
@@ -861,14 +862,14 @@ class ImmutableShardManager:
                                 await self._attempt_shard_repair(shard_id)
 
                         except Exception as e:
-                            logger.error(f"❌ Failed to verify shard {shard_id}: {e}")
+                            logger.error(f" Failed to verify shard {shard_id}: {e}")
                             continue
 
                     # Log verification summary
                     valid_shards = sum(1 for r in verification_results if r["valid"])
                     invalid_shards = len(verification_results) - valid_shards
 
-                    logger.info(f"✅ Verification complete: {valid_shards} valid, {invalid_shards} invalid")
+                    logger.info(f" Verification complete: {valid_shards} valid, {invalid_shards} invalid")
 
                     # Create audit entry for verification cycle
                     await self._create_audit_entry(
@@ -884,18 +885,18 @@ class ImmutableShardManager:
                     )
 
                 except Exception as e:
-                    logger.error(f"❌ Error in verification loop: {e}")
+                    logger.error(f" Error in verification loop: {e}")
                     continue
 
         except asyncio.CancelledError:
-            logger.info("🛑 Background verification loop cancelled")
+            logger.info(" Background verification loop cancelled")
         except Exception as e:
-            logger.error(f"❌ Background verification loop failed: {e}")
+            logger.error(f" Background verification loop failed: {e}")
 
     async def _attempt_shard_repair(self, shard_id: str):
         """Attempt to repair a corrupted shard."""
         try:
-            logger.warning(f"🔧 Attempting to repair corrupted shard {shard_id}...")
+            logger.warning(f" Attempting to repair corrupted shard {shard_id}...")
 
             if shard_id not in self.shards:
                 return False
@@ -919,12 +920,12 @@ class ImmutableShardManager:
 
             self.stats["repairs_performed"] += 1
 
-            logger.warning(f"⚠️ Shard repair failed for {shard_id} - no replicas available")
+            logger.warning(f" Shard repair failed for {shard_id} - no replicas available")
 
             return False
 
         except Exception as e:
-            logger.error(f"❌ Failed to repair shard {shard_id}: {e}")
+            logger.error(f" Failed to repair shard {shard_id}: {e}")
             return False
 
     async def seal_shard(self, shard_id: str) -> bool:
@@ -937,7 +938,7 @@ class ImmutableShardManager:
 
             # Only seal verified shards
             if shard.metadata.state != ShardState.VERIFIED:
-                logger.warning(f"⚠️ Cannot seal unverified shard {shard_id}")
+                logger.warning(f" Cannot seal unverified shard {shard_id}")
                 return False
 
             # Update state to sealed
@@ -952,12 +953,12 @@ class ImmutableShardManager:
                 details={"sealed_at": datetime.now(timezone.utc).isoformat()}
             )
 
-            logger.info(f"🔒 Shard sealed: {shard_id}")
+            logger.info(f" Shard sealed: {shard_id}")
 
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to seal shard {shard_id}: {e}")
+            logger.error(f" Failed to seal shard {shard_id}: {e}")
             return False
 
     async def get_shard_statistics(self) -> Dict[str, Any]:
@@ -991,7 +992,7 @@ class ImmutableShardManager:
             }
 
         except Exception as e:
-            logger.error(f"❌ Failed to get shard statistics: {e}")
+            logger.error(f" Failed to get shard statistics: {e}")
             return {}
 
 

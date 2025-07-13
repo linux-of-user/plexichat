@@ -1,12 +1,13 @@
+from typing import Any, Dict, Optional
+
+
+
 """
 PlexiChat Security Exceptions
 
 Unified exception classes for all security-related errors.
 Consolidates exceptions from various security modules.
 """
-
-from typing import Any, Dict, Optional
-
 
 class SecurityError(Exception):
     """Base class for all security-related exceptions."""

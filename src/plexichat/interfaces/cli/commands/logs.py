@@ -1,8 +1,3 @@
-"""
-Advanced CLI log management commands.
-Provides comprehensive log viewing, filtering, and management from command line.
-"""
-
 import argparse
 import json
 import sys
@@ -10,11 +5,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent))
-
 from services.log_management import LogEntry, log_manager
 
+
+            import webbrowser
+
+"""
+Advanced CLI log management commands.
+Provides comprehensive log viewing, filtering, and management from command line.
+"""
+
+# Add parent directory to path for imports
+sys.path.append(str(from pathlib import Path
+Path(__file__).parent.parent))
 
 class LogCLI:
     """Advanced CLI for log management."""
@@ -343,7 +346,7 @@ Examples:
             if archived_files:
                 self.print_success(f"Archived {len(archived_files)} files:")
                 for filename in archived_files:
-                    print(f"  📦 {filename}")
+                    print(f"   {filename}")
             else:
                 self.print_info("No files to archive")
                 
@@ -390,7 +393,7 @@ Examples:
             if cleaned_files:
                 self.print_success(f"Cleaned {len(cleaned_files)} old archives:")
                 for filename in cleaned_files:
-                    print(f"  🗑️ {filename}")
+                    print(f"   {filename}")
             else:
                 self.print_info("No old archives to clean")
                 
@@ -404,7 +407,6 @@ Examples:
             self.print_info(f"Opening log viewer at {url}")
             
             # Try to open in browser
-            import webbrowser
             webbrowser.open(url)
             
         except Exception as e:
@@ -442,15 +444,15 @@ Examples:
     
     def print_success(self, text: str):
         """Print success message."""
-        print(f"{self.colors['GREEN']}✅ {text}{self.colors['RESET']}")
+        print(f"{self.colors['GREEN']} {text}{self.colors['RESET']}")
     
     def print_info(self, text: str):
         """Print info message."""
-        print(f"{self.colors['CYAN']}ℹ️  {text}{self.colors['RESET']}")
+        print(f"{self.colors['CYAN']}  {text}{self.colors['RESET']}")
     
     def print_error(self, text: str):
         """Print error message."""
-        print(f"{self.colors['ERROR']}❌ {text}{self.colors['RESET']}", file=sys.stderr)
+        print(f"{self.colors['ERROR']} {text}{self.colors['RESET']}", file=sys.stderr)
     
     def format_size(self, bytes_size: int) -> str:
         """Format file size in human readable format."""

@@ -1,16 +1,18 @@
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+from sqlmodel import Column, Field, SQLModel
+
+from ....infrastructure.utils.snowflake import SnowflakeGenerator
+
+
+from sqlalchemy import DateTime, Index
+
 """
 PlexiChat Reaction Model
 
 Message reaction model for emoji responses to messages.
 """
-
-from datetime import datetime
-from typing import Any, Dict, Optional
-
-from sqlalchemy import DateTime, Index
-from sqlmodel import Column, Field, SQLModel
-
-from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 # Initialize snowflake generator for reactions
 reaction_snowflake = SnowflakeGenerator(datacenter_id=1, worker_id=6)

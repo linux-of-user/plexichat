@@ -1,8 +1,3 @@
-"""
-Enhanced Logging System for PlexiChat
-Provides comprehensive logging with structured output, performance tracking, and error handling.
-"""
-
 import json
 import logging
 import logging.handlers
@@ -15,12 +10,24 @@ from pathlib import Path
 from typing import Any, Dict
 
 
+            import platform
+
+            
+
+            import psutil
+
+"""
+Enhanced Logging System for PlexiChat
+Provides comprehensive logging with structured output, performance tracking, and error handling.
+"""
+
 class EnhancedLogger:
     """Enhanced logging system with structured output and performance tracking."""
     
     def __init__(self, name: str = "plexichat", log_dir: str = "logs"):
         self.name = name
-        self.log_dir = Path(log_dir)
+        self.log_dir = from pathlib import Path
+Path(log_dir)
         self.log_dir.mkdir(exist_ok=True)
         
         # Performance tracking
@@ -36,19 +43,23 @@ class EnhancedLogger:
     def setup_enhanced_logging(self):
         """Setup comprehensive logging system."""
         # Create timestamp for log files
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = from datetime import datetime
+datetime.now().strftime('%Y%m%d_%H%M%S')
         
         # Main log file
         main_log = self.log_dir / f"plexichat_{timestamp}.log"
         
         # Error log file
-        error_log = self.log_dir / f"plexichat_errors_{datetime.now().strftime('%Y%m%d')}.log"
+        error_log = self.log_dir / f"plexichat_errors_{from datetime import datetime
+datetime.now().strftime('%Y%m%d')}.log"
         
         # Performance log file
-        perf_log = self.log_dir / f"plexichat_performance_{datetime.now().strftime('%Y%m%d')}.log"
+        perf_log = self.log_dir / f"plexichat_performance_{from datetime import datetime
+datetime.now().strftime('%Y%m%d')}.log"
         
         # Access log file
-        access_log = self.log_dir / f"plexichat_access_{datetime.now().strftime('%Y%m%d')}.log"
+        access_log = self.log_dir / f"plexichat_access_{from datetime import datetime
+datetime.now().strftime('%Y%m%d')}.log"
         
         # Setup formatters
         detailed_formatter = logging.Formatter(
@@ -182,15 +193,14 @@ class EnhancedLogger:
         logger = logging.getLogger(self.name)
         
         try:
-            import platform
-
-            import psutil
-            
             logger.info(f"System: {platform.system()} {platform.release()}")
             logger.info(f"Python: {platform.python_version()}")
-            logger.info(f"CPU Cores: {psutil.cpu_count()}")
-            logger.info(f"Memory: {psutil.virtual_memory().total / (1024**3):.1f} GB")
-            logger.info(f"Disk Space: {psutil.disk_usage('/').total / (1024**3):.1f} GB")
+            logger.info(f"CPU Cores: {import psutil
+psutil.cpu_count()}")
+            logger.info(f"Memory: {import psutil
+psutil.virtual_memory().total / (1024**3):.1f} GB")
+            logger.info(f"Disk Space: {import psutil
+psutil.disk_usage('/').total / (1024**3):.1f} GB")
             
         except ImportError:
             logger.warning("psutil not available - system info limited")
@@ -202,7 +212,8 @@ class EnhancedLogger:
         perf_logger = logging.getLogger("plexichat.performance")
         
         perf_data = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.now().isoformat(),
             "operation": operation,
             "duration_ms": round(duration * 1000, 2),
             "thread_id": threading.get_ident(),
@@ -244,7 +255,8 @@ class EnhancedLogger:
             "error_message": str(error),
             "context": context,
             "traceback": traceback.format_exc(),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": from datetime import datetime
+datetime.now().isoformat(),
             "thread_id": threading.get_ident(),
             **kwargs
         }

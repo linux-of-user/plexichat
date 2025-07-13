@@ -1,10 +1,12 @@
+from .feedback_collector import FeedbackCollector, FeedbackSource, FeedbackType, ModerationFeedback
+from .moderation_engine import (
+from .training_system import (
+
 """
 PlexiChat AI Moderation System
 Advanced AI-powered moderation with training capabilities and multiple provider support.
 """
 
-from .feedback_collector import FeedbackCollector, FeedbackSource, FeedbackType, ModerationFeedback
-from .moderation_engine import (
     ModerationAction,
     ModerationCategory,
     ModerationConfig,
@@ -12,7 +14,6 @@ from .moderation_engine import (
     ModerationResult,
     ModerationSeverity,
 )
-from .training_system import (
     ModerationTrainingSystem,
     TrainingData,
     TrainingDataSource,

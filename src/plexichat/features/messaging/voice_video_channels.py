@@ -1,3 +1,10 @@
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
 """
 PlexiChat Voice/Video Channel System
 
@@ -8,12 +15,6 @@ Advanced voice and video communication with Discord-like features:
 - Advanced audio/video controls
 - Real-time collaboration features
 """
-
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,8 @@ class ChannelType(Enum):
 
 
 class AudioQuality(Enum):
-    """Audio quality settings."""
+    """Audio quality from plexichat.core.config import settings
+settings."""
     LOW = "low"  # 32 kbps
     MEDIUM = "medium"  # 64 kbps
     HIGH = "high"  # 128 kbps
@@ -36,7 +38,8 @@ class AudioQuality(Enum):
 
 
 class VideoQuality(Enum):
-    """Video quality settings."""
+    """Video quality from plexichat.core.config import settings
+settings."""
     LOW = "low"  # 480p
     MEDIUM = "medium"  # 720p
     HIGH = "high"  # 1080p
@@ -249,7 +252,8 @@ class VoiceVideoChannel:
     
     def start_recording(self) -> bool:
         """Start recording the channel."""
-        if not self.recording_settings.enabled:
+        if not self.recording_from plexichat.core.config import settings
+settings.enabled:
             return False
         
         # In production, this would start actual recording
@@ -264,7 +268,9 @@ class VoiceVideoChannel:
     
     def start_streaming(self) -> bool:
         """Start streaming the channel."""
-        if not self.streaming_settings.enabled or not self.streaming_settings.stream_key:
+        if not self.streaming_from plexichat.core.config import settings
+settings.enabled or not self.streaming_from plexichat.core.config import settings
+settings.stream_key:
             return False
         
         # In production, this would start actual streaming
@@ -313,8 +319,10 @@ class VoiceVideoChannel:
             "total_duration_minutes": self.total_duration_minutes,
             "speaking_participants": len(self.get_speaking_participants()),
             "screen_sharing_participants": len(self.get_screen_sharing_participants()),
-            "recording_active": self.recording_settings.enabled,
-            "streaming_active": self.streaming_settings.enabled
+            "recording_active": self.recording_from plexichat.core.config import settings
+settings.enabled,
+            "streaming_active": self.streaming_from plexichat.core.config import settings
+settings.enabled
         }
     
     def to_dict(self) -> Dict[str, Any]:

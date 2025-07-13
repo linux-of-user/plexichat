@@ -1,10 +1,3 @@
-"""
-PlexiChat Enhanced Error Handler
-
-Advanced error handling with intelligent recovery, pattern detection,
-and comprehensive logging capabilities.
-"""
-
 import asyncio
 import logging
 from collections import defaultdict, deque
@@ -14,6 +7,14 @@ from typing import Any, Callable, Dict, List, Optional, Type
 from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 from .crash_reporter import CrashReporter
 from .exceptions import ErrorCategory, ErrorSeverity
+
+
+"""
+PlexiChat Enhanced Error Handler
+
+Advanced error handling with intelligent recovery, pattern detection,
+and comprehensive logging capabilities.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,8 @@ class ErrorPattern:
     def add_occurrence(self, timestamp: datetime = None):
         """Add an occurrence of this pattern."""
         if timestamp is None:
-            timestamp = datetime.now()
+            timestamp = from datetime import datetime
+datetime.now()
         
         self.occurrences.append(timestamp)
         
@@ -53,11 +55,13 @@ class ErrorPattern:
         if self.last_alert_time is None:
             return True
         
-        return datetime.now() - self.last_alert_time > timedelta(minutes=self.alert_cooldown_minutes)
+        return from datetime import datetime
+datetime.now() - self.last_alert_time > timedelta(minutes=self.alert_cooldown_minutes)
     
     def mark_alerted(self):
         """Mark that an alert was sent for this pattern."""
-        self.last_alert_time = datetime.now()
+        self.last_alert_time = from datetime import datetime
+datetime.now()
 
 
 class EnhancedErrorHandler:
@@ -121,7 +125,8 @@ class EnhancedErrorHandler:
             'category': category,
             'component': component,
             'context': context or {},
-            'timestamp': datetime.now(),
+            'timestamp': from datetime import datetime
+datetime.now(),
             'recovered': False,
             'recovery_method': None
         }
