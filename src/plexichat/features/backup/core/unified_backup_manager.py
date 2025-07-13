@@ -1084,6 +1084,61 @@ datetime.now().timestamp() - 3600):
 
             await db.commit()
 
+    async def shutdown(self) -> None:
+        """Shutdown the unified backup system."""
+        try:
+            logger.info("Shutting down Unified Backup System...")
+
+            # Cancel background tasks
+            for task in self.background_tasks:
+                task.cancel()
+
+            if self.background_tasks:
+                await asyncio.gather(*self.background_tasks, return_exceptions=True)
+
+            # Shutdown component managers
+            if hasattr(self, 'shard_manager') and self.shard_manager:
+                await self.shard_manager.shutdown()
+            if hasattr(self, 'encryption_manager') and self.encryption_manager:
+                await self.encryption_manager.shutdown()
+            if hasattr(self, 'distribution_manager') and self.distribution_manager:
+                await self.distribution_manager.shutdown()
+            if hasattr(self, 'recovery_manager') and self.recovery_manager:
+                await self.recovery_manager.shutdown()
+            if hasattr(self, 'node_manager') and self.node_manager:
+                await self.node_manager.shutdown()
+            if hasattr(self, 'analytics_manager') and self.analytics_manager:
+                await self.analytics_manager.shutdown()
+
+            # Clear state
+            self.active_operations.clear()
+            self.background_tasks.clear()
+
+            self.initialized = False
+            logger.info("Unified Backup System shutdown complete")
+
+        except Exception as e:
+            logger.error(f"Error during backup system shutdown: {e}")
+
+    async def cleanup(self) -> None:
+        """Clean up backup system resources."""
+        try:
+            logger.info("Cleaning up Unified Backup System...")
+
+            # Clean up temporary files
+            await self._cleanup_temp_files()
+
+            # Clean up old metrics
+            await self._cleanup_old_metrics()
+
+            # Clean up old operations
+            await self._cleanup_old_operations()
+
+            logger.info("Unified Backup System cleanup complete")
+
+        except Exception as e:
+            logger.error(f"Error during backup system cleanup: {e}")
+
 
 # Global instance
 _unified_backup_manager: Optional[UnifiedBackupManager] = None

@@ -16,37 +16,7 @@ from ..monitoring.analytics_engine import PerformanceMetric, UsageMetric, analyt
 from ..providers import BaseAIProvider, OllamaConfig, OllamaProvider, ProviderStatus
 from ..providers.base_provider import AIRequest as ProviderAIRequest
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
+# datetime and pathlib are already imported at the top
 
 """
 PlexiChat AI Abstraction Layer
@@ -115,21 +85,19 @@ class AIModel:
     priority: int = 1  # Lower number = higher priority
     rate_limit_rpm: int = 60  # Requests per minute
     rate_limit_tpm: int = 90000  # Tokens per minute
-    fallback_models: List[str] = None
+    fallback_models: Optional[List[str]] = None
     custom_endpoint: Optional[str] = None
     model_version: Optional[str] = None
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     def __post_init__(self):
         if self.fallback_models is None:
             self.fallback_models = []
         if self.created_at is None:
-            self.created_at = from datetime import datetime
-datetime.now()
+            self.created_at = datetime.now()
         if self.updated_at is None:
-            self.updated_at = from datetime import datetime
-datetime.now()
+            self.updated_at = datetime.now()
 
 @dataclass
 class AIRequest:
@@ -236,15 +204,14 @@ class AIAccessControl:
         usage["total_tokens"] += tokens
         usage["total_cost"] += cost
         usage["request_count"] += 1
-        usage["last_request"] = from datetime import datetime
-datetime.now()
+        usage["last_request"] = datetime.now()
 
 class AIAbstractionLayer:
     """Main AI abstraction layer managing all providers and models."""
 
     def __init__(self, config_path: str = "config/ai_config.json"):
-        self.config_path = from pathlib import Path
-Path(config_path)
+        from pathlib import Path
+        self.config_path = Path(config_path)
         self.models: Dict[str, AIModel] = {}
         self.providers: Dict[AIProvider, Dict[str, Any]] = {}
         self.access_control = AIAccessControl()
@@ -279,11 +246,32 @@ Path(config_path)
             logger.info("AI monitoring system started")
         except Exception as e:
             logger.warning(f"Failed to start AI monitoring: {e}")
-        
+
+    async def initialize(self) -> bool:
+        """Initialize the AI abstraction layer."""
+        try:
+            logger.info("Initializing AI Abstraction Layer...")
+
+            # Reload configuration
+            self.load_config()
+
+            # Re-initialize providers
+            self._initialize_providers()
+
+            # Re-initialize BitNet provider
+            self._initialize_bitnet_provider()
+
+            logger.info("AI Abstraction Layer initialized successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"AI Abstraction Layer initialization failed: {e}")
+            return False
+
     def _get_or_create_encryption_key(self) -> Fernet:
         """Get or create encryption key for API keys."""
-        key_path = from pathlib import Path
-Path("config/ai_encryption.key")
+        from pathlib import Path
+        key_path = Path("config/ai_encryption.key")
         key_path.parent.mkdir(exist_ok=True)
         
         if key_path.exists():

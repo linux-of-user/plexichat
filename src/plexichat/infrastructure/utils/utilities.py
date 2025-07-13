@@ -60,8 +60,8 @@ class ConfigManager:
     """Centralized configuration management."""
     
     def __init__(self, config_file: str = "config/plexichat.json"):
-        self.config_file = from pathlib import Path
-Path(config_file)
+        from pathlib import Path
+        self.config_file = Path(config_file)
         self.config = {}
         self.lock = threading.RLock()
         self.logger = logging.getLogger(__name__)

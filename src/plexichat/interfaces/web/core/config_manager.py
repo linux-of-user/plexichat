@@ -117,8 +117,8 @@ class WebUIConfigManager:
     """Enhanced WebUI configuration manager."""
     
     def __init__(self, config_dir: str = "config"):
-        self.config_dir = from pathlib import Path
-Path(config_dir)
+        from pathlib import Path
+        self.config_dir = Path(config_dir)
         self.config_dir.mkdir(exist_ok=True)
         
         self.config_file = self.config_dir / "webui_config.yaml"

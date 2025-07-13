@@ -111,7 +111,7 @@ config = load_config()
 
 # Feature imports with proper error handling
 try:
-    from .features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+    from .features.ai.core.ai_abstraction_layer_simple import AIAbstractionLayer
     ai_layer = AIAbstractionLayer()
     ai_api_router = None  # Will be set later
     ai_webui_router = None  # Will be set later
@@ -161,8 +161,8 @@ except ImportError as e:
 # Import security middleware (with fallback)
 try:
     from .features.security.middleware import AuthenticationMiddleware as SecurityAuthMiddleware, SecurityMiddleware as SecurityMidware
-    AuthenticationMiddleware = SecurityAuthMiddleware
-    SecurityMiddleware = SecurityMidware
+    AuthenticationMiddleware = SecurityAuthMiddleware  # type: ignore
+    SecurityMiddleware = SecurityMidware  # type: ignore
 except ImportError:
     # Fallback middleware if security module not available
     class SecurityMiddleware:
@@ -304,7 +304,7 @@ async def initialize_ssl():
 
                 # Setup automatic certificate management
                 if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
-                    if hasattr(ssl_manager, 'setup_automatic_https'):
+                    if ssl_manager and hasattr(ssl_manager, 'setup_automatic_https'):
                         try:
                             await ssl_manager.setup_automatic_https(
                                 domain=SSL_CONFIG["domain"],
@@ -315,7 +315,7 @@ async def initialize_ssl():
                             logging.warning(f"Failed to setup automatic HTTPS: {e}")
                 else:
                     # Use self-signed certificate
-                    if hasattr(ssl_manager, 'setup_automatic_https'):
+                    if ssl_manager and hasattr(ssl_manager, 'setup_automatic_https'):
                         try:
                             await ssl_manager.setup_automatic_https(
                                 domain=SSL_CONFIG["domain"],
@@ -748,6 +748,10 @@ async def lifespan(app: FastAPI):
                         await backup_manager.cleanup()
                     except AttributeError:
                         logger.warning("Backup manager has neither 'shutdown' nor 'cleanup' method, skipping shutdown.")
+                except Exception as e:
+                    logger.warning(f"Backup manager shutdown failed: {e}")
+    except Exception as e:
+        logger.warning(f"Backup manager shutdown failed: {e}")
 
     try:
         if get_database_manager and database_manager:

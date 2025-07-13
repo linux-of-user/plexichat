@@ -33,8 +33,10 @@ except ImportError:
 
 try:
     import psutil
+    PSUTIL_AVAILABLE = True
 except ImportError:
     psutil = None
+    PSUTIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -210,13 +212,17 @@ class EnhancedTerminal:
             f"Time: {datetime.now().strftime('%H:%M:%S')}"
         ]
         
-        if psutil:
-            cpu_percent = psutil.cpu_percent()
-            memory = psutil.virtual_memory()
-            status_info.extend([
-                f"CPU: {cpu_percent:.1f}%",
-                f"RAM: {memory.percent:.1f}%"
-            ])
+        if PSUTIL_AVAILABLE and psutil:
+            try:
+                cpu_percent = psutil.cpu_percent()
+                memory = psutil.virtual_memory()
+                status_info.extend([
+                    f"CPU: {cpu_percent:.1f}%",
+                    f"RAM: {memory.percent:.1f}%"
+                ])
+            except Exception:
+                # psutil might fail on some systems
+                pass
         
         status_line = " | ".join(status_info)
         status_x = max(0, (self.width - len(status_line)) // 2)

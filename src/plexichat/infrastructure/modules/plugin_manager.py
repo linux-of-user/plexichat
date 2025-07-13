@@ -886,6 +886,11 @@ class UnifiedPluginManager:
 
         logger.info("All plugins shut down")
 
+    async def shutdown(self) -> None:
+        """Shutdown the plugin manager."""
+        await self.shutdown_all()
+        logger.info("Plugin manager shutdown complete")
+
     async def load_plugin_with_isolation(self, plugin_name: str, isolation_config: Optional[IsolationConfig] = None) -> bool:
         """Load a plugin with isolation support."""
         if not self.isolation_enabled:

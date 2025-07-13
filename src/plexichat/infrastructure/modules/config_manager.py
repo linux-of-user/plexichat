@@ -74,8 +74,8 @@ class PluginConfigurationManager:
     """
 
     def __init__(self, config_dir: Optional[Path] = None):
-        self.config_dir = config_dir or from pathlib import Path
-Path("config/plugins")
+        from pathlib import Path
+        self.config_dir = config_dir or Path("config/plugins")
         self.schemas_dir = self.config_dir / "schemas"
         self.environments_dir = self.config_dir / "environments"
         self.backups_dir = self.config_dir / "backups"

@@ -154,7 +154,7 @@ DATABASE_FEATURES = {
 async def initialize_database_system_legacy(config: Optional[dict] = None) -> bool:
     """Legacy database initialization function."""
     try:
-        return await initialize_database_system(config)
+        return await initialize_database_system(config or {})
     except Exception as e:
         import logging
         logging.error(f"Legacy database initialization failed: {e}")
@@ -175,10 +175,10 @@ async def get_session(role: str = "primary", read_only: bool = False):
         return await database_manager.get_session(role, read_only)
     return None
 
-async def execute_query(query: str, params: dict = None, role: str = "primary"):
+async def execute_query(query: str, params: Optional[dict] = None, role: str = "primary"):
     """Legacy query executor."""
     if database_manager:
-        return await database_manager.execute_query(query, params, role)
+        return await database_manager.execute_query(query, params or {}, role)
     return None
 
 async def get_database_health():
@@ -187,7 +187,7 @@ async def get_database_health():
         return await database_manager.get_health()
     return {"status": "unknown"}
 
-async def backup_database(backup_name: str = None):
+async def backup_database(backup_name: Optional[str] = None):
     """Legacy backup function."""
     if database_manager:
         return await database_manager.backup(backup_name)
