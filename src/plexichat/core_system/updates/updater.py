@@ -54,7 +54,7 @@ Handles automatic updates from GitHub repository.
 try:
 except ImportError:
     # Fallback version comparison
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
     class version:
         @staticmethod
         def parse(v):
@@ -70,14 +70,14 @@ logger = logging.getLogger(__name__)
 class PlexiChatUpdater:
     """Handles self-updating functionality."""
     
-    def __init__(self, repo_owner: str = None, repo_name: str = None):
+    def __init__(self, repo_owner: Optional[str] = None, repo_name: Optional[str] = None):
         self.current_version = self.get_current_version()
         self.repo_owner = repo_owner or os.getenv("PLEXICHAT_REPO_OWNER", "linux-of-user")
         self.repo_name = repo_name or os.getenv("PLEXICHAT_REPO_NAME", "plexichat")
         self.github_api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
         self.github_releases_url = f"{self.github_api_url}/releases"
-        self.project_root = from pathlib import Path
-Path(__file__).parent.parent.parent
+        self.from pathlib import Path
+project_root = Path()(__file__).parent.parent.parent
         self.backup_dir = self.project_root / "backups"
         self.update_log_file = self.project_root / "logs" / "updates.log"
         self.ensure_directories()
@@ -100,8 +100,9 @@ settings."""
     
     def log_update(self, message: str, level: str = "INFO"):
         """Log update activity."""
-        timestamp = from datetime import datetime
-datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        from datetime import datetime
+
+        timestamp = datetime().now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{timestamp}] [{level}] {message}\n"
         
         try:
@@ -171,8 +172,9 @@ datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     def create_backup(self) -> str:
         """Create backup of current installation."""
         try:
-            timestamp = from datetime import datetime
-datetime.now().strftime("%Y%m%d_%H%M%S")
+            from datetime import datetime
+
+            timestamp = datetime().now().strftime("%Y%m%d_%H%M%S")
             backup_name = f"plexichat_backup_{self.current_version}_{timestamp}"
             backup_path = self.backup_dir / f"{backup_name}.zip"
             
@@ -215,8 +217,9 @@ datetime.now().strftime("%Y%m%d_%H%M%S")
             
             # Create temporary file
             temp_dir = tempfile.mkdtemp()
-            temp_file = from pathlib import Path
-Path(temp_dir) / "plexichat_update.zip"
+            from pathlib import Path
+
+            temp_file = Path()(temp_dir) / "plexichat_update.zip"
             
             # Download with progress
             response = requests.get(download_url, stream=True, timeout=30)
@@ -250,8 +253,9 @@ Path(temp_dir) / "plexichat_update.zip"
 
             # Extract update to temporary directory
             temp_dir = tempfile.mkdtemp()
-            extract_dir = from pathlib import Path
-Path(temp_dir) / "plexichat_update"
+            from pathlib import Path
+
+            extract_dir = Path()(temp_dir) / "plexichat_update"
 
             with zipfile.ZipFile(update_file, 'r') as update_zip:
                 update_zip.extractall(extract_dir)
@@ -354,8 +358,9 @@ Path(update_file).unlink(missing_ok=True)
         script_content = f"""#!/usr/bin/env python3
 # PlexiChat Update Completion Script
 def complete_update():
-    project_root = from pathlib import Path
-Path(__file__).parent
+    from pathlib import Path
+
+    project_root = Path()(__file__).parent
     staging_dir = project_root / ".update_staging"
 
     if not staging_dir.exists():
@@ -419,15 +424,18 @@ if __name__ == "__main__":
         try:
             self.log_update(f"Restoring from backup: {backup_path}")
             
-            backup_file = from pathlib import Path
-Path(backup_path)
+            from pathlib import Path
+
+            
+            backup_file = Path()(backup_path)
             if not backup_file.exists():
                 raise FileNotFoundError(f"Backup file not found: {backup_path}")
             
             # Extract backup
             temp_dir = tempfile.mkdtemp()
-            extract_dir = from pathlib import Path
-Path(temp_dir) / "restore"
+            from pathlib import Path
+
+            extract_dir = Path()(temp_dir) / "restore"
             
             with zipfile.ZipFile(backup_file, 'r') as backup_zip:
                 backup_zip.extractall(extract_dir)
@@ -593,7 +601,7 @@ datetime.utcnow().isoformat(),
     def get_recent_update_logs(self, count: int = 10) -> List[str]:
         """Get recent update log entries."""
         try:
-            if not self.update_log_file.exists():
+            if not self.update_log_file.exists() if self.update_log_file else False:
                 return []
 
             with open(self.update_log_file, 'r', encoding='utf-8') as f:

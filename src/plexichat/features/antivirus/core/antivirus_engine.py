@@ -31,7 +31,7 @@ Main antivirus engine that coordinates all scanning components
 and provides comprehensive threat detection capabilities.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 class AdvancedAntivirusEngine:
@@ -48,8 +48,8 @@ class AdvancedAntivirusEngine:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.antivirus_dir = self.data_dir / "antivirus"
         self.quarantine_dir = self.antivirus_dir / "quarantine"
         self.db_path = self.antivirus_dir / "antivirus.db"
@@ -87,10 +87,10 @@ Path(data_dir)
         await self._initialize_database()
         
         # Initialize all scanning components
-        await self.hash_scanner.initialize()
-        await self.behavioral_analyzer.initialize()
-        await self.link_scanner.initialize()
-        await self.threat_intelligence.initialize()
+        await self.if hash_scanner and hasattr(hash_scanner, "initialize"): hash_scanner.initialize()
+        await self.if behavioral_analyzer and hasattr(behavioral_analyzer, "initialize"): behavioral_analyzer.initialize()
+        await self.if link_scanner and hasattr(link_scanner, "initialize"): link_scanner.initialize()
+        await self.if threat_intelligence and hasattr(threat_intelligence, "initialize"): threat_intelligence.initialize()
         
         # Load scan statistics
         await self._load_scan_statistics()
@@ -113,8 +113,9 @@ Path(data_dir)
             ScanResult with detection details
         """
         start_time = time.time()
-        file_path = from pathlib import Path
-Path(file_path)
+        from pathlib import Path
+
+        file_path = Path()(file_path)
         
         logger.debug(f"Scanning file: {file_path} with {scan_type.value} scan")
         
@@ -360,8 +361,9 @@ Path(file_path)
     async def _quarantine_file(self, scan_result: ScanResult):
         """Quarantine a threatening file."""
         try:
-            source_path = from pathlib import Path
-Path(scan_result.file_path)
+            from pathlib import Path
+
+            source_path = Path()(scan_result.file_path)
             if not source_path.exists():
                 return
 

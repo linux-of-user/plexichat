@@ -185,8 +185,8 @@ class CanaryDeploymentManager:
         # Initialize health monitor
         self.health_monitor = CanaryHealthMonitor()
 
-        await self.node_selector.initialize()
-        await self.health_monitor.initialize()
+        await self.if node_selector and hasattr(node_selector, "initialize"): node_selector.initialize()
+        await self.if health_monitor and hasattr(health_monitor, "initialize"): health_monitor.initialize()
 
         logger.info("Canary deployment manager initialized")
 
@@ -544,9 +544,9 @@ datetime = datetime.now().timestamp())}"
     async def cleanup(self):
         """Cleanup canary deployment manager resources."""
         if self.health_monitor:
-            await self.health_monitor.cleanup()
+            await self.if health_monitor and hasattr(health_monitor, "cleanup"): health_monitor.cleanup()
         if self.node_selector:
-            await self.node_selector.cleanup()
+            await self.if node_selector and hasattr(node_selector, "cleanup"): node_selector.cleanup()
 
 
 # Global canary deployment manager instance

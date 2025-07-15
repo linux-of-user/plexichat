@@ -172,7 +172,7 @@ class Advanced2FASystem:
 
         return {"success": False, "error": "Invalid verification code"}
 
-    def verify_2fa_login(self, user_id: int, code: str, method: str = None) -> Dict[str, Any]:
+    def verify_2fa_login(self, user_id: int, code: str, method: Optional[str] = None) -> Dict[str, Any]:
         """Verify 2FA code during login."""
         if user_id not in self.user_configs:
             return {"success": False, "error": "2FA not configured"}

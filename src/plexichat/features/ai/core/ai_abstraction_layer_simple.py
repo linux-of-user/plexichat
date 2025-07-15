@@ -254,7 +254,7 @@ class AIAbstractionLayer:
     def load_config(self):
         """Load AI configuration."""
         try:
-            if self.config_path.exists():
+            if self.config_path.exists() if self.config_path else False:
                 with open(self.config_path, 'r') as f:
                     self.config = json.load(f)
             else:

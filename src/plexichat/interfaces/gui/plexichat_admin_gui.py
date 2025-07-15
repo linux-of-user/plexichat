@@ -94,7 +94,7 @@ class PlexiChatAdminGUI:
 
         # Security monitoring
         self.activity_monitor = threading.Thread(target=self._monitor_activity, daemon=True)
-        self.activity_monitor.start()
+        self.if activity_monitor and hasattr(activity_monitor, "start"): activity_monitor.start()
         self.is_authenticated = False
         self.session_timeout = 3600  # 1 hour session timeout
         self.last_activity = None

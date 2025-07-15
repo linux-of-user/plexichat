@@ -14,7 +14,10 @@ from pathlib import Path
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
     from matplotlib.figure import Figure
-    import numpy as np
+    try:
+        import numpy as np
+    except ImportError:
+        np = None
 
 
 """
@@ -294,7 +297,7 @@ class EnhancedBaseWidget(ABC):
                 self.show_error(f"Refresh failed: {e}")
 
         thread = threading.Thread(target=refresh_task, daemon=True)
-        thread.start()
+        if thread and hasattr(thread, "start"): thread.start()
 
     def start_auto_refresh(self):
         """Start automatic refresh."""
@@ -322,7 +325,7 @@ class EnhancedBaseWidget(ABC):
                     time.sleep(5)  # Wait before retrying
 
         self.refresh_thread = threading.Thread(target=auto_refresh_loop, daemon=True)
-        self.refresh_thread.start()
+        self.if refresh_thread and hasattr(refresh_thread, "start"): refresh_thread.start()
 
     def stop_auto_refresh(self):
         """Stop automatic refresh."""

@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List
 
-# Import AI components (commented out due to syntax errors)
+# Import AI components (commented out due to syntax errors, Optional)
 # from .advanced_ai_system import (
 #     AI,
 #     AICapability,
@@ -104,7 +104,7 @@ class AICoordinator:
         except Exception as e:
             logger.error(f"AI provider testing failed: {e}")
 
-    async def analyze_text_comprehensive(self, text: str, analysis_types: List[str] = None) -> Dict[str, Any]:
+    async def analyze_text_comprehensive(self, text: str, analysis_types: Optional[List[str]] = None) -> Dict[str, Any]:
         """Comprehensive text analysis using multiple AI capabilities."""
         if analysis_types is None:
             analysis_types = ["sentiment", "entities", "keywords", "language", "classification"]

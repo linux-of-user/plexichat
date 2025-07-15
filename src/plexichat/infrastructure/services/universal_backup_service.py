@@ -74,8 +74,8 @@ class UniversalBackupService:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.backup_dir = self.data_dir / "universal_backup"
         self.backup_dir.mkdir(parents=True, exist_ok=True)
         
@@ -108,9 +108,9 @@ Path(data_dir)
         logger.info("Initializing Universal Backup Service")
         
         # Initialize core components
-        await self.encryption_manager.initialize()
-        await self.shard_manager.initialize()
-        await self.location_database.initialize()
+        await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()
+        await self.if shard_manager and hasattr(shard_manager, "initialize"): shard_manager.initialize()
+        await self.if location_database and hasattr(location_database, "initialize"): location_database.initialize()
         
         # Initialize preferences database
         await self._initialize_preferences_database()

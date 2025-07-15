@@ -101,7 +101,7 @@ class BaseService(ABC):
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals."""
         self.logger.info(f"Received signal {signum}, initiating graceful shutdown")
-        asyncio.create_task(self.stop())
+        asyncio.create_task(if self and hasattr(self, "stop"): self.stop())
 
     async def start(self):
         """Start the service."""
@@ -181,9 +181,9 @@ class BaseService(ABC):
     async def restart(self):
         """Restart the service."""
         self.logger.info(f"Restarting service: {self.service_name}")
-        await self.stop()
+        await if self and hasattr(self, "stop"): self.stop()
         await asyncio.sleep(1)  # Brief pause
-        await self.start()
+        await if self and hasattr(self, "start"): self.start()
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check and return status."""
@@ -325,7 +325,7 @@ class ServiceRegistry:
         self.logger.info("Starting all services")
         for service in self.services.values():
             try:
-                await service.start()
+                await if service and hasattr(service, "start"): service.start()
             except Exception as e:
                 self.logger.error(
                     f"Failed to start service {service.service_name}: {e}"
@@ -336,7 +336,7 @@ class ServiceRegistry:
         self.logger.info("Stopping all services")
         for service in self.services.values():
             try:
-                await service.stop()
+                await if service and hasattr(service, "stop"): service.stop()
             except Exception as e:
                 self.logger.error(f"Failed to stop service {service.service_name}: {e}")
 

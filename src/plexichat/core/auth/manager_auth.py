@@ -350,7 +350,7 @@ class AuthManager:
         """Refresh an access token."""
         return await self.token_manager.refresh_token(refresh_token)
 
-    async def logout(self, session_id: str = None, token: str = None) -> bool:
+    async def logout(self, session_id: Optional[str] = None, token: Optional[str] = None) -> bool:
         """Logout user and invalidate session/token."""
         try:
             if session_id:

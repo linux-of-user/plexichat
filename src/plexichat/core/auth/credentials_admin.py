@@ -42,9 +42,9 @@ class AdminCredentialsManager:
     
     def _initialize_admin_credentials(self):
         """Initialize admin credentials from default_creds.txt or create new ones."""
-        if not self.admin_creds_file.exists():
+        if not self.admin_creds_file.exists() if self.admin_creds_file else False:
             # Check if default_creds.txt exists
-            if self.default_creds_file.exists():
+            if self.default_creds_file.exists() if self.default_creds_file else False:
                 self._migrate_from_default_creds()
             else:
                 self._create_default_admin()
@@ -149,7 +149,7 @@ class AdminCredentialsManager:
     def verify_admin_credentials(self, username: str, password: str) -> bool:
         """Verify admin credentials."""
         try:
-            if not self.admin_creds_file.exists():
+            if not self.admin_creds_file.exists() if self.admin_creds_file else False:
                 logger.warning("Admin credentials file not found")
                 return False
             
@@ -241,7 +241,7 @@ class AdminCredentialsManager:
     def list_admin_users(self) -> Dict[str, Any]:
         """List all admin users (without sensitive data)."""
         try:
-            if not self.admin_creds_file.exists():
+            if not self.admin_creds_file.exists() if self.admin_creds_file else False:
                 return {}
             
             with open(self.admin_creds_file, 'r') as f:
@@ -271,7 +271,7 @@ class AdminCredentialsManager:
             new_password = secrets.token_urlsafe(16)
             
             # Load admin data
-            if not self.admin_creds_file.exists():
+            if not self.admin_creds_file.exists() if self.admin_creds_file else False:
                 return None
             
             with open(self.admin_creds_file, 'r') as f:

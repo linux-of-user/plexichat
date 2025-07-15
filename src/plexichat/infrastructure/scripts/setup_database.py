@@ -11,6 +11,7 @@ from pathlib import Path
 
 from src.plexichat.core.database_setup_wizard import database_wizard
 import logging
+from typing import Optional
 
 
 #!/usr/bin/env python3

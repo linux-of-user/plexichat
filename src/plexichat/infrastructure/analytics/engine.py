@@ -447,8 +447,8 @@ datetime.utcnow(),
         await self.collector.track_event(event)
 
     async def track_api_request(self, endpoint: str, method: str, status_code: int,
-                              duration_ms: float, user_id: int = None,
-                              session_id: str = None, ip_address: str = None):
+                              duration_ms: float, user_id: Optional[int] = None,
+                              session_id: Optional[str] = None, ip_address: Optional[str] = None):
         """Track API request."""
         await self.track_event(
             EventType.API_REQUEST,
@@ -461,7 +461,7 @@ datetime.utcnow(),
         )
 
     async def track_user_action(self, action: str, user_id: int,
-                              session_id: str = None, **data):
+                              session_id: Optional[str] = None, **data):
         """Track user action."""
         event_type_map = {
             "login": EventType.USER_LOGIN,

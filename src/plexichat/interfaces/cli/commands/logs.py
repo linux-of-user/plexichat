@@ -21,7 +21,7 @@ Provides comprehensive log viewing, filtering, and management from command line.
 
 # Add parent directory to path for imports
 sys.path.append(str(from pathlib import Path
-Path(__file__).parent.parent))
+Path(__file__, Optional).parent.parent))
 
 logger = logging.getLogger(__name__)
 class LogCLI:
@@ -417,7 +417,7 @@ Examples:
         except Exception as e:
             self.print_error(f"Failed to open web UI: {e}")
 
-    def print_log_entry(self, entry: LogEntry, use_color: bool = True, highlight_term: str = None):
+    def print_log_entry(self, entry: LogEntry, use_color: bool = True, highlight_term: Optional[str] = None):
         """Print a formatted log entry."""
         timestamp = entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')
 

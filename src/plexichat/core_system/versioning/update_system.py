@@ -176,7 +176,7 @@ class AtomicUpdateTransaction:
     started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
 
-    def add_operation(self, operation_type: str, source: str, target: str, backup_path: str = None):
+    def add_operation(self, operation_type: str, source: str, target: str, backup_path: Optional[str] = None):
         """Add operation to transaction."""
         operation = {
             "type": operation_type,
@@ -385,7 +385,7 @@ class P2PUpdateDistributor:
             return False
 
     async def download_from_peers(self, update_id: str, target_path: Path,
-                                 preferred_nodes: List[P2PUpdateNode] = None) -> Dict[str, Any]:
+                                 preferred_nodes: Optional[List[P2PUpdateNode]] = None) -> Dict[str, Any]:
         """Download update from peer nodes."""
         download_result = {
             "success": False,
@@ -395,8 +395,10 @@ class P2PUpdateDistributor:
             "p2p_percentage": 0.0
         }
 
-        start_time = from datetime import datetime
-datetime.now()
+        from datetime import datetime
+
+
+        start_time = datetime().now()
 
         try:
             # Select best nodes for download
@@ -427,7 +429,7 @@ datetime.now() - start_time).total_seconds()
     async def cleanup(self):
         """Cleanup P2P distributor resources."""
         if self.session:
-            await self.session.close()
+            await if self.session: self.session.close()
 
 
 class AtomicUpdateManager:
@@ -435,10 +437,10 @@ class AtomicUpdateManager:
 
     def __init__(self):
         self.active_transactions: Dict[str, AtomicUpdateTransaction] = {}
-        self.transaction_log_path = from pathlib import Path
-Path("logs/atomic_updates.log")
-        self.checkpoint_dir = from pathlib import Path
-Path("data/update_checkpoints")
+        self.from pathlib import Path
+transaction_log_path = Path()("logs/atomic_updates.log")
+        self.from pathlib import Path
+checkpoint_dir = Path()("data/update_checkpoints")
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     def create_transaction(self, update_id: str) -> AtomicUpdateTransaction:
@@ -532,10 +534,12 @@ Path(target).exists():
 
     def _create_backup(self, file_path: str, transaction_id: str) -> str:
         """Create backup of file for rollback."""
-        source_path = from pathlib import Path
-Path(file_path)
-        backup_dir = from pathlib import Path
-Path(f"backups/atomic/{transaction_id}")
+        from pathlib import Path
+
+        source_path = Path()(file_path)
+        from pathlib import Path
+
+        backup_dir = Path()(f"backups/atomic/{transaction_id}")
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         backup_path = backup_dir / source_path.name
@@ -605,9 +609,9 @@ class UpdateSystem:
     """Advanced update system with clustering integration."""
     
     def __init__(self,
-                 backup_dir: Path = None,
-                 config_dir: Path = None,
-                 data_dir: Path = None):
+                 backup_dir: Optional[Path] = None,
+                 config_dir: Optional[Path] = None,
+                 data_dir: Optional[Path] = None):
         """Initialize enhanced update system with atomic operations and P2P distribution."""
         self.backup_dir = backup_dir or from pathlib import Path
 Path("backups/updates")
@@ -615,8 +619,8 @@ Path("backups/updates")
 Path("config")
         self.data_dir = data_dir or from pathlib import Path
 Path("data")
-        self.update_cache_dir = from pathlib import Path
-Path("cache/updates")
+        self.from pathlib import Path
+update_cache_dir = Path()("cache/updates")
 
         # Ensure directories exist
         for directory in [self.backup_dir, self.update_cache_dir]:
@@ -991,8 +995,9 @@ Path("src"))
                 return True
             
             # Update requirements.txt if needed
-            requirements_file = from pathlib import Path
-Path("requirements.txt")
+            from pathlib import Path
+
+            requirements_file = Path()("requirements.txt")
             if requirements_file.exists():
                 result.add_log("Updating Python dependencies")
                 
@@ -1148,8 +1153,9 @@ Path("requirements.txt")
             logger.info("Reinstalling dependencies...")
 
             # Reinstall Python dependencies
-            requirements_file = from pathlib import Path
-Path("requirements.txt")
+            from pathlib import Path
+
+            requirements_file = Path()("requirements.txt")
             if requirements_file.exists():
                 cmd = [sys.executable, "-m", "pip", "install", "-r", str(requirements_file), "--force-reinstall"]
                 process = await asyncio.create_subprocess_exec(
@@ -1173,7 +1179,7 @@ Path("requirements.txt")
             logger.error(f"Dependency reinstall failed: {e}")
             return False
 
-    def show_changelog(self, version: Version = None, since_version: Version = None) -> str:
+    def show_changelog(self, version: Optional[Version] = None, since_version: Optional[Version] = None) -> str:
         """Show changelog for version or since version."""
         if version:
             changelog = self.changelog_manager.get_version_changelog(version)
@@ -1201,7 +1207,7 @@ Path("requirements.txt")
             current_version = self.version_manager.get_current_version()
             return self.show_changelog(version=current_version)
 
-    async def upgrade_database_only(self, target_version: str = None) -> bool:
+    async def upgrade_database_only(self, target_version: Optional[str] = None) -> bool:
         """Upgrade database schema only."""
         try:
             migration_manager = MigrationManager()
@@ -1222,15 +1228,16 @@ Path("requirements.txt")
 
     async def initialize_enhanced_features(self):
         """Initialize enhanced update system features."""
-        await self.p2p_distributor.initialize()
+        await self.if p2p_distributor and hasattr(p2p_distributor, "initialize"): p2p_distributor.initialize()
         await self._load_verification_keys()
         await self._discover_canary_nodes()
         logger.info("Enhanced update system features initialized")
 
     async def _load_verification_keys(self):
         """Load cryptographic verification keys."""
-        keys_dir = from pathlib import Path
-Path("config/update_keys")
+        from pathlib import Path
+
+        keys_dir = Path()("config/update_keys")
         if keys_dir.exists():
             for key_file in keys_dir.glob("*.pem"):
                 try:

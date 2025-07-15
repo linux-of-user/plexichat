@@ -76,7 +76,7 @@ class SecurityUtils:
         return secrets.token_urlsafe(length)
 
     @staticmethod
-    def hash_password(password: str, salt: str = None) -> Dict[str, str]:
+    def hash_password(password: str, salt: Optional[str] = None) -> Dict[str, str]:
         """Hash password with salt."""
         if salt is None:
             salt = secrets.token_hex(16)
@@ -218,7 +218,7 @@ class ResponseUtils:
     """Common API response utilities."""
 
     @staticmethod
-    def success_response(data: Any = None, message: str = "Success") -> Dict[str, Any]:
+    def success_response(data: Optional[Any] = None, message: str = "Success") -> Dict[str, Any]:
         """Create success response."""
         response = {
             "success": True,
@@ -232,7 +232,7 @@ class ResponseUtils:
         return response
 
     @staticmethod
-    def error_response(message: str, error_code: str = None, details: Any = None) -> Dict[str, Any]:
+    def error_response(message: str, error_code: Optional[str] = None, details: Optional[Any] = None) -> Dict[str, Any]:
         """Create error response."""
         response = {
             "success": False,
@@ -274,7 +274,7 @@ class LoggingUtils:
 
     @staticmethod
     def setup_logger(name: str, level: str = "INFO",
-                    format_string: str = None) -> logging.Logger:
+                    format_string: Optional[str] = None) -> logging.Logger:
         """Setup logger with common configuration."""
         logger = logging.getLogger(name)
         logger.setLevel(getattr(logging, level.upper()))
@@ -293,7 +293,7 @@ class LoggingUtils:
 
     @staticmethod
     def log_performance(func_name: str, duration: float,
-                       logger: logging.Logger = None):
+                       logger: Optional[logging.Logger] = None):
         """Log performance metrics."""
         if logger is None:
             logger = logging.getLogger(__name__)
@@ -342,7 +342,7 @@ class AsyncUtils:
         
         return await asyncio.gather(*[controlled_task(task) for task in tasks])
 
-def monitor_performance(logger: logging.Logger = None):
+def monitor_performance(logger: Optional[logging.Logger] = None):
     """Decorator to monitor function performance."""
     def decorator(func):
         def wrapper(*args, **kwargs):

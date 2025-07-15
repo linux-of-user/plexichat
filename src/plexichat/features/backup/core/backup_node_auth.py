@@ -187,7 +187,7 @@ class BackupNodeAuthManager:
         node_id: str,
         node_name: str,
         permission_level: NodePermissionLevel = NodePermissionLevel.SHARD_ACCESS,
-        allowed_shard_types: Set[str] = None,
+        allowed_shard_types: Optional[Set[str]] = None,
         max_shards_per_hour: int = 100,
         max_total_shards: int = 10000,
         expires_in_days: int = 90,

@@ -237,7 +237,7 @@ Path("config/functions")
                     logger.error(f"Failed to load function config {config_file}: {e}")
 
     async def deploy_function(self, config: FunctionConfig,
-                            provider: FaaSProvider = None) -> bool:
+                            provider: Optional[FaaSProvider] = None) -> bool:
         """Deploy function to specified provider."""
         try:
             provider = provider or self.default_provider

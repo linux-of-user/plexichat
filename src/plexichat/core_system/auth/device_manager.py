@@ -8,7 +8,7 @@ PlexiChat Device Manager
 Device fingerprinting and trusted device management.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 class DeviceManager:

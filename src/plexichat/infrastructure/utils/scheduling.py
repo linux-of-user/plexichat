@@ -46,7 +46,7 @@ class TaskScheduler:
             
         try:
             self.scheduler = BackgroundScheduler()
-            self.scheduler.start()
+            self.if scheduler and hasattr(scheduler, "start"): scheduler.start()
             self.running = True
             logger.info("Task scheduler started successfully")
             return True
@@ -268,7 +268,7 @@ def start_scheduler():
             misfire_grace_time=60  # Allow 60 seconds grace for missed executions
         )
 
-        _scheduler.start()
+        if _scheduler and hasattr(_scheduler, "start"): _scheduler.start()
 
         logger.info("Self-test scheduler started successfully")
         logger.info("Configuration: initial_delay=%ds, interval=%dm",

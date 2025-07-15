@@ -25,7 +25,10 @@ from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
 try:
-    import numpy as np
+    try:
+        import numpy as np
+    except ImportError:
+        np = None
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False

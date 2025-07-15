@@ -268,7 +268,7 @@ class ColorizedFormatter(logging.Formatter):
         'RESET': '\033[0m'        # Reset
     }
 
-    def __init__(self, fmt: str, datefmt: str = None, use_colors: bool = True):
+    def __init__(self, fmt: str, datefmt: Optional[str] = None, use_colors: bool = True):
         super().__init__(fmt, datefmt)
         self.use_colors = use_colors and sys.stdout.isatty()
 
@@ -323,7 +323,7 @@ class LoggingManager:
         # Setup logging system
         self._setup_logging_system()
 
-    def _get_config(self, key: str, default: Any = None) -> Any:
+    def _get_config(self, key: str, default: Optional[Any] = None) -> Any:
         """Safely get configuration value with fallback."""
         try:
             parts = key.split('.')

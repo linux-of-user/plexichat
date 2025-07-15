@@ -38,7 +38,7 @@ Addresses common issues and implements fixes for known problems.
 class BugFixManager:
     """Manages bug fixes and system improvements."""
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, Optional):
         self.logger = logger or logging.getLogger(__name__)
         self.fixes_applied = set()
         self.fix_registry = {}

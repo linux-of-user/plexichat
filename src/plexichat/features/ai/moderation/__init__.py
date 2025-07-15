@@ -1,5 +1,6 @@
 from .feedback_collector import FeedbackCollector, FeedbackSource, FeedbackType, ModerationFeedback
 from .moderation_engine import (
+from typing import Optional
 
 
     AI,

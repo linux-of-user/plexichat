@@ -138,8 +138,7 @@ async def restart_server(
     try:
         # Create backup if requested
         if request.backup:
-            backup_name = f"pre_restart_{from datetime import datetime
-datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            backup_name = f"pre_restart_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             server_manager.create_backup(backup_name)
 
         # Restart server in background
@@ -307,8 +306,7 @@ async def get_server_metrics():
         return {
             "success": True,
             "data": {
-                "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat(),
+                "timestamp": datetime.now().isoformat(),
                 "server_info": status['server_info'],
                 "resources": resources,
                 "health": status.get('health', {}),

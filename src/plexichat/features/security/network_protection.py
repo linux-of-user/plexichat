@@ -168,7 +168,7 @@ class SlidingWindowCounter:
         self.window_seconds = window_seconds
         self.requests: deque = deque()
 
-    def add_request(self, timestamp: float = None):
+    def add_request(self, timestamp: Optional[float] = None):
         """Add a request to the window."""
         if timestamp is None:
             timestamp = time.time()
@@ -359,7 +359,7 @@ class ConsolidatedNetworkProtection:
     ) -> Tuple[bool, Optional[SecurityThreat]]:
         """Check if a request should be allowed."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         with self._lock:
             self.stats["total_requests"] += 1

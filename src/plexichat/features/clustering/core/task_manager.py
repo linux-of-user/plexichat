@@ -71,7 +71,7 @@ class ClusterTask:
     requirements: Dict[str, Any]
     status: TaskStatus = TaskStatus.PENDING
     assigned_node: Optional[str] = None
-    created_at: datetime = None
+    created_at: Optional[datetime] = None
     assigned_at: Optional[datetime] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
@@ -97,7 +97,7 @@ class TaskMetrics:
     failed_tasks: int = 0
     average_execution_time: float = 0.0
     success_rate: float = 0.0
-    last_updated: datetime = None
+    last_updated: Optional[datetime] = None
 
     def __post_init__(self):
         if self.last_updated is None:
@@ -172,7 +172,7 @@ class AdvancedTaskManager:
 
     async def _load_tasks_from_db(self):
         """Load tasks from database."""
-        if not self.db_path or not self.db_path.exists():
+        if not self.db_path or not self.db_path.exists() if self.db_path else False:
             return
 
         async with aiosqlite.connect(self.db_path) as db:

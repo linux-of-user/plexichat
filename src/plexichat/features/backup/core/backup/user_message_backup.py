@@ -148,9 +148,9 @@ class UniversalBackupManager:
         self,
         user_id: int,
         opt_status: BackupOptStatus,
-        data_types: List[BackupDataType] = None,
-        retention_days: int = None,
-        encryption_level: str = None,
+        data_types: Optional[List[BackupDataType]] = None,
+        retention_days: Optional[int] = None,
+        encryption_level: Optional[str] = None,
     ):
         """Set backup preferences for a user."""
         data_types = data_types or self.config["supported_data_types"]

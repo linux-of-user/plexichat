@@ -406,8 +406,8 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             return False
 
     async def inject_fault(self, service_name: str, fault_type: str,
-                         percentage: float, delay_ms: int = None,
-                         abort_code: int = None) -> bool:
+                         percentage: float, delay_ms: Optional[int] = None,
+                         abort_code: Optional[int] = None) -> bool:
         """Inject fault for testing resilience."""
         try:
             fault_config = {}

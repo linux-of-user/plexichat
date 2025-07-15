@@ -55,8 +55,8 @@ class GitUpdateManager:
         self.github_token = self.config.get("github_token")  # Optional for private repos
         
         # Local configuration
-        self.project_root = from pathlib import Path
-Path(__file__).parent.parent.parent.parent.parent
+        self.from pathlib import Path
+project_root = Path()(__file__).parent.parent.parent.parent.parent
         self.backup_before_update = self.config.get("backup_before_update", True)
         self.auto_update_enabled = self.config.get("auto_update_enabled", False)
         self.update_channel = self.config.get("update_channel", "stable")  # stable, beta, alpha
@@ -77,7 +77,7 @@ Path(__file__).parent.parent.parent.parent.parent
             # Initialize backup manager if needed
             if self.backup_before_update:
                 self.backup_manager = get_unified_backup_manager()
-                await self.backup_manager.initialize()
+                await self.if backup_manager and hasattr(backup_manager, "initialize"): backup_manager.initialize()
             
             # Get current version from Git
             self.current_version = await self._get_current_version()
@@ -299,8 +299,9 @@ datetime.now().strftime('%Y%m%d-%H%M%S')}"
                 return {"success": False, "error": "No download URL available"}
             
             # Create temporary directory
-            temp_dir = from pathlib import Path
-Path(tempfile.mkdtemp(prefix="plexichat_update_"))
+            from pathlib import Path
+
+            temp_dir = Path()(tempfile.mkdtemp(prefix="plexichat_update_"))
             
             headers = {}
             if self.github_token:

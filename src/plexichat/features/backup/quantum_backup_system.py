@@ -124,8 +124,8 @@ class QuantumBackupSystem:
     """
     
     def __init__(self, config_dir: str = "config/backup"):
-        self.config_dir = from pathlib import Path
-Path(config_dir)
+        self.from pathlib import Path
+config_dir = Path()(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Database for backup metadata
@@ -312,8 +312,8 @@ Path(config_dir)
         self, 
         source_path: str, 
         source_type: str = "file",
-        security_level: BackupSecurity = None,
-        distribution_strategy: ShardDistribution = None,
+        security_level: Optional[BackupSecurity] = None,
+        distribution_strategy: Optional[ShardDistribution] = None,
         metadata: Dict[str, Any] = None
     ) -> str:
         """Create a new quantum-secure backup."""
@@ -424,8 +424,8 @@ Path(config_dir)
         archive_buffer = io.BytesIO()
 
         with tarfile.open(fileobj=archive_buffer, mode='w:gz') as tar:
-            tar.add(dir_path, arcname=from pathlib import Path
-Path(dir_path).name)
+            tar.add(dir_path, from pathlib import Path
+ arcname = Path()(dir_path).name)
 
         return archive_buffer.getvalue()
 

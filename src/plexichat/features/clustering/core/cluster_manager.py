@@ -163,8 +163,8 @@ class AdvancedClusterManager:
     def __init__(self, plexichat_app):
         """Initialize the advanced cluster manager."""
         self.plexichat_app = plexichat_app
-        self.cluster_dir = from pathlib import Path
-Path("clustering")
+        self.from pathlib import Path
+cluster_dir = Path()("clustering")
         self.databases_dir = self.cluster_dir / "databases"
         self.logs_dir = self.cluster_dir / "logs"
         self.config_dir = self.cluster_dir / "config"
@@ -221,18 +221,18 @@ Path("clustering")
         await self._initialize_specialized_nodes()
 
         # Initialize all components
-        await self.node_manager.initialize()
-        await self.load_balancer.initialize()
-        await self.performance_monitor.initialize()
-        await self.failover_manager.initialize()
-        await self.task_manager.initialize()
+        await self.if node_manager and hasattr(node_manager, "initialize"): node_manager.initialize()
+        await self.if load_balancer and hasattr(load_balancer, "initialize"): load_balancer.initialize()
+        await self.if performance_monitor and hasattr(performance_monitor, "initialize"): performance_monitor.initialize()
+        await self.if failover_manager and hasattr(failover_manager, "initialize"): failover_manager.initialize()
+        await self.if task_manager and hasattr(task_manager, "initialize"): task_manager.initialize()
 
         # Initialize update and storage managers
         self.update_manager = ClusterUpdateManager(self)
         self.storage_manager = DistributedStorageManager(self)
 
-        await self.update_manager.initialize()
-        await self.storage_manager.initialize()
+        await self.if update_manager and hasattr(update_manager, "initialize"): update_manager.initialize()
+        await self.if storage_manager and hasattr(storage_manager, "initialize"): storage_manager.initialize()
 
         # Initialize enhanced clustering components
         if ENHANCED_CLUSTERING_AVAILABLE:
@@ -506,7 +506,7 @@ psutil.disk_usage('/').total / (1024**3)
             specialized_node = create_specialized_node(node_type, node_id, node_config)
 
             # Initialize the specialized node
-            await specialized_node.initialize()
+            await if specialized_node and hasattr(specialized_node, "initialize"): specialized_node.initialize()
 
             # Register with cluster
             self.specialized_nodes[node_id] = specialized_node
@@ -709,7 +709,7 @@ psutil.disk_usage('/').total / (1024**3)
 
             # Close database connection
             if hasattr(self, 'db_connection') and self.db_connection:
-                await self.db_connection.close()
+                await if self.db_connection: self.db_connection.close()
 
             logger.info(" Advanced Cluster Manager shutdown complete")
 
@@ -1053,19 +1053,19 @@ psutil.disk_usage('/').total / (1024**3)
             logger.info("Initializing enhanced clustering components...")
 
             # Initialize hybrid cloud orchestrator
-            await hybrid_cloud_orchestrator.initialize()
+            await if hybrid_cloud_orchestrator and hasattr(hybrid_cloud_orchestrator, "initialize"): hybrid_cloud_orchestrator.initialize()
             logger.info(" Hybrid cloud orchestrator initialized")
 
             # Initialize service mesh manager
-            await service_mesh_manager.initialize()
+            await if service_mesh_manager and hasattr(service_mesh_manager, "initialize"): service_mesh_manager.initialize()
             logger.info(" Service mesh manager initialized")
 
             # Initialize FaaS manager
-            await faas_manager.initialize()
+            await if faas_manager and hasattr(faas_manager, "initialize"): faas_manager.initialize()
             logger.info(" FaaS manager initialized")
 
             # Initialize predictive scaler
-            await predictive_scaler.initialize()
+            await if predictive_scaler and hasattr(predictive_scaler, "initialize"): predictive_scaler.initialize()
             logger.info(" Predictive scaler initialized")
 
             # Register cluster services with service mesh

@@ -30,8 +30,8 @@ class HashBasedScanner:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.hash_db_path = self.data_dir / "hash_database.db"
         self.known_threats: Dict[str, ThreatSignature] = {}
         self.clean_hashes: Set[str] = set()

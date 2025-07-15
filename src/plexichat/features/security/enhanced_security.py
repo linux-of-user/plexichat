@@ -337,7 +337,7 @@ class SessionManager:
 
         return session_id
 
-    def validate_session(self, session_id: str, ip_address: str = None) -> Optional[Dict[str, Any]]:
+    def validate_session(self, session_id: str, ip_address: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Validate and refresh a session."""
         if session_id not in self.sessions:
             return None

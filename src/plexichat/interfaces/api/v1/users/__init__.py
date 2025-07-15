@@ -1,3 +1,4 @@
+from typing import Optional
     from .users_enhanced import router as users_enhanced_router
 
 
@@ -9,8 +10,7 @@ Enhanced user management and profile features.
 """
 
 try:
-except ImportError:
-    users_enhanced_router = None
+except ImportError: Optional[users_enhanced_router] = None
 
 __all__ = [
     "users_enhanced_router"

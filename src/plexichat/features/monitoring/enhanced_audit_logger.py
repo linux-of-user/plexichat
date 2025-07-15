@@ -137,7 +137,7 @@ class EnhancedAuditLogger:
         
         # Start background logging thread
         self.log_thread = threading.Thread(target=self._background_logger, daemon=True)
-        self.log_thread.start()
+        self.if log_thread and hasattr(log_thread, "start"): log_thread.start()
 
     async def log_event(
         self,
@@ -150,7 +150,7 @@ class EnhancedAuditLogger:
         action: str,
         outcome: str,
         details: Dict[str, Any] = None,
-        compliance_tags: List[ComplianceStandard] = None,
+        compliance_tags: Optional[List[ComplianceStandard]] = None,
         risk_level: str = "low",
         data_classification: str = "internal"
     ):
@@ -318,7 +318,7 @@ class EnhancedAuditLogger:
     def _load_hash_chain(self):
         """Load existing hash chain."""
         try:
-            if self.hash_chain_file.exists():
+            if self.hash_chain_file.exists() if self.hash_chain_file else False:
                 with open(self.hash_chain_file, 'r', encoding='utf-8') as f:
                     lines = f.readlines()
                     if lines:
@@ -350,7 +350,7 @@ class EnhancedAuditLogger:
         
         try:
             # Read hash chain
-            if not self.hash_chain_file.exists():
+            if not self.hash_chain_file.exists() if self.hash_chain_file else False:
                 return {"status": "error", "message": "Hash chain file not found"}
             
             with open(self.hash_chain_file, 'r', encoding='utf-8') as f:

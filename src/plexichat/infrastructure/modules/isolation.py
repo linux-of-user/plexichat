@@ -150,7 +150,7 @@ class ModuleIsolationManager:
 
             # Start process
             process = multiprocessing.Process(target=target_function)
-            process.start()
+            if process and hasattr(process, "start"): process.start()
 
             process_info.process = process
             process_info.pid = process.pid

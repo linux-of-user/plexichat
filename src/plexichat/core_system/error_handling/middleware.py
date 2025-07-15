@@ -28,7 +28,7 @@ FastAPI middleware for comprehensive error handling, logging,
 and response formatting across the entire application.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):

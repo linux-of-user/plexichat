@@ -11,7 +11,13 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import redis
+try:
+
+    import redis
+
+except ImportError:
+
+    redis = None
 
 from pathlib import Path
 from datetime import datetime
@@ -91,8 +97,8 @@ class UserLimits:
     user_tier: str = "standard"  # standard, premium, enterprise
     custom_limits: Dict[str, RateLimit] = None
     is_active: bool = True
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 @dataclass
 class RateLimitStatus:
@@ -135,10 +141,10 @@ class EnhancedRateLimit(RateLimit):
     action: RateLimitAction = RateLimitAction.BLOCK
     delay_seconds: int = 0
     ban_duration: int = 3600  # seconds
-    whitelist_ips: List[str] = None
-    blacklist_ips: List[str] = None
-    user_roles: List[str] = None  # Apply to specific roles
-    endpoints: List[str] = None  # Apply to specific endpoints
+    whitelist_ips: Optional[List[str]] = None
+    blacklist_ips: Optional[List[str]] = None
+    user_roles: Optional[List[str]] = None  # Apply to specific roles
+    endpoints: Optional[List[str]] = None  # Apply to specific endpoints
     enabled: bool = True
     priority: int = 1  # Higher priority rules are checked first
 
@@ -165,8 +171,8 @@ class AdvancedRateLimiter:
         self.memory_store = defaultdict(lambda: defaultdict(deque))
         
         # Configuration
-        self.config_file = from pathlib import Path
-Path("config/rate_limits.json")
+        self.from pathlib import Path
+config_file = Path()("config/rate_limits.json")
         self.default_limits = self._load_default_limits()
         self.user_limits = {}
         
@@ -265,7 +271,7 @@ Path("config/rate_limits.json")
         self.UserLimitConfig = UserLimitConfig
     
     async def check_rate_limit(self, user_id: str, limit_type: LimitType, 
-                              request_size: int = 1, ip_address: str = None) -> RateLimitStatus:
+                              request_size: int = 1, ip_address: Optional[str] = None) -> RateLimitStatus:
         """Check if user has exceeded rate limit."""
         try:
             # Get user limits
@@ -338,8 +344,9 @@ datetime.now()).total_seconds()))
                 limit_type=limit_type,
                 current_count=0,
                 max_allowed=999999,
-                reset_time=from datetime import datetime
-datetime.now() + timedelta(hours=1),
+                from datetime import datetime
+
+                reset_time = datetime().now() + timedelta(hours=1),
                 is_exceeded=False,
                 remaining=999999
             )
@@ -356,8 +363,9 @@ datetime.now() + timedelta(hours=1),
                 self.logger.warning(f"Redis get failed: {e}")
         
         # Fallback to memory store
-        now = from datetime import datetime
-datetime.now()
+        from datetime import datetime
+
+        now = datetime().now()
         usage_queue = self.memory_store[user_id][limit_type.value]
         
         # Remove expired entries
@@ -387,8 +395,9 @@ datetime.now()
                 self.logger.warning(f"Redis update failed: {e}")
         
         # Fallback to memory store
-        expire_time = from datetime import datetime
-datetime.now() + timedelta(seconds=self._get_period_seconds(
+        from datetime import datetime
+
+        expire_time = datetime().now() + timedelta(seconds=self._get_period_seconds(
             self._get_limit_config(self._get_user_limits(user_id), limit_type).period
         ))
         self.memory_store[user_id][limit_type.value].append((amount, expire_time))
@@ -424,8 +433,9 @@ datetime.now() + timedelta(seconds=self._get_period_seconds(
             username=f"user_{user_id}",
             user_tier="standard",
             is_active=True,
-            created_at=from datetime import datetime
-datetime.now()
+            from datetime import datetime
+
+            created_at = datetime().now()
         )
     
     def _get_limit_config(self, user_limits: UserLimits, limit_type: LimitType) -> Optional[RateLimit]:
@@ -440,8 +450,9 @@ datetime.now()
     
     def _get_reset_time(self, period: LimitPeriod) -> datetime:
         """Calculate when the rate limit resets."""
-        now = from datetime import datetime
-datetime.now()
+        from datetime import datetime
+
+        now = datetime().now()
         
         if period == LimitPeriod.SECOND:
             return now.replace(microsecond=0) + timedelta(seconds=1)
@@ -491,10 +502,12 @@ datetime.now()
             user_tier=user_tier,
             custom_limits=custom_limits,
             is_active=True,
-            created_at=from datetime import datetime
-datetime.now(),
-            updated_at=from datetime import datetime
-datetime.now()
+            from datetime import datetime
+
+            created_at = datetime().now(),
+            from datetime import datetime
+
+            updated_at = datetime().now()
         )
         
         # Store in memory
@@ -509,10 +522,12 @@ datetime.now()
                     user_tier=user_tier,
                     custom_limits=json.dumps(custom_limits) if custom_limits else None,
                     is_active=True,
-                    created_at=from datetime import datetime
-datetime.now(),
-                    updated_at=from datetime import datetime
-datetime.now()
+                    from datetime import datetime
+
+                    created_at = datetime().now(),
+                    from datetime import datetime
+
+                    updated_at = datetime().now()
                 )
                 self.db_session.merge(config)
                 self.db_session.commit()
@@ -551,8 +566,9 @@ datetime.now()
             while True:
                 try:
                     # Clean up expired memory entries
-                    now = from datetime import datetime
-datetime.now()
+                    from datetime import datetime
+
+                    now = datetime().now()
                     for user_id in list(self.memory_store.keys()):
                         for limit_type in list(self.memory_store[user_id].keys()):
                             queue = self.memory_store[user_id][limit_type]

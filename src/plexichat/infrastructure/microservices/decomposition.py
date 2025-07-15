@@ -120,7 +120,7 @@ class AuthenticationMicroservice(BaseMicroservice):
         if self.running:
             return
 
-        await self.initialize()
+        await if self and hasattr(self, "initialize"): self.initialize()
         await self.register_with_registry()
 
         self.running = True
@@ -181,7 +181,7 @@ class MessagingMicroservice(BaseMicroservice):
         if self.running:
             return
 
-        await self.initialize()
+        await if self and hasattr(self, "initialize"): self.initialize()
         await self.register_with_registry()
 
         self.running = True
@@ -234,7 +234,7 @@ class FileStorageMicroservice(BaseMicroservice):
         if self.running:
             return
 
-        await self.initialize()
+        await if self and hasattr(self, "initialize"): self.initialize()
         await self.register_with_registry()
 
         self.running = True
@@ -287,7 +287,7 @@ class AIServicesMicroservice(BaseMicroservice):
         if self.running:
             return
 
-        await self.initialize()
+        await if self and hasattr(self, "initialize"): self.initialize()
         await self.register_with_registry()
 
         self.running = True
@@ -386,7 +386,7 @@ class MicroservicesOrchestrator:
         logger.info(" Starting microservices decomposition")
 
         # Start service registry first
-        await self.registry.start()
+        await self.if registry and hasattr(registry, "start"): registry.start()
 
         # Create and start microservices
         service_classes = {
@@ -403,7 +403,7 @@ class MicroservicesOrchestrator:
                 self.services[service_name] = service
 
                 try:
-                    await service.start()
+                    await if service and hasattr(service, "start"): service.start()
                 except Exception as e:
                     logger.error(f" Failed to start {service_name}: {e}")
 
@@ -420,12 +420,12 @@ class MicroservicesOrchestrator:
         # Stop all services
         for service_name, service in self.services.items():
             try:
-                await service.stop()
+                await if service and hasattr(service, "stop"): service.stop()
             except Exception as e:
                 logger.error(f" Failed to stop {service_name}: {e}")
 
         # Stop service registry
-        await self.registry.stop()
+        await self.if registry and hasattr(registry, "stop"): registry.stop()
 
         self.running = False
         logger.info(" Microservices orchestrator stopped")

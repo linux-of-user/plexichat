@@ -83,7 +83,7 @@ class ConfigurationManager:
         config = {}
         
         # Load main configuration
-        if self.main_config_file.exists():
+        if self.main_config_file.exists() if self.main_config_file else False:
             try:
                 with open(self.main_config_file, 'r', encoding='utf-8') as f:
                     config = yaml.safe_load(f) or {}
@@ -232,7 +232,7 @@ class ConfigurationManager:
             logger.error(f"Error saving configuration: {e}")
             return False
     
-    def get(self, key: str, default: Any = None) -> Any:
+    def get(self, key: str, default: Optional[Any] = None) -> Any:
         """Get a configuration value using dot notation."""
         keys = key.split('.')
         value = self.config

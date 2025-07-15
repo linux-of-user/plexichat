@@ -68,9 +68,9 @@ class RecoveryAttempt:
         self.end_time: Optional[float] = None
         self.success = False
         self.error: Optional[Exception] = None
-        self.result: Any = None
+        self.result: Optional[Any] = None
 
-    def complete(self, success: bool, result: Any = None, error: Exception = None):
+    def complete(self, success: bool, result: Optional[Any] = None, error: Optional[Exception] = None):
         """Mark the recovery attempt as complete."""
         self.end_time = time.time()
         self.success = success
@@ -161,7 +161,7 @@ class ErrorRecoveryManager:
 
     async def attempt_recovery(self, exception: Exception,
                               context: Dict[str, Any] = None,
-                              component: str = None) -> Dict[str, Any]:
+                              component: Optional[str] = None) -> Dict[str, Any]:
         """Attempt to recover from an error using appropriate strategies."""
 
         exception_type = type(exception)

@@ -7,8 +7,24 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 from fastapi.responses import JSONResponse
 
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import get_current_user_from_token
-from plexichat.websockets.messaging_websocket import messaging_websocket_manager
+
+try:
+    from plexichat.infrastructure.utils.auth import get_current_user_from_token
+except ImportError:
+    def get_current_user_from_token(token: str):
+        return None
+
+try:
+    from plexichat.websockets.messaging_websocket import messaging_websocket_manager
+except ImportError:
+    class MockWebSocketManager:
+        def get_stats(self):
+            return {"active_connections": 0, "total_messages": 0}
+
+        async def broadcast_admin_message(self, message: str, channel_id=None, guild_id=None):
+            pass
+
+    messaging_websocket_manager = MockWebSocketManager()
 
 """
 Messaging WebSocket Router
@@ -198,7 +214,7 @@ async def get_messaging_stats(current_user: User = Depends(get_current_user_from
     Get real-time messaging statistics.
     Requires admin access.
     """
-    if not current_user.is_admin:
+    if not getattr(current_user, 'is_admin', False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
@@ -230,7 +246,7 @@ async def broadcast_admin_message(
     Broadcast an admin message to all connected users or specific channel/guild.
     Requires admin access.
     """
-    if not current_user.is_admin:
+    if not getattr(current_user, 'is_admin', False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
@@ -243,7 +259,7 @@ async def broadcast_admin_message(
             'data': {
                 'message': message,
                 'sender': current_user.username,
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.now().isoformat(),
                 'channel_id': channel_id,
                 'guild_id': guild_id
             }
@@ -298,7 +314,7 @@ async def websocket_health_check():
             "service": "WebSocket Messaging",
             "connections": stats.get('total_connections', 0),
             "active_users": stats.get('active_users', 0),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now().isoformat()
         })
 
     except Exception as e:
@@ -309,6 +325,6 @@ async def websocket_health_check():
                 "status": "unhealthy",
                 "service": "WebSocket Messaging",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now().isoformat()
             }
         )

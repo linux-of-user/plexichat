@@ -206,7 +206,7 @@ class WebUIRenderer:
             
             # Run in separate thread
             thread = threading.Thread(target=create_window, daemon=True)
-            thread.start()
+            if thread and hasattr(thread, "start"): thread.start()
             
             return True
             

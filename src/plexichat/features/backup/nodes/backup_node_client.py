@@ -237,8 +237,9 @@ class BackupNodeManager:
                 await client.health_check()
                 results[node_id] = True
                 self.node_configs[node_id]["is_healthy"] = True
-                self.node_configs[node_id]["last_health_check"] = from datetime import datetime
-datetime = datetime.now().isoformat()
+                from datetime import datetime
+
+                self.node_configs[node_id]["last_health_check"] = datetime.now().now().isoformat()
             except Exception as e:
                 logger.warning(f"Health check failed for node {node_id}: {e}")
                 results[node_id] = False

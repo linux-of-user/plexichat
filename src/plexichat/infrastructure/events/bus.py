@@ -158,7 +158,7 @@ class EventBus:
         return handler_id
 
     def unsubscribe(
-        self, event_type: str, callback: Callable = None, handler_id: str = None
+        self, event_type: str, callback: Optional[Callable] = None, handler_id: Optional[str] = None
     ):
         """
         Unsubscribe from events.
@@ -193,9 +193,9 @@ class EventBus:
         self,
         event_type: str,
         data: Dict[str, Any] = None,
-        source: str = None,
+        source: Optional[str] = None,
         priority: EventPriority = EventPriority.NORMAL,
-        correlation_id: str = None,
+        correlation_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -240,9 +240,9 @@ class EventBus:
         self,
         event_type: str,
         data: Dict[str, Any] = None,
-        source: str = None,
+        source: Optional[str] = None,
         priority: EventPriority = EventPriority.NORMAL,
-        correlation_id: str = None,
+        correlation_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -375,7 +375,7 @@ class EventBus:
             logger.debug("Removed event middleware")
 
     def get_history(
-        self, event_type: str = None, limit: int = None, since: datetime = None
+        self, event_type: Optional[str] = None, limit: Optional[int] = None, since: Optional[datetime] = None
     ) -> List[Event]:
         """Get event history with optional filtering."""
         events = self._event_history
@@ -423,7 +423,7 @@ def subscribe(event_type: str, callback: Callable, **kwargs) -> str:
     return event_bus.subscribe(event_type, callback, **kwargs)
 
 
-def unsubscribe(event_type: str, callback: Callable = None, handler_id: str = None):
+def unsubscribe(event_type: str, callback: Optional[Callable] = None, handler_id: Optional[str] = None):
     """Unsubscribe from events."""
     event_bus.unsubscribe(event_type, callback, handler_id)
 

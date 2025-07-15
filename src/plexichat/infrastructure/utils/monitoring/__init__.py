@@ -1,4 +1,5 @@
 from .error_handler import (
+from typing import Optional
     ErrorHandler,
     ErrorSeverity,
     SystemMonitor,

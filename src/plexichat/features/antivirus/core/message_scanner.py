@@ -71,8 +71,8 @@ class MessageAntivirusScanner:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.scanner_dir = self.data_dir / "message_scanner"
         self.scanner_dir.mkdir(parents=True, exist_ok=True)
         

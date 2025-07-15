@@ -378,7 +378,7 @@ class AdvancedUserManager:
         return profile
 
     async def update_user_status(
-        self, user_id: str, status: UserStatus, custom_status: str = None
+        self, user_id: str, status: UserStatus, custom_status: Optional[str] = None
     ):
         """Update user status."""
         if user_id in self.users:

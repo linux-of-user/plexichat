@@ -1,4 +1,5 @@
 from .changelog_manager import (
+from typing import Optional
 
 
     Advanced,
@@ -126,7 +127,7 @@ def is_version_compatible(current: str, target: str) -> bool:
     return target_version.is_compatible_with(current_version)
 
 # Changelog utilities
-def get_changelog(version: str = None, since_version: str = None) -> str:
+def get_changelog(version: Optional[str] = None, since_version: Optional[str] = None) -> str:
     """Get changelog for version or since version."""
     if version:
         v = Version.parse(version)
@@ -176,7 +177,7 @@ def validate_version_format(version_string: str) -> bool:
     except ValueError:
         return False
 
-def get_next_version_suggestion(current_version: str = None, version_type: str = None) -> str:
+def get_next_version_suggestion(current_version: Optional[str] = None, version_type: Optional[str] = None) -> str:
     """Get suggested next version."""
     if current_version:
         current = Version.parse(current_version)

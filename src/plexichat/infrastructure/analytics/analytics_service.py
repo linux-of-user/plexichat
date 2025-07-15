@@ -6,7 +6,13 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import redis.asyncio as redis
+try:
+
+    import redis.asyncio as redis
+
+except ImportError:
+
+    redis = None
 from app.core.database.engines import db_cluster
 from app.logger_config import logger
 from app.models.channel import Channel

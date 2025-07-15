@@ -669,7 +669,7 @@ async def get_collaboration_service() -> CollaborationService:
     global _collaboration_service
     if _collaboration_service is None:
         _collaboration_service = CollaborationService()
-        await _collaboration_service.start()
+        await if _collaboration_service and hasattr(_collaboration_service, "start"): _collaboration_service.start()
     return _collaboration_service
 
 # Export main components

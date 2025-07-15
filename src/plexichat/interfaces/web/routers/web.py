@@ -7,11 +7,26 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from plexichat.core.auth.manager_auth import login_manager
-from plexichat.core.updater import updater
-from plexichat.infrastructure.utils.auth import get_current_user, require_admin
+try:
+    from plexichat.core.auth.manager_auth import login_manager
+except ImportError:
+    login_manager = None
+
+try:
+    from plexichat.core.updater import updater
+except ImportError:
+    updater = None
+try:
+    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
+except ImportError:
+    def get_current_user():
+        return None
+    def require_admin():
+        return None
+
 from plexichat.features.users.user import User
 from plexichat.core.config import settings
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 

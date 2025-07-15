@@ -252,7 +252,7 @@ class BackupNodeAuthManager:
         return True
 
     async def authorize_operation(
-        self, node_id: str, operation: str, resource: str = None
+        self, node_id: str, operation: str, resource: Optional[str] = None
     ) -> bool:
         """Authorize a node operation based on permissions."""
         if node_id not in self.node_credentials:

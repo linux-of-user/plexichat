@@ -231,7 +231,7 @@ Path("config/modules")
             self.file_watcher = ConfigWatcher(self)
             self.observer = Observer()
             self.observer.schedule(self.file_watcher, str(self.config_dir), recursive=True)
-            self.observer.start()
+            self.if observer and hasattr(observer, "start"): observer.start()
             logger.info("Configuration file watchers started")
         except Exception as e:
             logger.error(f"Failed to setup file watchers: {e}")

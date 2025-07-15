@@ -13,6 +13,7 @@ from pathlib import Path
 
 from pathlib import Path
 import logging
+from typing import Optional
 
 
 #!/usr/bin/env python3

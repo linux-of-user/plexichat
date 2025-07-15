@@ -582,7 +582,7 @@ class AutomaticFailoverManager:
         logger.error(f"Failover verification failed for node {target_node_id}")
         return False
 
-    async def trigger_manual_failover(self, node_id: str, target_node_id: str = None) -> Optional[FailoverExecution]:
+    async def trigger_manual_failover(self, node_id: str, target_node_id: Optional[str] = None) -> Optional[FailoverExecution]:
         """Trigger manual failover for a node."""
         logger.info(f"Manual failover triggered for node {node_id}")
 

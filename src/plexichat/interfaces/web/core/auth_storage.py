@@ -78,8 +78,8 @@ class DatabaseAuthStorage(AuthStorageBackend):
     """Database-based authentication storage."""
     
     def __init__(self, db_path: str = "config/auth.db"):
-        self.db_path = from pathlib import Path
-Path(db_path)
+        self.from pathlib import Path
+db_path = Path()(db_path)
         self.db_path.parent.mkdir(exist_ok=True)
         self._init_database()
     
@@ -150,8 +150,8 @@ Path(db_path)
     
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.updated_at = from datetime import datetime
-datetime.utcnow()
+        record.from datetime import datetime
+updated_at = datetime().utcnow()
         return await self.store_auth_record(record)
     
     async def delete_auth_record(self, user_id: str) -> bool:
@@ -207,8 +207,8 @@ class FileAuthStorage(AuthStorageBackend):
     """File-based authentication storage."""
     
     def __init__(self, storage_dir: str = "config/auth_storage"):
-        self.storage_dir = from pathlib import Path
-Path(storage_dir)
+        self.from pathlib import Path
+storage_dir = Path()(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
         self.cipher = Fernet(Fernet.generate_key())  # In production, use proper key management
     
@@ -258,8 +258,8 @@ Path(storage_dir)
     
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.updated_at = from datetime import datetime
-datetime.utcnow()
+        record.from datetime import datetime
+updated_at = datetime().utcnow()
         return await self.store_auth_record(record)
     
     async def delete_auth_record(self, user_id: str) -> bool:
@@ -290,7 +290,7 @@ datetime.utcnow()
     async def is_healthy(self) -> bool:
         """Check if the backend is healthy."""
         try:
-            return self.storage_dir.exists() and self.storage_dir.is_dir()
+            return self.storage_dir.exists() if self.storage_dir else False and self.storage_dir.is_dir()
         except Exception:
             return False
 

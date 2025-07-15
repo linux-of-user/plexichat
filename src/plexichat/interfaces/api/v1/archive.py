@@ -87,7 +87,7 @@ async def get_archive_plugin():
     try:
         plugin = ArchiveSystemPlugin(from pathlib import Path
 Path("data"))
-        await plugin.initialize()
+        await if plugin and hasattr(plugin, "initialize"): plugin.initialize()
         return plugin
     except Exception as e:
         logger.error(f"Failed to initialize archive plugin: {e}")

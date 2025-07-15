@@ -356,7 +356,7 @@ class ZeroKnowledgeBackupProtocol:
             raise
 
     async def encrypt_data_for_backup(
-        self, data: bytes, user_password: str = None
+        self, data: bytes, user_password: Optional[str] = None
     ) -> List[BackupChunk]:
         """Encrypt data using client-side encryption for zero-knowledge backup."""
         try:
@@ -416,7 +416,7 @@ class ZeroKnowledgeBackupProtocol:
     async def encrypt_data(self, request) -> EncryptedData:
         """Legacy encrypt data method for backward compatibility."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         try:
             # Read data from source
@@ -1061,7 +1061,7 @@ class ZeroKnowledgeBackupProtocol:
             return []
 
     async def decrypt_backup_chunks(
-        self, encrypted_chunks: List[BackupChunk], user_password: str = None
+        self, encrypted_chunks: List[BackupChunk], user_password: Optional[str] = None
     ) -> bytes:
         """Decrypt backup chunks to restore original data."""
         try:
@@ -1116,7 +1116,7 @@ class ZeroKnowledgeBackupProtocol:
             raise
 
     async def _decrypt_chunk(
-        self, chunk: BackupChunk, user_password: str = None
+        self, chunk: BackupChunk, user_password: Optional[str] = None
     ) -> bytes:
         """Decrypt a single backup chunk."""
         try:

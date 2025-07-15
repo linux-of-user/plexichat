@@ -210,7 +210,7 @@ class TamperResistantLogger:
 
     def _load_state(self):
         """Load existing sequence number and hash."""
-        if not self.log_file.exists():
+        if not self.log_file.exists() if self.log_file else False:
             return
 
         try:
@@ -263,7 +263,7 @@ class TamperResistantLogger:
 
     def verify_integrity(self) -> Dict[str, Any]:
         """Verify the integrity of the log file."""
-        if not self.log_file.exists():
+        if not self.log_file.exists() if self.log_file else False:
             return {"status": "no_log_file", "verified": True}
 
         verification_results = {

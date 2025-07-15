@@ -63,7 +63,7 @@ class ErrorDetails:
     """Detailed error information."""
 
     def __init__(self, error_code: ErrorCode, context: Dict[str, Any] = None,
-                 stack_trace: str = None, user_id: str = None):
+                 stack_trace: Optional[str] = None, user_id: Optional[str] = None):
         self.error_id = str(uuid.uuid4())
         self.error_code = error_code
         self.context = context or {}
@@ -91,7 +91,7 @@ datetime = datetime.now()
 class BaseAPIException(Exception):
     """Base exception for all API-related errors."""
 
-    def __init__(self, message: str, error_code: str = None,
+    def __init__(self, message: str, error_code: Optional[str] = None,
                  details: Dict[str, Any] = None, status_code: int = 500):
         super().__init__(message)
         self.message = message
@@ -107,7 +107,7 @@ class ValidationError(BaseAPIException):
     """Raised when data validation fails."""
 
     def __init__(self, message: str = "Validation failed",
-                 field: str = None, value: Any = None,
+                 field: Optional[str] = None, value: Optional[Any] = None,
                  error_code: str = "VALIDATION_ERROR", status_code: int = 400):
         super().__init__(message, error_code, status_code=status_code)
         self.field = field
@@ -126,7 +126,7 @@ class AuthorizationError(BaseAPIException):
     """Raised when authorization fails."""
 
     def __init__(self, message: str = "Authorization failed",
-                 required_permission: str = None,
+                 required_permission: Optional[str] = None,
                  error_code: str = "AUTHZ_FAILED", status_code: int = 403):
         super().__init__(message, error_code, status_code=status_code)
         self.required_permission = required_permission
@@ -136,7 +136,7 @@ class DatabaseError(BaseAPIException):
     """Raised when database operations fail."""
 
     def __init__(self, message: str = "Database operation failed",
-                 operation: str = None, table: str = None,
+                 operation: Optional[str] = None, table: Optional[str] = None,
                  error_code: str = "DB_ERROR", status_code: int = 500):
         super().__init__(message, error_code, status_code=status_code)
         self.operation = operation
@@ -147,7 +147,7 @@ class NetworkError(BaseAPIException):
     """Raised when network operations fail."""
 
     def __init__(self, message: str = "Network operation failed",
-                 url: str = None, timeout: bool = False,
+                 url: Optional[str] = None, timeout: bool = False,
                  error_code: str = "NETWORK_ERROR", status_code: int = 503):
         super().__init__(message, error_code, status_code=status_code)
         self.url = url
@@ -158,7 +158,7 @@ class ExternalServiceError(BaseAPIException):
     """Raised when external service calls fail."""
 
     def __init__(self, message: str = "External service error",
-                 service_name: str = None, service_status: int = None,
+                 service_name: Optional[str] = None, service_status: Optional[int] = None,
                  error_code: str = "EXTERNAL_SERVICE_ERROR", status_code: int = 502):
         super().__init__(message, error_code, status_code=status_code)
         self.service_name = service_name
@@ -169,7 +169,7 @@ class FileError(BaseAPIException):
     """Raised when file operations fail."""
 
     def __init__(self, message: str = "File operation failed",
-                 file_path: str = None, operation: str = None,
+                 file_path: Optional[str] = None, operation: Optional[str] = None,
                  error_code: str = "FILE_ERROR", status_code: int = 500):
         super().__init__(message, error_code, status_code=status_code)
         self.file_path = file_path
@@ -180,7 +180,7 @@ class RateLimitError(BaseAPIException):
     """Raised when rate limits are exceeded."""
 
     def __init__(self, message: str = "Rate limit exceeded",
-                 limit: int = None, window: int = None,
+                 limit: Optional[int] = None, window: Optional[int] = None,
                  error_code: str = "RATE_LIMIT_ERROR", status_code: int = 429):
         super().__init__(message, error_code, status_code=status_code)
         self.limit = limit

@@ -8,14 +8,15 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 try:
-    import redis.asyncio as redis
-except ImportError:
-    redis = None
+    try:
+        import redis.asyncio as redis
+    except ImportError:
+        redis = None
+except ImportError: Optional[redis] = None
 
 try:
     from motor.motor_asyncio import AsyncIOMotorClient
-except ImportError:
-    AsyncIOMotorClient = None
+except ImportError: Optional[AsyncIOMotorClient] = None
 
 try:
     from ...core_system.config import get_config
@@ -212,11 +213,11 @@ class ConsolidatedDatabaseManager:
         try:
             # Initialize encryption manager
             self.encryption_manager = quantum_encryption
-            await self.encryption_manager.initialize()
+            await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()
 
             # Initialize key manager
             self.key_manager = distributed_key_manager
-            await self.key_manager.initialize()
+            await self.if key_manager and hasattr(key_manager, "initialize"): key_manager.initialize()
 
             logger.info("Database security components initialized")
 
@@ -229,11 +230,11 @@ class ConsolidatedDatabaseManager:
         try:
             # Initialize migration manager
             self.migration_manager = zero_downtime_migration_manager
-            await self.migration_manager.initialize()
+            await self.if migration_manager and hasattr(migration_manager, "initialize"): migration_manager.initialize()
 
             # Initialize global data distribution
             self.global_distribution = global_data_distribution_manager
-            await self.global_distribution.initialize()
+            await self.if global_distribution and hasattr(global_distribution, "initialize"): global_distribution.initialize()
 
             # Initialize backup integration
             self.backup_integration = get_unified_backup_manager()
@@ -385,7 +386,7 @@ class ConsolidatedDatabaseManager:
             return False
 
     async def execute_query(
-        self, query: str, params: Dict[str, Any] = None, database: str = None
+        self, query: str, params: Dict[str, Any] = None, database: Optional[str] = None
     ) -> Dict[str, Any]:
         """Execute a database query with unified interface."""
         start_time = time.time()
@@ -628,7 +629,7 @@ class ConsolidatedDatabaseManager:
     async def __aenter__(self):
         """Async context manager entry."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -641,7 +642,7 @@ database_manager = ConsolidatedDatabaseManager()
 
 
 # Convenience functions for backward compatibility
-async def initialize_database_system(config: dict = None) -> bool:
+async def initialize_database_system(config: Optional[dict] = None) -> bool:
     """Initialize the consolidated database system."""
     return await database_manager.initialize(config)
 
@@ -649,7 +650,7 @@ async def initialize_database_system(config: dict = None) -> bool:
 async def get_database_manager() -> ConsolidatedDatabaseManager:
     """Get the consolidated database manager instance."""
     if not database_manager.initialized:
-        await database_manager.initialize()
+        await if database_manager and hasattr(database_manager, "initialize"): database_manager.initialize()
     return database_manager
 
 

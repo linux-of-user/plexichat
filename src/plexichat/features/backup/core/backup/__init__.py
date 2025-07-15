@@ -1,6 +1,7 @@
 from .backup_node_auth import BackupNodeAuthManager
 from .backup_node_client import BackupNodeClient, BackupNodeManager
 from .user_message_backup import UniversalBackupManager
+from typing import Optional
 
 
 """

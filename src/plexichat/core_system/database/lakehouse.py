@@ -299,7 +299,7 @@ class MinIOLakehouseClient(AbstractDatabaseClient):  # type: ignore
         """Disconnect from lakehouse."""
         try:
             if self.spark_session:
-                self.spark_session.stop()
+                self.if spark_session and hasattr(spark_session, "stop"): spark_session.stop()
             self.is_connected = False
             return True
         except Exception as e:

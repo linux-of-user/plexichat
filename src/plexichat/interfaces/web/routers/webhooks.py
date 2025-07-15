@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from plexichat.core.config import settings
-from plexichat.core.config import settings
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 # settings import will be added when needed
@@ -25,8 +25,7 @@ async def receive_webhook(
     event: dict,
     secret: str = Header(..., alias="X-Webhook-Secret")
 ):
-    if secret != from plexichat.core.config import settings
-settings.WEBHOOK_SECRET:
+    if secret != settings.WEBHOOK_SECRET:
         logger.warning("Invalid webhook secret")
         raise HTTPException(status_code=401, detail="Invalid secret")
     logger.info(f"Webhook processed: {event.get('event')}")

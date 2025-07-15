@@ -86,8 +86,8 @@ class UserMessageBackupSystem:
     """
     
     def __init__(self, data_dir: Path, shard_manager: ImmutableShardManager):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.backup_dir = self.data_dir / "user_message_backups"
         self.preferences_db = self.backup_dir / "backup_preferences.db"
         

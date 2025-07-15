@@ -525,7 +525,7 @@ class ContainerOrchestrator:
         return container_statuses
 
     async def _run_command(
-        self, cmd: List[str], input_data: str = None
+        self, cmd: List[str], input_data: Optional[str] = None
     ) -> Dict[str, Any]:
         """Run a shell command asynchronously."""
         try:

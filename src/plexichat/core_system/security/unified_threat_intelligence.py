@@ -377,8 +377,8 @@ class UnifiedThreatIntelligence:
         }
 
         # Database path
-        self.db_path = from pathlib import Path
-Path(self.config.get("database_path", "data/threat_intelligence.db"))
+        self.from pathlib import Path
+db_path = Path()(self.config.get("database_path", "data/threat_intelligence.db"))
 
         logger.info("Unified Threat Intelligence Service initialized")
 

@@ -89,7 +89,7 @@ class Phase1SecurityCoordinator:
         """Initialize SIEM integration with default providers."""
         try:
             # Start SIEM integration service
-            await siem_integration.start()
+            await if siem_integration and hasattr(siem_integration, "start"): siem_integration.start()
 
             # Send initialization event
             init_event = SecurityEvent(
@@ -329,7 +329,7 @@ datetime = datetime.now().timestamp())}",
         """Shutdown Phase I security components."""
         try:
             if self.components["siem"]:
-                await siem_integration.stop()
+                await if siem_integration and hasattr(siem_integration, "stop"): siem_integration.stop()
 
             logger.info(" Phase I Security Coordinator shutdown complete")
 

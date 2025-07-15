@@ -12,6 +12,7 @@ from .security import *
 from .shutdown import *
 from .snowflake import *
 from .utilities import *
+from typing import Optional
 
 """
 PlexiChat Infrastructure Utilities

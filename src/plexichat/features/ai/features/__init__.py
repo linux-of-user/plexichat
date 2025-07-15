@@ -1,4 +1,5 @@
 from .ai_powered_features_service import (
+from typing import Optional
 
 
     AI,
@@ -85,7 +86,7 @@ def get_ai_features_service() -> AIPoweredFeaturesService:
     return _ai_features_service
 
 
-def initialize_ai_features_service(config: dict = None) -> AIPoweredFeaturesService:
+def initialize_ai_features_service(config: Optional[dict] = None) -> AIPoweredFeaturesService:
     """Initialize the AI features service with optional configuration."""
     global _ai_features_service
     _ai_features_service = AIPoweredFeaturesService(config)

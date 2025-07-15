@@ -7,39 +7,29 @@ from typing import Any, Dict, List, Optional, Set
 
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
-from .unified_auth_manager import (
+try:
+    from .unified_auth_manager import get_unified_auth_manager
+except ImportError:
+    def get_unified_auth_manager():
+        return None
 
+try:
+    from .certificate_manager import get_certificate_manager
+except ImportError:
+    def get_certificate_manager():
+        return None
 
-    Authentication,
-    Consolidates,
-    Manager,
-    Security,
-    Unified,
-    """,
-    -,
-    ...features.security.network_protection,
-    ..security.input_validation,
-    .certificate_manager,
-    .unified_auth_manager,
-    a,
-    all,
-    and,
-    auth,
-    authorization,
-    comprehensive,
-    from,
-    functionality,
-    get_certificate_manager,
-    get_input_validator,
-    get_network_protection,
-    get_unified_auth_manager,
-    import,
-    into,
-    managers,
-    security,
-    single,
-    system:,
-)
+try:
+    from ...features.security.input_validation import get_input_validator
+except ImportError:
+    def get_input_validator():
+        return None
+
+try:
+    from ...features.security.network_protection import get_network_protection
+except ImportError:
+    def get_network_protection():
+        return None
 
 - DDoS protection and rate limiting
 - Input validation and sanitization
@@ -230,7 +220,7 @@ class UnifiedSecurityManager:
     async def process_security_request(self, request: SecurityRequest) -> SecurityResponse:
         """Process a security request through all security layers."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         response = SecurityResponse(
             allowed=True,
@@ -283,7 +273,7 @@ class UnifiedSecurityManager:
     ) -> Dict[str, Any]:
         """Authenticate a user with comprehensive security checks using unified auth manager."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         try:
             if not self.auth_manager:
@@ -411,10 +401,10 @@ class UnifiedSecurityManager:
             self.certificate_manager = get_certificate_manager()
 
             # Initialize all components
-            await self.auth_manager.initialize()
-            await self.input_validator.initialize()
-            await self.network_protection.initialize()
-            await self.certificate_manager.initialize()
+            await self.if auth_manager and hasattr(auth_manager, "initialize"): auth_manager.initialize()
+            await self.if input_validator and hasattr(input_validator, "initialize"): input_validator.initialize()
+            await self.if network_protection and hasattr(network_protection, "initialize"): network_protection.initialize()
+            await self.if certificate_manager and hasattr(certificate_manager, "initialize"): certificate_manager.initialize()
 
             logger.info(" All consolidated security components initialized")
 

@@ -368,7 +368,7 @@ class BaseModule(ABC):
 
     async def shutdown(self) -> bool:
         """Shutdown the module."""
-        return await self.stop()
+        return await if self and hasattr(self, "stop"): self.stop()
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""

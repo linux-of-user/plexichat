@@ -176,7 +176,7 @@ datetime.utcnow() < self.timeout_until
         return from datetime import datetime
 datetime.utcnow() < self.communication_disabled_until
 
-    def get_display_name(self, fallback_username: str = None) -> str:
+    def get_display_name(self, fallback_username: Optional[str] = None) -> str:
         """Get the display name for this member."""
         return self.nickname or fallback_username or "Unknown User"
 

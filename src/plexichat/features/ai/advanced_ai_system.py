@@ -363,7 +363,7 @@ class ContentModerationEngine:
             r'(?i)(click here|urgent|act now|limited time)',  # Spam phrases
         ]
 
-    async def moderate_content(self, content: str, content_id: str = None) -> ModerationResult:
+    async def moderate_content(self, content: str, content_id: Optional[str] = None) -> ModerationResult:
         """Moderate content using AI and rules."""
         content_id = content_id or f"content_{int(from datetime import datetime
 datetime = datetime.now().timestamp())}"

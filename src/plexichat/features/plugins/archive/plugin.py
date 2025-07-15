@@ -85,8 +85,8 @@ class ArchiveSystemPlugin:
     """
     
     def __init__(self, data_dir: Path, shard_manager: ImmutableShardManager):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.archive_dir = self.data_dir / "archives"
         self.db_path = self.archive_dir / "archive_system.db"
         

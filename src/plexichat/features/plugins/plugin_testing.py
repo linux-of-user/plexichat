@@ -139,7 +139,7 @@ class MockPlexiChatAPI:
         """Mock logging."""
         logger.log(getattr(logging, level.upper(), logging.INFO), f"Plugin: {message}")
 
-    def get_config(self, key: str, default: Any = None) -> Any:
+    def get_config(self, key: str, default: Optional[Any] = None) -> Any:
         """Mock get config."""
         return self.config_data.get(key, default)
 

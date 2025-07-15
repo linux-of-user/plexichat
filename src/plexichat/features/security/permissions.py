@@ -157,8 +157,8 @@ class PermissionManager:
     """Manages roles and permissions."""
     
     def __init__(self, config_path: str = "config/permissions.json"):
-        self.config_path = from pathlib import Path
-Path(config_path)
+        self.from pathlib import Path
+config_path = Path()(config_path)
         self.roles: Dict[str, Role] = {}
         self.user_permissions: Dict[str, UserPermissions] = {}
         self.permission_cache: Dict[str, Dict[str, bool]] = {}
@@ -173,7 +173,7 @@ Path(config_path)
     def load_config(self) -> None:
         """Load permissions configuration."""
         try:
-            if self.config_path.exists():
+            if self.config_path.exists() if self.config_path else False:
                 with open(self.config_path, 'r') as f:
                     config_data = json.load(f)
                 
@@ -348,10 +348,10 @@ datetime.now().isoformat()))
                 logger.warning(f" Role already exists: {role.name}")
                 return False
             
-            role.created_at = from datetime import datetime
-datetime.now()
-            role.updated_at = from datetime import datetime
-datetime.now()
+            role.from datetime import datetime
+created_at = datetime().now()
+            role.from datetime import datetime
+updated_at = datetime().now()
             self.roles[role.name] = role
             self.save_config()
             self._clear_permission_cache()
@@ -383,8 +383,8 @@ datetime.now()
                     else:
                         setattr(role, key, value)
             
-            role.updated_at = from datetime import datetime
-datetime.now()
+            role.from datetime import datetime
+updated_at = datetime().now()
             self.save_config()
             self._clear_permission_cache()
             
@@ -457,8 +457,8 @@ datetime.now()
                 if role_name not in user_perms.channel_roles[scope_id]:
                     user_perms.channel_roles[scope_id].append(role_name)
 
-            user_perms.updated_at = from datetime import datetime
-datetime.now()
+            user_perms.from datetime import datetime
+updated_at = datetime().now()
             self.save_config()
             self._clear_user_cache(user_id)
 
@@ -488,8 +488,8 @@ datetime.now()
                 if scope_id in user_perms.channel_roles and role_name in user_perms.channel_roles[scope_id]:
                     user_perms.channel_roles[scope_id].remove(role_name)
 
-            user_perms.updated_at = from datetime import datetime
-datetime.now()
+            user_perms.from datetime import datetime
+updated_at = datetime().now()
             self.save_config()
             self._clear_user_cache(user_id)
 
@@ -512,8 +512,8 @@ datetime.now()
                 user_perms.explicit_permissions[scope_id] = set()
 
             user_perms.explicit_permissions[scope_id].add(permission)
-            user_perms.updated_at = from datetime import datetime
-datetime.now()
+            user_perms.from datetime import datetime
+updated_at = datetime().now()
             self.save_config()
             self._clear_user_cache(user_id)
 
@@ -536,8 +536,8 @@ datetime.now()
                 user_perms.denied_permissions[scope_id] = set()
 
             user_perms.denied_permissions[scope_id].add(permission)
-            user_perms.updated_at = from datetime import datetime
-datetime.now()
+            user_perms.from datetime import datetime
+updated_at = datetime().now()
             self.save_config()
             self._clear_user_cache(user_id)
 

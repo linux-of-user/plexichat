@@ -53,7 +53,7 @@ def run_splitscreen_cli():
     try:
         from src.plexichat.interfaces.cli.console_manager import EnhancedSplitScreen
         cli = EnhancedSplitScreen(logger=logger)
-        cli.start()
+        if cli and hasattr(cli, "start"): cli.start()
     except Exception as e:
         logger.error(f"Could not start splitscreen CLI: {e}")
 
@@ -61,7 +61,7 @@ def run_splitscreen_cli():
 def run_api_and_cli():
     # Start the splitscreen CLI in a separate thread
     cli_thread = threading.Thread(target=run_splitscreen_cli, daemon=True)
-    cli_thread.start()
+    if cli_thread and hasattr(cli_thread, "start"): cli_thread.start()
     # Start the API server (blocking)
     run_api_server()
 

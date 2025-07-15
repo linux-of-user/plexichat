@@ -60,7 +60,7 @@ class DatabaseCapabilities:
     supports_time_series: bool = False
     supports_graph_queries: bool = False
     max_connections: int = 1000
-    typical_use_cases: List[str] = None
+    typical_use_cases: Optional[List[str]] = None
 
 
 class BaseDatabaseAdapter(ABC):
@@ -114,7 +114,10 @@ class RedisAdapter(BaseDatabaseAdapter):
     async def connect(self) -> bool:
         """Connect to Redis."""
         try:
-            import redis.asyncio as redis
+            try:
+                import redis.asyncio as redis
+            except ImportError:
+                redis = None
             
             self.redis_client = redis.Redis(
                 host=self.config.get('host', 'localhost'),
@@ -138,7 +141,7 @@ class RedisAdapter(BaseDatabaseAdapter):
         """Disconnect from Redis."""
         try:
             if self.redis_client:
-                await self.redis_client.close()
+                await if self.redis_client: self.redis_client.close()
             self.is_connected = False
             return True
         except Exception as e:
@@ -342,7 +345,7 @@ class ElasticsearchAdapter(BaseDatabaseAdapter):
         """Disconnect from Elasticsearch."""
         try:
             if self.es_client:
-                await self.es_client.close()
+                await if self.es_client: self.es_client.close()
             self.is_connected = False
             return True
         except Exception as e:

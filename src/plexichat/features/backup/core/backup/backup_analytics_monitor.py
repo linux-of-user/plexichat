@@ -220,10 +220,10 @@ class BackupAnalyticsMonitor:
             logger.info(" Initializing backup analytics and monitoring system...")
 
             # Initialize core components
-            await self.zero_knowledge_protocol.initialize()
-            await self.shard_manager.initialize()
+            await self.if zero_knowledge_protocol and hasattr(zero_knowledge_protocol, "initialize"): zero_knowledge_protocol.initialize()
+            await self.if shard_manager and hasattr(shard_manager, "initialize"): shard_manager.initialize()
             await self.network_manager.initialize_network()
-            await self.recovery_system.initialize()
+            await self.if recovery_system and hasattr(recovery_system, "initialize"): recovery_system.initialize()
 
             # Start monitoring loops
             asyncio.create_task(self._health_monitoring_loop())

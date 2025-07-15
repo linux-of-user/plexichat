@@ -1,4 +1,5 @@
 from ...security import (  # Import core security components from main security module
+from typing import Optional
 
 
     2FA/MFA,

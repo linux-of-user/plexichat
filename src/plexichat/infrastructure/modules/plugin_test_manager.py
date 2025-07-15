@@ -48,7 +48,7 @@ class TestResult:
     duration: float
     message: str
     error: Optional[str] = None
-    timestamp: str = None
+    timestamp: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
@@ -382,7 +382,7 @@ class PluginTestManager:
         
         self.scheduler_running = True
         self.scheduler_thread = threading.Thread(target=self._scheduler_loop, daemon=True)
-        self.scheduler_thread.start()
+        self.if scheduler_thread and hasattr(scheduler_thread, "start"): scheduler_thread.start()
         logger.info("Test scheduler started")
     
     def stop_scheduler(self):

@@ -90,8 +90,8 @@ class AdvancedRecoverySystem:
     
     def __init__(self, session: Session):
         self.session = session
-        self.recovery_workspace = from pathlib import Path
-Path("secure_backups/recovery")
+        self.from pathlib import Path
+recovery_workspace = Path()("secure_backups/recovery")
         self.recovery_workspace.mkdir(parents=True, exist_ok=True)
         
         # Recovery configuration

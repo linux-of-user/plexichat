@@ -229,8 +229,8 @@ class UnifiedBackupManager:
         self.initialized = False
         
         # Core directories
-        self.backup_dir = from pathlib import Path
-Path(self.config.get("backup_dir", "data/backups"))
+        self.from pathlib import Path
+backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         self.shard_dir = self.backup_dir / "shards"
         self.metadata_dir = self.backup_dir / "metadata"
         self.temp_dir = self.backup_dir / "temp"
@@ -421,12 +421,12 @@ Path(self.config.get("backup_dir", "data/backups"))
         self.analytics_manager = UnifiedAnalyticsManager(self)
 
         # Initialize all components
-        await self.shard_manager.initialize()
-        await self.encryption_manager.initialize()
-        await self.distribution_manager.initialize()
-        await self.recovery_manager.initialize()
-        await self.node_manager.initialize()
-        await self.analytics_manager.initialize()
+        await self.if shard_manager and hasattr(shard_manager, "initialize"): shard_manager.initialize()
+        await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()
+        await self.if distribution_manager and hasattr(distribution_manager, "initialize"): distribution_manager.initialize()
+        await self.if recovery_manager and hasattr(recovery_manager, "initialize"): recovery_manager.initialize()
+        await self.if node_manager and hasattr(node_manager, "initialize"): node_manager.initialize()
+        await self.if analytics_manager and hasattr(analytics_manager, "initialize"): analytics_manager.initialize()
 
         logger.info("All component managers initialized")
 
@@ -475,7 +475,7 @@ Path(self.config.get("backup_dir", "data/backups"))
     ) -> str:
         """Create a new backup operation."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         # Generate backup ID
         backup_id = f"backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(8)}"
@@ -572,7 +572,7 @@ Path(self.config.get("backup_dir", "data/backups"))
     ) -> List[BackupOperation]:
         """List backup operations with optional filtering."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         query = "SELECT * FROM backup_operations"
         params = []
@@ -595,7 +595,7 @@ Path(self.config.get("backup_dir", "data/backups"))
     async def get_backup_status(self, backup_id: str) -> Optional[BackupOperation]:
         """Get the status of a specific backup operation."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         # Check active operations first
         if backup_id in self.active_operations:
@@ -642,7 +642,7 @@ Path(self.config.get("backup_dir", "data/backups"))
     ) -> str:
         """Start a recovery operation."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         return await self.recovery_manager.start_recovery(
             backup_id, target_path, recovery_type
@@ -651,7 +651,7 @@ Path(self.config.get("backup_dir", "data/backups"))
     async def get_recovery_status(self, recovery_id: str) -> Optional[Dict[str, Any]]:
         """Get the status of a recovery operation."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         return await self.recovery_manager.get_recovery_status(recovery_id)
 
@@ -660,7 +660,7 @@ Path(self.config.get("backup_dir", "data/backups"))
     async def get_system_health(self) -> SystemHealth:
         """Get comprehensive system health metrics."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         # Collect metrics from all components
         backup_stats = await self._get_backup_statistics()
@@ -712,8 +712,9 @@ Path(self.config.get("backup_dir", "data/backups"))
 
     async def _read_source_data(self, operation: BackupOperation) -> bytes:
         """Read data from the source path."""
-        source_path = from pathlib import Path
-Path(operation.source_path)
+        from pathlib import Path
+
+        source_path = Path()(operation.source_path)
 
         if source_path.is_file():
             async with aiofiles.open(source_path, 'rb') as f:

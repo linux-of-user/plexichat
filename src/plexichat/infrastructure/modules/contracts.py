@@ -142,7 +142,7 @@ class ModuleContractValidator:
             "required": ["name", "version"]
         }
 
-    async def validate_module(self, module: Any, module_class: Type = None) -> ContractValidationResult:
+    async def validate_module(self, module: Any, module_class: Optional[Type] = None) -> ContractValidationResult:
         """Validate a module against all contracts."""
         result = ContractValidationResult()
 

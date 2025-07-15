@@ -16,7 +16,7 @@ PlexiChat Security Middleware
 Unified middleware for authentication and security enforcement.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 class SecurityMiddleware(BaseHTTPMiddleware):

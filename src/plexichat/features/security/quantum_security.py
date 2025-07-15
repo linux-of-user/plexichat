@@ -13,7 +13,7 @@ Post-quantum cryptography implementation with homomorphic encryption
 for privacy-preserving analytics and government-level security.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 @dataclass

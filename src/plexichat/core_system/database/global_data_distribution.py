@@ -200,7 +200,7 @@ class CRDTManager:
                 counter["counters"][node_id] = max(current_value, value)
 
     def create_lww_register(
-        self, register_id: str, initial_value: Any = None
+        self, register_id: str, initial_value: Optional[Any] = None
     ) -> Dict[str, Any]:
         """Create Last-Write-Wins Register."""
         if register_id not in self.crdts:

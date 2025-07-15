@@ -102,8 +102,8 @@ class BackupNodeServer:
     def __init__(self, config: BackupNodeConfig):
         self.config = config
         self.app = FastAPI(title="PlexiChat Backup Node", version="3.0.0")
-        self.storage_path = from pathlib import Path
-Path(config.storage_path)
+        self.from pathlib import Path
+storage_path = Path()(config.storage_path)
         self.db_path = self.storage_path / "shards_database.db"
         self.shards: Dict[str, BackupShard] = {}
         self.nodes: Dict[str, NodeInfo] = {}
@@ -468,10 +468,10 @@ async def main():
         server = BackupNodeServer(config)
 
     try:
-        await server.start()
+        await if server and hasattr(server, "start"): server.start()
     except KeyboardInterrupt:
         logger.info(" Received shutdown signal")
-        await server.stop()
+        await if server and hasattr(server, "stop"): server.stop()
 
 
 if __name__ == "__main__":

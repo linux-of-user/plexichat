@@ -8,7 +8,7 @@ from .service import user_service
 from fastapi import APIRouter, HTTPException
 
 """User API router."""
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["users"], Optional)
 
 
 @router.post("/", response_model=UserResponse)

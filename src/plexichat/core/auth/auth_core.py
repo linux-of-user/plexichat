@@ -130,11 +130,11 @@ class AuthManager:
     def _load_data(self):
         """Load authentication data from files."""
         try:
-            if self.accounts_file.exists():
+            if self.accounts_file.exists() if self.accounts_file else False:
                 with open(self.accounts_file, 'r') as f:
                     self.accounts = json.load(f)
             
-            if self.attempts_file.exists():
+            if self.attempts_file.exists() if self.attempts_file else False:
                 with open(self.attempts_file, 'r') as f:
                     attempts_data = json.load(f)
                     self.auth_attempts = [
@@ -153,7 +153,7 @@ class AuthManager:
                         for attempt in attempts_data
                     ]
             
-            if self.sessions_file.exists():
+            if self.sessions_file.exists() if self.sessions_file else False:
                 with open(self.sessions_file, 'r') as f:
                     sessions_data = json.load(f)
                     self.active_sessions = {

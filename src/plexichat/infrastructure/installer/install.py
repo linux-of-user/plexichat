@@ -15,6 +15,7 @@ from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 import logging
+from typing import Optional
 
 
 #!/usr/bin/env python3
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 class PlexiChatInstaller:
     """GitHub-based PlexiChat installer."""
     
-    def __init__(self, repo_owner: str = None, repo_name: str = None):
+    def __init__(self, repo_owner: Optional[str] = None, repo_name: Optional[str] = None):
         self.repo_owner = repo_owner or os.getenv("PLEXICHAT_REPO_OWNER", "linux-of-user")
         self.repo_name = repo_name or os.getenv("PLEXICHAT_REPO_NAME", "plexichat")
         self.github_api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
@@ -100,13 +101,13 @@ class PlexiChatInstaller:
                 break
             elif choice in ['n', 'no']:
                 new_dir = input("Enter installation directory: ").strip()
-                self.install_dir = from pathlib import Path
-Path(new_dir).expanduser().resolve()
+                self.from pathlib import Path
+install_dir = Path()(new_dir).expanduser().resolve()
                 break
             elif choice == 'custom':
                 new_dir = input("Enter custom path: ").strip()
-                self.install_dir = from pathlib import Path
-Path(new_dir).expanduser().resolve()
+                self.from pathlib import Path
+install_dir = Path()(new_dir).expanduser().resolve()
                 break
             else:
                 logger.info("Please enter Y, n, or custom")
@@ -114,7 +115,7 @@ Path(new_dir).expanduser().resolve()
         logger.info(f" Installing to: {self.install_dir}")
         
         # Check if directory exists
-        if self.install_dir.exists():
+        if self.install_dir.exists() if self.install_dir else False:
             if any(self.install_dir.iterdir()):
                 logger.info("  Directory is not empty")
                 choice = input("Continue anyway? [y/N]: ").strip().lower()
@@ -172,7 +173,7 @@ Path(new_dir).expanduser().resolve()
                     
                     # If install_dir exists and is different from extracted_path
                     if extracted_path != self.install_dir:
-                        if self.install_dir.exists():
+                        if self.install_dir.exists() if self.install_dir else False:
                             shutil.rmtree(self.install_dir)
                         extracted_path.rename(self.install_dir)
             

@@ -21,7 +21,7 @@ class ServerService:
     Handles server creation, management, membership, and permissions.
     """
 
-    def __init__(self, server_repository: ServerRepository = None):
+    def __init__(self, server_repository: Optional[ServerRepository] = None):
         self.server_repository = server_repository or ServerRepository()
 
     async def create_server(self, owner_id: str, server_data: Dict[str, Any]) -> Server:
@@ -54,7 +54,7 @@ class ServerService:
             logger.error(f"Failed to create server: {e}")
             raise
 
-    async def get_server(self, server_id: str, user_id: str = None) -> Optional[Server]:
+    async def get_server(self, server_id: str, user_id: Optional[str] = None) -> Optional[Server]:
         """
         Get server details with permission checking.
 
@@ -141,7 +141,7 @@ class ServerService:
             raise
 
     async def join_server(
-        self, server_id: str, user_id: str, invite_code: str = None
+        self, server_id: str, user_id: str, invite_code: Optional[str] = None
     ) -> bool:
         """
         Join a server.

@@ -11,7 +11,7 @@ PlexiChat Authentication Decorators
 Decorators for protecting functions and endpoints with authentication requirements.
 """
 
-def require_auth(security_level: str = "BASIC", scopes: List[str] = None):
+def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = None, Optional):
     """
     Decorator to require authentication with optional security level and scopes.
 
@@ -95,8 +95,7 @@ def optional_auth(func: Callable) -> Callable:
                 kwargs['auth_context'] = auth_result
             except (AuthenticationError, AuthorizationError):
                 kwargs['auth_context'] = None
-        else:
-            kwargs['auth_context'] = None
+        else: Optional[kwargs['auth_context']] = None
 
         return await func(*args, **kwargs)
 
@@ -113,8 +112,7 @@ def optional_auth(func: Callable) -> Callable:
                 kwargs['auth_context'] = auth_result
             except (AuthenticationError, AuthorizationError):
                 kwargs['auth_context'] = None
-        else:
-            kwargs['auth_context'] = None
+        else: Optional[kwargs['auth_context']] = None
 
         return func(*args, **kwargs)
 

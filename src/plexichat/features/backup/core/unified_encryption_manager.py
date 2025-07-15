@@ -14,7 +14,7 @@ Unified Encryption Manager
 Consolidates all encryption functionality for the backup system with:
 - Post-quantum cryptography support
 - Zero-trust security integration
-- Hardware security module (HSM) support
+- Hardware security module (HSM, Optional) support
 - Key rotation and lifecycle management
 """
 
@@ -57,10 +57,10 @@ class UnifiedEncryptionManager:
             return
 
         # Initialize quantum encryption
-        await quantum_encryption.initialize()
+        await if quantum_encryption and hasattr(quantum_encryption, "initialize"): quantum_encryption.initialize()
 
         # Initialize key manager
-        await distributed_key_manager.initialize()
+        await if distributed_key_manager and hasattr(distributed_key_manager, "initialize"): distributed_key_manager.initialize()
 
         self.initialized = True
         logger.info("Unified Encryption Manager initialized successfully")
@@ -70,7 +70,7 @@ class UnifiedEncryptionManager:
     ) -> Tuple[bytes, Dict[str, Any]]:
         """Encrypt backup data with quantum-resistant encryption."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         # Use quantum encryption with backup-specific key domain
         encrypted_data = await quantum_encryption.encrypt_data(
@@ -93,7 +93,7 @@ class UnifiedEncryptionManager:
     ) -> bytes:
         """Decrypt backup data."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         return await quantum_encryption.decrypt_data(
             encrypted_data,

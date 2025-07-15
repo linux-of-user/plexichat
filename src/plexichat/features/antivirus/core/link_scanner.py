@@ -37,8 +37,8 @@ class LinkSafetyScanner:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.link_db_path = self.data_dir / "link_safety.db"
         
         # Known malicious domains (would be populated from threat feeds)
@@ -564,7 +564,7 @@ Path(data_dir)
             logger.error(f"Failed to add malicious domain {domain}: {e}")
 
     async def update_domain_reputation(self, domain: str, reputation_score: int,
-                                     category: str = "unknown", threat_indicators: List[str] = None):
+                                     category: str = "unknown", threat_indicators: Optional[List[str]] = None):
         """Update domain reputation information."""
         try:
             async with aiosqlite.connect(self.link_db_path) as db:

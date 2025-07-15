@@ -288,8 +288,8 @@ Path("config/communication.yaml")
         self.config = self._load_configuration()
 
         # Configuration-derived properties
-        self.voice_storage_path = from pathlib import Path
-Path(self.config["voice_messages"]["storage_path"])
+        self.from pathlib import Path
+voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
         self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
         self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -300,7 +300,7 @@ Path(self.config["voice_messages"]["storage_path"])
     def _load_configuration(self) -> Dict[str, Any]:
         """Load configuration from YAML file or return defaults."""
         try:
-            if self.config_path.exists():
+            if self.config_path.exists() if self.config_path else False:
                 with open(self.config_path, 'r', encoding='utf-8') as f:
                     loaded_config = yaml.safe_load(f)
                     if loaded_config:
@@ -991,8 +991,8 @@ Path(self.config["voice_messages"]["storage_path"])
             self.config = self._deep_merge_config(self.config, config_updates)
 
             # Update derived properties
-            self.voice_storage_path = from pathlib import Path
-Path(self.config["voice_messages"]["storage_path"])
+            self.from pathlib import Path
+voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
             self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
             self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -1021,8 +1021,8 @@ Path(self.config["voice_messages"]["storage_path"])
 
                 # Update derived properties if needed
                 if section == "voice_messages":
-                    self.voice_storage_path = from pathlib import Path
-Path(self.config["voice_messages"]["storage_path"])
+                    self.from pathlib import Path
+voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
                     self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
                     self.voice_storage_path.mkdir(parents=True, exist_ok=True)
                 elif section == "translation":
@@ -1218,7 +1218,7 @@ async def get_communication_service() -> CommunicationService:
     
     if _communication_service is None:
         _communication_service = CommunicationService()
-        await _communication_service.start()
+        await if _communication_service and hasattr(_communication_service, "start"): _communication_service.start()
     
     return _communication_service
 

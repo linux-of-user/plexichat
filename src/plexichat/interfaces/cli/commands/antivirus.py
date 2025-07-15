@@ -46,7 +46,7 @@ class AntivirusCLI:
         """Ensure antivirus manager is initialized."""
         if not self.manager:
             self.manager = EnhancedAntivirusManager()
-            await self.manager.initialize()
+            await self.if manager and hasattr(manager, "initialize"): manager.initialize()
         return self.manager
 
     async def show_status(self) -> None:
@@ -116,7 +116,7 @@ class AntivirusCLI:
         except Exception as e:
             self.print_colored(f" Failed to get statistics: {e}", "red")
 
-    async def scan_file(self, file_path: str, scan_types: List[str] = None) -> None:
+    async def scan_file(self, file_path: str, scan_types: Optional[List[str]] = None) -> None:
         """Scan a file for threats."""
         try:
             manager = await self._ensure_manager()
@@ -322,7 +322,7 @@ Path(plugin_path).exists():
         except Exception as e:
             self.print_colored(f" Failed to get quarantine list: {e}", "red")
 
-    async def restore_quarantine(self, file_hash: str, restore_path: str = None) -> None:
+    async def restore_quarantine(self, file_hash: str, restore_path: Optional[str] = None) -> None:
         """Restore a file from quarantine."""
         try:
             manager = await self._ensure_manager()

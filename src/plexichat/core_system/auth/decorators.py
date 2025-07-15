@@ -109,8 +109,7 @@ def optional_auth(func: Callable) -> Callable:
                 kwargs['auth_context'] = auth_result
             except (AuthenticationError, AuthorizationError):
                 kwargs['auth_context'] = None
-        else:
-            kwargs['auth_context'] = None
+        else: Optional[kwargs['auth_context']] = None
 
         return await func(*args, **kwargs)
 
@@ -127,8 +126,7 @@ def optional_auth(func: Callable) -> Callable:
                 kwargs['auth_context'] = auth_result
             except (AuthenticationError, AuthorizationError):
                 kwargs['auth_context'] = None
-        else:
-            kwargs['auth_context'] = None
+        else: Optional[kwargs['auth_context']] = None
 
         return func(*args, **kwargs)
 

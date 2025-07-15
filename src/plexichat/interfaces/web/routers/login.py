@@ -6,7 +6,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from plexichat.core.auth.manager_auth import login_manager
+try:
+    from plexichat.core.auth.manager_auth import login_manager
+except ImportError:
+    login_manager = None
 
 """
 PlexiChat Login Router

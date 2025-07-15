@@ -51,7 +51,7 @@ are properly initialized and integrated.
     plexichat.core.database.performance_integration,
     point,
     properly,
-)
+, Optional)
     system,
     system.,
     that,

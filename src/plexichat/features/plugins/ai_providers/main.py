@@ -118,7 +118,7 @@ class AIProvidersPlugin(PluginInterface):
                 )
                 
                 self.bitnet_provider = BitNetProvider(bitnet_config)
-                await self.bitnet_provider.initialize()
+                await self.if bitnet_provider and hasattr(bitnet_provider, "initialize"): bitnet_provider.initialize()
                 logger.info("BitNet provider initialized")
                 
             except Exception as e:
@@ -136,7 +136,7 @@ class AIProvidersPlugin(PluginInterface):
                 )
                 
                 self.llama_provider = LlamaProvider(llama_config)
-                await self.llama_provider.initialize()
+                await self.if llama_provider and hasattr(llama_provider, "initialize"): llama_provider.initialize()
                 logger.info("Llama provider initialized")
                 
             except Exception as e:
@@ -152,7 +152,7 @@ class AIProvidersPlugin(PluginInterface):
                 )
                 
                 self.hf_provider = HuggingFaceProvider(hf_config)
-                await self.hf_provider.initialize()
+                await self.if hf_provider and hasattr(hf_provider, "initialize"): hf_provider.initialize()
                 logger.info("HuggingFace provider initialized")
                 
             except Exception as e:
@@ -189,7 +189,7 @@ class AIProvidersPlugin(PluginInterface):
         """Initialize WebUI components."""
         try:
             self.webui = AIProvidersWebUI(self)
-            await self.webui.initialize()
+            await self.if webui and hasattr(webui, "initialize"): webui.initialize()
             
             # Register WebUI routes with the main application
             if self.system_access and hasattr(self.system_access, 'register_webui_routes'):
@@ -207,7 +207,7 @@ class AIProvidersPlugin(PluginInterface):
         """Initialize test suite."""
         try:
             self.test_suite = AIProvidersTestSuite(self)
-            await self.test_suite.initialize()
+            await self.if test_suite and hasattr(test_suite, "initialize"): test_suite.initialize()
             logger.info("AI Providers test suite initialized")
             
         except Exception as e:

@@ -236,7 +236,7 @@ class PerformanceLogger:
         # Start background monitoring
         self.monitoring_active = True
         self.monitoring_thread = threading.Thread(target=self._background_monitoring, daemon=True)
-        self.monitoring_thread.start()
+        self.if monitoring_thread and hasattr(monitoring_thread, "start"): monitoring_thread.start()
 
         # Setup default alerts
         self._setup_default_alerts()

@@ -9,7 +9,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import numpy as np
+try:
+
+    import numpy as np
+
+except ImportError:
+
+    np = None
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -275,7 +281,7 @@ Path("config/ai_powered_features.yaml")
             logger.info("Starting AI-powered features service...")
 
             # Initialize AI layer
-            await self.ai_layer.initialize()
+            await self.if ai_layer and hasattr(ai_layer, "initialize"): ai_layer.initialize()
 
             # Initialize semantic search index
             await self._initialize_semantic_search()

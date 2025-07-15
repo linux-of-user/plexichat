@@ -9,7 +9,7 @@ import json
 from typing import Dict, Any
 
 
-async def test_ai_chat_initialization():
+async def test_ai_chat_initialization(, Optional):
     """Test AI chat system initialization."""
     try:
         # Mock AI chat configuration

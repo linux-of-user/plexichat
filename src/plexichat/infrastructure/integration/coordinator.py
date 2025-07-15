@@ -23,7 +23,7 @@ Integrates all advanced systems into a unified, cohesive platform
 with centralized management and monitoring.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 @dataclass
@@ -235,7 +235,7 @@ class SystemIntegrationCoordinator:
     async def _initialize_performance_optimization(self):
         """Initialize performance optimization system."""
         try:
-            await performance_optimization_engine.initialize()
+            await if performance_optimization_engine and hasattr(performance_optimization_engine, "initialize"): performance_optimization_engine.initialize()
 
             self.system_components["performance_optimization"] = SystemStatus(
                 component_name="Performance Optimization",
@@ -260,7 +260,7 @@ class SystemIntegrationCoordinator:
     async def _initialize_ai_systems(self):
         """Initialize AI systems."""
         try:
-            await ai_coordinator.initialize()
+            await if ai_coordinator and hasattr(ai_coordinator, "initialize"): ai_coordinator.initialize()
             status = ai_coordinator.get_ai_status()
 
             self.system_components["ai_systems"] = SystemStatus(
@@ -286,7 +286,7 @@ class SystemIntegrationCoordinator:
     async def _initialize_messaging_collaboration(self):
         """Initialize messaging and collaboration systems."""
         try:
-            await messaging_coordinator.initialize()
+            await if messaging_coordinator and hasattr(messaging_coordinator, "initialize"): messaging_coordinator.initialize()
             status = messaging_coordinator.get_system_status()
 
             self.system_components["messaging_collaboration"] = SystemStatus(
@@ -312,7 +312,7 @@ class SystemIntegrationCoordinator:
     async def _initialize_plugin_system(self):
         """Initialize plugin system."""
         try:
-            await advanced_plugin_manager.initialize()
+            await if advanced_plugin_manager and hasattr(advanced_plugin_manager, "initialize"): advanced_plugin_manager.initialize()
             status = advanced_plugin_manager.get_plugin_status()
 
             self.system_components["plugin_system"] = SystemStatus(

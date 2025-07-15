@@ -1,3 +1,4 @@
+from typing import Optional
 # Unified Authentication API for PlexiChat
 
 try:

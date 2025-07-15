@@ -92,8 +92,8 @@ class ModerationTrainingSystem:
     """AI moderation training system with progressive learning."""
     
     def __init__(self, data_path: str = "data/moderation_training"):
-        self.data_path = from pathlib import Path
-Path(data_path)
+        self.from pathlib import Path
+data_path = Path()(data_path)
         self.data_path.mkdir(parents=True, exist_ok=True)
         
         self.db_path = self.data_path / "training.db"

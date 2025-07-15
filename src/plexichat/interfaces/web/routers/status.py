@@ -15,11 +15,20 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import func
 
-from plexichat.core.database import engine
+from typing import Optional
+
+try:
+    from plexichat.core.database import engine
+except ImportError:
+    engine = None
+
 from plexichat.features.users.message import Message
 from plexichat.features.users.user import User
-from plexichat.core.config import settings
-from plexichat.core.config import settings
+
+try:
+    from plexichat.core.config import settings
+except ImportError:
+    settings = None
 
 logger = logging.getLogger(__name__)
 # settings import will be added when needed
@@ -29,8 +38,7 @@ router = APIRouter()
 @router.get("/health", response_model=dict, responses={429: {"description": "Rate limit exceeded"}})
 async def health_check(request: Request):
     logger.debug("Health check endpoint called")
-    return {"status": "ok", "timestamp": from datetime import datetime
-datetime.utcnow().isoformat() + "Z"}
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat() + "Z"}
 
 @router.get("/uptime", response_model=dict, responses={429: {"description": "Rate limit exceeded"}})
 async def return_uptime(request: Request):
@@ -54,10 +62,8 @@ async def metrics(request: Request):
         return {
             "users": user_count,
             "messages": message_count,
-            "version": from plexichat.core.config import settings
-settings.API_VERSION,
-            "timestamp": from datetime import datetime
-datetime.utcnow().isoformat() + "Z",
+            "version": settings.API_VERSION,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
         }
     except Exception as e:
         logger.error(f"Failed to fetch metrics: {e}", exc_info=True)

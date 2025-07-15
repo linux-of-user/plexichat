@@ -56,7 +56,7 @@ class PeerConnection:
     websocket: Any
     last_seen: datetime
     is_online: bool = True
-    message_queue: List[P2PMessage] = None
+    message_queue: Optional[List[P2PMessage]] = None
 
     def __post_init__(self):
         if self.message_queue is None:

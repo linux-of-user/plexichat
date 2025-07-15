@@ -48,7 +48,7 @@ class MFADevice:
     phone_number: Optional[str] = None
     email_address: Optional[str] = None
     is_active: bool = True
-    created_at: datetime = None
+    created_at: Optional[datetime] = None
     last_used: Optional[datetime] = None
     backup_codes: Optional[List[str]] = None
 

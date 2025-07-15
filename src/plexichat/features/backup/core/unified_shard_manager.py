@@ -209,7 +209,7 @@ class UnifiedShardManager:
     async def create_shards(self, data: bytes, operation) -> List["UnifiedShard"]:
         """Create shards from data using Reed-Solomon encoding."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         logger.info(
             f"Creating shards for backup {operation.backup_id}, data size: {len(data)} bytes"

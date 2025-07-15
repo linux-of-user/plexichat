@@ -69,13 +69,13 @@ class BeautifulErrorHandler:
     """Beautiful error handler with comprehensive logging and user-friendly pages."""
     
     def __init__(self, templates_dir: str = "src/plexichat/app/web/templates"):
-        self.templates_dir = from pathlib import Path
-Path(templates_dir)
+        self.from pathlib import Path
+templates_dir = Path()(templates_dir)
         self.templates = Jinja2Templates(directory=str(self.templates_dir))
-        self.error_log_file = from pathlib import Path
-Path("error_log.json")
-        self.crash_log_file = from pathlib import Path
-Path("crash_log.json")
+        self.from pathlib import Path
+error_log_file = Path()("error_log.json")
+        self.from pathlib import Path
+crash_log_file = Path()("crash_log.json")
         
         # Error statistics
         self.error_stats: Dict[str, int] = {}
@@ -87,7 +87,7 @@ Path("crash_log.json")
     def _load_error_logs(self):
         """Load existing error logs."""
         try:
-            if self.error_log_file.exists():
+            if self.error_log_file.exists() if self.error_log_file else False:
                 with open(self.error_log_file, 'r') as f:
                     data = json.load(f)
                     self.error_stats = data.get('stats', {})
@@ -298,7 +298,7 @@ datetime.now().isoformat(),
         # Save crash report
         try:
             crash_reports = []
-            if self.crash_log_file.exists():
+            if self.crash_log_file.exists() if self.crash_log_file else False:
                 with open(self.crash_log_file, 'r') as f:
                     crash_reports = json.load(f)
             

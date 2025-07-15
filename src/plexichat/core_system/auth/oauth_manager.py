@@ -8,7 +8,7 @@ PlexiChat OAuth Manager
 OAuth2/OpenID Connect integration for third-party authentication providers.:
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 class OAuthManager:

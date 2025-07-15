@@ -276,7 +276,7 @@ class DistributedCacheManager:
 
         return nodes
 
-    async def get(self, key: str, default: Any = None) -> Any:
+    async def get(self, key: str, default: Optional[Any] = None) -> Any:
         """Get value from distributed cache."""
         start_time = time.time()
         self.stats["total_requests"] += 1

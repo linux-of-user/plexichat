@@ -9,6 +9,7 @@ from ..core.versioning.update_system import (
 from pathlib import Path
 
 from pathlib import Path
+from typing import Optional
 
     CLI,
     Command-line,
@@ -707,7 +708,7 @@ Examples:
 
         try:
             # Initialize canary deployment manager
-            await canary_deployment_manager.initialize()
+            await if canary_deployment_manager and hasattr(canary_deployment_manager, "initialize"): canary_deployment_manager.initialize()
 
             # Map strategy
             strategy_map = {
@@ -801,7 +802,7 @@ Examples:
 
         try:
             # Initialize P2P distributor
-            await self.update_system.p2p_distributor.initialize()
+            await self.update_system.if p2p_distributor and hasattr(p2p_distributor, "initialize"): p2p_distributor.initialize()
 
             # Discover nodes
             nodes = await self.update_system.p2p_distributor.discover_nodes()

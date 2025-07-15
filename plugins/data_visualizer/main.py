@@ -17,7 +17,10 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import pandas as pd
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 import seaborn as sns
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, FileResponse

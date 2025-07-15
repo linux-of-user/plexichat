@@ -128,7 +128,7 @@ async def get_debug_events(
                     "message": event_data["message"]
                 })
             
-            return Response(content=output.getvalue(), media_type="text/csv")
+            return JSONResponse(content=output.getvalue(), media_type="text/csv")
         
         return JSONResponse(content={
             "success": True,

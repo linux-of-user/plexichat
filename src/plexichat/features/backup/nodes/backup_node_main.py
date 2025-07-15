@@ -151,8 +151,8 @@ class BackupNodeService:
 
     def __init__(self, config: BackupNodeConfig):
         self.config = config
-        self.storage_path = from pathlib import Path
-Path(config.storage_path)
+        self.from pathlib import Path
+storage_path = Path()(config.storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
 
         # Create additional directories for clustering
@@ -192,8 +192,7 @@ Path(config.storage_path)
         if config.encryption_enabled:
             self.encryption_key = self._get_or_create_encryption_key()
             self.fernet = Fernet(self.encryption_key)
-        else:
-            self.encryption_key = None
+        else: Optional[self.encryption_key] = None
             self.fernet = None
 
         # Background tasks
@@ -311,14 +310,14 @@ Path(config.storage_path)
                 target=self._monitoring_loop,
                 daemon=True
             )
-            self.monitoring_thread.start()
+            self.if monitoring_thread and hasattr(monitoring_thread, "start"): monitoring_thread.start()
 
             # Heartbeat thread for cluster communication
             self.heartbeat_thread = threading.Thread(
                 target=self._heartbeat_loop,
                 daemon=True
             )
-            self.heartbeat_thread.start()
+            self.if heartbeat_thread and hasattr(heartbeat_thread, "start"): heartbeat_thread.start()
 
             logger.info("Background clustering tasks started")
 
@@ -366,8 +365,8 @@ psutil.virtual_memory().percent
             self.metrics.disk_usage = import psutil
 psutil.disk_usage(str(self.storage_path)).percent
             self.metrics.active_connections = len(self.connected_nodes)
-            self.metrics.last_updated = from datetime import datetime
-datetime.now()
+            self.metrics.from datetime import datetime
+last_updated = datetime().now()
 
             # Store in database
             with sqlite3.connect(self.db_path) as conn:
@@ -388,7 +387,7 @@ datetime.now()
     def _load_cluster_database(self):
         """Load cluster database from file."""
         try:
-            if self.cluster_db_file.exists():
+            if self.cluster_db_file.exists() if self.cluster_db_file else False:
                 with open(self.cluster_db_file, 'r') as f:
                     data = json.load(f)
                     self.cluster_nodes = data.get('cluster_nodes', {})
@@ -418,7 +417,7 @@ datetime.now().isoformat()
     def _load_shards_database(self):
         """Load shards database from file."""
         try:
-            if self.shards_db_file.exists():
+            if self.shards_db_file.exists() if self.shards_db_file else False:
                 with open(self.shards_db_file, 'r') as f:
                     data = json.load(f)
                     
@@ -455,7 +454,7 @@ datetime.now().isoformat()
     def _load_nodes_database(self):
         """Load nodes database from file."""
         try:
-            if self.nodes_db_file.exists():
+            if self.nodes_db_file.exists() if self.nodes_db_file else False:
                 with open(self.nodes_db_file, 'r') as f:
                     data = json.load(f)
                     
@@ -986,8 +985,9 @@ async def node_health_check():
 
 def load_config() -> BackupNodeConfig:
     """Load backup node configuration."""
-    config_file = from pathlib import Path
-Path("backup_node/config.json")
+    from pathlib import Path
+
+    config_file = Path()("backup_node/config.json")
 
     # Default configuration
     default_config = {

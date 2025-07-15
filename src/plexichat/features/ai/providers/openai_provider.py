@@ -42,7 +42,7 @@ class OpenAIConfig(ProviderConfig):
     frequency_penalty: float = 0.0
     presence_penalty: float = 0.0
     default_model: str = "gpt-4"
-    available_models: List[str] = None
+    available_models: Optional[List[str]] = None
 
     def __post_init__(self):
         if self.available_models is None:

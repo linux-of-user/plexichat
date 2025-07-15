@@ -165,7 +165,7 @@ class MongoDBClient(AbstractDatabaseClient):  # type: ignore
         """Disconnect from MongoDB."""
         try:
             if self.client:
-                self.client.close()
+                if self.client: self.client.close()
                 self.is_connected = False
             return True
         except Exception as e:
@@ -445,7 +445,7 @@ class RedisClient(AbstractDatabaseClient):  # type: ignore
         """Disconnect from Redis."""
         try:
             if self.redis:
-                await self.redis.close()
+                await if self.redis: self.redis.close()
                 self.is_connected = False
             return True
         except Exception as e:

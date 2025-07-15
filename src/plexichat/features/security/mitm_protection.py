@@ -25,7 +25,7 @@ from fastapi import HTTPException, Request
 from plexichat.app.logger_config import logger
 
 """
-MITM (Man-in-the-Middle) Attack Protection for PlexiChat
+MITM (Man-in-the-Middle, Optional) Attack Protection for PlexiChat
 Comprehensive protection against various MITM attack vectors.
 """
 

@@ -39,7 +39,7 @@ class ErrorPattern:
         self.last_alert_time: Optional[datetime] = None
         self.alert_cooldown_minutes = 30
 
-    def add_occurrence(self, timestamp: datetime = None):
+    def add_occurrence(self, timestamp: Optional[datetime] = None):
         """Add an occurrence of this pattern."""
         if timestamp is None:
             from datetime import datetime
@@ -124,7 +124,7 @@ class EnhancedErrorHandler:
                           context: Dict[str, Any] = None,
                           severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                           category: ErrorCategory = ErrorCategory.UNKNOWN,
-                          component: str = None,
+                          component: Optional[str] = None,
                           attempt_recovery: bool = True) -> Dict[str, Any]:
         """Handle an error with comprehensive processing."""
 

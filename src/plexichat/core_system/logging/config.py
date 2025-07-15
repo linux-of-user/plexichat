@@ -197,7 +197,7 @@ class ConfigurationManager:
         config_data = {}
 
         # Load from file if specified
-        if self.config_file and self.config_file.exists():
+        if self.config_file and self.config_file.exists() if self.config_file else False:
             config_data = self._load_config_file()
 
         # Apply environment variable overrides

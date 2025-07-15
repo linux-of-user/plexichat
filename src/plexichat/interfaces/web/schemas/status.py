@@ -16,6 +16,7 @@ from fastapi import APIRouter
 from plexichat.features.users.message import Message
 from plexichat.features.users.user import User
 from plexichat.main import engine
+from typing import Optional
 
 router = APIRouter()
 

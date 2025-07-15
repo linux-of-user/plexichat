@@ -104,8 +104,8 @@ class HotUpdateManager:
         self.rollback_timeout_seconds = 120
         
         # Hot update storage
-        self.update_storage_dir = from pathlib import Path
-Path("data/hot_updates")
+        self.from pathlib import Path
+update_storage_dir = Path()("data/hot_updates")
         self.update_storage_dir.mkdir(parents=True, exist_ok=True)
         self.backup_dir = self.update_storage_dir / "backups"
         self.backup_dir.mkdir(exist_ok=True)

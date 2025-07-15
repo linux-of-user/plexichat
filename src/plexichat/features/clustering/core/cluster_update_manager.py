@@ -151,7 +151,7 @@ class ClusterUpdateManager:
                 self.communication = self.cluster_manager.communication
             else:
                 self.communication = EncryptedCommunication(self.cluster_manager.local_node_id)
-                await self.communication.initialize()
+                await self.if communication and hasattr(communication, "initialize"): communication.initialize()
 
             logger.info("Cluster update manager initialized successfully")
         except Exception as e:
@@ -162,7 +162,7 @@ class ClusterUpdateManager:
                                 target_version: Version,
                                 update_type: UpdateType = UpdateType.UPGRADE,
                                 strategy: ClusterUpdateStrategy = ClusterUpdateStrategy.ROLLING,
-                                target_nodes: List[str] = None) -> ClusterUpdateOperation:
+                                target_nodes: Optional[List[str]] = None) -> ClusterUpdateOperation:
         """Plan a cluster-wide update operation."""
 
         # Generate operation ID

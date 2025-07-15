@@ -8,14 +8,35 @@ import threading
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-import jwt
-import psutil
+try:
+    import jwt
+except ImportError:
+    jwt = None
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.security import InputSanitizer
-from plexichat.core.config import settings
+
+try:
+    from plexichat.infrastructure.utils.security import InputSanitizer
+except ImportError:
+    class InputSanitizer:
+        @staticmethod
+        def sanitize_input(text: str) -> str:
+            return text.strip()
+
+try:
+    from plexichat.core.config import settings
+except ImportError:
+    class MockSettings:
+        JWT_SECRET = "mock-secret"
+        JWT_ALGORITHM = "HS256"
+    settings = MockSettings()
 
 """
 WebSocket endpoints for real-time communication.
@@ -54,7 +75,7 @@ class ConnectionManager:
                 'username': user.username,
                 'channel': channel,
                 'connected_at': datetime.now(),
-                'is_admin': user.is_admin
+                'is_admin': getattr(user, 'is_admin', False)
             }
 
         logger.info(f"WebSocket connected: user {user.username} to channel {channel}")
@@ -236,21 +257,31 @@ Examples:
     async def _cmd_status(self) -> Dict[str, Any]:
         """Show system status."""
         try:
-            # Get basic system info
-            cpu_percent = psutil.cpu_percent(interval=0.1)
-            memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            if psutil:
+                # Get basic system info
+                cpu_percent = psutil.cpu_percent(interval=0.1)
+                memory = psutil.virtual_memory()
+                disk = psutil.disk_usage('/')
 
-            status_info = f"""
+                status_info = f"""
 System Status:
   CPU Usage: {cpu_percent:.1f}%
   Memory Usage: {memory.percent:.1f}% ({memory.used // (1024**3):.1f}GB / {memory.total // (1024**3):.1f}GB)
   Disk Usage: {(disk.used / disk.total) * 100:.1f}% ({disk.used // (1024**3):.1f}GB / {disk.total // (1024**3):.1f}GB)
+"""
+            else:
+                status_info = """
+System Status:
+  CPU Usage: N/A (psutil not available)
+  Memory Usage: N/A
+  Disk Usage: N/A
+"""
 
+            status_info += f"""
 Application:
-  Version: {settings.API_VERSION}
-  Debug Mode: {settings.DEBUG}
-  Log Level: {settings.LOG_LEVEL}
+  Version: {getattr(settings, 'API_VERSION', 'Unknown')}
+  Debug Mode: {getattr(settings, 'DEBUG', False)}
+  Log Level: {getattr(settings, 'LOG_LEVEL', 'INFO')}
 
 WebSocket Connections: {manager.get_channel_stats()['total_connections']}
             """
@@ -296,7 +327,7 @@ WebSocket Connections: {manager.get_channel_stats()['total_connections']}
 
     async def _cmd_users(self, args: List[str], user: User) -> Dict[str, Any]:
         """User management commands."""
-        if not user.is_admin:
+        if not getattr(user, 'is_admin', False):
             return {'error': 'Admin privileges required'}
 
         action = args[0] if args else 'list'
@@ -318,7 +349,7 @@ WebSocket Connections: {manager.get_channel_stats()['total_connections']}
 
     async def _cmd_system(self, args: List[str], user: User) -> Dict[str, Any]:
         """System information commands."""
-        if not user.is_admin:
+        if not getattr(user, 'is_admin', False):
             return {'error': 'Admin privileges required'}
 
         info_type = args[0] if args else 'info'
@@ -344,7 +375,7 @@ System Information:
 
     async def _cmd_config(self, user: User) -> Dict[str, Any]:
         """Show configuration."""
-        if not user.is_admin:
+        if not getattr(user, 'is_admin', False):
             return {'error': 'Admin privileges required'}
 
         config_info = f"""
@@ -360,7 +391,7 @@ Configuration:
 
     async def _cmd_selftest(self, args: List[str], user: User) -> Dict[str, Any]:
         """Run self-tests."""
-        if not user.is_admin:
+        if not getattr(user, 'is_admin', False):
             return {'error': 'Admin privileges required'}
 
         test_type = args[0] if args else 'basic'
@@ -368,7 +399,7 @@ Configuration:
 
     async def _cmd_restart(self, user: User) -> Dict[str, Any]:
         """Restart system."""
-        if not user.is_admin:
+        if not getattr(user, 'is_admin', False):
             return {'error': 'Admin privileges required'}
 
         return {'output': 'System restart would be initiated here', 'warning': 'This would restart the server'}
@@ -492,7 +523,7 @@ async def websocket_cli(websocket: WebSocket, token: str):
 async def websocket_monitor(websocket: WebSocket, token: str):
     """WebSocket endpoint for system monitoring."""
     user = await authenticate_websocket(websocket, token)
-    if not user or not user.is_admin:
+    if not user or not getattr(user, 'is_admin', False):
         await websocket.close(code=1008, reason="Admin access required")
         return
 

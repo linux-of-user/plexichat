@@ -25,7 +25,7 @@ def get_config() -> Dict[str, Any]:
     return _config_instance
 
 
-def get_setting(key: str, default: Any = None) -> Any:
+def get_setting(key: str, default: Optional[Any] = None) -> Any:
     """Get a configuration setting using dot notation."""
     config = get_config()
     keys = key.split('.')

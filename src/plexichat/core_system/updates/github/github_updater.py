@@ -128,7 +128,7 @@ class GitHubUpdater:
     def get_current_version(self) -> str:
         """Get the current version from version.json."""
         try:
-            if self.version_file.exists():
+            if self.version_file.exists() if self.version_file else False:
                 with open(self.version_file, 'r') as f:
                     data = json.load(f)
                     return data.get("current_version", "a.1.1-1")
@@ -178,7 +178,7 @@ class GitHubUpdater:
 
         return 0
 
-    async def get_releases(self, include_prerelease: bool = None) -> List[GitHubRelease]:
+    async def get_releases(self, include_prerelease: Optional[bool] = None) -> List[GitHubRelease]:
         """Get releases from GitHub API."""
         if include_prerelease is None:
             include_prerelease = self.config["allow_prerelease"]
@@ -490,7 +490,7 @@ datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
             }
 
             # Load existing history if available
-            if self.version_file.exists():
+            if self.version_file.exists() if self.version_file else False:
                 with open(self.version_file, 'r') as f:
                     existing_data = json.load(f)
                     version_data["history"] = existing_data.get("history", [])
@@ -552,7 +552,7 @@ Path(os.getenv("VIRTUAL_ENV")) / "bin" / "python"
     def get_update_history(self) -> List[Dict[str, Any]]:
         """Get update history."""
         try:
-            if self.version_file.exists():
+            if self.version_file.exists() if self.version_file else False:
                 with open(self.version_file, 'r') as f:
                     data = json.load(f)
                     return data.get("history", [])

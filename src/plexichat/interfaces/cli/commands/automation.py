@@ -30,14 +30,14 @@ import logging
     logic,
     management.,
     scripting,
-)
+, Optional)
 
 
 logger = logging.getLogger(__name__)
 class AutomationCLI:
     """CLI interface for automation and logic engine."""
 
-    def __init__(self, logic_engine: EnhancedLogicEngine = None):
+    def __init__(self, logic_engine: Optional[EnhancedLogicEngine] = None):
         self.logic_engine = logic_engine or EnhancedLogicEngine()
         self.colors = {
             'red': '\033[91m',

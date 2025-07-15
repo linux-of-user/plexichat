@@ -29,8 +29,7 @@ Handles cluster coordination API endpoints.
 
 # Import cluster manager
 try:
-except ImportError:
-    cluster_manager = None
+except ImportError: Optional[cluster_manager] = None
 
 router = APIRouter(prefix="/api/cluster", tags=["cluster"])
 
@@ -350,8 +349,7 @@ async def leave_cluster(node_id: str):
     del cluster_manager.nodes[node_id]
 
     # If removed node was leader, clear leader
-    if cluster_manager.leader_node_id == node_id:
-        cluster_manager.leader_node_id = None
+    if cluster_manager.leader_node_id == node_id: Optional[cluster_manager.leader_node_id] = None
 
     cluster_manager.save_cluster_state()
 

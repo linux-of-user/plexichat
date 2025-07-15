@@ -11,7 +11,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
 import aiomcache
-import redis.asyncio as redis
+try:
+    import redis.asyncio as redis
+except ImportError:
+    redis = None
 
 
 
@@ -277,7 +280,7 @@ class MultiTierCacheManager:
             self.cdn_session = None
             return False
 
-    async def get(self, key: str, default: Any = None) -> Any:
+    async def get(self, key: str, default: Optional[Any] = None) -> Any:
         """
         Get value from cache with intelligent tier selection.
 
@@ -988,15 +991,15 @@ class MultiTierCacheManager:
 
             # Close connections
             if self.redis_client:
-                await self.redis_client.close()
+                await if self.redis_client: self.redis_client.close()
                 logger.info(" Redis connection closed")
 
             if self.memcached_client:
-                await self.memcached_client.close()
+                await if self.memcached_client: self.memcached_client.close()
                 logger.info(" Memcached connection closed")
 
             if self.cdn_session:
-                await self.cdn_session.close()
+                await if self.cdn_session: self.cdn_session.close()
                 logger.info(" CDN session closed")
 
             # Clear L1 cache

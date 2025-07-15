@@ -123,11 +123,11 @@ class EnhancedSplitScreen:
 
         # Start update thread
         self.update_thread = threading.Thread(target=self._update_loop, daemon=True)
-        self.update_thread.start()
+        self.if update_thread and hasattr(update_thread, "start"): update_thread.start()
 
         # Start input handler
         input_thread = threading.Thread(target=self._input_handler, daemon=True)
-        input_thread.start()
+        if input_thread and hasattr(input_thread, "start"): input_thread.start()
 
         if self.logger:
             self.logger.info("Enhanced split-screen interface started")
@@ -136,7 +136,7 @@ class EnhancedSplitScreen:
         """Stop the split-screen interface."""
         self.active = False
         if self.live_display:
-            self.live_display.stop()
+            self.if live_display and hasattr(live_display, "stop"): live_display.stop()
         if self.logger:
             self.logger.info("Enhanced split-screen interface stopped")
 
@@ -376,7 +376,7 @@ class EnhancedSplitScreen:
         
         # Start input handler
         input_thread = threading.Thread(target=self._input_handler, daemon=True)
-        input_thread.start()
+        if input_thread and hasattr(input_thread, "start"): input_thread.start()
 
         # Fallback display loop
         self._fallback_loop()
@@ -606,7 +606,7 @@ settings."""
             'uptime_seconds': (datetime.now() - self.stats['start_time']).total_seconds()
         }
 
-    def export_logs(self, filename: str = None) -> str:
+    def export_logs(self, filename: Optional[str] = None) -> str:
         """Export current logs to file."""
         if not filename:
             filename = f"plexichat_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"

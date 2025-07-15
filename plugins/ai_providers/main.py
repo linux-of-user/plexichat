@@ -113,7 +113,7 @@ class AIProvidersPlugin(PluginInterface):
                 )
                 
                 self.bitnet = BitNetProvider(bitnet_config)
-                await self.bitnet.initialize()
+                await self.if bitnet and hasattr(bitnet, "initialize"): bitnet.initialize()
                 logger.info("BitNet provider initialized")
                 
             except Exception as e:
@@ -128,7 +128,7 @@ class AIProvidersPlugin(PluginInterface):
                 )
                 
                 self.llama = LlamaProvider(llama_config)
-                await self.llama.initialize()
+                await self.if llama and hasattr(llama, "initialize"): llama.initialize()
                 logger.info("Llama provider initialized")
                 
             except Exception as e:
@@ -142,7 +142,7 @@ class AIProvidersPlugin(PluginInterface):
                 )
                 
                 self.hf = HFProvider(hf_config)
-                await self.hf.initialize()
+                await self.if hf and hasattr(hf, "initialize"): hf.initialize()
                 logger.info("HF provider initialized")
                 
             except Exception as e:
@@ -177,7 +177,7 @@ class AIProvidersPlugin(PluginInterface):
         """Initialize WebUI."""
         try:
             self.webui = AIPanel(self)
-            await self.webui.initialize()
+            await self.if webui and hasattr(webui, "initialize"): webui.initialize()
             logger.info("WebUI initialized")
             
         except Exception as e:
@@ -187,7 +187,7 @@ class AIProvidersPlugin(PluginInterface):
         """Initialize test suite."""
         try:
             self.tests = TestSuite(self)
-            await self.tests.initialize()
+            await self.if tests and hasattr(tests, "initialize"): tests.initialize()
             logger.info("Test suite initialized")
             
         except Exception as e:

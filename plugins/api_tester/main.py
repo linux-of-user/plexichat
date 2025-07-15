@@ -91,8 +91,7 @@ class APITestingCore:
                     # Try to parse JSON response
                     try:
                         response_json = await response.json()
-                    except:
-                        response_json = None
+                    except: Optional[response_json] = None
                     
                     return {
                         "status_code": response.status,

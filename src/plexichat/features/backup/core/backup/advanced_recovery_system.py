@@ -204,8 +204,8 @@ class AdvancedRecoverySystem:
 
             # Initialize core components
             await self.quantum_engine.initialize_key_system()
-            await self.zero_knowledge_protocol.initialize()
-            await self.shard_manager.initialize()
+            await self.if zero_knowledge_protocol and hasattr(zero_knowledge_protocol, "initialize"): zero_knowledge_protocol.initialize()
+            await self.if shard_manager and hasattr(shard_manager, "initialize"): shard_manager.initialize()
             await self.network_manager.initialize_network()
 
             # Load disaster recovery plans
@@ -274,7 +274,7 @@ class AdvancedRecoverySystem:
         """Submit a recovery request."""
         try:
             if not self.initialized:
-                await self.initialize()
+                await if self and hasattr(self, "initialize"): self.initialize()
 
             logger.info(f" Recovery requested: {recovery_request.recovery_type.value}")
 

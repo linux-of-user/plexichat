@@ -213,7 +213,7 @@ class BugBountyManager:
         steps_to_reproduce: List[str],
         impact_description: str,
         suggested_fix: str = "",
-        attachments: List[str] = None,
+        attachments: Optional[List[str]] = None,
     ) -> str:
         """Submit a new vulnerability report."""
 

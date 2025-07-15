@@ -28,6 +28,7 @@ from datetime import datetime
 from plexichat.core_system.auth.government_auth import get_government_auth
 from plexichat.core.config import settings
 from plexichat.core.config import settings
+from typing import Optional
 
 """
 PlexiChat Admin CLI - Government-Level Secure Command Line Interface
@@ -56,8 +57,8 @@ class AdminCLI:
         self.auth_system = None  # Will be initialized lazily
         self.current_user = None
         self.session_token = None
-        self.project_root = from pathlib import Path
-Path(__file__).parent.parent.parent.parent
+        self.from pathlib import Path
+project_root = Path()(__file__).parent.parent.parent.parent
 
     def _get_auth_system(self):
         """Get auth system with lazy initialization."""
@@ -394,8 +395,9 @@ Examples:
         logger.info(f"   2FA Required: {'Yes' if policy.require_2fa else 'No'}")
         
         # Check for default credentials file
-        default_creds = from pathlib import Path
-Path("DEFAULT_ADMIN_CREDENTIALS.txt")
+        from pathlib import Path
+
+        default_creds = Path()("DEFAULT_ADMIN_CREDENTIALS.txt")
         if default_creds.exists():
             logger.info("\n  WARNING: Default credentials file still exists!")
             logger.info("   Please change the default password and delete the file.")
@@ -562,8 +564,8 @@ datetime.utcnow()).total_seconds()
             sys.exit(1)
 
         admin = self.auth_system.admin_credentials[username]
-        admin.locked_until = from datetime import datetime
-datetime.utcnow() + timedelta(minutes=args.duration)
+        admin.from datetime import datetime
+locked_until = datetime().utcnow() + timedelta(minutes=args.duration)
         self.auth_system._save_credentials()
 
         logger.info(f"SUCCESS: User {username} locked for {args.duration} minutes.")

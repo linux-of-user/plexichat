@@ -74,7 +74,7 @@ class BackupNodeClient:
     - Secure API communication
     """
 
-    def __init__(self, node_info: BackupNodeInfo, api_key: str = None):
+    def __init__(self, node_info: BackupNodeInfo, api_key: Optional[str] = None):
         """Initialize backup node client."""
         self.node_info = node_info
         self.api_key = api_key
@@ -94,7 +94,7 @@ class BackupNodeClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         if self.session:
-            await self.session.close()
+            await if self.session: self.session.close()
 
     async def check_health(self) -> bool:
         """Check if the backup node is healthy."""
@@ -276,7 +276,7 @@ class BackupNodeManager:
 
         await self.register_node(localhost_node)
 
-    async def register_node(self, node_info: BackupNodeInfo, api_key: str = None):
+    async def register_node(self, node_info: BackupNodeInfo, api_key: Optional[str] = None):
         """Register a new backup node."""
         self.nodes[node_info.node_id] = node_info
         self.clients[node_info.node_id] = BackupNodeClient(node_info, api_key)

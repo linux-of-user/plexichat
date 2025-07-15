@@ -72,8 +72,8 @@ class EnhancedAntivirusManager:
     """Enhanced antivirus manager with plugin integration and real-time monitoring."""
     
     def __init__(self, data_dir: str = "data"):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.antivirus_dir = self.data_dir / "antivirus"
         self.quarantine_dir = self.antivirus_dir / "quarantine"
         self.config_path = self.antivirus_dir / "enhanced_config.json"
@@ -145,7 +145,7 @@ Path(data_dir)
         await self._load_config()
         
         # Initialize core antivirus engine
-        await self.antivirus_engine.initialize()
+        await self.if antivirus_engine and hasattr(antivirus_engine, "initialize"): antivirus_engine.initialize()
         
         # Load quarantine entries
         await self._load_quarantine_entries()
@@ -179,7 +179,7 @@ Path(data_dir)
         # Stop file watchers
         for watcher in self.file_watchers.values():
             if hasattr(watcher, 'stop'):
-                watcher.stop()
+                if watcher and hasattr(watcher, "stop"): watcher.stop()
         
         # Save configuration and quarantine data
         await self._save_config()
@@ -187,7 +187,7 @@ Path(data_dir)
         
         logger.info("Enhanced Antivirus Manager shutdown complete")
     
-    async def scan_file(self, file_path: str, scan_types: List[ScanType] = None, 
+    async def scan_file(self, file_path: str, scan_types: Optional[List[ScanType]] = None, 
                        priority: int = 1, requester: str = "manual") -> List[ScanResult]:
         """
         Scan a file with specified scan types.
@@ -272,7 +272,7 @@ Path(data_dir)
         return await self.antivirus_engine.link_scanner.scan_url(url)
     
     async def quarantine_file(self, file_path: str, scan_results: List[ScanResult], 
-                             threat_name: str = None) -> bool:
+                             threat_name: Optional[str] = None) -> bool:
         """
         Quarantine a file that was detected as a threat.
         
@@ -285,8 +285,9 @@ Path(data_dir)
             True if quarantine successful, False otherwise
         """
         try:
-            path = from pathlib import Path
-Path(file_path)
+            from pathlib import Path
+
+            path = Path()(file_path)
             if not path.exists():
                 logger.warning(f"Cannot quarantine non-existent file: {file_path}")
                 return False
@@ -336,7 +337,7 @@ Path(file_path)
             logger.error(f"Failed to quarantine file {file_path}: {e}")
             return False
     
-    async def restore_from_quarantine(self, file_hash: str, restore_path: str = None) -> bool:
+    async def restore_from_quarantine(self, file_hash: str, restore_path: Optional[str] = None) -> bool:
         """
         Restore a file from quarantine.
         
@@ -353,8 +354,9 @@ Path(file_path)
                 return False
             
             entry = self.quarantine_entries[file_hash]
-            quarantine_path = from pathlib import Path
-Path(entry.quarantine_path)
+            from pathlib import Path
+
+            quarantine_path = Path()(entry.quarantine_path)
             
             if not quarantine_path.exists():
                 logger.error(f"Quarantined file not found: {entry.quarantine_path}")
@@ -364,8 +366,10 @@ Path(entry.quarantine_path)
             if not restore_path:
                 restore_path = entry.original_path
             
-            restore_path = from pathlib import Path
-Path(restore_path)
+            from pathlib import Path
+
+            
+            restore_path = Path()(restore_path)
             restore_path.parent.mkdir(parents=True, exist_ok=True)
             
             # Move file back
@@ -398,8 +402,9 @@ Path(restore_path)
                 return False
             
             entry = self.quarantine_entries[file_hash]
-            quarantine_path = from pathlib import Path
-Path(entry.quarantine_path)
+            from pathlib import Path
+
+            quarantine_path = Path()(entry.quarantine_path)
             
             if quarantine_path.exists():
                 quarantine_path.unlink()
@@ -460,7 +465,7 @@ Path(entry.quarantine_path)
     async def _load_config(self) -> None:
         """Load configuration from file."""
         try:
-            if self.config_path.exists():
+            if self.config_path.exists() if self.config_path else False:
                 with open(self.config_path, 'r') as f:
                     saved_config = json.load(f)
                     self.config.update(saved_config)
@@ -584,8 +589,9 @@ Path(file_path).exists():
                 return []
 
             # Check file size limit
-            file_size = from pathlib import Path
-Path(file_path).stat().st_size
+            from pathlib import Path
+
+            file_size = Path()(file_path).stat().st_size
             if file_size > self.config["max_file_size"]:
                 logger.warning(f"File too large for scanning: {file_path} ({file_size} bytes)")
                 return []
@@ -690,8 +696,9 @@ Path(file_path))
     async def _scan_plugin_specific(self, plugin_path: str) -> Optional[ScanResult]:
         """Perform plugin-specific security checks."""
         start_time = datetime.now(timezone.utc)
-        path = from pathlib import Path
-Path(plugin_path)
+        from pathlib import Path
+
+        path = Path()(plugin_path)
 
         try:
             # Check if it's a ZIP file (plugin format)

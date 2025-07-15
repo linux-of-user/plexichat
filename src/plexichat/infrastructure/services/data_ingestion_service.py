@@ -128,7 +128,7 @@ class IngestionConfig:
 class DataIngestionService:
     """Main data ingestion service."""
 
-    def __init__(self, config: IngestionConfig = None):
+    def __init__(self, config: Optional[IngestionConfig] = None):
         self.config = config or IngestionConfig()
         self.is_running = False
 
@@ -269,7 +269,7 @@ class DataIngestionService:
         self,
         user_id: str,
         event_type: str,
-        session_id: str = None,
+        session_id: Optional[str] = None,
         data: Dict[str, Any] = None,
     ) -> bool:
         """Ingest user activity event."""
@@ -304,9 +304,9 @@ class DataIngestionService:
         self,
         method: str,
         endpoint: str,
-        user_id: str = None,
-        response_code: int = None,
-        response_time: float = None,
+        user_id: Optional[str] = None,
+        response_code: Optional[int] = None,
+        response_time: Optional[float] = None,
         request_data: Dict[str, Any] = None,
     ) -> bool:
         """Ingest API request log."""

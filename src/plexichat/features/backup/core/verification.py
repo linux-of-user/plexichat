@@ -404,7 +404,7 @@ settings.
                 await asyncio.sleep(300)
 
     async def verify_backup_integrity(self, backup_id: str,
-                                    level: VerificationLevel = None,
+                                    level: Optional[VerificationLevel] = None,
                                     force_refresh: bool = False) -> VerificationResult:
         """
         Verify the integrity of a complete backup with comprehensive security checks.
@@ -511,7 +511,7 @@ settings.
             return result
 
     async def verify_shard_integrity(self, shard_id: str,
-                                   level: VerificationLevel = None) -> VerificationResult:
+                                   level: Optional[VerificationLevel] = None) -> VerificationResult:
         """Verify the integrity of a single shard."""
         verification_id = f"shard_verify_{secrets.token_hex(8)}"
         start_time = time.time()
@@ -705,7 +705,7 @@ settings.
             return result
 
     async def schedule_automatic_verification(self, target_id: str, target_type: str,
-                                            interval_hours: int = None) -> bool:
+                                            interval_hours: Optional[int] = None) -> bool:
         """Schedule automatic verification for a target."""
         try:
             interval = interval_hours or self.verification_config["verification_interval_hours"]

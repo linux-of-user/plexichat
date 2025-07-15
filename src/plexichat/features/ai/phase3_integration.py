@@ -37,7 +37,7 @@ from datetime import datetime
     semantic_search_engine,
     system,
     unified,
-)
+, Optional)
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +193,7 @@ class Phase3AICoordinator:
         self.semantic_search.ai_provider = self.ai_coordinator
 
         # Start the search engine
-        await self.semantic_search.start()
+        await self.if semantic_search and hasattr(semantic_search, "start"): semantic_search.start()
 
         logger.info(" Semantic Search Engine initialized")
 
@@ -207,7 +207,7 @@ class Phase3AICoordinator:
         }
 
         # Start the recommendation engine
-        await self.recommendation_engine.start()
+        await self.if recommendation_engine and hasattr(recommendation_engine, "start"): recommendation_engine.start()
 
         logger.info(" AI Recommendation Engine initialized")
 
@@ -233,7 +233,7 @@ class Phase3AICoordinator:
         if self.components["voice_to_text"] and self.components["text_to_speech"]:
             logger.info(" Voice Processing Services ready")
 
-    async def moderate_content(self, content: str, content_type: str, user_id: str, channel_id: str = None) -> Dict[str, Any]:
+    async def moderate_content(self, content: str, content_type: str, user_id: str, channel_id: Optional[str] = None) -> Dict[str, Any]:
         """Moderate content using advanced AI moderation."""
         if not self.components["advanced_moderation"]:
             return {"allowed": True, "action": "allow"}
@@ -589,10 +589,10 @@ datetime = datetime.now().timestamp())}",
 
             # Stop components
             if self.components["semantic_search"]:
-                await self.semantic_search.stop()
+                await self.if semantic_search and hasattr(semantic_search, "stop"): semantic_search.stop()
 
             if self.components["recommendation_engine"]:
-                await self.recommendation_engine.stop()
+                await self.if recommendation_engine and hasattr(recommendation_engine, "stop"): recommendation_engine.stop()
 
             logger.info(" Phase III AI System shutdown complete")
 

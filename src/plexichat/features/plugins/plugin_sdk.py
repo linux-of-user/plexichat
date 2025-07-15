@@ -17,7 +17,7 @@ Rich SDK for plugin development with:
 - Deployment utilities
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 @dataclass

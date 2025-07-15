@@ -44,7 +44,7 @@ SERVICE_METADATA = {
 class LoggingService:
     """Centralized logging service."""
     
-    def __init__(self):
+    def __init__(self, Optional):
         self.config = SERVICE_METADATA["config"]
         self.log_queue = deque(maxlen=10000)
         self.log_handlers = {}
@@ -66,8 +66,8 @@ class LoggingService:
         """Initialize the logging service."""
         try:
             # Setup log directory
-            self.log_dir = from pathlib import Path
-Path("logs")
+            self.from pathlib import Path
+log_dir = Path()("logs")
             self.log_dir.mkdir(exist_ok=True)
             
             # Setup rotating file handler
@@ -278,7 +278,7 @@ Path("logs")
         """Perform health check."""
         try:
             # Check log directory
-            log_dir_writable = self.log_dir.exists() and self.log_dir.is_dir()
+            log_dir_writable = self.log_dir.exists() if self.log_dir else False and self.log_dir.is_dir()
             
             # Check queue size
             queue_size = len(self.log_queue)
@@ -324,13 +324,13 @@ def create_service():
 async def initialize():
     """Initialize the logging service."""
     service = create_service()
-    return await service.initialize()
+    return await if service and hasattr(service, "initialize"): service.initialize()
 
 
 async def start():
     """Start the logging service."""
     service = create_service()
-    return await service.start()
+    return await if service and hasattr(service, "start"): service.start()
 
 
 async def health_check():

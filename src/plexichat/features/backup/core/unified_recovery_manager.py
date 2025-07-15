@@ -56,8 +56,8 @@ class UnifiedRecoveryManager:
         
         # Configuration
         self.config = backup_manager.config.get("recovery", {})
-        self.recovery_dir = from pathlib import Path
-Path(self.config.get("recovery_dir", "data/recovery"))
+        self.from pathlib import Path
+recovery_dir = Path()(self.config.get("recovery_dir", "data/recovery"))
         
         # Active recoveries
         self.active_recoveries: Dict[str, Dict[str, Any]] = {}
@@ -86,7 +86,7 @@ Path(self.config.get("recovery_dir", "data/recovery"))
     ) -> str:
         """Start a recovery operation."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
         
         recovery_id = f"recovery_{backup_id}_{secrets.token_hex(8)}"
         

@@ -108,7 +108,7 @@ class IntegrityCheckSession:
 class AdvancedIntegrityChecker:
     """Advanced integrity checker with automated repair capabilities."""
 
-    def __init__(self, verifier: ComprehensiveBackupVerifier = None):
+    def __init__(self, verifier: Optional[ComprehensiveBackupVerifier] = None):
         """
         Initialize the advanced integrity checker with comprehensive monitoring.
 
@@ -506,7 +506,7 @@ class AdvancedIntegrityChecker:
             logger.error(f" Error updating system health score: {e}")
 
     async def start_integrity_check(
-        self, scope: str = "system", mode: IntegrityCheckMode = None
+        self, scope: str = "system", mode: Optional[IntegrityCheckMode] = None
     ) -> str:
         """Start a comprehensive integrity check."""
         try:
@@ -1362,7 +1362,7 @@ class AdvancedIntegrityChecker:
             logger.error(f" Error getting comprehensive status: {e}")
             return {"system_status": "error", "error": str(e)}
 
-    async def force_integrity_check(self, target_id: str = None) -> str:
+    async def force_integrity_check(self, target_id: Optional[str] = None) -> str:
         """Force an immediate integrity check."""
         try:
             scope = target_id if target_id else "system"
@@ -1377,7 +1377,7 @@ class AdvancedIntegrityChecker:
             logger.error(f" Failed to force integrity check: {e}")
             raise
 
-    async def clear_quarantine(self, item_id: str = None) -> bool:
+    async def clear_quarantine(self, item_id: Optional[str] = None) -> bool:
         """Clear quarantine for specific item or all items."""
         try:
             if item_id:

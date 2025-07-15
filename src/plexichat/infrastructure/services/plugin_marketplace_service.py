@@ -212,10 +212,10 @@ class PluginMarketplaceService:
     
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
-        self.data_dir = from pathlib import Path
-Path(self.config.get("data_dir", "data/plugin_marketplace"))
-        self.cache_dir = from pathlib import Path
-Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
+        self.from pathlib import Path
+data_dir = Path()(self.config.get("data_dir", "data/plugin_marketplace"))
+        self.from pathlib import Path
+cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
         
         # Ensure directories exist
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -303,7 +303,7 @@ Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
             return False
     
     async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,
-                           tags: List[str] = None, sort_by: str = "relevance",
+                           tags: Optional[List[str]] = None, sort_by: str = "relevance",
                            limit: int = 20, offset: int = 0) -> Dict[str, Any]:
         """Search plugins in the marketplace."""
         try:
@@ -1045,7 +1045,7 @@ Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
             logger.error(f"Failed to sync external plugin: {e}")
 
     # Webhook System Methods
-    async def register_webhook(self, url: str, events: List[str], secret: str = None) -> Dict[str, Any]:
+    async def register_webhook(self, url: str, events: List[str], secret: Optional[str] = None) -> Dict[str, Any]:
         """Register a new webhook endpoint."""
         try:
             # Validate events
@@ -1206,7 +1206,7 @@ Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
             for endpoint in self.webhook_endpoints.values()
         ]
 
-    async def get_webhook_deliveries(self, endpoint_id: str = None, limit: int = 50) -> List[Dict[str, Any]]:
+    async def get_webhook_deliveries(self, endpoint_id: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
         """Get webhook delivery history."""
         deliveries = self.webhook_deliveries
 
@@ -1245,4 +1245,4 @@ def get_plugin_marketplace_service() -> PluginMarketplaceService:
 async def initialize_plugin_marketplace() -> bool:
     """Initialize the plugin marketplace service."""
     service = get_plugin_marketplace_service()
-    return await service.initialize()
+    return await if service and hasattr(service, "initialize"): service.initialize()

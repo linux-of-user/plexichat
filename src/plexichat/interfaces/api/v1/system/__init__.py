@@ -1,3 +1,4 @@
+from typing import Optional
     from .backup import router as backup_router
     from .backup_endpoints import router as backup_endpoints_router
     from .database import router as database_router
@@ -13,24 +14,19 @@ System management, backup, database, and administrative features.
 """
 
 try:
-except ImportError:
-    backup_router = None
+except ImportError: Optional[backup_router] = None
 
 try:
-except ImportError:
-    backup_endpoints_router = None
+except ImportError: Optional[backup_endpoints_router] = None
 
 try:
-except ImportError:
-    enhanced_backup_router = None
+except ImportError: Optional[enhanced_backup_router] = None
 
 try:
-except ImportError:
-    database_router = None
+except ImportError: Optional[database_router] = None
 
 try:
-except ImportError:
-    database_setup_router = None
+except ImportError: Optional[database_setup_router] = None
 
 __all__ = [
     "backup_router",

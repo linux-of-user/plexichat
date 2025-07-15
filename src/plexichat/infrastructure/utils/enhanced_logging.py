@@ -11,8 +11,7 @@ from typing import Any, Dict, Optional
 
 try:
     import psutil
-except ImportError:
-    psutil = None
+except ImportError: Optional[psutil] = None
 
 """
 Enhanced Logging System for PlexiChat

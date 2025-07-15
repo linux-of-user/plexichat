@@ -1,3 +1,4 @@
+from typing import Optional
     from .enhanced_messaging import router as enhanced_messaging_router
     from .messages_enhanced import router as messages_enhanced_router
 
@@ -10,12 +11,10 @@ Enhanced messaging, real-time communication, and collaboration features.
 """
 
 try:
-except ImportError:
-    messages_enhanced_router = None
+except ImportError: Optional[messages_enhanced_router] = None
 
 try:
-except ImportError:
-    enhanced_messaging_router = None
+except ImportError: Optional[enhanced_messaging_router] = None
 
 __all__ = [
     "messages_enhanced_router",

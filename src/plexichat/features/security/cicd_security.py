@@ -350,7 +350,7 @@ datetime = datetime.now().timestamp())}"
 
         return vulnerabilities
 
-    async def _execute_scanner_command(self, cmd: List[str], cwd: str = None) -> Dict[str, Any]:
+    async def _execute_scanner_command(self, cmd: List[str], cwd: Optional[str] = None) -> Dict[str, Any]:
         """Execute scanner command and return result."""
         try:
             process = await asyncio.create_subprocess_exec(

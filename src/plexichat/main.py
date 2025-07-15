@@ -128,7 +128,7 @@ except Exception as e:
 
 # Backup system
 try:
-    from src.plexichat.features.backup.core.unified_backup_manager import get_unified_backup_manager
+    from src.plexichat.features.backup import get_unified_backup_manager
     backup_router = None  # Will be set later
 except ImportError:
     logging.warning("Backup system not available")
@@ -292,7 +292,7 @@ async def initialize_ssl():
 
         # Initialize SSL manager
         try:
-            if hasattr(ssl_manager, 'initialize'):
+            if ssl_manager and hasattr(ssl_manager, 'initialize'):
                 result = await ssl_manager.initialize()
             else:
                 result = None
@@ -305,18 +305,20 @@ async def initialize_ssl():
                 if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
                     if ssl_manager and hasattr(ssl_manager, 'setup_automatic_https'):
                         try:
-                            await ssl_manager.setup_automatic_https(
+                            result = ssl_manager.setup_automatic_https(
                                 domain=SSL_CONFIG["domain"],
                                 email=SSL_CONFIG["email"],
                                 domain_type="custom"
                             )
+                            if hasattr(result, '__await__'):
+                                await result
                         except Exception as e:
                             logging.warning(f"Failed to setup automatic HTTPS: {e}")
                 else:
                     # Use self-signed certificate
                     if ssl_manager and hasattr(ssl_manager, 'setup_automatic_https'):
                         try:
-                            await ssl_manager.setup_automatic_https(
+                            result = ssl_manager.setup_automatic_https(
                                 domain=SSL_CONFIG["domain"],
                                 domain_type="localhost"
                             )
@@ -602,7 +604,9 @@ async def lifespan(app: FastAPI):
             backup_manager = get_unified_backup_manager()
             if hasattr(backup_manager, 'initialize'):
                 try:
-                    await backup_manager.initialize()
+                    result = backup_manager.initialize()
+                    if hasattr(result, '__await__'):
+                        await result
                 except Exception as e:
                     logger.warning(f"Backup manager initialize failed: {e}")
             logger.info("Backup manager initialized")
@@ -744,7 +748,7 @@ async def lifespan(app: FastAPI):
                     await backup_manager.shutdown()
                 except AttributeError:
                     try:
-                        await backup_manager.cleanup()
+                        await if backup_manager and hasattr(backup_manager, "cleanup"): backup_manager.cleanup()
                     except AttributeError:
                         logger.warning("Backup manager has neither 'shutdown' nor 'cleanup' method, skipping shutdown.")
                 except Exception as e:

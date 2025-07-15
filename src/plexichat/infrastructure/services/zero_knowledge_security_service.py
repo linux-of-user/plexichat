@@ -249,7 +249,7 @@ settings."""
 
             # Initialize biometric authentication
             if self.config["biometric_authentication"]["enabled"]:
-                await self.biometric_manager.initialize()
+                await self.if biometric_manager and hasattr(biometric_manager, "initialize"): biometric_manager.initialize()
 
             logger.info("Zero-Knowledge Security Service started successfully")
 
@@ -404,7 +404,7 @@ settings."""
     # Disappearing Messages Methods
 
     async def create_disappearing_message(self, content: str, sender_id: str, recipient_id: str,
-                                        ttl_hours: int = None, privacy_level: PrivacyLevel = PrivacyLevel.ENHANCED) -> str:
+                                        ttl_hours: Optional[int] = None, privacy_level: PrivacyLevel = PrivacyLevel.ENHANCED) -> str:
         """Create a disappearing message with automatic cleanup."""
         try:
             # Use default TTL if not specified
@@ -556,7 +556,7 @@ settings."""
 
     # Anonymous Messaging Methods
 
-    async def create_anonymous_session(self, duration_hours: int = None) -> str:
+    async def create_anonymous_session(self, duration_hours: Optional[int] = None) -> str:
         """Create an anonymous messaging session with privacy protection."""
         try:
             # Use default duration if not specified

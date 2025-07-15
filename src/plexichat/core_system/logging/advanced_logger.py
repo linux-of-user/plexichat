@@ -126,8 +126,10 @@ class CrashHandler:
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
             
-        crash_id = from datetime import datetime
-datetime.now().strftime("%Y%m%d_%H%M%S")
+        from datetime import datetime
+
+            
+        crash_id = datetime().now().strftime("%Y%m%d_%H%M%S")
         crash_file = self.crash_dir / f"crash_{crash_id}.json"
         
         crash_report = {
@@ -218,7 +220,7 @@ class LogStreamer:
             
         self.running = True
         self.thread = threading.Thread(target=self._stream_logs, daemon=True)
-        self.thread.start()
+        self.if thread and hasattr(thread, "start"): thread.start()
         
     def stop(self):
         """Stop streaming logs."""
@@ -228,7 +230,7 @@ class LogStreamer:
             
     def _stream_logs(self):
         """Stream log file changes."""
-        if not self.log_file.exists():
+        if not self.log_file.exists() if self.log_file else False:
             self.log_file.touch()
             
         with open(self.log_file, 'r') as f:
@@ -252,8 +254,8 @@ class AdvancedLogger:
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or self._default_config()
-        self.log_dir = from pathlib import Path
-Path(self.config.get("log_directory", "logs"))
+        self.from pathlib import Path
+log_dir = Path()(self.config.get("log_directory", "logs"))
         self.log_dir.mkdir(exist_ok=True)
         
         # Create subdirectories

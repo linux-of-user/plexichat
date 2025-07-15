@@ -12,13 +12,11 @@ from typing import Any, Dict, List, Optional, Tuple
 # Optional imports with fallbacks
 try:
     import qrcode
-except ImportError:
-    qrcode = None
+except ImportError: Optional[qrcode] = None
 
 try:
     import pyotp
-except ImportError:
-    pyotp = None
+except ImportError: Optional[pyotp] = None
 
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -790,7 +788,7 @@ class TwoFactorAuthPlugin(PluginInterface):
             "healthy": True,
             "stats": self.stats,
             "config": self.config,
-            "database": self.db_path.exists()
+            "database": self.db_path.exists() if self.db_path else False
         }
     
     async def cleanup(self):

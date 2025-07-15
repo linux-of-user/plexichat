@@ -27,11 +27,11 @@ class AdminCredentialsManager:
     
     def __init__(self):
         """Initialize the admin credentials manager."""
-        self.config_dir = from pathlib import Path
-Path("config")
+        self.from pathlib import Path
+config_dir = Path()("config")
         self.admin_creds_file = self.config_dir / "admin_credentials.json"
-        self.default_creds_file = from pathlib import Path
-Path("default_creds.txt")
+        self.from pathlib import Path
+default_creds_file = Path()("default_creds.txt")
         
         # Ensure config directory exists
         self.config_dir.mkdir(exist_ok=True)
@@ -43,9 +43,9 @@ Path("default_creds.txt")
     
     def _initialize_admin_credentials(self):
         """Initialize admin credentials from default_creds.txt or create new ones."""
-        if not self.admin_creds_file.exists():
+        if not self.admin_creds_file.exists() if self.admin_creds_file else False:
             # Check if default_creds.txt exists
-            if self.default_creds_file.exists():
+            if self.default_creds_file.exists() if self.default_creds_file else False:
                 self._migrate_from_default_creds()
             else:
                 self._create_default_admin()
@@ -150,7 +150,7 @@ Path("default_creds.txt")
     def verify_admin_credentials(self, username: str, password: str) -> bool:
         """Verify admin credentials."""
         try:
-            if not self.admin_creds_file.exists():
+            if not self.admin_creds_file.exists() if self.admin_creds_file else False:
                 logger.warning("Admin credentials file not found")
                 return False
             
@@ -242,7 +242,7 @@ Path("default_creds.txt")
     def list_admin_users(self) -> Dict[str, Any]:
         """List all admin users (without sensitive data)."""
         try:
-            if not self.admin_creds_file.exists():
+            if not self.admin_creds_file.exists() if self.admin_creds_file else False:
                 return {}
             
             with open(self.admin_creds_file, 'r') as f:
@@ -272,7 +272,7 @@ Path("default_creds.txt")
             new_password = secrets.token_urlsafe(16)
             
             # Load admin data
-            if not self.admin_creds_file.exists():
+            if not self.admin_creds_file.exists() if self.admin_creds_file else False:
                 return None
             
             with open(self.admin_creds_file, 'r') as f:

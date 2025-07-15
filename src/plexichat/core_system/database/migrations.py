@@ -78,8 +78,8 @@ class MigrationManager:
     
     def __init__(self):
         self.migrations: List[Migration] = []
-        self.migrations_dir = from pathlib import Path
-Path("migrations")
+        self.from pathlib import Path
+migrations_dir = Path()("migrations")
         self.migrations_dir.mkdir(exist_ok=True)
         
     async def initialize(self):

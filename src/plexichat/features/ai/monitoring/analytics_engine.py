@@ -496,7 +496,7 @@ class AIAnalyticsEngine:
         self.monitoring_thread = threading.Thread(
             target=self._monitoring_loop, daemon=True
         )
-        self.monitoring_thread.start()
+        self.if monitoring_thread and hasattr(monitoring_thread, "start"): monitoring_thread.start()
         logger.info("AI analytics monitoring started")
 
     def stop_monitoring(self):

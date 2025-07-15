@@ -378,7 +378,7 @@ datetime = datetime.now()}
 async def toggle_maintenance_mode(
     enabled: bool,
     message: Optional[str] = None,
-    background_tasks: BackgroundTasks = None
+    background_tasks: Optional[BackgroundTasks] = None
 ):
     """Toggle maintenance mode."""
     try:

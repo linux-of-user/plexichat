@@ -229,8 +229,8 @@ class DistributedStorageManager:
         data_id: str,
         data: bytes,
         data_type: str = "generic",
-        consistency_level: DataConsistency = None,
-        replication_factor: int = None,
+        consistency_level: Optional[DataConsistency] = None,
+        replication_factor: Optional[int] = None,
     ) -> StoredData:
         """Store data in the distributed storage system."""
 

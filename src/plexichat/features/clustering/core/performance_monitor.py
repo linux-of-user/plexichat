@@ -583,7 +583,7 @@ psutil = psutil.net_io_counters()
         # Return the minimum of theoretical and actual gain
         return min(theoretical_gain * efficiency_factor, actual_gain)
 
-    async def analyze_node_performance(self, node_id: str, analysis_period: timedelta = None) -> Optional[PerformanceAnalysis]:
+    async def analyze_node_performance(self, node_id: str, analysis_period: Optional[timedelta] = None) -> Optional[PerformanceAnalysis]:
         """Analyze performance for a specific node."""
         if node_id not in self.performance_snapshots or not self.performance_snapshots[node_id]:
             return None

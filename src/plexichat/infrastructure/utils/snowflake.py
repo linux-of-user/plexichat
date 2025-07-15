@@ -1,6 +1,7 @@
 import time
 
 from app.logger_config import logger
+from typing import Optional
 
 
 class SnowflakeGenerator:

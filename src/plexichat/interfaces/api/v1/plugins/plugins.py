@@ -17,7 +17,7 @@ Provides comprehensive plugin management and monitoring capabilities.
 
 
 # Pydantic models for API
-class PluginActionRequest(BaseModel):
+class PluginActionRequest(BaseModel, Optional):
     plugin_name: str
 
 

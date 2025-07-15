@@ -36,8 +36,8 @@ class EnhancedDocumentationManager:
     """Enhanced documentation manager with advanced features."""
 
     def __init__(self):
-        self.docs_dir = from pathlib import Path
-Path("docs")
+        self.from pathlib import Path
+docs_dir = Path()("docs")
         self.docs_dir.mkdir(exist_ok=True)
         self.cache = {}
         self.search_index = {}
@@ -659,8 +659,8 @@ When reporting issues, include:
             except Exception as e:
                 logger.error(f"Failed to index {doc_file}: {e}")
 
-        self.last_indexed = from datetime import datetime
-datetime.now()
+        self.from datetime import datetime
+last_indexed = datetime().now()
         logger.info(f"Search index built with {len(self.search_index)} documents")
 
     def _extract_title(self, content: str) -> str:

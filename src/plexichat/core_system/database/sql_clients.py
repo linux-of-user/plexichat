@@ -123,7 +123,7 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
         """Disconnect from PostgreSQL."""
         try:
             if self.pool:
-                await self.pool.close()
+                await if self.pool: self.pool.close()
                 self.pool = None
             logger.info(" Disconnected from PostgreSQL")
             return True
@@ -272,7 +272,7 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
         """Disconnect from MySQL."""
         try:
             if self.pool:
-                self.pool.close()
+                if self.pool: self.pool.close()
                 await self.pool.wait_closed()
                 self.pool = None
             logger.info(" Disconnected from MySQL")
@@ -417,7 +417,7 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore
         """Disconnect from SQLite."""
         try:
             if self.connection:
-                await self.connection.close()
+                await if self.connection: self.connection.close()
                 self.connection = None
             logger.info(" Disconnected from SQLite")
             return True

@@ -19,7 +19,7 @@ from fastapi.templating import Jinja2Templates
     AIRequest,
     ModelCapability,
     ModelStatus,
-)
+, Optional)
 
 """
 AI Management WebUI Components

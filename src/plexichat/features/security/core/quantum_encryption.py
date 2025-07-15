@@ -118,8 +118,8 @@ class QuantumEncryptionEngine:
         self.enable_hsm = self.config.get("enable_hsm", False)
         
         # Initialize key storage directory
-        self.key_dir = from pathlib import Path
-Path(self.config.get("key_dir", "data/keys"))
+        self.from pathlib import Path
+key_dir = Path()(self.config.get("key_dir", "data/keys"))
         self.key_dir.mkdir(parents=True, exist_ok=True)
         
         logger.info(f" Quantum Encryption Engine initialized with {self.default_algorithm.value}")

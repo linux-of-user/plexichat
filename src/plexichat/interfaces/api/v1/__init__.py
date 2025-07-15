@@ -479,8 +479,9 @@ datetime.utcnow() - start_time).total_seconds()
     # Add enhanced response headers
     response.headers["X-API-Version"] = "v1"
     response.headers["X-Process-Time"] = str(process_time)
-    response.headers["X-Server-Time"] = from datetime import datetime
-datetime.utcnow().isoformat()
+    from datetime import datetime
+
+    response.headers["X-Server-Time"] = datetime.now().utcnow().isoformat()
     response.headers["X-Rate-Limit-Remaining"] = "calculated_here"
     response.headers["X-Performance-Score"] = "calculated_here"
 

@@ -163,7 +163,7 @@ class DatabaseSetupGUI:
         
         thread = threading.Thread(target=run_async)
         thread.daemon = True
-        thread.start()
+        if thread and hasattr(thread, "start"): thread.start()
     
     def show_welcome_step(self, wizard_result: Dict[str, Any]):
         """Show welcome step."""
@@ -382,7 +382,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         
         thread = threading.Thread(target=run_async)
         thread.daemon = True
-        thread.start()
+        if thread and hasattr(thread, "start"): thread.start()
     
     def handle_database_selection_result(self, result: Dict[str, Any]):
         """Handle database selection result."""
@@ -467,7 +467,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         
         thread = threading.Thread(target=run_async)
         thread.daemon = True
-        thread.start()
+        if thread and hasattr(thread, "start"): thread.start()
     
     def handle_connection_test_result(self, result: Dict[str, Any]):
         """Handle connection test result."""

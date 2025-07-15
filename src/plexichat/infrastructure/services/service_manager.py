@@ -41,8 +41,8 @@ class ServiceManager:
     """
     
     def __init__(self, services_dir: str = "src/plexichat/services"):
-        self.services_dir = from pathlib import Path
-Path(services_dir)
+        self.from pathlib import Path
+services_dir = Path()(services_dir)
         
         # Service registry
         self.registered_services: Dict[str, Type[SecureService]] = {}
@@ -79,7 +79,7 @@ Path(services_dir)
     
     async def _discover_services(self):
         """Discover and register available services."""
-        if not self.services_dir.exists():
+        if not self.services_dir.exists() if self.services_dir else False:
             logger.warning(f"Services directory not found: {self.services_dir}")
             return
         
@@ -162,7 +162,7 @@ Path(services_dir)
             metadata = self.service_metadata[service_id]
             
             service_instance = service_class(metadata)
-            await service_instance.start()
+            await if service_instance and hasattr(service_instance, "start"): service_instance.start()
             
             self.active_services[service_id] = service_instance
             
@@ -204,7 +204,7 @@ Path(services_dir)
             
             # Stop the service
             service_instance = self.active_services[service_id]
-            await service_instance.stop()
+            await if service_instance and hasattr(service_instance, "stop"): service_instance.stop()
             
             del self.active_services[service_id]
             

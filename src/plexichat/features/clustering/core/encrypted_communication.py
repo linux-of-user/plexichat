@@ -161,8 +161,8 @@ class EnhancedEncryptedCommunicationManager:
 
     def __init__(self, node_id: str, data_dir: Path):
         self.node_id = node_id
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.crypto_dir = self.data_dir / "crypto"
         self.keys_dir = self.crypto_dir / "keys"
         self.certs_dir = self.crypto_dir / "certs"

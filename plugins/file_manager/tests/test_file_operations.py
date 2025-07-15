@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 # Add src to path for debug imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__, Optional).parent.parent.parent.parent / "src"))
 
 from plexichat.infrastructure.debugging.plugin_debug_integration import debug_plugin_test
 from plexichat.infrastructure.debugging.debug_utils import log_debug, memory_snapshot, DebugTimer

@@ -72,7 +72,7 @@ class AIPoweredFeaturesIntegration(BaseService):
     async def start(self) -> bool:
         """Start the AI-powered features service."""
         if not self._initialized:
-            if not await self.initialize():
+            if not await if self and hasattr(self, "initialize"): self.initialize():
                 return False
 
         try:
@@ -372,7 +372,7 @@ async def startup_ai_features():
         if not integration:
             integration = initialize_ai_features_integration()
 
-        success = await integration.start()
+        success = await if integration and hasattr(integration, "start"): integration.start()
         if success:
             logger.info(" AI-Powered Features integration started successfully")
         else:
@@ -390,7 +390,7 @@ async def shutdown_ai_features():
     try:
         integration = get_ai_features_integration()
         if integration:
-            success = await integration.stop()
+            success = await if integration and hasattr(integration, "stop"): integration.stop()
             if success:
                 logger.info(" AI-Powered Features integration stopped successfully")
             else:

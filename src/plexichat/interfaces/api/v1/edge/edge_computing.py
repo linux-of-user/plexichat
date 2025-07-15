@@ -41,7 +41,7 @@ async def get_edge_status(
         manager = get_edge_computing_manager()
 
         if not manager.initialized:
-            await manager.initialize()
+            await if manager and hasattr(manager, "initialize"): manager.initialize()
 
         status = await manager.get_edge_status()
 
@@ -458,7 +458,7 @@ async def initialize_edge_computing(
     try:
         manager = get_edge_computing_manager()
 
-        result = await manager.initialize()
+        result = await if manager and hasattr(manager, "initialize"): manager.initialize()
 
         logger.info(f" Edge computing system initialized by {current_user.get('username')}")
 

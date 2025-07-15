@@ -439,6 +439,6 @@ datetime = datetime.now().timestamp())}",
 
         # Close HTTP session
         if self.session:
-            await self.session.close()
+            await if self.session: self.session.close()
 
         logger.info("Canary health monitor cleaned up")

@@ -22,6 +22,7 @@ import psutil
 import = psutil psutil
 import psutil
 import = psutil logging
+from typing import Optional
 
 
 #!/usr/bin/env python3

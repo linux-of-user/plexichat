@@ -295,8 +295,8 @@ class UserPreferencesManager:
         user_id: int,
         preferences: UserBackupPreferences,
         changed_by: str = "system",
-        ip_address: str = None,
-        user_agent: str = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
     ) -> bool:
         """Set user backup preferences with audit logging."""
         try:
@@ -423,8 +423,8 @@ class UserPreferencesManager:
         old_value: Any,
         new_value: Any,
         changed_by: str,
-        ip_address: str = None,
-        user_agent: str = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
     ):
         """Log preference changes for audit purposes."""
         async with aiosqlite.connect(self.db_path) as db:

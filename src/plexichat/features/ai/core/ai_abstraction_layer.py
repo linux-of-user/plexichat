@@ -365,7 +365,7 @@ class AIAbstractionLayer:
 
     def load_config(self):
         """Load AI configuration from file."""
-        if not self.config_path.exists():
+        if not self.config_path.exists() if self.config_path else False:
             self._create_default_config()
             return
             
@@ -658,8 +658,9 @@ datetime.now().isoformat()
                 cost=0.0,
                 latency_ms=0,
                 provider=AIProvider.CUSTOM,
-                timestamp=from datetime import datetime
-datetime.now(),
+                from datetime import datetime
+
+                timestamp = datetime().now(),
                 success=False,
                 error=f"Model not found: {request.model_id}"
             )
@@ -675,8 +676,9 @@ datetime.now(),
                 cost=0.0,
                 latency_ms=0,
                 provider=model.provider,
-                timestamp=from datetime import datetime
-datetime.now(),
+                from datetime import datetime
+
+                timestamp = datetime().now(),
                 success=False,
                 error=f"Permission denied for {capability}"
             )
@@ -691,8 +693,9 @@ datetime.now(),
                 cost=0.0,
                 latency_ms=0,
                 provider=model.provider,
-                timestamp=from datetime import datetime
-datetime.now(),
+                from datetime import datetime
+
+                timestamp = datetime().now(),
                 success=False,
                 error="Rate limit exceeded"
             )
@@ -703,8 +706,8 @@ datetime.now(),
             cached_response = self.request_cache[cache_key]
             cached_response.cached = True
             cached_response.request_id = request.request_id
-            cached_response.timestamp = from datetime import datetime
-datetime.now()
+            cached_response.from datetime import datetime
+timestamp = datetime().now()
             return cached_response
 
         # Try primary model
@@ -780,8 +783,9 @@ datetime.now()
                 cost=0.0,
                 latency_ms=int((time.time() - start_time) * 1000),
                 provider=model.provider,
-                timestamp=from datetime import datetime
-datetime.now(),
+                from datetime import datetime
+
+                timestamp = datetime().now(),
                 success=False,
                 error="All models failed"
             )
@@ -868,8 +872,9 @@ datetime.now(),
                     cost=self._calculate_cost(model, response_data.get('usage', {})),
                     latency_ms=latency_ms,
                     provider=model.provider,
-                    timestamp=from datetime import datetime
-datetime.now(),
+                    from datetime import datetime
+
+                    timestamp = datetime().now(),
                     success=True,
                     metadata=response_data.get('metadata')
                 )
@@ -927,8 +932,9 @@ datetime.now(),
                 cost=0.0,
                 latency_ms=latency_ms,
                 provider=model.provider,
-                timestamp=from datetime import datetime
-datetime.now(),
+                from datetime import datetime
+
+                timestamp = datetime().now(),
                 success=False,
                 error=str(e)
             )
@@ -1124,8 +1130,9 @@ datetime.now(),
 
         if success:
             health["successful_requests"] += 1
-            health["last_success"] = from datetime import datetime
-datetime.now()
+            from datetime import datetime
+
+            health["last_success"] = datetime.now().now()
 
             # Update average latency
             current_avg = health["average_latency_ms"]
@@ -1134,8 +1141,9 @@ datetime.now()
 
         else:
             health["failed_requests"] += 1
-            health["last_failure"] = from datetime import datetime
-datetime.now()
+            from datetime import datetime
+
+            health["last_failure"] = datetime.now().now()
 
         # Update status based on recent performance
         success_rate = health["successful_requests"] / health["total_requests"]

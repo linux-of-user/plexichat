@@ -99,8 +99,8 @@ class ConsolidatedCertificateManager:
         self.certificates: Dict[str, CertificateInfo] = {}
 
         # Configuration
-        self.cert_directory = from pathlib import Path
-Path(self.config.get("cert_directory", "./certificates"))
+        self.from pathlib import Path
+cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
         self.lets_encrypt_email = self.config.get("lets_encrypt_email", "admin@example.com")
         self.lets_encrypt_staging = self.config.get("lets_encrypt_staging", False)
         self.auto_renewal_enabled = self.config.get("auto_renewal_enabled", True)
@@ -141,7 +141,7 @@ Path(self.config.get("cert_directory", "./certificates"))
     async def _load_existing_certificates(self) -> None:
         """Load existing certificates from disk."""
         try:
-            if not self.cert_directory.exists():
+            if not self.cert_directory.exists() if self.cert_directory else False:
                 return
 
             for cert_file in self.cert_directory.glob("*.crt"):
@@ -213,7 +213,7 @@ Path(self.config.get("cert_directory", "./certificates"))
     ) -> Optional[CertificateInfo]:
         """Generate a certificate for a domain."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         logger.info(f"Generating {certificate_type.value} certificate for {domain}")
 
@@ -349,10 +349,12 @@ Path(self.config.get("cert_directory", "./certificates"))
 
             if process.returncode == 0:
                 # Find certificate files
-                cert_path = from pathlib import Path
-Path(f"/etc/letsencrypt/live/{domain}/fullchain.pem")
-                key_path = from pathlib import Path
-Path(f"/etc/letsencrypt/live/{domain}/privkey.pem")
+                from pathlib import Path
+
+                cert_path = Path()(f"/etc/letsencrypt/live/{domain}/fullchain.pem")
+                from pathlib import Path
+
+                key_path = Path()(f"/etc/letsencrypt/live/{domain}/privkey.pem")
 
                 if cert_path.exists() and key_path.exists():
                     # Copy to our certificate directory

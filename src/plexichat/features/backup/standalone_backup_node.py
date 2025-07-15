@@ -18,6 +18,7 @@ from pathlib import Path
 
 from plexichat.app.backup.backup_node_system import BackupNodeConfig, BackupNodeSystem, NodeMode
 import logging
+from typing import Optional
 
 
 #!/usr/bin/env python3
@@ -211,7 +212,7 @@ Path(config.storage_path)
 
     finally:
         logger.info(" Shutting down...")
-        await backup_node.stop()
+        await if backup_node and hasattr(backup_node, "stop"): backup_node.stop()
         logger.info(" Backup node stopped")
 
 if __name__ == "__main__":

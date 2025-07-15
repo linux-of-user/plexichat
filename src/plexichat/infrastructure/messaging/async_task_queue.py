@@ -225,8 +225,7 @@ class TaskWorker:
             # Task failed
             await self._handle_task_failure(task, str(e))
 
-        finally:
-            self.current_task = None
+        finally: Optional[self.current_task] = None
 
     async def _execute_task(self, task: Task) -> Any:
         """Execute the actual task."""
@@ -360,7 +359,7 @@ class AsyncTaskQueueManager:
             worker_id = f"worker_{i}"
             worker = TaskWorker(worker_id, self)
             self.workers[worker_id] = worker
-            await worker.start()
+            await if worker and hasattr(worker, "start"): worker.start()
 
         self.running = True
         logger.info(f" Task Queue Manager started with {self.max_workers} workers")
@@ -374,11 +373,11 @@ class AsyncTaskQueueManager:
 
         # Stop all workers
         for worker in self.workers.values():
-            await worker.stop()
+            await if worker and hasattr(worker, "stop"): worker.stop()
 
         # Close Redis connection
         if self.redis:
-            await self.redis.close()
+            await if self.redis: self.redis.close()
 
         logger.info(" Task Queue Manager stopped")
 
@@ -400,7 +399,7 @@ class AsyncTaskQueueManager:
         max_retries: int = 3,
         timeout: int = 300,
         execute_after: Optional[datetime] = None,
-        tags: List[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> str:
         """Submit a new task to the queue."""
 

@@ -110,8 +110,8 @@ class EndToEndEncryption:
     """
     
     def __init__(self, config_dir: str = "config/security/e2e"):
-        self.config_dir = from pathlib import Path
-Path(config_dir)
+        self.from pathlib import Path
+config_dir = Path()(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Database for E2E sessions

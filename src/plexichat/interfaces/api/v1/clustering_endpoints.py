@@ -123,7 +123,7 @@ async def get_cluster_overview(
     """Get cluster overview and metrics."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         overview = await cluster_manager.get_cluster_overview()
 
@@ -147,7 +147,7 @@ async def get_cluster_health(
     """Get detailed cluster health information."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         health = await cluster_manager.get_cluster_health()
 
@@ -182,7 +182,7 @@ async def get_cluster_topology(
     """Get cluster topology visualization data."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         topology = await cluster_manager.get_cluster_topology()
 
@@ -217,7 +217,7 @@ async def list_cluster_nodes(
     """List cluster nodes with optional filtering."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         # Convert filters to enums
         status_enum = None
@@ -269,7 +269,7 @@ async def add_cluster_node(
     """Add a new node to the cluster."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         # Convert node type to enum
         try:
@@ -314,7 +314,7 @@ async def remove_cluster_node(
     """Remove a node from the cluster."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         success = await cluster_manager.remove_node(node_id, force=force)
 
@@ -342,7 +342,7 @@ async def set_node_maintenance(
     """Set node maintenance mode."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if enable:
             await cluster_manager.enable_node_maintenance(node_id)
@@ -369,7 +369,7 @@ async def get_load_balancer_config(
     """Get current load balancer configuration."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         config = await cluster_manager.get_load_balancer_config()
 
@@ -394,7 +394,7 @@ async def update_load_balancer_config(
     """Update load balancer configuration."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         # Convert algorithm to enum
         try:
@@ -429,7 +429,7 @@ async def get_load_balancer_stats(
     """Get load balancer statistics."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         stats = await cluster_manager.get_load_balancer_stats()
 
@@ -456,7 +456,7 @@ async def get_performance_metrics(
     """Get cluster performance metrics over time."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         metrics = await cluster_manager.get_performance_metrics(time_range)
 
@@ -489,7 +489,7 @@ async def get_failover_config(
     """Get failover configuration."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         config = await cluster_manager.get_failover_config()
 
@@ -514,7 +514,7 @@ async def update_failover_config(
     """Update failover configuration."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         await cluster_manager.update_failover_config(
             enabled=config.enabled,
@@ -543,7 +543,7 @@ async def get_failover_history(
     """Get failover event history."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         events = await cluster_manager.get_failover_history(limit=limit)
 
@@ -576,7 +576,7 @@ async def test_failover(
     """Test failover for a specific node."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         test_result = await cluster_manager.test_failover(node_id)
 
@@ -622,7 +622,7 @@ async def plan_cluster_update(
     """Plan a cluster-wide update operation."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         # Import update system components
             ClusterUpdateManager,
@@ -631,7 +631,7 @@ async def plan_cluster_update(
         # Initialize cluster update manager if not exists
         if not hasattr(cluster_manager, 'update_manager'):
             cluster_manager.update_manager = ClusterUpdateManager(cluster_manager)
-            await cluster_manager.update_manager.initialize()
+            await cluster_manager.if update_manager and hasattr(update_manager, "initialize"): update_manager.initialize()
 
         # Parse parameters
         target_version = Version.parse(request.target_version)
@@ -671,7 +671,7 @@ async def execute_cluster_update(
     """Execute a planned cluster update operation."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'update_manager'):
             raise HTTPException(status_code=400, detail="Update manager not initialized")
@@ -694,7 +694,7 @@ async def get_cluster_update_status(
     """Get status of a cluster update operation."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'update_manager'):
             raise HTTPException(status_code=400, detail="Update manager not initialized")
@@ -719,7 +719,7 @@ async def list_active_cluster_updates(
     """List all active cluster update operations."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'update_manager'):
             return []
@@ -740,7 +740,7 @@ async def get_cluster_update_history(
     """Get cluster update operation history."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'update_manager'):
             return []
@@ -761,7 +761,7 @@ async def rollback_cluster_update(
     """Rollback a cluster update operation."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'update_manager'):
             raise HTTPException(status_code=400, detail="Update manager not initialized")
@@ -822,12 +822,12 @@ async def get_storage_overview(
     """Get distributed storage system overview."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         # Initialize storage manager if not exists
         if not hasattr(cluster_manager, 'storage_manager'):
             cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
-            await cluster_manager.storage_manager.initialize()
+            await cluster_manager.if storage_manager and hasattr(storage_manager, "initialize"): storage_manager.initialize()
 
         overview = cluster_manager.storage_manager.get_storage_overview()
         return StorageOverviewResponse(**overview)
@@ -844,11 +844,11 @@ async def list_storage_nodes(
     """List all storage nodes with details."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'storage_manager'):
             cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
-            await cluster_manager.storage_manager.initialize()
+            await cluster_manager.if storage_manager and hasattr(storage_manager, "initialize"): storage_manager.initialize()
 
         nodes = cluster_manager.storage_manager.get_node_details()
         return [StorageNodeResponse(**node) for node in nodes]
@@ -865,11 +865,11 @@ async def get_data_distribution(
     """Get data distribution statistics across storage nodes."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'storage_manager'):
             cluster_manager.storage_manager = DistributedStorageManager(cluster_manager)
-            await cluster_manager.storage_manager.initialize()
+            await cluster_manager.if storage_manager and hasattr(storage_manager, "initialize"): storage_manager.initialize()
 
         distribution = cluster_manager.storage_manager.get_data_distribution()
         return distribution
@@ -886,7 +886,7 @@ async def trigger_storage_rebalance(
     """Trigger manual storage rebalancing."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'storage_manager'):
             raise HTTPException(status_code=400, detail="Storage manager not initialized")
@@ -908,7 +908,7 @@ async def trigger_storage_cleanup(
     """Trigger manual storage cleanup."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         if not hasattr(cluster_manager, 'storage_manager'):
             raise HTTPException(status_code=400, detail="Storage manager not initialized")
@@ -934,7 +934,7 @@ async def perform_hot_update(
     """Perform hot update across cluster nodes (legacy endpoint)."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         update_result = await cluster_manager.perform_hot_update(
             update_package=update_package,
@@ -962,7 +962,7 @@ async def get_hot_update_status(
     """Get status of hot update operation."""
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         status = await cluster_manager.get_hot_update_status(update_id)
 

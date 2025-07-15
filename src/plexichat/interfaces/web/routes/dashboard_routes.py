@@ -8,6 +8,7 @@ from ...services.performance_service import get_performance_service
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from typing import Optional
 
 """
 PlexiChat Main Dashboard Web Routes

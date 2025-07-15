@@ -100,8 +100,8 @@ class PluginOAuthProvider:
     
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
-        self.data_dir = from pathlib import Path
-Path(self.config.get("data_dir", "data/oauth"))
+        self.from pathlib import Path
+data_dir = Path()(self.config.get("data_dir", "data/oauth"))
         
         # Ensure directories exist
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -155,7 +155,7 @@ Path(self.config.get("data_dir", "data/oauth"))
     
     async def register_client(self, client_name: str, redirect_uris: List[str],
                             scopes: List[str], developer_id: str,
-                            grant_types: List[str] = None) -> Dict[str, Any]:
+                            grant_types: Optional[List[str]] = None) -> Dict[str, Any]:
         """Register a new OAuth client."""
         try:
             # Validate scopes
@@ -207,8 +207,8 @@ Path(self.config.get("data_dir", "data/oauth"))
             return {"success": False, "error": str(e)}
     
     async def authorize(self, client_id: str, redirect_uri: str, scopes: List[str],
-                       user_id: str, state: str = None, code_challenge: str = None,
-                       code_challenge_method: str = None) -> Dict[str, Any]:
+                       user_id: str, state: Optional[str] = None, code_challenge: Optional[str] = None,
+                       code_challenge_method: Optional[str] = None) -> Dict[str, Any]:
         """Generate authorization code for OAuth flow."""
         try:
             # Validate client
@@ -277,7 +277,7 @@ Path(self.config.get("data_dir", "data/oauth"))
     
     async def exchange_code_for_token(self, client_id: str, client_secret: str,
                                     code: str, redirect_uri: str,
-                                    code_verifier: str = None) -> Dict[str, Any]:
+                                    code_verifier: Optional[str] = None) -> Dict[str, Any]:
         """Exchange authorization code for access token."""
         try:
             # Validate client
@@ -595,4 +595,4 @@ def get_plugin_oauth_provider() -> PluginOAuthProvider:
 async def initialize_plugin_oauth() -> bool:
     """Initialize the OAuth provider."""
     provider = get_plugin_oauth_provider()
-    return await provider.initialize()
+    return await if provider and hasattr(provider, "initialize"): provider.initialize()

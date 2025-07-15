@@ -66,12 +66,12 @@ class UltimateCommand:
     description: str
     category: CommandCategory
     handler: Callable
-    aliases: List[str] = None
+    aliases: Optional[List[str]] = None
     requires_auth: bool = False
     admin_only: bool = False
     dangerous: bool = False
-    examples: List[str] = None
-    related_commands: List[str] = None
+    examples: Optional[List[str]] = None
+    related_commands: Optional[List[str]] = None
     version_added: str = "3.0.0"
 
     def __post_init__(self):

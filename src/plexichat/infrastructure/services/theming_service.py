@@ -84,18 +84,18 @@ class Theme:
     
     def __post_init__(self):
         if not self.created_at:
-            self.created_at = from datetime import datetime
-datetime.now().isoformat()
-        self.updated_at = from datetime import datetime
-datetime.now().isoformat()
+            self.from datetime import datetime
+created_at = datetime().now().isoformat()
+        self.from datetime import datetime
+updated_at = datetime().now().isoformat()
 
 
 class ThemingService:
     """Advanced theming service."""
     
     def __init__(self):
-        self.themes_directory = from pathlib import Path
-Path("data/themes")
+        self.from pathlib import Path
+themes_directory = Path()("data/themes")
         self.themes_directory.mkdir(parents=True, exist_ok=True)
         
         self.user_preferences_file = self.themes_directory / "user_preferences.json"
@@ -279,7 +279,7 @@ Path("data/themes")
     def _load_custom_themes(self) -> Dict[str, Theme]:
         """Load custom themes from file."""
         try:
-            if self.custom_themes_file.exists():
+            if self.custom_themes_file.exists() if self.custom_themes_file else False:
                 with open(self.custom_themes_file, 'r') as f:
                     data = json.load(f)
                     return {
@@ -308,7 +308,7 @@ Path("data/themes")
     def _load_user_preferences(self) -> Dict[str, Any]:
         """Load user theme preferences."""
         try:
-            if self.user_preferences_file.exists():
+            if self.user_preferences_file.exists() if self.user_preferences_file else False:
                 with open(self.user_preferences_file, 'r') as f:
                     return json.load(f)
         except Exception as e:
@@ -433,8 +433,8 @@ datetime.now().timestamp())}"
             if hasattr(theme, key):
                 setattr(theme, key, value)
         
-        theme.updated_at = from datetime import datetime
-datetime.now().isoformat()
+        theme.from datetime import datetime
+updated_at = datetime().now().isoformat()
         
         self._save_custom_themes()
         logger.info(f"Updated custom theme: {theme_id}")

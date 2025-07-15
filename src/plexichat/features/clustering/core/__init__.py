@@ -55,7 +55,7 @@ HEARTBEAT_ENCRYPTION = True  # Encrypt heartbeat messages
 HOT_UPDATE_SUPPORT = True  # Support for hot updates without downtime
 
 
-class ClusterRole(Enum):
+class ClusterRole(Enum, Optional):
     """Cluster node roles."""
 
     MASTER = "master"

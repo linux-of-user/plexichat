@@ -373,7 +373,7 @@ def initialize_web_manager(app: FastAPI) -> WebInterfaceManager:
 # Utility functions
 def web_page(path: str, title: str, description: str, 
             interface_type: WebInterfaceType, requires_auth: bool = True,
-            permissions: List[str] = None, template: str = ""):
+            permissions: Optional[List[str]] = None, template: str = ""):
     """Decorator for registering web pages."""
     def decorator(func):
         if _web_manager:

@@ -5,7 +5,13 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-import redis.asyncio as redis  # type: ignore
+try:
+
+    import redis.asyncio as redis  # type: ignore
+
+except ImportError:
+
+    redis = None
 from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 
 from ...core_system.config import get_config
@@ -301,12 +307,12 @@ class ConsolidatedDatabaseManager:
             # Initialize encryption manager
             self.encryption_manager = quantum_encryption
             if hasattr(self.encryption_manager, 'initialize'):
-                await self.encryption_manager.initialize()  # type: ignore
+                await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()  # type: ignore
 
             # Initialize key manager
             self.key_manager = distributed_key_manager
             if hasattr(self.key_manager, 'initialize'):
-                await self.key_manager.initialize()  # type: ignore
+                await self.if key_manager and hasattr(key_manager, "initialize"): key_manager.initialize()  # type: ignore
 
             logger.info("Database security components initialized")
 
@@ -319,11 +325,11 @@ class ConsolidatedDatabaseManager:
         try:
             # Initialize migration manager
             self.migration_manager = zero_downtime_migration_manager
-            await self.migration_manager.initialize()
+            await self.if migration_manager and hasattr(migration_manager, "initialize"): migration_manager.initialize()
 
             # Initialize global data distribution
             self.global_distribution = global_data_distribution_manager
-            await self.global_distribution.initialize()
+            await self.if global_distribution and hasattr(global_distribution, "initialize"): global_distribution.initialize()
 
             # Initialize backup integration
             self.backup_integration = get_unified_backup_manager()
@@ -673,7 +679,7 @@ class ConsolidatedDatabaseManager:
     async def __aenter__(self):
         """Async context manager entry."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -696,7 +702,7 @@ async def initialize_database_system(config: Optional[dict] = None) -> bool:
 async def get_database_manager() -> ConsolidatedDatabaseManager:
     """Get the consolidated database manager instance."""
     if not database_manager.initialized:
-        await database_manager.initialize()
+        await if database_manager and hasattr(database_manager, "initialize"): database_manager.initialize()
     return database_manager
 
 

@@ -272,7 +272,7 @@ class UnifiedAuthManager:
             AuthenticationResponse with result and tokens
         """
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
         
         start_time = time.time()
         audit_id = f"auth_{int(start_time * 1000)}"
@@ -575,7 +575,7 @@ class UnifiedAuthManager:
     async def _ensure_default_admin(self) -> Dict[str, str]:
         """Ensure default admin account exists."""
         try:
-            if self.admin_file.exists():
+            if self.admin_file.exists() if self.admin_file else False:
                 with open(self.admin_file, 'r') as f:
                     admin_data = json.load(f)
 

@@ -123,7 +123,7 @@ class DistributedShardSystem:
     async def create_shards(self, data: bytes, request) -> List[Shard]:
         """Create shards from data with intelligent distribution."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         backup_id = request.backup_id
         shards = []

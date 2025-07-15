@@ -400,7 +400,7 @@ BACKUP_CONFIG = {
 # Legacy function maintained for backward compatibility
 async def initialize_database_system_legacy(config: Optional[dict] = None) -> bool:
     """
-    Legacy initialization function - use database_manager.initialize() instead.
+    Legacy initialization function - use if database_manager and hasattr(database_manager, "initialize"): database_manager.initialize() instead.
 
     Args:
         config: Optional configuration dictionary

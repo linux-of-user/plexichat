@@ -78,7 +78,7 @@ async def get_cluster_status():
 
     try:
         if not cluster_manager.initialized:
-            await cluster_manager.initialize()
+            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
         status = await cluster_manager.get_cluster_status()
         return {

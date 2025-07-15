@@ -151,7 +151,7 @@ async def enhanced_login(
 
         # Generate session
         session_id = secrets.token_urlsafe(32)
-        device_fingerprint = security_manager.generate_device_fingerlogger.info(
+        device_fingerprint = security_manager.generate_device_fingerprint(
             http_request, request.device_info
         )
 
@@ -362,7 +362,7 @@ async def change_password(
 
 @router.get("/me")
 @monitor_performance
-async def get_current_user from plexichat.infrastructure.utils.auth import get_current_user(
+async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
 ):

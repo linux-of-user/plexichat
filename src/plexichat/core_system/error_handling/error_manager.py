@@ -25,17 +25,14 @@ functionality into a single, comprehensive manager.
 
 # Import with error handling
 try:
-except ImportError:
-    EnhancedErrorHandler = None
+except ImportError: Optional[EnhancedErrorHandler] = None
 
 try:
-except ImportError:
-    CircuitBreaker = None
+except ImportError: Optional[CircuitBreaker] = None
     CircuitBreakerConfig = None
 
 try:
-except ImportError:
-    CrashReporter = None
+except ImportError: Optional[CrashReporter] = None
 
 logger = logging.getLogger(__name__)
 

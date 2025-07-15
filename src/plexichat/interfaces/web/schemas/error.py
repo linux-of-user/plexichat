@@ -1,10 +1,10 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 from pydantic import BaseModel, Field
 
 
-class ErrorDetail(BaseModel):
+class ErrorDetail(BaseModel, Optional):
     code: str
     message: str
 

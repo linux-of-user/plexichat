@@ -884,7 +884,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         # Initialize service (in production, this would be a singleton)
         backup_service = UniversalBackupService(from pathlib import Path
 Path("data"))
-        await backup_service.initialize()
+        await if backup_service and hasattr(backup_service, "initialize"): backup_service.initialize()
 
         # Parse excluded data types
         excluded_types = set()
@@ -936,7 +936,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     try:
         backup_service = UniversalBackupService(from pathlib import Path
 Path("data"))
-        await backup_service.initialize()
+        await if backup_service and hasattr(backup_service, "initialize"): backup_service.initialize()
 
         preferences = await backup_service.get_user_backup_preferences(current_user.id)
 
@@ -975,7 +975,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     try:
         backup_service = UniversalBackupService(from pathlib import Path
 Path("data"))
-        await backup_service.initialize()
+        await if backup_service and hasattr(backup_service, "initialize"): backup_service.initialize()
 
         # Get users to backup (implementation depends on your user model)
         # This is a placeholder - you'd need to implement user retrieval
@@ -986,8 +986,7 @@ Path("data"))
             # Get user object (placeholder)
             user = None  # Get user by ID
 
-            if user:
-                data_types = None
+            if user: Optional[data_types] = None
                 if request.data_types:
                     data_types = [BackupDataType(dt) for dt in request.data_types]
 
@@ -1033,7 +1032,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     try:
         backup_service = UniversalBackupService(from pathlib import Path
 Path("data"))
-        await backup_service.initialize()
+        await if backup_service and hasattr(backup_service, "initialize"): backup_service.initialize()
 
         # Get messages to backup (implementation depends on your message model)
         # This is a placeholder - you'd need to implement message retrieval
@@ -1076,7 +1075,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     try:
         backup_service = UniversalBackupService(from pathlib import Path
 Path("data"))
-        await backup_service.initialize()
+        await if backup_service and hasattr(backup_service, "initialize"): backup_service.initialize()
 
         stats = backup_service.get_statistics()
 

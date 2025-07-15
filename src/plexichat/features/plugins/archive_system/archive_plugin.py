@@ -94,8 +94,8 @@ class ArchiveSystemPlugin:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.plugin_dir = self.data_dir / "plugins" / "archive_system"
         self.plugin_dir.mkdir(parents=True, exist_ok=True)
         
@@ -131,9 +131,9 @@ Path(data_dir)
         logger.info("Initializing Archive System Plugin")
         
         # Initialize core components
-        await self.encryption_manager.initialize()
-        await self.shard_manager.initialize()
-        await self.location_database.initialize()
+        await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()
+        await self.if shard_manager and hasattr(shard_manager, "initialize"): shard_manager.initialize()
+        await self.if location_database and hasattr(location_database, "initialize"): location_database.initialize()
         
         # Initialize plugin database
         await self._initialize_archive_database()
@@ -438,8 +438,9 @@ Path(data_dir)
                     return None
 
                 # Load shard data (implementation depends on shard storage)
-                shard_path = from pathlib import Path
-Path(shard_location['shard_path'])
+                from pathlib import Path
+
+                shard_path = Path()(shard_location['shard_path'])
                 if shard_path.exists():
                     async with aiofiles.open(shard_path, 'rb') as f:
                         shard_data = await f.read()
@@ -599,8 +600,9 @@ Path(shard_location['shard_path'])
                 for shard_id in entry.shard_ids:
                     shard_location = await self.location_database.get_shard_location(shard_id, "system")
                     if shard_location:
-                        shard_path = from pathlib import Path
-Path(shard_location['shard_path'])
+                        from pathlib import Path
+
+                        shard_path = Path()(shard_location['shard_path'])
                         if shard_path.exists():
                             shard_path.unlink()
 

@@ -34,8 +34,7 @@ except ImportError:
 try:
     import psutil
     PSUTIL_AVAILABLE = True
-except ImportError:
-    psutil = None
+except ImportError: Optional[psutil] = None
     PSUTIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
@@ -324,11 +323,11 @@ class EnhancedTerminal:
         
         # Start input handling thread
         input_thread = threading.Thread(target=self.input_loop, daemon=True)
-        input_thread.start()
+        if input_thread and hasattr(input_thread, "start"): input_thread.start()
         
         # Start log monitoring thread
         log_thread = threading.Thread(target=self.log_monitor_loop, daemon=True)
-        log_thread.start()
+        if log_thread and hasattr(log_thread, "start"): log_thread.start()
         
         # Main loop
         try:
@@ -338,7 +337,7 @@ class EnhancedTerminal:
         except KeyboardInterrupt:
             self.running = False
         finally:
-            self.cleanup()
+            if self and hasattr(self, "cleanup"): self.cleanup()
     
     def input_loop(self):
         """Input handling loop."""

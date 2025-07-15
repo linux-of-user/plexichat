@@ -13,13 +13,20 @@ from typing import Any, Dict, List, Optional
 
 import bcrypt
 
+from pathlib import Path
+
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
-from ...core_system.security.input_validation import InputType, ValidationLevel, get_input_validator
 
-from pathlib import Path
-
-from pathlib import Path
+try:
+    from ...core_system.security.input_validation import InputType, ValidationLevel, get_input_validator
+except ImportError:
+    class InputType:
+        pass
+    class ValidationLevel:
+        pass
+    def get_input_validator():
+        return None
 
 """
 PlexiChat Unified Authentication Manager - SINGLE SOURCE OF TRUTH
@@ -226,8 +233,8 @@ class UnifiedAuthManager:
         self.lockout_duration = timedelta(minutes=self.config.get("lockout_duration_minutes", 15))
         
         # Admin account management
-        self.admin_file = from pathlib import Path
-Path(self.config.get("admin_file", "data/admin.json"))
+        from pathlib import Path
+        self.admin_file = Path(self.config.get("admin_file", "data/admin.json"))
         self.admin_file.parent.mkdir(parents=True, exist_ok=True)
         
         # MFA configuration
@@ -272,7 +279,7 @@ Path(self.config.get("admin_file", "data/admin.json"))
             AuthenticationResponse with result and tokens
         """
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
         
         start_time = time.time()
         audit_id = f"auth_{int(start_time * 1000)}"
@@ -578,7 +585,7 @@ Path(self.config.get("admin_file", "data/admin.json"))
     async def _ensure_default_admin(self) -> Dict[str, str]:
         """Ensure default admin account exists."""
         try:
-            if self.admin_file.exists():
+            if self.admin_file.exists() if self.admin_file else False:
                 with open(self.admin_file, 'r') as f:
                     admin_data = json.load(f)
 

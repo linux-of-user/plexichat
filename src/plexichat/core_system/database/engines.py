@@ -9,7 +9,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import pymongo  # type: ignore
-import redis.asyncio as redis  # type: ignore
+try:
+    import redis.asyncio as redis  # type: ignore
+except ImportError:
+    redis = None
 from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 from sqlmodel import Session
 
@@ -150,8 +153,9 @@ settings.DATABASE_URL)
                 name="primary",
                 type=db_type,
                 role=DatabaseRole.PRIMARY,
-                url=from plexichat.core.config import settings
-settings.DATABASE_URL,
+                from plexichat.core.config import settings
+
+                url = settings().DATABASE_URL,
                 pool_size=getattr(settings, 'DB_POOL_SIZE', 20),
                 max_overflow=getattr(settings, 'DB_MAX_OVERFLOW', 30),
                 echo=getattr(settings, 'DB_ECHO', False)

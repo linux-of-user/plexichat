@@ -63,7 +63,7 @@ class CrashContext:
     
     # Additional context
     additional_context: Dict[str, Any] = None
-    recovery_suggestions: List[str] = None
+    recovery_suggestions: Optional[List[str]] = None
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -78,8 +78,8 @@ class CrashReporter:
     """Advanced crash reporting system."""
     
     def __init__(self, crash_log_dir: str = "logs/crashes"):
-        self.crash_log_dir = from pathlib import Path
-Path(crash_log_dir)
+        self.from pathlib import Path
+crash_log_dir = Path()(crash_log_dir)
         self.crash_log_dir.mkdir(parents=True, exist_ok=True)
         
         self.crash_history: List[CrashContext] = []
@@ -117,8 +117,8 @@ Path(crash_log_dir)
     async def initialize(self, config: Dict[str, Any] = None):
         """Initialize the crash reporter."""
         if config:
-            self.crash_log_dir = from pathlib import Path
-Path(config.get('crash_log_dir', self.crash_log_dir))
+            self.from pathlib import Path
+crash_log_dir = Path()(config.get('crash_log_dir', self.crash_log_dir))
             self.max_history_size = config.get('max_history_size', self.max_history_size)
         
         self.crash_log_dir.mkdir(parents=True, exist_ok=True)
@@ -127,8 +127,8 @@ Path(config.get('crash_log_dir', self.crash_log_dir))
     def report_crash(self, exception: Exception, 
                     severity: ErrorSeverity = ErrorSeverity.CRITICAL,
                     category: ErrorCategory = ErrorCategory.SYSTEM,
-                    user_id: str = None, session_id: str = None,
-                    request_id: str = None, component: str = None,
+                    user_id: Optional[str] = None, session_id: Optional[str] = None,
+                    request_id: Optional[str] = None, component: Optional[str] = None,
                     additional_context: Dict[str, Any] = None) -> CrashContext:
         """Report a crash with comprehensive context."""
         
@@ -152,8 +152,9 @@ Path(config.get('crash_log_dir', self.crash_log_dir))
         # Create crash context
         crash_context = CrashContext(
             error_id=error_id,
-            timestamp=from datetime import datetime
-datetime.now(),
+            from datetime import datetime
+
+            timestamp = datetime().now(),
             exception_type=exception_type,
             exception_message=str(exception),
             stack_trace=stack_trace,

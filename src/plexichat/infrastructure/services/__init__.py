@@ -280,13 +280,13 @@ class SecureService:
 
         try:
             # Stop service gracefully
-            await self.stop()
+            await if self and hasattr(self, "stop"): self.stop()
 
             # Wait a moment
             await asyncio.sleep(2)
 
             # Restart service
-            await self.start()
+            await if self and hasattr(self, "start"): self.start()
 
             self.restart_count += 1
             logger.info(f" Service recovery completed: {self.metadata.name}")
@@ -352,9 +352,9 @@ class SecureService:
 
     async def restart(self):
         """Restart the service."""
-        await self.stop()
+        await if self and hasattr(self, "stop"): self.stop()
         await asyncio.sleep(1)
-        await self.start()
+        await if self and hasattr(self, "start"): self.start()
 
     async def _on_start(self):
         """Override this method to implement service startup logic."""

@@ -225,7 +225,7 @@ async def get_backup_system_health(
         )
 
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         health = await government_backup_manager.get_system_health()
 
@@ -261,7 +261,7 @@ async def get_backup_overview(
     """Get backup system overview with recent activities."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         # Get recent backup operations
         recent_operations = await government_backup_manager.list_backups(limit=10)
@@ -297,7 +297,7 @@ async def create_backup(
     """Create a new backup operation."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         # Create backup operation
         operation = await government_backup_manager.create_backup(
@@ -332,7 +332,7 @@ async def list_backup_operations(
     """List backup operations with optional filtering."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         # Convert string filter to enum
         status_enum = None
@@ -372,7 +372,7 @@ async def get_backup_operation(
     """Get details of a specific backup operation."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         operation = await government_backup_manager.get_backup_status(backup_id)
         if not operation:
@@ -407,7 +407,7 @@ async def list_shards(
     """List backup shards."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         if not government_backup_manager.shard_manager:
             raise HTTPException(status_code=503, detail="Shard manager not available")
@@ -432,7 +432,7 @@ async def redistribute_shards(
     """Redistribute shards across backup nodes."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         if not government_backup_manager.distribution_manager:
             raise HTTPException(status_code=503, detail="Distribution manager not available")
@@ -457,7 +457,7 @@ async def verify_shards(
     """Verify integrity of all shards."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         if not government_backup_manager.shard_manager:
             raise HTTPException(status_code=503, detail="Shard manager not available")
@@ -496,7 +496,7 @@ async def list_backup_nodes(
         )
 
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         if not government_backup_manager.auth_manager:
             raise HTTPException(status_code=503, detail="Auth manager not available")
@@ -580,7 +580,7 @@ async def generate_backup_node_api_key(
         )
 
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         key_id, raw_key = await government_backup_manager.generate_backup_node_api_key(
             node_id=node_id,
@@ -611,7 +611,7 @@ async def create_archive(
     """Create a new archive."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         archive = await government_backup_manager.create_archive(
             name=request.name,
@@ -644,7 +644,7 @@ async def list_archives(
     """List archives."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         # Get archives from archive system
         archives = []  # This would be populated from the archive system
@@ -668,7 +668,7 @@ async def set_user_backup_preferences(
     """Set user backup preferences."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         await government_backup_manager.set_user_backup_preferences(
             user_id=user_id,
@@ -697,7 +697,7 @@ async def opt_out_user_backup(
     """Opt user out of backup system."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         result = await government_backup_manager.opt_out_user_backup(
             user_id=user_id,
@@ -724,7 +724,7 @@ async def opt_in_user_backup(
     """Opt user back into backup system."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         result = await government_backup_manager.opt_in_user_backup(
             user_id=user_id,
@@ -751,7 +751,7 @@ async def enable_proxy_mode(
     """Enable backup proxy mode."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         await government_backup_manager.enable_proxy_mode(reason)
 
@@ -772,7 +772,7 @@ async def disable_proxy_mode(
     """Disable backup proxy mode."""
     try:
         if not government_backup_manager.initialized:
-            await government_backup_manager.initialize()
+            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
 
         await government_backup_manager.disable_proxy_mode()
 

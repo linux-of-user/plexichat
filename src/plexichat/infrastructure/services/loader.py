@@ -111,8 +111,10 @@ class ServiceFileWatcher(FileSystemEventHandler):
         if event.is_directory:
             return
         
-        file_path = from pathlib import Path
-Path(event.src_path)
+        from pathlib import Path
+
+        
+        file_path = Path()(event.src_path)
         if file_path.suffix == '.py':
             # Debounce rapid file changes
             current_time = time.time()
@@ -130,8 +132,8 @@ class ModularServiceLoader:
     """Enhanced modular service loader."""
     
     def __init__(self, services_dir: str = "src/plexichat/services/modules"):
-        self.services_dir = from pathlib import Path
-Path(services_dir)
+        self.from pathlib import Path
+services_dir = Path()(services_dir)
         self.services_dir.mkdir(parents=True, exist_ok=True)
         
         # Service registry
@@ -307,13 +309,13 @@ Path(services_dir)
             
             # Initialize service
             if hasattr(service_instance, 'initialize'):
-                if not await service_instance.initialize():
+                if not await if service_instance and hasattr(service_instance, "initialize"): service_instance.initialize():
                     service.status = ServiceStatus.ERROR
                     return False
             
             # Start service
             if hasattr(service_instance, 'start'):
-                if not await service_instance.start():
+                if not await if service_instance and hasattr(service_instance, "start"): service_instance.start():
                     service.status = ServiceStatus.ERROR
                     return False
             
@@ -390,7 +392,7 @@ Path(services_dir)
                 service_instance = self.running_services[module_id]
                 
                 if hasattr(service_instance, 'stop'):
-                    await service_instance.stop()
+                    await if service_instance and hasattr(service_instance, "stop"): service_instance.stop()
                 
                 del self.running_services[module_id]
             
@@ -501,7 +503,7 @@ Path(services_dir)
             self.file_watcher = ServiceFileWatcher(self)
             self.observer = Observer()
             self.observer.schedule(self.file_watcher, str(self.services_dir), recursive=True)
-            self.observer.start()
+            self.if observer and hasattr(observer, "start"): observer.start()
             logger.info("File watcher started for hot-reload")
         except Exception as e:
             logger.warning(f"Failed to start file watcher: {e}")
@@ -543,7 +545,7 @@ Path(services_dir)
         try:
             # Stop file watcher
             if self.observer:
-                self.observer.stop()
+                self.if observer and hasattr(observer, "stop"): observer.stop()
                 self.observer.join()
             
             # Stop all running services

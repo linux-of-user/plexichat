@@ -18,16 +18,16 @@ Convenient decorators for applying error handling, circuit breakers,
 retry logic, and crash reporting to functions and methods.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 def error_handler(
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
     category: ErrorCategory = ErrorCategory.UNKNOWN,
-    component: str = None,
+    component: Optional[str] = None,
     suppress_errors: bool = False,
-    fallback_value: Any = None,
-    recovery_strategies: List[RecoveryStrategy] = None,
+    fallback_value: Optional[Any] = None,
+    recovery_strategies: Optional[List[RecoveryStrategy]] = None,
 ):
     """
     Decorator for comprehensive error handling.
@@ -102,7 +102,7 @@ def error_handler(
 def crash_handler(
     severity: ErrorSeverity = ErrorSeverity.CRITICAL,
     category: ErrorCategory = ErrorCategory.SYSTEM,
-    component: str = None,
+    component: Optional[str] = None,
     auto_restart: bool = False,
 ):
     """
@@ -166,11 +166,11 @@ def crash_handler(
 
 
 def circuit_breaker(
-    name: str = None,
+    name: Optional[str] = None,
     failure_threshold: int = 5,
     timeout_seconds: int = 60,
     recovery_timeout: int = 30,
-    expected_exceptions: List[Type[Exception]] = None,
+    expected_exceptions: Optional[List[Type[Exception]]] = None,
 ):
     """
     Decorator for circuit breaker pattern.
@@ -216,8 +216,8 @@ def retry(
     exponential_backoff: bool = True,
     backoff_multiplier: float = 2.0,
     max_delay: float = 60.0,
-    retry_on: List[Type[Exception]] = None,
-    on_retry: Callable = None,
+    retry_on: Optional[List[Type[Exception]]] = None,
+    on_retry: Optional[Callable] = None,
 ):
     """
     Decorator for retry logic with exponential backoff.
@@ -293,8 +293,8 @@ def retry(
 
 def timeout(
     seconds: float,
-    timeout_exception: Type[Exception] = None,
-    timeout_message: str = None,
+    timeout_exception: Optional[Type[Exception]] = None,
+    timeout_message: Optional[str] = None,
 ):
     """
     Decorator for function timeout.

@@ -158,7 +158,7 @@ class Phase2ScalabilityCoordinator:
 
     async def _initialize_service_registry(self):
         """Initialize service registry."""
-        await self.service_registry.start()
+        await self.if service_registry and hasattr(service_registry, "start"): service_registry.start()
         logger.info(" Service Registry initialized")
 
     async def _initialize_distributed_cache(self):
@@ -179,7 +179,7 @@ class Phase2ScalabilityCoordinator:
             except Exception as e:
                 logger.warning(f"Failed to add cache node {node.node_id}: {e}")
 
-        await self.distributed_cache.start()
+        await self.if distributed_cache and hasattr(distributed_cache, "start"): distributed_cache.start()
         logger.info(" Distributed Cache initialized")
 
     async def _initialize_task_queues(self):
@@ -187,7 +187,7 @@ class Phase2ScalabilityCoordinator:
         # Register default task handlers
         self._register_default_task_handlers()
 
-        await self.task_queue_manager.start()
+        await self.if task_queue_manager and hasattr(task_queue_manager, "start"): task_queue_manager.start()
         logger.info(" Task Queue System initialized")
 
     def _register_default_task_handlers(self):
@@ -238,7 +238,7 @@ class Phase2ScalabilityCoordinator:
     async def _initialize_service_mesh(self):
         """Initialize service mesh."""
         try:
-            await self.service_mesh_manager.initialize()
+            await self.if service_mesh_manager and hasattr(service_mesh_manager, "initialize"): service_mesh_manager.initialize()
             logger.info(" Service Mesh initialized")
         except Exception as e:
             logger.warning(f"Service Mesh initialization failed: {e}")
@@ -394,7 +394,7 @@ class Phase2ScalabilityCoordinator:
             priority=priority_map.get(priority, TaskPriority.NORMAL),
         )
 
-    async def get_cache_value(self, key: str, default: Any = None) -> Any:
+    async def get_cache_value(self, key: str, default: Optional[Any] = None) -> Any:
         """Get value from distributed cache."""
         return await self.distributed_cache.get(key, default)
 
@@ -435,10 +435,10 @@ class Phase2ScalabilityCoordinator:
             self.enabled = False
 
             # Stop components in reverse order
-            await self.task_queue_manager.stop()
-            await self.distributed_cache.stop()
+            await self.if task_queue_manager and hasattr(task_queue_manager, "stop"): task_queue_manager.stop()
+            await self.if distributed_cache and hasattr(distributed_cache, "stop"): distributed_cache.stop()
             await self.microservices_orchestrator.stop_all_services()
-            await self.service_registry.stop()
+            await self.if service_registry and hasattr(service_registry, "stop"): service_registry.stop()
 
             logger.info(" Phase II Scalability System shutdown complete")
 

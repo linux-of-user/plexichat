@@ -70,7 +70,7 @@ class ConfigManager:
     def _load_config(self):
         """Load configuration from file."""
         try:
-            if self.config_file.exists():
+            if self.config_file.exists() if self.config_file else False:
                 with open(self.config_file, 'r') as f:
                     self.config = json.load(f)
                 self.logger.info(f"Configuration loaded from {self.config_file}")
@@ -152,7 +152,7 @@ class ConfigManager:
         }
         self.save_config()
     
-    def get(self, key: str, default: Any = None) -> Any:
+    def get(self, key: str, default: Optional[Any] = None) -> Any:
         """Get configuration value using dot notation."""
         with self.lock:
             keys = key.split('.')
@@ -214,8 +214,9 @@ Path(path).mkdir(parents=True, exist_ok=True)
     def safe_write_file(filepath: Union[str, Path], content: Union[str, bytes], backup: bool = True) -> Result[str]:
         """Safely write file with optional backup."""
         try:
-            filepath = from pathlib import Path
-Path(filepath)
+            from pathlib import Path
+
+            filepath = Path()(filepath)
             
             # Create backup if requested and file exists
             if backup and filepath.exists():
@@ -239,8 +240,9 @@ Path(filepath)
     def safe_read_file(filepath: Union[str, Path], binary: bool = False) -> Result[Union[str, bytes]]:
         """Safely read file."""
         try:
-            filepath = from pathlib import Path
-Path(filepath)
+            from pathlib import Path
+
+            filepath = Path()(filepath)
             
             if not filepath.exists():
                 return Result.error_result("File not found", "FILE_NOT_FOUND")
@@ -258,8 +260,9 @@ Path(filepath)
     def get_file_info(filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Get file information."""
         try:
-            filepath = from pathlib import Path
-Path(filepath)
+            from pathlib import Path
+
+            filepath = Path()(filepath)
             if not filepath.exists():
                 return None
             
@@ -306,8 +309,9 @@ datetime.utcnow()
     @staticmethod
     def time_ago(dt: datetime) -> str:
         """Get human-readable time ago string."""
-        now = from datetime import datetime
-datetime.now()
+        from datetime import datetime
+
+        now = datetime().now()
         diff = now - dt
         
         if diff.days > 0:

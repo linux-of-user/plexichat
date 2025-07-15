@@ -102,7 +102,7 @@ class ModerationConfig:
     timeout_seconds: int = 30
     max_retries: int = 3
     custom_prompts: Dict[str, str] = None
-    enabled_categories: List[ModerationCategory] = None
+    enabled_categories: Optional[List[ModerationCategory]] = None
     
     def __post_init__(self):
         if self.custom_prompts is None:
@@ -114,18 +114,18 @@ class ModerationEngine:
     """Advanced AI moderation engine with multiple provider support."""
     
     def __init__(self, config_path: str = "config/moderation_config.json"):
-        self.config_path = from pathlib import Path
-Path(config_path)
+        self.from pathlib import Path
+config_path = Path()(config_path)
         self.configs: Dict[str, ModerationConfig] = {}
         self.session: Optional[aiohttp.ClientSession] = None
-        self.db_path = from pathlib import Path
-Path("data/moderation.db")
+        self.from pathlib import Path
+db_path = Path()("data/moderation.db")
         self.load_config()
         self._init_database()
         
     def load_config(self):
         """Load moderation configuration."""
-        if self.config_path.exists():
+        if self.config_path.exists() if self.config_path else False:
             try:
                 with open(self.config_path, 'r') as f:
                     data = json.load(f)
@@ -521,4 +521,4 @@ Path("data/moderation.db")
     async def cleanup(self):
         """Cleanup resources."""
         if self.session:
-            await self.session.close()
+            await if self.session: self.session.close()

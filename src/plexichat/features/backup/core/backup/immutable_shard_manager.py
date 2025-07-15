@@ -216,7 +216,7 @@ class ImmutableShardManager:
             await self.quantum_engine.initialize_key_system()
 
             # Initialize zero-knowledge protocol
-            await self.zero_knowledge_protocol.initialize()
+            await self.if zero_knowledge_protocol and hasattr(zero_knowledge_protocol, "initialize"): zero_knowledge_protocol.initialize()
 
             # Generate signing keys
             await self._generate_signing_keys()
@@ -297,12 +297,12 @@ class ImmutableShardManager:
             raise
 
     async def create_immutable_shard(
-        self, data: bytes, creator_id: str, parent_shard_id: str = None
+        self, data: bytes, creator_id: str, parent_shard_id: Optional[str] = None
     ) -> ImmutableShard:
         """Create a new immutable shard with cryptographic integrity."""
         try:
             if not self.initialized:
-                await self.initialize()
+                await if self and hasattr(self, "initialize"): self.initialize()
 
             logger.info(f" Creating immutable shard ({len(data)} bytes)...")
 

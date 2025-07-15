@@ -3,7 +3,32 @@ from typing import Dict, List, Optional, Any
 import sys
 
 
-from .core.config_manager import ConfigManager
+try:
+    from .core.config_manager import ConfigurationManager as ConfigManager
+except ImportError:
+    try:
+        from .core_system.config import get_config
+        class ConfigManager:
+            def __init__(self):
+                self.config = type('Config', (), {
+                    'server': type('Server', (), {
+                        'host': '127.0.0.1',
+                        'port': 8000,
+                        'reload': False,
+                        'workers': 1
+                    })()
+                })()
+    except ImportError:
+        class ConfigManager:
+            def __init__(self):
+                self.config = type('Config', (), {
+                    'server': type('Server', (), {
+                        'host': '127.0.0.1',
+                        'port': 8000,
+                        'reload': False,
+                        'workers': 1
+                    })()
+                })()
 from .main import app
 
 

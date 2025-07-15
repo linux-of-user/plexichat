@@ -61,8 +61,8 @@ class EnhancedShardLocationDatabase:
     """
     
     def __init__(self, data_dir: Path, encryption_manager: QuantumResistantEncryptionManager):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.encryption_manager = encryption_manager
         
         # Database paths for redundancy

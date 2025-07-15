@@ -3,6 +3,7 @@ from .message import Message
 from .role import Permissions, Role
 from .server import Server
 from .server_member import ServerMember
+from typing import Optional
 
 
 """

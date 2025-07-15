@@ -35,7 +35,7 @@ Advanced error analytics system for pattern detection, trend analysis,
 and predictive error prevention.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 @dataclass

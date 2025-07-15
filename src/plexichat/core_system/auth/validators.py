@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-logger = logging.getLogger(__name__)
 class ValidationResult:
     """Validation result."""
     valid: bool

@@ -9,7 +9,10 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 import aio_pika
-import redis.asyncio as redis
+try:
+    import redis.asyncio as redis
+except ImportError:
+    redis = None
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 
@@ -78,7 +81,7 @@ class Message:
     payload: Any
     headers: Dict[str, Any]
     priority: MessagePriority = MessagePriority.NORMAL
-    created_at: datetime = None
+    created_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
     retry_count: int = 0
     max_retries: int = 3
@@ -265,7 +268,7 @@ class MessageQueueManager:
                 max_request_size=kafka_config.get("max_request_size", 1048576)
             )
 
-            await self.kafka_producer.start()
+            await self.if kafka_producer and hasattr(kafka_producer, "start"): kafka_producer.start()
 
             logger.info(" Kafka initialized")
             return True
@@ -546,7 +549,7 @@ class MessageQueueManager:
                 max_poll_records=kafka_config.get("max_poll_records", 500)
             )
 
-            await consumer.start()
+            await if consumer and hasattr(consumer, "start"): consumer.start()
             self.kafka_consumers[topic] = consumer
 
             try:
@@ -575,7 +578,7 @@ class MessageQueueManager:
                         await consumer.commit()  # Commit to avoid infinite retry
 
             finally:
-                await consumer.stop()
+                await if consumer and hasattr(consumer, "stop"): consumer.stop()
 
         except Exception as e:
             logger.error(f" Kafka consumer error for topic {topic}: {e}")
@@ -939,19 +942,19 @@ class MessageQueueManager:
 
             # Close connections
             if self.rabbitmq_connection:
-                await self.rabbitmq_connection.close()
+                await if self.rabbitmq_connection: self.rabbitmq_connection.close()
                 logger.info(" RabbitMQ connection closed")
 
             if self.kafka_producer:
-                await self.kafka_producer.stop()
+                await self.if kafka_producer and hasattr(kafka_producer, "stop"): kafka_producer.stop()
                 logger.info(" Kafka producer stopped")
 
             for consumer in self.kafka_consumers.values():
-                await consumer.stop()
+                await if consumer and hasattr(consumer, "stop"): consumer.stop()
             logger.info(" Kafka consumers stopped")
 
             if self.redis_client:
-                await self.redis_client.close()
+                await if self.redis_client: self.redis_client.close()
                 logger.info(" Redis connection closed")
 
             logger.info(" Message Queue Manager shutdown complete")

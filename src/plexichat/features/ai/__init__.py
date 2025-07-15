@@ -5,6 +5,7 @@ from .ai_coordinator_simple import AICoordinator
 # from .api.monitoring_endpoints import router as monitoring_router
 # from .api.provider_endpoints import router as provider_router
 from .core.ai_abstraction_layer_simple import (
+from typing import Optional
     AIAbstractionLayer,
     AIAccessControl,
     AIModel,

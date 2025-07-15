@@ -40,7 +40,7 @@ class AnthropicConfig(ProviderConfig):
     temperature: float = 0.7
     top_p: float = 1.0
     default_model: str = "claude-3-sonnet-20240229"
-    available_models: List[str] = None
+    available_models: Optional[List[str]] = None
 
     def __post_init__(self):
         if self.available_models is None:
@@ -208,7 +208,7 @@ class AnthropicProvider(BaseAIProvider):
                 usage={"error": True},
             )
 
-    async def generate_embedding(self, text: str, model: str = None) -> List[float]:
+    async def generate_embedding(self, text: str, model: Optional[str] = None) -> List[float]:
         """Generate embeddings (Anthropic doesn't have embedding API, return empty)."""
         logger.warning("Anthropic doesn't provide embedding API")
         return []

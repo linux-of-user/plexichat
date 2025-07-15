@@ -14,7 +14,7 @@ from plexichat.app.models.moderation import (
     ModerationLog,
     ModerationStatus,
     UserModerationStatus,
-)
+, Optional)
 
 """
 Background task service for PlexiChat.
@@ -257,10 +257,8 @@ class BackgroundTaskService:
                 moderation_logs = session.exec(statement).all()
 
                 for log in moderation_logs:
-                    if log.target_user_id == user_id:
-                        log.target_user_id = None
-                    if log.moderator_id == user_id:
-                        log.moderator_id = None
+                    if log.target_user_id == user_id: Optional[log.target_user_id] = None
+                    if log.moderator_id == user_id: Optional[log.moderator_id] = None
                     cleanup_stats["moderation_logs_anonymized"] += 1
 
                 session.commit()

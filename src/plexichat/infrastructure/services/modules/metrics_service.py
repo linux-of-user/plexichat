@@ -69,7 +69,7 @@ SERVICE_METADATA = {
 class MetricsService:
     """System metrics collection service."""
 
-    def __init__(self):
+    def __init__(self, Optional):
         self.config = SERVICE_METADATA["config"]
         self.metrics_data = defaultdict(lambda: deque(maxlen=2880))  # 24h at 30s intervals
         self.alert_callbacks = []
@@ -488,13 +488,13 @@ def create_service():
 async def initialize():
     """Initialize the metrics service."""
     service = create_service()
-    return await service.initialize()
+    return await if service and hasattr(service, "initialize"): service.initialize()
 
 
 async def start():
     """Start the metrics service."""
     service = create_service()
-    return await service.start()
+    return await if service and hasattr(service, "start"): service.start()
 
 
 async def health_check():

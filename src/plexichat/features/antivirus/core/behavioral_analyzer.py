@@ -42,8 +42,8 @@ class BehavioralAnalyzer:
     """
     
     def __init__(self, data_dir: Path):
-        self.data_dir = from pathlib import Path
-Path(data_dir)
+        self.from pathlib import Path
+data_dir = Path()(data_dir)
         self.behavioral_db_path = self.data_dir / "behavioral_analysis.db"
         
         # Suspicious API imports that malware commonly uses
@@ -161,8 +161,9 @@ Path(data_dir)
             ScanResult with behavioral analysis results
         """
         start_time = datetime.now(timezone.utc)
-        path = from pathlib import Path
-Path(file_path)
+        from pathlib import Path
+
+        path = Path()(file_path)
         
         if not path.exists():
             return ScanResult(

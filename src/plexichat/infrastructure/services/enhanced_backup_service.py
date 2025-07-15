@@ -58,8 +58,8 @@ class EnhancedBackupService:
     
     def __init__(self, session: Session):
         self.session = session
-        self.backup_dir = from pathlib import Path
-Path("secure_backups")
+        self.from pathlib import Path
+backup_dir = Path()("secure_backups")
         self.backup_dir.mkdir(exist_ok=True, mode=0o700)  # Secure permissions
         
         # Government security standards

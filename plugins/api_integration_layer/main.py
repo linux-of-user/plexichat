@@ -62,8 +62,7 @@ class APIIntegrationCore:
         # Initialize cache
         if self.cache_enabled:
             self.cache = TTLCache(maxsize=1000, ttl=self.cache_ttl)
-        else:
-            self.cache = None
+        else: Optional[self.cache] = None
         
         # Rate limiting
         self.request_times = []

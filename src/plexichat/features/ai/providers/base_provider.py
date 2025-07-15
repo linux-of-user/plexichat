@@ -132,7 +132,7 @@ class BaseAIProvider(ABC):
     async def cleanup(self):
         """Cleanup resources."""
         if self.session:
-            await self.session.close()
+            await if self.session: self.session.close()
         self.status = ProviderStatus.UNAVAILABLE
 
     @abstractmethod

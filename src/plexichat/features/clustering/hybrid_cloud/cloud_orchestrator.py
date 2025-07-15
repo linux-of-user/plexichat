@@ -235,7 +235,7 @@ class HybridCloudOrchestrator:
 
     async def place_workload(self, workload_id: str, workload_type: WorkloadType,
                            resource_requirements: Dict[str, Any],
-                           compliance_requirements: List[ComplianceRequirement] = None,
+                           compliance_requirements: Optional[List[ComplianceRequirement]] = None,
                            cost_constraints: Dict[str, float] = None) -> Optional[WorkloadPlacement]:
         """Intelligently place workload across hybrid cloud."""
         try:

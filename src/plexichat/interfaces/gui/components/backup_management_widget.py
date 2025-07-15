@@ -361,7 +361,7 @@ class EnhancedBackupManagementWidget:
         """Load backup status from the backup manager."""
         try:
             if not backup_manager.initialized:
-                await backup_manager.initialize()
+                await if backup_manager and hasattr(backup_manager, "initialize"): backup_manager.initialize()
 
             # Get system health
             health = await backup_manager.get_system_health()
@@ -928,7 +928,7 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         """Start background monitoring thread."""
         if not self.background_thread or not self.background_thread.is_alive():
             self.background_thread = threading.Thread(target=self._background_monitor, daemon=True)
-            self.background_thread.start()
+            self.if background_thread and hasattr(background_thread, "start"): background_thread.start()
 
     def _background_monitor(self):
         """Background monitoring loop."""

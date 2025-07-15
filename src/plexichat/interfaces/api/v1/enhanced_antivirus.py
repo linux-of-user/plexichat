@@ -99,7 +99,7 @@ async def get_antivirus_manager() -> EnhancedAntivirusManager:
     global antivirus_manager
     if not antivirus_manager:
         antivirus_manager = EnhancedAntivirusManager()
-        await antivirus_manager.initialize()
+        await if antivirus_manager and hasattr(antivirus_manager, "initialize"): antivirus_manager.initialize()
     return antivirus_manager
 
 # Authentication dependency (placeholder)

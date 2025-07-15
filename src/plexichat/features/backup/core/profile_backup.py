@@ -244,7 +244,7 @@ class ProfileBackupManager:
 
     async def backup_user_profile(self,
                                 user_id: int,
-                                backup_types: List[ProfileBackupType] = None,
+                                backup_types: Optional[List[ProfileBackupType]] = None,
                                 force_backup: bool = False) -> Optional[str]:
         """
         Backup user profile data.
@@ -478,7 +478,7 @@ datetime = datetime.now().timestamp())}"
         logger.info(f"Restoring profile for user {request.user_id} with mode {request.restore_mode}")
         return True
 
-    async def _log_restore_operation(self, request: ProfileRestoreRequest, success: bool, notes: str = None):
+    async def _log_restore_operation(self, request: ProfileRestoreRequest, success: bool, notes: Optional[str] = None):
         """Log profile restore operation."""
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""

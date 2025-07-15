@@ -17,7 +17,7 @@ Consolidates all shard distribution functionality with:
 - Automatic rebalancing
 """
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, Optional)
 
 
 class DistributionStrategy(Enum):
@@ -70,7 +70,7 @@ class UnifiedDistributionManager:
     async def distribute_shards(self, shards: List[Any], operation) -> Dict[str, Any]:
         """Distribute shards across available nodes."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         distribution_results = {}
 

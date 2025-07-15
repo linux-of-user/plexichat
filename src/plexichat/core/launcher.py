@@ -144,7 +144,7 @@ class PlexiChatLauncher:
         """Start the application."""
         try:
             if not self._initialized:
-                if not await self.initialize():
+                if not await if self and hasattr(self, "initialize"): self.initialize():
                     return False
 
             logger.info(f" Starting PlexiChat on {self.config.host}:{self.config.port}")
@@ -197,7 +197,7 @@ class PlexiChatLauncher:
     def run(self):
         """Run the application (blocking)."""
         try:
-            asyncio.run(self.start())
+            asyncio.run(if self and hasattr(self, "start"): self.start())
         except KeyboardInterrupt:
             logger.info("Received interrupt signal")
         except Exception as e:

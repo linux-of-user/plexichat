@@ -84,8 +84,7 @@ class FileManager:
     """Comprehensive file management system."""
     
     def __init__(self):
-        self.root_path = from pathlib import Path
-Path(".")
+        self.root_path = Path(".")
         self.allowed_extensions = {
             '.yaml', '.yml', '.json', '.py', '.js', '.html', '.css', 
             '.md', '.txt', '.log', '.conf', '.cfg', '.ini', '.toml'
@@ -262,8 +261,7 @@ Path(".")
             backup_dir = self.root_path / "backups" / "file_editor"
             backup_dir.mkdir(parents=True, exist_ok=True)
             
-            timestamp = from datetime import datetime
-datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_name = f"{file_path.name}.{timestamp}.bak"
             backup_path = backup_dir / backup_name
             
@@ -329,16 +327,14 @@ datetime.now().strftime("%Y%m%d_%H%M%S")
 file_manager = FileManager()
 
 @router.get("/tree", response_model=FileTreeResponse)
-async def get_file_tree(current_user: from plexichat.features.users.user import User
-User = Depends(get_current_admin_user)):
+async def get_file_tree(current_user: User = Depends(get_current_admin_user)):
     """Get organized file tree for the editor."""
     return await file_manager.get_file_tree()
 
 @router.get("/content")
 async def get_file_content(
     path: str,
-    current_user: from plexichat.features.users.user import User
-User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """Get file content and metadata."""
     return await file_manager.read_file(path)
@@ -346,8 +342,7 @@ User = Depends(get_current_admin_user)
 @router.post("/save")
 async def save_file_content(
     file_data: FileContent,
-    current_user: from plexichat.features.users.user import User
-User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """Save file content."""
     success = await file_manager.write_file(file_data.path, file_data.content)
@@ -357,13 +352,11 @@ User = Depends(get_current_admin_user)
 async def validate_file_content(
     path: str,
     content: str,
-    current_user: from plexichat.features.users.user import User
-User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """Validate file content without saving."""
     try:
-        full_path = from pathlib import Path
-Path(path)
+        full_path = Path(path)
         await file_manager._validate_content(full_path, content)
         return {"valid": True, "message": "Content is valid"}
     except HTTPException as e:
@@ -372,15 +365,12 @@ Path(path)
 @router.get("/backups")
 async def list_file_backups(
     path: str,
-    current_user: from plexichat.features.users.user import User
-User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """List available backups for a file."""
     try:
-        file_path = from pathlib import Path
-Path(path)
-        backup_dir = from pathlib import Path
-Path("backups/file_editor")
+        file_path = Path(path)
+        backup_dir = Path("backups/file_editor")
         
         if not backup_dir.exists():
             return {"backups": []}
@@ -410,14 +400,12 @@ Path("backups/file_editor")
 async def restore_file_backup(
     backup_path: str,
     target_path: str,
-    current_user: from plexichat.features.users.user import User
-User = Depends(get_current_admin_user)
+    current_user: User = Depends(get_current_admin_user)
 ):
     """Restore file from backup."""
     try:
-        backup_file = from pathlib import Path
-Path(backup_path)
-Path(target_path)
+        backup_file = Path(backup_path)
+        target_path = str(Path(target_path))
         
         if not backup_file.exists():
             raise HTTPException(status_code=404, detail="Backup file not found")

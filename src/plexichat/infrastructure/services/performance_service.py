@@ -274,18 +274,15 @@ class PerformanceService(BaseService):
         # Import collectors based on availability
         try:
             self.perf_optimizer = PerformanceOptimizer()
-        except ImportError:
-            self.perf_optimizer = None
+        except ImportError: Optional[self.perf_optimizer] = None
 
         try:
             self.cluster_monitor = PerformanceMonitor()
-        except ImportError:
-            self.cluster_monitor = None
+        except ImportError: Optional[self.cluster_monitor] = None
 
         try:
             self.ai_analytics = analytics_engine
-        except ImportError:
-            self.ai_analytics = None
+        except ImportError: Optional[self.ai_analytics] = None
 
     async def _system_monitoring_loop(self):
         """System metrics monitoring loop."""
@@ -708,7 +705,7 @@ async def get_performance_service() -> PerformanceService:
     global _performance_service
     if _performance_service is None:
         _performance_service = PerformanceService()
-        await _performance_service.start()
+        await if _performance_service and hasattr(_performance_service, "start"): _performance_service.start()
     return _performance_service
 
 

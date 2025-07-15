@@ -120,7 +120,7 @@ class AntivirusClusterNode(ClusterNode):
         logger.info(f"Initializing Antivirus Cluster Node {self.node_id}")
 
         # Initialize antivirus engine
-        await self.antivirus_engine.initialize()
+        await self.if antivirus_engine and hasattr(antivirus_engine, "initialize"): antivirus_engine.initialize()
 
         # Start antivirus-specific background tasks
         asyncio.create_task(self._scan_processing_task())

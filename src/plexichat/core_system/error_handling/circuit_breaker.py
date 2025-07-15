@@ -31,7 +31,7 @@ class CircuitBreakerConfig:
     failure_threshold: int = 5  # Number of failures before opening
     timeout_seconds: int = 60  # Time to wait before trying again
     recovery_timeout: int = 30  # Time to wait in half-open state
-    expected_exceptions: List[Type[Exception]] = None
+    expected_exceptions: Optional[List[Type[Exception]]] = None
     success_threshold: int = 3  # Successes needed to close from half-open
 
     def __post_init__(self):
@@ -64,7 +64,7 @@ class CircuitBreakerError(Exception):
 class CircuitBreaker:
     """Advanced circuit breaker implementation."""
 
-    def __init__(self, name: str, config: CircuitBreakerConfig = None):
+    def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
         self.name = name
         self.config = config or CircuitBreakerConfig()
         self.state = CircuitState.CLOSED
@@ -222,7 +222,7 @@ class CircuitBreaker:
 
 
 # Circuit breaker decorator
-def circuit_breaker(name: str, config: CircuitBreakerConfig = None):
+def circuit_breaker(name: str, config: Optional[CircuitBreakerConfig] = None):
     """Decorator to apply circuit breaker to a function."""
     breaker = CircuitBreaker(name, config)
 

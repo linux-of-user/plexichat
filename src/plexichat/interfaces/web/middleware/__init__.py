@@ -1,9 +1,15 @@
+from typing import Optional
 """
 PlexiChat Web Middleware
 
 Consolidated middleware components from the app directory.
 All FastAPI middleware for security, logging, etc. are located here.
 """
+
+import importlib
+
+def import_module(module_name):
+    return importlib.import_module(module_name)
 
 # Import all middleware for easy access
 __all__ = []
@@ -18,7 +24,7 @@ middleware_modules = [
 
 for module_name in middleware_modules:
     try:
-        module = __import__(f".{module_name}", package=__name__, level=1)
+        module = importlib.import_module(f".{module_name}", __name__)
         # Add all public classes from the module
         for attr_name in dir(module):
             attr = getattr(module, attr_name)

@@ -10,7 +10,13 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-import numpy as np
+try:
+
+    import numpy as np
+
+except ImportError:
+
+    np = None
 from app.logger_config import logger
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes

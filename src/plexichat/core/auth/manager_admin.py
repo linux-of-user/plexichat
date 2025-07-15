@@ -41,7 +41,7 @@ class DefaultAdminManager:
         """Ensure default admin account exists and return credentials."""
         
         # Check if default admin already exists
-        if self.admin_file.exists():
+        if self.admin_file.exists() if self.admin_file else False:
             try:
                 with open(self.admin_file, 'r', encoding='utf-8') as f:
                     admin_data = json.load(f)
@@ -188,7 +188,7 @@ For security, this default account requires a password change on first login.
     
     def get_default_admin_data(self) -> Optional[Dict]:
         """Get default admin data if it exists."""
-        if not self.admin_file.exists():
+        if not self.admin_file.exists() if self.admin_file else False:
             return None
         
         try:
@@ -226,8 +226,9 @@ For security, this default account requires a password change on first login.
             # Hash new password
             admin_data["password_hash"] = self._hash_password(new_password)
             admin_data["must_change_password"] = False
-            admin_data["password_changed_at"] = from datetime import datetime
-datetime.now().isoformat()
+            from datetime import datetime
+
+            admin_data["password_changed_at"] = datetime.now().now().isoformat()
             
             # Save updated data
             with open(self.admin_file, 'w', encoding='utf-8') as f:
@@ -243,7 +244,7 @@ datetime.now().isoformat()
     def delete_credentials_file(self):
         """Delete the credentials file for security."""
         try:
-            if self.credentials_file.exists():
+            if self.credentials_file.exists() if self.credentials_file else False:
                 self.credentials_file.unlink()
                 logger.info("Credentials file deleted for security")
         except Exception as e:

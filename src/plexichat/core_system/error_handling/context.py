@@ -173,7 +173,7 @@ class ErrorBoundary:
     def __init__(
         self,
         name: str,
-        fallback_value: Any = None,
+        fallback_value: Optional[Any] = None,
         fallback_function: Optional[Callable] = None,
         recovery_enabled: bool = True,
         suppress_errors: bool = False,

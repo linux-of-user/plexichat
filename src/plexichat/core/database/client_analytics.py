@@ -6,7 +6,7 @@ from typing import Any, AsyncGenerator, Dict, List
 PlexiChat Analytics Database Clients
 
 Specialized database clients for analytics workloads:
-- ClickHouse (Column-oriented OLAP)
+- ClickHouse (Column-oriented OLAP, Optional)
 - Apache Druid (Real-time analytics)
 - TimescaleDB (Time-series analytics)
 - Apache Pinot (Real-time OLAP)
@@ -180,8 +180,8 @@ class ClickHouseClient(AbstractDatabaseClient):
 
     async def create_table(self, table_name: str, schema: Dict[str, str],
                           engine: str = "MergeTree",
-                          partition_by: List[str] = None,
-                          order_by: List[str] = None) -> bool:
+                          partition_by: Optional[List[str]] = None,
+                          order_by: Optional[List[str]] = None) -> bool:
         """Create ClickHouse table optimized for analytics."""
         try:
             # Build column definitions
@@ -222,7 +222,7 @@ class ClickHouseClient(AbstractDatabaseClient):
             return False
 
     async def create_materialized_view(self, view_name: str, source_table: str,
-                                     select_query: str, target_table: str = None) -> bool:
+                                     select_query: str, target_table: Optional[str] = None) -> bool:
         """Create materialized view for real-time aggregations."""
         try:
             if target_table:
@@ -414,7 +414,7 @@ class TimescaleDBClient(AbstractDatabaseClient):
         """Disconnect from TimescaleDB."""
         try:
             if self.connection_pool:
-                await self.connection_pool.close()
+                await if self.connection_pool: self.connection_pool.close()
                 self.is_connected = False
             return True
         except Exception as e:

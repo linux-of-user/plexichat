@@ -64,7 +64,7 @@ from plexichat.core.database.enhanced_abstraction import (
     plexichat.core.database.performance_integration,
     point,
     properly,
-)
+, Optional)
     system,
     system.,
     that,

@@ -279,7 +279,7 @@ class EnhancedPluginManager:
                 str(self.plugins_dir),
                 recursive=True
             )
-            self.file_observer.start()
+            self.if file_observer and hasattr(file_observer, "start"): file_observer.start()
             self.logger.info("Plugin file watching enabled")
         except Exception as e:
             self.logger.warning(f"File watching setup failed: {e}")
@@ -456,7 +456,7 @@ class EnhancedPluginManager:
             plugin_instance.manager = self
             
             # Initialize plugin
-            success = await plugin_instance.initialize()
+            success = await if plugin_instance and hasattr(plugin_instance, "initialize"): plugin_instance.initialize()
             if success:
                 self.plugins[plugin_name] = plugin_instance
                 self.plugin_status[plugin_name] = PluginStatus.LOADED
@@ -493,7 +493,7 @@ class EnhancedPluginManager:
                 
                 # Cleanup plugin
                 if hasattr(plugin, 'cleanup'):
-                    await plugin.cleanup()
+                    await if plugin and hasattr(plugin, "cleanup"): plugin.cleanup()
                 
                 # Remove from registry
                 del self.plugins[plugin_name]

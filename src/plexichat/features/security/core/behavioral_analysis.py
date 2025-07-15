@@ -7,7 +7,13 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-import numpy as np
+try:
+
+    import numpy as np
+
+except ImportError:
+
+    np = None
 
 
 

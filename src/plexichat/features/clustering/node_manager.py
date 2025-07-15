@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
-import redis
+try:
+    import redis
+except ImportError:
+    redis = None
 
 from pathlib import Path
 from datetime import datetime
@@ -124,7 +127,7 @@ class ClusterConfig:
 class NodeManager:
     """Manages cluster nodes and load balancing."""
 
-    def __init__(self, node_id: str = None, role: NodeRole = NodeRole.WORKER):
+    def __init__(self, node_id: Optional[str] = None, role: NodeRole = NodeRole.WORKER):
         self.logger = logging.getLogger(__name__)
 
         # Node identity
@@ -297,7 +300,7 @@ Path("config/cluster.json")
         self.ClusterNode = ClusterNode
         self.ClusterState = ClusterState
 
-    async def join_cluster(self, master_endpoints: List[str] = None) -> bool:
+    async def join_cluster(self, master_endpoints: Optional[List[str]] = None) -> bool:
         """Join the cluster."""
         try:
             self.status = NodeStatus.JOINING
@@ -392,7 +395,7 @@ datetime = datetime.now(),
         for node_id, node_data in nodes_data.items():
             self.cluster_nodes[node_id] = NodeInfo(**node_data)
 
-    async def select_target_node(self, request: Request = None,
+    async def select_target_node(self, request: Optional[Request] = None,
                                service_type: str = "api") -> Optional[NodeInfo]:
         """Select the best target node for a request."""
         available_nodes = [

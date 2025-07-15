@@ -18,7 +18,7 @@ Enhanced Plugin CLI Interface for PlexiChat
 Command-line interface for comprehensive plugin management.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 class PluginCLI:
     """Command-line interface for plugin management."""
 

@@ -32,7 +32,7 @@ from pathlib import Path
     patterns,
     suspicious,
     that,
-)
+, Optional)
 
 logger = logging.getLogger(__name__)
 

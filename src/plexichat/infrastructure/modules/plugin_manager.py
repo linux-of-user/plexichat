@@ -174,7 +174,7 @@ class PluginSystemAccess:
             raise PermissionError("Plugin lacks CACHING capability")
         return await phase2_scalability.get_cache_value(key)
 
-    async def set_cache_value(self, key: str, value: Any, ttl: int = None) -> bool:
+    async def set_cache_value(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """Set value in distributed cache."""
         if ModuleCapability.CACHING not in self.permissions.capabilities:
             raise PermissionError("Plugin lacks CACHING capability")
@@ -255,7 +255,7 @@ class PluginInterface(BaseModule):
     with the unified module system and security standards.
     """
 
-    def __init__(self, name: str = None, version: str = "1.0.0"):
+    def __init__(self, name: Optional[str] = None, version: str = "1.0.0"):
         # Use class name if no name provided
         if name is None:
             name = self.__class__.__name__
@@ -401,7 +401,7 @@ class UnifiedPluginManager:
             await self.discover_plugins()
 
             # Initialize plugin configuration manager
-            await self.plugin_config_manager.initialize()
+            await self.if plugin_config_manager and hasattr(plugin_config_manager, "initialize"): plugin_config_manager.initialize()
 
             # Load enabled plugins
             await self.load_enabled_plugins()
@@ -509,7 +509,7 @@ class UnifiedPluginManager:
     async def load_plugin(self, plugin_name: str) -> bool:
         """Load a specific plugin."""
         if not self.initialized:
-            await self.initialize()
+            await if self and hasattr(self, "initialize"): self.initialize()
 
         with self._lock:
             if plugin_name not in self.modules:
@@ -569,7 +569,7 @@ class UnifiedPluginManager:
                         logger.warning(f"  - {warning.message}")
 
                 # Initialize plugin
-                if not await plugin_instance.initialize():
+                if not await if plugin_instance and hasattr(plugin_instance, "initialize"): plugin_instance.initialize():
                     raise RuntimeError(f"Plugin initialization failed: {plugin_name}")
 
                 # Run plugin self-tests if available
@@ -1019,13 +1019,13 @@ Path(event.src_path)
                     observer.schedule(handler, str(path), recursive=True)
                     logger.info(f"Watching for changes: {path}")
 
-            observer.start()
+            if observer and hasattr(observer, "start"): observer.start()
 
             # Keep monitoring
             while self.initialized:
                 await asyncio.sleep(1)
 
-            observer.stop()
+            if observer and hasattr(observer, "stop"): observer.stop()
             observer.join()
 
         except ImportError:

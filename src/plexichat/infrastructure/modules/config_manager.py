@@ -246,7 +246,7 @@ class PluginConfigurationManager:
             logger.error(f"Failed to get plugin config {plugin_name}: {e}")
             return None
 
-    def get_config_value(self, plugin_name: str, key: str, default: Any = None) -> Any:
+    def get_config_value(self, plugin_name: str, key: str, default: Optional[Any] = None) -> Any:
         """Get a specific configuration value."""
         config = self.get_plugin_config(plugin_name)
         if config is None:
@@ -501,7 +501,7 @@ Path(event.src_path)
             handler = ConfigFileHandler(self)
 
             self.file_observer.schedule(handler, str(self.config_dir), recursive=True)
-            self.file_observer.start()
+            self.if file_observer and hasattr(file_observer, "start"): file_observer.start()
 
             logger.info("Configuration file watching started")
 
@@ -534,7 +534,7 @@ Path(event.src_path)
         logger.info("Shutting down Plugin Configuration Manager")
 
         if self.file_observer:
-            self.file_observer.stop()
+            self.if file_observer and hasattr(file_observer, "stop"): file_observer.stop()
             self.file_observer.join()
 
 

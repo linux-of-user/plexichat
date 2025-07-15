@@ -8,7 +8,7 @@ PlexiChat Authentication Audit Manager
 Comprehensive audit logging for authentication events and compliance.
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 class AuthAuditManager:

@@ -167,12 +167,12 @@ class VersionChangelog:
 class ChangelogManager:
     """Manages changelog generation and parsing."""
     
-    def __init__(self, changelog_file: Path = None):
+    def __init__(self, changelog_file: Optional[Path] = None):
         """Initialize changelog manager."""
         self.changelog_file = changelog_file or from pathlib import Path
 Path("CHANGELOG.md")
-        self.changelog_data_file = from pathlib import Path
-Path("changelog.json")
+        self.from pathlib import Path
+changelog_data_file = Path()("changelog.json")
         self.version_changelogs: Dict[str, VersionChangelog] = {}
         
         # Load existing changelog
@@ -182,7 +182,7 @@ Path("changelog.json")
         """Load changelog from files."""
         try:
             # Load from JSON data file if exists
-            if self.changelog_data_file.exists():
+            if self.changelog_data_file.exists() if self.changelog_data_file else False:
                 with open(self.changelog_data_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     for version_str, changelog_data in data.items():
@@ -190,7 +190,7 @@ Path("changelog.json")
                         self.version_changelogs[version_str] = changelog
             
             # Parse markdown file if JSON doesn't exist
-            elif self.changelog_file.exists():
+            elif self.changelog_file.exists() if self.changelog_file else False:
                 self._parse_markdown_changelog()
         except Exception as e:
             logger.error(f"Failed to load changelog: {e}")
@@ -280,7 +280,7 @@ Path("changelog.json")
         """Get changelog for specific version."""
         return self.version_changelogs.get(str(version))
     
-    def create_version_changelog(self, version: Version, summary: str = None) -> VersionChangelog:
+    def create_version_changelog(self, version: Version, summary: Optional[str] = None) -> VersionChangelog:
         """Create new version changelog."""
         changelog = VersionChangelog(
             version=version,
@@ -387,7 +387,7 @@ Path("changelog.json")
         
         return changelog
     
-    def _parse_commit_message(self, message: str, author: str = None, commit_hash: str = None) -> Optional[ChangeEntry]:
+    def _parse_commit_message(self, message: str, author: Optional[str] = None, commit_hash: Optional[str] = None) -> Optional[ChangeEntry]:
         """Parse commit message for changelog entry."""
         # Conventional commit pattern: type(scope): description
         pattern = r'^(feat|fix|docs|style|refactor|test|chore|security|breaking)(?:\(([^)]+)\))?: (.+)$'

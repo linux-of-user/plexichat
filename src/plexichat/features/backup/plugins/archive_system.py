@@ -196,8 +196,8 @@ class ArchiveSystemPlugin:
         archive_type: ArchiveType = ArchiveType.FULL_ARCHIVE,
         compression_enabled: bool = True,
         encryption_enabled: bool = True,
-        retention_days: int = None,
-        tags: Set[str] = None,
+        retention_days: Optional[int] = None,
+        tags: Optional[Set[str]] = None,
         metadata: Dict[str, Any] = None,
     ) -> ArchiveEntry:
         """
@@ -492,7 +492,7 @@ class ArchiveSystemPlugin:
         action: str,
         success: bool,
         details: str,
-        ip_address: str = None,
+        ip_address: Optional[str] = None,
     ):
         """Log archive access."""
         log_id = f"log_{hashlib.sha256(f'{archive_id}_{user_id}_{action}_{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:16]}"

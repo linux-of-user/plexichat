@@ -167,7 +167,7 @@ class Phase4DatabaseCoordinator:
 
         # Initialize ORM
         self.advanced_orm = AdvancedORM(orm_config)
-        await self.advanced_orm.initialize()
+        await self.if advanced_orm and hasattr(advanced_orm, "initialize"): advanced_orm.initialize()
 
         logger.info(" Advanced ORM initialized")
 

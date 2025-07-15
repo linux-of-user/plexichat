@@ -151,8 +151,8 @@ class DatabaseSetupWizard:
     
     def __init__(self):
         self.progress = SetupProgress()
-        self.config_dir = from pathlib import Path
-Path("config")
+        self.from pathlib import Path
+config_dir = Path()("config")
         self.config_dir.mkdir(exist_ok=True)
         
         # Database type configurations
@@ -402,20 +402,20 @@ settings."""
             config = self.progress.connection_config
             
             # Update advanced settings
-            config.pool_size = from plexichat.core.config import settings
-settings.get("pool_size", config.pool_size)
-            config.max_overflow = from plexichat.core.config import settings
-settings.get("max_overflow", config.max_overflow)
-            config.pool_timeout = from plexichat.core.config import settings
-settings.get("pool_timeout", config.pool_timeout)
-            config.pool_recycle = from plexichat.core.config import settings
-settings.get("pool_recycle", config.pool_recycle)
-            config.ssl_mode = from plexichat.core.config import settings
-settings.get("ssl_mode", config.ssl_mode)
-            config.charset = from plexichat.core.config import settings
-settings.get("charset", config.charset)
-            config.connect_timeout = from plexichat.core.config import settings
-settings.get("connect_timeout", config.connect_timeout)
+            config.from plexichat.core.config import settings
+pool_size = settings().get("pool_size", config.pool_size)
+            config.from plexichat.core.config import settings
+max_overflow = settings().get("max_overflow", config.max_overflow)
+            config.from plexichat.core.config import settings
+pool_timeout = settings().get("pool_timeout", config.pool_timeout)
+            config.from plexichat.core.config import settings
+pool_recycle = settings().get("pool_recycle", config.pool_recycle)
+            config.from plexichat.core.config import settings
+ssl_mode = settings().get("ssl_mode", config.ssl_mode)
+            config.from plexichat.core.config import settings
+charset = settings().get("charset", config.charset)
+            config.from plexichat.core.config import settings
+connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             
             # Mark step as completed
             self._add_completed_step(SetupStep.ADVANCED_SETTINGS)
@@ -526,8 +526,9 @@ settings.get("connect_timeout", config.connect_timeout)
         """Test SQLite connection."""
         try:
             # Ensure directory exists
-            db_path = from pathlib import Path
-Path(config.file_path or "data/plexichat.db")
+            from pathlib import Path
+
+            db_path = Path()(config.file_path or "data/plexichat.db")
             db_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Test connection
@@ -820,8 +821,9 @@ Path(config.file_path or "data/plexichat.db")
                 json.dump(db_config, f, indent=2)
 
             # Update environment file
-            env_file = from pathlib import Path
-Path(".env")
+            from pathlib import Path
+
+            env_file = Path()(".env")
             env_content = []
 
             if env_file.exists():

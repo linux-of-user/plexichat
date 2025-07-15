@@ -97,7 +97,7 @@ class SecurityEvent:
 class DecentralizedSecurityManager:
     """Manages decentralized security architecture."""
 
-    def __init__(self, node_id: str = None):
+    def __init__(self, node_id: Optional[str] = None):
         self.node_id = node_id or self._generate_node_id()
         self.private_key = None
         self.public_key = None
@@ -434,7 +434,7 @@ datetime = datetime.now(),
             logger.info(f"Security policy updated: {policy_name} = {policy_value}")
 
     def report_security_event(self, event_type: str, severity: SecurityLevel,
-                            target_node: str = None, data: Dict[str, Any] = None) -> str:
+                            target_node: Optional[str] = None, data: Dict[str, Any] = None) -> str:
         """Report a security event."""
         try:
             event_id = hashlib.sha256(

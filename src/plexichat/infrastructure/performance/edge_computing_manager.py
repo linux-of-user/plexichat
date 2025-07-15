@@ -9,7 +9,13 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import numpy as np
+try:
+
+    import numpy as np
+
+except ImportError:
+
+    np = None
 
 from ...core.config import get_config
 from plexichat.core.logging import get_logger
@@ -1409,7 +1415,7 @@ psutil = psutil.disk_usage('/').total / (1024**3),
             return {"error": str(e)}
 
     async def get_optimal_node_for_request(self, client_lat: float, client_lon: float,
-                                         service_name: str = None) -> Optional[str]:
+                                         service_name: Optional[str] = None) -> Optional[str]:
         """Find the optimal edge node for a client request."""
         try:
             candidate_nodes = []

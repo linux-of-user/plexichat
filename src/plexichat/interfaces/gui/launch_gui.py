@@ -13,6 +13,7 @@ from pathlib import Path
 
 from plexichat_admin_gui import PlexiChatAdminGUI
 import logging
+from typing import Optional
 
 
 #!/usr/bin/env python3

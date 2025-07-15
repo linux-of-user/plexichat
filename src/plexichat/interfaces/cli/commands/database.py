@@ -25,6 +25,7 @@ from plexichat.core.database.performance_integration import performance_optimize
 from plexichat.core.database.query_optimizer import performance_monitor
 from plexichat.core.config import settings
 from plexichat.core.config import settings
+from typing import Optional
 
 """
 PlexiChat Database Performance CLI Commands

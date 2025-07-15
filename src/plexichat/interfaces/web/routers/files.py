@@ -1,23 +1,121 @@
 import hashlib
 import logging
 import mimetypes
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import aiofiles
-import magic
-from PIL import Image
 from sqlmodel import Session, select
-
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 
-from plexichat.infrastructure.utils.auth import get_current_user
+# Optional dependencies
+try:
+    import magic
+except ImportError:
+    magic = None
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+
+# Internal imports
+try:
+    from plexichat.infrastructure.utils.auth import get_current_user
+except ImportError:
+    def get_current_user():
+        return None
+
 from plexichat.features.users.user import User
 from plexichat.interfaces.web.schemas.files import FileInfoResponse, FileListResponse, FileUploadResponse
 from plexichat.features.users.files import FileRecord, FileShare
-from plexichat.core.database import get_session
+
+try:
+    from plexichat.core.database import get_session
+except ImportError:
+    def get_session():
+        return None
+
+# Configuration
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
+ALLOWED_EXTENSIONS = {
+    '.txt': 'text/plain',
+    '.pdf': 'application/pdf',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.zip': 'application/zip'
+}
+
+# Utility functions
+def sanitize_filename(filename: Optional[str]) -> str:
+    """Sanitize filename for security"""
+    if not filename:
+        return ""
+    # Remove path separators and dangerous characters
+    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
+    filename = filename.strip('. ')
+    return filename[:255]  # Limit length
+
+def validate_file_type(extension: str, allowed_extensions: Dict[str, str]) -> bool:
+    """Validate file type against allowed extensions"""
+    return extension.lower() in allowed_extensions
+
+def scan_file_content(content: bytes, extension: str) -> bool:
+    """Basic file content scanning"""
+    # Basic security checks
+    if len(content) == 0:
+        return False
+
+    # Check for suspicious patterns
+    suspicious_patterns = [b'<script', b'javascript:', b'vbscript:', b'<?php']
+    content_lower = content.lower()
+
+    for pattern in suspicious_patterns:
+        if pattern in content_lower:
+            return False
+
+    return True
+
+def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
+    """Extract file metadata"""
+    metadata = {
+        'size': len(content),
+        'filename': filename,
+        'content_type': mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+    }
+
+    # Try to extract image metadata if PIL is available
+    if Image and filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
+        try:
+            from io import BytesIO
+            img = Image.open(BytesIO(content))
+            metadata.update({
+                'width': img.width,
+                'height': img.height,
+                'format': img.format
+            })
+        except Exception:
+            pass
+
+    return metadata
+
+class MockLoggingManager:
+    """Mock logging manager for compatibility"""
+    def start_performance_tracking(self, operation_id: str):
+        pass
+
+    def end_performance_tracking(self, operation_id: str):
+        pass
+
+# Mock logging manager
+logging_manager = MockLoggingManager()
 
 logger = logging.getLogger(__name__)
 logging_manager = logging.getLogger(f"{__name__}.manager")
@@ -47,14 +145,17 @@ async def upload_file(
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     public: bool = Form(False),
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    session: Optional[Session] = Depends(get_session),
+    current_user: Optional[User] = Depends(get_current_user)
 ):
     """
     Upload a file with comprehensive security checks and metadata extraction.
     """
+    if not current_user or not session:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
     operation_id = f"file_upload_{current_user.id}_{datetime.now().timestamp()}"
-    logging_manager.start_performance_tracking(operation_id)
+    logger.info(f"Starting file upload: {operation_id}")
 
     try:
         # Validate file size

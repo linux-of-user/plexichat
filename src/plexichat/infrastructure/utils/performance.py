@@ -30,7 +30,7 @@ class PerformanceCache:
 
         # Start cleanup thread
         self.cleanup_thread = threading.Thread(target=self._cleanup_expired, daemon=True)
-        self.cleanup_thread.start()
+        self.if cleanup_thread and hasattr(cleanup_thread, "start"): cleanup_thread.start()
 
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
@@ -223,7 +223,7 @@ class PerformanceMonitor:
         # Start system metrics collection if psutil is available
         if PSUTIL_AVAILABLE:
             self.system_thread = threading.Thread(target=self._collect_system_metrics, daemon=True)
-            self.system_thread.start()
+            self.if system_thread and hasattr(system_thread, "start"): system_thread.start()
 
     def record_metric(self, name: str, value: float, timestamp: Optional[datetime] = None):
         """Record a performance metric."""

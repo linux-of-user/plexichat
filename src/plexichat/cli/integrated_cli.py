@@ -166,7 +166,7 @@ class PlexiChatCLI:
             config = LaunchConfig(host=args.host, port=args.port, debug=args.debug)
 
             launcher = PlexiChatLauncher(config)
-            await launcher.start()
+            await if launcher and hasattr(launcher, "start"): launcher.start()
 
         except ImportError:
             logger.info(" Server components not available")

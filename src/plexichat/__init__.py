@@ -1,3 +1,4 @@
+from typing import Optional
 """
 PlexiChat - Government-Level Secure Communication Platform
 =========================================================
@@ -22,8 +23,7 @@ VERSION_INFO = {
 # Export main components
 try:
     from .main import app, create_app
-except ImportError:
-    app = None
+except ImportError: Optional[app] = None
     create_app = None
 
 __all__ = [

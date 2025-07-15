@@ -8,7 +8,7 @@ PlexiChat Biometric Manager
 Biometric authentication management for fingerprint, face, and voice recognition.:
 """
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__, Optional)
 
 
 class BiometricManager:

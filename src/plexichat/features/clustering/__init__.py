@@ -4,6 +4,7 @@ from .core.load_balancer import SmartLoadBalancer
 from .core.node_manager import IntelligentNodeManager
 from .core.performance_monitor import RealTimePerformanceMonitor
 from .core.task_manager import (
+from typing import Optional
     AdvancedTaskManager,
     ClusterTask,
     TaskPriority,

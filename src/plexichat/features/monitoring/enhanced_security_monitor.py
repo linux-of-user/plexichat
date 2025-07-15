@@ -123,7 +123,7 @@ class EnhancedSecurityMonitor:
         
         # Start background monitoring
         self.monitor_thread = threading.Thread(target=self._background_monitor, daemon=True)
-        self.monitor_thread.start()
+        self.if monitor_thread and hasattr(monitor_thread, "start"): monitor_thread.start()
 
     def _initialize_threat_patterns(self):
         """Initialize built-in threat patterns."""

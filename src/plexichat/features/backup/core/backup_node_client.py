@@ -60,7 +60,7 @@ class BackupNodeInfo:
     last_heartbeat: Optional[datetime] = None
     priority: int = 1
     trust_level: float = 1.0
-    capabilities: List[str] = None
+    capabilities: Optional[List[str]] = None
     performance_metrics: Dict[str, float] = None
     geographic_location: Optional[str] = None
     network_latency: float = 0.0
@@ -127,7 +127,7 @@ class BackupNodeClient:
     async def close(self):
         """Close connection to backup node."""
         if self.session:
-            await self.session.close()
+            await if self.session: self.session.close()
             self.session = None
 
     async def health_check(self) -> Dict[str, Any]:

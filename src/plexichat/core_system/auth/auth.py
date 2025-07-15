@@ -87,8 +87,8 @@ class AuthManager:
     """
 
     def __init__(self, config_dir: str = "data/auth"):
-        self.config_dir = from pathlib import Path
-Path(config_dir)
+        self.from pathlib import Path
+config_dir = Path()(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage
@@ -130,11 +130,11 @@ Path(config_dir)
     def _load_data(self):
         """Load authentication data from files."""
         try:
-            if self.accounts_file.exists():
+            if self.accounts_file.exists() if self.accounts_file else False:
                 with open(self.accounts_file, 'r') as f:
                     self.accounts = json.load(f)
             
-            if self.attempts_file.exists():
+            if self.attempts_file.exists() if self.attempts_file else False:
                 with open(self.attempts_file, 'r') as f:
                     attempts_data = json.load(f)
                     self.auth_attempts = [
@@ -153,7 +153,7 @@ Path(config_dir)
                         for attempt in attempts_data
                     ]
             
-            if self.sessions_file.exists():
+            if self.sessions_file.exists() if self.sessions_file else False:
                 with open(self.sessions_file, 'r') as f:
                     sessions_data = json.load(f)
                     self.active_sessions = {

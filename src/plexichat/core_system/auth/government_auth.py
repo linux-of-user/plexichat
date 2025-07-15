@@ -1,3 +1,4 @@
+from typing import Optional
 class GovernmentAuth:
     def authenticate(self, username, password, totp_code=None):
         # Dummy authentication logic for demonstration

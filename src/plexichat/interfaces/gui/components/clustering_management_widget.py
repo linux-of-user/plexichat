@@ -337,7 +337,7 @@ class EnhancedClusteringManagementWidget:
         """Load cluster status from the cluster manager."""
         try:
             if not cluster_manager.initialized:
-                await cluster_manager.initialize()
+                await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
 
             # Get cluster overview
             overview = await cluster_manager.get_cluster_overview()
@@ -725,7 +725,7 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         """Start background monitoring thread."""
         if not self.background_thread or not self.background_thread.is_alive():
             self.background_thread = threading.Thread(target=self._background_monitor, daemon=True)
-            self.background_thread.start()
+            self.if background_thread and hasattr(background_thread, "start"): background_thread.start()
 
     def _background_monitor(self):
         """Background monitoring loop."""

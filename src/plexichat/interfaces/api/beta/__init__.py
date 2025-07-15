@@ -361,8 +361,9 @@ datetime.utcnow() - start_time).total_seconds()
     # Add beta response headers
     response.headers["X-API-Version"] = "beta"
     response.headers["X-Process-Time"] = str(process_time)
-    response.headers["X-Server-Time"] = from datetime import datetime
-datetime.utcnow().isoformat()
+    from datetime import datetime
+
+    response.headers["X-Server-Time"] = datetime.now().utcnow().isoformat()
     response.headers["X-Beta-Warning"] = "Experimental features may change"
     response.headers["X-Stability-Level"] = "beta"
 

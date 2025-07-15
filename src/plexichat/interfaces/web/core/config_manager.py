@@ -43,7 +43,7 @@ class WebUIPortConfig:
 class MFAConfig:
     """Multi-Factor Authentication configuration."""
     enabled: bool = True
-    methods: List[str] = None  # ['totp', 'sms', 'email', 'backup_codes']
+    methods: Optional[List[str]] = None  # ['totp', 'sms', 'email', 'backup_codes']
     totp_issuer: str = "PlexiChat"
     backup_codes_count: int = 10
     recovery_email_required: bool = True
@@ -61,7 +61,7 @@ class AuthStorageConfig:
     """Distributed authentication storage configuration."""
     storage_type: str = "distributed"  # 'single', 'distributed', 'external'
     primary_storage: str = "database"  # 'database', 'file', 'redis', 'external'
-    backup_storages: List[str] = None  # ['file', 'redis']
+    backup_storages: Optional[List[str]] = None  # ['file', 'redis']
     sync_interval: int = 300  # 5 minutes
     encryption_enabled: bool = True
     encryption_key_rotation: int = 86400  # 24 hours
@@ -77,8 +77,8 @@ class SelfTestConfig:
     """Self-test configuration for WebUI."""
     enabled: bool = True
     auto_run_on_startup: bool = False
-    scheduled_runs: List[str] = None  # Cron-like schedule
-    test_categories: List[str] = None
+    scheduled_runs: Optional[List[str]] = None  # Cron-like schedule
+    test_categories: Optional[List[str]] = None
     notification_on_failure: bool = True
     detailed_reporting: bool = True
     export_results: bool = True
@@ -95,10 +95,10 @@ class SelfTestConfig:
 @dataclass
 class FeatureToggleConfig:
     """Feature toggle configuration."""
-    enabled_features: List[str] = None
-    disabled_features: List[str] = None
-    beta_features: List[str] = None
-    admin_only_features: List[str] = None
+    enabled_features: Optional[List[str]] = None
+    disabled_features: Optional[List[str]] = None
+    beta_features: Optional[List[str]] = None
+    admin_only_features: Optional[List[str]] = None
     feature_permissions: Dict[str, List[str]] = None
 
     def __post_init__(self):
@@ -168,7 +168,7 @@ class WebUIConfigManager:
         """Load configuration from files."""
         try:
             # Load main configuration
-            if self.config_file.exists():
+            if self.config_file.exists() if self.config_file else False:
                 with open(self.config_file, 'r') as f:
                     config_data = yaml.safe_load(f)
                 
@@ -176,7 +176,7 @@ class WebUIConfigManager:
                     self._update_config_objects(config_data)
             
             # Load authentication configuration
-            if self.auth_config_file.exists():
+            if self.auth_config_file.exists() if self.auth_config_file else False:
                 with open(self.auth_config_file, 'r') as f:
                     auth_data = yaml.safe_load(f)
                 

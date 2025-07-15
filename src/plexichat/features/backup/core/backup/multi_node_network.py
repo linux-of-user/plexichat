@@ -894,8 +894,7 @@ Path(f"data/backup/shards/{shard_id}")
             self.cluster_size = len(self.nodes)
 
             # Check if we need to elect new leader
-            if self.leader_id == failed_node_id:
-                self.leader_id = None
+            if self.leader_id == failed_node_id: Optional[self.leader_id] = None
                 self.is_leader = False
                 # Leader election will be handled by background task
 
@@ -1222,7 +1221,7 @@ Path(f"data/backup/shards/{shard_id}")
             logger.error(f" Failed to connect to {node_address}:{node_port}: {e}")
             return {"success": False, "error": str(e)}
 
-    async def store_shard_on_network(self, shard_data: bytes, target_nodes: List[str] = None) -> Dict[str, Any]:
+    async def store_shard_on_network(self, shard_data: bytes, target_nodes: Optional[List[str]] = None) -> Dict[str, Any]:
         """Store a shard across the network."""
         try:
             shard_id = f"shard_{secrets.token_hex(16)}"
@@ -1400,7 +1399,7 @@ Path(f"data/backup/shards/{shard_id}")
 
             # Close WebSocket server
             if hasattr(self, 'websocket_server'):
-                self.websocket_server.close()
+                if self.websocket_server: self.websocket_server.close()
                 await self.websocket_server.wait_closed()
 
             logger.info(" Multi-node network shutdown completed")

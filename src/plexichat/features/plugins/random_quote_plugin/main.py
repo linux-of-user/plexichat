@@ -2,6 +2,7 @@ import logging
 import random
 from src.plexichat.infrastructure.modules.plugin_manager import PluginInterface
 from fastapi import APIRouter
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 

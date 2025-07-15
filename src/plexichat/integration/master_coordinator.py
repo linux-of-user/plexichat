@@ -112,28 +112,28 @@ class PlexiChatMasterCoordinator:
             # Phase I: Security Infrastructure
             if self.config["enable_phase1_security"]:
                 logger.info(" Initializing Phase I: Security Infrastructure")
-                await self.phase1_security.initialize()
+                await self.if phase1_security and hasattr(phase1_security, "initialize"): phase1_security.initialize()
                 self.stats["phase_status"]["phase1"] = "initialized"
                 logger.info(" Phase I: Security Infrastructure - Complete")
 
             # Phase II: Scalability & Modularity
             if self.config["enable_phase2_scalability"]:
                 logger.info(" Initializing Phase II: Scalability & Modularity")
-                await self.phase2_scalability.initialize()
+                await self.if phase2_scalability and hasattr(phase2_scalability, "initialize"): phase2_scalability.initialize()
                 self.stats["phase_status"]["phase2"] = "initialized"
                 logger.info(" Phase II: Scalability & Modularity - Complete")
 
             # Phase III: Artificial Intelligence
             if self.config["enable_phase3_ai"]:
                 logger.info(" Initializing Phase III: Artificial Intelligence")
-                await self.phase3_ai.initialize()
+                await self.if phase3_ai and hasattr(phase3_ai, "initialize"): phase3_ai.initialize()
                 self.stats["phase_status"]["phase3"] = "initialized"
                 logger.info(" Phase III: Artificial Intelligence - Complete")
 
             # Phase IV: Database Abstraction
             if self.config["enable_phase4_database"]:
                 logger.info(" Initializing Phase IV: Database Abstraction")
-                await self.phase4_database.initialize()
+                await self.if phase4_database and hasattr(phase4_database, "initialize"): phase4_database.initialize()
                 self.stats["phase_status"]["phase4"] = "initialized"
                 logger.info(" Phase IV: Database Abstraction - Complete")
 
@@ -409,16 +409,16 @@ class PlexiChatMasterCoordinator:
 
             if phase_name == "phase1" or phase_name == "security":
                 await self.phase1_security.shutdown()
-                await self.phase1_security.initialize()
+                await self.if phase1_security and hasattr(phase1_security, "initialize"): phase1_security.initialize()
             elif phase_name == "phase2" or phase_name == "scalability":
                 await self.phase2_scalability.shutdown()
-                await self.phase2_scalability.initialize()
+                await self.if phase2_scalability and hasattr(phase2_scalability, "initialize"): phase2_scalability.initialize()
             elif phase_name == "phase3" or phase_name == "ai":
                 await self.phase3_ai.shutdown()
-                await self.phase3_ai.initialize()
+                await self.if phase3_ai and hasattr(phase3_ai, "initialize"): phase3_ai.initialize()
             elif phase_name == "phase4" or phase_name == "database":
                 await self.phase4_database.shutdown()
-                await self.phase4_database.initialize()
+                await self.if phase4_database and hasattr(phase4_database, "initialize"): phase4_database.initialize()
             else:
                 logger.error(f"Unknown phase: {phase_name}")
                 return False

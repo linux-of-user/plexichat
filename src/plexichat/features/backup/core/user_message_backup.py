@@ -196,8 +196,8 @@ class UniversalBackupManager:
         self,
         user_id: str,
         username: str,
-        backup_status: BackupOptStatus = None,
-        opted_out_data_types: Set[BackupDataType] = None,
+        backup_status: Optional[BackupOptStatus] = None,
+        opted_out_data_types: Optional[Set[BackupDataType]] = None,
         backup_frequency: str = "real_time",
         max_backup_retention_days: int = 365,
         allow_cross_region_backup: bool = True,
@@ -245,7 +245,7 @@ class UniversalBackupManager:
         return preferences
 
     async def opt_out_user_backup(
-        self, user_id: str, data_types: Set[BackupDataType] = None
+        self, user_id: str, data_types: Optional[Set[BackupDataType]] = None
     ) -> bool:
         """
         Opt user out of backup system or specific data types.
@@ -286,7 +286,7 @@ class UniversalBackupManager:
         return True
 
     async def opt_in_user_backup(
-        self, user_id: str, data_types: Set[BackupDataType] = None
+        self, user_id: str, data_types: Optional[Set[BackupDataType]] = None
     ) -> bool:
         """
         Opt user back into backup system or specific data types.
@@ -334,7 +334,7 @@ class UniversalBackupManager:
         chat_id: str,
         message_content: str,
         message_type: str = "text",
-        attachments: List[str] = None,
+        attachments: Optional[List[str]] = None,
         reactions: Dict[str, Any] = None,
     ) -> Optional[MessageBackupEntry]:
         """

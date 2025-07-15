@@ -31,7 +31,7 @@ Dedicated cluster node for core application operations with:
 
 # Import PlexiChat components
 sys.path.append(str(from pathlib import Path
-Path(__file__).parent.parent.parent))
+Path(__file__, Optional).parent.parent.parent))
 
 logger = logging.getLogger(__name__)
 

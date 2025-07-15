@@ -112,8 +112,9 @@ class LogParser:
         
         # If no pattern matches, create a simple entry
         return LogEntry(
-            timestamp=from datetime import datetime
-datetime.now(),
+            from datetime import datetime
+
+            timestamp = datetime().now(),
             level='UNKNOWN',
             message=line,
             module='unknown',
@@ -125,8 +126,8 @@ class LogManager:
     """Advanced log management with filtering and archiving."""
     
     def __init__(self, log_directory: str = "logs"):
-        self.log_directory = from pathlib import Path
-Path(log_directory)
+        self.from pathlib import Path
+log_directory = Path()(log_directory)
         self.log_directory.mkdir(exist_ok=True)
         
         self.archive_directory = self.log_directory / "archive"
@@ -322,8 +323,9 @@ Path(log_directory)
         """Archive log files older than specified days."""
         
         archived_files = []
-        cutoff_date = from datetime import datetime
-datetime.now() - timedelta(days=days_old)
+        from datetime import datetime
+
+        cutoff_date = datetime().now() - timedelta(days=days_old)
         
         for log_path in self.log_directory.glob("*.log"):
             if log_path.is_file():
@@ -354,8 +356,9 @@ datetime.now() - timedelta(days=days_old)
         """Clean up archive files older than specified days."""
         
         cleaned_files = []
-        cutoff_date = from datetime import datetime
-datetime.now() - timedelta(days=days_old)
+        from datetime import datetime
+
+        cutoff_date = datetime().now() - timedelta(days=days_old)
         
         for archive_path in self.archive_directory.glob("*.zip"):
             if archive_path.is_file():
