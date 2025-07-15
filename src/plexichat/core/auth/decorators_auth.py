@@ -2,8 +2,8 @@ import asyncio
 import functools
 from typing import Callable, List
 
-from .auth_manager import auth_manager
-from .exceptions import AuthenticationError, AuthorizationError
+from .manager_auth import auth_manager
+from .exceptions_auth import AuthenticationError, AuthorizationError
 
 """
 PlexiChat Authentication Decorators

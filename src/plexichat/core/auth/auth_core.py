@@ -87,8 +87,8 @@ class AuthManager:
     """
 
     def __init__(self, config_dir: str = "data/auth"):
-        self.config_dir = from pathlib import Path
-Path(config_dir)
+        from pathlib import Path
+        self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage

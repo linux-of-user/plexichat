@@ -176,7 +176,7 @@ docker-compose.override.yml
 *.rar
 *.7z
 
-# NetLink specific
+# PlexiChat specific
 /plugins/installed/
 /plugins/cache/
 /monitoring/
@@ -184,4 +184,60 @@ docker-compose.override.yml
 /exports/
 version.json
 default_creds.txt
+
+# Development and testing artifacts
+*_test.py
+*_standalone_test.py
+comprehensive_test*
+debug_cli.py
+debug_config.json
+fix_*.py
+format_and_lint.py
+remove_dead_code.py
+replace_prints.py
+test_*.py
+!src/plexichat/tests/test_*.py
+pyright_*.txt
+
+# Development backups and reports
+dev/backups/
+dev/*_report.json
+dev/codebase_analysis_report.json
+dev/code_cleanup_report.json
+dev/import_test_report.json
+
+# Build and distribution
+*.whl
+*.tar.gz
+build/
+dist/
+*.egg-info/
+
+# Runtime and cache directories
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Editor and IDE files
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.vscode/launch.json
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary and junk files
+*.tmp
+*.temp
+*.bak
+*.old
+*~
+.#*
+#*#
 

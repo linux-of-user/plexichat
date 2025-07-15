@@ -6,14 +6,14 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from .audit_manager import AuthAuditManager
-from .biometric_manager import BiometricManager
-from .device_manager import DeviceManager
-from .exceptions import AuthenticationError, AuthorizationError
-from .mfa_manager import MFAManager
-from .password_manager import PasswordManager
-from .session_manager import SessionManager
-from .token_manager import TokenManager
+from .manager_audit import AuthAuditManager
+from .manager_biometric import BiometricManager
+from .manager_device import DeviceManager
+from .exceptions_auth import AuthenticationError, AuthorizationError
+from .manager_mfa import MFAManager
+from .manager_password import PasswordManager
+from .manager_session import SessionManager
+from .manager_token import TokenManager
 
 
 """

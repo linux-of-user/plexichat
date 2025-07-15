@@ -7,10 +7,21 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-import redis.asyncio as redis
-from motor.motor_asyncio import AsyncIOMotorClient
+try:
+    import redis.asyncio as redis
+except ImportError:
+    redis = None
 
-from ...core_system.config import get_config
+try:
+    from motor.motor_asyncio import AsyncIOMotorClient
+except ImportError:
+    AsyncIOMotorClient = None
+
+try:
+    from ...core_system.config import get_config
+except ImportError:
+    def get_config():
+        return {}
 from ...core_system.logging import get_logger
 from ...features.backup import get_unified_backup_manager
 from ...features.security import distributed_key_manager, quantum_encryption

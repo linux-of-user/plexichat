@@ -17,7 +17,7 @@ def get_input_validator():
     """Get input validator instance."""
     # This would be implemented based on your input validation system
     class SimpleInputValidator:
-        def validate_password(self, password: str, username: str = None):
+        def validate_password(self, password: str, username: Optional[str] = None):
             class Result:
                 def __init__(self):
                     self.is_valid = True
@@ -30,7 +30,7 @@ def get_input_validator():
 class PasswordValidator:
     """Password strength and policy validator - Enhanced with unified validation."""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.input_validator = get_input_validator()
 

@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # Security scheme
 security = HTTPBearer()
 
-async def get_current_user from plexichat.infrastructure.utils.auth import get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """Get current authenticated user."""
     try:
         # Import here to avoid circular imports
@@ -63,7 +63,7 @@ async def get_current_user from plexichat.infrastructure.utils.auth import get_c
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-async def get_current_admin_user(current_user: Dict[str, Any] = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)) -> Dict[str, Any]:
+async def get_current_admin_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get current user with admin privileges."""
     if not current_user.get("is_admin", False):
         raise HTTPException(
@@ -72,7 +72,7 @@ async def get_current_admin_user(current_user: Dict[str, Any] = Depends(from ple
         )
     return current_user
 
-async def get_current_active_user(current_user: Dict[str, Any] = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)) -> Dict[str, Any]:
+async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get current active user."""
     if not current_user.get("is_active", True):
         raise HTTPException(
@@ -83,7 +83,7 @@ async def get_current_active_user(current_user: Dict[str, Any] = Depends(from pl
 
 def require_permission(permission: str):
     """Dependency factory for requiring specific permissions."""
-    async def permission_dependency(current_user: Dict[str, Any] = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)) -> Dict[str, Any]:
+    async def permission_dependency(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
         user_permissions = current_user.get("permissions", [])
         if permission not in user_permissions and not current_user.get("is_admin", False):
             raise HTTPException(
@@ -95,7 +95,7 @@ def require_permission(permission: str):
 
 def require_permissions(*permissions):
     """Dependency factory for requiring multiple permissions."""
-    async def permissions_dependency(current_user: Dict[str, Any] = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)) -> Dict[str, Any]:
+    async def permissions_dependency(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
         user_permissions = current_user.get("permissions", [])
         is_admin = current_user.get("is_admin", False)
 
@@ -109,13 +109,13 @@ def require_permissions(*permissions):
     return permissions_dependency
 
 # Optional authentication (doesn't raise exception if no token)
-async def get_current_user from plexichat.infrastructure.utils.auth import get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[Dict[str, Any]]:
+async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[Dict[str, Any]]:
     """Get current user if authenticated, None otherwise."""
     if not credentials:
         return None
 
     try:
-        return await from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user(credentials)
+        return await get_current_user(credentials)
     except HTTPException:
         return None
     except Exception:

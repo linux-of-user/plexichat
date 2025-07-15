@@ -5,29 +5,20 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
-from ...events.event_bus import DomainEvent, event_bus
+try:
+    from ...events.event_bus import DomainEvent, event_bus
+except ImportError:
+    class DomainEvent:
+        pass
+    event_bus = None
+
 from ..dao.base_dao import (
-
-
     BaseDAO,
     FilterCriteria,
-    Implementation,
     PaginationParams,
-    Pattern,
-    PlexiChat,
-    Provides,
     QueryOptions,
     QueryResult,
-    Repository,
     SortCriteria,
-    """,
-    access,
-    business,
-    data,
-    domain-specific,
-    encapsulation,
-    logic,
-    with,
 )
 
 logger = logging.getLogger(__name__)

@@ -226,8 +226,8 @@ class UnifiedAuthManager:
         self.lockout_duration = timedelta(minutes=self.config.get("lockout_duration_minutes", 15))
         
         # Admin account management
-        self.admin_file = from pathlib import Path
-Path(self.config.get("admin_file", "data/admin.json"))
+        from pathlib import Path
+        self.admin_file = Path(self.config.get("admin_file", "data/admin.json"))
         self.admin_file.parent.mkdir(parents=True, exist_ok=True)
         
         # MFA configuration

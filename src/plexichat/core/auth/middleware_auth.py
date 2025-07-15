@@ -4,8 +4,8 @@ from typing import Any, Callable, Dict
 
 from flask import g, jsonify, request
 
-from .auth_manager import auth_manager
-from .exceptions import AuthenticationError, AuthorizationError
+from .manager_auth import auth_manager
+from .exceptions_auth import AuthenticationError, AuthorizationError
 
 
 from fastapi import HTTPException

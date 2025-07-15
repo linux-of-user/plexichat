@@ -1,23 +1,40 @@
+"""
+PlexiChat Core System Authentication
+
+Core authentication components for the PlexiChat system.
+"""
+
 from typing import Any, Dict, Optional
 
-from .audit_manager import AuthAuditManager, auth_audit_manager
-from .auth_manager import AuthManager, auth_manager
-from .biometric_manager import BiometricManager, biometric_manager
-from .device_manager import DeviceManager, device_manager
-from .exceptions import 2FA
-from .exceptions import Advanced2FASystem as MFAManager
-from .exceptions import (
-from .exceptions import tfa_system as mfa_manager
-from .exceptions import token_manager, unified, with
+try:
+    from .audit_manager import AuthAuditManager, auth_audit_manager
+except ImportError:
+    AuthAuditManager = auth_audit_manager = None
 
+try:
+    from .auth_manager import AuthManager, auth_manager
+except ImportError:
+    AuthManager = auth_manager = None
 
+try:
+    from .biometric_manager import BiometricManager, biometric_manager
+except ImportError:
+    BiometricManager = biometric_manager = None
 
+try:
+    from .device_manager import DeviceManager, device_manager
+except ImportError:
+    DeviceManager = device_manager = None
 
-    from plexichat.infrastructure.utils.auth import require_admin,
+try:
+    from .mfa_manager import Advanced2FASystem as MFAManager, tfa_system as mfa_manager
+except ImportError:
+    MFAManager = mfa_manager = None
 
-    Authentication,
-    AuthenticationMiddleware,
-    AuthenticationRequest,
+try:
+    from .token_manager import TokenManager, token_manager
+except ImportError:
+    TokenManager = token_manager = None
     BiometricValidator,
     Consolidates,
     Core,

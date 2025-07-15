@@ -87,14 +87,14 @@ class PaginationParams:
 class QueryOptions:
     """Advanced query options."""
 
-    filters: List[FilterCriteria] = None
-    sorts: List[SortCriteria] = None
+    filters: Optional[List[FilterCriteria]] = None
+    sorts: Optional[List[SortCriteria]] = None
     pagination: Optional[PaginationParams] = None
     include_deleted: bool = False
-    include_relations: List[str] = None
-    select_fields: List[str] = None
-    group_by: List[str] = None
-    having: List[FilterCriteria] = None
+    include_relations: Optional[List[str]] = None
+    select_fields: Optional[List[str]] = None
+    group_by: Optional[List[str]] = None
+    having: Optional[List[FilterCriteria]] = None
 
     def __post_init__(self):
         if self.filters is None:

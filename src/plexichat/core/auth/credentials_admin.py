@@ -27,11 +27,10 @@ class AdminCredentialsManager:
     
     def __init__(self):
         """Initialize the admin credentials manager."""
-        self.config_dir = from pathlib import Path
-Path("config")
+        from pathlib import Path
+        self.config_dir = Path("config")
         self.admin_creds_file = self.config_dir / "admin_credentials.json"
-        self.default_creds_file = from pathlib import Path
-Path("default_creds.txt")
+        self.default_creds_file = Path("default_creds.txt")
         
         # Ensure config directory exists
         self.config_dir.mkdir(exist_ok=True)

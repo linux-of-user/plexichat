@@ -2,85 +2,25 @@ import ipaddress
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Response
+from typing import Any, Dict, List, Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
+from starlette.requests import Request
+from starlette.responses import Response
 
 from ....core_system.config import get_config
 from ....core_system.logging import get_logger
 from ....core_system.security.input_validation import (
-
-
-    CONSOLIDATED,
-    INTEGRATED,
-    OF,
-    SINGLE,
-    SOURCE,
-    SQL,
-    TRUTH,
-    XSS,
-    Advanced,
-    Audit,
-    Comprehensive,
-    DDoS,
-    Features:,
-    Input,
-    InputType,
-    Malware,
-    Middleware,
-    PlexiChat,
-    RateLimitRequest,
-    Real-time,
-    Request,
-    Security,
-    Unified,
-    ValidationLevel,
-    Zero-trust,
-    """,
-    -,
-    ....core_system.security.unified_audit_system,
-    ....core_system.security.unified_auth_manager,
-    ....core_system.security.unified_security_manager,
-    ....features.security.network_protection,
-    and,
-    authentication,
-    authorization,
-    detection,
-    enforcement,
-    fastapi,
-    features/security/comprehensive_security.py,
-    from,
-    get_input_validator,
-    get_network_protection,
-    get_unified_auth_manager,
-    get_unified_security_manager,
-    import,
-    injection,
-    integration,
-    interfaces/web/middleware/comprehensive_security_middleware.py,
-    interfaces/web/middleware/message_security_middleware.py,
-    interfaces/web/middleware/security_middleware.py,
-    limiting,
-    logging,
-    middleware,
-    monitoring,
-    multiple,
-    prevention,
-    protection,
-    rate,
-    sanitization,
-    security,
-    systems:,
-    threat,
-    validation,
+    get_input_validator, InputType, ValidationLevel
 )
-
-    SecurityEventType,
-    SecuritySeverity,
-    ThreatLevel,
-    get_unified_audit_system,
+from ....core_system.security.unified_audit_system import (
+    SecurityEventType, SecuritySeverity, ThreatLevel, get_unified_audit_system
 )
+from ....core_system.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
+from ....core_system.security.unified_security_manager import UnifiedSecurityManager
+from ....features.security.network_protection import get_network_protection, RateLimitRequest
+
 logger = get_logger(__name__)
 
 
@@ -325,7 +265,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
     async def _ensure_components_initialized(self):
         """Ensure all security components are initialized."""
         if not self.security_manager:
-            self.security_manager = get_unified_security_manager()
+            self.security_manager = UnifiedSecurityManager()
             if not self.security_manager.initialized:
                 await self.security_manager.initialize()
 
@@ -602,9 +542,6 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
 
             # Validate token with auth manager
             if self.auth_manager:
-                    SecurityLevel as AuthSecurityLevel,
-                )
-
                 # Map security levels
                 auth_level_map = {
                     SecurityLevel.BASIC: AuthSecurityLevel.BASIC,
@@ -613,9 +550,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
                     SecurityLevel.CRITICAL: AuthSecurityLevel.HIGH,
                     SecurityLevel.ADMIN: AuthSecurityLevel.CRITICAL
                 }
-
                 required_auth_level = auth_level_map.get(required_level, AuthSecurityLevel.BASIC)
-
                 auth_result = await self.auth_manager.require_authentication(token, required_auth_level)
 
                 if not auth_result.get('authenticated'):
@@ -953,11 +888,6 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.error(f"Session validation error: {e}")
             return {'valid': False, 'reason': 'validation_error'}
-
-    def _add_security_headers(self, response: Response):
-        """Add comprehensive security headers to response."""
-        for header, value in self.security_headers.items():
-            response.headers[header] = value
 
 
 # Global instance - SINGLE SOURCE OF TRUTH

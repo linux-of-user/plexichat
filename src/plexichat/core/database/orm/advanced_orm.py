@@ -276,7 +276,7 @@ class AdvancedORM:
         return self.async_session_factory()
 
     async def execute_query(
-        self, query: str, parameters: Dict[str, Any] = None, use_cache: bool = True
+        self, query: str, parameters: Optional[Dict[str, Any]] = None, use_cache: bool = True
     ) -> Any:
         """Execute raw SQL query with caching and monitoring."""
 

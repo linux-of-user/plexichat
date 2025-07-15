@@ -84,8 +84,8 @@ class VersionManager:
     """Centralized version management system."""
     
     def __init__(self, version_file: str = "version.json"):
-        self.version_file = from pathlib import Path
-Path(version_file)
+        from pathlib import Path
+        self.version_file = Path(version_file)
         self.current_version: Optional[Version] = None
         self._load_version()
     

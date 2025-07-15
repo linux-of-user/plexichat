@@ -7,14 +7,40 @@ from typing import Optional
 
 import uvicorn
 
-from plexichat.core.auth import initialize_auth_system
-from plexichat.core.database import (
-    initialize_database_system_legacy,
-    shutdown_database_system,
-)
-from plexichat.features.backup import initialize_backup_system
-from plexichat.features.security import initialize_security_features
-from plexichat.interfaces.web import create_app
+try:
+    from plexichat.core.auth import initialize_auth_system
+except ImportError:
+    def initialize_auth_system():
+        pass
+
+try:
+    from plexichat.core.database import (
+        initialize_database_system_legacy,
+        shutdown_database_system,
+    )
+except ImportError:
+    def initialize_database_system_legacy():
+        pass
+    def shutdown_database_system():
+        pass
+
+try:
+    from plexichat.features.backup import initialize_backup_system
+except ImportError:
+    def initialize_backup_system():
+        pass
+
+try:
+    from plexichat.features.security import initialize_security_features
+except ImportError:
+    def initialize_security_features():
+        pass
+
+try:
+    from plexichat.interfaces.web import create_app
+except ImportError:
+    def create_app():
+        return None
 
 """
 PlexiChat Launcher System

@@ -140,11 +140,11 @@ class TokenManager:
 
     async def create_access_token(self, user_id: str, session_id: str,
                                 security_level: str = "GOVERNMENT",
-                                scopes: List[str] = None,
-                                device_id: str = None,
-                                ip_address: str = None,
-                                user_agent: str = None,
-                                metadata: Dict[str, Any] = None) -> str:
+                                scopes: Optional[List[str]] = None,
+                                device_id: Optional[str] = None,
+                                ip_address: Optional[str] = None,
+                                user_agent: Optional[str] = None,
+                                metadata: Optional[Dict[str, Any]] = None) -> str:
         """Create a new access token."""
         try:
             token_id = str(uuid.uuid4())
@@ -205,8 +205,8 @@ class TokenManager:
             raise
 
     async def create_refresh_token(self, user_id: str, session_id: str,
-                                 device_id: str = None,
-                                 metadata: Dict[str, Any] = None) -> str:
+                                 device_id: Optional[str] = None,
+                                 metadata: Optional[Dict[str, Any]] = None) -> str:
         """Create a new refresh token."""
         try:
             token_id = str(uuid.uuid4())

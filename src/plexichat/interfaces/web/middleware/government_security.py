@@ -2,21 +2,13 @@ import json
 import logging
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Response
+from typing import Any, Dict, List, Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
-
-
-from datetime import datetime
-
-
-
-from datetime import datetime
-
 from fastapi import Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
-from plexichat.core.security.government_auth import government_auth
+from plexichat.core_system.auth.government_auth import get_government_auth
 
 """
 Government-Level Security Middleware
@@ -31,7 +23,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app):
         super().__init__(app)
-        self.auth_system = government_auth
+        self.auth_system = get_government_auth()
 
         # Public paths that don't require authentication
         self.public_paths = {
@@ -501,8 +493,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
     async def _log_access(self, request: Request, response: Response, duration: float):
         """Log access attempt."""
         access_log = {
-            'timestamp': from datetime import datetime
-datetime.utcnow().isoformat(),
+            'timestamp': datetime.utcnow().isoformat(),
             'method': request.method,
             'path': str(request.url.path),
             'client_ip': request.client.host if request.client else 'unknown',

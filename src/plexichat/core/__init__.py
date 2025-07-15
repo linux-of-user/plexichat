@@ -13,9 +13,9 @@ except ImportError:
     database_manager = None
 
 try:
-    from .config_manager import ConfigManager
+    from .config_manager import ConfigurationManager
 except ImportError:
-    ConfigManager = None
+    ConfigurationManager = None
 
 try:
     from .config_wizard import ConfigurationWizard
@@ -24,7 +24,7 @@ except ImportError:
 
 __all__ = [
     "get_database_manager",
-    "database_manager", 
-    "ConfigManager",
+    "database_manager",
+    "ConfigurationManager",
     "ConfigurationWizard"
 ]

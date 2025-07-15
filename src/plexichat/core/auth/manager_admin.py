@@ -30,8 +30,8 @@ class DefaultAdminManager:
     """Manages default admin account creation and credentials."""
     
     def __init__(self):
-        self.config_dir = from pathlib import Path
-Path("config")
+        from pathlib import Path
+        self.config_dir = Path("config")
         self.config_dir.mkdir(exist_ok=True)
         
         self.admin_file = self.config_dir / "default_admin.json"

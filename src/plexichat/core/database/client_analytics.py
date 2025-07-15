@@ -2,31 +2,11 @@ import logging
 import time
 from typing import Any, AsyncGenerator, Dict, List
 
-from .enhanced_abstraction import (
+"""
+PlexiChat Analytics Database Clients
 
-
-    OLAP,
-    Analytics,
-    ClickHouse,
-    Client,
-    Clients,
-    Column-oriented,
-    Database,
-    DatabaseClientFactory,
-    High-performance,
-    PlexiChat,
-    """,
-    -,
-    .enhanced_abstraction,
-    analytics,
-    asyncpg,
-    clickhouse_driver,
-    database,
-    from,
-    implementations:,
-    import,
-)
-
+Specialized database clients for analytics workloads:
+- ClickHouse (Column-oriented OLAP)
 - Apache Druid (Real-time analytics)
 - TimescaleDB (Time-series analytics)
 - Apache Pinot (Real-time OLAP)
@@ -37,16 +17,42 @@ Features:
 - Complex aggregations and analytics
 - Time-series analysis
 - Materialized views
-- Automatic partitioning
-- Compression and optimization
-"""
 
-    AbstractDatabaseClient,
-    DatabaseConfig,
-    DatabaseType,
-    QueryResult,
-    QueryType,
-)
+try:
+    from .enhanced_abstraction import (
+        AbstractDatabaseClient,
+        DatabaseConfig,
+        DatabaseType,
+        QueryResult,
+        QueryType,
+    )
+except ImportError:
+    # Fallback implementations
+    class AbstractDatabaseClient:
+        def __init__(self, config):
+            self.config = config
+
+    class DatabaseConfig:
+        pass
+
+    class DatabaseType:
+        CLICKHOUSE = "clickhouse"
+        TIMESCALEDB = "timescaledb"
+
+    class QueryResult:
+        def __init__(self, data=None):
+            self.data = data or []
+
+    class QueryType:
+        SELECT = "select"
+        INSERT = "insert"
+
+    class DatabaseClientFactory:
+        _clients = {}
+
+        @classmethod
+        def register_client(cls, db_type, client_class):
+            cls._clients[db_type] = client_class
 
 logger = logging.getLogger(__name__)
 

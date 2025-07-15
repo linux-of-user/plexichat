@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Any
 import sys
 
 
-from .core_system.config import get_config
+from .core.config_manager import ConfigManager
 from .main import app
 
 
@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 def main():
     """Main entry point for module execution."""
     try:
-        config = get_config()
+        config_manager = ConfigManager()
+        config = config_manager.config
 
         uvicorn.run(
             app,

@@ -318,6 +318,9 @@ class Advanced2FASystem:
 # Global instance
 mfa_manager = Advanced2FASystem()
 
+# Alias for compatibility
+MFAManager = Advanced2FASystem
+
 def require_2fa(user_id: int):
     """Decorator to require 2FA for a function."""
     def decorator(func):
