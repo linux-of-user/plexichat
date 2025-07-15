@@ -8,66 +8,13 @@ import threading
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 import jwt
 import psutil
-from = psutil fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import jwt
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import jwt
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
 
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.security import InputSanitizer
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
 from plexichat.core.config import settings
 
 """
@@ -106,8 +53,7 @@ class ConnectionManager:
                 'user_id': user.id,
                 'username': user.username,
                 'channel': channel,
-                'connected_at': from datetime import datetime
-datetime = datetime.now(),
+                'connected_at': datetime.now(),
                 'is_admin': user.is_admin
             }
 
@@ -291,12 +237,9 @@ Examples:
         """Show system status."""
         try:
             # Get basic system info
-            cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=0.1)
-            memory = import psutil
-psutil = psutil.virtual_memory()
-            disk = import psutil
-psutil = psutil.disk_usage('/')
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
 
             status_info = f"""
 System Status:
@@ -305,12 +248,9 @@ System Status:
   Disk Usage: {(disk.used / disk.total) * 100:.1f}% ({disk.used // (1024**3):.1f}GB / {disk.total // (1024**3):.1f}GB)
 
 Application:
-  Version: {from plexichat.core.config import settings
-settings.API_VERSION}
-  Debug Mode: {from plexichat.core.config import settings
-settings.DEBUG}
-  Log Level: {from plexichat.core.config import settings
-settings.LOG_LEVEL}
+  Version: {settings.API_VERSION}
+  Debug Mode: {settings.DEBUG}
+  Log Level: {settings.LOG_LEVEL}
 
 WebSocket Connections: {manager.get_channel_stats()['total_connections']}
             """
@@ -385,11 +325,8 @@ WebSocket Connections: {manager.get_channel_stats()['total_connections']}
 
         if info_type == 'info':
             try:
-                boot_time = datetime.fromtimestamp(import psutil
-psutil = psutil.boot_time())
-                from datetime import datetime
-uptime = datetime.now()
-datetime = datetime.now() - boot_time
+                boot_time = datetime.fromtimestamp(psutil.boot_time())
+                uptime = datetime.now() - boot_time
 
                 system_info = f"""
 System Information:
@@ -412,19 +349,12 @@ System Information:
 
         config_info = f"""
 Configuration:
-  API Version: {from plexichat.core.config import settings
-settings.API_VERSION}
-  Host: {from plexichat.core.config import settings
-settings.HOST}:{from plexichat.core.config import settings
-settings.PORT}
-  Debug: {from plexichat.core.config import settings
-settings.DEBUG}
-  Log Level: {from plexichat.core.config import settings
-settings.LOG_LEVEL}
-  Database: {'Configured' if from plexichat.core.config import settings
-settings.DATABASE_URL else 'Not configured'}
-  SSL: {'Enabled' if from plexichat.core.config import settings
-settings.SSL_CERTFILE else 'Disabled'}
+  API Version: {settings.API_VERSION}
+  Host: {settings.HOST}:{settings.PORT}
+  Debug: {settings.DEBUG}
+  Log Level: {settings.LOG_LEVEL}
+  Database: {'Configured' if settings.DATABASE_URL else 'Not configured'}
+  SSL: {'Enabled' if settings.SSL_CERTFILE else 'Disabled'}
         """
         return {'output': config_info.strip()}
 
@@ -445,8 +375,7 @@ settings.SSL_CERTFILE else 'Disabled'}
 
     async def _cmd_version(self) -> Dict[str, Any]:
         """Show version information."""
-        return {'output': f'Chat API Version {from plexichat.core.config import settings
-settings.API_VERSION}'}
+        return {'output': f'Chat API Version {settings.API_VERSION}'}
 
 # Global CLI handler
 cli_handler = CLIHandler()
@@ -454,9 +383,7 @@ cli_handler = CLIHandler()
 async def authenticate_websocket(websocket: WebSocket, token: str) -> Optional[User]:
     """Authenticate WebSocket connection using JWT token."""
     try:
-        payload = import jwt
-jwt.decode(token, from plexichat.core.config import settings
-settings.SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         username = payload.get("sub")
         if not username:
             return None
@@ -577,16 +504,11 @@ async def websocket_monitor(websocket: WebSocket, token: str):
             try:
                 stats = {
                     'type': 'system_stats',
-                    'timestamp': from datetime import datetime
-datetime = datetime.now().isoformat(),
+                    'timestamp': datetime.now().isoformat(),
                     'data': {
-                        'cpu_percent': import psutil
-psutil = psutil.cpu_percent(interval=0.1),
-                        'memory_percent': import psutil
-psutil = psutil.virtual_memory().percent,
-                        'disk_percent': (import psutil
-psutil = psutil.disk_usage('/').used / import psutil
-psutil = psutil.disk_usage('/').total) * 100,
+                        'cpu_percent': psutil.cpu_percent(interval=0.1),
+                        'memory_percent': psutil.virtual_memory().percent,
+                        'disk_percent': (psutil.disk_usage('/').used / psutil.disk_usage('/').total) * 100,
                         'connections': manager.get_channel_stats()['total_connections']
                     }
                 }

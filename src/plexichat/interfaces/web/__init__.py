@@ -7,24 +7,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.routing import APIRouter
@@ -102,8 +84,7 @@ class WebInterfaceManager:
         self.websocket_connections: Dict[str, WebSocketConnection] = {}
         
         # Setup paths
-        self.web_root = from pathlib import Path
-Path(__file__).parent
+        self.web_root = Path(__file__).parent
         self.templates_dir = self.web_root / "templates"
         self.static_dir = self.web_root / "static"
         
@@ -219,8 +200,7 @@ Path(__file__).parent
         await websocket.accept()
         
         # Generate connection ID
-        connection_id = f"ws_{from datetime import datetime
-datetime.now().timestamp()}"
+        connection_id = f"ws_{datetime.now().timestamp()}"
         
         # Store connection
         connection = WebSocketConnection(websocket=websocket)
@@ -231,8 +211,7 @@ datetime.now().timestamp()}"
             await websocket.send_json({
                 "type": "connection_established",
                 "connection_id": connection_id,
-                "timestamp": from datetime import datetime
-datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat()
             })
             
             # Handle messages
@@ -293,13 +272,11 @@ datetime.now().isoformat()
             # Respond to ping
             await connection.websocket.send_json({
                 "type": "pong",
-                "timestamp": from datetime import datetime
-datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat()
             })
         
         # Update last activity
-        connection.last_activity = from datetime import datetime
-datetime.now()
+        connection.last_activity = datetime.now()
     
     async def broadcast_to_channel(self, channel: str, message: Dict[str, Any]):
         """Broadcast message to all connections subscribed to a channel."""
@@ -312,8 +289,7 @@ datetime.now()
                         "type": "broadcast",
                         "channel": channel,
                         "data": message,
-                        "timestamp": from datetime import datetime
-datetime.now().isoformat()
+                        "timestamp": datetime.now().isoformat()
                     })
                 except Exception as e:
                     logger.error(f"Failed to send to connection {connection_id}: {e}")
@@ -364,8 +340,7 @@ datetime.now().isoformat()
     
     async def cleanup_inactive_connections(self, timeout_minutes: int = 30):
         """Clean up inactive WebSocket connections."""
-        cutoff_time = from datetime import datetime
-datetime.now() - timedelta(minutes=timeout_minutes)
+        cutoff_time = datetime.now() - timedelta(minutes=timeout_minutes)
         inactive_connections = []
         
         for connection_id, connection in self.websocket_connections.items():

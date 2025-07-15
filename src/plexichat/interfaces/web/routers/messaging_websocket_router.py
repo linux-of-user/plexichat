@@ -3,34 +3,13 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import JSONResponse
 
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import (
-    from plexichat.infrastructure.utils.auth import get_current_user_from_token,
+from plexichat.infrastructure.utils.auth import get_current_user_from_token
 from plexichat.websockets.messaging_websocket import messaging_websocket_manager
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
 
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
 """
 Messaging WebSocket Router
 FastAPI router for real-time messaging WebSocket endpoints.
@@ -55,7 +34,7 @@ async def get_websocket_user(websocket: WebSocket, token: Optional[str] = None) 
             return None
 
         # Validate token and get user
-        user = await from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user_from_token(token)
+        user = await get_current_user_from_token(token)
         if not user:
             await websocket.close(code=4001, reason="Invalid authentication token")
             return None
@@ -214,8 +193,7 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
 
 
 @router.get("/messaging/stats")
-async def get_messaging_stats(current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user_from_token)):
+async def get_messaging_stats(current_user: User = Depends(get_current_user_from_token)):
     """
     Get real-time messaging statistics.
     Requires admin access.
@@ -246,8 +224,7 @@ async def broadcast_admin_message(
     message: str,
     channel_id: Optional[int] = None,
     guild_id: Optional[int] = None,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user_from_token)
+    current_user: User = Depends(get_current_user_from_token)
 ):
     """
     Broadcast an admin message to all connected users or specific channel/guild.
@@ -266,8 +243,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             'data': {
                 'message': message,
                 'sender': current_user.username,
-                'timestamp': from datetime import datetime
-datetime.utcnow().isoformat(),
+                'timestamp': datetime.utcnow().isoformat(),
                 'channel_id': channel_id,
                 'guild_id': guild_id
             }
@@ -322,8 +298,7 @@ async def websocket_health_check():
             "service": "WebSocket Messaging",
             "connections": stats.get('total_connections', 0),
             "active_users": stats.get('active_users', 0),
-            "timestamp": from datetime import datetime
-datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat()
         })
 
     except Exception as e:
@@ -334,7 +309,6 @@ datetime.utcnow().isoformat()
                 "status": "unhealthy",
                 "service": "WebSocket Messaging",
                 "error": str(e),
-                "timestamp": from datetime import datetime
-datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat()
             }
         )

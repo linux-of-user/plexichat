@@ -5,20 +5,10 @@ from flask import Blueprint, flash, jsonify, render_template, request
 from werkzeug.exceptions import BadRequest
 
 from ....ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from ....core.auth.decorators import (
+from ....core.auth.decorators import require_admin
 from ....core.logging import get_logger
-
-
-
-
-    from plexichat.infrastructure.utils.auth import require_admin,
 import logging
 
-
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
 """
 PlexiChat AI-Powered Features Admin Routes
 
@@ -29,13 +19,11 @@ content suggestions, sentiment analysis, semantic search, and moderation.
 logger = get_logger(__name__)
 
 # Create blueprint
-ai_features_bp = Bluelogger.info('ai_features_admin', __name__, url_prefix='/admin/ai-features')
+ai_features_bp = Blueprint('ai_features_admin', __name__, url_prefix='/admin/ai-features')
 
 # Global service instance
 ai_features_service: Optional[AIPoweredFeaturesService] = None
 
-
-logger = logging.getLogger(__name__)
 def get_ai_features_service() -> AIPoweredFeaturesService:
     """Get or create AI features service instance."""
     global ai_features_service
@@ -45,7 +33,7 @@ def get_ai_features_service() -> AIPoweredFeaturesService:
 
 
 @ai_features_bp.route('/')
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def dashboard():
     """AI features management dashboard."""
     try:
@@ -71,7 +59,7 @@ def dashboard():
 
 
 @ai_features_bp.route('/api/summarize', methods=['POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_summarize():
     """API endpoint for text summarization."""
     try:
@@ -117,7 +105,7 @@ def api_summarize():
 
 
 @ai_features_bp.route('/api/suggest-content', methods=['POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_suggest_content():
     """API endpoint for content suggestions."""
     try:
@@ -162,7 +150,7 @@ def api_suggest_content():
 
 
 @ai_features_bp.route('/api/analyze-sentiment', methods=['POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_analyze_sentiment():
     """API endpoint for sentiment analysis."""
     try:
@@ -203,7 +191,7 @@ def api_analyze_sentiment():
 
 
 @ai_features_bp.route('/api/semantic-search', methods=['POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_semantic_search():
     """API endpoint for semantic search."""
     try:
@@ -248,7 +236,7 @@ def api_semantic_search():
 
 
 @ai_features_bp.route('/api/moderate-content', methods=['POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_moderate_content():
     """API endpoint for content moderation."""
     try:
@@ -292,7 +280,7 @@ def api_moderate_content():
 
 
 @ai_features_bp.route('/api/add-to-index', methods=['POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_add_to_index():
     """API endpoint to add content to semantic search index."""
     try:
@@ -325,7 +313,7 @@ def api_add_to_index():
 
 
 @ai_features_bp.route('/api/statistics')
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_statistics():
     """API endpoint to get feature statistics."""
     try:
@@ -346,7 +334,7 @@ def api_statistics():
 
 
 @ai_features_bp.route('/api/health')
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_health():
     """API endpoint for health check."""
     try:
@@ -367,7 +355,7 @@ def api_health():
 
 
 @ai_features_bp.route('/api/clear-cache', methods=['POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def api_clear_cache():
     """API endpoint to clear feature caches."""
     try:
@@ -391,7 +379,7 @@ def api_clear_cache():
 
 
 @ai_features_bp.route('/config', methods=['GET', 'POST'])
-@from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin
+@require_admin
 def config_management():
     """AI features configuration management."""
     service = get_ai_features_service()

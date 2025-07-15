@@ -10,104 +10,23 @@ import magic
 from PIL import Image
 from sqlmodel import Session, select
 
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 
+from plexichat.infrastructure.utils.auth import get_current_user
+from plexichat.features.users.user import User
+from plexichat.interfaces.web.schemas.files import FileInfoResponse, FileListResponse, FileUploadResponse
+from plexichat.features.users.files import FileRecord, FileShare
+from plexichat.core.database import get_session
 
-
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-
-from fastapi import (
-
-    from plexichat.infrastructure.utils.auth import get_current_user,
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    File,
-    FileRecord,
-    FileResponse,
-    FileShare,
-    Form,
-    HTTPException,
-    Includes,
-    Query,
-    UploadFile,
-    User,
-    """,
-    and,
-    capabilities.,
-    comprehensive,
-    download,
-    endpoints,
-    fastapi.responses,
-    features,
-    file,
-    from,
-    get_session,
-    import,
-    management,
-    plexichat.core.database,
-    plexichat.features.users.files,
-    plexichat.features.users.user,
-    plexichat.infrastructure.utils.auth,
-    plexichat.infrastructure.utils.security,
-    plexichat.interfaces.web.schemas.files,
-    scanning,
-    security,
-    type,
-    upload,
-    validation.,
-    virus,
-    with,
-)
 logger = logging.getLogger(__name__)
 logging_manager = logging.getLogger(f"{__name__}.manager")
-    sanitize_filename,
-    scan_file_content,
-    validate_file_type,
-)
-    FileInfoResponse,
-    FileListResponse,
-    FileUploadResponse,
-)
 
 router = APIRouter()
 
 # Configuration
-from pathlib import Path
-UPLOAD_DIR = Path
-Path("uploads")
-from pathlib import Path
-TEMP_DIR = Path
-Path("temp")
+UPLOAD_DIR = Path("uploads")
+TEMP_DIR = Path("temp")
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 ALLOWED_EXTENSIONS = {
     'images': {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'},
@@ -129,14 +48,12 @@ async def upload_file(
     tags: Optional[str] = Form(None),
     public: bool = Form(False),
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Upload a file with comprehensive security checks and metadata extraction.
     """
-    operation_id = f"file_upload_{current_user.id}_{from datetime import datetime
-datetime = datetime.now().timestamp()}"
+    operation_id = f"file_upload_{current_user.id}_{datetime.now().timestamp()}"
     logging_manager.start_performance_tracking(operation_id)
 
     try:
@@ -153,9 +70,7 @@ datetime = datetime.now().timestamp()}"
             raise HTTPException(status_code=400, detail="Invalid filename")
 
         # Validate file type
-        from pathlib import Path
-file_extension = Path
-Path(safe_filename).suffix.lower()
+        file_extension = Path(safe_filename).suffix.lower()
         if not validate_file_type(file_extension, ALLOWED_EXTENSIONS):
             raise HTTPException(
                 status_code=400,
@@ -163,9 +78,7 @@ Path(safe_filename).suffix.lower()
             )
 
         # Generate unique filename
-        from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now()
         unique_filename = f"{timestamp}_{safe_filename}"
         file_path = UPLOAD_DIR / unique_filename
 
@@ -215,9 +128,7 @@ datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
             metadata=metadata,
             is_public=public,
             uploaded_by=current_user.id,
-            from datetime import datetime
-upload_date = datetime.now()
-datetime.utcnow()
+            upload_date=datetime.utcnow()
         )
 
         session.add(file_record)
@@ -260,8 +171,7 @@ async def list_files(
     search: Optional[str] = Query(None),
     my_files: bool = Query(False),
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     List files with filtering, pagination, and search capabilities.
@@ -331,8 +241,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 async def download_file(
     file_id: int,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Download a file with access control and logging.
@@ -349,17 +258,14 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
                 select(FileShare).where(
                     (FileShare.file_id == file_id) &
                     (FileShare.shared_with == current_user.id) &
-                    (FileShare.expires_at > from datetime import datetime
-datetime.utcnow())
+                    (FileShare.expires_at > datetime.utcnow())
                 )
             ).first()
 
             if not share:
                 raise HTTPException(status_code=403, detail="Access denied")
 
-        from pathlib import Path
-file_path = Path
-Path(file_record.file_path)
+        file_path = Path(file_record.file_path)
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="File not found on disk")
 
@@ -368,9 +274,7 @@ Path(file_record.file_path)
 
         # Update download count
         file_record.download_count = (file_record.download_count or 0) + 1
-        file_record.from datetime import datetime
-last_accessed = datetime.now()
-datetime.utcnow()
+        file_record.last_accessed = datetime.utcnow()
         session.add(file_record)
         session.commit()
 
@@ -393,8 +297,7 @@ async def extract_file_metadata(file_path: Path, content: bytes) -> Dict[str, An
     try:
         # Basic file info
         metadata['size'] = len(content)
-        metadata['created'] = from datetime import datetime
-datetime = datetime.now().isoformat()
+        metadata['created'] = datetime.now().isoformat()
 
         # MIME type detection
         mime_type = magic.from_buffer(content, mime=True)
@@ -439,8 +342,7 @@ async def process_file_post_upload(file_id: int, file_path: str):
         logger.info(f"Post-processing file {file_id}")
 
         # Generate thumbnails for images
-        if from pathlib import Path
-Path(file_path).suffix.lower() in {'.jpg', '.jpeg', '.png', '.gif'}:
+        if Path(file_path).suffix.lower() in {'.jpg', '.jpeg', '.png', '.gif'}:
             await generate_thumbnail(file_path)
 
         # Additional security scans
@@ -454,9 +356,7 @@ async def generate_thumbnail(file_path: str):
     try:
         with Image.open(file_path) as img:
             img.thumbnail((200, 200))
-            from pathlib import Path
-thumbnail_path = Path
-Path(file_path).with_suffix('.thumb.jpg')
+            thumbnail_path = Path(file_path).with_suffix('.thumb.jpg')
             img.save(thumbnail_path, 'JPEG')
             logger.debug(f"Thumbnail generated: {thumbnail_path}")
     except Exception as e:

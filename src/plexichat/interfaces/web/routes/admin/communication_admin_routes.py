@@ -3,21 +3,11 @@ from functools import wraps
 
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 
-from ....core.auth.web_auth import (
+from ....core.auth.web_auth import require_admin_login
 from ....core.logging import get_logger
 from ....services.communication_service import get_communication_service
-
-
-
-
-    from plexichat.infrastructure.utils.auth import require_admin_login,
 import logging
 
-
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
 """
 PlexiChat Communication Admin Web Routes
 
@@ -25,15 +15,14 @@ Web routes for communication service administration interface.
 """
 
 # Initialize blueprint and logger
-bp = Bluelogger.info('communication_admin', __name__, url_prefix='/admin/communication')
+bp = Blueprint('communication_admin', __name__, url_prefix='/admin/communication')
 logger = get_logger(__name__)
 
-logger = logging.getLogger(__name__)
 def admin_required(f):
     """Decorator to require admin authentication for routes."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        return from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_login(f)(*args, **kwargs)
+        return require_admin_login(f)(*args, **kwargs)
     return decorated_function
 
 @bp.route('/')

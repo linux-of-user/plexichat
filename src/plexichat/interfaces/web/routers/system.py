@@ -7,143 +7,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from cli import EnhancedChatCLI
-from sqlmodel import Session, func, select
-
-
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-
-import psutil
-from = psutil fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
+from sqlmodel import Session, func, select
 
 from plexichat.core.analytics.analytics_engine import analytics_engine
 from plexichat.core.database import get_session
 from plexichat.features.users.files import FileRecord
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import (
-    from plexichat.infrastructure.utils.auth import get_current_user,
-    from plexichat.infrastructure.utils.auth import require_admin,
+from plexichat.infrastructure.utils.auth import get_current_user, require_admin
 from plexichat.tests.comprehensive_test_suite import test_framework
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
 from plexichat.core.config import settings
-from plexichat.features.users.user import User
-from plexichat.core.config import settings
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.core.config import settings
-from plexichat.features.users.user import User
-from plexichat.core.config import settings
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
 
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
 """
 System monitoring and management endpoints.
 Provides comprehensive system health, performance metrics, and administrative controls.
@@ -224,16 +100,12 @@ class HealthCheckResponse(BaseModel):
 
 @router.get("/info", response_model=SystemInfoResponse)
 async def get_system_info(
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Get comprehensive system information."""
     try:
-        boot_time = datetime.fromtimestamp(import psutil
-psutil = psutil.boot_time())
-        from datetime import datetime
-uptime = datetime.now()
-datetime = datetime.now() - boot_time
+        boot_time = datetime.fromtimestamp(psutil.boot_time())
+        uptime = datetime.now() - boot_time
 
         return SystemInfoResponse(
             hostname=platform.node(),
@@ -244,8 +116,7 @@ datetime = datetime.now() - boot_time
             python_version=platform.python_version(),
             uptime_seconds=uptime.total_seconds(),
             boot_time=boot_time,
-            timezone=str(from datetime import datetime
-datetime = datetime.now().astimezone().tzinfo)
+            timezone=str(datetime.now().astimezone().tzinfo)
         )
     except Exception as e:
         logger.error(f"Failed to get system info: {e}")
@@ -253,34 +124,26 @@ datetime = datetime.now().astimezone().tzinfo)
 
 @router.get("/resources", response_model=ResourceUsageResponse)
 async def get_resource_usage(
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Get current resource usage statistics."""
     try:
         # CPU information
-        cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=1)
-        cpu_count = import psutil
-psutil = psutil.cpu_count()
+        cpu_percent = psutil.cpu_percent(interval=1)
+        cpu_count = psutil.cpu_count()
         try:
-            cpu_freq = import psutil
-psutil = psutil.cpu_freq()._asdict() if import psutil
-psutil = psutil.cpu_freq() else None
+            cpu_freq = psutil.cpu_freq()._asdict() if psutil.cpu_freq() else None
         except Exception:
             cpu_freq = None
 
         # Memory information
-        memory = import psutil
-psutil = psutil.virtual_memory()
+        memory = psutil.virtual_memory()
 
         # Disk information (for main drive)
-        disk = import psutil
-psutil = psutil.disk_usage('/')
+        disk = psutil.disk_usage('/')
 
         # Network I/O
-        net_io = import psutil
-psutil = psutil.net_io_counters()
+        net_io = psutil.net_io_counters()
         network_io = {
             'bytes_sent': net_io.bytes_sent,
             'bytes_recv': net_io.bytes_recv,
@@ -289,8 +152,7 @@ psutil = psutil.net_io_counters()
         }
 
         # Disk I/O
-        disk_io_counters = import psutil
-psutil = psutil.disk_io_counters()
+        disk_io_counters = psutil.disk_io_counters()
         disk_io = {
             'read_bytes': disk_io_counters.read_bytes,
             'write_bytes': disk_io_counters.write_bytes,
@@ -320,23 +182,19 @@ psutil = psutil.disk_io_counters()
 async def get_processes(
     limit: int = Query(20, ge=1, le=100),
     sort_by: str = Query("cpu_percent", regex="^(cpu_percent|memory_percent|name|pid)$"),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Get running processes information."""
     try:
         processes = []
-        for proc in import psutil
-psutil = psutil.process_iter(['pid', 'name', 'status', 'cpu_percent', 'memory_percent', 'memory_info', 'create_time', 'cmdline']):
+        for proc in psutil.process_iter(['pid', 'name', 'status', 'cpu_percent', 'memory_percent', 'memory_info', 'create_time', 'cmdline']):
             try:
                 proc_info = proc.info
 
                 # Count connections
                 try:
                     connections = len(proc.connections())
-                except (import psutil
-psutil = psutil.NoSuchProcess, import psutil
-psutil = psutil.AccessDenied):
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
                     connections = 0
 
                 processes.append(ProcessInfoResponse(
@@ -353,9 +211,7 @@ psutil = psutil.AccessDenied):
                     cmdline=proc_info['cmdline'] or [],
                     connections=connections
                 ))
-            except (import psutil
-psutil = psutil.NoSuchProcess, import psutil
-psutil = psutil.AccessDenied):
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
 
         # Sort processes
@@ -375,8 +231,7 @@ psutil = psutil.AccessDenied):
 
 @router.get("/logs/stats", response_model=LogStatsResponse)
 async def get_log_stats(
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Get logging system statistics."""
     try:
@@ -403,10 +258,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
         # Get log files information
         log_files = []
-        from pathlib import Path
-log_dir = Path
-Path(from plexichat.core.config import settings
-settings.LOG_DIR)
+        log_dir = Path(settings.LOG_DIR)
         if log_dir.exists():
             for log_file in log_dir.glob("*.log*"):
                 try:
@@ -440,8 +292,7 @@ settings.LOG_DIR)
 @router.get("/database/stats", response_model=DatabaseStatsResponse)
 async def get_database_stats(
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Get database statistics."""
     try:
@@ -500,12 +351,9 @@ async def health_check():
 
         # System health
         try:
-            cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=0.1)
-            memory = import psutil
-psutil = psutil.virtual_memory()
-            disk = import psutil
-psutil = psutil.disk_usage('/')
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
 
             checks['system'] = {
                 'status': 'healthy',
@@ -553,21 +401,15 @@ psutil = psutil.disk_usage('/')
             overall_status = "healthy"
 
         # Calculate uptime
-        boot_time = datetime.fromtimestamp(import psutil
-psutil = psutil.boot_time())
-        from datetime import datetime
-uptime = datetime.now()
-datetime = datetime.now() - boot_time
+        boot_time = datetime.fromtimestamp(psutil.boot_time())
+        uptime = datetime.now() - boot_time
         uptime_str = f"{uptime.days}d {uptime.seconds//3600}h {(uptime.seconds//60)%60}m"
 
         return HealthCheckResponse(
             status=overall_status,
-            from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+            timestamp=datetime.now(),
             uptime=uptime_str,
-            version=from plexichat.core.config import settings
-settings.API_VERSION,
+            version=settings.API_VERSION,
             checks=checks,
             warnings=warnings,
             errors=errors
@@ -579,8 +421,7 @@ settings.API_VERSION,
 @router.post("/restart")
 async def restart_system(
     background_tasks: BackgroundTasks,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Restart the application (requires admin privileges)."""
     try:
@@ -612,54 +453,35 @@ async def perform_restart():
 
 @router.get("/config")
 async def get_system_config(
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ):
     """Get system configuration (sanitized for security)."""
     try:
         config = {
-            'api_version': from plexichat.core.config import settings
-settings.API_VERSION,
-            'debug_mode': from plexichat.core.config import settings
-settings.DEBUG,
-            'host': from plexichat.core.config import settings
-settings.HOST,
-            'port': from plexichat.core.config import settings
-settings.PORT,
-            'log_level': from plexichat.core.config import settings
-settings.LOG_LEVEL,
-            'database_configured': bool(from plexichat.core.config import settings
-settings.DATABASE_URL),
-            'ssl_enabled': bool(from plexichat.core.config import settings
-settings.SSL_CERTFILE and from plexichat.core.config import settings
-settings.SSL_KEYFILE),
+            'api_version': settings.API_VERSION,
+            'debug_mode': settings.DEBUG,
+            'host': settings.HOST,
+            'port': settings.PORT,
+            'log_level': settings.LOG_LEVEL,
+            'database_configured': bool(settings.DATABASE_URL),
+            'ssl_enabled': bool(settings.SSL_CERTFILE and settings.SSL_KEYFILE),
             'rate_limiting': {
-                'requests': from plexichat.core.config import settings
-settings.RATE_LIMIT_REQUESTS,
-                'window': from plexichat.core.config import settings
-settings.RATE_LIMIT_WINDOW
+                'requests': settings.RATE_LIMIT_REQUESTS,
+                'window': settings.RATE_LIMIT_WINDOW
             },
             'logging': {
-                'console': from plexichat.core.config import settings
-settings.LOG_TO_CONSOLE,
-                'file': from plexichat.core.config import settings
-settings.LOG_TO_FILE,
-                'json_format': from plexichat.core.config import settings
-settings.LOG_JSON_FORMAT,
-                'stream_enabled': from plexichat.core.config import settings
-settings.LOG_STREAM_ENABLED
+                'console': settings.LOG_TO_CONSOLE,
+                'file': settings.LOG_TO_FILE,
+                'json_format': settings.LOG_JSON_FORMAT,
+                'stream_enabled': settings.LOG_STREAM_ENABLED
             },
             'self_tests': {
-                'enabled': from plexichat.core.config import settings
-settings.SELFTEST_ENABLED,
-                'interval_minutes': from plexichat.core.config import settings
-settings.SELFTEST_INTERVAL_MINUTES
+                'enabled': settings.SELFTEST_ENABLED,
+                'interval_minutes': settings.SELFTEST_INTERVAL_MINUTES
             },
             'monitoring': {
-                'enabled': from plexichat.core.config import settings
-settings.MONITORING_ENABLED,
-                'performance_tracking': from plexichat.core.config import settings
-settings.LOG_PERFORMANCE_TRACKING
+                'enabled': settings.MONITORING_ENABLED,
+                'performance_tracking': settings.LOG_PERFORMANCE_TRACKING
             }
         }
 
@@ -672,8 +494,7 @@ settings.LOG_PERFORMANCE_TRACKING
 async def run_tests(
     suite: Optional[str] = None,
     timeout: Optional[int] = None,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ) -> Dict[str, Any]:
     """
     Run system tests.
@@ -726,8 +547,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise HTTPException(status_code=500, detail=f"Test execution failed: {str(e)}")
 
 @router.get("/test/suites")
-async def list_test_suites(current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)) -> Dict[str, Any]:
+async def list_test_suites(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
     """
     List available test suites.
 
@@ -758,8 +578,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise HTTPException(status_code=500, detail="Failed to list test suites")
 
 @router.get("/analytics/dashboard")
-async def get_analytics_dashboard(current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)) -> Dict[str, Any]:
+async def get_analytics_dashboard(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
     """
     Get analytics dashboard data.
 
@@ -778,8 +597,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise HTTPException(status_code=500, detail="Failed to get analytics dashboard")
 
 @router.get("/analytics/performance")
-async def get_performance_metrics(current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)) -> Dict[str, Any]:
+async def get_performance_metrics(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
     """
     Get performance metrics.
 
@@ -800,8 +618,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 @router.get("/analytics/users/{user_id}")
 async def get_user_analytics(
     user_id: int,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: User = Depends(require_admin)
 ) -> Dict[str, Any]:
     """
     Get analytics for specific user.
@@ -823,8 +640,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 @router.post("/cli/execute")
 async def execute_cli_command(
     command_data: Dict[str, str],
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Execute CLI command via web interface.

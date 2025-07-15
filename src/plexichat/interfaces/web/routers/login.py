@@ -1,14 +1,6 @@
 from pathlib import Path
 from typing import Optional
 
-
-
-from pathlib import Path
-
-
-
-from pathlib import Path
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -21,20 +13,11 @@ PlexiChat Login Router
 Handles login/logout functionality for web UI and desktop app.
 """
 
-# Import login manager
-try:
-except ImportError:
-    login_manager = None
-
 router = APIRouter(tags=["login"])
 
-# Templates
-from pathlib import Path
-templates_dir = Path
-Path(__file__).parent.parent / "web" / "templates"
+templates_dir = Path(__file__).parent.parent / "web" / "templates"
 templates = Jinja2Templates(directory=str(templates_dir))
 
-# Pydantic models
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -55,21 +38,16 @@ class SessionValidationResponse(BaseModel):
     valid: bool
     user: Optional[dict] = None
 
-# Authentication dependency
-def from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user(request: Request):
+def get_current_user(request: Request):
     """Get current authenticated user."""
     if not login_manager:
         raise HTTPException(status_code=500, detail="Authentication not available")
-
-    # Check for session in cookies
     session_id = request.cookies.get("plexichat_session")
     if not session_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
-
     session = login_manager.validate_session(session_id)
     if not session:
         raise HTTPException(status_code=401, detail="Invalid or expired session")
-
     return session
 
 # Web routes
@@ -159,7 +137,7 @@ async def api_logout(request: Request, response: Response):
     return result
 
 @router.get("/api/auth/me")
-async def get_current_user from plexichat.infrastructure.utils.auth import get_current_user_info(current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)):
+async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     """Get current user info."""
     if not login_manager:
         raise HTTPException(status_code=500, detail="Authentication not available")

@@ -2,15 +2,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-
 from plexichat.core.auth.dependencies import require_auth
 from plexichat.core.logging import get_logger
 from ...services.collaboration_service import CollaborationType, get_collaboration_service
-
-from pathlib import Path
-
-
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
@@ -25,9 +19,7 @@ access to real-time collaboration features through web interface.
 
 # Initialize router and templates
 router = APIRouter(prefix="/collaboration", tags=["Collaboration Web"])
-templates = Jinja2Templates(from pathlib import Path
-directory = Path
-Path(__file__).parent.parent / "templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
 logger = get_logger(__name__)
 
 @router.get("/", response_class=HTMLResponse)
@@ -224,7 +216,10 @@ async def collaboration_sessions_list(
         if session_type:
             try:
                 filter_type = CollaborationType(session_type)
-                user_sessions = [s for s in user_sessions   # Invalid type, ignore filter
+                user_sessions = [s for s in user_sessions if s.collaboration_type == filter_type]
+            except ValueError:
+                # Invalid type, ignore filter
+                pass
 
         return templates.TemplateResponse("collaboration_sessions_list.html", {
             "request": request,

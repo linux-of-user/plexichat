@@ -8,28 +8,27 @@ from typing import Optional
 
 import yaml
 
-# Core imports with proper error handling
 try:
-    from .core.database import get_database_manager, database_manager
+    from src.plexichat.core.database import get_database_manager, database_manager
 except ImportError:
     logging.warning("Database manager not available")
     get_database_manager = None
     database_manager = None
 
 try:
-    from .core_system.auth.unified_auth_manager import UnifiedAuthManager
+    from src.plexichat.core_system.auth.unified_auth_manager import UnifiedAuthManager
 except ImportError:
     logging.warning("Unified auth manager not available")
     UnifiedAuthManager = None
 
 try:
-    from .infrastructure.utils.utilities import ConfigManager
+    from src.plexichat.infrastructure.utils.utilities import ConfigManager
 except ImportError:
     logging.warning("Config manager not available")
     ConfigManager = None
 
 try:
-    from .core_system.logging import get_logger, setup_module_logging
+    from src.plexichat.core_system.logging import get_logger, setup_module_logging
 except ImportError:
     logging.warning("Advanced logging not available")
     get_logger = logging.getLogger
@@ -111,7 +110,7 @@ config = load_config()
 
 # Feature imports with proper error handling
 try:
-    from .features.ai.core.ai_abstraction_layer_simple import AIAbstractionLayer
+    from src.plexichat.features.ai.core.ai_abstraction_layer_simple import AIAbstractionLayer
     ai_layer = AIAbstractionLayer()
     ai_api_router = None  # Will be set later
     ai_webui_router = None  # Will be set later
@@ -129,7 +128,7 @@ except Exception as e:
 
 # Backup system
 try:
-    from .features.backup.core.unified_backup_manager import get_unified_backup_manager
+    from src.plexichat.features.backup.core.unified_backup_manager import get_unified_backup_manager
     backup_router = None  # Will be set later
 except ImportError:
     logging.warning("Backup system not available")
@@ -138,13 +137,13 @@ except ImportError:
 
 # API routers
 try:
-    from .interfaces.api.v1.clustering import router as clustering_router
+    from src.plexichat.interfaces.api.v1.clustering import router as clustering_router
 except ImportError:
     logging.warning("Clustering router not available")
     clustering_router = None
 
 try:
-    from .interfaces.api.v1.security_api import router as security_router
+    from src.plexichat.interfaces.api.v1.security_api import router as security_router
 except ImportError:
     logging.warning("Security router not available")
     security_router = None
@@ -160,7 +159,7 @@ except ImportError as e:
 
 # Import security middleware (with fallback)
 try:
-    from .features.security.middleware import AuthenticationMiddleware as SecurityAuthMiddleware, SecurityMiddleware as SecurityMidware
+    from src.plexichat.features.security.middleware import AuthenticationMiddleware as SecurityAuthMiddleware, SecurityMiddleware as SecurityMidware
     AuthenticationMiddleware = SecurityAuthMiddleware  # type: ignore
     SecurityMiddleware = SecurityMidware  # type: ignore
 except ImportError:
@@ -686,7 +685,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize plugin system
     try:
-        from .infrastructure.modules.plugin_manager import get_plugin_manager
+        from src.plexichat.infrastructure.modules.plugin_manager import get_plugin_manager
         plugin_manager = get_plugin_manager()
         if hasattr(plugin_manager, 'initialize'):
             await plugin_manager.initialize()
@@ -701,7 +700,7 @@ async def lifespan(app: FastAPI):
 
     # Auto-generate version files
     try:
-        from .core_system.versioning.version_manager import auto_generate_version_files
+        from src.plexichat.core_system.versioning.version_manager import auto_generate_version_files
         auto_generate_version_files()
         logger.info("Version files auto-generated")
     except Exception as e:
@@ -764,7 +763,7 @@ async def lifespan(app: FastAPI):
 
     # Shutdown plugin system
     try:
-        from .infrastructure.modules.plugin_manager import get_plugin_manager
+        from src.plexichat.infrastructure.modules.plugin_manager import get_plugin_manager
         plugin_manager = get_plugin_manager()
         if hasattr(plugin_manager, 'shutdown'):
             await plugin_manager.shutdown()
@@ -913,7 +912,7 @@ def create_app() -> FastAPI:
     async def get_version_info():
         """Get version information."""
         try:
-            from .core_system.versioning.version_manager import get_version_manager
+            from src.plexichat.core_system.versioning.version_manager import get_version_manager
             version_manager = get_version_manager()
             return version_manager.get_version_info()
         except Exception as e:

@@ -8,78 +8,27 @@ from flask import Blueprint, render_template, request, send_file
 
 from ....core.auth.decorators import admin_required
 from ....core.utils.response_utils import error_response, success_response
-from ....services.zero_knowledge_security_service import (
-from datetime import datetime
-
-from datetime import datetime
-
-    Admin,
-    AuditEventType,
-    BytesIO,
-    Flask,
-    MessageType,
-    PlexiChat,
-    PrivacyLevel,
-    Provides,
-    Routes,
-    Security,
-    WebUI.,
-    Zero-Knowledge,
-    """,
-    admin,
-    and,
-    comprehensive,
-    configuration,
-    features,
-    for,
-    from,
-    import,
-    interfaces.,
-    io,
-    managing,
-    monitoring,
-    routes,
-    security,
-    testing,
-    the,
-    through,
-    zero-knowledge,
-    zero_knowledge_security,
-)
+from ....services.zero_knowledge_security_service import ZeroKnowledgeSecurityService
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-zero_knowledge_security_bp = Bluelogger.info(
+zero_knowledge_security_bp = Blueprint(
     'zero_knowledge_security_admin',
     __name__,
     url_prefix='/admin/zero-knowledge-security'
 )
 
 
-logger = logging.getLogger(__name__)
-def async_route(f):
-    """Decorator to handle async route functions."""
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(f(*args, **kwargs))
-        finally:
-            loop.close()
-    return wrapper
-
-
 @zero_knowledge_security_bp.route('/')
 @admin_required
-@async_route
+@wraps(async_route)
 async def zero_knowledge_security_management():
     """Main zero-knowledge security management page."""
     try:
         # Get current configuration and statistics
-        config = await zero_knowledge_security.get_configuration()
-        stats = await zero_knowledge_security.get_service_statistics()
+        config = await ZeroKnowledgeSecurityService.get_configuration()
+        stats = await ZeroKnowledgeSecurityService.get_service_statistics()
 
         return render_template(
             'admin/zero_knowledge_security_management.html',
@@ -95,11 +44,11 @@ async def zero_knowledge_security_management():
 
 @zero_knowledge_security_bp.route('/stats')
 @admin_required
-@async_route
+@wraps(async_route)
 async def get_statistics():
     """Get current zero-knowledge security statistics."""
     try:
-        stats = await zero_knowledge_security.get_service_statistics()
+        stats = await ZeroKnowledgeSecurityService.get_service_statistics()
         return success_response(stats=stats)
 
     except Exception as e:
@@ -109,12 +58,12 @@ async def get_statistics():
 
 @zero_knowledge_security_bp.route('/config', methods=['GET', 'POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def manage_configuration():
     """Get or update zero-knowledge security configuration."""
     try:
         if request.method == 'GET':
-            config = await zero_knowledge_security.get_configuration()
+            config = await ZeroKnowledgeSecurityService.get_configuration()
             return success_response(config=config)
 
         elif request.method == 'POST':
@@ -122,7 +71,7 @@ async def manage_configuration():
             if not config_updates:
                 return error_response("No configuration data provided")
 
-            success = await zero_knowledge_security.update_configuration(config_updates)
+            success = await ZeroKnowledgeSecurityService.update_configuration(config_updates)
             if success:
                 return success_response(message="Configuration updated successfully")
             else:
@@ -135,7 +84,7 @@ async def manage_configuration():
 
 @zero_knowledge_security_bp.route('/test-all', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def test_all_systems():
     """Run comprehensive tests on all zero-knowledge security systems."""
     try:
@@ -144,11 +93,11 @@ async def test_all_systems():
         # Test client-side encryption
         try:
             test_data = "Test message for encryption"
-            encrypted_data, proof_hash = await zero_knowledge_security.encrypt_client_side(
-                test_data, "test_user", PrivacyLevel.ENHANCED
+            encrypted_data, proof_hash = await ZeroKnowledgeSecurityService.encrypt_client_side(
+                test_data, "test_user", ZeroKnowledgeSecurityService.PrivacyLevel.ENHANCED
             )
-            decrypted_data = await zero_knowledge_security.decrypt_client_side(
-                encrypted_data, "test_user", proof_hash, PrivacyLevel.ENHANCED
+            decrypted_data = await ZeroKnowledgeSecurityService.decrypt_client_side(
+                encrypted_data, "test_user", proof_hash, ZeroKnowledgeSecurityService.PrivacyLevel.ENHANCED
             )
 
             if decrypted_data.decode('utf-8') == test_data:
@@ -169,10 +118,10 @@ async def test_all_systems():
 
         # Test disappearing messages
         try:
-            message_id = await zero_knowledge_security.create_disappearing_message(
+            message_id = await ZeroKnowledgeSecurityService.create_disappearing_message(
                 "Test disappearing message", "test_sender", "test_recipient", ttl_hours=1
             )
-            retrieved_message = await zero_knowledge_security.get_disappearing_message(
+            retrieved_message = await ZeroKnowledgeSecurityService.get_disappearing_message(
                 message_id, "test_sender"
             )
 
@@ -194,8 +143,8 @@ async def test_all_systems():
 
         # Test anonymous messaging
         try:
-            anonymous_id = await zero_knowledge_security.create_anonymous_session(duration_hours=1)
-            message_id = await zero_knowledge_security.send_anonymous_message(
+            anonymous_id = await ZeroKnowledgeSecurityService.create_anonymous_session(duration_hours=1)
+            message_id = await ZeroKnowledgeSecurityService.send_anonymous_message(
                 anonymous_id, "Test anonymous message"
             )
 
@@ -217,7 +166,7 @@ async def test_all_systems():
 
         # Test audit trail integrity
         try:
-            integrity_result = await zero_knowledge_security.verify_audit_integrity()
+            integrity_result = await ZeroKnowledgeSecurityService.verify_audit_integrity()
             if integrity_result.get('audit_status') == 'PASSED':
                 test_results['audit_integrity'] = {
                     'status': 'PASSED',
@@ -250,7 +199,7 @@ async def test_all_systems():
 
 @zero_knowledge_security_bp.route('/test-encryption', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def test_encryption():
     """Test client-side encryption functionality."""
     try:
@@ -260,15 +209,15 @@ async def test_encryption():
         # Test different privacy levels
         test_results = {}
 
-        for privacy_level in [PrivacyLevel.STANDARD, PrivacyLevel.ENHANCED, PrivacyLevel.QUANTUM_PROOF]:
+        for privacy_level in [ZeroKnowledgeSecurityService.PrivacyLevel.STANDARD, ZeroKnowledgeSecurityService.PrivacyLevel.ENHANCED, ZeroKnowledgeSecurityService.PrivacyLevel.QUANTUM_PROOF]:
             try:
                 # Encrypt data
-                encrypted_data, proof_hash = await zero_knowledge_security.encrypt_client_side(
+                encrypted_data, proof_hash = await ZeroKnowledgeSecurityService.encrypt_client_side(
                     test_data, user_id, privacy_level
                 )
 
                 # Decrypt data
-                decrypted_data = await zero_knowledge_security.decrypt_client_side(
+                decrypted_data = await ZeroKnowledgeSecurityService.decrypt_client_side(
                     encrypted_data, user_id, proof_hash, privacy_level
                 )
 
@@ -304,7 +253,7 @@ async def test_encryption():
 
 @zero_knowledge_security_bp.route('/test-disappearing', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def test_disappearing_messages():
     """Test disappearing messages functionality."""
     try:
@@ -317,17 +266,17 @@ async def test_disappearing_messages():
             recipient_id = "test_recipient"
 
             # Create disappearing message with short TTL for testing
-            message_id = await zero_knowledge_security.create_disappearing_message(
+            message_id = await ZeroKnowledgeSecurityService.create_disappearing_message(
                 message_content, sender_id, recipient_id, ttl_hours=1
             )
 
             # Test sender can retrieve message
-            retrieved_by_sender = await zero_knowledge_security.get_disappearing_message(
+            retrieved_by_sender = await ZeroKnowledgeSecurityService.get_disappearing_message(
                 message_id, sender_id
             )
 
             # Test recipient can retrieve message
-            retrieved_by_recipient = await zero_knowledge_security.get_disappearing_message(
+            retrieved_by_recipient = await ZeroKnowledgeSecurityService.get_disappearing_message(
                 message_id, recipient_id
             )
 
@@ -350,7 +299,7 @@ async def test_disappearing_messages():
 
         # Test unauthorized access prevention
         try:
-            unauthorized_result = await zero_knowledge_security.get_disappearing_message(
+            unauthorized_result = await ZeroKnowledgeSecurityService.get_disappearing_message(
                 message_id, "unauthorized_user"
             )
 
@@ -385,7 +334,7 @@ async def test_disappearing_messages():
 
 @zero_knowledge_security_bp.route('/test-anonymous', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def test_anonymous_messaging():
     """Test anonymous messaging functionality."""
     try:
@@ -393,7 +342,7 @@ async def test_anonymous_messaging():
 
         # Test anonymous session creation
         try:
-            anonymous_id = await zero_knowledge_security.create_anonymous_session(duration_hours=1)
+            anonymous_id = await ZeroKnowledgeSecurityService.create_anonymous_session(duration_hours=1)
 
             if anonymous_id and anonymous_id.startswith('anon_'):
                 test_results['session_creation'] = {
@@ -415,7 +364,7 @@ async def test_anonymous_messaging():
         # Test anonymous message sending
         try:
             message_content = "Test anonymous message"
-            message_id = await zero_knowledge_security.send_anonymous_message(
+            message_id = await ZeroKnowledgeSecurityService.send_anonymous_message(
                 anonymous_id, message_content
             )
 
@@ -450,16 +399,16 @@ async def test_anonymous_messaging():
 
 @zero_knowledge_security_bp.route('/rotate-keys', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def rotate_encryption_keys():
     """Rotate all encryption keys."""
     try:
         # Clear existing client keys to force regeneration
-        zero_knowledge_security.client_keys.clear()
+        ZeroKnowledgeSecurityService.client_keys.clear()
 
         # Log key rotation event
-        await zero_knowledge_security._log_audit_event(
-            AuditEventType.KEY_ROTATION,
+        await ZeroKnowledgeSecurityService._log_audit_event(
+            ZeroKnowledgeSecurityService.AuditEventType.KEY_ROTATION,
             None,  # Admin action
             {
                 "action": "manual_key_rotation",
@@ -477,31 +426,31 @@ async def rotate_encryption_keys():
 
 @zero_knowledge_security_bp.route('/cleanup-expired', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def cleanup_expired_messages():
     """Manually trigger cleanup of expired messages."""
     try:
-        len(zero_knowledge_security.encrypted_messages)
+        len(ZeroKnowledgeSecurityService.encrypted_messages)
 
         # Find and clean up expired messages
         now = datetime.now(timezone.utc)
         expired_messages = []
 
-        for message_id, message in zero_knowledge_security.encrypted_messages.items():
-            if (message.message_type == MessageType.DISAPPEARING and
+        for message_id, message in ZeroKnowledgeSecurityService.encrypted_messages.items():
+            if (message.message_type == ZeroKnowledgeSecurityService.MessageType.DISAPPEARING and
                 message.expires_at and now > message.expires_at):
                 expired_messages.append(message_id)
 
         # Securely delete expired messages
         for message_id in expired_messages:
-            await zero_knowledge_security._secure_delete_message(message_id)
+            await ZeroKnowledgeSecurityService._secure_delete_message(message_id)
 
         cleaned_count = len(expired_messages)
 
         return success_response(
             message="Cleanup completed successfully",
             cleaned_count=cleaned_count,
-            remaining_messages=len(zero_knowledge_security.encrypted_messages)
+            remaining_messages=len(ZeroKnowledgeSecurityService.encrypted_messages)
         )
 
     except Exception as e:
@@ -511,11 +460,11 @@ async def cleanup_expired_messages():
 
 @zero_knowledge_security_bp.route('/verify-audit', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def verify_audit_integrity():
     """Verify audit trail integrity."""
     try:
-        integrity_result = await zero_knowledge_security.verify_audit_integrity()
+        integrity_result = await ZeroKnowledgeSecurityService.verify_audit_integrity()
 
         return success_response(
             integrity_result=integrity_result,
@@ -529,11 +478,11 @@ async def verify_audit_integrity():
 
 @zero_knowledge_security_bp.route('/export-audit')
 @admin_required
-@async_route
+@wraps(async_route)
 async def export_audit_trail():
     """Export audit trail data."""
     try:
-        audit_events = await zero_knowledge_security.get_audit_trail()
+        audit_events = await ZeroKnowledgeSecurityService.get_audit_trail()
 
         # Convert audit events to exportable format
         export_data = []
@@ -559,8 +508,7 @@ async def export_audit_trail():
         return send_file(
             output,
             as_attachment=True,
-            download_name=f'plexichat_audit_trail_{from datetime import datetime
-datetime = datetime.now().strftime("%Y%m%d_%H%M%S")}.json',
+            download_name=f'plexichat_audit_trail_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json',
             mimetype='application/json'
         )
 
@@ -571,14 +519,14 @@ datetime = datetime.now().strftime("%Y%m%d_%H%M%S")}.json',
 
 @zero_knowledge_security_bp.route('/anonymous-sessions')
 @admin_required
-@async_route
+@wraps(async_route)
 async def get_anonymous_sessions():
     """Get information about active anonymous sessions."""
     try:
         now = datetime.now(timezone.utc)
         active_sessions = []
 
-        for anonymous_id, session_data in zero_knowledge_security.anonymous_sessions.items():
+        for anonymous_id, session_data in ZeroKnowledgeSecurityService.anonymous_sessions.items():
             if session_data["expires_at"] > now:
                 # Return session info without revealing sensitive data
                 active_sessions.append({
@@ -598,7 +546,7 @@ async def get_anonymous_sessions():
 
 @zero_knowledge_security_bp.route('/audit-events')
 @admin_required
-@async_route
+@wraps(async_route)
 async def get_audit_events():
     """Get recent audit events."""
     try:
@@ -606,13 +554,16 @@ async def get_audit_events():
         event_type = request.args.get('event_type')
 
         # Get audit events
-        audit_events = await zero_knowledge_security.get_audit_trail()
+        audit_events = await ZeroKnowledgeSecurityService.get_audit_trail()
 
         # Filter by event type if specified
         if event_type:
             try:
-                filter_type = AuditEventType(event_type)
-                audit_events = [event for event in audit_events   # Invalid event type, ignore filter
+                filter_type = ZeroKnowledgeSecurityService.AuditEventType(event_type)
+                audit_events = [event for event in audit_events if event.event_type == filter_type]
+            except ValueError:
+                # Invalid event type, ignore filter
+                pass
 
         # Sort by timestamp (most recent first) and limit
         audit_events.sort(key=lambda x: x.timestamp, reverse=True)
@@ -638,19 +589,19 @@ async def get_audit_events():
 
 @zero_knowledge_security_bp.route('/reset-section/<section>', methods=['POST'])
 @admin_required
-@async_route
+@wraps(async_route)
 async def reset_configuration_section(section: str):
     """Reset a configuration section to defaults."""
     try:
         # Get default configuration
-        default_config = zero_knowledge_security._get_default_configuration()
+        default_config = ZeroKnowledgeSecurityService._get_default_configuration()
 
         if section not in default_config:
             return error_response(f"Invalid configuration section: {section}")
 
         # Update with default values for the section
         section_update = {section: default_config[section]}
-        success = await zero_knowledge_security.update_configuration(section_update)
+        success = await ZeroKnowledgeSecurityService.update_configuration(section_update)
 
         if success:
             return success_response(message=f"Section '{section}' reset to defaults")
