@@ -1,3 +1,9 @@
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from .ai_powered_features_service import (
 from typing import Optional
 

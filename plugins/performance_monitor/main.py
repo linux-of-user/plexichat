@@ -21,8 +21,33 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
-from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
+try:
+    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
+except ImportError:
+    # Fallback definitions
+    class PluginInterface:
+        def get_metadata(self) -> Dict[str, Any]:
+            return {}
+
+    class PluginMetadata:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    class PluginType:
+        MONITORING = "monitoring"
+
+try:
+    from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
+except ImportError:
+    # Fallback definitions
+    class ModulePermissions:
+        READ = "read"
+        WRITE = "write"
+        ADMIN = "admin"
+
+    class ModuleCapability:
+        SYSTEM_MONITORING = "system_monitoring"
 
 logger = logging.getLogger(__name__)
 
@@ -307,25 +332,25 @@ class PerformanceMonitorPlugin(PluginInterface):
         self.data_dir.mkdir(exist_ok=True)
         self.monitoring_task = None
         
-    def get_metadata(self) -> PluginMetadata:
+    def get_metadata(self) -> Dict[str, Any]:
         """Get plugin metadata."""
-        return PluginMetadata(
-            name="performance_monitor",
-            version="1.0.0",
-            description="Advanced system monitoring with real-time metrics, alerts, and performance optimization suggestions",
-            plugin_type=PluginType.MONITORING
-        )
+        return {
+            "name": "performance_monitor",
+            "version": "1.0.0",
+            "description": "Advanced system monitoring with real-time metrics, alerts, and performance optimization suggestions",
+            "plugin_type": "monitoring"
+        }
     
-    def get_required_permissions(self) -> ModulePermissions:
+    def get_required_permissions(self) -> Dict[str, Any]:
         """Get required permissions."""
-        return ModulePermissions(
-            capabilities=[
-                ModuleCapability.SYSTEM,
-                ModuleCapability.NETWORK,
-                ModuleCapability.FILE_SYSTEM,
-                ModuleCapability.WEB_UI
+        return {
+            "capabilities": [
+                "system",
+                "network",
+                "file_system",
+                "web_ui"
             ],
-            network_access=True,
-            file_system_access=True,
-            database_access=False
-        )
+            "network_access": True,
+            "file_system_access": True,
+            "database_access": False
+        }

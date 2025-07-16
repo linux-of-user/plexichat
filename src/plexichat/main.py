@@ -4,10 +4,13 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Type
+import types
+import inspect
 
 import yaml
 
+# Core system imports
 try:
     from src.plexichat.core.database import get_database_manager, database_manager
 except ImportError:
@@ -33,6 +36,44 @@ except ImportError:
     logging.warning("Advanced logging not available")
     get_logger = logging.getLogger
     setup_module_logging = lambda name=None, level="INFO": logging.getLogger(name or __name__)
+
+# New core modules integration
+try:
+    from src.plexichat.core.config import config_manager, get_config
+    from src.plexichat.core.threading import thread_manager, async_thread_manager
+    from src.plexichat.core.caching import cache_manager
+    from src.plexichat.core.analytics import analytics_manager, track_event
+    from src.plexichat.core.monitoring import system_monitor, start_monitoring
+    from src.plexichat.core.scheduler import task_scheduler
+    from src.plexichat.core.backup import backup_manager
+    from src.plexichat.core.plugins import plugin_manager
+    from src.plexichat.core.events import event_manager
+    from src.plexichat.core.middleware import middleware_manager
+    from src.plexichat.core.validation import validator
+    from src.plexichat.core.utils import generate_id, current_timestamp
+    from src.plexichat.core.constants import APP_NAME, APP_VERSION, DEFAULT_CONFIG
+except ImportError as e:
+    logging.warning(f"Some core modules not available: {e}")
+    config_manager = None
+    thread_manager = None
+    async_thread_manager = None
+    cache_manager = None
+    analytics_manager = None
+    system_monitor = None
+    task_scheduler = None
+    backup_manager = None
+    plugin_manager = None
+    event_manager = None
+    middleware_manager = None
+    validator = None
+    track_event = None
+    start_monitoring = None
+    get_config = lambda key, default=None: default
+    generate_id = lambda: "default_id"
+    current_timestamp = lambda: int(datetime.now().timestamp())
+    APP_NAME = "PlexiChat"
+    APP_VERSION = "1.0.0"
+    DEFAULT_CONFIG = {}
 
 # Load configuration from YAML file
 def load_version_from_json():
@@ -177,7 +218,7 @@ except ImportError:
             return await self.app(scope, receive, send)
 
 import uvicorn
-from fastapi import FastAPI, Request, HTTPException, Depends, UploadFile, File, Form
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form  # Depends unused
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -185,7 +226,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import uuid
 import shutil
-from datetime import datetime, timedelta
+from datetime import datetime  # , timedelta  # Unused import
 
 """
 PlexiChat Main Application
@@ -202,6 +243,109 @@ Path("config").mkdir(exist_ok=True)
 Path("certs").mkdir(exist_ok=True)
 Path("uploads").mkdir(exist_ok=True)
 Path("temp").mkdir(exist_ok=True)
+Path("backups").mkdir(exist_ok=True)
+Path("plugins").mkdir(exist_ok=True)
+
+# Initialize all core services
+async def initialize_core_services():
+    """Initialize all PlexiChat core services."""
+    logger = get_logger(__name__)
+    logger.info("Initializing PlexiChat core services...")
+
+    try:
+        # Initialize configuration manager
+        if config_manager:
+            logger.info("Loading configuration...")
+            config_manager.load_config()
+
+        # Initialize threading system
+        if thread_manager:
+            logger.info("Starting thread manager...")
+            await thread_manager.start()
+
+        # Initialize caching system
+        if cache_manager:
+            logger.info("Starting cache manager...")
+            await cache_manager.start()
+
+        # Initialize analytics
+        if analytics_manager:
+            logger.info("Starting analytics manager...")
+            await analytics_manager.start()
+
+        # Initialize monitoring
+        if system_monitor:
+            logger.info("Starting system monitoring...")
+            await start_monitoring()
+
+        # Initialize task scheduler
+        if task_scheduler:
+            logger.info("Starting task scheduler...")
+            await task_scheduler.start()
+
+        # Initialize backup manager
+        if backup_manager:
+            logger.info("Starting backup manager...")
+            await backup_manager.start_auto_backup()
+
+        # Initialize plugin manager
+        if plugin_manager:
+            logger.info("Initializing plugin manager...")
+            await plugin_manager.initialize()
+
+        # Initialize event manager
+        if event_manager:
+            logger.info("Starting event manager...")
+            await event_manager.start_processing()
+
+        # Track initialization event
+        if track_event:
+            await track_event("system_initialized", properties={
+                "app_name": APP_NAME,
+                "app_version": APP_VERSION,
+                "timestamp": current_timestamp()
+            })
+
+        logger.info("All core services initialized successfully!")
+
+    except Exception as e:
+        logger.error(f"Failed to initialize core services: {e}")
+        raise
+
+async def shutdown_core_services():
+    """Shutdown all PlexiChat core services."""
+    logger = get_logger(__name__)
+    logger.info("Shutting down PlexiChat core services...")
+
+    try:
+        # Shutdown in reverse order
+        if event_manager:
+            await event_manager.stop_processing()
+
+        if plugin_manager:
+            # Unload all plugins
+            for plugin_id in list(plugin_manager.plugins.keys()):
+                await plugin_manager.unload_plugin(plugin_id)
+
+        if task_scheduler:
+            await task_scheduler.stop()
+
+        if system_monitor:
+            await system_monitor.stop_monitoring()
+
+        if analytics_manager:
+            await analytics_manager.stop()
+
+        if cache_manager:
+            await cache_manager.stop()
+
+        if thread_manager:
+            await thread_manager.stop()
+
+        logger.info("All core services shut down successfully!")
+
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
 
 # SSL Configuration from config
 ssl_config = config.get("network", {})
@@ -293,7 +437,9 @@ async def initialize_ssl():
         # Initialize SSL manager
         try:
             if ssl_manager and hasattr(ssl_manager, 'initialize'):
-                result = await ssl_manager.initialize()
+                result = ssl_manager.initialize()
+                if inspect.isawaitable(result):
+                    result = await result
             else:
                 result = None
 
@@ -310,7 +456,7 @@ async def initialize_ssl():
                                 email=SSL_CONFIG["email"],
                                 domain_type="custom"
                             )
-                            if hasattr(result, '__await__'):
+                            if inspect.isawaitable(result):
                                 await result
                         except Exception as e:
                             logging.warning(f"Failed to setup automatic HTTPS: {e}")
@@ -466,6 +612,10 @@ def validate_file_upload(file: UploadFile) -> bool:
     
     return True
 
+def is_real_awaitable(obj):
+    import inspect
+    return obj is not None and not isinstance(obj, (type, types.CoroutineType, types.GeneratorType)) and inspect.isawaitable(obj) and type(obj).__name__ != 'Never'
+
 def _load_web_routers(app: FastAPI):
     """Load routers from the consolidated web/routers directory."""
     logger.info("Loading web routers...")
@@ -576,213 +726,35 @@ def _load_specialized_routers(app: FastAPI):
             logger.warning(f"Failed to load security router: {e}")
 
 
+# Old lifespan function removed - using new integrated version below
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application lifespan events."""
+    """Application lifespan manager."""
     # Startup
     logger.info("Starting PlexiChat application...")
-
-    # Generate startup logs for monitoring
-    logger.info("Initializing PlexiChat core systems...")
-    logger.info("System startup sequence beginning")
-
-    # Initialize core systems with lazy loading to prevent hanging
     try:
-        # Initialize enhanced database system
-        if get_database_manager and database_manager:
-            if hasattr(database_manager, 'initialize'):
-                await database_manager.initialize()
-            logger.info("Enhanced database system initialized")
-        else:
-            logger.warning("Enhanced database system not available, skipping initialization.")
-    except Exception as e:
-        logger.warning(f"Enhanced database system initialization failed: {e}")
-
-    try:
-        # Initialize backup manager
-        if get_unified_backup_manager:
-            backup_manager = get_unified_backup_manager()
-            if hasattr(backup_manager, 'initialize'):
-                try:
-                    result = backup_manager.initialize()
-                    if hasattr(result, '__await__'):
-                        await result
-                except Exception as e:
-                    logger.warning(f"Backup manager initialize failed: {e}")
-            logger.info("Backup manager initialized")
-        else:
-            logger.warning("Backup system not available, skipping initialization.")
-    except Exception as e:
-        logger.warning(f"Backup manager initialization failed: {e}")
-
-    try:
-        # Initialize AI abstraction layer
-        if ai_layer:
-            if hasattr(ai_layer, 'initialize'):
-                try:
-                    await ai_layer.initialize()
-                except Exception as e:
-                    logger.warning(f"AI layer initialize failed: {e}")
-            logger.info("AI abstraction layer initialized")
-        else:
-            logger.warning("AI features not available, skipping initialization.")
-    except Exception as e:
-        logger.warning(f"AI abstraction layer initialization failed: {e}")
-
-    try:
-        # Initialize authentication manager
-        if UnifiedAuthManager:
-            auth_manager = UnifiedAuthManager()
-            if hasattr(auth_manager, 'initialize'):
-                try:
-                    await auth_manager.initialize()
-                except Exception as e:
-                    logger.warning(f"Auth manager initialize failed: {e}")
-            logger.info("Authentication manager initialized")
-        else:
-            logger.warning("Unified auth manager not available, skipping initialization.")
-    except Exception as e:
-        logger.warning(f"Authentication manager initialization failed: {e}")
-
-    try:
-        # Initialize SSL/Certificate manager if available
-        if ssl_manager and hasattr(ssl_manager, 'initialize'):
-            try:
-                await ssl_manager.initialize()
-                logger.info("SSL/Certificate manager initialized")
-            except Exception as e:
-                logger.warning(f"SSL/Certificate manager initialization failed: {e}")
-        else:
-            logger.warning("SSL/Certificate manager not available, skipping initialization.")
-    except Exception as e:
-        logger.warning(f"SSL/Certificate manager initialization failed: {e}")
-
-    try:
-        # Initialize legacy database manager for compatibility
-        if get_database_manager and database_manager:
-            legacy_manager = get_database_manager()
-            if hasattr(legacy_manager, 'initialize'):
-                try:
-                    await legacy_manager.initialize()
-                except Exception as e:
-                    logger.warning(f"Legacy DB manager initialize failed: {e}")
-            logger.info("Legacy database manager initialized")
-        else:
-            logger.warning("Legacy database manager not available, skipping initialization.")
-    except Exception as e:
-        logger.warning(f"Legacy database manager initialization failed: {e}")
-
-    try:
-        # Initialize configuration manager
-        if ConfigManager:
-            config_manager = ConfigManager()
-            if hasattr(config_manager, 'initialize'):
-                try:
-                    await config_manager.initialize()
-                except Exception as e:
-                    logger.warning(f"Config manager initialize failed: {e}")
-            logger.info("Configuration manager initialized")
-        else:
-            logger.warning("Config manager not available, skipping initialization.")
-    except Exception as e:
-        logger.warning(f"Configuration manager initialization failed: {e}")
-
-    # Initialize plugin system
-    try:
-        from src.plexichat.infrastructure.modules.plugin_manager import get_plugin_manager
-        plugin_manager = get_plugin_manager()
-        if hasattr(plugin_manager, 'initialize'):
-            await plugin_manager.initialize()
-        logger.info("Plugin manager initialized")
-        
-        # Auto-load all enabled plugins
-        if hasattr(plugin_manager, 'load_enabled_plugins'):
-            loaded_plugins = await plugin_manager.load_enabled_plugins()
-            logger.info(f"Auto-loaded {len(loaded_plugins)} plugins: {', '.join(loaded_plugins)}")
-    except Exception as e:
-        logger.warning(f"Plugin system initialization failed: {e}")
-
-    # Auto-generate version files
-    try:
-        from src.plexichat.core_system.versioning.version_manager import auto_generate_version_files
-        auto_generate_version_files()
-        logger.info("Version files auto-generated")
-    except Exception as e:
-        logger.warning(f"Version file generation failed: {e}")
-
-    # Additional system initialization
-    try:
-        # Initialize any additional systems here
-        logger.info("Additional systems initialized")
-    except Exception as e:
-        logger.error(f"Critical startup error: {e}")
-        logger.critical(f"Startup failure details: {e}", exc_info=True)
-        # Continue startup even if some components fail
-
-    logger.info("PlexiChat application started successfully")
-    logger.info("Server is ready to accept connections")
-    logger.info("API endpoints are now available")
-    logger.info("WebUI is ready for user access")
-
-    yield
-
-    # Shutdown
-    logger.info("Shutting down PlexiChat application...")
-
-    # Shutdown systems safely
-    try:
-        # Shutdown enhanced database system
-        if get_database_manager and database_manager:
-            if hasattr(database_manager, 'shutdown'):
-                await database_manager.shutdown()
-        else:
-            logger.warning("Enhanced database system not available, skipping shutdown.")
-    except Exception as e:
-        logger.warning(f"Enhanced database system shutdown failed: {e}")
-
-    try:
-        if get_unified_backup_manager:
-            backup_manager = get_unified_backup_manager()
-            if hasattr(backup_manager, 'shutdown'):
-                try:
-                    await backup_manager.shutdown()
-                except AttributeError:
-                    try:
-                        await if backup_manager and hasattr(backup_manager, "cleanup"): backup_manager.cleanup()
-                    except AttributeError:
-                        logger.warning("Backup manager has neither 'shutdown' nor 'cleanup' method, skipping shutdown.")
-                except Exception as e:
-                    logger.warning(f"Backup manager shutdown failed: {e}")
-    except Exception as e:
-        logger.warning(f"Backup manager shutdown failed: {e}")
-
-    try:
-        if get_database_manager and database_manager:
-            if hasattr(database_manager, 'shutdown'):
-                await database_manager.shutdown()
-        else:
-            logger.warning("Legacy database manager not available, skipping shutdown.")
-    except Exception as e:
-        logger.warning(f"Legacy database manager shutdown failed: {e}")
-
-    # Shutdown plugin system
-    try:
-        from src.plexichat.infrastructure.modules.plugin_manager import get_plugin_manager
-        plugin_manager = get_plugin_manager()
-        if hasattr(plugin_manager, 'shutdown'):
-            await plugin_manager.shutdown()
-        logger.info("Plugin system shutdown complete")
-    except Exception as e:
-        logger.warning(f"Plugin system shutdown failed: {e}")
-
-    logger.info("PlexiChat application shutdown complete")
-
+        await initialize_core_services()
+        yield
+    finally:
+        # Shutdown
+        logger.info("Shutting down PlexiChat application...")
+        await shutdown_core_services()
 
 def create_app() -> FastAPI:
     """Create and configure the PlexiChat application."""
     logger.info("Creating PlexiChat FastAPI application...")
 
     logger.info(f"Configuration loaded: {config.get('system', {}).get('name', 'PlexiChat')} v{config.get('system', {}).get('version', 'a.1.1-12')}")
+
+    # Create FastAPI app with lifespan
+    app = FastAPI(
+        title=APP_NAME,
+        version=APP_VERSION,
+        description="Advanced Chat Application with AI Integration",
+        lifespan=lifespan
+    )
 
     # Create FastAPI app
     app = FastAPI(
@@ -947,7 +919,15 @@ def create_app() -> FastAPI:
             try:
                 if ssl_manager and hasattr(ssl_manager, 'scan_file'):
                     try:
-                        scan_result = await ssl_manager.scan_file(file_metadata['path'])
+                        # Check if scan_file is async
+                        if hasattr(ssl_manager.scan_file, '__call__'):
+                            import asyncio
+                            if asyncio.iscoroutinefunction(ssl_manager.scan_file):
+                                scan_result = await ssl_manager.scan_file(file_metadata['path'])
+                            else:
+                                scan_result = ssl_manager.scan_file(file_metadata['path'])
+                        else:
+                            scan_result = {"status": "unavailable"}
                         file_metadata['security_scan'] = scan_result
                     except Exception as e:
                         logger.warning(f"Security scan failed: {e}")

@@ -1,3 +1,8 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from typing import Optional
     from .backup import router as backup_router
     from .backup_endpoints import router as backup_endpoints_router

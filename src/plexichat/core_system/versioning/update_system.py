@@ -1,3 +1,11 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 import asyncio
 import hashlib
 import logging

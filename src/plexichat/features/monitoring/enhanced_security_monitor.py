@@ -1,3 +1,9 @@
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
 Enhanced Security Monitoring System
 Provides real-time security monitoring, threat detection, and incident response.

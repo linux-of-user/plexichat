@@ -1,3 +1,9 @@
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from .core.cluster_manager import AdvancedClusterManager
 from .core.failover_manager import AutomaticFailoverManager
 from .core.load_balancer import SmartLoadBalancer

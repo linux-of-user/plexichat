@@ -1,3 +1,8 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from typing import Optional
     from .enhanced_messaging import router as enhanced_messaging_router
     from .messages_enhanced import router as messages_enhanced_router

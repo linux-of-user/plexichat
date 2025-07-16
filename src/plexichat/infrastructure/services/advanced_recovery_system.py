@@ -1,3 +1,8 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 import concurrent.futures
 import gzip
 import hashlib

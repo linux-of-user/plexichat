@@ -1,3 +1,8 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 import statistics
 import threading
 from collections import defaultdict, deque

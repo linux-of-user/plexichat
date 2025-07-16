@@ -16,18 +16,21 @@ from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 
 from ...core_system.config import get_config
 from ...core_system.logging import get_logger
-from ...features.channels.repositories.channel_repository import ChannelRepository
-from ...features.channels.repositories.permission_overwrite_repository import (
-from ...features.security import distributed_key_manager, quantum_encryption
+try:
+    from ...features.channels.repositories.channel_repository import ChannelRepository
+except ImportError:
+    ChannelRepository = None
 
+try:
+    from ...features.channels.repositories.permission_overwrite_repository import PermissionOverwriteRepository
+except ImportError:
+    PermissionOverwriteRepository = None
 
-    OF,
-    REMOVED,
-    SINGLE,
-    SOURCE,
-    TRUTH,
-    AsyncEngine,
-    Consolidated,
+try:
+    from ...features.security import distributed_key_manager, quantum_encryption
+except ImportError:
+    distributed_key_manager = None
+    quantum_encryption = None
     Consolidates,
     Database,
     Manager,

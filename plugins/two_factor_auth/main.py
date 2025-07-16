@@ -12,11 +12,13 @@ from typing import Any, Dict, List, Optional, Tuple
 # Optional imports with fallbacks
 try:
     import qrcode
-except ImportError: Optional[qrcode] = None
+except ImportError:
+    qrcode = None
 
 try:
     import pyotp
-except ImportError: Optional[pyotp] = None
+except ImportError:
+    pyotp = None
 
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -24,15 +26,19 @@ from pydantic import BaseModel
 
 # Plugin interface imports
 try:
-    from ...infrastructure.modules.enhanced_plugin_manager import PluginInterface, PluginType, PluginMetadata
+    from plexichat.infrastructure.modules.enhanced_plugin_manager import PluginInterface, PluginType, PluginMetadata
 except ImportError:
     # Fallback for when the enhanced plugin manager is not available
     from enum import Enum
     from dataclasses import dataclass
-    
+
+    class PluginInterface:
+        def get_metadata(self) -> Dict[str, Any]:
+            return {}
+
     class PluginType(Enum):
         SECURITY_NODE = "security_node"
-    
+
     @dataclass
     class PluginMetadata:
         name: str
@@ -145,51 +151,51 @@ class TwoFactorAuthPlugin(PluginInterface):
             "successful_verifications": 0
         }
     
-    def get_metadata(self) -> PluginMetadata:
+    def get_metadata(self) -> Dict[str, Any]:
         """Get plugin metadata."""
-        return PluginMetadata(
-            name="two_factor_auth",
-            version="1.0.0",
-            description="Advanced Two-Factor Authentication plugin with TOTP, SMS, and hardware token support",
-            author="PlexiChat Security Team",
-            plugin_type=PluginType.SECURITY_NODE,
-            entry_point="main",
-            dependencies=["core_security", "database_manager"],
-            permissions=["auth:read", "auth:write", "user:read", "user:write", "sms:send"],
-            api_version="1.0",
-            min_plexichat_version="3.0.0",
-            enabled=True,
-            category="security",
-            tags=["authentication", "security", "2fa", "totp", "sms", "hardware"],
-            homepage="https://github.com/plexichat/plugins/two-factor-auth",
-            repository="https://github.com/plexichat/plugins/two-factor-auth",
-            license="MIT",
-            icon="shield-lock",
-            ui_pages=[
+        return {
+            "name": "two_factor_auth",
+            "version": "1.0.0",
+            "description": "Advanced Two-Factor Authentication plugin with TOTP, SMS, and hardware token support",
+            "author": "PlexiChat Security Team",
+            "plugin_type": "security_node",
+            "entry_point": "main",
+            "dependencies": ["core_security", "database_manager"],
+            "permissions": ["auth:read", "auth:write", "user:read", "user:write", "sms:send"],
+            "api_version": "1.0",
+            "min_plexichat_version": "3.0.0",
+            "enabled": True,
+            "category": "security",
+            "tags": ["authentication", "security", "2fa", "totp", "sms", "hardware"],
+            "homepage": "https://github.com/plexichat/plugins/two-factor-auth",
+            "repository": "https://github.com/plexichat/plugins/two-factor-auth",
+            "license": "MIT",
+            "icon": "shield-lock",
+            "ui_pages": [
                 {"name": "setup", "path": "ui/setup", "title": "2FA Setup"},
                 {"name": "management", "path": "ui/management", "title": "2FA Management"},
                 {"name": "recovery", "path": "ui/recovery", "title": "Recovery Codes"}
             ],
-            api_endpoints=[
+            "api_endpoints": [
                 "/api/v1/2fa/setup",
                 "/api/v1/2fa/verify",
                 "/api/v1/2fa/disable",
                 "/api/v1/2fa/recovery",
                 "/api/v1/2fa/devices"
             ],
-            webhooks=[
+            "webhooks": [
                 "2fa.setup.completed",
                 "2fa.verification.failed",
                 "2fa.device.added",
                 "2fa.device.removed"
             ],
-            auto_start=True,
-            background_tasks=[
+            "auto_start": True,
+            "background_tasks": [
                 "cleanup_expired_codes",
                 "sync_device_status",
                 "send_reminder_notifications"
             ]
-        )
+        }
     
     async def _plugin_initialize(self) -> bool:
         """Initialize the 2FA plugin."""

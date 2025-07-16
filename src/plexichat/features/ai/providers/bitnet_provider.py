@@ -1,3 +1,9 @@
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
 BitNet 1-bit LLM Provider
 

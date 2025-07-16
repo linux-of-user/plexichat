@@ -1,63 +1,42 @@
-from typing import Optional
-# Unified Authentication API for PlexiChat
+"""PlexiChat Auth"""
+
+import logging
+from typing import Any, Dict, Optional
 
 try:
-    from .decorators_auth import *
+    from plexichat.core_system.database.manager import database_manager
 except ImportError:
-    pass
+    database_manager = None
 
 try:
-    from .manager_audit import AuthAuditManager, auth_audit_manager
+    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
+    from plexichat.core_system.logging.performance_logger import get_performance_logger
 except ImportError:
-    AuthAuditManager = auth_audit_manager = None
+    PerformanceOptimizationEngine = None
+    get_performance_logger = None
 
-try:
-    from .manager_auth import AuthManager, auth_manager
-except ImportError:
-    AuthManager = auth_manager = None
+logger = logging.getLogger(__name__)
 
-try:
-    from .manager_biometric import BiometricManager, biometric_manager
-except ImportError:
-    BiometricManager = biometric_manager = None
+def import_auth_modules():
+    """Import auth modules with error handling."""
+    try:
+        from .auth_core import auth_core, hash_password, verify_password, create_access_token
+        from .manager_auth import auth_manager
+        logger.info("Auth modules imported")
+    except ImportError as e:
+        logger.warning(f"Could not import auth modules: {e}")
 
-try:
-    from .manager_device import DeviceManager, device_manager
-except ImportError:
-    DeviceManager = device_manager = None
+import_auth_modules()
 
-try:
-    from .manager_mfa import MFAManager, mfa_manager
-except ImportError:
-    MFAManager = mfa_manager = None
+__all__ = [
+    "auth_core",
+    "auth_manager",
+    "hash_password",
+    "verify_password",
+    "create_access_token",
+]
 
-try:
-    from .manager_oauth import OAuthManager, oauth_manager
-except ImportError:
-    OAuthManager = oauth_manager = None
-
-try:
-    from .manager_password import PasswordManager, password_manager
-except ImportError:
-    PasswordManager = password_manager = None
-
-try:
-    from .manager_session import SessionManager, session_manager
-except ImportError:
-    SessionManager = session_manager = None
-
-try:
-    from .manager_token import TokenManager, token_manager
-except ImportError:
-    TokenManager = token_manager = None
-
-# Optionally import authentication utilities
-try:
-    from plexichat.infrastructure.utils.auth import require_admin, require_auth, require_level, require_mfa, optional_auth
-except ImportError:
-    require_admin = require_auth = require_level = require_mfa = optional_auth = None
-
-try:
+__version__ = "1.0.0"
     from .middleware_auth import AuthenticationMiddleware, FastAPIAuthMiddleware, FlaskAuthMiddleware
 except ImportError:
     AuthenticationMiddleware = FastAPIAuthMiddleware = FlaskAuthMiddleware = None

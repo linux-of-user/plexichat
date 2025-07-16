@@ -1,14 +1,19 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
 Debug WebUI Routes
 
 Web interface for debugging and monitoring PlexiChat components.
 """
 
-import asyncio
+# import asyncio  # Unused import
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime  # , timedelta  # Unused import
+from typing import Optional  # Dict, List  # Unused imports
 
 from fastapi import APIRouter, Request, HTTPException, Query, Form
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse

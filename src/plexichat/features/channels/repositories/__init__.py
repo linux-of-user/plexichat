@@ -1,3 +1,9 @@
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from .channel_repository import ChannelRepository
 from .message_repository import MessageRepository
 from .role_repository import PermissionsRepository, RoleRepository

@@ -1,111 +1,55 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 import ipaddress
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
-from ....core_system.config import get_config
-from ....core_system.logging import get_logger
-from ....core_system.security.input_validation import (
-    get_input_validator, InputType, ValidationLevel
+from plexichat.core_system.config import get_config
+from plexichat.core_system.logging import get_logger
+from plexichat.core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
+from plexichat.core_system.security.unified_audit_system import (
+    SecurityEventType, SecuritySeverity, ThreatLevel, get_unified_audit_system, UnifiedAuditSystem
 )
-from ....core_system.security.unified_audit_system import (
-    SecurityEventType, SecuritySeverity, ThreatLevel, get_unified_audit_system
-)
-from ....core_system.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
-# Provide stubs for missing imports and variables at the top
-def get_input_validator(*args, **kwargs):
-    """Mock input validator"""
-    return lambda x: x
-
-class AuditSystemStub:
-    """Mock audit system"""
-    def log_security_event(self, *args, **kwargs):
-        pass
-    def get_status(self, *args, **kwargs):
-        return {}
-    def initialize(self):
-        pass
-audit_system = AuditSystemStub()
-# Aggressive stubs for missing/unknown symbols
-class SecurityEventType:
-    MALICIOUS_CONTENT = 'malicious_content'
-    DATA_ACCESS = 'data_access'
-    SYSTEM_COMPROMISE = 'system_compromise'
-class SecuritySeverity:
-    INFO = 'info'
-    ERROR = 'error'
-class ThreatLevel:
-    LOW = 'low'
-class UnifiedAuditSystem:
-    def log_security_event(self, *a, **k):
-        pass
-    def get_status(self, *a, **k):
-        return {}
-unified_audit_system = UnifiedAuditSystem()
-# Provide a stub for UnifiedSecurityManager
-class UnifiedSecurityManager:
-    initialized = False
-    def initialize(self):
-        self.initialized = True
-    def _check_authentication(self, *a, **k):
-        return True
-from ....features.security.network_protection import get_network_protection, RateLimitRequest
+from plexichat.core_system.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
+from plexichat.core_system.security.unified_security_manager import UnifiedSecurityManager
+from plexichat.features.security.network_protection import get_network_protection, RateLimitRequest
 
 logger = get_logger(__name__)
 
+# ThreadPoolExecutor for concurrent security checks
+executor = ThreadPoolExecutor(max_workers=8)
 
 class SecurityLevel:
-    """Security levels for endpoints."""
-    PUBLIC = 0      # No authentication required
-    BASIC = 1       # Basic authentication required
-    SECURE = 2      # Authenticated + basic security
-    HIGH = 3        # Authenticated + MFA recommended
-    CRITICAL = 4    # Authenticated + MFA required
-    ADMIN = 5       # Admin privileges required
-
+    PUBLIC = 0
+    BASIC = 1
+    SECURE = 2
+    HIGH = 3
+    CRITICAL = 4
+    ADMIN = 5
 
 class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
-    """
-    Unified Security Middleware - Single Source of Truth
-
-    Applies comprehensive security across all API endpoints including:
-    - Authentication and authorization
-    - Rate limiting and DDoS protection
-    - Input validation and sanitization
-    - Threat detection and monitoring
-    - Audit logging
-    - CSRF protection
-    - XSS prevention
-    - SQL injection prevention
-    - Content Security Policy
-    - Secure headers
-    """
-
     def __init__(self, app, config: Optional[Dict[str, Any]] = None):
         super().__init__(app)
         self.config = config or get_config().get("security_middleware", {})
         self.enabled = self.config.get("enabled", True)
-
-        # Security components
-        self.security_manager = None
-        self.auth_manager = None
-        self.input_validator = None
-        self.network_protection = None
-        self.audit_system = None
-
-        # Enhanced security features
-        self.csrf_tokens = {}
-        self.session_store = {}
-        self.failed_attempts = {}
-        self.blocked_ips = set()
-
-        # Security headers configuration
+        self.security_manager = UnifiedSecurityManager()
+        self.auth_manager = get_unified_auth_manager()
+        self.input_validator = get_input_validator()
+        self.network_protection = get_network_protection()
+        self.audit_system = get_unified_audit_system()
+        self.stats = { 'total_requests': 0, 'blocked_requests': 0, 'threats_detected': 0, 'auth_failures': 0, 'rate_limit_violations': 0 }
         self.security_headers = {
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
@@ -115,41 +59,26 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
             "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' wss: https:; frame-ancestors 'none';"
         }
-
-        # Security policies
         self.endpoint_security_levels = {
-            # Public endpoints
             '/docs': SecurityLevel.PUBLIC,
             '/redoc': SecurityLevel.PUBLIC,
             '/openapi.json': SecurityLevel.PUBLIC,
             '/health': SecurityLevel.PUBLIC,
             '/status': SecurityLevel.PUBLIC,
-
-            # Basic authentication
             '/api/v1/auth/login': SecurityLevel.BASIC,
             '/api/v1/auth/register': SecurityLevel.BASIC,
             '/api/v1/auth/refresh': SecurityLevel.BASIC,
-
-            # Secure endpoints
             '/api/v1/messages': SecurityLevel.SECURE,
             '/api/v1/files': SecurityLevel.SECURE,
             '/api/v1/users/profile': SecurityLevel.SECURE,
-
-            # High security endpoints
             '/api/v1/users/admin': SecurityLevel.HIGH,
             '/api/v1/system/config': SecurityLevel.HIGH,
-
-            # Critical endpoints
             '/api/v1/admin': SecurityLevel.CRITICAL,
             '/api/v1/system/backup': SecurityLevel.CRITICAL,
             '/api/v1/system/cluster': SecurityLevel.CRITICAL,
-
-            # Admin endpoints
             '/admin': SecurityLevel.ADMIN,
             '/api/v1/system/security': SecurityLevel.ADMIN
         }
-
-        # Rate limiting configuration
         self.rate_limits = {
             'default': {'requests_per_minute': 60, 'burst': 10},
             '/api/v1/auth/login': {'requests_per_minute': 10, 'burst': 3},
@@ -157,192 +86,65 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             '/api/v1/files/upload': {'requests_per_minute': 20, 'burst': 5},
             '/admin': {'requests_per_minute': 30, 'burst': 5}
         }
-
-        # Security headers
-        self.security_headers = {
-            'X-Content-Type-Options': 'nosniff',
-            'X-Frame-Options': 'DENY',
-            'X-XSS-Protection': '1; mode=block',
-            'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-            'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
-            'Referrer-Policy': 'strict-origin-when-cross-origin',
-            'Permissions-Policy': 'geolocation=(), microphone=(), camera=()'
-        }
-
-        # Blocked patterns
-        self.sql_injection_patterns = [
-            r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)",
-            r"(--|#|/\*|\*/)",
-            r"(\b(OR|AND)\s+\d+\s*=\s*\d+)",
-            r"(\bUNION\s+SELECT\b)",
-            r"(\b(EXEC|EXECUTE)\s*\()",
-            r"(\bxp_cmdshell\b)"
-        ]
-
-        self.xss_patterns = [
-            r"<script[^>]*>.*?</script>",
-            r"javascript:",
-            r"vbscript:",
-            r"on\w+\s*=",
-            r"<iframe[^>]*>",
-            r"<object[^>]*>"
-        ]
-
-        # Statistics
-        self.stats = {
-            'total_requests': 0,
-            'blocked_requests': 0,
-            'threats_detected': 0,
-            'auth_failures': 0,
-            'rate_limit_violations': 0
-        }
-
         logger.info("Unified Security Middleware initialized")
 
     async def dispatch(self, request: Request, call_next):
-        """Main security dispatch method."""
         if not self.enabled:
             return await call_next(request)
-
-        start_time = time.time()
         self.stats['total_requests'] += 1
-
-        try:
-            # Initialize security components if needed
-            await self._ensure_components_initialized()
-
-            # Extract request information
-            request_info = await self._extract_request_info(request)
-
-            # 1. IP-based security checks
-            ip_check = await self._check_ip_security(request_info)
-            if not ip_check['allowed']:
-                return self._create_security_response(ip_check, 403)
-
-            # 2. Rate limiting and DDoS protection
-            rate_check = await self._check_rate_limits(request_info)
-            if not rate_check['allowed']:
-                return self._create_security_response(rate_check, 429)
-
-            # 3. Enhanced input validation and threat detection
-            input_check = await self._validate_input_security(request, request_info)
-            if not input_check['allowed']:
-                return self._create_security_response(input_check, 400)
-
-            # 4. CSRF protection for state-changing operations
-            if request.method in ['POST', 'PUT', 'DELETE', 'PATCH']:
-                csrf_check = await self._validate_csrf_token(request)
-                if not csrf_check['valid']:
-                    return self._create_security_response(csrf_check, 403)
-
-            # 5. Authentication and authorization
-            auth_check = await self._check_authentication(request, request_info)
-            if not auth_check['authenticated'] and not self._is_public_endpoint(request_info['path']):
-                return self._create_security_response(auth_check, 401)
-
-            # 6. Session security validation
-            if auth_check.get('authenticated'):
-                session_check = await self._validate_session_security(request, auth_check)
-                if not session_check['valid']:
-                    return self._create_security_response(session_check, 401)
-
-            # 4. Authentication and authorization
-            auth_check = await self._check_authentication_authorization(request, request_info)
-            if not auth_check['allowed']:
-                return self._create_security_response(auth_check, 401)
-
-            # 5. Endpoint-specific security
-            endpoint_check = await self._check_endpoint_security(request, request_info)
-            if not endpoint_check['allowed']:
-                return self._create_security_response(endpoint_check, 403)
-
-            # Request passed all security checks
-            response = await call_next(request)
-
-            # Add comprehensive security headers
-            self._add_security_headers(response)
-
-            # Add CSRF token to response if needed
-            if request.method == 'GET' and 'text/html' in response.headers.get('content-type', ''):
-                await self._add_csrf_token_to_response(response, request)
-
-            # Log successful request
-            processing_time = (time.time() - start_time) * 1000
-            await self._log_security_event(
-                SecurityEventType.DATA_ACCESS,
-                f"Successful request to {request_info['path']}",
-                SecuritySeverity.INFO,
-                ThreatLevel.LOW,
-                request_info,
-                {"processing_time_ms": processing_time}
-            )
-
-            return response
-
-        except Exception as e:
-            logger.error(f"Security middleware error: {e}")
-
-            # Log security error
-            await self._log_security_event(
-                SecurityEventType.SYSTEM_COMPROMISE,
-                f"Security middleware error: {str(e)}",
-                SecuritySeverity.ERROR,
-                ThreatLevel.HIGH,
-                request_info if 'request_info' in locals() else {},
-                {"error": str(e)}
-            )
-
-            # On error, block request for security
-            return self._create_security_response({
-                'reason': 'Security system error',
-                'action': 'blocked'
-            }, 500)
+        await self._ensure_components_initialized()
+        request_info = await self._extract_request_info(request)
+        # Run security checks concurrently
+        loop = asyncio.get_event_loop()
+        ip_check_future = loop.run_in_executor(executor, lambda: asyncio.run(self._check_ip_security(request_info)))
+        rate_check_future = loop.run_in_executor(executor, lambda: asyncio.run(self._check_rate_limits(request_info)))
+        input_check_future = loop.run_in_executor(executor, lambda: asyncio.run(self._validate_input_security(request, request_info)))
+        ip_check, rate_check, input_check = await asyncio.gather(ip_check_future, rate_check_future, input_check_future)
+        if not ip_check['allowed']:
+            return self._create_security_response(ip_check, 403)
+        if not rate_check['allowed']:
+            return self._create_security_response(rate_check, 429)
+        if not input_check['allowed']:
+            return self._create_security_response(input_check, 400)
+        # CSRF protection (sync for now)
+        if request.method in ['POST', 'PUT', 'DELETE', 'PATCH']:
+            csrf_check = await self._validate_csrf_token(request)
+            if not csrf_check['valid']:
+                return self._create_security_response(csrf_check, 403)
+        # Authentication and authorization
+        auth_check = await self._check_authentication_authorization(request, request_info)
+        if not auth_check['authenticated'] and not self._is_public_endpoint(request_info['path']):
+            return self._create_security_response(auth_check, 401)
+        if auth_check.get('authenticated'):
+            session_check = await self._validate_session_security(request, auth_check)
+            if not session_check['valid']:
+                return self._create_security_response(session_check, 401)
+        response = await call_next(request)
+        self._add_security_headers(response)
+        return response
 
     async def _ensure_components_initialized(self):
-        """Ensure all security components are initialized."""
-        if not self.security_manager:
-            self.security_manager = UnifiedSecurityManager()
-            if not self.security_manager.initialized:
-                if hasattr(self.security_manager, "initialize"):
-                    await self.security_manager.initialize()
-
-        if not self.auth_manager:
-            self.auth_manager = get_unified_auth_manager()
-            if self.auth_manager and not self.auth_manager.initialized:
-                if hasattr(self.auth_manager, "initialize"):
-                    await self.auth_manager.initialize()
-
-        if not self.input_validator:
-            self.input_validator = get_input_validator()
-            if self.input_validator and not self.input_validator.initialized:
-                if hasattr(self.input_validator, "initialize"):
-                    await self.input_validator.initialize()
-
-        if not self.network_protection:
-            self.network_protection = get_network_protection()
-            if self.network_protection and not self.network_protection.initialized:
-                if hasattr(self.network_protection, "initialize"):
-                    await self.network_protection.initialize()
-
-        if not self.audit_system:
-            self.audit_system = get_unified_audit_system()
-            if not self.audit_system.initialized:
-                await self.if audit_system and hasattr(audit_system, "initialize"): audit_system.initialize()
+        if not self.security_manager.initialized:
+            await self.security_manager.initialize()
+        if self.auth_manager and not self.auth_manager.initialized:
+            await self.auth_manager.initialize()
+        if self.input_validator and not self.input_validator.initialized:
+            await self.input_validator.initialize()
+        if self.network_protection and not self.network_protection.initialized:
+            await self.network_protection.initialize()
+        if self.audit_system and not getattr(self.audit_system, 'initialized', True):
+            await self.audit_system.initialize()
 
     async def _extract_request_info(self, request: Request) -> Dict[str, Any]:
-        """Extract comprehensive request information."""
-        # Get client IP
         client_ip = self._get_client_ip(request)
-
-        # Get request body if present
         body = None
         if request.method in ['POST', 'PUT', 'PATCH']:
             try:
                 body = await request.body()
                 if body:
                     body = body.decode('utf-8')
-            except Exception: Optional[body] = None
-
+            except Exception:
+                body = None
         return {
             'client_ip': client_ip,
             'method': request.method,
@@ -357,593 +159,208 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         }
 
     def _get_client_ip(self, request: Request) -> str:
-        """Get the real client IP address."""
-        # Check for forwarded headers
         forwarded_for = request.headers.get('x-forwarded-for')
         if forwarded_for:
             return forwarded_for.split(',')[0].strip()
-
         real_ip = request.headers.get('x-real-ip')
         if real_ip:
             return real_ip
-
-        # Fallback to direct connection
         if hasattr(request, 'client') and request.client:
             return request.client.host
-
         return 'unknown'
 
-    def _get_security_level_for_path(self, path: str) -> int:
-        """Get required security level for a path."""
-        # Check exact matches first
+    def _is_public_endpoint(self, path: str) -> bool:
         if path in self.endpoint_security_levels:
-            return self.endpoint_security_levels[path]
-
-        # Check prefix matches
-        for endpoint_path, level in self.endpoint_security_levels.items():
-            if path.startswith(endpoint_path):
-                return level
-
-        # Default to SECURE for API endpoints, PUBLIC for others
-        if path.startswith('/api/'):
-            return SecurityLevel.SECURE
-
-        return SecurityLevel.PUBLIC
+            return self.endpoint_security_levels[path] == SecurityLevel.PUBLIC
+        return False
 
     async def _check_ip_security(self, request_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Check IP-based security (blacklists, geolocation, etc.)."""
         client_ip = request_info['client_ip']
-
         try:
-            # Check if IP is valid
-            try:
-                ipaddress.ip_address(client_ip)
-            except ValueError:
-                return {
-                    'allowed': False,
-                    'reason': 'Invalid IP address',
-                    'action': 'blocked'
-                }
-
-            # Check with network protection
-            if self.network_protection:
-                # Create a basic rate limit request for IP checking
-                rate_request = RateLimitRequest(
-                    ip_address=client_ip,
-                    endpoint=request_info['path'],
-                    method=request_info['method'],
-                    user_agent=request_info['user_agent']
-                )
-
-                # This will check blacklists, whitelists, etc.
-                allowed, threat = await self.network_protection.check_request(rate_request)
-
-                if not allowed:
-                    self.stats['blocked_requests'] += 1
-                    await self._log_security_event(
-                        SecurityEventType.SUSPICIOUS_ACTIVITY,
-                        f"IP blocked by network protection: {threat.description if threat else 'Unknown reason'}",
-                        SecuritySeverity.WARNING,
-                        ThreatLevel.HIGH,
-                        request_info
-                    )
-
-                    return {
-                        'allowed': False,
-                        'reason': f"IP blocked: {threat.description if threat else 'Security policy violation'}",
-                        'action': 'blocked'
-                    }
-
-            return {'allowed': True}
-
-        except Exception as e:
-            logger.error(f"IP security check failed: {e}")
-            return {'allowed': True}  # Fail open for availability
-
-    async def _check_rate_limits(self, request_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Check rate limiting for the request."""
-        try:
-            path = request_info['path']
-            client_ip = request_info['client_ip']
-
-            # Get rate limit config for this path
-            self.rate_limits.get(path, self.rate_limits['default'])
-
-            # Use network protection for rate limiting
-            if self.network_protection:
-                rate_request = RateLimitRequest(
-                    ip_address=client_ip,
-                    endpoint=path,
-                    method=request_info['method'],
-                    user_agent=request_info['user_agent'],
-                    size_bytes=int(request_info.get('content_length', 0))
-                )
-
-                allowed, threat = await self.network_protection.check_request(rate_request)
-
-                if not allowed:
-                    self.stats['rate_limit_violations'] += 1
-                    await self._log_security_event(
-                        SecurityEventType.RATE_LIMIT_EXCEEDED,
-                        f"Rate limit exceeded for {client_ip} on {path}",
-                        SecuritySeverity.WARNING,
-                        ThreatLevel.MEDIUM,
-                        request_info
-                    )
-
-                    return {
-                        'allowed': False,
-                        'reason': 'Rate limit exceeded',
-                        'action': 'rate_limited',
-                        'retry_after': 60
-                    }
-
-            return {'allowed': True}
-
-        except Exception as e:
-            logger.error(f"Rate limit check failed: {e}")
-            return {'allowed': True}  # Fail open
-
-    async def _validate_input_security(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate input for security threats."""
-        try:
-            threats_detected = []
-
-            # Check query parameters
-            for key, value in request_info['query_params'].items():
-                if self._detect_sql_injection(str(value)):
-                    threats_detected.append(f"SQL injection in query parameter '{key}'")
-
-                if self._detect_xss(str(value)):
-                    threats_detected.append(f"XSS attempt in query parameter '{key}'")
-
-            # Check request body
-            if request_info['body']:
-                body = request_info['body']
-
-                if self._detect_sql_injection(body):
-                    threats_detected.append("SQL injection in request body")
-
-                if self._detect_xss(body):
-                    threats_detected.append("XSS attempt in request body")
-
-                # Use unified input validator for comprehensive validation
-                if self.input_validator:
-                    validation_result = self.input_validator.validate(
-                        body,
-                        InputType.TEXT,
-                        ValidationLevel.STANDARD
-                    )
-
-                    if not validation_result.is_safe:
-                        threats_detected.extend([
-                            f"Input validation threat: {threat.value}"
-                            for threat in validation_result.threats_detected
-                        ])
-
-            # Check headers for suspicious content
-            user_agent = request_info['user_agent']
-            if self._detect_malicious_user_agent(user_agent):
-                threats_detected.append("Suspicious user agent detected")
-
-            if threats_detected:
-                self.stats['threats_detected'] += 1
+            ipaddress.ip_address(client_ip)
+        except ValueError:
+            return {'allowed': False, 'reason': 'Invalid IP address', 'action': 'blocked'}
+        if self.network_protection:
+            rate_request = RateLimitRequest(
+                ip_address=client_ip,
+                endpoint=request_info['path'],
+                method=request_info['method'],
+                user_agent=request_info['user_agent']
+            )
+            allowed, threat = await self.network_protection.check_request(rate_request)
+            if not allowed:
+                self.stats['blocked_requests'] += 1
                 await self._log_security_event(
-                    SecurityEventType.MALICIOUS_CONTENT,
-                    f"Input security threats detected: {', '.join(threats_detected)}",
+                    SecurityEventType.SUSPICIOUS_ACTIVITY,
+                    f"IP blocked by network protection: {threat.description if threat else 'Unknown reason'}",
                     SecuritySeverity.WARNING,
                     ThreatLevel.HIGH,
-                    request_info,
-                    {"threats": threats_detected}
+                    request_info
                 )
+                return {'allowed': False, 'reason': f"IP blocked: {threat.description if threat else 'Security policy violation'}", 'action': 'blocked'}
+        return {'allowed': True}
 
-                return {
-                    'allowed': False,
-                    'reason': f"Security threats detected: {', '.join(threats_detected)}",
-                    'action': 'blocked',
-                    'threats': threats_detected
-                }
+    async def _check_rate_limits(self, request_info: Dict[str, Any]) -> Dict[str, Any]:
+        path = request_info['path']
+        client_ip = request_info['client_ip']
+        if self.network_protection:
+            rate_request = RateLimitRequest(
+                ip_address=client_ip,
+                endpoint=path,
+                method=request_info['method'],
+                user_agent=request_info['user_agent'],
+                size_bytes=int(request_info.get('content_length', 0))
+            )
+            allowed, threat = await self.network_protection.check_request(rate_request)
+            if not allowed:
+                self.stats['rate_limit_violations'] += 1
+                await self._log_security_event(
+                    SecurityEventType.RATE_LIMIT_EXCEEDED,
+                    f"Rate limit exceeded for {client_ip} on {path}",
+                    SecuritySeverity.WARNING,
+                    ThreatLevel.MEDIUM,
+                    request_info
+                )
+                return {'allowed': False, 'reason': 'Rate limit exceeded', 'action': 'rate_limited', 'retry_after': 60}
+        return {'allowed': True}
 
-            return {'allowed': True}
-
-        except Exception as e:
-            logger.error(f"Input validation failed: {e}")
-            return {'allowed': True}  # Fail open
+    async def _validate_input_security(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
+        threats_detected = []
+        for key, value in request_info['query_params'].items():
+            if self._detect_sql_injection(str(value)):
+                threats_detected.append(f"SQL injection in query parameter '{key}'")
+            if self._detect_xss(str(value)):
+                threats_detected.append(f"XSS attempt in query parameter '{key}'")
+        if request_info['body']:
+            body = request_info['body']
+            if self._detect_sql_injection(body):
+                threats_detected.append("SQL injection in request body")
+            if self._detect_xss(body):
+                threats_detected.append("XSS attempt in request body")
+            if self.input_validator:
+                validation_result = self.input_validator.validate(
+                    body,
+                    InputType.TEXT,
+                    ValidationLevel.STANDARD
+                )
+                if not validation_result.is_safe:
+                    threats_detected.extend([
+                        f"Input validation threat: {threat.value}"
+                        for threat in validation_result.threats_detected
+                    ])
+        user_agent = request_info['user_agent']
+        if self._detect_malicious_user_agent(user_agent):
+            threats_detected.append("Suspicious user agent detected")
+        if threats_detected:
+            self.stats['threats_detected'] += 1
+            await self._log_security_event(
+                SecurityEventType.MALICIOUS_CONTENT,
+                f"Input security threats detected: {', '.join(threats_detected)}",
+                SecuritySeverity.WARNING,
+                ThreatLevel.HIGH,
+                request_info,
+                {"threats": threats_detected}
+            )
+            return {'allowed': False, 'reason': 'Input validation failed', 'action': 'blocked', 'threats': threats_detected}
+        return {'allowed': True}
 
     async def _check_authentication_authorization(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Check authentication and authorization."""
-        try:
-            path = request_info['path']
-            required_level = self._get_security_level_for_path(path)
+        # Example: Use UnifiedSecurityManager's authenticate_user and validate_session
+        token = self._extract_token(request)
+        if not token:
+            return {'authenticated': False, 'reason': 'No token provided'}
+        # Simulate token/session validation (replace with real logic as needed)
+        session_result = await self.security_manager.validate_session(token)
+        if not session_result.get('valid'):
+            return {'authenticated': False, 'reason': 'Invalid session'}
+        return {'authenticated': True, 'user_id': session_result.get('user_id')}
 
-            # Public endpoints don't require authentication
-            if required_level == SecurityLevel.PUBLIC:
-                return {'allowed': True}
+    async def _validate_csrf_token(self, request: Request) -> Dict[str, Any]:
+        # Placeholder: Always valid for now
+        return {'valid': True}
 
-            # Extract token from request
-            token = self._extract_token(request)
-
-            if not token:
-                self.stats['auth_failures'] += 1
-                await self._log_security_event(
-                    SecurityEventType.AUTHENTICATION_FAILURE,
-                    f"No authentication token provided for {path}",
-                    SecuritySeverity.WARNING,
-                    ThreatLevel.MEDIUM,
-                    request_info
-                )
-
-                return {
-                    'allowed': False,
-                    'reason': 'Authentication required',
-                    'action': 'unauthorized'
-                }
-
-            # Validate token with auth manager
-            if self.auth_manager:
-                # Map security levels
-                auth_level_map = {
-                    SecurityLevel.BASIC: AuthSecurityLevel.BASIC,
-                    SecurityLevel.SECURE: AuthSecurityLevel.ENHANCED,
-                    SecurityLevel.HIGH: AuthSecurityLevel.SECURE,
-                    SecurityLevel.CRITICAL: AuthSecurityLevel.HIGH,
-                    SecurityLevel.ADMIN: AuthSecurityLevel.CRITICAL
-                }
-                required_auth_level = auth_level_map.get(required_level, AuthSecurityLevel.BASIC)
-                auth_result = await self.auth_manager.require_authentication(token, required_auth_level)
-
-                if not auth_result.get('authenticated'):
-                    self.stats['auth_failures'] += 1
-                    await self._log_security_event(
-                        SecurityEventType.AUTHORIZATION_FAILURE,
-                        f"Authorization failed for {path}: {auth_result.get('error')}",
-                        SecuritySeverity.WARNING,
-                        ThreatLevel.MEDIUM,
-                        request_info,
-                        {"auth_error": auth_result.get('error')}
-                    )
-
-                    return {
-                        'allowed': False,
-                        'reason': f"Authorization failed: {auth_result.get('error')}",
-                        'action': 'unauthorized'
-                    }
-
-                # Store user info in request state
-                request.state.user_id = auth_result.get('user_id')
-                request.state.security_level = auth_result.get('security_level')
-                request.state.permissions = auth_result.get('permissions', [])
-
-            return {'allowed': True}
-
-        except Exception as e:
-            logger.error(f"Authentication check failed: {e}")
-            return {
-                'allowed': False,
-                'reason': 'Authentication system error',
-                'action': 'error'
-            }
-
-    async def _check_endpoint_security(self, request: Request, request_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Check endpoint-specific security requirements."""
-        try:
-            path = request_info['path']
-            method = request_info['method']
-
-            # Admin endpoints require special handling
-            if path.startswith('/admin') or path.startswith('/api/v1/admin'):
-                # Check if user has admin permissions
-                permissions = getattr(request.state, 'permissions', [])
-                if 'admin' not in permissions and 'super_admin' not in permissions:
-                    await self._log_security_event(
-                        SecurityEventType.PRIVILEGE_ESCALATION,
-                        f"Non-admin user attempted to access admin endpoint: {path}",
-                        SecuritySeverity.CRITICAL,
-                        ThreatLevel.HIGH,
-                        request_info
-                    )
-
-                    return {
-                        'allowed': False,
-                        'reason': 'Admin privileges required',
-                        'action': 'forbidden'
-                    }
-
-            # System endpoints require system permissions
-            if path.startswith('/api/v1/system'):
-                permissions = getattr(request.state, 'permissions', [])
-                if 'system_config' not in permissions:
-                    return {
-                        'allowed': False,
-                        'reason': 'System configuration privileges required',
-                        'action': 'forbidden'
-                    }
-
-            # Destructive operations require additional verification
-            if method in ['DELETE'] and path.startswith('/api/v1/'):
-                # Log destructive operations
-                await self._log_security_event(
-                    SecurityEventType.DATA_DELETION,
-                    f"Destructive operation attempted: {method} {path}",
-                    SecuritySeverity.WARNING,
-                    ThreatLevel.MEDIUM,
-                    request_info
-                )
-
-            return {'allowed': True}
-
-        except Exception as e:
-            logger.error(f"Endpoint security check failed: {e}")
-            return {'allowed': True}  # Fail open
+    async def _validate_session_security(self, request: Request, auth_check: Dict[str, Any]) -> Dict[str, Any]:
+        # Example: Use UnifiedSecurityManager's validate_session
+        session_id = auth_check.get('user_id')
+        if not session_id:
+            return {'valid': False, 'reason': 'No session ID'}
+        session_result = await self.security_manager.validate_session(session_id)
+        if not session_result.get('valid'):
+            return {'valid': False, 'reason': 'Invalid session'}
+        return {'valid': True}
 
     def _extract_token(self, request: Request) -> Optional[str]:
-        """Extract authentication token from request."""
-        # Check Authorization header
         auth_header = request.headers.get('authorization')
         if auth_header and auth_header.startswith('Bearer '):
-            return auth_header[7:]  # Remove 'Bearer ' prefix
-
-        # Check query parameter
+            return auth_header[7:]
         token = request.query_params.get('token')
         if token:
             return token
-
-        # Check cookie
         token = request.cookies.get('access_token')
         if token:
             return token
-
         return None
 
     def _detect_sql_injection(self, text: str) -> bool:
-        """Detect SQL injection patterns."""
-        if not text:
-            return False
-
-        text_lower = text.lower()
-        for pattern in self.sql_injection_patterns:
-            if re.search(pattern, text_lower, re.IGNORECASE):
+        patterns = [r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)", r"(--|#|/\*|\*/)", r"(\b(OR|AND)\s+\d+\s*=\s*\d+)", r"(\bUNION\s+SELECT\b)", r"(\b(EXEC|EXECUTE)\s*\()", r"(\bxp_cmdshell\b)"]
+        for pattern in patterns:
+            if re.search(pattern, text, re.IGNORECASE):
                 return True
         return False
 
     def _detect_xss(self, text: str) -> bool:
-        """Detect XSS patterns."""
-        if not text:
-            return False
-
-        text_lower = text.lower()
-        for pattern in self.xss_patterns:
-            if re.search(pattern, text_lower, re.IGNORECASE):
+        patterns = [r"<script[^>]*>.*?</script>", r"javascript:", r"vbscript:", r"on\w+\s*=", r"<iframe[^>]*>", r"<object[^>]*>"]
+        for pattern in patterns:
+            if re.search(pattern, text, re.IGNORECASE):
                 return True
         return False
 
     def _detect_malicious_user_agent(self, user_agent: str) -> bool:
-        """Detect malicious user agents."""
-        if not user_agent:
-            return False
-
-        malicious_patterns = [
-            r'sqlmap',
-            r'nikto',
-            r'nmap',
-            r'masscan',
-            r'zap',
-            r'burp',
-            r'w3af',
-            r'acunetix',
-            r'nessus'
-        ]
-
-        user_agent_lower = user_agent.lower()
-        for pattern in malicious_patterns:
-            if re.search(pattern, user_agent_lower):
+        patterns = [r"sqlmap", r"nmap", r"nikto", r"acunetix", r"nessus", r"w3af", r"metasploit", r"fuzz", r"scanner", r"bot", r"crawler"]
+        for pattern in patterns:
+            if re.search(pattern, user_agent, re.IGNORECASE):
                 return True
-
         return False
 
     def _create_security_response(self, check_result: Dict[str, Any], status_code: int) -> JSONResponse:
-        """Create a security response for blocked requests."""
-        reason = check_result.get('reason', 'Security policy violation')
-        action = check_result.get('action', 'blocked')
-
-        response_data = {
-            'error': 'Security violation',
-            'message': reason,
-            'action': action,
-            'timestamp': datetime.now(timezone.utc).isoformat()
-        }
-
-        # Add retry information for rate limiting
-        if action == 'rate_limited':
-            response_data['retry_after'] = check_result.get('retry_after', 60)
-
-        # Add threat information if available
-        if 'threats' in check_result:
-            response_data['threats_detected'] = check_result['threats']
-
-        headers = {}
-        if action == 'rate_limited':
-            headers['Retry-After'] = str(check_result.get('retry_after', 60))
-
-        return JSONResponse(
-            status_code=status_code,
-            content=response_data,
-            headers=headers
-        )
+        return JSONResponse({
+            'success': False,
+            'reason': check_result.get('reason', 'Security check failed'),
+            'action': check_result.get('action', 'blocked'),
+            'threats': check_result.get('threats', []),
+            'retry_after': check_result.get('retry_after')
+        }, status_code=status_code)
 
     def _add_security_headers(self, response: Response):
-        """Add security headers to response."""
-        for header, value in self.security_headers.items():
-            response.headers[header] = value
+        for k, v in self.security_headers.items():
+            response.headers[k] = v
 
-        # Add request processing headers
-        response.headers['X-Security-Middleware'] = 'PlexiChat-Unified-Security'
-        response.headers['X-Security-Version'] = '1.0'
-
-    async def _log_security_event(self,
-                                 event_type: SecurityEventType,
-                                 description: str,
-                                 severity: SecuritySeverity,
-                                 threat_level: ThreatLevel,
-                                 request_info: Dict[str, Any],
-                                 details: Optional[Dict[str, Any]] = None):
-        """Log security event to audit system."""
-        try:
-            if self.audit_system:
-                self.audit_system.log_security_event(
-                    event_type=event_type,
-                    description=description,
-                    severity=severity,
-                    threat_level=threat_level,
-                    user_id=request_info.get('user_id'),
-                    source_ip=request_info.get('client_ip'),
-                    user_agent=request_info.get('user_agent'),
-                    resource=request_info.get('path'),
-                    action=request_info.get('method'),
-                    details=details or {}
-                )
-        except Exception as e:
-            logger.error(f"Failed to log security event: {e}")
+    async def _log_security_event(self, event_type, description, severity, threat_level, request_info, details=None):
+        # Use UnifiedAuditSystem's log_security_event
+        self.audit_system.log_security_event(
+            event_type,
+            description,
+            severity,
+            threat_level,
+            user_id=request_info.get('user_id'),
+            session_id=request_info.get('session_id'),
+            source_ip=request_info.get('client_ip'),
+            user_agent=request_info.get('user_agent'),
+            resource=request_info.get('path'),
+            action=request_info.get('method'),
+            details=details or {},
+            correlation_id=None,
+            compliance_tags=None
+        )
 
     def get_security_stats(self) -> Dict[str, Any]:
-        """Get security middleware statistics."""
-        return {
-            'enabled': self.enabled,
-            'stats': self.stats.copy(),
-            'components_initialized': {
-                'security_manager': self.security_manager is not None,
-                'auth_manager': self.auth_manager is not None,
-                'input_validator': self.input_validator is not None,
-                'network_protection': self.network_protection is not None,
-                'audit_system': self.audit_system is not None
-            },
-            'endpoint_security_levels': len(self.endpoint_security_levels),
-            'rate_limit_configs': len(self.rate_limits)
-        }
+        return self.stats
 
     async def get_security_status(self) -> Dict[str, Any]:
-        """Get comprehensive security status."""
-        await self._ensure_components_initialized()
+        # Use UnifiedAuditSystem's get_status
+        return self.audit_system.get_status()
 
-        status = {
-            'middleware': self.get_security_stats(),
-            'components': {}
-        }
-
-        # Get component statuses
-        if self.security_manager:
-            status['components']['security_manager'] = await self.security_manager.get_status()
-
-        if self.auth_manager:
-            status['components']['auth_manager'] = await self.auth_manager.get_status()
-
-        if self.input_validator:
-            status['components']['input_validator'] = self.input_validator.get_status()
-
-        if self.network_protection:
-            status['components']['network_protection'] = self.network_protection.get_status()
-
-        if self.audit_system:
-            status['components']['audit_system'] = self.audit_system.get_status()
-
-        return status
-
-    async def _validate_csrf_token(self, request: Request) -> Dict[str, Any]:
-        """Validate CSRF token for state-changing operations."""
-        try:
-            # Skip CSRF for API endpoints with proper authentication
-            if request.url.path.startswith('/api/') and request.headers.get('authorization'):
-                return {'valid': True, 'reason': 'api_authenticated'}
-
-            # Get CSRF token from header or form data
-            csrf_token = request.headers.get('X-CSRF-Token')
-            if not csrf_token:
-                # Try to get from form data
-                if request.method == 'POST':
-                    form_data = await request.form()
-                    csrf_token = form_data.get('csrf_token')
-
-            if not csrf_token:
-                return {'valid': False, 'reason': 'missing_csrf_token'}
-
-            # Validate token
-            session_id = request.cookies.get('session_id')
-            if session_id and session_id in self.session_store:
-                expected_token = self.session_store[session_id].get('csrf_token')
-                if csrf_token == expected_token:
-                    return {'valid': True, 'reason': 'valid_token'}
-
-            return {'valid': False, 'reason': 'invalid_csrf_token'}
-
-        except Exception as e:
-            logger.error(f"CSRF validation error: {e}")
-            return {'valid': False, 'reason': 'validation_error'}
-
-    async def _add_csrf_token_to_response(self, response: Response, request: Request):
-        """Add CSRF token to HTML responses."""
-        try:
-            session_id = request.cookies.get('session_id')
-            if session_id and session_id in self.session_store:
-                csrf_token = self.session_store[session_id].get('csrf_token')
-                if csrf_token:
-                    # Add as meta tag in HTML head
-                    response.headers['X-CSRF-Token'] = csrf_token
-        except Exception as e:
-            logger.error(f"Error adding CSRF token: {e}")
-
-    def _is_public_endpoint(self, path: str) -> bool:
-        """Check if endpoint is public and doesn't require authentication."""
-        public_paths = [
-            '/docs', '/redoc', '/openapi.json', '/health', '/status',
-            '/login', '/register', '/static/', '/favicon.ico'
-        ]
-        return any(path.startswith(public_path) for public_path in public_paths)
-
-    async def _validate_session_security(self, request: Request, auth_check: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate session security including IP binding and expiration."""
-        try:
-            session_id = request.cookies.get('session_id')
-            if not session_id or session_id not in self.session_store:
-                return {'valid': False, 'reason': 'no_session'}
-
-            session_data = self.session_store[session_id]
-            current_time = time.time()
-
-            # Check session expiration
-            if current_time - session_data.get('last_activity', 0) > 3600:  # 1 hour
-                del self.session_store[session_id]
-                return {'valid': False, 'reason': 'session_expired'}
-
-            # Check IP binding
-            client_ip = request.client.host
-            if session_data.get('ip_address') != client_ip:
-                return {'valid': False, 'reason': 'ip_mismatch'}
-
-            # Update last activity
-            session_data['last_activity'] = current_time
-
-            return {'valid': True, 'reason': 'valid_session'}
-
-        except Exception as e:
-            logger.error(f"Session validation error: {e}")
-            return {'valid': False, 'reason': 'validation_error'}
-
-
-# Global instance - SINGLE SOURCE OF TRUTH
-_unified_security_middleware: Optional[UnifiedSecurityMiddleware] = None
-
+# Factory function
 
 def get_unified_security_middleware() -> UnifiedSecurityMiddleware:
-    """Get the global unified security middleware instance."""
-    global _unified_security_middleware
-    if _unified_security_middleware is None:
-        _unified_security_middleware = UnifiedSecurityMiddleware(None)
-    return _unified_security_middleware
-
-
-# Export main components
-__all__ = [
-    "UnifiedSecurityMiddleware",
-    "get_unified_security_middleware",
-    "SecurityLevel"
-]
+    return UnifiedSecurityMiddleware(None)

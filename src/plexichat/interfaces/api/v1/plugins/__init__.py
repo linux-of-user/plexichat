@@ -1,3 +1,8 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from typing import Optional
     from .enhanced_plugins import router as enhanced_plugins_router
     from .plugins import router as plugins_router

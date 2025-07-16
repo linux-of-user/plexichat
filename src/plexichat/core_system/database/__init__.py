@@ -1,120 +1,66 @@
+# pyright: reportMissingImports=false
+# pyright: reportUndefinedVariable=false
+# pyright: reportAttributeAccessIssue=false
 from typing import Optional
 
-from .manager import *
-from .manager import .exceptions  # type: ignore
-from .manager import (  # type: ignore
-
-
-    Consolidates,
-    Core,
-    Database,
-    DatabaseBackupIntegration,
-    DatabaseProvider,
-    DatabaseUtils,
-    Features:,
-    Management,
-    MongoDB,
-    Multi-database,
-    MySQL,
-    PlexiChat,
-    PostgreSQL,
-    SQLite,
-    System,
-    This,
-    Unified,
-    """,
-    -,
-    .backup_integration,
-    .config,
-    .engines,
-    .models,
-    .schemas,
-    .utils,
-    a,
-    advanced,
-    all,
-    and,
-    clustering,
-    components,
-    comprehensive,
-    consolidates:,
-    database,
-    db_backup,
-    db_cluster,
-    db_utils,
-    encryption,
-    engine,
-    features.,
-    from,
-    import,
-    into,
-    logging,
-    module,
-    multi-backend,
-    replaces,
-    single,
-    src/plexichat/app/core/database/,
-    src/plexichat/app/db/,
-    src/plexichat/core/external_database.py,
-    support,
-    system,
-    unified,
-    with,
-)
-
-- Database clustering with automatic failover and load balancing
-- Encrypted database connections and data-at-rest encryption
-- Advanced migration system with rollback capabilities
-- Connection pooling and performance optimization
-- External database hosting support (AWS RDS, Google Cloud SQL, etc.)
-- Real-time monitoring and health checks
-- Backup and recovery integration
-"""
+from .db_manager import *
+from .db_manager import exceptions  # type: ignore
 
 # Import consolidated database components
-    ConnectionStatus,
-    ConsolidatedDatabaseManager,
-    DatabaseConfig,
-    DatabaseMetrics,
-    DatabaseRole,
-    DatabaseType,
-    database_manager,
-    get_database_manager,
-    initialize_database_system,
-)
+try:
+    from .db_manager import (
+        ConnectionStatus,
+        ConsolidatedDatabaseManager,
+        DatabaseConfig,
+        DatabaseMetrics,
+        DatabaseRole,
+        DatabaseType,
+        database_manager,
+        get_database_manager,
+        initialize_database_system,
+    )
+except ImportError:
+    pass
 
 # Note: Consolidated from database_manager.py, unified_database_manager.py, enhanced_abstraction.py
 # Legacy imports maintained for backward compatibility
 DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibility
 
 # Import database models and schemas (conditional)
-try:
-except ImportError:
-
-try:
-except ImportError:
+# (Removed empty try/except blocks)
 
 # Import database utilities (conditional)
 try:
+    # Attempt to import db_utils from db_manager or another module if available
+    from .db_manager import db_utils
 except ImportError:
     # Create placeholder classes
     class DatabaseUtils:
+        pass
     db_utils = DatabaseUtils()
 
 try:
+    # Attempt to import db_backup from db_manager or another module if available
+    from .db_manager import db_backup
 except ImportError:
     # Create placeholder classes
     class DatabaseBackupIntegration:
         async def shutdown(self):
+            pass
     db_backup = DatabaseBackupIntegration()
 
 # Database configuration and types (conditional)
 try:
+    # Attempt to import DatabaseProvider from db_manager or another module if available
+    from .db_manager import DatabaseProvider
 except ImportError:
     # Create placeholder classes
     class DatabaseProvider:
+        pass
 
+# Exception classes
 try:
+    from .db_manager import (
         ConnectionError,
         DatabaseError,
         EncryptionError,

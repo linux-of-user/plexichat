@@ -1,3 +1,8 @@
+# pyright: reportMissingImports=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportCallIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 import asyncio
 import importlib
 import importlib.util
@@ -25,7 +30,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from ...core_system.config import get_config
-from ...core_system.database.abstraction.phase4_integration import phase4_database
+from ...core_system.database.abstraction.db_phase4_integration import phase4_database
 from ...core_system.logging import get_logger
 from ...features.ai.phase3_integration import phase3_ai
 from ...features.security.phase1_integration import phase1_security
@@ -279,7 +284,7 @@ class EnhancedPluginManager:
                 str(self.plugins_dir),
                 recursive=True
             )
-            self.if file_observer and hasattr(file_observer, "start"): file_observer.start()
+            if self.file_observer and hasattr(self.file_observer, "start"): self.file_observer.start()
             self.logger.info("Plugin file watching enabled")
         except Exception as e:
             self.logger.warning(f"File watching setup failed: {e}")

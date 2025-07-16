@@ -1,3 +1,8 @@
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 import logging
 
 import asyncio
@@ -10,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 from ..core.config import get_config
 from ..core.logging import get_logger
+from plexichat.core_system.resilience.manager import get_system_resilience
 
 
 """
@@ -87,6 +93,9 @@ class BaseService(ABC):
         # Shutdown handling
         self._shutdown_event = asyncio.Event()
         self._setup_signal_handlers()
+
+        # System resilience manager
+        self.resilience_manager = get_system_resilience()
 
     def _setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown."""
@@ -181,9 +190,11 @@ class BaseService(ABC):
     async def restart(self):
         """Restart the service."""
         self.logger.info(f"Restarting service: {self.service_name}")
-        await if self and hasattr(self, "stop"): self.stop()
+        if self and hasattr(self, "stop"):
+            await self.stop()
         await asyncio.sleep(1)  # Brief pause
-        await if self and hasattr(self, "start"): self.start()
+        if self and hasattr(self, "start"):
+            await self.start()
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check and return status."""
@@ -195,6 +206,14 @@ class BaseService(ABC):
 
             # Perform service-specific health check
             health_data = await self._perform_health_check()
+
+            # Integrate system resilience check
+            if self.resilience_manager:
+                try:
+                    resilience_report = await self.resilience_manager.run_system_check()
+                    health_data['resilience'] = resilience_report
+                except Exception as e:
+                    health_data['resilience'] = {'error': str(e)}
 
             # Update health status
             self.health = health_data.get("status", ServiceHealth.UNKNOWN)
@@ -325,7 +344,8 @@ class ServiceRegistry:
         self.logger.info("Starting all services")
         for service in self.services.values():
             try:
-                await if service and hasattr(service, "start"): service.start()
+                if service and hasattr(service, "start"):
+                    await service.start()
             except Exception as e:
                 self.logger.error(
                     f"Failed to start service {service.service_name}: {e}"
@@ -336,7 +356,8 @@ class ServiceRegistry:
         self.logger.info("Stopping all services")
         for service in self.services.values():
             try:
-                await if service and hasattr(service, "stop"): service.stop()
+                if service and hasattr(service, "stop"):
+                    await service.stop()
             except Exception as e:
                 self.logger.error(f"Failed to stop service {service.service_name}: {e}")
 

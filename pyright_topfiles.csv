@@ -1,0 +1,15 @@
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\interfaces\api\v1\system\backup.py,1217
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\core_system\resilience\manager.py,280
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\interfaces\cli\commands\admin.py,193
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\core_system\security\unified_security_manager.py,177
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\features\security\__init__.py,175
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\interfaces\cli\ultimate\commands\system_commands.py,170
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\features\backup\nodes\backup_node_main.py,143
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\core_system\versioning\update_system.py,134
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\infrastructure\services\modules\metrics_service.py,129
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\features\clustering\core\encrypted_communication.py,121
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\core_system\auth\__init__.py,115
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\features\backup\quantum_backup_system.py,110
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\interfaces\api\v1\__init__.py,104
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\core_system\database\db_setup_wizard.py,102
+c:\Users\dboyn\plexichat\plexichat\src\plexichat\interfaces\api\v1\archive.py,102

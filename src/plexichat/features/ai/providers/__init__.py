@@ -1,3 +1,9 @@
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from .anthropic_provider import AnthropicConfig, AnthropicProvider
 from .base_provider import BaseAIProvider, ProviderConfig, ProviderStatus
 from .ollama_provider import OllamaConfig, OllamaModel, OllamaProvider

@@ -13,6 +13,7 @@ from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 from .context import ErrorCategory, ErrorContext, ErrorSeverity
 from .crash_reporter import CrashReporter
 from .enhanced_error_handler import EnhancedErrorHandler
+from ..resilience.manager import get_system_resilience
 
 
 
@@ -115,6 +116,13 @@ class ErrorManager:
         # Background tasks
         self.background_tasks: List[asyncio.Task] = []
         self.initialized = False
+
+        # System resilience manager
+        self.resilience_manager = get_system_resilience()
+
+        # Register resilience manager for health monitoring
+        if hasattr(self.resilience_manager, 'run_system_check'):
+            self.error_callbacks.append(lambda ctx: asyncio.create_task(self.resilience_manager.run_system_check()))
 
     async def initialize(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the error manager."""

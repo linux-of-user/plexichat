@@ -24,10 +24,62 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
-from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
+try:
+    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
+except ImportError:
+    # Fallback definitions
+    class PluginInterface:
+        def get_metadata(self) -> Dict[str, Any]:
+            return {}
+
+    class PluginMetadata:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    class PluginType:
+        CLIENT = "client"
+
+try:
+    from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
+except ImportError:
+    # Fallback definitions
+    class ModulePermissions:
+        READ = "read"
+        WRITE = "write"
+        ADMIN = "admin"
+
+    class ModuleCapability:
+        MESSAGING = "messaging"
+        AI_INTEGRATION = "ai_integration"
 
 logger = logging.getLogger(__name__)
+
+
+# Helper classes
+class AIIntegration:
+    """AI integration helper."""
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+
+    async def process_message(self, message: str) -> str:
+        return f"AI processed: {message}"
+
+class VoiceProcessor:
+    """Voice processing helper."""
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+
+    async def process_audio(self, audio_data: bytes) -> str:
+        return "Audio processed"
+
+class AdvancedAnalytics:
+    """Analytics helper."""
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+
+    async def track_event(self, event: str, data: Dict[str, Any]):
+        logger.info(f"Analytics: {event} - {data}")
 
 
 class ChatMessage(BaseModel):
@@ -455,31 +507,31 @@ class AdvancedClientPlugin(PluginInterface):
         self.chat_history: Dict[str, List[ChatMessage]] = {}
         self.user_preferences: Dict[str, Dict] = {}
 
-    def get_metadata(self) -> PluginMetadata:
+    def get_metadata(self) -> Dict[str, Any]:
         """Get plugin metadata."""
-        return PluginMetadata(
-            name="advanced_client",
-            version="1.0.0",
-            description="Advanced client plugin with AI integration, real-time collaboration, and intelligent automation",
-            plugin_type=PluginType.CLIENT
-        )
+        return {
+            "name": "advanced_client",
+            "version": "1.0.0",
+            "description": "Advanced client plugin with AI integration, real-time collaboration, and intelligent automation",
+            "plugin_type": "client"
+        }
 
-    def get_required_permissions(self) -> ModulePermissions:
+    def get_required_permissions(self) -> Dict[str, Any]:
         """Get required permissions."""
-        return ModulePermissions(
-            capabilities=[
-                ModuleCapability.AI,
-                ModuleCapability.NETWORK,
-                ModuleCapability.FILE_SYSTEM,
-                ModuleCapability.WEB_UI,
-                ModuleCapability.DATABASE,
-                ModuleCapability.WEBSOCKET,
-                ModuleCapability.NOTIFICATIONS
+        return {
+            "capabilities": [
+                "ai",
+                "network",
+                "file_system",
+                "web_ui",
+                "database",
+                "websocket",
+                "notifications"
             ],
-            network_access=True,
-            file_system_access=True,
-            database_access=True
-        )
+            "network_access": True,
+            "file_system_access": True,
+            "database_access": True
+        }
 
     async def initialize(self) -> bool:
         """Initialize the plugin."""

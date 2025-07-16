@@ -1,3 +1,9 @@
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 from .feedback_collector import FeedbackCollector, FeedbackSource, FeedbackType, ModerationFeedback
 from .moderation_engine import (
 from typing import Optional

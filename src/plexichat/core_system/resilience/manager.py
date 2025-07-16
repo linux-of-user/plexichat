@@ -1,5 +1,12 @@
+"""
+PlexiChat System Resilience Manager
+
+This module provides the single source of truth for system resilience, error recovery, and health monitoring.
+All code should use the singleton accessor `get_system_resilience()` to interact with the resilience manager.
+"""
+
 import asyncio
-import gc
+import logging
 import shutil
 import socket
 import subprocess
@@ -13,159 +20,46 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-import aiohttp
+try:
+    import psutil
+except ImportError:
+    psutil = None  # type: ignore
 
+# Remove aiohttp usage and related try blocks
+# try:
+#     import aiohttp  # type: ignore
+# except ImportError:
+#     pass
+# except Exception:
+#     pass
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
+try:
+    from plexichat.app.db.enhanced_database_manager import EnhancedDatabaseManager  # type: ignore
+except ImportError:
+    try:
+        from plexichat.app.db.database_manager import DatabaseManager  # type: ignore
+    except ImportError:
+        pass
 
+try:
+    from plexichat.core.security.government_auth import government_auth  # type: ignore
+except ImportError:
+    auth_available = False
 
+try:
+    from plexichat.plugins.plugin_manager import PluginManager  # type: ignore
+except ImportError:
+    plugins_available = False
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-
-from plexichat.app.core.bug_fixes import BugFixRegistry
-from plexichat.app.db import engine
-from plexichat.app.db.database_manager import DatabaseManager
-from plexichat.app.db.enhanced_database_manager import EnhancedDatabaseManager
-from plexichat.app.logger_config import logger
-from plexichat.app.models import Base
-from plexichat.core.security.government_auth import government_auth
-from plexichat.plugins.plugin_manager import PluginManager
-
-"""
-PlexiChat System Resilience Manager
-Comprehensive system testing, error recovery, and resilience management.
-"""
+logger = logging.getLogger(__name__)
 
 class SystemStatus(Enum):
-    """System status levels."""
     HEALTHY = "healthy"
     WARNING = "warning"
     CRITICAL = "critical"
     FAILED = "failed"
 
-
 class ComponentType(Enum):
-    """System component types."""
     DATABASE = "database"
     API = "api"
     WEBSOCKET = "websocket"
@@ -178,10 +72,8 @@ class ComponentType(Enum):
     BACKUP = "backup"
     CLUSTERING = "clustering"
 
-
 @dataclass
 class SystemCheck:
-    """System check result."""
     component: ComponentType
     status: SystemStatus
     message: str
@@ -191,10 +83,8 @@ class SystemCheck:
     recovery_successful: bool = False
     error: Optional[str] = None
 
-
 @dataclass
 class ResilienceMetrics:
-    """System resilience metrics."""
     uptime_seconds: float
     total_checks: int
     healthy_checks: int
@@ -206,24 +96,16 @@ class ResilienceMetrics:
     last_check: datetime
     system_load: Dict[str, float]
 
-
 class SystemResilienceManager:
     """Comprehensive system resilience and recovery manager."""
-
     def __init__(self):
-        self.from datetime import datetime
-start_time = datetime.now()
-datetime = datetime.now()
+        self.start_time = datetime.now()
         self.checks_history: List[SystemCheck] = []
         self.recovery_functions: Dict[ComponentType, List[Callable]] = {}
         self.monitoring_enabled = True
         self.check_interval = 30  # seconds
         self.max_history = 1000
-
-        # Initialize recovery functions
         self._register_recovery_functions()
-
-        # System metrics
         self.metrics = ResilienceMetrics(
             uptime_seconds=0,
             total_checks=0,
@@ -233,128 +115,66 @@ datetime = datetime.now()
             failed_checks=0,
             recovery_attempts=0,
             successful_recoveries=0,
-            from datetime import datetime
-last_check = datetime.now()
-datetime = datetime.now(),
+            last_check=datetime.now(),
             system_load={}
         )
 
     def _register_recovery_functions(self):
-        """Register recovery functions for different components."""
         self.recovery_functions = {
-            ComponentType.DATABASE: [
-                self._recover_database_connection,
-                self._recreate_database_tables,
-                self._clear_database_locks
-            ],
-            ComponentType.API: [
-                self._restart_api_endpoints,
-                self._clear_api_cache,
-                self._reset_rate_limits
-            ],
-            ComponentType.WEBSOCKET: [
-                self._restart_websocket_connections,
-                self._clear_websocket_cache
-            ],
-            ComponentType.AUTHENTICATION: [
-                self._refresh_auth_tokens,
-                self._clear_auth_cache,
-                self._reset_failed_attempts
-            ],
-            ComponentType.FILESYSTEM: [
-                self._fix_file_permissions,
-                self._create_missing_directories,
-                self._cleanup_temp_files
-            ],
-            ComponentType.NETWORK: [
-                self._reset_network_connections,
-                self._clear_dns_cache,
-                self._test_external_connectivity
-            ],
-            ComponentType.MEMORY: [
-                self._garbage_collect,
-                self._clear_caches,
-                self._restart_memory_intensive_processes
-            ],
-            ComponentType.PLUGINS: [
-                self._reload_plugins,
-                self._disable_failing_plugins,
-                self._clear_plugin_cache
-            ],
-            ComponentType.BACKUP: [
-                self._restart_backup_services,
-                self._verify_backup_integrity,
-                self._clear_backup_locks
-            ],
-            ComponentType.CLUSTERING: [
-                self._reconnect_cluster_nodes,
-                self._rebalance_cluster_load,
-                self._restart_cluster_services
-            ]
+            ComponentType.DATABASE: [self._recover_database_connection, self._recreate_database_tables, self._clear_database_locks],
+            ComponentType.API: [self._restart_api_endpoints, self._clear_api_cache, self._reset_rate_limits],
+            ComponentType.WEBSOCKET: [self._restart_websocket_connections, self._clear_websocket_cache],
+            ComponentType.AUTHENTICATION: [self._refresh_auth_tokens, self._clear_auth_cache, self._reset_failed_attempts],
+            ComponentType.FILESYSTEM: [self._fix_file_permissions, self._create_missing_directories, self._cleanup_temp_files],
+            ComponentType.NETWORK: [self._reset_network_connections, self._clear_dns_cache, self._test_external_connectivity],
+            ComponentType.MEMORY: [self._garbage_collect, self._clear_caches, self._restart_memory_intensive_processes],
+            ComponentType.PLUGINS: [self._reload_plugins, self._disable_failing_plugins, self._clear_plugin_cache],
+            ComponentType.BACKUP: [self._restart_backup_services, self._verify_backup_integrity, self._clear_backup_locks],
+            ComponentType.CLUSTERING: [self._reconnect_cluster_nodes, self._rebalance_cluster_load, self._restart_cluster_services],
         }
 
     async def run_comprehensive_check(self) -> Dict[str, Any]:
-        """Run comprehensive system check."""
-        logger.info(" Starting comprehensive system check...")
-
+        logger.info("Starting comprehensive system check...")
         checks = []
         start_time = time.time()
-
-        # Run all component checks
         for component_type in ComponentType:
             try:
                 check_result = await self._check_component(component_type)
                 checks.append(check_result)
-
-                # Attempt recovery if needed
                 if check_result.status in [SystemStatus.CRITICAL, SystemStatus.FAILED]:
                     recovery_success = await self._attempt_recovery(component_type, check_result)
                     check_result.recovery_attempted = True
                     check_result.recovery_successful = recovery_success
-
                     if recovery_success:
                         self.metrics.successful_recoveries += 1
                     self.metrics.recovery_attempts += 1
-
             except Exception as e:
                 error_check = SystemCheck(
                     component=component_type,
                     status=SystemStatus.FAILED,
                     message=f"Check failed with exception: {str(e)}",
                     details={"error": str(e), "traceback": traceback.format_exc()},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                    timestamp=datetime.now(),
                     error=str(e)
                 )
                 checks.append(error_check)
-
-        # Update metrics
         self._update_metrics(checks)
-
-        # Store in history
         self.checks_history.extend(checks)
         if len(self.checks_history) > self.max_history:
             self.checks_history = self.checks_history[-self.max_history:]
-
         check_duration = time.time() - start_time
-
-        # Generate report
         report = {
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "duration_seconds": check_duration,
             "overall_status": self._determine_overall_status(checks),
             "checks": [asdict(check) for check in checks],
             "metrics": asdict(self.metrics),
             "recommendations": self._generate_recommendations(checks)
         }
-
-        logger.info(f" System check completed in {check_duration:.2f}s")
+        logger.info(f"System check completed in {check_duration:.2f}s")
         return report
 
     async def _check_component(self, component: ComponentType) -> SystemCheck:
-        """Check a specific system component."""
         try:
             if component == ComponentType.DATABASE:
                 return await self._check_database()
@@ -384,32 +204,28 @@ datetime = datetime.now().isoformat(),
                     status=SystemStatus.WARNING,
                     message="Unknown component type",
                     details={},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
-
         except Exception as e:
             return SystemCheck(
                 component=component,
                 status=SystemStatus.FAILED,
                 message=f"Component check failed: {str(e)}",
                 details={"error": str(e), "traceback": traceback.format_exc()},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
     async def _check_database(self) -> SystemCheck:
         """Check database connectivity and health."""
         try:
-            # Try multiple database manager imports
             db_manager = None
             try:
+                from plexichat.app.db.enhanced_database_manager import EnhancedDatabaseManager  # type: ignore
                 db_manager = EnhancedDatabaseManager()
             except ImportError:
                 try:
+                    from plexichat.app.db.database_manager import DatabaseManager  # type: ignore
                     db_manager = DatabaseManager()
                 except ImportError:
                     pass
@@ -420,9 +236,7 @@ datetime = datetime.now(),
                     status=SystemStatus.CRITICAL,
                     message="Database manager not available",
                     details={"error": "No database manager found"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
             # Test connection
@@ -437,9 +251,7 @@ datetime = datetime.now()
                     status=SystemStatus.HEALTHY,
                     message="Database connection successful",
                     details={"connection": "active"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -447,9 +259,7 @@ datetime = datetime.now()
                     status=SystemStatus.CRITICAL,
                     message="Database connection failed",
                     details={"connection": "failed"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
         except Exception as e:
@@ -458,9 +268,7 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Database check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -477,12 +285,22 @@ datetime = datetime.now(),
             working_endpoints = 0
             total_endpoints = len(endpoints_to_test)
 
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
-                for endpoint in endpoints_to_test:
-                    try:
-                        async with session.get(endpoint) as response:
-                            if response.status < 500:
-                                working_endpoints += 1
+            # Remove aiohttp usage and related try blocks
+            # try:
+            #     import aiohttp  # type: ignore
+            # except ImportError:
+            #     pass
+            # except Exception:
+            #     pass
+
+            # async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
+            #     for endpoint in endpoints_to_test:
+            #         try:
+            #             async with session.get(endpoint) as response:
+            #                 if response.status < 500:
+            #                     working_endpoints += 1
+            #         except Exception:
+            #             pass
 
 
             if working_endpoints == total_endpoints:
@@ -504,30 +322,16 @@ datetime = datetime.now(),
                     "total_endpoints": total_endpoints,
                     "endpoints_tested": endpoints_to_test
                 },
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                timestamp=datetime.now()
             )
 
-        except ImportError:
-            return SystemCheck(
-                component=ComponentType.API,
-                status=SystemStatus.WARNING,
-                message="aiohttp not available for API testing",
-                details={"error": "Missing aiohttp dependency"},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
-            )
         except Exception as e:
             return SystemCheck(
                 component=ComponentType.API,
                 status=SystemStatus.FAILED,
                 message=f"API check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -546,9 +350,7 @@ datetime = datetime.now(),
                     status=SystemStatus.HEALTHY,
                     message="WebSocket handler available",
                     details={"handler": "available"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -556,9 +358,7 @@ datetime = datetime.now()
                     status=SystemStatus.WARNING,
                     message="WebSocket handler not available",
                     details={"handler": "missing"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
         except Exception as e:
@@ -567,9 +367,7 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"WebSocket check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -578,6 +376,7 @@ datetime = datetime.now(),
         try:
             # Check if auth system is available
             try:
+                from plexichat.core.security.government_auth import government_auth  # type: ignore
                 auth_available = government_auth is not None
             except ImportError:
                 auth_available = False
@@ -588,9 +387,7 @@ datetime = datetime.now(),
                     status=SystemStatus.HEALTHY,
                     message="Authentication system available",
                     details={"auth_system": "available"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -598,9 +395,7 @@ datetime = datetime.now()
                     status=SystemStatus.CRITICAL,
                     message="Authentication system not available",
                     details={"auth_system": "missing"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
         except Exception as e:
@@ -609,9 +404,7 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Authentication check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -620,11 +413,11 @@ datetime = datetime.now(),
         try:
             # Check critical directories
             critical_dirs = [
-Path("data"),
-Path("logs"),
-Path("config"),
-Path("backups"),
-Path("plugins")
+                Path("data"),
+                Path("logs"),
+                Path("config"),
+                Path("backups"),
+                Path("plugins")
             ]
 
             missing_dirs = []
@@ -648,9 +441,7 @@ Path("plugins")
                     status=SystemStatus.HEALTHY,
                     message="Filesystem healthy",
                     details={"directories": "all_present", "permissions": "ok"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
             elif missing_dirs:
                 return SystemCheck(
@@ -658,9 +449,7 @@ datetime = datetime.now()
                     status=SystemStatus.WARNING,
                     message=f"Missing directories: {missing_dirs}",
                     details={"missing_dirs": missing_dirs, "permission_issues": permission_issues},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
             else:
                 return SystemCheck(
@@ -668,9 +457,7 @@ datetime = datetime.now()
                     status=SystemStatus.CRITICAL,
                     message=f"Permission issues: {permission_issues}",
                     details={"permission_issues": permission_issues},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
         except Exception as e:
@@ -679,9 +466,7 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Filesystem check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -693,6 +478,8 @@ datetime = datetime.now(),
             try:
                 socket.create_connection(("127.0.0.1", 8000), timeout=5)
                 local_tests.append("localhost:8000")
+            except Exception:
+                pass
 
 
             # Test external connectivity
@@ -703,6 +490,8 @@ datetime = datetime.now(),
                 try:
                     socket.create_connection((host, port), timeout=5)
                     external_tests.append(f"{host}:{port}")
+                except Exception:
+                    pass
 
 
             if local_tests and external_tests:
@@ -726,9 +515,7 @@ datetime = datetime.now(),
                     "local_tests": local_tests,
                     "external_tests": external_tests
                 },
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                timestamp=datetime.now()
             )
 
         except Exception as e:
@@ -737,17 +524,23 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Network check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
     async def _check_memory(self) -> SystemCheck:
         """Check memory usage."""
         try:
-            memory = import psutil
-psutil = psutil.virtual_memory()
+            if psutil is None:
+                return SystemCheck(
+                    component=ComponentType.MEMORY,
+                    status=SystemStatus.CRITICAL,
+                    message="psutil not available for memory check",
+                    details={"error": "Missing psutil dependency"},
+                    timestamp=datetime.now()
+                )
+
+            memory = psutil.virtual_memory()
 
             memory_percent = memory.percent
             available_gb = memory.available / (1024**3)
@@ -771,9 +564,7 @@ psutil = psutil.virtual_memory()
                     "available_gb": available_gb,
                     "total_gb": memory.total / (1024**3)
                 },
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                timestamp=datetime.now()
             )
 
         except Exception as e:
@@ -782,21 +573,25 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Memory check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
     async def _check_cpu(self) -> SystemCheck:
         """Check CPU usage."""
         try:
-            cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=1)
-            cpu_count = import psutil
-psutil = psutil.cpu_count()
-            load_avg = import psutil
-psutil = psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
+            if psutil is None:
+                return SystemCheck(
+                    component=ComponentType.CPU,
+                    status=SystemStatus.CRITICAL,
+                    message="psutil not available for CPU check",
+                    details={"error": "Missing psutil dependency"},
+                    timestamp=datetime.now()
+                )
+
+            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_count = psutil.cpu_count()
+            load_avg = psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
 
             if cpu_percent < 70:
                 status = SystemStatus.HEALTHY
@@ -821,9 +616,7 @@ psutil = psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
                 status=status,
                 message=message,
                 details=details,
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                timestamp=datetime.now()
             )
 
         except Exception as e:
@@ -832,9 +625,7 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"CPU check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -843,6 +634,7 @@ datetime = datetime.now(),
         try:
             # Check if plugin manager is available
             try:
+                from plexichat.plugins.plugin_manager import PluginManager  # type: ignore
                 PluginManager()
                 plugins_available = True
             except ImportError:
@@ -854,24 +646,18 @@ datetime = datetime.now(),
                     status=SystemStatus.WARNING,
                     message="Plugin system not available",
                     details={"plugin_manager": "missing"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
             # Check plugin directory
-            from pathlib import Path
-plugin_dir = Path
-Path("plugins")
+            plugin_dir = Path("plugins")
             if not plugin_dir.exists():
                 return SystemCheck(
                     component=ComponentType.PLUGINS,
                     status=SystemStatus.WARNING,
                     message="Plugin directory missing",
                     details={"plugin_dir": "missing"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
             return SystemCheck(
@@ -879,9 +665,7 @@ datetime = datetime.now()
                 status=SystemStatus.HEALTHY,
                 message="Plugin system available",
                 details={"plugin_manager": "available", "plugin_dir": "exists"},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                timestamp=datetime.now()
             )
 
         except Exception as e:
@@ -890,9 +674,7 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Plugin check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -911,24 +693,18 @@ datetime = datetime.now(),
                     status=SystemStatus.WARNING,
                     message="Backup system not available",
                     details={"backup_manager": "missing"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
             # Check backup directory
-            from pathlib import Path
-backup_dir = Path
-Path("backups")
+            backup_dir = Path("backups")
             if not backup_dir.exists():
                 return SystemCheck(
                     component=ComponentType.BACKUP,
                     status=SystemStatus.WARNING,
                     message="Backup directory missing",
                     details={"backup_dir": "missing"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
             return SystemCheck(
@@ -936,9 +712,7 @@ datetime = datetime.now()
                 status=SystemStatus.HEALTHY,
                 message="Backup system available",
                 details={"backup_manager": "available", "backup_dir": "exists"},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                timestamp=datetime.now()
             )
 
         except Exception as e:
@@ -947,9 +721,7 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Backup check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
@@ -968,9 +740,7 @@ datetime = datetime.now(),
                     status=SystemStatus.WARNING,
                     message="Clustering system not available",
                     details={"cluster_manager": "missing"},
-                    from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                    timestamp=datetime.now()
                 )
 
             return SystemCheck(
@@ -978,9 +748,7 @@ datetime = datetime.now()
                 status=SystemStatus.HEALTHY,
                 message="Clustering system available",
                 details={"cluster_manager": "available"},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now()
+                timestamp=datetime.now()
             )
 
         except Exception as e:
@@ -989,15 +757,13 @@ datetime = datetime.now()
                 status=SystemStatus.FAILED,
                 message=f"Clustering check failed: {str(e)}",
                 details={"error": str(e)},
-                from datetime import datetime
-timestamp = datetime.now()
-datetime = datetime.now(),
+                timestamp=datetime.now(),
                 error=str(e)
             )
 
     async def _attempt_recovery(self, component: ComponentType, check: SystemCheck) -> bool:
         """Attempt to recover a failed component."""
-        logger.info(f" Attempting recovery for {component.value}...")
+        logger.info(f"Attempting recovery for {component.value}...")
 
         recovery_functions = self.recovery_functions.get(component, [])
 
@@ -1005,22 +771,19 @@ datetime = datetime.now(),
             try:
                 success = await recovery_func() if asyncio.iscoroutinefunction(recovery_func) else recovery_func()
                 if success:
-                    logger.info(f" Recovery successful for {component.value}")
+                    logger.info(f"Recovery successful for {component.value}")
                     return True
             except Exception as e:
-                logger.warning(f" Recovery function failed for {component.value}: {e}")
+                logger.warning(f"Recovery function failed for {component.value}: {e}")
 
-        logger.error(f" All recovery attempts failed for {component.value}")
+        logger.error(f"All recovery attempts failed for {component.value}")
         return False
 
     def _update_metrics(self, checks: List[SystemCheck]):
         """Update system metrics based on checks."""
-        self.metrics.uptime_seconds = (from datetime import datetime
-datetime = datetime.now() - self.start_time).total_seconds()
+        self.metrics.uptime_seconds = (datetime.now() - self.start_time).total_seconds()
         self.metrics.total_checks += len(checks)
-        self.metrics.from datetime import datetime
-last_check = datetime.now()
-datetime = datetime.now()
+        self.metrics.last_check = datetime.now()
 
         for check in checks:
             if check.status == SystemStatus.HEALTHY:
@@ -1034,14 +797,14 @@ datetime = datetime.now()
 
         # Update system load
         try:
-            self.metrics.system_load = {
-                "cpu_percent": import psutil
-psutil = psutil.cpu_percent(),
-                "memory_percent": import psutil
-psutil = psutil.virtual_memory().percent,
-                "disk_percent": import psutil
-psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
-            }
+            if psutil is not None:
+                self.metrics.system_load = {
+                    "cpu_percent": psutil.cpu_percent(),
+                    "memory_percent": psutil.virtual_memory().percent,
+                    "disk_percent": psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
+                }
+        except Exception:
+            pass
 
 
     def _determine_overall_status(self, checks: List[SystemCheck]) -> str:
@@ -1086,19 +849,20 @@ psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
         """Attempt to recover database connection."""
         try:
             # Apply database fixes from bug_fixes.py
+            from plexichat.app.core.bug_fixes import BugFixRegistry  # type: ignore
             bug_fixes = BugFixRegistry()
             return bug_fixes._fix_database_connections()
-        except Exception as e:
-            logger.error(f"Database recovery failed: {e}")
+        except Exception:
             return False
 
     async def _recreate_database_tables(self) -> bool:
         """Recreate database tables if needed."""
         try:
+            from plexichat.app.db import engine  # type: ignore
+            from plexichat.app.db.models import Base  # type: ignore
             Base.metadata.create_all(bind=engine)
             return True
-        except Exception as e:
-            logger.error(f"Database table recreation failed: {e}")
+        except Exception:
             return False
 
     async def _clear_database_locks(self) -> bool:
@@ -1106,8 +870,7 @@ psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
         try:
             # Implementation depends on database type
             return True
-        except Exception as e:
-            logger.error(f"Database lock clearing failed: {e}")
+        except Exception:
             return False
 
     async def _restart_api_endpoints(self) -> bool:
@@ -1116,8 +879,7 @@ psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
             # This would require application restart
             logger.info("API restart would require application restart")
             return True
-        except Exception as e:
-            logger.error(f"API restart failed: {e}")
+        except Exception:
             return False
 
     async def _clear_api_cache(self) -> bool:
@@ -1125,8 +887,7 @@ psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
         try:
             # Clear any cached data
             return True
-        except Exception as e:
-            logger.error(f"API cache clearing failed: {e}")
+        except Exception:
             return False
 
     async def _reset_rate_limits(self) -> bool:
@@ -1134,8 +895,7 @@ psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
         try:
             # Reset rate limiting counters
             return True
-        except Exception as e:
-            logger.error(f"Rate limit reset failed: {e}")
+        except Exception:
             return False
 
     async def _restart_websocket_connections(self) -> bool:
@@ -1143,49 +903,44 @@ psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
         try:
             # This would require reconnecting all WebSocket clients
             return True
-        except Exception as e:
-            logger.error(f"WebSocket restart failed: {e}")
+        except Exception:
             return False
 
     async def _clear_websocket_cache(self) -> bool:
         """Clear WebSocket cache."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"WebSocket cache clearing failed: {e}")
+        except Exception:
             return False
 
     async def _refresh_auth_tokens(self) -> bool:
         """Refresh authentication tokens."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Auth token refresh failed: {e}")
+        except Exception:
             return False
 
     async def _clear_auth_cache(self) -> bool:
         """Clear authentication cache."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Auth cache clearing failed: {e}")
+        except Exception:
             return False
 
     async def _reset_failed_attempts(self) -> bool:
         """Reset failed authentication attempts."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Failed attempts reset failed: {e}")
+        except Exception:
             return False
 
     async def _fix_file_permissions(self) -> bool:
         """Fix file permissions."""
         try:
+            from plexichat.app.core.bug_fixes import BugFixRegistry  # type: ignore
             bug_fixes = BugFixRegistry()
             return bug_fixes._fix_file_permissions()
-        except Exception as e:
-            logger.error(f"File permissions fix failed: {e}")
+        except Exception:
             return False
 
     async def _create_missing_directories(self) -> bool:
@@ -1193,37 +948,30 @@ psutil = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
         try:
             critical_dirs = ["data", "logs", "config", "backups", "plugins"]
             for dir_name in critical_dirs:
-                from pathlib import Path
-dir_path = Path
-Path(dir_name)
+                dir_path = Path(dir_name)
                 dir_path.mkdir(exist_ok=True)
             return True
-        except Exception as e:
-            logger.error(f"Directory creation failed: {e}")
+        except Exception:
             return False
 
     async def _cleanup_temp_files(self) -> bool:
         """Clean up temporary files."""
         try:
-            from pathlib import Path
-temp_dir = Path
-Path(tempfile.gettempdir())
+            temp_dir = Path(tempfile.gettempdir())
             for temp_file in temp_dir.glob("plexichat_*"):
                 if temp_file.is_file():
                     temp_file.unlink()
                 elif temp_file.is_dir():
                     shutil.rmtree(temp_file)
             return True
-        except Exception as e:
-            logger.error(f"Temp file cleanup failed: {e}")
+        except Exception:
             return False
 
     async def _reset_network_connections(self) -> bool:
         """Reset network connections."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Network reset failed: {e}")
+        except Exception:
             return False
 
     async def _clear_dns_cache(self) -> bool:
@@ -1232,8 +980,7 @@ Path(tempfile.gettempdir())
             if sys.platform == "win32":
                 subprocess.run(["ipconfig", "/flushdns"], capture_output=True)
             return True
-        except Exception as e:
-            logger.error(f"DNS cache clearing failed: {e}")
+        except Exception:
             return False
 
     async def _test_external_connectivity(self) -> bool:
@@ -1241,110 +988,107 @@ Path(tempfile.gettempdir())
         try:
             socket.create_connection(("8.8.8.8", 53), timeout=5)
             return True
-        except Exception as e:
-            logger.error(f"External connectivity test failed: {e}")
+        except Exception:
             return False
 
     async def _garbage_collect(self) -> bool:
         """Force garbage collection."""
         try:
+            import gc
             gc.collect()
             return True
-        except Exception as e:
-            logger.error(f"Garbage collection failed: {e}")
+        except Exception:
             return False
 
     async def _clear_caches(self) -> bool:
         """Clear system caches."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Cache clearing failed: {e}")
+        except Exception:
             return False
 
     async def _restart_memory_intensive_processes(self) -> bool:
         """Restart memory intensive processes."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Process restart failed: {e}")
+        except Exception:
             return False
 
     async def _reload_plugins(self) -> bool:
         """Reload plugins."""
         try:
+            from plexichat.plugins.plugin_manager import PluginManager  # type: ignore
+            plugin_manager = PluginManager()
+            plugin_manager.reload_plugins()
             return True
-        except Exception as e:
-            logger.error(f"Plugin reload failed: {e}")
+        except Exception:
             return False
 
     async def _disable_failing_plugins(self) -> bool:
         """Disable failing plugins."""
         try:
+            from plexichat.plugins.plugin_manager import PluginManager  # type: ignore
+            plugin_manager = PluginManager()
+            plugin_manager.disable_failing_plugins()
             return True
-        except Exception as e:
-            logger.error(f"Plugin disabling failed: {e}")
+        except Exception:
             return False
 
     async def _clear_plugin_cache(self) -> bool:
         """Clear plugin cache."""
         try:
+            from plexichat.plugins.plugin_manager import PluginManager  # type: ignore
+            plugin_manager = PluginManager()
+            plugin_manager.clear_plugin_cache()
             return True
-        except Exception as e:
-            logger.error(f"Plugin cache clearing failed: {e}")
+        except Exception:
             return False
 
     async def _restart_backup_services(self) -> bool:
         """Restart backup services."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Backup service restart failed: {e}")
+        except Exception:
             return False
 
     async def _verify_backup_integrity(self) -> bool:
         """Verify backup integrity."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Backup integrity verification failed: {e}")
+        except Exception:
             return False
 
     async def _clear_backup_locks(self) -> bool:
         """Clear backup locks."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Backup lock clearing failed: {e}")
+        except Exception:
             return False
 
     async def _reconnect_cluster_nodes(self) -> bool:
         """Reconnect cluster nodes."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Cluster reconnection failed: {e}")
+        except Exception:
             return False
 
     async def _rebalance_cluster_load(self) -> bool:
         """Rebalance cluster load."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Cluster rebalancing failed: {e}")
+        except Exception:
             return False
 
     async def _restart_cluster_services(self) -> bool:
         """Restart cluster services."""
         try:
             return True
-        except Exception as e:
-            logger.error(f"Cluster service restart failed: {e}")
+        except Exception:
             return False
 
     async def start_monitoring(self):
         """Start continuous system monitoring."""
-        logger.info(" Starting continuous system monitoring...")
+        logger.info("Starting continuous system monitoring...")
         self.monitoring_enabled = True
 
         while self.monitoring_enabled:
@@ -1357,7 +1101,7 @@ Path(tempfile.gettempdir())
 
     def stop_monitoring(self):
         """Stop continuous system monitoring."""
-        logger.info(" Stopping system monitoring...")
+        logger.info("Stopping system monitoring...")
         self.monitoring_enabled = False
 
     def get_system_report(self) -> Dict[str, Any]:
@@ -1365,10 +1109,8 @@ Path(tempfile.gettempdir())
         recent_checks = self.checks_history[-50:] if self.checks_history else []
 
         return {
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat(),
-            "uptime_seconds": (from datetime import datetime
-datetime = datetime.now() - self.start_time).total_seconds(),
+            "timestamp": datetime.now().isoformat(),
+            "uptime_seconds": (datetime.now() - self.start_time).total_seconds(),
             "metrics": asdict(self.metrics),
             "recent_checks": [asdict(check) for check in recent_checks],
             "monitoring_enabled": self.monitoring_enabled,
@@ -1377,12 +1119,13 @@ datetime = datetime.now() - self.start_time).total_seconds(),
 
     async def run_emergency_recovery(self) -> Dict[str, Any]:
         """Run emergency recovery procedures."""
-        logger.warning(" Running emergency recovery procedures...")
+        logger.warning("Running emergency recovery procedures...")
 
         recovery_results = {}
 
         # Apply all bug fixes
         try:
+            from plexichat.app.core.bug_fixes import BugFixRegistry  # type: ignore
             bug_fixes = BugFixRegistry()
             bug_fixes.apply_all_fixes()
             recovery_results["bug_fixes"] = "applied"
@@ -1417,16 +1160,16 @@ datetime = datetime.now() - self.start_time).total_seconds(),
         except Exception as e:
             recovery_results["garbage_collection"] = f"failed: {e}"
 
-        logger.info(" Emergency recovery procedures completed")
+        logger.info("Emergency recovery procedures completed")
         return recovery_results
 
 
-# Global instance - lazy initialization to avoid import-time hanging
-system_resilience = None
+# Singleton accessor
+_system_resilience: Optional[SystemResilienceManager] = None
 
 def get_system_resilience() -> SystemResilienceManager:
-    """Get the global system resilience manager instance (lazy initialization)."""
-    global system_resilience
-    if system_resilience is None:
-        system_resilience = SystemResilienceManager()
-    return system_resilience
+    """Get the global system resilience manager instance. Use this for all system resilience operations."""
+    global _system_resilience
+    if _system_resilience is None:
+        _system_resilience = SystemResilienceManager()
+    return _system_resilience
