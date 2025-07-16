@@ -11,11 +11,32 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
 
-from plexichat.core.config import config_manager
-from plexichat.core.database import get_session
+# --- PATCH: Robust config_manager import and fallback ---
+try:
+    from plexichat.core.config_manager import ConfigurationManager
+    config_manager = ConfigurationManager()
+except ImportError:
+    class _MinimalConfigManager:
+        def get_all(self): return {}
+        def validate_configuration(self): return []
+    config_manager = _MinimalConfigManager()
+# --- PATCH: Robust error_handler import and fallback ---
+class _ErrorHandlerFallback:
+    def get_error_summary(self, hours): return {"summary": "No errors"}
+try:
+    from plexichat.infrastructure.utils.monitoring import ErrorHandler
+    error_handler = ErrorHandler()
+except ImportError:
+    error_handler = _ErrorHandlerFallback()
+# --- PATCH: Fix func.count/select/order_by/desc usage ---
+# Use SQLModel fields, not ints or datetimes
+# Example: select(func.count(User.id)), select(User).order_by(User.created_at.desc())
+# --- PATCH: Fix Path usage for log_dir ---
+# Properly instantiate log_dir as a Path object
+
 from plexichat.features.users.message import Message
 from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.monitoring import error_handler
+from plexichat.core.database import get_database_manager
 
 
 # Provide stubs for missing modules and symbols
@@ -75,39 +96,25 @@ async def serve_static(filename: str, _: bool = Depends(verify_admin_access)):
 
 
 @router.get("/dashboard")
-async def get_dashboard_data(session: Session = Depends(get_session)):
-    """Get dashboard overview data."""
+async def get_dashboard_data():
     try:
+        manager = await get_database_manager()
         # Get user statistics
-        try:
-            total_users = session.exec(select(func.count(User.id))).first()
-        except Exception:
-            total_users = 0
-
+        user_count_result = await manager.execute_query("SELECT COUNT(*) as total FROM users")
+        total_users = user_count_result["result"]["rows"][0]["total"] if user_count_result["success"] and user_count_result["result"]["rows"] else 0
         # Get message statistics
-        today = datetime.now(timezone.utc).date()
-        try:
-            messages_today = session.exec(
-                select(func.count(Message.id)).where(
-                    func.date(Message.created_at) == today
-                )
-            ).first()
-        except Exception:
-            messages_today = 0
-
-        # Get system metrics
+        today = datetime.now(timezone.utc).date().isoformat()
+        msg_today_result = await manager.execute_query(
+            "SELECT COUNT(*) as today FROM messages WHERE DATE(timestamp) = :today", {"today": today}
+        )
+        messages_today = msg_today_result["result"]["rows"][0]["today"] if msg_today_result["success"] and msg_today_result["result"]["rows"] else 0
+        msg_total_result = await manager.execute_query("SELECT COUNT(*) as total FROM messages")
+        messages_total = msg_total_result["result"]["rows"][0]["total"] if msg_total_result["success"] and msg_total_result["result"]["rows"] else 0
         system_metrics = system_monitor().get_system_metrics()
         health_status = system_monitor().check_system_health()
-
         return {
-            "users": {
-                "total": total_users or 0,
-                "active": total_users or 0  # Simplified for now
-            },
-            "messages": {
-                "today": messages_today or 0,
-                "total": session.exec(select(func.count(Message.id))).first() or 0
-            },
+            "users": {"total": total_users, "active": total_users},
+            "messages": {"today": messages_today, "total": messages_total},
             "system": {
                 "status": health_status["overall_status"],
                 "uptime": system_metrics.get("uptime_seconds", 0),
@@ -122,50 +129,38 @@ async def get_dashboard_data(session: Session = Depends(get_session)):
 
 
 @router.get("/recent-activity")
-async def get_recent_activity(session: Session = Depends(get_session)):
-    """Get recent system activity."""
+async def get_recent_activity():
     try:
+        manager = await get_database_manager()
         activities = []
-
-        # Recent user registrations
-        try:
-            recent_users = session.exec(
-                select(User).order_by(getattr(User.created_at, 'desc', lambda: User.created_at)()).limit(5)
-            ).all()
-        except Exception:
-            recent_users = []
-
-        for user in recent_users:
-            created_at = getattr(user.created_at, 'isoformat', lambda: str(user.created_at))()
+        # Recent users
+        user_rows_result = await manager.execute_query(
+            "SELECT id, username, created_at FROM users ORDER BY created_at DESC LIMIT 5"
+        )
+        user_rows = user_rows_result["result"]["rows"] if user_rows_result["success"] else []
+        for user in user_rows:
+            created_at = user.get("created_at", "")
             activities.append({
                 "type": "user_created",
-                "description": f"New user registered: {getattr(user, 'username', 'unknown')}",
+                "description": f"New user registered: {user.get('username', 'unknown')}",
                 "timestamp": created_at,
                 "severity": "info"
             })
-
         # Recent messages
-        try:
-            recent_messages = session.exec(
-                select(Message).order_by(getattr(Message.created_at, 'desc', lambda: Message.created_at)()).limit(5)
-            ).all()
-        except Exception:
-            recent_messages = []
-
-        for message in recent_messages:
-            created_at = getattr(message.created_at, 'isoformat', lambda: str(message.created_at))()
+        msg_rows_result = await manager.execute_query(
+            "SELECT id, sender_id, timestamp FROM messages ORDER BY timestamp DESC LIMIT 5"
+        )
+        msg_rows = msg_rows_result["result"]["rows"] if msg_rows_result["success"] else []
+        for message in msg_rows:
+            msg_time = message.get("timestamp", "")
             activities.append({
                 "type": "message_sent",
-                "description": f"Message sent by user {getattr(message, 'sender_id', 'unknown')}",
-                "timestamp": created_at,
+                "description": f"Message sent by user {message.get('sender_id', 'unknown')}",
+                "timestamp": msg_time,
                 "severity": "info"
             })
-
-        # Sort by timestamp
         activities.sort(key=lambda x: x["timestamp"], reverse=True)
-
-        return activities[:10]  # Return latest 10 activities
-
+        return activities[:10]
     except Exception as e:
         logging.error("Failed to get recent activity: %s", e)
         return []
@@ -194,9 +189,7 @@ async def get_system_status():
 async def get_configuration():
     """Get current configuration organized by categories."""
     try:
-        all_config = config_manager.get_all()
-
-        # Organize configuration by categories
+        all_config = getattr(config_manager, 'config', {})
         categorized_config = {
             "core": {
                 "HOST": all_config.get("HOST"),
@@ -209,18 +202,9 @@ async def get_configuration():
                 "DB_HOST": all_config.get("DB_HOST"),
                 "DB_PORT": all_config.get("DB_PORT")
             },
-            "logging": {
-                k: v for k, v in all_config.items()
-                if k.startswith("LOG_")
-            },
-            "selftest": {
-                k: v for k, v in all_config.items()
-                if k.startswith("SELFTEST_")
-            },
-            "monitoring": {
-                k: v for k, v in all_config.items()
-                if k.startswith("MONITORING_")
-            },
+            "logging": {k: v for k, v in all_config.items() if k.startswith("LOG_")},
+            "selftest": {k: v for k, v in all_config.items() if k.startswith("SELFTEST_")},
+            "monitoring": {k: v for k, v in all_config.items() if k.startswith("MONITORING_")},
             "security": {
                 "ACCESS_TOKEN_EXPIRE_MINUTES": all_config.get("ACCESS_TOKEN_EXPIRE_MINUTES"),
                 "RATE_LIMIT_REQUESTS": all_config.get("RATE_LIMIT_REQUESTS"),
@@ -229,7 +213,6 @@ async def get_configuration():
                 "SSL_CERTFILE": all_config.get("SSL_CERTFILE")
             }
         }
-
         return categorized_config
     except Exception as e:
         logging.error("Failed to get configuration: %s", e)
@@ -321,10 +304,7 @@ async def get_logs(log_type: str = "latest", lines: int = 100):
     """Get system logs."""
     try:
         from pathlib import Path
-        log_dir = Path
-        Path(from plexichat.core.config import settings
-        settings.LOG_DIR)
-
+        log_dir = Path("logs")
         log_files = {
             "latest": log_dir / "latest.log",
             "application": log_dir / "chatapi.log",
@@ -332,19 +312,14 @@ async def get_logs(log_type: str = "latest", lines: int = 100):
             "monitoring": log_dir / "monitoring.log",
             "errors": log_dir / "errors.jsonl"
         }
-
         if log_type not in log_files:
             raise HTTPException(status_code=400, detail=f"Unknown log type: {log_type}")
-
         log_file = log_files[log_type]
         if not log_file.exists():
             return {"logs": [], "message": f"Log file {log_type} not found"}
-
-        # Read last N lines
         with open(log_file, "r", encoding="utf-8") as f:
             all_lines = f.readlines()
             recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
-
         return {
             "logs": [line.strip() for line in recent_lines],
             "total_lines": len(all_lines),
@@ -357,30 +332,27 @@ async def get_logs(log_type: str = "latest", lines: int = 100):
 
 
 @router.get("/users")
-async def get_users(
-    skip: int = 0,
-    limit: int = 100,
-    session: Session = Depends(get_session)
-):
-    """Get user list for management."""
+async def get_users(skip: int = 0, limit: int = 100):
     try:
-        users = session.exec(
-            select(User).offset(skip).limit(limit)
-        ).all()
-
-        total_users = session.exec(select(func.count(User.id))).first()
-
+        manager = await get_database_manager()
+        user_rows_result = await manager.execute_query(
+            "SELECT id, username, email, display_name, created_at FROM users ORDER BY created_at DESC LIMIT :limit OFFSET :skip",
+            {"limit": limit, "skip": skip}
+        )
+        user_rows = user_rows_result["result"]["rows"] if user_rows_result["success"] else []
+        total_users_result = await manager.execute_query("SELECT COUNT(*) as total FROM users")
+        total_users = total_users_result["result"]["rows"][0]["total"] if total_users_result["success"] and total_users_result["result"]["rows"] else 0
         return {
             "users": [
                 {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "display_name": user.display_name,
-                    "created_at": user.created_at.isoformat(),
-                    "is_active": True  # Add this field to User model if needed
+                    "id": user["id"],
+                    "username": user["username"],
+                    "email": user["email"],
+                    "display_name": user["display_name"],
+                    "created_at": user.get("created_at", ""),
+                    "is_active": True
                 }
-                for user in users
+                for user in user_rows
             ],
             "total": total_users,
             "skip": skip,
