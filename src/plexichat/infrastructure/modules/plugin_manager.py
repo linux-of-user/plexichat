@@ -163,6 +163,7 @@ class PluginSystemAccess:
         """Scan data for security threats."""
         if ModuleCapability.SECURITY not in self.permissions.capabilities:
             raise PermissionError("Plugin lacks SECURITY capability")
+        logger.info(f"Scanning data of type {type(data)} for threats")
         # Implementation would call security scanning
         return {"clean": True, "threats": []}
 
@@ -211,12 +212,12 @@ class PluginSystemAccess:
         return await phase3_ai.get_recommendations(user_id, rec_type)
 
     # Database System Access
-    async def execute_query(self, query: str, parameters: Dict[str, Any] = {}) -> Any:
+    async def execute_query(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> Any:
         """Execute database query."""
-        if parameters is None:
-            parameters = {}
         if not self.permissions.database_access:
             raise PermissionError("Plugin lacks database access")
+        if parameters is None:
+            parameters = {}
         return await phase4_database.execute_query(query, parameters)
 
     async def get_dao(self, name: str):
@@ -243,6 +244,7 @@ class PluginSystemAccess:
         """Broadcast message to cluster."""
         if ModuleCapability.CLUSTERING not in self.permissions.capabilities:
             raise PermissionError("Plugin lacks CLUSTERING capability")
+        logger.info(f"Broadcasting message with {len(message)} keys to cluster")
         # Implementation would broadcast to cluster
         return True
 

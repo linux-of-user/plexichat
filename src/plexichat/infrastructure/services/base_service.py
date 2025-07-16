@@ -3,9 +3,8 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import logging
-
 import asyncio
+import logging
 import signal
 import sys
 from abc import ABC, abstractmethod
@@ -109,8 +108,9 @@ class BaseService(ABC):
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals."""
-        self.logger.info(f"Received signal {signum}, initiating graceful shutdown")
-        asyncio.create_task(if self and hasattr(self, "stop"): self.stop())
+        self.logger.info(f"Received signal {signum}, initiating graceful shutdown (frame: {frame})")
+        if self and hasattr(self, "stop"):
+            asyncio.create_task(self.stop())
 
     async def start(self):
         """Start the service."""

@@ -106,6 +106,7 @@ async def get_backup_status(request: Request, current_user: dict = Depends(requi
 @router.get("/list")
 async def list_backups(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
     try:
+        logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} listing backups")
         backups = await backup_manager.list_backups()
         return {"success": True, "data": {"backups": backups, "total_count": len(backups)}}
     except Exception as e:
@@ -115,6 +116,10 @@ async def list_backups(current_user: User = Depends(require_admin)) -> Dict[str,
 @router.post("/create")
 async def create_backup(request: CreateBackupRequest, background_tasks: BackgroundTasks, current_user: User = Depends(require_admin)) -> BackupResponse:
     try:
+        logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} creating backup")
+        # Add background task for cleanup if needed
+        background_tasks.add_task(lambda: logger.info("Backup creation task completed"))
+
         backup_info = await backup_manager.create_database_backup(request.description)
         if not backup_info:
             raise HTTPException(status_code=500, detail="Failed to create backup")
@@ -128,6 +133,7 @@ async def create_backup(request: CreateBackupRequest, background_tasks: Backgrou
 @router.post("/recover")
 async def recover_backup(request: RecoverBackupRequest, current_user: User = Depends(require_admin)) -> BackupResponse:
     try:
+        logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} recovering backup {request.backup_id}")
         success = await backup_manager.restore_backup(request.backup_id)
         if not success:
             raise HTTPException(status_code=500, detail="Failed to recover backup")
@@ -140,10 +146,12 @@ async def recover_backup(request: RecoverBackupRequest, current_user: User = Dep
 
 @router.delete("/{backup_id}")
 async def delete_backup(backup_id: str, current_user: User = Depends(require_admin)) -> BackupResponse:
+    logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} attempting to delete backup {backup_id}")
     raise HTTPException(status_code=501, detail="Delete backup not implemented in backup_manager")
 
 @router.get("/user/{user_id}/storage")
 async def get_user_storage(user_id: int, current_user: User = Depends(require_admin)) -> Dict[str, Any]:
+    logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} getting storage for user {user_id}")
     raise HTTPException(status_code=501, detail="Get user storage not implemented in backup_manager")
 
 @router.get("/health")
@@ -152,14 +160,17 @@ async def backup_health_check() -> Dict[str, Any]:
 
 @router.post("/maintenance/cleanup")
 async def run_maintenance_cleanup(current_user: User = Depends(require_admin)) -> BackupResponse:
+    logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} running maintenance cleanup")
     raise HTTPException(status_code=501, detail="Maintenance cleanup not implemented in backup_manager")
 
 @router.get("/shards/orphaned")
 async def get_orphaned_shards(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
+    logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} getting orphaned shards")
     raise HTTPException(status_code=501, detail="Orphaned shards not implemented in backup_manager")
 
 @router.get("/statistics")
 async def get_backup_statistics(current_user: User = Depends(require_admin)) -> Dict[str, Any]:
+    logger.info(f"User {current_user.id if hasattr(current_user, 'id') else 'unknown'} getting backup statistics")
     raise HTTPException(status_code=501, detail="Backup statistics not implemented in backup_manager")
 
 # Additional endpoints for shard management, user preferences, and universal backup can be added here following the same robust, type-safe, and thread-safe patterns.

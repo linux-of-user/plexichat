@@ -18,17 +18,16 @@ from typing import Any, Dict, List, Optional
 
 
 import psutil
-import = psutil psutil
 import psutil
-import = psutil psutil
 import psutil
-import = psutil psutil
 import psutil
-import = psutil psutil
 import psutil
-import = psutil psutil
 import psutil
-import = psutil psutil
+import psutil
+import psutil
+import psutil
+import psutil
+import psutil
 import psutil
 
 """
@@ -197,8 +196,7 @@ class PerformanceMonitor:
         """Collect system performance metrics."""
         try:
             # CPU usage
-            cpu_percent = import psutil
-psutil = psutil.cpu_percent(interval=1)
+            cpu_percent = psutil.cpu_percent(interval=1)
             self.record_metric(PerformanceMetric(
                 metric_name="cpu_usage_percent",
                 value=cpu_percent,
@@ -207,8 +205,7 @@ psutil = psutil.cpu_percent(interval=1)
             ))
 
             # Memory usage
-            memory = import psutil
-psutil = psutil.virtual_memory()
+            memory = psutil.virtual_memory()
             memory_mb = memory.used / 1024 / 1024
             self.record_metric(PerformanceMetric(
                 metric_name="memory_usage_mb",
@@ -226,8 +223,7 @@ psutil = psutil.virtual_memory()
             ))
 
             # Disk I/O
-            disk_io = import psutil
-psutil = psutil.disk_io_counters()
+            disk_io = psutil.disk_io_counters()
             if disk_io:
                 self.record_metric(PerformanceMetric(
                     metric_name="disk_read_mb_per_sec",
@@ -244,8 +240,7 @@ psutil = psutil.disk_io_counters()
                 ))
 
             # Network I/O
-            network_io = import psutil
-psutil = psutil.net_io_counters()
+            network_io = psutil.net_io_counters()
             if network_io:
                 self.record_metric(PerformanceMetric(
                     metric_name="network_sent_mb_per_sec",
@@ -589,10 +584,8 @@ class MemoryOptimizer:
         """Take memory usage snapshot."""
         try:
             # Get current memory usage
-            memory = import psutil
-psutil = psutil.virtual_memory()
-            process = import psutil
-psutil = psutil.Process()
+            memory = psutil.virtual_memory()
+            process = psutil.Process()
             process_memory = process.memory_info()
 
             snapshot = {

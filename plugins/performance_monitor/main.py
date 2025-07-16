@@ -21,33 +21,26 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-try:
-    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
-except ImportError:
-    # Fallback definitions
-    class PluginInterface:
-        def get_metadata(self) -> Dict[str, Any]:
-            return {}
+# Fallback definitions for plugin interface
+class PluginInterface:
+    def get_metadata(self) -> Dict[str, Any]:
+        return {}
 
-    class PluginMetadata:
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
+class PluginMetadata:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
-    class PluginType:
-        MONITORING = "monitoring"
+class PluginType:
+    MONITORING = "monitoring"
 
-try:
-    from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
-except ImportError:
-    # Fallback definitions
-    class ModulePermissions:
-        READ = "read"
-        WRITE = "write"
-        ADMIN = "admin"
+class ModulePermissions:
+    READ = "read"
+    WRITE = "write"
+    ADMIN = "admin"
 
-    class ModuleCapability:
-        SYSTEM_MONITORING = "system_monitoring"
+class ModuleCapability:
+    SYSTEM_MONITORING = "system_monitoring"
 
 logger = logging.getLogger(__name__)
 

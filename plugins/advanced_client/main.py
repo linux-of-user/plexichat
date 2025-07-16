@@ -24,62 +24,32 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-try:
-    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
-except ImportError:
-    # Fallback definitions
-    class PluginInterface:
-        def get_metadata(self) -> Dict[str, Any]:
-            return {}
+# Fallback definitions for plugin interface
+class PluginInterface:
+    def get_metadata(self) -> Dict[str, Any]:
+        return {}
 
-    class PluginMetadata:
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
+class PluginMetadata:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
-    class PluginType:
-        CLIENT = "client"
+class PluginType:
+    CLIENT = "client"
 
-try:
-    from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
-except ImportError:
-    # Fallback definitions
-    class ModulePermissions:
-        READ = "read"
-        WRITE = "write"
-        ADMIN = "admin"
+class ModulePermissions:
+    READ = "read"
+    WRITE = "write"
+    ADMIN = "admin"
 
-    class ModuleCapability:
-        MESSAGING = "messaging"
-        AI_INTEGRATION = "ai_integration"
+class ModuleCapability:
+    MESSAGING = "messaging"
+    AI_INTEGRATION = "ai_integration"
 
 logger = logging.getLogger(__name__)
 
 
-# Helper classes
-class AIIntegration:
-    """AI integration helper."""
-    def __init__(self, config: Dict[str, Any]):
-        self.config = config
-
-    async def process_message(self, message: str) -> str:
-        return f"AI processed: {message}"
-
-class VoiceProcessor:
-    """Voice processing helper."""
-    def __init__(self, config: Dict[str, Any]):
-        self.config = config
-
-    async def process_audio(self, audio_data: bytes) -> str:
-        return "Audio processed"
-
-class AdvancedAnalytics:
-    """Analytics helper."""
-    def __init__(self, config: Dict[str, Any]):
-        self.config = config
-
-    async def track_event(self, event: str, data: Dict[str, Any]):
-        logger.info(f"Analytics: {event} - {data}")
+# Helper classes removed to avoid redeclaration errors
 
 
 class ChatMessage(BaseModel):

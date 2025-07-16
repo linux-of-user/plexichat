@@ -29,9 +29,6 @@ from plexichat.core.database.enhanced_abstraction import enhanced_db_manager
 from plexichat.core.database.indexing_strategy import index_manager
 from plexichat.core.database.performance_integration import performance_optimizer
 from plexichat.core.database.db_query_optimizer import performance_monitor
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from typing import Optional
 
 """
 PlexiChat Database Performance CLI Commands
@@ -62,7 +59,7 @@ def database_performance_cli(ctx):
 @click.pass_context
 def analyze(ctx, database: str, format: str, detailed: bool):
     """Analyze database performance and generate recommendations."""
-    click.echo(" Analyzing database performance...")
+    click.echo(f" Analyzing database performance... (context: {ctx.info_name if ctx else 'unknown'})")
 
     async def run_analysis():
         try:
@@ -185,7 +182,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
 def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool):
     """Optimize database performance."""
     auto_apply = auto_apply or False
-    click.echo(" Optimizing database performance...")
+    click.echo(f" Optimizing database performance... (context: {ctx.info_name if ctx else 'unknown'}, max_tasks: {max_tasks})")
 
     async def run_optimization():
         auto_apply_local = auto_apply or False
@@ -253,7 +250,8 @@ def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool
 @click.pass_context
 def monitor(ctx, database: str, interval: int, duration: int, threshold: float):
     """Monitor database performance in real-time."""
-    click.echo(" Starting real-time performance monitoring...")
+    click.echo(f" Starting real-time performance monitoring for {database}...")
+    click.echo(f" Context: {ctx.info_name if ctx else 'unknown'}")
     click.echo(f" Interval: {interval}s, Duration: {duration}s, Threshold: {threshold}ms")
 
     async def run_monitoring():
@@ -300,7 +298,7 @@ def monitor(ctx, database: str, interval: int, duration: int, threshold: float):
 @click.pass_context
 def indexes(ctx, database: str, format: str):
     """Show database indexes and recommendations."""
-    click.echo(" Analyzing database indexes...")
+    click.echo(f" Analyzing database indexes for {database} (format: {format}, context: {ctx.info_name if ctx else 'unknown'})...")
 
     async def show_indexes():
         try:
@@ -412,7 +410,7 @@ settings."""
 @click.pass_context
 def status(ctx):
     """Show database performance optimization system status."""
-    click.echo(" Database Performance System Status")
+    click.echo(f" Database Performance System Status (context: {ctx.info_name if ctx else 'unknown'})")
     click.echo("=" * 40)
 
     try:

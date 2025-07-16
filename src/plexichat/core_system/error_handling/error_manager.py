@@ -122,7 +122,7 @@ class ErrorManager:
 
         # Register resilience manager for health monitoring
         if hasattr(self.resilience_manager, 'run_system_check'):
-            self.error_callbacks.append(lambda ctx: asyncio.create_task(self.resilience_manager.run_system_check()))
+            self.error_callbacks.append(lambda ctx: asyncio.create_task(self.resilience_manager.run_system_check()) if hasattr(self.resilience_manager, 'run_system_check') else None)
 
     async def initialize(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the error manager."""

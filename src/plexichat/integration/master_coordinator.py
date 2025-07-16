@@ -244,6 +244,7 @@ class PlexiChatMasterCoordinator:
             response_times = []
 
             for phase_name, phase_data in phase_metrics.items():
+                logger.debug(f"Processing phase {phase_name}")
                 if "statistics" in phase_data:
                     stats = phase_data["statistics"]
                     total_requests += stats.get("total_requests", 0)

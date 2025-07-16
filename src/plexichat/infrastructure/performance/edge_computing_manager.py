@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 
 try:
 
-    import numpy as np
+    import numpy as np  # type: ignore
 
 except ImportError:
 
@@ -28,12 +28,6 @@ from plexichat.core.logging import get_logger
 
 
 
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
 import psutil
 
 """
@@ -416,12 +410,9 @@ class EdgeComputingManager:
                 location="local",
                 ip_address="127.0.0.1",
                 port=8080,
-                cpu_cores=import psutil
-psutil = psutil.cpu_count(),
-                memory_gb=import psutil
-psutil = psutil.virtual_memory().total / (1024**3),
-                storage_gb=import psutil
-psutil = psutil.disk_usage('/').total / (1024**3),
+                cpu_cores=psutil.cpu_count(),
+                memory_gb=psutil.virtual_memory().total / (1024**3),
+                storage_gb=psutil.disk_usage('/').total / (1024**3),
                 network_bandwidth_mbps=1000.0,  # Assumed
                 supported_services=["api", "web", "backup", "ai", "collaboration"]
             )
@@ -648,20 +639,17 @@ psutil = psutil.disk_usage('/').total / (1024**3),
             logger.error(f" Failed to analyze load patterns: {e}")
 
     def _calculate_trend(self, values: List[float]) -> float:
-        """Calculate trend slope for a series of values."""
+        """Calculate trend using numpy if available, else return 0."""
+        if not values or len(values) < 2:
+            return 0.0
+        if np is None:
+            return 0.0
+        x = np.arange(len(values)) if np is not None else list(range(len(values)))
+        y = np.array(values) if np is not None else values
         try:
-            if len(values) < 2:
-                return 0.0
-
-            x = np.arange(len(values))
-            y = np.array(values)
-
-            # Calculate linear regression slope
-            slope = np.polyfit(x, y, 1)[0]
-            return float(slope)
-
-        except Exception as e:
-            logger.error(f" Failed to calculate trend: {e}")
+            slope, _ = np.polyfit(x, y, 1)
+            return slope
+        except Exception:
             return 0.0
 
     async def _auto_scaling_loop(self):

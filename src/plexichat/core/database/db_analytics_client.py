@@ -274,6 +274,7 @@ class ClickHouseClient(BaseClickHouseClient):
                                      select_query: str, target_table: Optional[str] = None) -> bool:
         """Create materialized view for real-time aggregations."""
         try:
+            logger.info(f"Creating materialized view {view_name} from source table {source_table}")
             if target_table:
                 # Materialized view with target table
                 create_sql = f"""

@@ -7,22 +7,17 @@ import asyncio
 import importlib
 import importlib.util
 import json
-import logging
-import os
 import shutil
 import sys
 import tempfile
 import threading
 import time
-import traceback
-import weakref
 import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Union
-from urllib.parse import urlparse
+from typing import Any, Dict, List, Optional, Set
 import aiofiles
 import aiohttp
 import yaml
@@ -30,16 +25,9 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from ...core_system.config import get_config
-from ...core_system.database.abstraction.db_phase4_integration import phase4_database
 from ...core_system.logging import get_logger
-from ...features.ai.phase3_integration import phase3_ai
-from ...features.security.phase1_integration import phase1_security
-from ...infrastructure.scalability.phase2_integration import phase2_scalability
-from ...integration.master_coordinator import master_coordinator
-from .config_manager import get_plugin_config_manager
-from .contracts import get_contract_validator
-from .interfaces import BaseModule, ModuleCapability, ModulePermissions, ModuleState
-from .isolation import IsolationConfig, get_isolation_manager
+from .interfaces import ModuleState
+from .isolation import IsolationConfig
 
 logger = get_logger(__name__)
 
@@ -194,6 +182,7 @@ class PluginMarketplace:
         """Download plugin from marketplace."""
         try:
             plugin_info = await self.get_plugin_info(plugin_id)
+            logger.info(f"Downloading plugin {plugin_id} version {version}")
             if not plugin_info:
                 return None
             
@@ -245,7 +234,7 @@ class EnhancedPluginManager:
         self.plugins_dir.mkdir(exist_ok=True)
         
         # Plugin registry
-        self.plugins: Dict[str, 'PluginInterface'] = {}
+        self.plugins: Dict[str, Any] = {}
         self.plugin_metadata: Dict[str, PluginMetadata] = {}
         self.plugin_status: Dict[str, PluginStatus] = {}
         self.installation_info: Dict[str, PluginInstallationInfo] = {}
@@ -461,7 +450,9 @@ class EnhancedPluginManager:
             plugin_instance.manager = self
             
             # Initialize plugin
-            success = await if plugin_instance and hasattr(plugin_instance, "initialize"): plugin_instance.initialize()
+            success = False
+            if plugin_instance and hasattr(plugin_instance, "initialize"):
+                success = await plugin_instance.initialize()
             if success:
                 self.plugins[plugin_name] = plugin_instance
                 self.plugin_status[plugin_name] = PluginStatus.LOADED
@@ -498,7 +489,8 @@ class EnhancedPluginManager:
                 
                 # Cleanup plugin
                 if hasattr(plugin, 'cleanup'):
-                    await if plugin and hasattr(plugin, "cleanup"): plugin.cleanup()
+                    if plugin and hasattr(plugin, "cleanup"):
+                        await plugin.cleanup()
                 
                 # Remove from registry
                 del self.plugins[plugin_name]
@@ -678,7 +670,13 @@ class EnhancedPluginManager:
             if hasattr(plugin, task_name):
                 task_method = getattr(plugin, task_name)
                 if callable(task_method):
-                    task = asyncio.create_task(task_method())
+                    if asyncio.iscoroutinefunction(task_method):
+                        task = asyncio.create_task(task_method())
+                    else:
+                        # For non-async methods, wrap in a coroutine
+                        async def wrapper():
+                            return task_method()
+                        task = asyncio.create_task(wrapper())
                     self.background_tasks[f"{plugin_name}_{task_name}"] = task
                     self.logger.info(f"Started background task: {plugin_name}.{task_name}")
     
@@ -782,7 +780,7 @@ class EnhancedPluginManager:
             "installation": installation.__dict__ if installation else {},
             "loaded": plugin_name in self.loaded_plugins,
             "enabled": plugin_name in self.enabled_plugins,
-            "ui_pages": [page for page_id, page in self.ui_pages.items() 
+            "ui_pages": [page for _, page in self.ui_pages.items()
                         if page["plugin"] == plugin_name],
             "background_tasks": [task_name for task_name in self.background_tasks.keys() 
                                if task_name.startswith(f"{plugin_name}_")]

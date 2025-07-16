@@ -24,36 +24,32 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
-# Plugin interface imports
-try:
-    from plexichat.infrastructure.modules.enhanced_plugin_manager import PluginInterface, PluginType, PluginMetadata
-except ImportError:
-    # Fallback for when the enhanced plugin manager is not available
-    from enum import Enum
-    from dataclasses import dataclass
+# Plugin interface fallback definitions
+from enum import Enum
+from dataclasses import dataclass
 
-    class PluginInterface:
-        def get_metadata(self) -> Dict[str, Any]:
-            return {}
+class PluginInterface:
+    def get_metadata(self) -> Dict[str, Any]:
+        return {}
 
-    class PluginType(Enum):
-        SECURITY_NODE = "security_node"
+class PluginType(Enum):
+    SECURITY_NODE = "security_node"
 
-    @dataclass
-    class PluginMetadata:
-        name: str
-        version: str
-        description: str
-        author: str
-        plugin_type: PluginType
-        entry_point: str
-        dependencies: List[str]
-        permissions: List[str]
-        api_version: str
-        min_plexichat_version: str
-        enabled: bool
-        category: str
-        tags: List[str]
+@dataclass
+class PluginMetadata:
+    name: str
+    version: str
+    description: str
+    author: str
+    plugin_type: PluginType
+    entry_point: str
+    dependencies: List[str]
+    permissions: List[str]
+    api_version: str
+    min_plexichat_version: str
+    enabled: bool
+    category: str
+    tags: List[str]
         homepage: Optional[str] = None
         repository: Optional[str] = None
         license: str = "Unknown"

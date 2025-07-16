@@ -27,60 +27,24 @@ except ImportError:
     PermissionOverwriteRepository = None
 
 try:
+    from ...features.channels.repositories.role_repository import RoleRepository
+except ImportError:
+    RoleRepository = None
+
+try:
     from ...features.security import distributed_key_manager, quantum_encryption
 except ImportError:
     distributed_key_manager = None
     quantum_encryption = None
-    Consolidates,
-    Database,
-    Manager,
-    PlexiChat,
-    RoleRepository,
-    StaticPool,
-    """,
-    -,
-    ...features.backup,
-    ...features.channels.repositories.role_repository,
-    .global_data_distribution,
-    .zero_downtime_migration,
-    all,
-    and,
-    attempt,
-    core,
-    create_async_engine,
-    database,
-    database_manager.py,
-    for,
-    from,
-    functionality,
-    functionality.,
-    get_unified_backup_manager,
-    global_data_distribution_manager,
-    import,
-    json,
-    management,
-    os,
-    replaces:,
-    sqlalchemy,
-    sqlalchemy.ext.asyncio,
-    sqlalchemy.pool,
-    text,
-    unified,
-    unified_database_manager.py,
-    zero_downtime_migration_manager,
-)
-- enhanced_abstraction.py (multi-database support) - REMOVED
 
-Provides comprehensive database management with:
-- Multi-backend support (SQL, NoSQL, Time-series, Graph, Vector)
-- Advanced encryption and security integration
-- Connection pooling and optimization
-- Clustering and failover
-- Zero-downtime migrations
-- Real-time monitoring and analytics
-- Performance optimization
-- Backup system integration
-- Global data distribution
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine  # type: ignore
+from sqlalchemy.pool import StaticPool  # type: ignore
+
+"""
+Consolidated Database Manager - Single Source of Truth
+
+Replaces all previous database management systems with a unified,
+comprehensive solution supporting all database types and advanced features.
 """
 
 # SQLAlchemy imports
@@ -262,16 +226,14 @@ class ConsolidatedDatabaseManager:
     def _register_default_repositories(self):
         """Register default repositories for the channel system."""
         try:
-            # Import repository classes
-                PermissionOverwriteRepository,
-            )
-            # Register channel system repositories
-            self.register_repository("channel", ChannelRepository)
-            self.register_repository("role", RoleRepository)
-            self.register_repository("permission_overwrite", PermissionOverwriteRepository)
-
+            # Register channel system repositories if available
+            if ChannelRepository:
+                self.register_repository("channel", ChannelRepository)
+            if RoleRepository:
+                self.register_repository("role", RoleRepository)
+            if PermissionOverwriteRepository:
+                self.register_repository("permission_overwrite", PermissionOverwriteRepository)
             logger.info(" Default repositories registered successfully")
-
         except ImportError as e:
             logger.warning(f" Some repositories not available yet: {e}")
         except Exception as e:
@@ -310,12 +272,12 @@ class ConsolidatedDatabaseManager:
             # Initialize encryption manager
             self.encryption_manager = quantum_encryption
             if hasattr(self.encryption_manager, 'initialize'):
-                await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()  # type: ignore
+                await self.encryption_manager.initialize()  # type: ignore
 
             # Initialize key manager
             self.key_manager = distributed_key_manager
             if hasattr(self.key_manager, 'initialize'):
-                await self.if key_manager and hasattr(key_manager, "initialize"): key_manager.initialize()  # type: ignore
+                await self.key_manager.initialize()  # type: ignore
 
             logger.info("Database security components initialized")
 
@@ -328,11 +290,11 @@ class ConsolidatedDatabaseManager:
         try:
             # Initialize migration manager
             self.migration_manager = zero_downtime_migration_manager
-            await self.if migration_manager and hasattr(migration_manager, "initialize"): migration_manager.initialize()
+            await self.migration_manager.initialize()
 
             # Initialize global data distribution
             self.global_distribution = global_data_distribution_manager
-            await self.if global_distribution and hasattr(global_distribution, "initialize"): global_distribution.initialize()
+            await self.global_distribution.initialize()
 
             # Initialize backup integration
             self.backup_integration = get_unified_backup_manager()
@@ -682,7 +644,7 @@ class ConsolidatedDatabaseManager:
     async def __aenter__(self):
         """Async context manager entry."""
         if not self.initialized:
-            await if self and hasattr(self, "initialize"): self.initialize()
+            await self.initialize()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -705,7 +667,7 @@ async def initialize_database_system(config: Optional[dict] = None) -> bool:
 async def get_database_manager() -> ConsolidatedDatabaseManager:
     """Get the consolidated database manager instance."""
     if not database_manager.initialized:
-        await if database_manager and hasattr(database_manager, "initialize"): database_manager.initialize()
+        await database_manager.initialize()
     return database_manager
 
 

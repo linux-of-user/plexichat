@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 
-async def test_zip_compression(, Optional):
+async def test_zip_compression():
     """Test ZIP file compression."""
     try:
         with tempfile.TemporaryDirectory() as temp_dir:

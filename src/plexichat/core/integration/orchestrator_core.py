@@ -4,22 +4,18 @@
 import importlib
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Dict, List, Set
 
-from pathlib import Path
-
-
-from pathlib import Path
-
 try:
-    from plexichat.core.config.config_manager import ConfigManager
+    from plexichat.core.config.config_manager import ConfigManager as CoreConfigManager
+    ConfigManager = CoreConfigManager
 except ImportError:
     class ConfigManager:
         pass
 
 try:
-    from plexichat.core.database.enhanced_abstraction import DatabaseManager
+    from plexichat.core.database.enhanced_abstraction import DatabaseManager as CoreDatabaseManager
+    DatabaseManager = CoreDatabaseManager
 except ImportError:
     class DatabaseManager:
         pass
@@ -37,8 +33,8 @@ import logging
 logger = logging.getLogger("plexichat.core.integration.orchestrator_core")
 # Add a fallback for performance_optimizer if not defined
 try:
-    performance_optimizer
-except NameError:
+    from plexichat.core.performance.optimizer import performance_optimizer
+except ImportError:
     class PerformanceOptimizer:
         def get_optimization_summary(self):
             return {}
