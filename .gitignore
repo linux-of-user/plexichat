@@ -184,6 +184,8 @@ docker-compose.override.yml
 /exports/
 version.json
 default_creds.txt
+changelog.json
+CHANGELOG.md
 
 # Development and testing artifacts
 *_test.py
