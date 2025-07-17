@@ -14,19 +14,7 @@ from datetime import datetime, timedelta
 from tkinter import filedialog, messagebox, simpledialog, ttk
 from typing import Any, Dict, List, Optional
 
-from ...features.backup import get_unified_backup_manager
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
+from plexichat.features.backup.core.unified_backup_manager import get_unified_backup_manager, UnifiedBackupManager
 
 """
 Enhanced Backup Management GUI Widget
@@ -57,7 +45,7 @@ except ImportError:
 
 # Import backup system components with fallbacks
 BACKUP_AVAILABLE = False
-backup_manager = None
+backup_manager: 'UnifiedBackupManager' = None
 
 try:
     backup_manager = get_unified_backup_manager()
@@ -85,8 +73,7 @@ except ImportError:
                 'backup_nodes_online': 8,
                 'backup_nodes_total': 10,
                 'encryption_status': 'QUANTUM_READY',
-                'last_backup_time': from datetime import datetime
-datetime = datetime.now() - timedelta(minutes=15)
+                'last_backup_time': datetime.now() - timedelta(minutes=15)
             })()
 
         async def get_recent_backups(self, limit=10):
@@ -96,8 +83,7 @@ datetime = datetime.now() - timedelta(minutes=15)
                     'source_path': f'/data/backup_{i}',
                     'backup_type': 'INCREMENTAL' if i % 2 else 'FULL',
                     'status': 'COMPLETED',
-                    'created_at': from datetime import datetime
-datetime = datetime.now() - timedelta(hours=i),
+                    'created_at': datetime.now() - timedelta(hours=i),
                     'size_mb': 125.5 + i * 10,
                     'shard_count': 15 + i,
                     'security_level': 'GOVERNMENT'
@@ -114,8 +100,7 @@ datetime = datetime.now() - timedelta(hours=i),
                     'storage_used_gb': 45.2 + i * 5,
                     'storage_total_gb': 100.0,
                     'shard_count': 234 + i * 10,
-                    'last_heartbeat': from datetime import datetime
-datetime = datetime.now() - timedelta(minutes=i)
+                    'last_heartbeat': datetime.now() - timedelta(minutes=i)
                 })()
                 for i in range(10)
             ]
@@ -365,8 +350,9 @@ class EnhancedBackupManagementWidget:
     async def load_backup_status(self) -> BackupSystemStatus:
         """Load backup status from the backup manager."""
         try:
+            assert backup_manager is not None
             if not backup_manager.initialized:
-                await if backup_manager and hasattr(backup_manager, "initialize"): backup_manager.initialize()
+                await backup_manager.initialize()
 
             # Get system health
             health = await backup_manager.get_system_health()
@@ -471,8 +457,7 @@ class EnhancedBackupManagementWidget:
                 self.status_text.config(state=tk.NORMAL)
                 self.status_text.delete(1.0, tk.END)
 
-                status_info = f"Backup System Status Report - {from datetime import datetime
-datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                status_info = f"Backup System Status Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                 status_info += f"{'='*60}\n"
                 status_info += f"Total Backups: {self.status_data.total_backups}\n"
                 status_info += f"Active Backups: {self.status_data.active_backups}\n"
@@ -933,7 +918,7 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         """Start background monitoring thread."""
         if not self.background_thread or not self.background_thread.is_alive():
             self.background_thread = threading.Thread(target=self._background_monitor, daemon=True)
-            self.if background_thread and hasattr(background_thread, "start"): background_thread.start()
+            self.background_thread.start()
 
     def _background_monitor(self):
         """Background monitoring loop."""
@@ -1202,8 +1187,7 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
 
             if filename:
                 export_data = {
-                    'timestamp': from datetime import datetime
-datetime = datetime.now().isoformat(),
+                    'timestamp': datetime.now().isoformat(),
                     'backup_system_status': {
                         'total_backups': self.status_data.total_backups,
                         'active_backups': self.status_data.active_backups,

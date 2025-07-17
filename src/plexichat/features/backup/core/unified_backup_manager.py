@@ -23,8 +23,8 @@ from typing import Any, Dict, List, Optional
 import aiofiles
 import aiosqlite
 
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
+from ...core.config import get_config
+from ...core.logging import get_logger
 from .unified_analytics_manager import UnifiedAnalyticsManager
 from .unified_distribution_manager import UnifiedDistributionManager
 from .unified_encryption_manager import UnifiedEncryptionManager

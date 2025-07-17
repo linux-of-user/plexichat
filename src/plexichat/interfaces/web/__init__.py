@@ -3,11 +3,6 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 """
 PlexiChat Web Interface
 
@@ -36,7 +31,7 @@ except ImportError:
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -57,7 +52,7 @@ logger = logging.getLogger(__name__)
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
 
-def create_app() -> Optional[FastAPI]:
+def create_app() -> Optional[Any]:
     """Create FastAPI application with enhanced configuration."""
     try:
         if not FastAPI:
@@ -87,13 +82,13 @@ def create_app() -> Optional[FastAPI]:
         
         # Add custom middleware
         try:
-            from plexichat.interfaces.web.middleware.rate_limiting import RateLimitingMiddleware
+            from plexichat.interfaces.web.middleware.rate_limiting import RateLimitingMiddleware  # type: ignore
             app.add_middleware(RateLimitingMiddleware)
         except ImportError:
             logger.warning("Rate limiting middleware not available")
         
         try:
-            from plexichat.interfaces.web.middleware.government_security import GovernmentSecurityMiddleware
+            from plexichat.interfaces.web.middleware.government_security import GovernmentSecurityMiddleware  # type: ignore
             app.add_middleware(GovernmentSecurityMiddleware)
         except ImportError:
             logger.warning("Government security middleware not available")
@@ -136,7 +131,7 @@ def create_app() -> Optional[FastAPI]:
         logger.error(f"Error creating FastAPI app: {e}")
         return None
 
-def _include_routers(app: FastAPI):
+def _include_routers(app):
     """Include all routers in the FastAPI app."""
     try:
         # Core routers

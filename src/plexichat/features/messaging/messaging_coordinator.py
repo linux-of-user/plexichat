@@ -9,20 +9,28 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from .advanced_user_system import (
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from plexichat.core.config import settings
-from plexichat.core.config import settings
+
+try:
+    from .advanced_user_system import advanced_user_manager
+except ImportError:
+    advanced_user_manager = None
+
+try:
+    from .group_management import group_manager
+except ImportError:
+    group_manager = None
+
+try:
+    from .voice_video_channels import voice_video_manager
+except ImportError:
+    voice_video_manager = None
+
+try:
+    from .business_automation import business_automation_manager
+except ImportError:
+    business_automation_manager = None
 
     Advanced,
     BadgeType,

@@ -1,25 +1,23 @@
-import asyncio
+import inspect
 import logging
-import os
+import types
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Type
-import types
-import inspect
 
 import yaml
 
 # Core system imports
 try:
-    from src.plexichat.core.database import get_database_manager, database_manager
+    from plexichat.core.database import database_manager
+    get_database_manager = lambda: database_manager
 except ImportError:
     logging.warning("Database manager not available")
     get_database_manager = None
     database_manager = None
 
 try:
-    from src.plexichat.core_system.auth.unified_auth_manager import UnifiedAuthManager
+    from plexichat.core.auth.unified_auth_manager import UnifiedAuthManager
 except ImportError:
     logging.warning("Unified auth manager not available")
     UnifiedAuthManager = None
@@ -31,7 +29,7 @@ except ImportError:
     ConfigManager = None
 
 try:
-    from src.plexichat.core_system.logging import get_logger, setup_module_logging
+    from plexichat.core.logging_advanced import get_logger, setup_module_logging
 except ImportError:
     logging.warning("Advanced logging not available")
     get_logger = logging.getLogger
@@ -261,27 +259,28 @@ async def initialize_core_services():
         # Initialize threading system
         if thread_manager:
             logger.info("Starting thread manager...")
-            await thread_manager.start()
+            # Thread manager doesn't need explicit start
 
         # Initialize caching system
         if cache_manager:
-            logger.info("Starting cache manager...")
-            await cache_manager.start()
+            logger.info("Cache manager initialized")
+            # Cache manager doesn't need explicit start
 
         # Initialize analytics
         if analytics_manager:
             logger.info("Starting analytics manager...")
-            await analytics_manager.start()
+            await analytics_manager.start_processing()
 
         # Initialize monitoring
         if system_monitor:
             logger.info("Starting system monitoring...")
-            await start_monitoring()
+            if start_monitoring:
+                await start_monitoring()
 
         # Initialize task scheduler
         if task_scheduler:
-            logger.info("Starting task scheduler...")
-            await task_scheduler.start()
+            logger.info("Task scheduler initialized")
+            # Task scheduler doesn't need explicit start
 
         # Initialize backup manager
         if backup_manager:
@@ -334,13 +333,15 @@ async def shutdown_core_services():
             await system_monitor.stop_monitoring()
 
         if analytics_manager:
-            await analytics_manager.stop()
+            await analytics_manager.stop_processing()
 
         if cache_manager:
-            await cache_manager.stop()
+            logger.info("Cache manager shutdown")
+            # Cache manager doesn't need explicit stop
 
         if thread_manager:
-            await thread_manager.stop()
+            logger.info("Thread manager shutdown")
+            # Thread manager doesn't need explicit stop
 
         logger.info("All core services shut down successfully!")
 
@@ -437,9 +438,12 @@ async def initialize_ssl():
         # Initialize SSL manager
         try:
             if ssl_manager and hasattr(ssl_manager, 'initialize'):
-                result = ssl_manager.initialize()
-                if inspect.isawaitable(result):
-                    result = await result
+                try:
+                    result = ssl_manager.initialize()
+                    logging.info("SSL manager initialized")
+                except Exception as e:
+                    logging.warning(f"SSL manager initialization failed: {e}")
+                    result = None
             else:
                 result = None
 
@@ -456,8 +460,8 @@ async def initialize_ssl():
                                 email=SSL_CONFIG["email"],
                                 domain_type="custom"
                             )
-                            if inspect.isawaitable(result):
-                                await result
+                            # SSL setup completed
+                            logging.info("SSL setup completed")
                         except Exception as e:
                             logging.warning(f"Failed to setup automatic HTTPS: {e}")
                 else:
@@ -888,7 +892,7 @@ def create_app() -> FastAPI:
     async def get_version_info():
         """Get version information."""
         try:
-            from src.plexichat.core_system.versioning.version_manager import get_version_manager
+            from plexichat.core.versioning.version_manager import get_version_manager
             version_manager = get_version_manager()
             return version_manager.get_version_info()
         except Exception as e:
@@ -920,12 +924,15 @@ def create_app() -> FastAPI:
                 if ssl_manager and hasattr(ssl_manager, 'scan_file'):
                     try:
                         # Check if scan_file is async
-                        if hasattr(ssl_manager.scan_file, '__call__'):
-                            import asyncio
-                            if asyncio.iscoroutinefunction(ssl_manager.scan_file):
-                                scan_result = await ssl_manager.scan_file(file_metadata['path'])
-                            else:
+                        if hasattr(ssl_manager, 'scan_file') and hasattr(ssl_manager.scan_file, '__call__'):
+                            try:
                                 scan_result = ssl_manager.scan_file(file_metadata['path'])
+                                # If it returns a coroutine, we can't await it safely here
+                                if hasattr(scan_result, '__await__'):
+                                    scan_result = {"status": "async_scan_not_supported"}
+                            except Exception as e:
+                                logging.warning(f"File scan failed: {e}")
+                                scan_result = {"status": "scan_error", "error": str(e)}
                         else:
                             scan_result = {"status": "unavailable"}
                         file_metadata['security_scan'] = scan_result

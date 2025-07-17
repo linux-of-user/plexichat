@@ -14,14 +14,6 @@ from typing import Any, Dict, List, Optional
 import yaml
 from cryptography.fernet import Fernet
 
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-
 """
 PlexiChat WebUI Configuration Manager
 
@@ -122,7 +114,6 @@ class WebUIConfigManager:
     """Enhanced WebUI configuration manager."""
     
     def __init__(self, config_dir: str = "config"):
-        from pathlib import Path
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(exist_ok=True)
         
@@ -173,7 +164,7 @@ class WebUIConfigManager:
         """Load configuration from files."""
         try:
             # Load main configuration
-            if self.config_file.exists() if self.config_file else False:
+            if self.config_file and self.config_file.exists():
                 with open(self.config_file, 'r') as f:
                     config_data = yaml.safe_load(f)
                 
@@ -181,7 +172,7 @@ class WebUIConfigManager:
                     self._update_config_objects(config_data)
             
             # Load authentication configuration
-            if self.auth_config_file.exists() if self.auth_config_file else False:
+            if self.auth_config_file and self.auth_config_file.exists():
                 with open(self.auth_config_file, 'r') as f:
                     auth_data = yaml.safe_load(f)
                 
@@ -229,8 +220,7 @@ class WebUIConfigManager:
             # Prepare main configuration data
             config_data = {
                 'version': '1.0.0',
-                'last_updated': from datetime import datetime
-datetime.utcnow().isoformat(),
+                'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
                 'ports': asdict(self.port_config),
                 'mfa': asdict(self.mfa_config),
                 'auth_storage': asdict(self.auth_storage_config),
@@ -245,8 +235,7 @@ datetime.utcnow().isoformat(),
             # Save authentication configuration (encrypted)
             auth_data = {
                 'version': '1.0.0',
-                'last_updated': from datetime import datetime
-datetime.utcnow().isoformat(),
+                'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
                 'storage_config': asdict(self.auth_storage_config)
             }
             
@@ -285,33 +274,33 @@ datetime.utcnow().isoformat(),
     def is_feature_enabled(self, feature: str, user_role: str = "user") -> bool:
         """Check if a feature is enabled for a user role."""
         # Check if feature is explicitly disabled
-        if feature in self.feature_toggle_config.disabled_features:
+        if self.feature_toggle_config.disabled_features and feature in self.feature_toggle_config.disabled_features:
             return False
         
         # Check if feature requires admin role
-        if feature in self.feature_toggle_config.admin_only_features and user_role != "admin":
+        if self.feature_toggle_config.admin_only_features and feature in self.feature_toggle_config.admin_only_features and user_role != "admin":
             return False
         
         # Check if feature is enabled
-        if feature in self.feature_toggle_config.enabled_features:
+        if self.feature_toggle_config.enabled_features and feature in self.feature_toggle_config.enabled_features:
             return True
         
         # Check beta features
-        if feature in self.feature_toggle_config.beta_features:
+        if self.feature_toggle_config.beta_features and feature in self.feature_toggle_config.beta_features:
             return user_role in ["admin", "beta_tester"]
         
         # Check feature permissions
-        if feature in self.feature_toggle_config.feature_permissions:
+        if self.feature_toggle_config.feature_permissions and feature in self.feature_toggle_config.feature_permissions:
             return user_role in self.feature_toggle_config.feature_permissions[feature]
         
         return False
 
     def get_mfa_methods_for_user(self, user_role: str = "user") -> List[str]:
         """Get available MFA methods for a user."""
-        if not self.mfa_config.enabled:
+        if not self.mfa_config:
             return []
         
-        methods = self.mfa_config.methods.copy()
+        methods = self.mfa_config.methods.copy() if self.mfa_config.methods else []
         
         # Admin users might have additional methods
         if user_role == "admin" and self.mfa_config.require_mfa_for_admin:
@@ -344,14 +333,14 @@ datetime.utcnow().isoformat(),
     def toggle_feature(self, feature: str, enabled: bool):
         """Toggle a feature on or off."""
         if enabled:
-            if feature in self.feature_toggle_config.disabled_features:
+            if self.feature_toggle_config.disabled_features is not None and feature not in self.feature_toggle_config.disabled_features:
                 self.feature_toggle_config.disabled_features.remove(feature)
-            if feature not in self.feature_toggle_config.enabled_features:
+            if self.feature_toggle_config.enabled_features is not None and feature not in self.feature_toggle_config.enabled_features:
                 self.feature_toggle_config.enabled_features.append(feature)
         else:
-            if feature in self.feature_toggle_config.enabled_features:
+            if self.feature_toggle_config.enabled_features is not None and feature in self.feature_toggle_config.enabled_features:
                 self.feature_toggle_config.enabled_features.remove(feature)
-            if feature not in self.feature_toggle_config.disabled_features:
+            if self.feature_toggle_config.disabled_features is not None and feature not in self.feature_toggle_config.disabled_features:
                 self.feature_toggle_config.disabled_features.append(feature)
         
         self.save_configuration()

@@ -20,16 +20,16 @@ from urllib.parse import urljoin
 import webbrowser
 
 try:
-    import webview
+    import webview  # type: ignore
     WEBVIEW_AVAILABLE = True
 except ImportError:
     WEBVIEW_AVAILABLE = False
     webview = None
 
 try:
-    from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QTabWidget
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
-    from PyQt5.QtCore import QUrl, pyqtSignal, QTimer
+    from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QTabWidget  # type: ignore
+    from PyQt5.QtWebEngineWidgets import QWebEngineView  # type: ignore
+    from PyQt5.QtCore import QUrl, pyqtSignal, QTimer  # type: ignore
     PYQT_AVAILABLE = True
 except ImportError:
     PYQT_AVAILABLE = False
@@ -88,9 +88,9 @@ class WebUIRenderer:
             return None
         
         try:
-            from PyQt5.QtWidgets import QTabWidget, QWidget, QVBoxLayout
-            from PyQt5.QtWebEngineWidgets import QWebEngineView
-            from PyQt5.QtCore import QUrl
+            from PyQt5.QtWidgets import QTabWidget, QWidget, QVBoxLayout  # type: ignore
+            from PyQt5.QtWebEngineWidgets import QWebEngineView  # type: ignore
+            from PyQt5.QtCore import QUrl  # type: ignore
             
             tab_widget = QTabWidget(parent)
             
@@ -134,9 +134,9 @@ class WebUIRenderer:
     def _create_pyqt_window(self, window_id: str, url: str, width: int, height: int) -> bool:
         """Create PyQt window with embedded web view."""
         try:
-            from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QHBoxLayout
-            from PyQt5.QtWebEngineWidgets import QWebEngineView
-            from PyQt5.QtCore import QUrl
+            from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QHBoxLayout  # type: ignore
+            from PyQt5.QtWebEngineWidgets import QWebEngineView  # type: ignore
+            from PyQt5.QtCore import QUrl  # type: ignore
             
             class PluginWindow(QMainWindow):
                 def __init__(self):
@@ -191,30 +191,21 @@ class WebUIRenderer:
     def _create_webview_window(self, window_id: str, url: str, width: int, height: int) -> bool:
         """Create webview window."""
         try:
-            if not WEBVIEW_AVAILABLE:
+            if not WEBVIEW_AVAILABLE or webview is None:
                 return False
-            
+
             def create_window():
-                window = webview.create_window(
+                window = webview.create_window(  # type: ignore
                     title=f"PlexiChat - {window_id}",
                     url=url,
                     width=width,
-                    height=height,
-                    resizable=True,
-                    fullscreen=False,
-                    minimized=False,
-                    on_top=False
+                    height=height
                 )
-                
                 self.webview_windows[window_id] = window
-                webview.start(debug=False)
-            
-            # Run in separate thread
-            thread = threading.Thread(target=create_window, daemon=True)
-            if thread and hasattr(thread, "start"): thread.start()
-            
+
+            # Start webview in a new thread
+            threading.Thread(target=lambda: (create_window(), webview.start()), daemon=True).start()  # type: ignore
             return True
-            
         except Exception as e:
             logger.error(f"Error creating webview window: {e}")
             return False
@@ -234,9 +225,9 @@ class WebUIRenderer:
             return None
         
         try:
-            from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
-            from PyQt5.QtWebEngineWidgets import QWebEngineView
-            from PyQt5.QtCore import QUrl, QTimer
+            from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel  # type: ignore
+            from PyQt5.QtWebEngineWidgets import QWebEngineView  # type: ignore
+            from PyQt5.QtCore import QUrl, QTimer  # type: ignore
             
             class TestDashboardWidget(QWidget):
                 def __init__(self, parent=None):
@@ -307,9 +298,9 @@ class WebUIRenderer:
             return None
         
         try:
-            from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QSplitter
-            from PyQt5.QtWebEngineWidgets import QWebEngineView
-            from PyQt5.QtCore import QUrl, Qt
+            from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QSplitter  # type: ignore
+            from PyQt5.QtWebEngineWidgets import QWebEngineView  # type: ignore
+            from PyQt5.QtCore import QUrl, Qt  # type: ignore
             
             class PluginManagerWidget(QWidget):
                 def __init__(self, parent=None):

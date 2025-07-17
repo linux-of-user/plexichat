@@ -19,12 +19,6 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 
-from datetime import datetime
-from datetime import datetime
-
-from datetime import datetime
-from datetime import datetime
-
 """
 PlexiChat Ultimate CLI Coordinator
 Manages 200+ commands organized into logical groups for complete system control
@@ -34,7 +28,6 @@ logger = logging.getLogger(__name__)
 console = Console()
 
 
-logger = logging.getLogger(__name__)
 class CommandCategory(Enum):
     """CLI command categories."""
     CORE = "core"
@@ -136,7 +129,7 @@ class UltimateCLICoordinator:
         self.categories[command.category].append(command.name)
 
         # Register aliases
-        for alias in command.aliases:
+        for alias in (command.aliases or []):
             self.aliases[alias] = command.name
 
         # Update statistics
@@ -325,17 +318,14 @@ class UltimateCLICoordinator:
 
         try:
             # Execute command
-            from datetime import datetime
-start_time = datetime.now()
-datetime = datetime.now()
+            start_time = datetime.now()
 
             if asyncio.iscoroutinefunction(command.handler):
                 result = await command.handler(*args, **kwargs)
             else:
                 result = command.handler(*args, **kwargs)
 
-            execution_time = (from datetime import datetime
-datetime = datetime.now() - start_time).total_seconds()
+            execution_time = (datetime.now() - start_time).total_seconds()
 
             # Update statistics
             self.stats["total_executions"] += 1

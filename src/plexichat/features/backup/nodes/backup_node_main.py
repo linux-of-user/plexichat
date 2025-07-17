@@ -1,1070 +1,328 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-import asyncio
-import base64
-import hashlib
-import json
-import logging
-import os
-import secrets
-import sqlite3
-import sys
-import threading
-import time
-from contextlib import asynccontextmanager
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-
-import aiofiles
-from cryptography.fernet import Fernet
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-
-import psutil
-import uvicorn
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
-
 #!/usr/bin/env python3
 """
-PlexiChat Backup Node - Government-Grade Independent Backup Storage System
-A dedicated backup node with advanced clustering, real-time monitoring, and quantum-resistant security.
-Handles large shard storage, implements storage limits, provides seeding capabilities,
-and maintains government-level security standards with distributed redundancy.
+PlexiChat Backup Node Main
+
+Main entry point for running PlexiChat backup nodes.
+Provides distributed backup storage with clustering and redundancy.
 """
 
-# Add parent directory to path for shared imports
-sys.path.append(str(from pathlib import Path
-Path(__file__).parent.parent))
+import asyncio
+import argparse
+import json
+import logging
+import signal
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional, Dict, Any
 
 try:
-except ImportError as e:
-    logger.info(f" Missing required dependencies: {e}")
-    logger.info("Please install: pip install fastapi uvicorn httpx aiofiles")
-    sys.exit(1)
+    from plexichat.features.backup.core.backup_node_server import BackupNodeServer, BackupNodeConfig
+    from plexichat.features.backup.nodes.backup_node_client import BackupNodeManager
+    from plexichat.app.logger_config import get_logger
+    from plexichat.core.config import settings
+except ImportError:
+    # Fallback imports
+    BackupNodeServer = None
+    BackupNodeConfig = None
+    BackupNodeManager = None
+    get_logger = logging.getLogger
+    settings = {}
 
+logger = get_logger(__name__)
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('backup_node/logs/backup_node.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger("backup_node")
-
-# Ensure log directory exists
-Path("backup_node/logs").mkdir(parents=True, exist_ok=True)
-
-
-@dataclass
-logger = logging.getLogger(__name__)
-class BackupShard:
-    """Backup shard information."""
-    shard_id: str
-    original_hash: str
-    size_bytes: int
-    created_at: datetime
-    last_verified: Optional[datetime] = None
-    verification_count: int = 0
-    source_node: Optional[str] = None
-    redundancy_level: int = 1
-    metadata: Optional[Dict[str, Any]] = None
-
-
-@dataclass
-class NodeInfo:
-    """Information about connected nodes."""
-    node_id: str
-    node_type: str  # 'main', 'backup', 'client'
-    address: str
-    port: int
-    last_seen: datetime
-    storage_capacity: int
-    storage_used: int
-    is_online: bool = True
-    trust_level: float = 1.0
-
-
-@dataclass
-class BackupNodeConfig:
-    """Enhanced backup node configuration with clustering."""
-    node_id: str
-    storage_path: str
-    max_storage_gb: int
-    port: int
-    main_node_address: Optional[str] = None
-    main_node_port: Optional[int] = None
-    auto_cleanup_enabled: bool = True
-    verification_interval_hours: int = 6  # More frequent verification
-    seeding_enabled: bool = True
-    max_concurrent_transfers: int = 20  # Increased for government-level performance
-    bandwidth_limit_mbps: Optional[int] = None
-    # Enhanced clustering features
-    cluster_enabled: bool = True
-    heartbeat_interval: int = 30
-    node_timeout: int = 90
-    replication_factor: int = 5  # Government-level redundancy
-    encryption_enabled: bool = True
-    quantum_resistant: bool = True
-    geographic_location: Optional[str] = None
-    priority_level: int = 1  # 1=highest, 10=lowest
-    capabilities: List[str] = field(default_factory=lambda: ["backup", "replication", "seeding"])
-
-
-@dataclass
-class ClusterMetrics:
-    """Cluster performance metrics."""
-    cpu_usage: float = 0.0
-    memory_usage: float = 0.0
-    disk_usage: float = 0.0
-    network_latency: float = 0.0
-    throughput_mbps: float = 0.0
-    active_connections: int = 0
-    last_updated: datetime = field(default_factory=datetime.now)
-
-
-class BackupNodeService:
-    """Enhanced backup node service with government-level clustering."""
-
-    def __init__(self, config: BackupNodeConfig):
-        self.config = config
-        self.from pathlib import Path
-storage_path = Path()(config.storage_path)
-        self.storage_path.mkdir(parents=True, exist_ok=True)
-
-        # Create additional directories for clustering
-        self.cluster_path = self.storage_path / "cluster"
-        self.metrics_path = self.storage_path / "metrics"
-        self.logs_path = self.storage_path / "logs"
-        for path in [self.cluster_path, self.metrics_path, self.logs_path]:
-            path.mkdir(parents=True, exist_ok=True)
-
-        # Storage management
-        self.shards: Dict[str, BackupShard] = {}
-        self.storage_used_bytes = 0
-        self.max_storage_bytes = config.max_storage_gb * 1024 * 1024 * 1024
-
-        # Enhanced network management
-        self.connected_nodes: Dict[str, NodeInfo] = {}
-        self.active_transfers: Set[str] = set()
-        self.cluster_nodes: Dict[str, Dict[str, Any]] = {}
-        self.is_cluster_master = False
-        self.master_node_id: Optional[str] = None
-
-        # Performance monitoring
-        self.metrics = ClusterMetrics()
-        self.performance_history: List[ClusterMetrics] = []
-
-        # Enhanced metadata files
-        self.shards_db_file = self.storage_path / "shards_database.json"
-        self.nodes_db_file = self.storage_path / "nodes_database.json"
-        self.cluster_db_file = self.cluster_path / "cluster_database.json"
-        self.config_file = self.storage_path / "node_config.json"
-
-        # SQLite database for advanced features
-        self.db_path = self.storage_path / "backup_node.db"
-        self._init_database()
-
-        # Encryption setup
-        if config.encryption_enabled:
-            self.encryption_key = self._get_or_create_encryption_key()
-            self.fernet = Fernet(self.encryption_key)
-        else: Optional[self.encryption_key] = None
-            self.fernet = None
-
-        # Background tasks
-        self.monitoring_active = False
-        self.monitoring_thread: Optional[threading.Thread] = None
-        self.heartbeat_thread: Optional[threading.Thread] = None
-
-        # Load existing data
-        self._load_shards_database()
-        self._load_nodes_database()
-        self._load_cluster_database()
-        self._calculate_storage_usage()
-
-        # Start background monitoring
-        self._start_background_tasks()
-
-        logger.info(f" Enhanced backup node initialized: {config.node_id}")
-        logger.info(f" Storage path: {self.storage_path}")
-        logger.info(f" Storage limit: {config.max_storage_gb} GB")
-        logger.info(f" Current usage: {self.storage_used_bytes / (1024**3):.2f} GB")
-        logger.info(f" Encryption: {'Enabled' if config.encryption_enabled else 'Disabled'}")
-        logger.info(f" Clustering: {'Enabled' if config.cluster_enabled else 'Disabled'}")
-
-    def _init_database(self):
-        """Initialize SQLite database for advanced features."""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-
-                # Enhanced shards table
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS shards_enhanced (
-                        shard_id TEXT PRIMARY KEY,
-                        backup_id TEXT NOT NULL,
-                        shard_data TEXT NOT NULL,
-                        encryption_key_hash TEXT,
-                        replication_nodes TEXT,
-                        verification_status TEXT DEFAULT 'pending',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        last_verified TIMESTAMP,
-                        access_count INTEGER DEFAULT 0,
-                        last_accessed TIMESTAMP
-                    )
-                ''')
-
-                # Cluster nodes table
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS cluster_nodes (
-                        node_id TEXT PRIMARY KEY,
-                        node_data TEXT NOT NULL,
-                        last_heartbeat TIMESTAMP,
-                        status TEXT DEFAULT 'unknown',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                ''')
-
-                # Performance metrics table
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS performance_metrics (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        node_id TEXT NOT NULL,
-                        metrics_data TEXT NOT NULL,
-                        recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                ''')
-
-                # Replication tracking
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS replication_tracking (
-                        shard_id TEXT NOT NULL,
-                        source_node TEXT NOT NULL,
-                        target_node TEXT NOT NULL,
-                        replication_status TEXT DEFAULT 'pending',
-                        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        completed_at TIMESTAMP,
-                        PRIMARY KEY (shard_id, source_node, target_node)
-                    )
-                ''')
-
-                # Create indexes
-                cursor.execute('CREATE INDEX IF NOT EXISTS idx_shards_backup ON shards_enhanced(backup_id)')
-                cursor.execute('CREATE INDEX IF NOT EXISTS idx_nodes_heartbeat ON cluster_nodes(last_heartbeat)')
-                cursor.execute('CREATE INDEX IF NOT EXISTS idx_metrics_recorded ON performance_metrics(recorded_at)')
-                cursor.execute('CREATE INDEX IF NOT EXISTS idx_replication_status ON replication_tracking(replication_status)')
-
-                conn.commit()
-                logger.info("Enhanced backup node database initialized")
-        except Exception as e:
-            logger.error(f"Error initializing database: {e}")
-
-    def _get_or_create_encryption_key(self) -> bytes:
-        """Get or create encryption key for the node."""
-        key_file = self.storage_path / "encryption.key"
-
-        if key_file.exists():
-            with open(key_file, 'rb') as f:
-                return f.read()
+class BackupNodeMain:
+    """Main backup node application."""
+    
+    def __init__(self, config_path: Optional[str] = None):
+        self.config_path = config_path
+        self.config = self._load_config()
+        self.server: Optional[BackupNodeServer] = None
+        self.manager: Optional[BackupNodeManager] = None
+        self.running = False
+        
+        # Setup signal handlers
+        signal.signal(signal.SIGINT, self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
+    
+    def _load_config(self) -> Dict[str, Any]:
+        """Load configuration from file or create default."""
+        default_config = {
+            "node_id": f"backup_node_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "storage_path": "./backup_storage",
+            "max_storage_gb": 100,
+            "port": 8001,
+            "main_node_address": "localhost",
+            "main_node_port": 8000,
+            "auto_cleanup_enabled": True,
+            "verification_interval_hours": 6,
+            "seeding_enabled": True,
+            "max_concurrent_transfers": 20,
+            "bandwidth_limit_mbps": None,
+            "cluster_enabled": True,
+            "heartbeat_interval": 30,
+            "node_timeout": 90,
+            "replication_factor": 3,
+            "encryption_enabled": True,
+            "quantum_resistant": True,
+            "geographic_location": "unknown"
+        }
+        
+        if self.config_path and Path(self.config_path).exists():
+            try:
+                with open(self.config_path, 'r') as f:
+                    file_config = json.load(f)
+                default_config.update(file_config)
+                logger.info(f"Loaded configuration from {self.config_path}")
+            except Exception as e:
+                logger.error(f"Error loading config file: {e}")
+                logger.info("Using default configuration")
         else:
-            key = Fernet.generate_key()
-            with open(key_file, 'wb') as f:
-                f.write(key)
-            # Secure the key file
-            os.chmod(key_file, 0o600)
-            logger.info("Generated new encryption key")
-            return key
-
-    def _start_background_tasks(self):
-        """Start background monitoring and maintenance tasks."""
-        if self.config.cluster_enabled:
-            self.monitoring_active = True
-
-            # Performance monitoring thread
-            self.monitoring_thread = threading.Thread(
-                target=self._monitoring_loop,
-                daemon=True
-            )
-            self.if monitoring_thread and hasattr(monitoring_thread, "start"): monitoring_thread.start()
-
-            # Heartbeat thread for cluster communication
-            self.heartbeat_thread = threading.Thread(
-                target=self._heartbeat_loop,
-                daemon=True
-            )
-            self.if heartbeat_thread and hasattr(heartbeat_thread, "start"): heartbeat_thread.start()
-
-            logger.info("Background clustering tasks started")
-
-    def _monitoring_loop(self):
-        """Background monitoring loop for performance metrics."""
-        while self.monitoring_active:
+            # Save default config
+            config_file = Path("backup_node_config.json")
             try:
-                # Update performance metrics
-                self._update_performance_metrics()
-
-                # Check cluster health
-                self._check_cluster_health()
-
-                # Cleanup old data
-                self._cleanup_old_metrics()
-
-                time.sleep(60)  # Update every minute
+                with open(config_file, 'w') as f:
+                    json.dump(default_config, f, indent=2)
+                logger.info(f"Created default configuration: {config_file}")
             except Exception as e:
-                logger.error(f"Error in monitoring loop: {e}")
-                time.sleep(30)
-
-    def _heartbeat_loop(self):
-        """Background heartbeat loop for cluster communication."""
-        while self.monitoring_active:
-            try:
-                # Send heartbeats to known cluster nodes
-                self._send_cluster_heartbeats()
-
-                # Check for failed nodes
-                self._check_failed_nodes()
-
-                time.sleep(self.config.heartbeat_interval)
-            except Exception as e:
-                logger.error(f"Error in heartbeat loop: {e}")
-                time.sleep(15)
-
-    def _update_performance_metrics(self):
-        """Update current performance metrics."""
-        try:
-            # Get system metrics
-            self.metrics.cpu_usage = import psutil
-psutil.cpu_percent(interval=1)
-            self.metrics.memory_usage = import psutil
-psutil.virtual_memory().percent
-            self.metrics.disk_usage = import psutil
-psutil.disk_usage(str(self.storage_path)).percent
-            self.metrics.active_connections = len(self.connected_nodes)
-            self.metrics.from datetime import datetime
-last_updated = datetime().now()
-
-            # Store in database
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    'INSERT INTO performance_metrics (node_id, metrics_data) VALUES (?, ?)',
-                    (self.config.node_id, json.dumps(asdict(self.metrics)))
-                )
-                conn.commit()
-
-            # Keep recent history in memory
-            self.performance_history.append(self.metrics)
-            if len(self.performance_history) > 100:  # Keep last 100 entries
-                self.performance_history = self.performance_history[-50:]
-        except Exception as e:
-            logger.error(f"Error updating performance metrics: {e}")
-
-    def _load_cluster_database(self):
-        """Load cluster database from file."""
-        try:
-            if self.cluster_db_file.exists() if self.cluster_db_file else False:
-                with open(self.cluster_db_file, 'r') as f:
-                    data = json.load(f)
-                    self.cluster_nodes = data.get('cluster_nodes', {})
-                    self.is_cluster_master = data.get('is_cluster_master', False)
-                    self.master_node_id = data.get('master_node_id')
-
-                logger.info(f"Loaded cluster database with {len(self.cluster_nodes)} nodes")
-        except Exception as e:
-            logger.error(f"Error loading cluster database: {e}")
-
-    def _save_cluster_database(self):
-        """Save cluster database to file."""
-        try:
-            data = {
-                'cluster_nodes': self.cluster_nodes,
-                'is_cluster_master': self.is_cluster_master,
-                'master_node_id': self.master_node_id,
-                'last_updated': from datetime import datetime
-datetime.now().isoformat()
-            }
-
-            with open(self.cluster_db_file, 'w') as f:
-                json.dump(data, f, indent=2)
-        except Exception as e:
-            logger.error(f"Error saving cluster database: {e}")
-    
-    def _load_shards_database(self):
-        """Load shards database from file."""
-        try:
-            if self.shards_db_file.exists() if self.shards_db_file else False:
-                with open(self.shards_db_file, 'r') as f:
-                    data = json.load(f)
-                    
-                for shard_id, shard_data in data.items():
-                    # Convert datetime strings back to datetime objects
-                    shard_data['created_at'] = datetime.fromisoformat(shard_data['created_at'])
-                    if shard_data.get('last_verified'):
-                        shard_data['last_verified'] = datetime.fromisoformat(shard_data['last_verified'])
-                    
-                    self.shards[shard_id] = BackupShard(**shard_data)
-                
-                logger.info(f" Loaded {len(self.shards)} shards from database")
-        except Exception as e:
-            logger.error(f"Failed to load shards database: {e}")
-    
-    def _save_shards_database(self):
-        """Save shards database to file."""
-        try:
-            data = {}
-            for shard_id, shard in self.shards.items():
-                shard_dict = asdict(shard)
-                # Convert datetime objects to strings
-                shard_dict['created_at'] = shard.created_at.isoformat()
-                if shard.last_verified:
-                    shard_dict['last_verified'] = shard.last_verified.isoformat()
-                data[shard_id] = shard_dict
-            
-            with open(self.shards_db_file, 'w') as f:
-                json.dump(data, f, indent=2)
-                
-        except Exception as e:
-            logger.error(f"Failed to save shards database: {e}")
-    
-    def _load_nodes_database(self):
-        """Load nodes database from file."""
-        try:
-            if self.nodes_db_file.exists() if self.nodes_db_file else False:
-                with open(self.nodes_db_file, 'r') as f:
-                    data = json.load(f)
-                    
-                for node_id, node_data in data.items():
-                    node_data['last_seen'] = datetime.fromisoformat(node_data['last_seen'])
-                    self.connected_nodes[node_id] = NodeInfo(**node_data)
-                
-                logger.info(f" Loaded {len(self.connected_nodes)} nodes from database")
-        except Exception as e:
-            logger.error(f"Failed to load nodes database: {e}")
-    
-    def _save_nodes_database(self):
-        """Save nodes database to file."""
-        try:
-            data = {}
-            for node_id, node in self.connected_nodes.items():
-                node_dict = asdict(node)
-                node_dict['last_seen'] = node.last_seen.isoformat()
-                data[node_id] = node_dict
-            
-            with open(self.nodes_db_file, 'w') as f:
-                json.dump(data, f, indent=2)
-                
-        except Exception as e:
-            logger.error(f"Failed to save nodes database: {e}")
-    
-    def _calculate_storage_usage(self):
-        """Calculate current storage usage."""
-        total_size = 0
+                logger.error(f"Error saving default config: {e}")
         
-        for shard_file in self.storage_path.glob("shard_*"):
-            if shard_file.is_file():
-                total_size += shard_file.stat().st_size
-        
-        self.storage_used_bytes = total_size
-        logger.info(f" Calculated storage usage: {total_size / (1024**3):.2f} GB")
+        return default_config
     
-    async def store_shard(
-        self,
-        shard_id: str,
-        shard_data: bytes,
-        original_hash: str,
-        source_node: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> bool:
-        """Store a backup shard."""
+    def _signal_handler(self, signum, frame):
+        """Handle shutdown signals."""
+        logger.info(f"Received signal {signum}, initiating shutdown...")
+        self.running = False
+    
+    async def start(self) -> bool:
+        """Start the backup node."""
         try:
-            # Check storage limits
-            if self.storage_used_bytes + len(shard_data) > self.max_storage_bytes:
-                logger.warning(f" Storage limit exceeded for shard {shard_id}")
-                await self._cleanup_old_shards()
-                
-                # Check again after cleanup
-                if self.storage_used_bytes + len(shard_data) > self.max_storage_bytes:
-                    logger.error(f" Cannot store shard {shard_id}: insufficient space")
-                    return False
+            logger.info("🚀 Starting PlexiChat Backup Node")
+            logger.info(f"Node ID: {self.config['node_id']}")
+            logger.info(f"Storage Path: {self.config['storage_path']}")
+            logger.info(f"Max Storage: {self.config['max_storage_gb']} GB")
+            logger.info(f"Port: {self.config['port']}")
             
-            # Verify hash
-            calculated_hash = hashlib.sha256(shard_data).hexdigest()
-            if calculated_hash != original_hash:
-                logger.error(f" Hash mismatch for shard {shard_id}")
+            # Create backup node configuration
+            if BackupNodeConfig:
+                node_config = BackupNodeConfig(**self.config)
+                
+                # Create and start server
+                self.server = BackupNodeServer(node_config)
+                
+                # Start background tasks
+                asyncio.create_task(self._health_monitor())
+                asyncio.create_task(self._cleanup_task())
+                asyncio.create_task(self._verification_task())
+                
+                self.running = True
+                
+                # Start the server
+                await self.server.start()
+                
+            else:
+                logger.error("BackupNodeServer not available")
                 return False
             
-            # Store shard file
-            shard_file = self.storage_path / f"shard_{shard_id}"
-            async with aiofiles.open(shard_file, 'wb') as f:
-                await f.write(shard_data)
-            
-            # Create shard record
-            shard = BackupShard(
-                shard_id=shard_id,
-                original_hash=original_hash,
-                size_bytes=len(shard_data),
-                created_at=datetime.now(timezone.utc),
-                source_node=source_node,
-                metadata=metadata or {}
-            )
-            
-            self.shards[shard_id] = shard
-            self.storage_used_bytes += len(shard_data)
-            
-            # Save database
-            self._save_shards_database()
-            
-            logger.info(f" Stored shard {shard_id} ({len(shard_data)} bytes)")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to store shard {shard_id}: {e}")
+            logger.error(f"Error starting backup node: {e}")
             return False
     
-    async def retrieve_shard(self, shard_id: str) -> Optional[bytes]:
-        """Retrieve a backup shard."""
+    async def stop(self) -> bool:
+        """Stop the backup node."""
         try:
-            if shard_id not in self.shards:
-                logger.warning(f" Shard {shard_id} not found")
-                return None
+            logger.info("🛑 Stopping PlexiChat Backup Node")
             
-            shard_file = self.storage_path / f"shard_{shard_id}"
-            if not shard_file.exists():
-                logger.error(f" Shard file missing: {shard_id}")
-                # Remove from database
-                del self.shards[shard_id]
-                self._save_shards_database()
-                return None
+            self.running = False
             
-            async with aiofiles.open(shard_file, 'rb') as f:
-                shard_data = await f.read()
+            if self.server:
+                await self.server.stop()
             
-            # Verify integrity
-            calculated_hash = hashlib.sha256(shard_data).hexdigest()
-            expected_hash = self.shards[shard_id].original_hash
+            if self.manager:
+                await self.manager.close_all()
             
-            if calculated_hash != expected_hash:
-                logger.error(f" Shard integrity check failed: {shard_id}")
-                return None
-            
-            # Update verification info
-            self.shards[shard_id].last_verified = datetime.now(timezone.utc)
-            self.shards[shard_id].verification_count += 1
-            self._save_shards_database()
-            
-            logger.info(f" Retrieved shard {shard_id}")
-            return shard_data
-            
-        except Exception as e:
-            logger.error(f"Failed to retrieve shard {shard_id}: {e}")
-            return None
-    
-    async def delete_shard(self, shard_id: str) -> bool:
-        """Delete a backup shard."""
-        try:
-            if shard_id not in self.shards:
-                return False
-            
-            shard_file = self.storage_path / f"shard_{shard_id}"
-            if shard_file.exists():
-                shard_file.unlink()
-                self.storage_used_bytes -= self.shards[shard_id].size_bytes
-            
-            del self.shards[shard_id]
-            self._save_shards_database()
-            
-            logger.info(f" Deleted shard {shard_id}")
+            logger.info("✅ Backup node stopped successfully")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to delete shard {shard_id}: {e}")
+            logger.error(f"Error stopping backup node: {e}")
             return False
     
-    async def _cleanup_old_shards(self):
-        """Clean up old shards to free space."""
+    async def status(self) -> Dict[str, Any]:
+        """Get backup node status."""
         try:
-            # Sort shards by last access time (oldest first)
-            sorted_shards = sorted(
-                self.shards.items(),
-                key=lambda x: x[1].last_verified or x[1].created_at
-            )
-            
-            # Remove oldest 10% of shards
-            cleanup_count = max(1, len(sorted_shards) // 10)
-            
-            for i in range(cleanup_count):
-                shard_id, shard = sorted_shards[i]
-                await self.delete_shard(shard_id)
-                logger.info(f" Cleaned up old shard: {shard_id}")
-            
-            logger.info(f" Cleanup completed: removed {cleanup_count} shards")
-            
-        except Exception as e:
-            logger.error(f"Failed to cleanup old shards: {e}")
-    
-    def get_node_status(self) -> Dict[str, Any]:
-        """Get current node status."""
-        return {
-            "node_id": self.config.node_id,
-            "node_type": "backup",
-            "storage": {
-                "used_bytes": self.storage_used_bytes,
-                "max_bytes": self.max_storage_bytes,
-                "used_percentage": (self.storage_used_bytes / self.max_storage_bytes) * 100,
-                "available_bytes": self.max_storage_bytes - self.storage_used_bytes
-            },
-            "shards": {
-                "total_count": len(self.shards),
-                "total_size_bytes": sum(shard.size_bytes for shard in self.shards.values())
-            },
-            "network": {
-                "connected_nodes": len(self.connected_nodes),
-                "active_transfers": len(self.active_transfers)
-            },
-            "uptime": time.time(),
-            "last_updated": datetime.now(timezone.utc).isoformat()
-        }
-
-
-# Global backup node service
-backup_node_service: Optional[BackupNodeService] = None
-
-
-# Pydantic models for API
-class ShardStoreRequest(BaseModel):
-    shard_id: str
-    shard_data: str  # Base64 encoded
-    original_hash: str
-    source_node: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class NodeRegistrationRequest(BaseModel):
-    node_id: str
-    node_type: str
-    address: str
-    port: int
-    storage_capacity: int
-
-
-# FastAPI application
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Application lifespan management."""
-    # Startup
-    logger.info(" Starting PlexiChat Backup Node")
-    
-    # Start background tasks
-    asyncio.create_task(periodic_verification())
-    asyncio.create_task(node_health_check())
-    
-    yield
-    
-    # Shutdown
-    logger.info(" Shutting down PlexiChat Backup Node")
-
-
-app = FastAPI(
-    title="PlexiChat Backup Node",
-    description="Independent backup storage system for PlexiChat network",
-    version="3.0.0",
-    lifespan=lifespan
-)
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "service": "PlexiChat Backup Node",
-        "version": "3.0.0",
-        "status": "running",
-        "node_id": backup_node_service.config.node_id if backup_node_service else "not_initialized",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-    
-    status = backup_node_service.get_node_status()
-    
-    return {
-        "status": "healthy",
-        "node_status": status,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-
-
-@app.post("/api/v1/shards/store")
-async def store_shard_endpoint(request: ShardStoreRequest):
-    """Store a backup shard."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-
-    try:
-        shard_data = base64.b64decode(request.shard_data)
-
-        success = await backup_node_service.store_shard(
-            shard_id=request.shard_id,
-            shard_data=shard_data,
-            original_hash=request.original_hash,
-            source_node=request.source_node,
-            metadata=request.metadata
-        )
-
-        if success:
-            return {
-                "success": True,
-                "shard_id": request.shard_id,
-                "message": "Shard stored successfully"
+            status_info = {
+                "node_id": self.config["node_id"],
+                "running": self.running,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "config": self.config
             }
-        else:
-            raise HTTPException(status_code=507, detail="Insufficient storage space")
-
-    except Exception as e:
-        logger.error(f"Failed to store shard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/v1/shards/{shard_id}")
-async def retrieve_shard_endpoint(shard_id: str):
-    """Retrieve a backup shard."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-
-    try:
-        shard_data = await backup_node_service.retrieve_shard(shard_id)
-
-        if shard_data is None:
-            raise HTTPException(status_code=404, detail="Shard not found")
-
-        return {
-            "shard_id": shard_id,
-            "shard_data": base64.b64encode(shard_data).decode('utf-8'),
-            "size_bytes": len(shard_data),
-            "retrieved_at": datetime.now(timezone.utc).isoformat()
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to retrieve shard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.delete("/api/v1/shards/{shard_id}")
-async def delete_shard_endpoint(shard_id: str):
-    """Delete a backup shard."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-
-    try:
-        success = await backup_node_service.delete_shard(shard_id)
-
-        if success:
-            return {
-                "success": True,
-                "shard_id": shard_id,
-                "message": "Shard deleted successfully"
-            }
-        else:
-            raise HTTPException(status_code=404, detail="Shard not found")
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to delete shard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/v1/shards")
-async def list_shards():
-    """List all stored shards."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-
-    try:
-        shards_info = []
-
-        for shard_id, shard in backup_node_service.shards.items():
-            shards_info.append({
-                "shard_id": shard_id,
-                "size_bytes": shard.size_bytes,
-                "created_at": shard.created_at.isoformat(),
-                "last_verified": shard.last_verified.isoformat() if shard.last_verified else None,
-                "verification_count": shard.verification_count,
-                "source_node": shard.source_node,
-                "redundancy_level": shard.redundancy_level
-            })
-
-        return {
-            "shards": shards_info,
-            "total_count": len(shards_info),
-            "total_size_bytes": sum(shard.size_bytes for shard in backup_node_service.shards.values())
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to list shards: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/v1/status")
-async def get_node_status():
-    """Get detailed node status."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-
-    try:
-        return backup_node_service.get_node_status()
-
-    except Exception as e:
-        logger.error(f"Failed to get node status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/v1/nodes/register")
-async def register_node(request: NodeRegistrationRequest):
-    """Register a new node in the network."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-
-    try:
-        node_info = NodeInfo(
-            node_id=request.node_id,
-            node_type=request.node_type,
-            address=request.address,
-            port=request.port,
-            last_seen=datetime.now(timezone.utc),
-            storage_capacity=request.storage_capacity,
-            storage_used=0
-        )
-
-        backup_node_service.connected_nodes[request.node_id] = node_info
-        backup_node_service._save_nodes_database()
-
-        logger.info(f" Registered node: {request.node_id} ({request.node_type})")
-
-        return {
-            "success": True,
-            "node_id": request.node_id,
-            "message": "Node registered successfully"
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to register node: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/v1/nodes")
-async def list_nodes():
-    """List all connected nodes."""
-    if not backup_node_service:
-        raise HTTPException(status_code=503, detail="Backup node not initialized")
-
-    try:
-        nodes_info = []
-
-        for node_id, node in backup_node_service.connected_nodes.items():
-            nodes_info.append({
-                "node_id": node_id,
-                "node_type": node.node_type,
-                "address": node.address,
-                "port": node.port,
-                "last_seen": node.last_seen.isoformat(),
-                "storage_capacity": node.storage_capacity,
-                "storage_used": node.storage_used,
-                "is_online": node.is_online,
-                "trust_level": node.trust_level
-            })
-
-        return {
-            "nodes": nodes_info,
-            "total_count": len(nodes_info),
-            "online_count": sum(1 for node in backup_node_service.connected_nodes.values() if node.is_online)
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to list nodes: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# Background tasks
-async def periodic_verification():
-    """Periodically verify stored shards."""
-    while True:
-        try:
-            if backup_node_service:
-                logger.info(" Starting periodic shard verification")
-
-                verification_count = 0
-                for shard_id, shard in backup_node_service.shards.items():
-                    # Check if verification is needed
-                    if (not shard.last_verified or
-                        datetime.now(timezone.utc) - shard.last_verified >
-                        timedelta(hours=backup_node_service.config.verification_interval_hours)):
-
-                        # Verify shard integrity
-                        shard_data = await backup_node_service.retrieve_shard(shard_id)
-                        if shard_data is not None:
-                            verification_count += 1
-
-                logger.info(f" Verified {verification_count} shards")
-
-            # Wait for next verification cycle
-            await asyncio.sleep(3600)  # Check every hour
-
+            
+            if self.server:
+                # Get server status
+                server_status = await self.server.get_status()
+                status_info.update(server_status)
+            
+            return status_info
+            
         except Exception as e:
-            logger.error(f"Error in periodic verification: {e}")
-            await asyncio.sleep(300)  # Wait 5 minutes on error
+            logger.error(f"Error getting status: {e}")
+            return {"error": str(e)}
+    
+    async def _health_monitor(self):
+        """Background health monitoring task."""
+        while self.running:
+            try:
+                if self.server:
+                    # Perform health checks
+                    health_status = await self.server.health_check()
+                    
+                    if not health_status.get("healthy", False):
+                        logger.warning("Health check failed")
+                        # Could trigger alerts or recovery actions
+                
+                await asyncio.sleep(self.config.get("heartbeat_interval", 30))
+                
+            except Exception as e:
+                logger.error(f"Error in health monitor: {e}")
+                await asyncio.sleep(60)  # Wait longer on error
+    
+    async def _cleanup_task(self):
+        """Background cleanup task."""
+        while self.running:
+            try:
+                if self.server and self.config.get("auto_cleanup_enabled", True):
+                    await self.server.cleanup_old_shards()
+                
+                # Run cleanup every hour
+                await asyncio.sleep(3600)
+                
+            except Exception as e:
+                logger.error(f"Error in cleanup task: {e}")
+                await asyncio.sleep(3600)
+    
+    async def _verification_task(self):
+        """Background verification task."""
+        while self.running:
+            try:
+                if self.server:
+                    await self.server.verify_all_shards()
+                
+                # Run verification based on config interval
+                interval_hours = self.config.get("verification_interval_hours", 6)
+                await asyncio.sleep(interval_hours * 3600)
+                
+            except Exception as e:
+                logger.error(f"Error in verification task: {e}")
+                await asyncio.sleep(3600)
 
-
-async def node_health_check():
-    """Check health of connected nodes."""
-    while True:
-        try:
-            if backup_node_service:
-                current_time = datetime.now(timezone.utc)
-                offline_nodes = []
-
-                for node_id, node in backup_node_service.connected_nodes.items():
-                    # Check if node is offline (no contact for 5 minutes)
-                    if current_time - node.last_seen > timedelta(minutes=5):
-                        if node.is_online:
-                            node.is_online = False
-                            offline_nodes.append(node_id)
-                            logger.warning(f" Node {node_id} went offline")
-
-                if offline_nodes:
-                    backup_node_service._save_nodes_database()
-
-            # Wait for next health check
-            await asyncio.sleep(60)  # Check every minute
-
-        except Exception as e:
-            logger.error(f"Error in node health check: {e}")
-            await asyncio.sleep(60)
-
-
-def load_config() -> BackupNodeConfig:
-    """Load backup node configuration."""
-    from pathlib import Path
-
-    config_file = Path()("backup_node/config.json")
-
-    # Default configuration
-    default_config = {
-        "node_id": f"backup_node_{secrets.token_hex(8)}",
-        "storage_path": "backup_node/storage",
-        "max_storage_gb": 100,
-        "port": 8001,
-        "main_node_address": None,
-        "main_node_port": None,
-        "auto_cleanup_enabled": True,
-        "verification_interval_hours": 24,
-        "seeding_enabled": True,
-        "max_concurrent_transfers": 10,
-        "bandwidth_limit_mbps": None
-    }
-
+async def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="PlexiChat Backup Node",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python backup_node_main.py start                    # Start with default config
+  python backup_node_main.py start --config config.json  # Start with custom config
+  python backup_node_main.py status                   # Check status
+  python backup_node_main.py stop                     # Stop the node
+        """
+    )
+    
+    parser.add_argument(
+        "command",
+        choices=["start", "stop", "status", "restart"],
+        help="Command to execute"
+    )
+    
+    parser.add_argument(
+        "--config", "-c",
+        help="Configuration file path"
+    )
+    
+    parser.add_argument(
+        "--port", "-p",
+        type=int,
+        help="Override port number"
+    )
+    
+    parser.add_argument(
+        "--storage-path", "-s",
+        help="Override storage path"
+    )
+    
+    parser.add_argument(
+        "--max-storage-gb", "-m",
+        type=int,
+        help="Override maximum storage in GB"
+    )
+    
+    parser.add_argument(
+        "--node-id", "-n",
+        help="Override node ID"
+    )
+    
+    parser.add_argument(
+        "--daemon", "-d",
+        action="store_true",
+        help="Run as daemon (background process)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Create backup node instance
+    backup_node = BackupNodeMain(args.config)
+    
+    # Apply command line overrides
+    if args.port:
+        backup_node.config["port"] = args.port
+    if args.storage_path:
+        backup_node.config["storage_path"] = args.storage_path
+    if args.max_storage_gb:
+        backup_node.config["max_storage_gb"] = args.max_storage_gb
+    if args.node_id:
+        backup_node.config["node_id"] = args.node_id
+    
     try:
-        if config_file.exists():
-            with open(config_file, 'r') as f:
-                config_data = json.load(f)
-                # Merge with defaults
-                default_config.update(config_data)
-        else:
-            # Create default config file
-            config_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(config_file, 'w') as f:
-                json.dump(default_config, f, indent=2)
-            logger.info(f" Created default config file: {config_file}")
-
-        return BackupNodeConfig(**default_config)
-
-    except Exception as e:
-        logger.error(f"Failed to load config: {e}")
-        return BackupNodeConfig(**default_config)
-
-
-def main():
-    """Main entry point for backup node."""
-    global backup_node_service
-
-    logger.info(" PlexiChat Backup Node v3.0.0")
-    logger.info("=" * 50)
-
-    try:
-        # Load configuration
-        config = load_config()
-
-        # Initialize backup node service
-        backup_node_service = BackupNodeService(config)
-
-        logger.info(f" Node ID: {config.node_id}")
-        logger.info(f" Storage Path: {config.storage_path}")
-        logger.info(f" Storage Limit: {config.max_storage_gb} GB")
-        logger.info(f" Port: {config.port}")
-        logger.info("=" * 50)
-
-        # Start the server
-        uvicorn.run(
-            app,
-            host="0.0.0.0",
-            port=config.port,
-            log_level="info",
-            access_log=True
-        )
-
+        if args.command == "start":
+            logger.info("Starting backup node...")
+            success = await backup_node.start()
+            if not success:
+                sys.exit(1)
+                
+        elif args.command == "stop":
+            logger.info("Stopping backup node...")
+            success = await backup_node.stop()
+            if not success:
+                sys.exit(1)
+                
+        elif args.command == "status":
+            status = await backup_node.status()
+            print(json.dumps(status, indent=2))
+            
+        elif args.command == "restart":
+            logger.info("Restarting backup node...")
+            await backup_node.stop()
+            await asyncio.sleep(2)
+            success = await backup_node.start()
+            if not success:
+                sys.exit(1)
+    
     except KeyboardInterrupt:
-        logger.info(" Backup node stopped by user")
+        logger.info("Received interrupt signal")
+        await backup_node.stop()
     except Exception as e:
-        logger.error(f" Failed to start backup node: {e}")
+        logger.error(f"Fatal error: {e}")
         sys.exit(1)
 
-
 if __name__ == "__main__":
-    main()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nShutdown complete.")
+    except Exception as e:
+        print(f"Fatal error: {e}")
+        sys.exit(1)

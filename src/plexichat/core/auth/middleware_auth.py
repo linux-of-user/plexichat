@@ -16,7 +16,7 @@ PlexiChat Authentication Middleware
 Middleware for web frameworks to handle authentication automatically.
 """
 
-logger = logging.getLogger(__name__, Optional)
+logger = logging.getLogger(__name__)
 
 
 class AuthenticationMiddleware:

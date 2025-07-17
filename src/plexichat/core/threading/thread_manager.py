@@ -14,13 +14,13 @@ from queue import Queue, Empty
 from dataclasses import dataclass
 
 try:
-    from plexichat.core_system.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -36,7 +36,7 @@ class ThreadTask:
     args: tuple
     kwargs: dict
     priority: int = 0
-    created_at: float = None
+    created_at: Optional[float] = None
     
     def __post_init__(self):
         if self.created_at is None:
@@ -83,16 +83,18 @@ class ThreadManager:
             
             # Execute task
             result = task.function(*task.args, **task.kwargs)
-            
+
+            # Calculate duration
+            duration = time.time() - start_time
+
             # Store result
             self.completed_tasks[task.task_id] = result
-            
+
             # Performance tracking
             if self.performance_logger:
-                duration = time.time() - start_time
                 self.performance_logger.record_metric("thread_task_duration", duration, "seconds")
                 self.performance_logger.record_metric("thread_tasks_completed", 1, "count")
-            
+
             # Log to database
             if self.db_manager:
                 asyncio.create_task(self._log_task_completion(task, result, duration))

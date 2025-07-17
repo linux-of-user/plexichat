@@ -5,8 +5,8 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 # Import from simplified version
-from .ai_abstraction_layer_simple import (
 from typing import Optional
+from .ai_abstraction_layer_simple import (
     AIAbstractionLayer,
     AIAccessControl,
     AIModel,

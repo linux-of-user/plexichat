@@ -20,9 +20,9 @@ from typing import Any, Callable, Dict, List, Optional, Set
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from ...core_system.config import get_config
-from ...core_system.database.abstraction.db_phase4_integration import phase4_database
-from ...core_system.logging import get_logger
+from ...core.config import get_config
+from ...core.database.abstraction.db_phase4_integration import phase4_database
+from ...core.logging import get_logger
 from ...features.ai.phase3_integration import phase3_ai
 from ...features.security.phase1_integration import phase1_security
 from ...infrastructure.scalability.phase2_integration import phase2_scalability

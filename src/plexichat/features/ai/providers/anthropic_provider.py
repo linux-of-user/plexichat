@@ -9,8 +9,18 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-import anthropic
-from anthropic import AsyncAnthropic
+try:
+    import anthropic
+    from anthropic import AsyncAnthropic
+except ImportError:
+    anthropic = None
+    class AsyncAnthropic:
+        def __init__(self, **kwargs):
+            pass
+        async def messages_create(self, **kwargs):
+            return {"content": [{"text": "Anthropic not available"}]}
+        async def models_list(self):
+            return {"data": []}
 
 from .base_provider import (
     AIRequest,
@@ -41,7 +51,7 @@ class AnthropicConfig(ProviderConfig):
     """Anthropic-specific configuration."""
 
     api_key: str
-    base_url: Optional[str] = None
+    base_url: str = "https://api.anthropic.com"
     max_tokens: int = 4096
     temperature: float = 0.7
     top_p: float = 1.0
@@ -188,6 +198,9 @@ class AnthropicProvider(BaseAIProvider):
     ) -> AIResponse:
         """Handle streaming request."""
         try:
+            if not self.client:
+                raise Exception("Anthropic client not available")
+
             content_chunks = []
 
             async with self.client.messages.stream(**params) as stream:
@@ -255,9 +268,10 @@ class AnthropicProvider(BaseAIProvider):
             logger.error(f"Anthropic content moderation failed: {e}")
             return {"flagged": False, "error": str(e)}
 
-    def get_available_models(self) -> List[str]:
+    async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available models."""
-        return self.config.available_models
+        models = self.config.available_models or []
+        return [{"id": model, "name": model} for model in models]
 
     async def estimate_cost(self, request: AIRequest) -> float:
         """Estimate the cost of a request."""

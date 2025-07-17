@@ -11,177 +11,14 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from ...core_system.auth import (
-from ...core_system.auth import (
-from ...core_system.auth import (
-from .bug_bounty import (
-from .cicd_security import (
-from .core.security_monitoring import (
-from .exceptions import (
-from .middleware import SecurityMiddleware
-
-from .protection import (
-from .security_headers import (
-from .siem_integration import (
-from .waf import (
 from .quantum_encryption import quantum_encryption
 from .distributed_key_manager import distributed_key_manager
 from .e2e_encryption import e2e_encryption
 from .database_encryption import database_encryption
+from .core.security_monitoring import DistributedSecurityMonitor, MonitoringScope
+from .database_encryption import DataClassification
 
-from .decorators import (
-
-
-from pathlib import Path
-
-    from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin,
-
-    AdvancedAuthManager,
-    AuthAuditManager,
-    AuthenticationMiddleware,
-    AuthManager,
-    BiometricManager,
-    BiometricValidator,
-    ContentSecurityPolicyManager,
-    CSPDirective,
-    CSPPolicy,
-    CSPSource,
-    DatabaseEncryption,
-    DataClassification,
-    DefaultAdminManager,
-    DeviceManager,
-    DistributedKeyManager,
-    EndpointType,
-    EndToEndEncryption,
-    InputValidator,
-    Integrates,
-    KeyDomain,
-    LoginManager,
-    MFAManager,
-    OAuthManager,
-    PasswordManager,
-    PasswordValidator,
-    PlexiChat,
-    QuantumEncryptionSystem,
-    Security,
-    SecurityMiddleware,
-    SessionManager,
-    SSLCertificateManager,
-    System,
-)
-    ThreatLevel as ProtectionThreatLevel,  # Import consolidated authentication components from unified core system; Note: Authentication components now consolidated in core_system/auth/
-)
-    TokenManager,
-    TokenValidator,
-)
-
-# Import bug bounty components
-    BugBountyManager,
-    ReportStatus,
-    SeverityLevel,
-    VulnerabilityReport,
-    VulnerabilityType,
-    bug_bounty_manager,
-)
-
-# Import CI/CD security components
-    CICDSecurityScanner,
-    ScannerType,
-    ScanResult,
-    ScanType,
-    Vulnerability,
-    VulnerabilitySeverity,
-    cicd_scanner,
-)
-
-# Import security monitoring components
-    DistributedSecurityMonitor,
-    MonitoringScope,
-    SecurityEvent,
-    SecurityEventType,
-    SecurityMetrics,
-    ThreatLevel,
-    ThreatPattern,
-)
-
-# Import exceptions
-    AccountLockError,
-    AuthenticationError,
-    AuthorizationError,
-    BiometricError,
-    CertificateError,
-    DDoSError,
-    DeviceError,
-    EncryptionError,
-    KeyManagementError,
-    MFAError,
-    MonitoringError,
-    OAuthError,
-    PasswordError,
-    PenetrationTestError,
-    RateLimitError,
-    SecurityError,
-    SessionError,
-    TokenError,
-    ValidationError,
-    VulnerabilityError,
-)
-
-# Import middleware and utilities
-# Import consolidated protection components
-    AttackType,
-    BehavioralAnalyzer,
-    DDoSProtection,
-    InputSanitizer,
-    MITMProtection,
-    PenetrationTester,
-    RateLimiter,
-    SecurityThreat,
-    VulnerabilityScanner,
-    behavioral_analyzer,
-    ddos_protection,
-    input_sanitizer,
-    mitm_protection,
-    penetration_tester,
-    rate_limiter,
-    vulnerability_scanner,
-)
-
-# Import security headers
-    AdvancedSecurityHeaders,
-    SecurityHeaderConfig,
-    SecurityHeaderType,
-    security_headers_manager,
-)
-
-# Import SIEM integration
-    EventCategory,
-    EventSeverity,
-    SecurityEvent,
-    SIEMConfiguration,
-    SIEMIntegration,
-    SIEMProvider,
-    siem_integration,
-)
-
-# Import WAF components
-    WAFAction,
-    WAFRule,
-    WAFRuleType,
-    WAFViolation,
-    WebApplicationFirewall,
-    waf,
-    waf_middleware,
-)
-
-# Import core security components
-# Import auth decorators
-    require_auth,
-    require_mfa,
-    require_level,
-    optional_auth,
-)
-
+# Import only valid modules and logger
 logger = logging.getLogger(__name__)
 
 
@@ -203,8 +40,7 @@ class SecurityManager:
     """
     
     def __init__(self, config_dir: str = "config/security"):
-        self.from pathlib import Path
-config_dir = Path()(config_dir)
+        self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         # Security components
@@ -636,7 +472,6 @@ __all__ = [
     'SecurityMiddleware',
     'AuthenticationMiddleware',
     'require_auth',
-    'from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin',
     'require_mfa',
     'require_level',
     'optional_auth',

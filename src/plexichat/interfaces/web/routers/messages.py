@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 
 # Use EXISTING database abstraction layer
 try:
-    from plexichat.core_system.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
@@ -274,6 +274,7 @@ async def _process_message_background(message_id: int, sender_id: int, recipient
 
 def _process_message_sync(message_id: int, sender_id: int, recipient_id: int) -> None:
     # Placeholder for background processing logic (e.g., notifications, analytics)
+    logger.info(f"Processing message {message_id} from {sender_id} to {recipient_id}")
     pass
 
 @router.get(

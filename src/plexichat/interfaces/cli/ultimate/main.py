@@ -8,16 +8,12 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
-import typer
+from typer import Typer, Argument, Option
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 from .cli_coordinator import CommandCategory, ultimate_cli
-
-from pathlib import Path
-
-from pathlib import Path
 
 """
 PlexiChat Ultimate CLI - Main Entry Point
@@ -28,7 +24,7 @@ logger = logging.getLogger(__name__)
 console = Console()
 
 # Create main Typer app
-app = typer.Typer(
+app = Typer(
     name="plexichat",
     help=" PlexiChat Ultimate CLI - 200+ commands for complete system control",
     rich_markup_mode="rich",
@@ -37,10 +33,9 @@ app = typer.Typer(
 
 
 @app.command("help")
-logger = logging.getLogger(__name__)
 def show_help(
-    command: Optional[str] = typer.Argument(None, help="Show help for specific command"),
-    category: Optional[str] = typer.Option(None, "--category", "-c", help="Show commands in category")
+    command: Optional[str] = Argument(None, help="Show help for specific command"),
+    category: Optional[str] = Option(None, "--category", "-c", help="Show commands in category")
 ):
     """Show comprehensive help information."""
     if command:
@@ -58,8 +53,8 @@ def show_help(
 
 @app.command("list")
 def list_commands(
-    category: Optional[str] = typer.Option(None, "--category", "-c", help="Filter by category"),
-    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search commands")
+    category: Optional[str] = Option(None, "--category", "-c", help="Filter by category"),
+    search: Optional[str] = Option(None, "--search", "-s", help="Search commands")
 ):
     """List all available commands."""
     if search:
@@ -95,15 +90,14 @@ def show_statistics():
 
 @app.command("export")
 def export_commands(
-    format: str = typer.Option("markdown", "--format", "-f", help="Export format (markdown, json, csv)"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file path")
+    format: str = Option("markdown", "--format", "-f", help="Export format (markdown, json, csv)"),
+    output: Optional[str] = Option(None, "--output", "-o", help="Output file path")
 ):
     """Export command documentation."""
     try:
         content = ultimate_cli.export_command_list(format)
-
         if output:
-Path(output).write_text(content)
+            Path(output).write_text(content)
             console.logger.info(f"[green] Commands exported to {output}[/green]")
         else:
             console.logger.info(content)
@@ -113,8 +107,8 @@ Path(output).write_text(content)
 
 @app.command("run")
 def run_command(
-    command: str = typer.Argument(..., help="Command to execute"),
-    args: List[str] = typer.Argument(None, help="Command arguments")
+    command: str = Argument(..., help="Command to execute"),
+    args: List[str] = Argument(None, help="Command arguments")
 ):
     """Execute a command by name."""
     async def _run():

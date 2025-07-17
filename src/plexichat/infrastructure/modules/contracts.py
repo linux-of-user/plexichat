@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Type, get_type_hints
 
 import jsonschema
 
-from ...core_system.logging import get_logger
+from ...core.logging import get_logger
 from .interfaces import (
 
 

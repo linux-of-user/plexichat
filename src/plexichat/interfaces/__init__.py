@@ -21,7 +21,7 @@ from typing import Any, Dict, Optional
 # Use EXISTING performance optimization engine
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None

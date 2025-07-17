@@ -210,7 +210,7 @@ class FileManager:
     def ensure_directory(path: Union[str, Path]) -> bool:
         """Ensure directory exists."""
         try:
-Path(path).mkdir(parents=True, exist_ok=True)
+            Path(path).mkdir(parents=True, exist_ok=True)
             return True
         except Exception:
             return False

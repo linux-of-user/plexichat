@@ -15,8 +15,8 @@ import yaml
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from ...core_system.config import get_config
-from ...core_system.logging import get_logger
+from ...core.config import get_config
+from ...core.logging import get_logger
 
 from pathlib import Path
 from datetime import datetime

@@ -8,11 +8,11 @@ from pydantic import BaseModel, Field
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.auth import require_admin
 from plexichat.core.backup.backup_manager import backup_manager
-from plexichat.core_system.security.input_validation import get_input_validator  # type: ignore
-from plexichat.core_system.security.unified_audit_system import (
+from plexichat.core.security.input_validation import get_input_validator  # type: ignore
+from plexichat.core.security.unified_audit_system import (
     get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
 )
-from plexichat.core_system.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel  # type: ignore
+from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel  # type: ignore
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backup", tags=["backup"])

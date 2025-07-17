@@ -21,8 +21,8 @@ from pydantic import BaseModel
 
 # Use EXISTING database abstraction layer
 try:
-    from plexichat.core_system.database.manager import database_manager
-    from plexichat.core_system.database import get_session, execute_query
+    from plexichat.core.database.manager import database_manager
+    from plexichat.core.database import get_session, execute_query
 except ImportError:
     database_manager = None
     get_session = None
@@ -32,7 +32,7 @@ except ImportError:
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core_system.logging.performance_logger import get_performance_logger, timer
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger, timer
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None

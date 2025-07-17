@@ -16,7 +16,7 @@ from typing import Any, Callable, Dict, List, Optional, Type
 from dataclasses import dataclass
 
 try:
-    from plexichat.core_system.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
@@ -33,7 +33,7 @@ except ImportError:
 
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None

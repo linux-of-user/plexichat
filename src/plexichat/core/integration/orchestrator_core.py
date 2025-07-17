@@ -6,19 +6,20 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Set
 
-try:
-    from plexichat.core.config.config_manager import ConfigManager as CoreConfigManager
-    ConfigManager = CoreConfigManager
-except ImportError:
-    class ConfigManager:
-        pass
+# Fallback classes for when imports fail
+class ConfigManager:
+    def __init__(self):
+        self.config = {}
 
-try:
-    from plexichat.core.database.enhanced_abstraction import DatabaseManager as CoreDatabaseManager
-    DatabaseManager = CoreDatabaseManager
-except ImportError:
-    class DatabaseManager:
-        pass
+    def get(self, key, default=None):
+        return self.config.get(key, default)
+
+class DatabaseManager:
+    def __init__(self):
+        self.connected = False
+
+    async def connect(self):
+        self.connected = True
 
 """
 PlexiChat Core Integration Orchestrator

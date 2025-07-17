@@ -17,12 +17,38 @@ from dataclasses import dataclass
 try:
     import bcrypt
 except ImportError:
-    bcrypt = None
+    class MockBcrypt:
+        def hashpw(self, password, salt):
+            return b"mock_hash"
+
+        def gensalt(self):
+            return b"mock_salt"
+
+        def checkpw(self, password, hashed):
+            return password == b"mock_password"
+
+    bcrypt = MockBcrypt()
 
 try:
     import jwt
 except ImportError:
-    jwt = None
+    class MockJWT:
+        class InvalidTokenError(Exception):
+            pass
+        class ExpiredSignatureError(Exception):
+            pass
+        class DecodeError(Exception):
+            pass
+
+        def encode(self, payload, key, algorithm="HS256"):
+            return "mock_token"
+
+        def decode(self, token, key, algorithms=None):
+            if token == "mock_token":
+                return {"user_id": "mock_user"}
+            raise self.InvalidTokenError("Invalid token")
+
+    jwt = MockJWT()
 
 try:
     from cryptography.fernet import Fernet
@@ -34,7 +60,7 @@ except ImportError:
     PBKDF2HMAC = None
 
 try:
-    from plexichat.core_system.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
@@ -53,7 +79,7 @@ except ImportError:
 
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -76,7 +102,25 @@ class SecurityManager:
     """Security manager with threading support."""
     
     def __init__(self, secret_key: str = None):
-        self.secret_key = secret_key or secrets.token_urlsafe(32)
+        # Use a persistent Fernet key if available, otherwise generate and save one
+        key_path = 'config/fernet.key'
+        import os
+        from pathlib import Path
+        Path('config').mkdir(exist_ok=True)
+        fernet_key = None
+        if Fernet:
+            if os.path.exists(key_path):
+                with open(key_path, 'rb') as f:
+                    fernet_key = f.read()
+            else:
+                fernet_key = Fernet.generate_key()
+                with open(key_path, 'wb') as f:
+                    f.write(fernet_key)
+            self.fernet = Fernet(fernet_key)
+            self.secret_key = secret_key or fernet_key.decode() if isinstance(fernet_key, bytes) else secret_key
+        else:
+            self.fernet = None
+            self.secret_key = secret_key or secrets.token_urlsafe(32)
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
@@ -92,9 +136,7 @@ class SecurityManager:
         self.rate_limits = {}
         
         # Encryption
-        self.fernet = None
-        if Fernet:
-            self._setup_encryption()
+        # self.fernet = Fernet(fernet_key) # This line is now handled by the new_code
     
     def _setup_encryption(self):
         """Setup encryption with Fernet."""

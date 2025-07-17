@@ -29,7 +29,7 @@ except ImportError:
     Panel = None
 
 try:
-    from plexichat.core_system.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
@@ -52,6 +52,21 @@ except ImportError:
     analytics_manager = None
     track_event = None
 
+# Import CLI command groups
+try:
+    from plexichat.interfaces.cli.commands.admin import admin
+    from plexichat.interfaces.cli.commands.backup import backup
+    from plexichat.interfaces.cli.commands.system import system
+    from plexichat.interfaces.cli.commands.security import security
+    from plexichat.interfaces.cli.commands.database import database
+    from plexichat.interfaces.cli.commands.plugins import plugins
+    from plexichat.interfaces.cli.commands.ai import ai
+    from plexichat.interfaces.cli.commands.logs import logs
+    from plexichat.interfaces.cli.commands.updates import updates
+except ImportError as e:
+    # Individual command imports may fail, that's ok
+    pass
+
 try:
     from plexichat.core.security.security_manager import security_manager, hash_password
 except ImportError:
@@ -60,7 +75,7 @@ except ImportError:
 
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -391,7 +406,21 @@ if click:
                 
         except Exception as e:
             print_message(f"Error generating report: {e}", "error")
-    
+
+    # Add external command groups
+    try:
+        cli.add_command(admin)
+        cli.add_command(backup)
+        cli.add_command(system)
+        cli.add_command(security)
+        cli.add_command(plugins)
+        cli.add_command(ai)
+        cli.add_command(logs)
+        cli.add_command(updates)
+    except NameError:
+        # Commands not available, skip
+        pass
+
     @cli.command()
     def version():
         """Show version information."""

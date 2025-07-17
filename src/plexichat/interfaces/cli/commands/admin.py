@@ -1,758 +1,283 @@
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-import argparse
-import getpass
+"""
+PlexiChat CLI Admin Commands
+
+Command-line interface for administrative operations.
+"""
+
+import asyncio
+import click
 import json
-import logging
-import secrets
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-from plexichat.core_system.auth.government_auth import get_government_auth
-from plexichat.core.config import settings
-from plexichat.core.config import settings
 from typing import Optional
 
-"""
-PlexiChat Admin CLI - Government-Level Secure Command Line Interface
-Comprehensive administrative interface with government-level security,
-password management, system control, and advanced admin operations.
-"""
-
-# Add src to path for imports
-sys.path.insert(0, str(from pathlib import Path
-Path(__file__).parent.parent.parent))
-
 try:
-    logger = logging.getLogger(__name__)
-    government_auth = None  # Will be initialized lazily
-except ImportError as e:
-    logger.info(f"Warning: Failed to import modules: {e}")
-    get_government_auth = None
-    logger = None
+    from plexichat.core.auth.admin_manager import admin_manager
+    from plexichat.app.logger_config import get_logger
+    from plexichat.core.config import settings
+except ImportError:
+    admin_manager = None
+    get_logger = lambda x: print
+    settings = {}
 
+logger = get_logger(__name__)
 
-logger = logging.getLogger(__name__)
-class AdminCLI:
-    """Government-level secure command-line interface for admin operations."""
+@click.group()
+def admin():
+    """Administrative commands for PlexiChat."""
+    pass
 
-    def __init__(self):
-        self.auth_system = None  # Will be initialized lazily
-        self.current_user = None
-        self.session_token = None
-        self.from pathlib import Path
-project_root = Path()(__file__).parent.parent.parent.parent
-
-    def _get_auth_system(self):
-        """Get auth system with lazy initialization."""
-        if self.auth_system is None and get_government_auth:
-            try:
-                self.auth_system = get_government_auth()
-            except Exception as e:
-                logger.info(f" Failed to initialize authentication system: {e}")
-                return None
-        return self.auth_system
-        
-    def run(self):
-        """Main CLI entry point."""
-        parser = argparse.ArgumentParser(
-            description="PlexiChat Admin CLI - Government-Level Secure Administration Interface",
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog="""
-Examples:
-  # Authentication & Password Management
-  python -m plexichat.cli.admin_cli login                    # Interactive login
-  python -m plexichat.cli.admin_cli change-password          # Change password
-  python -m plexichat.cli.admin_cli reset-password admin     # Reset user password
-  python -m plexichat.cli.admin_cli force-password-change    # Force password change
-
-  # User Management
-  python -m plexichat.cli.admin_cli create-user              # Create new admin user
-  python -m plexichat.cli.admin_cli list-users               # List all admin users
-  python -m plexichat.cli.admin_cli user-info admin          # Show user details
-  python -m plexichat.cli.admin_cli lock-user admin          # Lock user account
-  python -m plexichat.cli.admin_cli unlock-user admin        # Unlock user account
-
-  # 2FA Management
-  python -m plexichat.cli.admin_cli setup-2fa                # Setup 2FA for user
-  python -m plexichat.cli.admin_cli disable-2fa admin        # Disable 2FA for user
-  python -m plexichat.cli.admin_cli generate-backup-codes    # Generate 2FA backup codes
-
-  # System Management
-  python -m plexichat.cli.admin_cli status                   # Show system status
-  python -m plexichat.cli.admin_cli server-control start     # Control server
-  python -m plexichat.cli.admin_cli backup-system            # Backup system data
-  python -m plexichat.cli.admin_cli security-audit           # Run security audit
-
-  # Configuration Management
-  python -m plexichat.cli.admin_cli show-config              # Show configuration
-  python -m plexichat.cli.admin_cli update-config            # Update configuration
-  python -m plexichat.cli.admin_cli reset-config             # Reset to defaults
-            """
-        )
-
-        subparsers = parser.add_subparsers(dest='command', help='Available commands')
-
-        # Authentication commands
-        login_parser = subparsers.add_parser('login', help='Login to admin interface')
-        login_parser.add_argument('--username', '-u', help='Username (will prompt if not provided)')
-
-        change_pwd_parser = subparsers.add_parser('change-password', help='Change admin password')
-        change_pwd_parser.add_argument('--username', '-u', help='Username (will prompt if not provided)')
-
-        reset_pwd_parser = subparsers.add_parser('reset-password', help='Reset user password')
-        reset_pwd_parser.add_argument('username', help='Username to reset password for')
-
-        force_pwd_parser = subparsers.add_parser('force-password-change', help='Force password change for user')
-        force_pwd_parser.add_argument('username', help='Username to force password change for')
-
-        # User management commands
-        create_user_parser = subparsers.add_parser('create-user', help='Create new admin user')
-        create_user_parser.add_argument('--username', '-u', help='Username for new user')
-        create_user_parser.add_argument('--email', '-e', help='Email address')
-        create_user_parser.add_argument('--role', '-r', choices=['super_admin', 'admin', 'operator', 'viewer'],
-                                       default='admin', help='User role')
-
-        subparsers.add_parser('list-users', help='List all admin users')
-
-        user_info_parser = subparsers.add_parser('user-info', help='Show detailed user information')
-        user_info_parser.add_argument('username', help='Username to show info for')
-
-        lock_user_parser = subparsers.add_parser('lock-user', help='Lock user account')
-        lock_user_parser.add_argument('username', help='Username to lock')
-        lock_user_parser.add_argument('--duration', '-d', type=int, default=60, help='Lock duration in minutes')
-
-        unlock_user_parser = subparsers.add_parser('unlock-user', help='Unlock user account')
-        unlock_user_parser.add_argument('username', help='Username to unlock')
-
-        # 2FA commands
-        setup_2fa_parser = subparsers.add_parser('setup-2fa', help='Setup 2FA for user')
-        setup_2fa_parser.add_argument('--username', '-u', help='Username (will prompt if not provided)')
-
-        disable_2fa_parser = subparsers.add_parser('disable-2fa', help='Disable 2FA for user')
-        disable_2fa_parser.add_argument('username', help='Username to disable 2FA for')
-
-        backup_codes_parser = subparsers.add_parser('generate-backup-codes', help='Generate 2FA backup codes')
-        backup_codes_parser.add_argument('--username', '-u', help='Username (will prompt if not provided)')
-
-        # System management commands
-        subparsers.add_parser('status', help='Show comprehensive system status')
-
-        server_control_parser = subparsers.add_parser('server-control', help='Control server operations')
-        server_control_parser.add_argument('action', choices=['start', 'stop', 'restart', 'status'],
-                                          help='Server action to perform')
-
-        backup_parser = subparsers.add_parser('backup-system', help='Backup system data and configuration')
-        backup_parser.add_argument('--output', '-o', help='Backup output directory')
-
-        audit_parser = subparsers.add_parser('security-audit', help='Run comprehensive security audit')
-        audit_parser.add_argument('--report', '-r', help='Save audit report to file')
-
-        # Configuration commands
-        show_config_parser = subparsers.add_parser('show-config', help='Show current configuration')
-        show_config_parser.add_argument('--section', '-s', help='Show specific config section')
-
-        update_config_parser = subparsers.add_parser('update-config', help='Update configuration')
-        update_config_parser.add_argument('key', help='Configuration key to update')
-        update_config_parser.add_argument('value', help='New value for configuration key')
-
-        reset_config_parser = subparsers.add_parser('reset-config', help='Reset configuration to defaults')
-        reset_config_parser.add_argument('--confirm', action='store_true', help='Confirm reset operation')
-        
-        # Create user command
-        create_user_parser = subparsers.add_parser('create-user', help='Create new admin user')
-        create_user_parser.add_argument('--username', '-u', required=True, help='New username')
-        create_user_parser.add_argument('--email', '-e', help='Email address')
-        
-        # Reset password command
-        reset_pwd_parser = subparsers.add_parser('reset-password', help='Reset user password')
-        reset_pwd_parser.add_argument('--username', '-u', required=True, help='Username to reset')
-        
-        # Setup 2FA command
-        setup_2fa_parser = subparsers.add_parser('setup-2fa', help='Setup two-factor authentication')
-        setup_2fa_parser.add_argument('--username', '-u', help='Username (will prompt if not provided)')
-        
-        # List users command
-        subparsers.add_parser('list-users', help='List all admin users')
-        
-        args = parser.parse_args()
-
-        if not args.command:
-            parser.print_help()
-            return
-
-        # Route to appropriate command handler
-        try:
-            # Authentication commands
-            if args.command == 'login':
-                self.handle_login(args)
-            elif args.command == 'change-password':
-                self.handle_change_password(args)
-            elif args.command == 'reset-password':
-                self.handle_reset_password(args)
-            elif args.command == 'force-password-change':
-                self.handle_force_password_change(args)
-
-            # User management commands
-            elif args.command == 'create-user':
-                self.handle_create_user(args)
-            elif args.command == 'list-users':
-                self.handle_list_users(args)
-            elif args.command == 'user-info':
-                self.handle_user_info(args)
-            elif args.command == 'lock-user':
-                self.handle_lock_user(args)
-            elif args.command == 'unlock-user':
-                self.handle_unlock_user(args)
-
-            # 2FA commands
-            elif args.command == 'setup-2fa':
-                self.handle_setup_2fa(args)
-            elif args.command == 'disable-2fa':
-                self.handle_disable_2fa(args)
-            elif args.command == 'generate-backup-codes':
-                self.handle_generate_backup_codes(args)
-
-            # System management commands
-            elif args.command == 'status':
-                self.handle_status(args)
-            elif args.command == 'server-control':
-                self.handle_server_control(args)
-            elif args.command == 'backup-system':
-                self.handle_backup_system(args)
-            elif args.command == 'security-audit':
-                self.handle_security_audit(args)
-
-            # Configuration commands
-            elif args.command == 'show-config':
-                self.handle_show_config(args)
-            elif args.command == 'update-config':
-                self.handle_update_config(args)
-            elif args.command == 'reset-config':
-                self.handle_reset_config(args)
-
-            else:
-                logger.info(f"Unknown command: {args.command}")
-                parser.print_help()
-
-        except KeyboardInterrupt:
-            logger.info("\n\nOperation cancelled by user.")
-            sys.exit(1)
-        except Exception as e:
-            logger.info(f"\nERROR: {e}")
-            logger.error(f"CLI error: {e}")
-            sys.exit(1)
+@admin.command()
+@click.option('--username', '-u', prompt=True, help='Admin username')
+@click.option('--email', '-e', prompt=True, help='Admin email')
+@click.option('--password', '-p', prompt=True, hide_input=True, help='Admin password')
+@click.option('--role', '-r', default='admin', help='Admin role (admin, super_admin)')
+def create_admin(username: str, email: str, password: str, role: str):
+    """Create a new admin user."""
+    if not admin_manager:
+        click.echo("Error: Admin manager not available", err=True)
+        sys.exit(1)
     
-    def handle_login(self, args):
-        """Handle login command."""
-        logger.info(" PlexiChat Admin Login")
-        logger.info("=" * 50)
-        
-        username = args.username or input("Username: ")
-        password = getpass.getpass("Password: ")
-        
-        auth_system = self._get_auth_system()
-        if not auth_system:
-            logger.info(" Authentication system not available")
-            sys.exit(1)
-
-        # Check if 2FA is required
-        result = auth_system.authenticate(username, password)
-
-        if result.get('requires_2fa'):
-            totp_code = input("2FA Code: ")
-            result = auth_system.authenticate(username, password, totp_code)
-        
-        if result['success']:
-            self.current_user = username
-            logger.info(f" Login successful! Welcome, {username}")
-            
-            if result.get('must_change_password'):
-                logger.info("\n  You must change your password before continuing.")
-                self.force_password_change(username)
-            
-            # Show session info
-            logger.info("\n Session Information:")
-            logger.info(f"   Username: {username}")
-            logger.info(f"   2FA Enabled: {'Yes' if result.get('two_factor_enabled') else 'No'}")
-            logger.info(f"   Session Token: {result['session_token'][:16]}...")
-            
-        else:
-            logger.info(f" Login failed: {result['error']}")
-            sys.exit(1)
-    
-    def handle_change_password(self, args):
-        """Handle password change command."""
-        logger.info(" Change Admin Password")
-        logger.info("=" * 50)
-        
-        username = args.username or input("Username: ")
-        
-        # Verify current password
-        current_password = getpass.getpass("Current Password: ")
-        
-        # Get new password with confirmation
-        while True:
-            new_password = getpass.getpass("New Password: ")
-            confirm_password = getpass.getpass("Confirm New Password: ")
-            
-            if new_password != confirm_password:
-                logger.info(" Passwords do not match. Please try again.")
-                continue
-            
-            if len(new_password) < 16:
-                logger.info(" Password must be at least 16 characters long.")
-                continue
-            
-            break
-        
-        # Change password
-        auth_system = self._get_auth_system()
-        if not auth_system:
-            logger.info(" Authentication system not available")
-            sys.exit(1)
-        result = auth_system.change_password(username, current_password, new_password)
-        
-        if result['success']:
-            logger.info(" Password changed successfully!")
-            logger.info("  Default credentials file has been deleted.")
-        else:
-            logger.info(f" Password change failed: {result['error']}")
-            sys.exit(1)
-    
-    def force_password_change(self, username: str):
-        """Force password change for new users."""
-        logger.info("\n Mandatory Password Change Required")
-        logger.info("-" * 40)
-        
-        while True:
-            current_password = getpass.getpass("Current Password: ")
-            new_password = getpass.getpass("New Password (min 16 chars): ")
-            confirm_password = getpass.getpass("Confirm New Password: ")
-            
-            if new_password != confirm_password:
-                logger.info(" Passwords do not match. Please try again.")
-                continue
-            
-            auth_system = self._get_auth_system()
-            if not auth_system:
-                logger.info(" Authentication system not available")
-                sys.exit(1)
-            result = auth_system.change_password(username, current_password, new_password)
-            
-            if result['success']:
-                logger.info(" Password changed successfully!")
-                break
-            else:
-                logger.info(f" {result['error']}")
-                continue
-    
-    def handle_status(self, args):
-        """Handle status command."""
-        logger.info(" PlexiChat System Status")
-        logger.info("=" * 50)
-        
-        # System information
-        logger.info("  System Information:")
-        logger.info("   Authentication System: Active")
-        logger.info("   Security Level: Government-Grade")
-        logger.info("   Encryption: AES-256 (Fernet)")
-        
-        # User information
-        auth_system = self._get_auth_system()
-        if auth_system:
-            admin_count = len(auth_system.admin_credentials)
-            active_sessions = len(auth_system.active_sessions)
-
-            logger.info("\n User Information:")
-            logger.info(f"   Admin Users: {admin_count}")
-            logger.info(f"   Active Sessions: {active_sessions}")
-
-            # Security policy
-            policy = auth_system.security_policy
-        logger.info("\n Security Policy:")
-        logger.info(f"   Min Password Length: {policy.min_password_length}")
-        logger.info(f"   Max Failed Attempts: {policy.max_failed_attempts}")
-        logger.info(f"   Lockout Duration: {policy.lockout_duration_minutes} minutes")
-        logger.info(f"   Session Timeout: {policy.session_timeout_minutes} minutes")
-        logger.info(f"   2FA Required: {'Yes' if policy.require_2fa else 'No'}")
-        
-        # Check for default credentials file
-        from pathlib import Path
-
-        default_creds = Path()("DEFAULT_ADMIN_CREDENTIALS.txt")
-        if default_creds.exists():
-            logger.info("\n  WARNING: Default credentials file still exists!")
-            logger.info("   Please change the default password and delete the file.")
-    
-    def handle_create_user(self, args):
-        """Handle create user command."""
-        logger.info(" Create New Admin User")
-        logger.info("=" * 50)
-        
-        username = args.username
-        args.email or input("Email (optional): ")
-        
-        # Generate secure password
-        password = self.auth_system._generate_secure_password()
-        
-        logger.info(f"\n Generated secure password for {username}:")
-        logger.info(f"Password: {password}")
-        logger.info("\n  Please save this password securely!")
-        logger.info("The user will be required to change it on first login.")
-        
-        input("\nPress Enter to continue after saving the password...")
-        
-        # This would create the user (simplified for now)
-        logger.info(f" User {username} created successfully!")
-        logger.info(" User must change password on first login.")
-    
-    def handle_reset_password(self, args):
-        """Handle reset password command."""
-        logger.info(" Reset User Password")
-        logger.info("=" * 50)
-        
-        username = args.username
-        
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f" User {username} not found.")
-            sys.exit(1)
-        
-        # Generate new password
-        new_password = self.auth_system._generate_secure_password()
-        
-        logger.info(f"\n New password for {username}:")
-        logger.info(f"Password: {new_password}")
-        logger.info("\n  Please provide this password to the user securely!")
-        logger.info("The user will be required to change it on first login.")
-        
-        # This would reset the password (simplified for now)
-        logger.info(f" Password reset for {username} completed!")
-    
-    def handle_setup_2fa(self, args):
-        """Handle 2FA setup command."""
-        logger.info(" Setup Two-Factor Authentication")
-        logger.info("=" * 50)
-        
-        username = args.username or input("Username: ")
-        
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f" User {username} not found.")
-            sys.exit(1)
-        
-        # Verify password first
-        password = getpass.getpass("Password: ")
-        auth_result = self.auth_system.authenticate(username, password)
-        
-        if not auth_result['success']:
-            logger.info(" Authentication failed.")
-            sys.exit(1)
-        
-        logger.info(" 2FA Setup Instructions:")
-        logger.info("1. Install an authenticator app (Google Authenticator, Authy, etc.)")
-        logger.info("2. Scan the QR code or enter the secret key manually")
-        logger.info("3. Enter the 6-digit code from your app to verify")
-        
-        # This would generate TOTP secret and QR code
-        secret = "JBSWY3DPEHPK3PXP"  # Example secret
-        logger.info(f"\n Secret Key: {secret}")
-        logger.info(" QR Code: [Would display QR code here]")
-        
-        # Verify setup
-        while True:
-            code = input("\nEnter 6-digit code from authenticator app: ")
-            if len(code) == 6 and code.isdigit():
-                logger.info(" 2FA setup completed successfully!")
-                break
-            else:
-                logger.info(" Invalid code format. Please enter 6 digits.")
-    
-    def handle_list_users(self, args):
-        """Handle list users command."""
-        logger.info(" Admin Users")
-        logger.info("=" * 50)
-        
-        if not self.auth_system.admin_credentials:
-            logger.info("No admin users found.")
-            return
-        
-        for username, admin in self.auth_system.admin_credentials.items():
-            status = " Locked" if admin.locked_until else " Active"
-            tfa_status = " Enabled" if admin.two_factor_enabled else " Disabled"
-            
-            logger.info(f"\n {username}")
-            logger.info(f"   Status: {status}")
-            logger.info(f"   2FA: {tfa_status}")
-            logger.info(f"   Created: {admin.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
-            logger.info(f"   Last Changed: {admin.last_changed.strftime('%Y-%m-%d %H:%M:%S')}")
-            logger.info(f"   Must Change Password: {'Yes' if admin.must_change_password else 'No'}")
-            logger.info(f"   Failed Attempts: {admin.failed_attempts}")
-
-    def handle_force_password_change(self, args):
-        """Handle force password change command."""
-        logger.info("Force Password Change")
-        logger.info("=" * 50)
-
-        username = args.username
-
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f"ERROR: User {username} not found.")
-            sys.exit(1)
-
-        # Force password change flag
-        admin = self.auth_system.admin_credentials[username]
-        admin.must_change_password = True
-        self.auth_system._save_credentials()
-
-        logger.info(f"SUCCESS: User {username} will be required to change password on next login.")
-
-    def handle_user_info(self, args):
-        """Handle user info command."""
-        logger.info(f"User Information: {args.username}")
-        logger.info("=" * 50)
-
-        username = args.username
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f"ERROR: User {username} not found.")
-            sys.exit(1)
-
-        admin = self.auth_system.admin_credentials[username]
-
-        logger.info(f"Username: {username}")
-        logger.info(f"Created: {admin.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"Last Password Change: {admin.last_changed.strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"2FA Enabled: {'Yes' if admin.two_factor_enabled else 'No'}")
-        logger.info(f"Must Change Password: {'Yes' if admin.must_change_password else 'No'}")
-        logger.info(f"Failed Attempts: {admin.failed_attempts}")
-
-        if admin.locked_until:
-            if from datetime import datetime
-datetime.utcnow() < admin.locked_until:
-                remaining = (admin.locked_until - from datetime import datetime
-datetime.utcnow()).total_seconds()
-                logger.info(f"Account Status: LOCKED (unlocks in {int(remaining/60)} minutes)")
-            else:
-                logger.info("Account Status: ACTIVE (lock expired)")
-        else:
-            logger.info("Account Status: ACTIVE")
-
-    def handle_lock_user(self, args):
-        """Handle lock user command."""
-        logger.info(f"Lock User Account: {args.username}")
-        logger.info("=" * 50)
-
-        username = args.username
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f"ERROR: User {username} not found.")
-            sys.exit(1)
-
-        admin = self.auth_system.admin_credentials[username]
-        admin.from datetime import datetime
-locked_until = datetime().utcnow() + timedelta(minutes=args.duration)
-        self.auth_system._save_credentials()
-
-        logger.info(f"SUCCESS: User {username} locked for {args.duration} minutes.")
-
-    def handle_unlock_user(self, args):
-        """Handle unlock user command."""
-        logger.info(f"Unlock User Account: {args.username}")
-        logger.info("=" * 50)
-
-        username = args.username
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f"ERROR: User {username} not found.")
-            sys.exit(1)
-
-        admin = self.auth_system.admin_credentials[username]
-        admin.locked_until = None
-        admin.failed_attempts = 0
-        self.auth_system._save_credentials()
-
-        logger.info(f"SUCCESS: User {username} unlocked.")
-
-    def handle_disable_2fa(self, args):
-        """Handle disable 2FA command."""
-        logger.info(f"Disable 2FA: {args.username}")
-        logger.info("=" * 50)
-
-        username = args.username
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f"ERROR: User {username} not found.")
-            sys.exit(1)
-
-        admin = self.auth_system.admin_credentials[username]
-        admin.two_factor_enabled = False
-        admin.two_factor_secret = None
-        self.auth_system._save_credentials()
-
-        logger.info(f"SUCCESS: 2FA disabled for user {username}.")
-
-    def handle_generate_backup_codes(self, args):
-        """Handle generate backup codes command."""
-        logger.info("Generate 2FA Backup Codes")
-        logger.info("=" * 50)
-
-        username = args.username or input("Username: ")
-
-        if username not in self.auth_system.admin_credentials:
-            logger.info(f"ERROR: User {username} not found.")
-            sys.exit(1)
-
-        # Generate backup codes (simplified implementation)
-        backup_codes = [f"{secrets.randbelow(100000):05d}-{secrets.randbelow(100000):05d}" for _ in range(10)]
-
-        logger.info(f"Backup codes for {username}:")
-        logger.info("IMPORTANT: Save these codes securely!")
-        logger.info("-" * 30)
-        for i, code in enumerate(backup_codes, 1):
-            logger.info(f"{i:2d}. {code}")
-        logger.info("-" * 30)
-        logger.info("Each code can only be used once.")
-
-    def handle_server_control(self, args):
-        """Handle server control command."""
-        logger.info(f"Server Control: {args.action}")
-        logger.info("=" * 50)
-
-        if args.action == 'status':
-            logger.info("Server Status: RUNNING")
-            logger.info("Uptime: 2 days, 14 hours")
-            logger.info("Active Connections: 42")
-            logger.info("Memory Usage: 256 MB")
-            logger.info("CPU Usage: 15%")
-        elif args.action == 'start':
-            logger.info("Starting PlexiChat server...")
-            logger.info("SUCCESS: Server started")
-        elif args.action == 'stop':
-            logger.info("Stopping PlexiChat server...")
-            logger.info("SUCCESS: Server stopped")
-        elif args.action == 'restart':
-            logger.info("Restarting PlexiChat server...")
-            logger.info("SUCCESS: Server restarted")
-
-    def handle_backup_system(self, args):
-        """Handle backup system command."""
-        logger.info("System Backup")
-        logger.info("=" * 50)
-
-        output_dir = args.output or f"backup_{from datetime import datetime
-datetime.now().strftime('%Y%m%d_%H%M%S')}"
-
-        logger.info(f"Creating system backup to: {output_dir}")
-        logger.info("Backing up configuration files...")
-        logger.info("Backing up user data...")
-        logger.info("Backing up database...")
-        logger.info("Creating backup archive...")
-        logger.info(f"SUCCESS: System backup completed: {output_dir}")
-
-    def handle_security_audit(self, args):
-        """Handle security audit command."""
-        logger.info("Security Audit")
-        logger.info("=" * 50)
-
-        logger.info("Running comprehensive security audit...")
-        logger.info("Checking password policies... PASS")
-        logger.info("Checking 2FA configuration... PASS")
-        logger.info("Checking session security... PASS")
-        logger.info("Checking file permissions... PASS")
-        logger.info("Checking network security... PASS")
-        logger.info("Checking encryption from plexichat.core.config import settings
-settings... PASS")
-
-        if args.report:
-            logger.info(f"Saving audit report to: {args.report}")
-
-        logger.info("SUCCESS: Security audit completed - No issues found")
-
-    def handle_show_config(self, args):
-        """Handle show config command."""
-        logger.info("System Configuration")
-        logger.info("=" * 50)
-
-        config_file = self.project_root / "config" / "plexichat.json"
-
-        if config_file.exists():
-            with open(config_file, 'r') as f:
-                config = json.load(f)
-
-            if args.section:
-                if args.section in config:
-                    logger.info(f"[{args.section}]")
-                    logger.info(json.dumps(config[args.section], indent=2))
-                else:
-                    logger.info(f"ERROR: Section '{args.section}' not found")
-            else:
-                logger.info(json.dumps(config, indent=2))
-        else:
-            logger.info("ERROR: Configuration file not found")
-
-    def handle_update_config(self, args):
-        """Handle update config command."""
-        logger.info(f"Update Configuration: {args.key} = {args.value}")
-        logger.info("=" * 50)
-
-        config_file = self.project_root / "config" / "plexichat.json"
-
-        if config_file.exists():
-            with open(config_file, 'r') as f:
-                config = json.load(f)
-
-            # Simple key update (would need more sophisticated path handling for nested keys)
-            config[args.key] = args.value
-
-            with open(config_file, 'w') as f:
-                json.dump(config, f, indent=2)
-
-            logger.info("SUCCESS: Configuration updated")
-        else:
-            logger.info("ERROR: Configuration file not found")
-
-    def handle_reset_config(self, args):
-        """Handle reset config command."""
-        logger.info("Reset Configuration to Defaults")
-        logger.info("=" * 50)
-
-        if not args.confirm:
-            confirm = input("This will reset all configuration to defaults. Continue? (yes/no): ")
-            if confirm.lower() != 'yes':
-                logger.info("Operation cancelled.")
-                return
-
-        logger.info("Resetting configuration to defaults...")
-        logger.info("SUCCESS: Configuration reset completed")
-
-
-def main():
-    """Main entry point for CLI."""
     try:
-        cli = AdminCLI()
-        cli.run()
+        permissions = []
+        if role == "super_admin":
+            permissions = [
+                "user_management", "system_config", "security_audit",
+                "backup_management", "cluster_management", "api_access",
+                "log_access", "performance_monitoring", "emergency_access"
+            ]
+        else:
+            permissions = ["user_management", "system_config"]
+        
+        success = admin_manager.create_admin(username, email, password, role, permissions)
+        
+        if success:
+            click.echo(f"✅ Admin user '{username}' created successfully")
+        else:
+            click.echo(f"❌ Failed to create admin user '{username}' (may already exist)", err=True)
+            sys.exit(1)
+            
     except Exception as e:
-        logger.info(f"Fatal error: {e}")
+        click.echo(f"❌ Error creating admin: {e}", err=True)
         sys.exit(1)
 
+@admin.command()
+def list_admins():
+    """List all admin users."""
+    if not admin_manager:
+        click.echo("Error: Admin manager not available", err=True)
+        sys.exit(1)
+    
+    try:
+        admins = admin_manager.list_admins()
+        
+        if not admins:
+            click.echo("No admin users found")
+            return
+        
+        click.echo("\n📋 Admin Users:")
+        click.echo("-" * 80)
+        
+        for admin in admins:
+            status = "🟢 Active" if admin.is_active else "🔴 Inactive"
+            last_login = admin.last_login.strftime("%Y-%m-%d %H:%M:%S") if admin.last_login else "Never"
+            
+            click.echo(f"Username: {admin.username}")
+            click.echo(f"Email: {admin.email}")
+            click.echo(f"Role: {admin.role}")
+            click.echo(f"Status: {status}")
+            click.echo(f"Last Login: {last_login}")
+            click.echo(f"Permissions: {', '.join(admin.permissions)}")
+            click.echo("-" * 80)
+            
+    except Exception as e:
+        click.echo(f"❌ Error listing admins: {e}", err=True)
+        sys.exit(1)
 
-if __name__ == "__main__":
-    main()
+@admin.command()
+@click.option('--username', '-u', prompt=True, help='Admin username')
+def delete_admin(username: str):
+    """Delete an admin user."""
+    if not admin_manager:
+        click.echo("Error: Admin manager not available", err=True)
+        sys.exit(1)
+    
+    try:
+        if username not in admin_manager.admins:
+            click.echo(f"❌ Admin user '{username}' not found", err=True)
+            sys.exit(1)
+        
+        if click.confirm(f"Are you sure you want to delete admin '{username}'?"):
+            del admin_manager.admins[username]
+            admin_manager._save_data()
+            click.echo(f"✅ Admin user '{username}' deleted successfully")
+        else:
+            click.echo("Operation cancelled")
+            
+    except Exception as e:
+        click.echo(f"❌ Error deleting admin: {e}", err=True)
+        sys.exit(1)
+
+@admin.command()
+def list_sessions():
+    """List active admin sessions."""
+    if not admin_manager:
+        click.echo("Error: Admin manager not available", err=True)
+        sys.exit(1)
+    
+    try:
+        admin_manager._clean_expired_sessions()
+        sessions = admin_manager.sessions
+        
+        if not sessions:
+            click.echo("No active admin sessions")
+            return
+        
+        click.echo("\n🔐 Active Admin Sessions:")
+        click.echo("-" * 80)
+        
+        for token, session in sessions.items():
+            created = session.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            expires = session.expires_at.strftime("%Y-%m-%d %H:%M:%S")
+            
+            click.echo(f"Username: {session.username}")
+            click.echo(f"Token: {token[:16]}...")
+            click.echo(f"Created: {created}")
+            click.echo(f"Expires: {expires}")
+            click.echo(f"IP Address: {session.ip_address or 'Unknown'}")
+            click.echo("-" * 80)
+            
+    except Exception as e:
+        click.echo(f"❌ Error listing sessions: {e}", err=True)
+        sys.exit(1)
+
+@admin.command()
+@click.option('--token', '-t', help='Session token to revoke (partial match)')
+@click.option('--username', '-u', help='Revoke all sessions for username')
+@click.option('--all', 'revoke_all', is_flag=True, help='Revoke all sessions')
+def revoke_session(token: Optional[str], username: Optional[str], revoke_all: bool):
+    """Revoke admin sessions."""
+    if not admin_manager:
+        click.echo("Error: Admin manager not available", err=True)
+        sys.exit(1)
+    
+    try:
+        if revoke_all:
+            if click.confirm("Are you sure you want to revoke ALL admin sessions?"):
+                count = len(admin_manager.sessions)
+                admin_manager.sessions.clear()
+                admin_manager._save_data()
+                click.echo(f"✅ Revoked {count} admin sessions")
+            else:
+                click.echo("Operation cancelled")
+                
+        elif username:
+            revoked = []
+            for session_token, session in list(admin_manager.sessions.items()):
+                if session.username == username:
+                    revoked.append(session_token)
+                    del admin_manager.sessions[session_token]
+            
+            if revoked:
+                admin_manager._save_data()
+                click.echo(f"✅ Revoked {len(revoked)} sessions for user '{username}'")
+            else:
+                click.echo(f"No sessions found for user '{username}'")
+                
+        elif token:
+            found_token = None
+            for session_token in admin_manager.sessions:
+                if session_token.startswith(token):
+                    found_token = session_token
+                    break
+            
+            if found_token:
+                del admin_manager.sessions[found_token]
+                admin_manager._save_data()
+                click.echo(f"✅ Revoked session {found_token[:16]}...")
+            else:
+                click.echo(f"❌ Session token not found", err=True)
+                
+        else:
+            click.echo("❌ Must specify --token, --username, or --all", err=True)
+            sys.exit(1)
+            
+    except Exception as e:
+        click.echo(f"❌ Error revoking session: {e}", err=True)
+        sys.exit(1)
+
+@admin.command()
+def system_status():
+    """Show system status information."""
+    try:
+        click.echo("\n🖥️  PlexiChat System Status")
+        click.echo("=" * 50)
+        
+        # Basic system info
+        click.echo(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        if admin_manager:
+            admin_count = len(admin_manager.admins)
+            active_sessions = len(admin_manager.sessions)
+            click.echo(f"Admin Users: {admin_count}")
+            click.echo(f"Active Sessions: {active_sessions}")
+        
+        # Configuration info
+        if settings:
+            click.echo(f"Debug Mode: {settings.get('debug', False)}")
+            click.echo(f"Log Level: {settings.get('log_level', 'INFO')}")
+        
+        click.echo("=" * 50)
+        
+    except Exception as e:
+        click.echo(f"❌ Error getting system status: {e}", err=True)
+        sys.exit(1)
+
+@admin.command()
+@click.option('--format', 'output_format', default='json', 
+              type=click.Choice(['json', 'yaml']), help='Output format')
+@click.option('--output', '-o', type=click.Path(), help='Output file path')
+def export_config(output_format: str, output: Optional[str]):
+    """Export system configuration."""
+    try:
+        config_data = {
+            "admins": [],
+            "settings": settings,
+            "exported_at": datetime.now().isoformat()
+        }
+        
+        if admin_manager:
+            for admin in admin_manager.list_admins():
+                config_data["admins"].append({
+                    "username": admin.username,
+                    "email": admin.email,
+                    "role": admin.role,
+                    "permissions": admin.permissions,
+                    "is_active": admin.is_active,
+                    "created_at": admin.created_at.isoformat()
+                })
+        
+        if output_format == 'json':
+            content = json.dumps(config_data, indent=2)
+        else:  # yaml
+            try:
+                import yaml
+                content = yaml.dump(config_data, default_flow_style=False)
+            except ImportError:
+                click.echo("❌ PyYAML not installed. Use 'pip install pyyaml'", err=True)
+                sys.exit(1)
+        
+        if output:
+            with open(output, 'w') as f:
+                f.write(content)
+            click.echo(f"✅ Configuration exported to {output}")
+        else:
+            click.echo(content)
+            
+    except Exception as e:
+        click.echo(f"❌ Error exporting configuration: {e}", err=True)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    admin()

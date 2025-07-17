@@ -611,8 +611,7 @@ class AIAbstractionLayer:
                     "user_permissions": self.access_control.user_permissions,
                     "admin_users": self.access_control.admin_users
                 },
-                "last_updated": from datetime import datetime
-datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat()
             }
 
             with open(self.config_path, 'w') as f:
@@ -664,9 +663,7 @@ datetime.now().isoformat()
                 cost=0.0,
                 latency_ms=0,
                 provider=AIProvider.CUSTOM,
-                from datetime import datetime
-
-                timestamp = datetime().now(),
+                timestamp=datetime.now(),
                 success=False,
                 error=f"Model not found: {request.model_id}"
             )
@@ -682,9 +679,7 @@ datetime.now().isoformat()
                 cost=0.0,
                 latency_ms=0,
                 provider=model.provider,
-                from datetime import datetime
-
-                timestamp = datetime().now(),
+                timestamp=datetime.now(),
                 success=False,
                 error=f"Permission denied for {capability}"
             )
@@ -699,9 +694,7 @@ datetime.now().isoformat()
                 cost=0.0,
                 latency_ms=0,
                 provider=model.provider,
-                from datetime import datetime
-
-                timestamp = datetime().now(),
+                timestamp=datetime.now(),
                 success=False,
                 error="Rate limit exceeded"
             )

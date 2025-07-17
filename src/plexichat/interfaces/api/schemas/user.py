@@ -6,7 +6,20 @@
 from typing import Optional
 
 
-from .models import UserRole, UserStatus
+try:
+    from .models import UserRole, UserStatus
+except ImportError:
+    from enum import Enum
+
+    class UserRole(Enum):
+        USER = "user"
+        ADMIN = "admin"
+        MODERATOR = "moderator"
+
+    class UserStatus(Enum):
+        ACTIVE = "active"
+        INACTIVE = "inactive"
+        BANNED = "banned"
 
 
 from pydantic import BaseModel, EmailStr

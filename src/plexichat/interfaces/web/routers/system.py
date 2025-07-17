@@ -23,7 +23,7 @@ from pydantic import BaseModel
 
 # Use EXISTING database abstraction layer
 try:
-    from plexichat.core_system.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
 
@@ -31,7 +31,7 @@ except ImportError:
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     async_track_performance = None
@@ -377,7 +377,7 @@ async def trigger_optimization(
             detail="Failed to complete system optimization"
         )
 
-from plexichat.core_system.resilience.manager import get_system_resilience
+from plexichat.core.resilience.manager import get_system_resilience
 
 resilience_manager = get_system_resilience()
 

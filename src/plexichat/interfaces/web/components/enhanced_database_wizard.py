@@ -22,8 +22,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
 import json
 
-from plexichat.core_system.database.engines import DatabaseType
-from plexichat.core_system.database.adapters.enhanced_adapters import DatabaseCategory
+from plexichat.core.database import DatabaseType
+from plexichat.core.database.adapters.enhanced_adapters import DatabaseCategory
 
 logger = logging.getLogger(__name__)
 
@@ -395,7 +395,7 @@ class EnhancedDatabaseWizard:
 
     def _get_adapter_class(self, db_type: DatabaseType):
         """Get appropriate adapter class for database type."""
-        from plexichat.core_system.database.adapters.enhanced_adapters import (
+        from plexichat.core.database.adapters.enhanced_adapters import (
             RedisAdapter, CassandraAdapter, ElasticsearchAdapter
         )
         

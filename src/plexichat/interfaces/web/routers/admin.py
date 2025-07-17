@@ -1,429 +1,351 @@
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 """
-PlexiChat Admin Router
+PlexiChat Web Admin Router
 
-Enhanced admin interface with comprehensive management capabilities and performance optimization.
-Uses EXISTING database abstraction and optimization systems.
+Web interface for administrative operations.
 """
 
+import asyncio
 import json
-import logging
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Optional, Dict, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel
-
-# Use EXISTING database abstraction layer
 try:
-    from plexichat.core_system.database.manager import database_manager
-    from plexichat.core_system.database import get_session, execute_query
+    from fastapi import APIRouter, Request, Depends, HTTPException, Form, status
+    from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+    from fastapi.templating import Jinja2Templates
+    from pydantic import BaseModel
 except ImportError:
-    database_manager = None
-    get_session = None
-    execute_query = None
+    # Fallback for when FastAPI is not available
+    class APIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def get(self, *args, **kwargs): return lambda f: f
+        def post(self, *args, **kwargs): return lambda f: f
+    
+    class Request: pass
+    class Depends: pass
+    class HTTPException: pass
+    class Form: pass
+    class HTMLResponse: pass
+    class JSONResponse: pass
+    class RedirectResponse: pass
+    class Jinja2Templates: pass
+    class BaseModel: pass
+    status = type('status', (), {'HTTP_401_UNAUTHORIZED': 401})()
 
-# Use EXISTING performance optimization engine
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.infrastructure.utils.performance import async_track_performance
-    from plexichat.core_system.logging.performance_logger import get_performance_logger, timer
+    from plexichat.core.auth.admin_manager import admin_manager
+    from plexichat.app.logger_config import get_logger
+    from plexichat.core.config import settings
 except ImportError:
-    PerformanceOptimizationEngine = None
-    async_track_performance = None
-    get_performance_logger = None
-    timer = None
+    admin_manager = None
+    get_logger = lambda x: print
+    settings = {}
 
-# Authentication imports
-try:
-    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
-except ImportError:
-    def get_current_user():
-        return {"id": 1, "username": "admin", "is_admin": True}
-    def require_admin():
-        return {"id": 1, "username": "admin", "is_admin": True}
+logger = get_logger(__name__)
 
-# Configuration imports
-try:
-    from plexichat.core.config_manager import ConfigurationManager
-    config_manager = ConfigurationManager()
-except ImportError:
-    class MockConfigManager:
-        def get_all(self):
-            return {"database": {"type": "sqlite"}, "security": {"level": "high"}}
-        def validate_configuration(self):
-            return []
-    config_manager = MockConfigManager()
-
-# Error handling imports
-try:
-    from plexichat.infrastructure.utils.monitoring import error_handler
-except ImportError:
-    class MockErrorHandler:
-        def get_error_summary(self, hours: int):
-            return {"summary": "No errors", "count": 0}
-    error_handler = MockErrorHandler()
-
-# Model imports
-try:
-    from plexichat.features.users.user import User
-    from plexichat.features.users.message import Message
-    from plexichat.features.users.files import FileRecord
-except ImportError:
-    class User:
-        id: int
-        username: str
-        is_admin: bool = False
-        
-    class Message:
-        id: int
-        content: str
-        
-    class FileRecord:
-        id: int
-        filename: str
-
-logger = logging.getLogger(__name__)
+# Initialize router
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-# Initialize EXISTING performance systems
-performance_logger = get_performance_logger() if get_performance_logger else None
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+# Initialize templates
+try:
+    templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
+except:
+    templates = None
 
-# Security
-security = HTTPBearer()
+class AdminLoginRequest(BaseModel):
+    """Admin login request model."""
+    username: str
+    password: str
 
-# Pydantic models
-class AdminStats(BaseModel):
-    total_users: int
-    total_messages: int
-    total_files: int
-    active_users_24h: int
-    system_health: str
-    performance_score: Optional[float] = None
+class AdminCreateRequest(BaseModel):
+    """Admin creation request model."""
+    username: str
+    email: str
+    password: str
+    role: str = "admin"
 
-class ConfigurationResponse(BaseModel):
-    configuration: Dict[str, Any]
-    validation_errors: List[str]
+async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
+    """Get current authenticated admin from session."""
+    if not admin_manager:
+        return None
+    
+    try:
+        # Get session token from cookie or header
+        token = request.cookies.get("admin_session")
+        if not token:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header[7:]
+        
+        if not token:
+            return None
+        
+        admin = admin_manager.validate_session(token)
+        if admin:
+            return {
+                "username": admin.username,
+                "email": admin.email,
+                "role": admin.role,
+                "permissions": admin.permissions,
+                "token": token
+            }
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error getting current admin: {e}")
+        return None
 
-class ErrorSummary(BaseModel):
-    summary: str
-    count: int
-    recent_errors: List[Dict[str, Any]]
+async def require_admin(request: Request) -> Dict[str, Any]:
+    """Require admin authentication."""
+    admin = await get_current_admin(request)
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required"
+        )
+    return admin
 
-class AdminService:
-    """Service class for admin operations using EXISTING database abstraction layer."""
+@router.get("/", response_class=HTMLResponse)
+async def admin_dashboard(request: Request, admin: dict = Depends(get_current_admin)):
+    """Admin dashboard page."""
+    if not admin:
+        return RedirectResponse(url="/admin/login", status_code=302)
     
-    def __init__(self):
-        # Use EXISTING database manager
-        self.db_manager = database_manager
-        self.performance_logger = performance_logger
-        self.optimization_engine = optimization_engine
-    
-    @async_track_performance("admin_stats") if async_track_performance else lambda f: f
-    async def get_admin_stats(self) -> AdminStats:
-        """Get admin statistics using EXISTING database abstraction layer."""
-        try:
-            total_users = 0
-            total_messages = 0
-            total_files = 0
-            active_users_24h = 0
-            performance_score = None
-            
-            if self.db_manager:
-                # Use EXISTING database manager for admin stats
-                try:
-                    # Get total users
-                    if self.performance_logger and timer:
-                        with timer("admin_user_count"):
-                            result = await self.db_manager.execute_query("SELECT COUNT(*) FROM users", {})
-                            total_users = result[0][0] if result else 0
-                    else:
-                        result = await self.db_manager.execute_query("SELECT COUNT(*) FROM users", {})
-                        total_users = result[0][0] if result else 0
-                    
-                    # Get total messages
-                    if self.performance_logger and timer:
-                        with timer("admin_message_count"):
-                            result = await self.db_manager.execute_query("SELECT COUNT(*) FROM messages", {})
-                            total_messages = result[0][0] if result else 0
-                    else:
-                        result = await self.db_manager.execute_query("SELECT COUNT(*) FROM messages", {})
-                        total_messages = result[0][0] if result else 0
-                    
-                    # Get total files
-                    if self.performance_logger and timer:
-                        with timer("admin_file_count"):
-                            result = await self.db_manager.execute_query("SELECT COUNT(*) FROM files", {})
-                            total_files = result[0][0] if result else 0
-                    else:
-                        result = await self.db_manager.execute_query("SELECT COUNT(*) FROM files", {})
-                        total_files = result[0][0] if result else 0
-                    
-                    # Get active users in last 24h (if we have a last_login field)
-                    cutoff_time = datetime.now() - timedelta(hours=24)
-                    try:
-                        if self.performance_logger and timer:
-                            with timer("admin_active_users"):
-                                result = await self.db_manager.execute_query(
-                                    "SELECT COUNT(*) FROM users WHERE last_login > ?", 
-                                    {"last_login": cutoff_time}
-                                )
-                                active_users_24h = result[0][0] if result else 0
-                        else:
-                            result = await self.db_manager.execute_query(
-                                "SELECT COUNT(*) FROM users WHERE last_login > ?", 
-                                {"last_login": cutoff_time}
-                            )
-                            active_users_24h = result[0][0] if result else 0
-                    except Exception:
-                        # Table might not have last_login field
-                        active_users_24h = 0
-                    
-                except Exception as e:
-                    logger.error(f"Error getting admin stats: {e}")
-            
-            # Get performance score if available
-            if self.optimization_engine:
-                try:
-                    report = self.optimization_engine.get_comprehensive_performance_report()
-                    performance_score = report.get("performance_summary", {}).get("overall_score", 0)
-                except Exception:
-                    pass
-            
-            return AdminStats(
-                total_users=total_users,
-                total_messages=total_messages,
-                total_files=total_files,
-                active_users_24h=active_users_24h,
-                system_health="healthy" if total_users > 0 else "warning",
-                performance_score=performance_score
-            )
-            
-        except Exception as e:
-            logger.error(f"Error generating admin stats: {e}")
-            return AdminStats(
-                total_users=0,
-                total_messages=0,
-                total_files=0,
-                active_users_24h=0,
-                system_health="error",
-                performance_score=None
-            )
-    
-    @async_track_performance("admin_config") if async_track_performance else lambda f: f
-    async def get_configuration(self) -> ConfigurationResponse:
-        """Get system configuration."""
-        try:
-            config = config_manager.get_all()
-            validation_errors = config_manager.validate_configuration()
-            
-            return ConfigurationResponse(
-                configuration=config,
-                validation_errors=validation_errors
-            )
-            
-        except Exception as e:
-            logger.error(f"Error getting configuration: {e}")
-            return ConfigurationResponse(
-                configuration={},
-                validation_errors=[f"Error retrieving configuration: {str(e)}"]
-            )
-    
-    @async_track_performance("admin_errors") if async_track_performance else lambda f: f
-    async def get_error_summary(self, hours: int = 24) -> ErrorSummary:
-        """Get error summary."""
-        try:
-            error_data = error_handler.get_error_summary(hours)
-            
-            return ErrorSummary(
-                summary=error_data.get("summary", "No errors"),
-                count=error_data.get("count", 0),
-                recent_errors=error_data.get("recent_errors", [])
-            )
-            
-        except Exception as e:
-            logger.error(f"Error getting error summary: {e}")
-            return ErrorSummary(
-                summary="Error retrieving error data",
-                count=0,
-                recent_errors=[]
-            )
-
-# Initialize service
-admin_service = AdminService()
-
-@router.get(
-    "/stats",
-    response_model=AdminStats,
-    summary="Get admin statistics"
-)
-async def get_admin_stats(
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
-    """Get comprehensive admin statistics with performance optimization."""
-    client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Admin stats requested by {current_user.get('username')} from {client_ip}")
-    
-    # Performance tracking
-    if performance_logger:
-        performance_logger.record_metric("admin_stats_requests", 1, "count")
-    
-    return await admin_service.get_admin_stats()
-
-@router.get(
-    "/config",
-    response_model=ConfigurationResponse,
-    summary="Get system configuration"
-)
-async def get_configuration(
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
-    """Get system configuration (admin only)."""
-    client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Configuration requested by admin {current_user.get('username')} from {client_ip}")
-    
-    # Performance tracking
-    if performance_logger:
-        performance_logger.record_metric("admin_config_requests", 1, "count")
-    
-    return await admin_service.get_configuration()
-
-@router.get(
-    "/errors",
-    response_model=ErrorSummary,
-    summary="Get error summary"
-)
-async def get_error_summary(
-    request: Request,
-    hours: int = 24,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
-    """Get error summary for the specified time period (admin only)."""
-    client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Error summary requested by admin {current_user.get('username')} from {client_ip}")
-    
-    # Performance tracking
-    if performance_logger:
-        performance_logger.record_metric("admin_error_requests", 1, "count")
-    
-    return await admin_service.get_error_summary(hours)
-
-@router.get(
-    "/dashboard",
-    response_class=HTMLResponse,
-    summary="Admin dashboard"
-)
-async def admin_dashboard(
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
-    """Admin dashboard with comprehensive management interface."""
-    client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Admin dashboard accessed by {current_user.get('username')} from {client_ip}")
-    
-    # Performance tracking
-    if performance_logger:
-        performance_logger.record_metric("admin_dashboard_requests", 1, "count")
-    
-    # Get dashboard data
-    stats = await admin_service.get_admin_stats()
-    config_data = await admin_service.get_configuration()
-    error_summary = await admin_service.get_error_summary()
-    
-    # Generate admin dashboard HTML
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>PlexiChat Admin Dashboard</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
-            .container {{ max-width: 1200px; margin: 0 auto; }}
-            .header {{ text-align: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; }}
-            .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }}
-            .stat-card {{ background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-            .stat-number {{ font-size: 2em; font-weight: bold; color: #007bff; }}
-            .stat-label {{ color: #666; margin-top: 5px; }}
-            .section {{ background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-            .nav {{ margin: 20px 0; }}
-            .nav a {{ margin-right: 20px; text-decoration: none; color: #007bff; padding: 10px 15px; background: white; border-radius: 4px; }}
-            .nav a:hover {{ background: #007bff; color: white; }}
-            .status-healthy {{ color: #28a745; }}
-            .status-warning {{ color: #ffc107; }}
-            .status-error {{ color: #dc3545; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
+    if not templates:
+        return HTMLResponse("""
+        <html>
+            <head><title>PlexiChat Admin</title></head>
+            <body>
                 <h1>PlexiChat Admin Dashboard</h1>
-                <p>Welcome, Administrator {current_user.get('username', 'Admin')}!</p>
-                <p class="status-{stats.system_health}">System Status: {stats.system_health.title()}</p>
-            </div>
-            
-            <div class="nav">
-                <a href="/web/">Home</a>
-                <a href="/admin/stats">Statistics</a>
-                <a href="/admin/config">Configuration</a>
-                <a href="/admin/errors">Error Logs</a>
-                <a href="/system/performance">Performance</a>
-                <a href="/docs">API Docs</a>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">{stats.total_users}</div>
-                    <div class="stat-label">Total Users</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{stats.total_messages}</div>
-                    <div class="stat-label">Total Messages</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{stats.total_files}</div>
-                    <div class="stat-label">Total Files</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{stats.active_users_24h}</div>
-                    <div class="stat-label">Active Users (24h)</div>
-                </div>
-                {"<div class='stat-card'><div class='stat-number'>" + f"{stats.performance_score:.1f}" + "</div><div class='stat-label'>Performance Score</div></div>" if stats.performance_score else ""}
-            </div>
-            
-            <div class="section">
-                <h3>System Configuration</h3>
-                <p>Configuration items: {len(config_data.configuration)}</p>
-                <p>Validation errors: {len(config_data.validation_errors)}</p>
-                {"<p style='color: red;'>⚠️ Configuration has validation errors</p>" if config_data.validation_errors else "<p style='color: green;'>✅ Configuration is valid</p>"}
-            </div>
-            
-            <div class="section">
-                <h3>Error Summary</h3>
-                <p>{error_summary.summary}</p>
-                <p>Error count: {error_summary.count}</p>
-            </div>
-            
-            <div class="section">
-                <h3>Quick Actions</h3>
-                <a href="/system/optimize" style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px;">Optimize System</a>
-                <a href="/system/tests/run" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px;">Run Tests</a>
-                <a href="/status" style="background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px;">System Status</a>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+                <p>Welcome, {username}!</p>
+                <ul>
+                    <li><a href="/admin/users">User Management</a></li>
+                    <li><a href="/admin/system">System Status</a></li>
+                    <li><a href="/admin/settings">Settings</a></li>
+                    <li><a href="/admin/logout">Logout</a></li>
+                </ul>
+            </body>
+        </html>
+        """.format(username=admin["username"]))
     
-    return HTMLResponse(content=html_content)
+    try:
+        context = {
+            "request": request,
+            "admin": admin,
+            "system_info": {
+                "timestamp": datetime.now().isoformat(),
+                "admin_count": len(admin_manager.admins) if admin_manager else 0,
+                "active_sessions": len(admin_manager.sessions) if admin_manager else 0
+            }
+        }
+        return templates.TemplateResponse("admin/dashboard.html", context)
+    except:
+        return HTMLResponse(f"<h1>Admin Dashboard</h1><p>Welcome, {admin['username']}!</p>")
+
+@router.get("/login", response_class=HTMLResponse)
+async def admin_login_page(request: Request):
+    """Admin login page."""
+    if not templates:
+        return HTMLResponse("""
+        <html>
+            <head><title>Admin Login</title></head>
+            <body>
+                <h1>PlexiChat Admin Login</h1>
+                <form method="post" action="/admin/login">
+                    <p>
+                        <label>Username:</label><br>
+                        <input type="text" name="username" required>
+                    </p>
+                    <p>
+                        <label>Password:</label><br>
+                        <input type="password" name="password" required>
+                    </p>
+                    <p>
+                        <input type="submit" value="Login">
+                    </p>
+                </form>
+            </body>
+        </html>
+        """)
+    
+    try:
+        return templates.TemplateResponse("admin/login.html", {"request": request})
+    except:
+        return HTMLResponse("<h1>Admin Login</h1><form method='post'><input name='username' placeholder='Username'><input name='password' type='password' placeholder='Password'><button>Login</button></form>")
+
+@router.post("/login")
+async def admin_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    """Admin login endpoint."""
+    if not admin_manager:
+        raise HTTPException(status_code=500, detail="Admin manager not available")
+    
+    try:
+        # Get client info
+        ip_address = request.client.host if hasattr(request, 'client') else None
+        user_agent = request.headers.get("User-Agent")
+        
+        # Authenticate
+        token = await admin_manager.authenticate(username, password, ip_address, user_agent)
+        
+        if not token:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Create response with session cookie
+        response = RedirectResponse(url="/admin/", status_code=302)
+        response.set_cookie(
+            key="admin_session",
+            value=token,
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            max_age=28800  # 8 hours
+        )
+        
+        return response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during admin login: {e}")
+        raise HTTPException(status_code=500, detail="Login failed")
+
+@router.post("/logout")
+async def admin_logout(request: Request, admin: dict = Depends(require_admin)):
+    """Admin logout endpoint."""
+    if not admin_manager:
+        raise HTTPException(status_code=500, detail="Admin manager not available")
+    
+    try:
+        token = admin["token"]
+        admin_manager.logout(token)
+        
+        response = RedirectResponse(url="/admin/login", status_code=302)
+        response.delete_cookie("admin_session")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error during admin logout: {e}")
+        raise HTTPException(status_code=500, detail="Logout failed")
+
+@router.get("/users")
+async def admin_users(request: Request, admin: dict = Depends(require_admin)):
+    """Admin user management page."""
+    if not admin_manager:
+        raise HTTPException(status_code=500, detail="Admin manager not available")
+    
+    try:
+        admins = admin_manager.list_admins()
+        
+        context = {
+            "request": request,
+            "admin": admin,
+            "admins": admins
+        }
+        
+        if templates:
+            return templates.TemplateResponse("admin/users.html", context)
+        else:
+            # Simple HTML fallback
+            html = "<h1>Admin Users</h1><ul>"
+            for a in admins:
+                html += f"<li>{a.username} ({a.role}) - {a.email}</li>"
+            html += "</ul>"
+            return HTMLResponse(html)
+            
+    except Exception as e:
+        logger.error(f"Error loading admin users: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load users")
+
+@router.post("/users")
+async def create_admin_user(
+    request: AdminCreateRequest,
+    admin: dict = Depends(require_admin)
+):
+    """Create new admin user."""
+    if not admin_manager:
+        raise HTTPException(status_code=500, detail="Admin manager not available")
+    
+    # Check permissions
+    if not admin_manager.has_permission(admin["username"], "user_management"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    try:
+        success = admin_manager.create_admin(
+            request.username,
+            request.email,
+            request.password,
+            request.role
+        )
+        
+        if success:
+            return JSONResponse({"success": True, "message": "Admin user created"})
+        else:
+            raise HTTPException(status_code=400, detail="Failed to create admin user")
+            
+    except Exception as e:
+        logger.error(f"Error creating admin user: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create user")
+
+@router.get("/system")
+async def admin_system(request: Request, admin: dict = Depends(require_admin)):
+    """Admin system status page."""
+    try:
+        system_info = {
+            "timestamp": datetime.now().isoformat(),
+            "admin_count": len(admin_manager.admins) if admin_manager else 0,
+            "active_sessions": len(admin_manager.sessions) if admin_manager else 0,
+            "settings": settings
+        }
+        
+        context = {
+            "request": request,
+            "admin": admin,
+            "system_info": system_info
+        }
+        
+        if templates:
+            return templates.TemplateResponse("admin/system.html", context)
+        else:
+            return JSONResponse(system_info)
+            
+    except Exception as e:
+        logger.error(f"Error loading system info: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load system info")
+
+# API endpoints
+@router.get("/api/status")
+async def api_status(admin: dict = Depends(require_admin)):
+    """Get system status via API."""
+    return JSONResponse({
+        "status": "ok",
+        "timestamp": datetime.now().isoformat(),
+        "admin_count": len(admin_manager.admins) if admin_manager else 0,
+        "active_sessions": len(admin_manager.sessions) if admin_manager else 0
+    })
+
+@router.get("/api/admins")
+async def api_list_admins(admin: dict = Depends(require_admin)):
+    """List admin users via API."""
+    if not admin_manager:
+        raise HTTPException(status_code=500, detail="Admin manager not available")
+    
+    admins = admin_manager.list_admins()
+    return JSONResponse([
+        {
+            "username": a.username,
+            "email": a.email,
+            "role": a.role,
+            "is_active": a.is_active,
+            "created_at": a.created_at.isoformat(),
+            "last_login": a.last_login.isoformat() if a.last_login else None
+        }
+        for a in admins
+    ])
+
+__all__ = ["router"]

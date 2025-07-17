@@ -16,14 +16,14 @@ from starlette.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
-from plexichat.core_system.config import get_config
-from plexichat.core_system.logging import get_logger
-from plexichat.core_system.security.input_validation import get_input_validator, InputType, ValidationLevel
-from plexichat.core_system.security.unified_audit_system import (
+from plexichat.core.config import get_config
+from plexichat.core.logging import get_logger
+from plexichat.core.security.input_validation import get_input_validator, InputType, ValidationLevel
+from plexichat.core.security.unified_audit_system import (
     SecurityEventType, SecuritySeverity, ThreatLevel, get_unified_audit_system, UnifiedAuditSystem
 )
-from plexichat.core_system.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
-from plexichat.core_system.security.unified_security_manager import UnifiedSecurityManager
+from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
+from plexichat.core.security.unified_security_manager import UnifiedSecurityManager
 from plexichat.features.security.network_protection import get_network_protection, RateLimitRequest
 
 logger = get_logger(__name__)

@@ -30,16 +30,21 @@ from datetime import datetime
 # Platform-specific imports
 try:
     import msvcrt  # Windows
+except ImportError:
+    msvcrt = None
+try:
     import termios  # Unix
     import tty
-    HAS_TERMINAL = True
 except ImportError:
-    HAS_TERMINAL = False
+    termios = None
+    tty = None
+HAS_TERMINAL = msvcrt is not None or (termios is not None and tty is not None)
 
 try:
     import psutil
     PSUTIL_AVAILABLE = True
-except ImportError: Optional[psutil] = None
+except ImportError:
+    psutil = None
     PSUTIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
@@ -116,8 +121,9 @@ class EnhancedTerminal:
         
         # Set up terminal for raw input
         if os.name == 'posix':
-            self.old_settings = termios.tcgetattr(sys.stdin)
-            tty.setraw(sys.stdin.fileno())
+            if termios is not None and tty is not None:
+                self.old_settings = termios.tcgetattr(sys.stdin)
+                tty.setraw(sys.stdin.fileno())
     
     def create_default_panes(self):
         """Create default pane layout."""
@@ -257,15 +263,17 @@ class EnhancedTerminal:
         
         try:
             if os.name == 'nt':  # Windows
-                if msvcrt.kbhit():
-                    key = msvcrt.getch()
-                    # Convert bytes to string for Windows
-                    if isinstance(key, bytes):
-                        key = key.decode('utf-8', errors='ignore')
-                    self.process_key(key)
+                if msvcrt:
+                    if msvcrt.kbhit():
+                        key = msvcrt.getch()
+                        # Convert bytes to string for Windows
+                        if isinstance(key, bytes):
+                            key = key.decode('utf-8', errors='ignore')
+                        self.process_key(key)
             else:  # Unix
-                key = sys.stdin.read(1)
-                self.process_key(key)
+                if sys.stdin.readable():
+                    key = sys.stdin.read(1)
+                    self.process_key(key)
         except Exception as e:
             logger.error(f"Error handling input: {e}")
     
@@ -383,9 +391,10 @@ class EnhancedTerminal:
                 time.sleep(1)
     
     def cleanup(self):
-        """Clean up terminal settings."""
-        if HAS_TERMINAL and os.name == 'posix':
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
+        """Restore terminal settings on exit."""
+        if os.name == 'posix':
+            if termios is not None and hasattr(self, 'old_settings'):
+                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
         
         # Clear screen
         print("\033[2J")

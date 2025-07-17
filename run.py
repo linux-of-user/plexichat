@@ -104,6 +104,39 @@ def run_api_server():
         logger.error(f"Could not start API server: {e}")
         return False
 
+def run_cli():
+    """Run the main CLI interface."""
+    try:
+        from plexichat.interfaces.cli.main_cli import main as cli_main
+        cli_main()
+    except Exception as e:
+        logger.error(f"Could not start CLI: {e}")
+
+def run_admin_cli():
+    """Run admin CLI commands."""
+    try:
+        from plexichat.interfaces.cli.commands.admin import admin
+        admin()
+    except Exception as e:
+        logger.error(f"Could not start admin CLI: {e}")
+
+def run_backup_node():
+    """Run backup node."""
+    try:
+        from plexichat.features.backup.nodes.backup_node_main import main as backup_main
+        import asyncio
+        asyncio.run(backup_main())
+    except Exception as e:
+        logger.error(f"Could not start backup node: {e}")
+
+def run_plugin_manager():
+    """Run plugin management CLI."""
+    try:
+        from plexichat.interfaces.cli.commands.plugins import plugins
+        plugins()
+    except Exception as e:
+        logger.error(f"Could not start plugin manager: {e}")
+
 def show_help():
     help_text = """
 PlexiChat - Government-Level Secure Communication Platform
@@ -113,7 +146,12 @@ Usage: python run.py [command] [options]
 
 Commands:
   (no command)     - Start API server with splitscreen CLI (default)
+  api              - Start API server with splitscreen CLI
   gui              - Launch GUI (starts API server and splitscreen CLI)
+  cli              - Run comprehensive CLI interface (admin, backup, system, etc.)
+  admin            - Run admin CLI commands only
+  backup-node      - Start backup node server
+  plugin           - Plugin management CLI
   test             - Run enhanced test suite
   config           - Show configuration
   wizard           - Run configuration wizard
@@ -124,16 +162,24 @@ Options:
   --debug, -d      - Enable debug mode
   --config FILE    - Use custom config file
   --log-level LEVEL - Set log level (DEBUG, INFO, WARNING, ERROR)
+  --port PORT      - Override port number
+  --host HOST      - Override host address
 
 Examples:
   python run.py                    # Start API server with splitscreen CLI (default)
+  python run.py api                # Start API server with splitscreen CLI
   python run.py gui                # Launch GUI (starts API server and splitscreen CLI)
+  python run.py admin create-admin # Create admin user
+  python run.py backup-node        # Start backup node
   python run.py test               # Run test suite
   python run.py wizard             # Run configuration wizard
   python run.py --verbose          # Start with verbose logging
 
 Features:
   - API server with comprehensive endpoints
+  - Admin management system with CLI and web interface
+  - Backup node system with clustering
+  - Plugin system with SDK
   - File attachment support for messages
   - Security scanning for uploaded files
   - Real-time messaging capabilities
@@ -142,9 +188,7 @@ Features:
   - Configuration management
   - Security features
   - AI integration
-  - Backup system
   - Monitoring and logging
-  - GUI (not yet implemented)
 
 Version: a.1.1-12 (alpha version 1.1 build 12)
 API Version: v1
@@ -167,6 +211,8 @@ def main():
                        help='Custom config file')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
                        default='INFO', help='Set log level')
+    parser.add_argument('--port', type=int, help='Override port number')
+    parser.add_argument('--host', type=str, help='Override host address')
     parser.add_argument('--help', '-h', action='store_true',
                        help='Show help information')
     args = parser.parse_args()
@@ -184,6 +230,18 @@ def main():
         elif args.command == 'gui':
             logger.info("Launching GUI (starts API server and splitscreen CLI)")
             run_gui()
+        elif args.command == 'cli':
+            logger.info("Starting comprehensive CLI interface")
+            run_cli()
+        elif args.command == 'admin':
+            logger.info("Starting admin CLI")
+            run_admin_cli()
+        elif args.command == 'backup-node':
+            logger.info("Starting backup node")
+            run_backup_node()
+        elif args.command == 'plugin':
+            logger.info("Starting plugin manager CLI")
+            run_plugin_manager()
         elif args.command == 'test':
             logger.info("Running enhanced test suite")
             success = run_enhanced_tests()

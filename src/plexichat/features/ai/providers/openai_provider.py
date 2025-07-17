@@ -8,8 +8,18 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-import openai
-from openai import AsyncOpenAI
+try:
+    import openai
+    from openai import AsyncOpenAI
+except ImportError:
+    openai = None
+    class AsyncOpenAI:
+        def __init__(self, **kwargs):
+            pass
+        async def chat_completions_create(self, **kwargs):
+            return {"choices": [{"message": {"content": "OpenAI not available"}}]}
+        async def models_list(self):
+            return {"data": []}
 
 from .base_provider import (
     AIRequest,
@@ -41,7 +51,7 @@ class OpenAIConfig(ProviderConfig):
 
     api_key: str
     organization: Optional[str] = None
-    base_url: Optional[str] = None
+    base_url: str = "https://api.openai.com/v1"
     max_tokens: int = 4096
     temperature: float = 0.7
     top_p: float = 1.0
@@ -238,9 +248,10 @@ class OpenAIProvider(BaseAIProvider):
             logger.error(f"OpenAI content moderation failed: {e}")
             return {"flagged": False, "error": str(e)}
 
-    def get_available_models(self) -> List[str]:
+    async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available models."""
-        return self.config.available_models
+        models = self.config.available_models or []
+        return [{"id": model, "name": model} for model in models]
 
     async def estimate_cost(self, request: AIRequest) -> float:
         """Estimate the cost of a request."""

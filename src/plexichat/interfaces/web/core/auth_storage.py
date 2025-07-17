@@ -16,16 +16,6 @@ from cryptography.fernet import Fernet
 
 from .config_manager import get_webui_config
 
-from pathlib import Path
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-
-from pathlib import Path
-from datetime import datetime
-from pathlib import Path
-from datetime import datetime
-
 """
 PlexiChat WebUI Distributed Authentication Storage
 
@@ -83,8 +73,7 @@ class DatabaseAuthStorage(AuthStorageBackend):
     """Database-based authentication storage."""
     
     def __init__(self, db_path: str = "config/auth.db"):
-        self.from pathlib import Path
-db_path = Path()(db_path)
+        self.db_path = Path(db_path)
         self.db_path.parent.mkdir(exist_ok=True)
         self._init_database()
     
@@ -155,8 +144,7 @@ db_path = Path()(db_path)
     
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.from datetime import datetime
-updated_at = datetime().utcnow()
+        record.updated_at = datetime.utcnow()
         return await self.store_auth_record(record)
     
     async def delete_auth_record(self, user_id: str) -> bool:
@@ -212,8 +200,7 @@ class FileAuthStorage(AuthStorageBackend):
     """File-based authentication storage."""
     
     def __init__(self, storage_dir: str = "config/auth_storage"):
-        self.from pathlib import Path
-storage_dir = Path()(storage_dir)
+        self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
         self.cipher = Fernet(Fernet.generate_key())  # In production, use proper key management
     
@@ -263,8 +250,7 @@ storage_dir = Path()(storage_dir)
     
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.from datetime import datetime
-updated_at = datetime().utcnow()
+        record.updated_at = datetime.utcnow()
         return await self.store_auth_record(record)
     
     async def delete_auth_record(self, user_id: str) -> bool:
@@ -325,16 +311,17 @@ class DistributedAuthStorage:
                 self.primary_backend = DatabaseAuthStorage()
             elif self.auth_config.primary_storage == "file":
                 self.primary_backend = FileAuthStorage()
-            
+
             # Initialize backup backends
-            for backend_type in self.auth_config.backup_storages:
+            backup_storages = self.auth_config.backup_storages if self.auth_config.backup_storages is not None else []
+            for backend_type in backup_storages:
                 if backend_type == "database":
                     self.backup_backends.append(DatabaseAuthStorage("config/auth_backup.db"))
                 elif backend_type == "file":
                     self.backup_backends.append(FileAuthStorage("config/auth_backup"))
-            
+
             logger.info(f"Initialized {len(self.backup_backends) + 1} storage backends")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize storage backends: {e}")
     

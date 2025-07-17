@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 from ..core.config import get_config
 from ..core.logging import get_logger
-from plexichat.core_system.resilience.manager import get_system_resilience
+from plexichat.core.resilience.manager import get_system_resilience
 
 
 """

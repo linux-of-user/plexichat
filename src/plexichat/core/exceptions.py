@@ -12,10 +12,20 @@ from typing import Any, Dict, List, Optional, Union
 # Use EXISTING performance optimization engine
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
-    get_performance_logger = None
+
+try:
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
+except ImportError:
+    class MockPerformanceLogger:
+        def __init__(self):
+            self.logger = logging.getLogger(__name__)
+        def record_metric(self, name, value, unit):
+            self.logger.debug(f"Metric {name}: {value} {unit}")
+
+    def get_performance_logger():
+        return MockPerformanceLogger()
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +66,7 @@ class PlexiChatException(Exception):
             logger.error(f"PlexiChat Exception: {error_data}")
             
             # Performance tracking
-            if performance_logger:
+            if performance_logger and hasattr(performance_logger, 'record_metric'):
                 performance_logger.record_metric("exceptions_raised", 1, "count")
                 performance_logger.record_metric(f"exception_{self.error_code}", 1, "count")
                 
@@ -301,7 +311,7 @@ class ExceptionHandler:
         logger.error(f"Standard Exception: {error_response}")
         
         # Performance tracking
-        if self.performance_logger:
+        if self.performance_logger and hasattr(self.performance_logger, 'record_metric'):
             self.performance_logger.record_metric("standard_exceptions", 1, "count")
         
         return error_response

@@ -19,17 +19,23 @@ from tkinter import messagebox, simpledialog, filedialog, ttk
 from typing import Any, Dict, Optional, List
 from pathlib import Path
 
-import customtkinter as ctk
+from plexichat.core.logging import get_logger
+logger = get_logger(__name__)
+
+try:
+    import customtkinter as ctk  # type: ignore
+except ImportError:
+    ctk = None
+    logger.warning('customtkinter is not installed. GUI will not function.')
 import requests
 from cryptography.fernet import Fernet
 
 # Disable SSL warnings for development
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-from plexichat.app.logger_config import logger
-from plexichat.core.security.government_auth import government_auth
-from plexichat.gui.components.backup_management_widget import BackupManagementWidget
-from plexichat.gui.components.clustering_management_widget import ClusteringManagementWidget
+from plexichat.core.auth.government_auth import government_auth
+from plexichat.interfaces.gui.components.backup_management_widget import BackupManagementWidget
+from plexichat.interfaces.gui.components.clustering_management_widget import ClusteringManagementWidget
 
 """
 PlexiChat Advanced GUI Application
@@ -65,15 +71,19 @@ except ImportError as e:
 
 
 # Configure CustomTkinter
-ctk.set_appearance_mode("system")
-ctk.set_default_color_theme("blue")
+if ctk is not None:
+    ctk.set_appearance_mode("system")
+    ctk.set_default_color_theme("blue")
 
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__) # This line is removed as per the edit hint
 class PlexiChatAdminGUI:
     """Advanced GUI application for PlexiChat administration."""
 
     def __init__(self):
+        if ctk is None:
+            logger.error('customtkinter is not installed. PlexiChatAdminGUI cannot start.')
+            raise ImportError('customtkinter is required for the GUI.')
         self.root = ctk.CTk()
         self.root.title("PlexiChat Admin - Enhanced Security")
         self.root.geometry("1400x900")
@@ -99,7 +109,8 @@ class PlexiChatAdminGUI:
 
         # Security monitoring
         self.activity_monitor = threading.Thread(target=self._monitor_activity, daemon=True)
-        self.if activity_monitor and hasattr(activity_monitor, "start"): activity_monitor.start()
+        if self.activity_monitor and hasattr(self.activity_monitor, "start"):
+            self.activity_monitor.start()
         self.is_authenticated = False
         self.session_timeout = 3600  # 1 hour session timeout
         self.last_activity = None
@@ -167,92 +178,91 @@ class PlexiChatAdminGUI:
             widget.destroy()
 
         # Main login frame
-        login_frame = ctk.CTkFrame(self.root, width=500, height=600)
+        login_frame = ctk.CTkFrame(self.root, width=500, height=600)  # type: ignore
         login_frame.place(relx=0.5, rely=0.5, anchor="center")
 
         # Logo and title
-        title_label = ctk.CTkLabel(
+        title_label = ctk.CTkLabel(  # type: ignore
             login_frame,
             text=" PlexiChat Admin",
-            font=ctk.CTkFont(size=32, weight="bold")
+            font=ctk.CTkFont(size=32, weight="bold")  # type: ignore
         )
         title_label.pack(pady=(40, 10))
 
-        subtitle_label = ctk.CTkLabel(
+        subtitle_label = ctk.CTkLabel(  # type: ignore
             login_frame,
             text="Government-Level Security",
-            font=ctk.CTkFont(size=16)
+            font=ctk.CTkFont(size=16)  # type: ignore
         )
         subtitle_label.pack(pady=(0, 30))
 
         # Security notice
-        security_frame = ctk.CTkFrame(login_frame, fg_color=("#ff8c00", "#ff6600"))
+        security_frame = ctk.CTkFrame(login_frame, fg_color=("#ff8c00", "#ff6600"))  # type: ignore
         security_frame.pack(pady=(0, 30), padx=40, fill="x")
 
-        security_label = ctk.CTkLabel(
+        security_label = ctk.CTkLabel(  # type: ignore
             security_frame,
             text=" GOVERNMENT-LEVEL SECURITY\nUnauthorized access is prohibited",
-            font=ctk.CTkFont(size=12, weight="bold"),
+            font=ctk.CTkFont(size=12, weight="bold"),  # type: ignore
             text_color="white"
         )
         security_label.pack(pady=15)
 
         # Login form
-        self.username_entry = ctk.CTkEntry(
+        self.username_entry = ctk.CTkEntry(  # type: ignore
             login_frame,
             placeholder_text="Username",
             width=300,
             height=40,
-            font=ctk.CTkFont(size=14)
+            font=ctk.CTkFont(size=14)  # type: ignore
         )
         self.username_entry.pack(pady=(0, 15), padx=40)
 
-        self.password_entry = ctk.CTkEntry(
+        self.password_entry = ctk.CTkEntry(  # type: ignore
             login_frame,
             placeholder_text="Password",
             show="*",
             width=300,
             height=40,
-            font=ctk.CTkFont(size=14)
+            font=ctk.CTkFont(size=14)  # type: ignore
         )
         self.password_entry.pack(pady=(0, 15), padx=40)
 
         # 2FA entry (initially hidden)
-        self.totp_frame = ctk.CTkFrame(login_frame, fg_color="transparent")
-        self.totp_entry = ctk.CTkEntry(
+        self.totp_frame = ctk.CTkFrame(login_frame, fg_color="transparent")  # type: ignore
+        self.totp_entry = ctk.CTkEntry(  # type: ignore
             self.totp_frame,
             placeholder_text="2FA Code (6 digits)",
             width=300,
             height=40,
-            font=ctk.CTkFont(size=14)
+            font=ctk.CTkFont(size=14)  # type: ignore
         )
         self.totp_entry.pack(pady=(0, 15), padx=40)
 
         # Login button
-        self.login_button = ctk.CTkButton(
+        self.login_button = ctk.CTkButton(  # type: ignore
             login_frame,
             text=" Secure Login",
             width=300,
             height=40,
-            font=ctk.CTkFont(size=16, weight="bold"),
+            font=ctk.CTkFont(size=16, weight="bold"),  # type: ignore
             command=self.handle_login
         )
         self.login_button.pack(pady=(0, 20), padx=40)
 
         # Status label
-        self.status_label = ctk.CTkLabel(
+        self.status_label = ctk.CTkLabel(  # type: ignore
             login_frame,
             text="",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(size=12)  # type: ignore
         )
         self.status_label.pack(pady=(0, 20))
 
         # Footer
-        footer_label = ctk.CTkLabel(
+        footer_label = ctk.CTkLabel(  # type: ignore
             login_frame,
-            text=f"System Time: {from datetime import datetime
-datetime = datetime.now().strftime('%H:%M:%S')}",
-            font=ctk.CTkFont(size=10),
+            text=f"System Time: {datetime.now().strftime('%H:%M:%S')}",
+            font=ctk.CTkFont(size=10),  # type: ignore
             text_color="gray"
         )
         footer_label.pack(pady=(0, 20))
@@ -268,8 +278,8 @@ datetime = datetime.now().strftime('%H:%M:%S')}",
 
     def update_time(self, label):
         """Update time display."""
-        label.configure(text=f"System Time: {from datetime import datetime
-datetime = datetime.now().strftime('%H:%M:%S')}")
+        from datetime import datetime
+        label.configure(text=f"System Time: {datetime.now().strftime('%H:%M:%S')}")
         self.root.after(1000, lambda: self.update_time(label))
 
     def handle_login(self):
@@ -379,7 +389,7 @@ datetime = datetime.now().strftime('%H:%M:%S')}")
 
     def show_password_change_dialog(self):
         """Show mandatory password change dialog."""
-        dialog = ctk.CTkToplevel(self.root)
+        dialog = ctk.CTkToplevel(self.root)  # type: ignore
         dialog.title("Password Change Required")
         dialog.geometry("400x300")
         dialog.transient(self.root)
@@ -392,23 +402,23 @@ datetime = datetime.now().strftime('%H:%M:%S')}")
         ))
 
         # Title
-        title_label = ctk.CTkLabel(
+        title_label = ctk.CTkLabel(  # type: ignore
             dialog,
             text=" Password Change Required",
-            font=ctk.CTkFont(size=18, weight="bold")
+            font=ctk.CTkFont(size=18, weight="bold")  # type: ignore
         )
         title_label.pack(pady=(20, 10))
 
         # Notice
-        notice_label = ctk.CTkLabel(
+        notice_label = ctk.CTkLabel(  # type: ignore
             dialog,
             text="You must change your password before continuing.",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(size=12)  # type: ignore
         )
         notice_label.pack(pady=(0, 20))
 
         # Current password
-        current_pwd_entry = ctk.CTkEntry(
+        current_pwd_entry = ctk.CTkEntry(  # type: ignore
             dialog,
             placeholder_text="Current Password",
             show="*",
@@ -417,7 +427,7 @@ datetime = datetime.now().strftime('%H:%M:%S')}")
         current_pwd_entry.pack(pady=5)
 
         # New password
-        new_pwd_entry = ctk.CTkEntry(
+        new_pwd_entry = ctk.CTkEntry(  # type: ignore
             dialog,
             placeholder_text="New Password (min 16 chars)",
             show="*",
@@ -426,7 +436,7 @@ datetime = datetime.now().strftime('%H:%M:%S')}")
         new_pwd_entry.pack(pady=5)
 
         # Confirm password
-        confirm_pwd_entry = ctk.CTkEntry(
+        confirm_pwd_entry = ctk.CTkEntry(  # type: ignore
             dialog,
             placeholder_text="Confirm New Password",
             show="*",
@@ -986,13 +996,13 @@ datetime = datetime.now().strftime('%H:%M:%S')}")
                 current_time = time.time()
 
                 # Check for session timeout
-                if (self.is_authenticated and
+                if (self.is_authenticated and self.last_activity is not None and
                     current_time - self.last_activity > self.session_timeout):
                     self._log_security_event("Session timeout", "warning")
                     self.root.after(0, self._force_logout)
 
                 # Check for auto-lock
-                if (self.auto_lock_enabled and self.is_authenticated and
+                if (self.auto_lock_enabled and self.is_authenticated and self.last_activity is not None and
                     current_time - self.last_activity > 300):  # 5 minutes
                     self._log_security_event("Auto-lock triggered", "info")
                     self.root.after(0, self._lock_screen)
@@ -1041,7 +1051,7 @@ datetime = datetime.now().strftime('%H:%M:%S')}")
         self._log_security_event("Screen locked", "info")
 
         # Create lock screen
-        lock_window = ctk.CTkToplevel(self.root)
+        lock_window = ctk.CTkToplevel(self.root)  # type: ignore
         lock_window.title("Screen Locked")
         lock_window.geometry("400x300")
         lock_window.transient(self.root)

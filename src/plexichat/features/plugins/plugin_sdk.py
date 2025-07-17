@@ -1,490 +1,408 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-import json
-import logging
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List
-
-
 """
 PlexiChat Plugin SDK
 
-Rich SDK for plugin development with:
-- Plugin development templates
-- Testing framework
-- Debugging tools
-- Documentation generator
-- Performance profiler
-- Deployment utilities
+Software Development Kit for creating PlexiChat plugins.
+Provides high-level APIs and utilities for plugin development.
 """
 
-logger = logging.getLogger(__name__, Optional)
+import asyncio
+import json
+import logging
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, asdict
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Callable, Union
 
+try:
+    from plexichat.core.plugins.plugin_manager import PlexiChatPlugin, PluginInfo
+    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata
+    from plexichat.app.logger_config import get_logger
+    from plexichat.core.config import settings
+except ImportError:
+    PlexiChatPlugin = object
+    PluginInterface = object
+    PluginInfo = object
+    PluginMetadata = object
+    get_logger = logging.getLogger
+    settings = {}
+
+logger = get_logger(__name__)
 
 @dataclass
-class PluginTemplate:
-    """Plugin template for quick development."""
-
-    template_id: str
+class PluginConfig:
+    """Plugin configuration structure."""
     name: str
+    version: str
     description: str
-    plugin_type: str
-    files: Dict[str, str] = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
-    permissions: List[str] = field(default_factory=list)
+    author: str
+    email: Optional[str] = None
+    license: str = "MIT"
+    homepage: Optional[str] = None
+    repository: Optional[str] = None
+    category: str = "utility"
+    tags: List[str] = None
+    permissions: List[str] = None
+    dependencies: List[str] = None
+    min_plexichat_version: str = "1.0.0"
+    api_version: str = "v1"
+    enabled: bool = True
 
+    def __post_init__(self):
+        if self.tags is None:
+            self.tags = []
+        if self.permissions is None:
+            self.permissions = []
+        if self.dependencies is None:
+            self.dependencies = []
 
-class PluginSDK:
-    """Software Development Kit for PlexiChat plugins."""
-
-    def __init__(self):
-        self.templates: Dict[str, PluginTemplate] = {}
-        self.test_results: Dict[str, Dict[str, Any]] = {}
-        self.performance_data: Dict[str, List[Dict[str, Any]]] = {}
-
-        # Initialize templates
-        self._initialize_templates()
-
-    def _initialize_templates(self):
-        """Initialize plugin templates."""
-        # Simple plugin template
-        self.templates["simple"] = PluginTemplate(
-            template_id="simple",
-            name="Simple Plugin",
-            description="Basic plugin template",
-            plugin_type="simple",
-            files={
-                "manifest.json": self._get_simple_manifest_template(),
-                "main.py": self._get_simple_main_template(),
-                "README.md": self._get_readme_template(),
-                "requirements.txt": "",
-            },
-            permissions=["messaging"],
-        )
-
-        # Micro-app template
-        self.templates["micro_app"] = PluginTemplate(
-            template_id="micro_app",
-            name="Micro-App Plugin",
-            description="Full micro-application template",
-            plugin_type="micro_app",
-            files={
-                "manifest.json": self._get_microapp_manifest_template(),
-                "main.py": self._get_microapp_main_template(),
-                "ui.py": self._get_microapp_ui_template(),
-                "api.py": self._get_microapp_api_template(),
-                "README.md": self._get_readme_template(),
-                "requirements.txt": "fastapi\nuvicorn",
-            },
-            permissions=["messaging", "user_data", "ui_components", "api_routes"],
-        )
-
-        # AI integration template
-        self.templates["ai_integration"] = PluginTemplate(
-            template_id="ai_integration",
-            name="AI Integration Plugin",
-            description="AI-powered plugin template",
-            plugin_type="integration",
-            files={
-                "manifest.json": self._get_ai_manifest_template(),
-                "main.py": self._get_ai_main_template(),
-                "README.md": self._get_readme_template(),
-                "requirements.txt": "openai\nanthropics",
-            },
-            permissions=["messaging", "ai_services", "user_data"],
-        )
-
-    def _get_simple_manifest_template(self) -> str:
-        """Get simple plugin manifest template."""
-        return json.dumps(
-            {
-                "plugin_id": "my_simple_plugin",
-                "name": "My Simple Plugin",
-                "version": "1.0.0",
-                "description": "A simple PlexiChat plugin",
-                "author": "Your Name",
-                "plugin_type": "simple",
-                "min_plexichat_version": "1.0.0",
-                "permissions": ["messaging"],
-                "main_module": "main",
-                "entry_point": "main",
-            },
-            indent=2,
-        )
-
-    def _get_simple_main_template(self) -> str:
-        """Get simple plugin main template."""
-        return '''"""
-Simple PlexiChat Plugin
-
-This is a basic plugin template for PlexiChat.
-"""
-
-logger = logging.getLogger(__name__)
-
-
-async def main(api):
-    """Plugin entry point."""
-    logger.info("Simple plugin loaded!")
-
-    # Register event handlers
-    api.register_event_handler("message_received", on_message_received)
-
-    # Plugin initialization code here
-    api.log("info", "Simple plugin initialized successfully")
-
-
-async def on_message_received(event_data):
-    """Handle incoming messages."""
-    message = event_data.get("message", "")
-    sender_id = event_data.get("sender_id", "")
-
-    # Example: Respond to messages containing "hello"
-    if "hello" in message.lower():
-        await api.send_message(sender_id, "Hello! I'm a PlexiChat plugin.")
-
-
-def cleanup():
-    """Plugin cleanup."""
-    logger.info("Simple plugin cleanup")
-'''
-
-    def _get_microapp_manifest_template(self) -> str:
-        """Get micro-app manifest template."""
-        return json.dumps(
-            {
-                "plugin_id": "my_micro_app",
-                "name": "My Micro App",
-                "version": "1.0.0",
-                "description": "A micro-application for PlexiChat",
-                "author": "Your Name",
-                "plugin_type": "micro_app",
-                "min_plexichat_version": "1.0.0",
-                "permissions": [
-                    "messaging",
-                    "user_data",
-                    "ui_components",
-                    "api_routes",
-                ],
-                "main_module": "main",
-                "entry_point": "main",
-                "ui_components": ["MainComponent", "SettingsComponent"],
-                "api_routes": ["api_handler"],
-                "background_tasks": ["background_worker"],
-            },
-            indent=2,
-        )
-
-    def _get_microapp_main_template(self) -> str:
-        """Get micro-app main template."""
-        return '''"""
-Micro-App PlexiChat Plugin
-
-This is a full micro-application template for PlexiChat.
-"""
-
-logger = logging.getLogger(__name__)
-
-
-async def main(api):
-    """Plugin entry point."""
-    logger.info("Micro-app plugin loaded!")
-
-    # Initialize components
-    main_component = MainComponent(api)
-    settings_component = SettingsComponent(api)
-
-    # Start background tasks
-    asyncio.create_task(background_worker(api))
-
-    api.log("info", "Micro-app plugin initialized successfully")
-
-
-async def background_worker(api):
-    """Background worker task."""
-    while True:
+class PluginAPI:
+    """High-level API for plugin operations."""
+    
+    def __init__(self, plugin_name: str):
+        self.plugin_name = plugin_name
+        self.logger = get_logger(f"plugin.{plugin_name}.api")
+        self._config = {}
+        self._event_handlers = {}
+    
+    # Configuration Management
+    def get_config(self, key: str, default: Any = None) -> Any:
+        """Get configuration value."""
+        return self._config.get(key, default)
+    
+    def set_config(self, key: str, value: Any) -> None:
+        """Set configuration value."""
+        self._config[key] = value
+    
+    def load_config(self, config_path: Optional[Path] = None) -> Dict[str, Any]:
+        """Load configuration from file."""
+        if config_path is None:
+            config_path = Path(f"plugins/{self.plugin_name}/config.json")
+        
         try:
-            # Background processing here
-            await asyncio.sleep(60)  # Run every minute
-
+            if config_path.exists():
+                with open(config_path, 'r') as f:
+                    self._config = json.load(f)
+            return self._config
         except Exception as e:
-            api.log("error", f"Background worker error: {e}")
-
-
-def cleanup():
-    """Plugin cleanup."""
-    logger.info("Micro-app plugin cleanup")
-'''
-
-    def _get_microapp_ui_template(self) -> str:
-        """Get micro-app UI template."""
-        return '''"""
-UI Components for Micro-App Plugin
-"""
-
-
-class MainComponent:
-    """Main UI component."""
-
-    def __init__(self, api):
-        self.api = api
-
-    def render(self):
-        """Render component."""
-        return {
-            "type": "container",
-            "children": [
-                {
-                    "type": "text",
-                    "content": "Welcome to My Micro App!"
-                },
-                {
-                    "type": "button",
-                    "text": "Click Me",
-                    "action": "handle_click"
-                }
-            ]
-        }
-
-    async def handle_click(self, event_data):
-        """Handle button click."""
-        self.api.log("info", "Button clicked!")
-
-
-class SettingsComponent:
-    """Settings UI component."""
-
-    def __init__(self, api):
-        self.api = api
-
-    def render(self):
-        """Render settings component."""
-        return {
-            "type": "form",
-            "fields": [
-                {
-                    "type": "text",
-                    "name": "setting1",
-                    "label": "Setting 1",
-                    "value": self.api.get_config("setting1", "")
-                },
-                {
-                    "type": "checkbox",
-                    "name": "setting2",
-                    "label": "Enable Feature",
-                    "value": self.api.get_config("setting2", False)
-                }
-            ],
-            "submit_action": "save_settings"
-        }
-
-    async def save_settings(self, form_data):
-        """Save from plexichat.core.config import settings
-settings."""
-        for key, value in form_data.items():
-            self.api.set_config(key, value)
-
-        self.api.log("info", "Settings saved")
-'''
-
-    def _get_microapp_api_template(self) -> str:
-        """Get micro-app API template."""
-        return '''"""
-API Handlers for Micro-App Plugin
-"""
-
-async def api_handler(method, data):
-    """Handle API requests."""
-    if method == "GET":
-        return await handle_get(data)
-    elif method == "POST":
-        return await handle_post(data)
-    else:
-        return {"error": "Method not allowed"}
-
-
-async def handle_get(data):
-    """Handle GET requests."""
-    endpoint = data.get("endpoint", "")
-
-    if endpoint == "status":
-        return {
-            "status": "active",
-            "version": "1.0.0",
-            "uptime": "1 hour"
-        }
-    elif endpoint == "data":
-        return {
-            "items": [
-                {"id": 1, "name": "Item 1"},
-                {"id": 2, "name": "Item 2"}
-            ]
-        }
-    else:
-        return {"error": "Endpoint not found"}
-
-
-async def handle_post(data):
-    """Handle POST requests."""
-    action = data.get("action", "")
-
-    if action == "create_item":
-        # Create new item
-        item_data = data.get("item", {})
-        # Process item creation
-        return {"success": True, "item_id": 123}
-    else:
-        return {"error": "Action not supported"}
-'''
-
-    def _get_ai_manifest_template(self) -> str:
-        """Get AI integration manifest template."""
-        return json.dumps(
-            {
-                "plugin_id": "my_ai_plugin",
-                "name": "My AI Plugin",
-                "version": "1.0.0",
-                "description": "AI-powered PlexiChat plugin",
-                "author": "Your Name",
-                "plugin_type": "integration",
-                "min_plexichat_version": "1.0.0",
-                "permissions": ["messaging", "ai_services", "user_data"],
-                "main_module": "main",
-                "entry_point": "main",
-            },
-            indent=2,
-        )
-
-    def _get_ai_main_template(self) -> str:
-        """Get AI integration main template."""
-        return '''"""
-AI Integration PlexiChat Plugin
-
-This plugin demonstrates AI integration capabilities.
-"""
-
-logger = logging.getLogger(__name__)
-
-
-async def main(api):
-    """Plugin entry point."""
-    logger.info("AI plugin loaded!")
-
-    # Register event handlers
-    api.register_event_handler("message_received", on_message_received)
-
-    api.log("info", "AI plugin initialized successfully")
-
-
-async def on_message_received(event_data):
-    """Handle incoming messages with AI."""
-    message = event_data.get("message", "")
-    sender_id = event_data.get("sender_id", "")
-
-    # Example: Use AI to generate responses
-    if message.startswith("/ai "):
-        prompt = message[4:]  # Remove "/ai " prefix
-
-        # Call PlexiChat AI services
-        ai_response = await api.call_ai("content_generation", {
-            "prompt": prompt,
-            "max_length": 200,
-            "style": "helpful"
-        })
-
-        if ai_response.get("success"):
-            response = ai_response.get("content", "Sorry, I couldn't generate a response.")
-            await api.send_message(sender_id, f"AI Response: {response}")
-        else:
-            await api.send_message(sender_id, "Sorry, AI service is unavailable.")
-
-
-def cleanup():
-    """Plugin cleanup."""
-    logger.info("AI plugin cleanup")
-'''
-
-    def _get_readme_template(self) -> str:
-        """Get README template."""
-        return """# PlexiChat Plugin
-
-## Description
-
-This is a PlexiChat plugin created with the PlexiChat SDK.
-
-## Installation
-
-1. Copy the plugin folder to your PlexiChat plugins directory
-2. Restart PlexiChat or reload plugins
-3. The plugin will be automatically loaded
-
-## Configuration
-
-Configure the plugin through the PlexiChat admin interface.
-
-## Usage
-
-[Describe how to use your plugin]
-
-## Development
-
-This plugin was created using the PlexiChat Plugin SDK.
-
-## License
-
-[Your license here]
-"""
-
-    def create_plugin(
-        self,
-        template_id: str,
-        plugin_id: str,
-        output_dir: Path,
-        custom_config: Dict[str, Any] = None,
-    ) -> bool:
-        """Create new plugin from template."""
-        if template_id not in self.templates:
-            logger.error(f"Template {template_id} not found")
-            return False
-
-        template = self.templates[template_id]
-        custom_config = custom_config or {}
-
+            self.logger.error(f"Error loading config: {e}")
+            return {}
+    
+    def save_config(self, config_path: Optional[Path] = None) -> bool:
+        """Save configuration to file."""
+        if config_path is None:
+            config_path = Path(f"plugins/{self.plugin_name}/config.json")
+        
         try:
-            # Create plugin directory
-            plugin_dir = output_dir / plugin_id
-            plugin_dir.mkdir(parents=True, exist_ok=True)
-
-            # Create files from template
-            for filename, content in template.files.items():
-                file_path = plugin_dir / filename
-
-                # Customize content
-                if filename == "manifest.json":
-                    manifest_data = json.loads(content)
-                    manifest_data["plugin_id"] = plugin_id
-                    manifest_data.update(custom_config.get("manifest", {}))
-                    content = json.dumps(manifest_data, indent=2)
-
-                # Replace placeholders
-                content = content.replace("my_simple_plugin", plugin_id)
-                content = content.replace("my_micro_app", plugin_id)
-                content = content.replace("my_ai_plugin", plugin_id)
-
-                file_path.write_text(content)
-
-            logger.info(f"Created plugin {plugin_id} from template {template_id}")
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(config_path, 'w') as f:
+                json.dump(self._config, f, indent=2)
             return True
-
         except Exception as e:
-            logger.error(f"Failed to create plugin: {e}")
+            self.logger.error(f"Error saving config: {e}")
             return False
+    
+    # Event System
+    def on(self, event: str, handler: Callable) -> None:
+        """Register event handler."""
+        if event not in self._event_handlers:
+            self._event_handlers[event] = []
+        self._event_handlers[event].append(handler)
+    
+    def emit(self, event: str, data: Any = None) -> None:
+        """Emit event to handlers."""
+        if event in self._event_handlers:
+            for handler in self._event_handlers[event]:
+                try:
+                    if asyncio.iscoroutinefunction(handler):
+                        asyncio.create_task(handler(data))
+                    else:
+                        handler(data)
+                except Exception as e:
+                    self.logger.error(f"Error in event handler for {event}: {e}")
+    
+    # Messaging API
+    async def send_message(self, channel_id: str, content: str, 
+                          message_type: str = "text") -> Optional[str]:
+        """Send a message to a channel."""
+        try:
+            # This would integrate with the actual messaging system
+            message_data = {
+                "channel_id": channel_id,
+                "content": content,
+                "type": message_type,
+                "timestamp": datetime.now().isoformat(),
+                "plugin": self.plugin_name
+            }
+            
+            self.logger.info(f"Sending message to channel {channel_id}: {content[:50]}...")
+            # Return mock message ID for now
+            return f"msg_{datetime.now().timestamp()}"
+            
+        except Exception as e:
+            self.logger.error(f"Error sending message: {e}")
+            return None
+    
+    async def edit_message(self, message_id: str, content: str) -> bool:
+        """Edit an existing message."""
+        try:
+            self.logger.info(f"Editing message {message_id}: {content[:50]}...")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error editing message: {e}")
+            return False
+    
+    async def delete_message(self, message_id: str) -> bool:
+        """Delete a message."""
+        try:
+            self.logger.info(f"Deleting message {message_id}")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error deleting message: {e}")
+            return False
+    
+    # File Operations
+    async def upload_file(self, file_path: Path, channel_id: str) -> Optional[str]:
+        """Upload a file to a channel."""
+        try:
+            if not file_path.exists():
+                self.logger.error(f"File not found: {file_path}")
+                return None
+            
+            self.logger.info(f"Uploading file {file_path.name} to channel {channel_id}")
+            # Return mock file ID for now
+            return f"file_{datetime.now().timestamp()}"
+            
+        except Exception as e:
+            self.logger.error(f"Error uploading file: {e}")
+            return None
+    
+    # Database Operations (if permitted)
+    async def query_database(self, query: str, params: Optional[Dict] = None) -> List[Dict]:
+        """Execute database query."""
+        try:
+            self.logger.info(f"Executing database query: {query[:100]}...")
+            # This would integrate with the actual database system
+            return []
+        except Exception as e:
+            self.logger.error(f"Error executing database query: {e}")
+            return []
+    
+    # HTTP Requests
+    async def make_request(self, method: str, url: str, 
+                          headers: Optional[Dict] = None,
+                          data: Optional[Dict] = None) -> Optional[Dict]:
+        """Make HTTP request."""
+        try:
+            self.logger.info(f"Making {method} request to {url}")
+            # This would use aiohttp or similar
+            return {"status": "success", "data": {}}
+        except Exception as e:
+            self.logger.error(f"Error making HTTP request: {e}")
+            return None
 
+class SDKPlugin(PluginInterface):
+    """Enhanced plugin base class using the SDK."""
+    
+    def __init__(self, config: PluginConfig):
+        super().__init__(config.name, config.version)
+        self.config = config
+        self.api = PluginAPI(config.name)
+        self.logger = get_logger(f"plugin.{config.name}")
+        
+        # Load configuration
+        self.api.load_config()
+    
+    def get_metadata(self) -> Dict[str, Any]:
+        """Get plugin metadata."""
+        return asdict(self.config)
+    
+    @abstractmethod
+    async def on_load(self) -> bool:
+        """Called when plugin is loaded."""
+        pass
+    
+    @abstractmethod
+    async def on_unload(self) -> bool:
+        """Called when plugin is unloaded."""
+        pass
+    
+    async def on_enable(self) -> bool:
+        """Called when plugin is enabled."""
+        return True
+    
+    async def on_disable(self) -> bool:
+        """Called when plugin is disabled."""
+        return True
+    
+    async def on_message(self, message_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Handle message events."""
+        return None
+    
+    async def on_user_join(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Handle user join events."""
+        return None
+    
+    async def on_user_leave(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Handle user leave events."""
+        return None
+    
+    async def on_file_upload(self, file_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Handle file upload events."""
+        return None
+    
+    def get_commands(self) -> Dict[str, Callable]:
+        """Get plugin commands."""
+        return {}
+    
+    def get_api_routes(self) -> List[Dict[str, Any]]:
+        """Get API routes provided by this plugin."""
+        return []
+    
+    def get_ui_pages(self) -> List[Dict[str, Any]]:
+        """Get UI pages provided by this plugin."""
+        return []
 
-# Global SDK instance
-plugin_sdk = PluginSDK()
+class PluginBuilder:
+    """Builder class for creating plugins."""
+    
+    def __init__(self, name: str):
+        self.config = PluginConfig(
+            name=name,
+            version="1.0.0",
+            description="",
+            author=""
+        )
+        self._handlers = {}
+        self._commands = {}
+        self._routes = []
+        self._ui_pages = []
+    
+    def version(self, version: str) -> 'PluginBuilder':
+        """Set plugin version."""
+        self.config.version = version
+        return self
+    
+    def description(self, description: str) -> 'PluginBuilder':
+        """Set plugin description."""
+        self.config.description = description
+        return self
+    
+    def author(self, author: str, email: Optional[str] = None) -> 'PluginBuilder':
+        """Set plugin author."""
+        self.config.author = author
+        if email:
+            self.config.email = email
+        return self
+    
+    def category(self, category: str) -> 'PluginBuilder':
+        """Set plugin category."""
+        self.config.category = category
+        return self
+    
+    def tags(self, *tags: str) -> 'PluginBuilder':
+        """Set plugin tags."""
+        self.config.tags = list(tags)
+        return self
+    
+    def permissions(self, *permissions: str) -> 'PluginBuilder':
+        """Set required permissions."""
+        self.config.permissions = list(permissions)
+        return self
+    
+    def dependencies(self, *dependencies: str) -> 'PluginBuilder':
+        """Set plugin dependencies."""
+        self.config.dependencies = list(dependencies)
+        return self
+    
+    def on_message(self, handler: Callable) -> 'PluginBuilder':
+        """Set message handler."""
+        self._handlers['message'] = handler
+        return self
+    
+    def on_user_join(self, handler: Callable) -> 'PluginBuilder':
+        """Set user join handler."""
+        self._handlers['user_join'] = handler
+        return self
+    
+    def command(self, name: str, handler: Callable) -> 'PluginBuilder':
+        """Add command handler."""
+        self._commands[name] = handler
+        return self
+    
+    def api_route(self, path: str, method: str, handler: Callable) -> 'PluginBuilder':
+        """Add API route."""
+        self._routes.append({
+            "path": path,
+            "method": method,
+            "handler": handler
+        })
+        return self
+    
+    def ui_page(self, name: str, path: str, title: str) -> 'PluginBuilder':
+        """Add UI page."""
+        self._ui_pages.append({
+            "name": name,
+            "path": path,
+            "title": title
+        })
+        return self
+    
+    def build(self) -> SDKPlugin:
+        """Build the plugin."""
+        class BuiltPlugin(SDKPlugin):
+            def __init__(self, config, handlers, commands, routes, ui_pages):
+                super().__init__(config)
+                self._handlers = handlers
+                self._commands = commands
+                self._routes = routes
+                self._ui_pages = ui_pages
+            
+            async def on_load(self):
+                self.logger.info(f"Plugin {self.config.name} loaded")
+                return True
+            
+            async def on_unload(self):
+                self.logger.info(f"Plugin {self.config.name} unloaded")
+                return True
+            
+            async def on_message(self, message_data):
+                if 'message' in self._handlers:
+                    return await self._handlers['message'](message_data)
+                return None
+            
+            async def on_user_join(self, user_data):
+                if 'user_join' in self._handlers:
+                    return await self._handlers['user_join'](user_data)
+                return None
+            
+            def get_commands(self):
+                return self._commands
+            
+            def get_api_routes(self):
+                return self._routes
+            
+            def get_ui_pages(self):
+                return self._ui_pages
+        
+        return BuiltPlugin(self.config, self._handlers, self._commands, self._routes, self._ui_pages)
+
+# Convenience functions
+def create_plugin(name: str) -> PluginBuilder:
+    """Create a new plugin using the builder pattern."""
+    return PluginBuilder(name)
+
+def register_plugin(plugin: SDKPlugin) -> bool:
+    """Register a plugin with the system."""
+    try:
+        logger.info(f"Registering plugin: {plugin.config.name}")
+        # This would integrate with the actual plugin manager
+        return True
+    except Exception as e:
+        logger.error(f"Error registering plugin: {e}")
+        return False
+
+__all__ = [
+    "PluginConfig", "PluginAPI", "SDKPlugin", "PluginBuilder",
+    "create_plugin", "register_plugin"
+]

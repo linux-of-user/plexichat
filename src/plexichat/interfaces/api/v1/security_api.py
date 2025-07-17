@@ -14,8 +14,8 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from plexichat.core.logging import get_logger
-from plexichat.core_system.security.certificate_manager import get_certificate_manager
-from plexichat.core_system.security.unified_security_manager import (
+from plexichat.core.security.certificate_manager import get_certificate_manager
+from plexichat.core.security.unified_security_manager import (
     get_unified_security_manager,
 )
 from plexichat.features.security.network_protection import get_network_protection

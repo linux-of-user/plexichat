@@ -51,7 +51,7 @@ class TaskScheduler:
             
         try:
             self.scheduler = BackgroundScheduler()
-            self.if scheduler and hasattr(scheduler, "start"): scheduler.start()
+            if self.scheduler and hasattr(self.scheduler, "start"): self.scheduler.start()
             self.running = True
             logger.info("Task scheduler started successfully")
             return True

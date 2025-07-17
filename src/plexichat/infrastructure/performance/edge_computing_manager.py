@@ -28,7 +28,31 @@ from plexichat.core.logging import get_logger
 
 
 
-import psutil
+try:
+    import psutil
+except ImportError:
+    # Mock psutil for when it's not available
+    class MockPsutil:
+        @staticmethod
+        def cpu_percent():
+            return 50.0
+
+        @staticmethod
+        def virtual_memory():
+            class MockMemory:
+                percent = 60.0
+                available = 1024 * 1024 * 1024  # 1GB
+            return MockMemory()
+
+        @staticmethod
+        def disk_usage(path):
+            # Mock disk usage for path
+            class MockDisk:
+                percent = 70.0
+                free = 1024 * 1024 * 1024  # 1GB
+            return MockDisk()
+
+    psutil = MockPsutil()
 
 """
 PlexiChat Edge Computing & Auto-scaling Manager
@@ -868,6 +892,7 @@ class EdgeComputingManager:
 
             # For demonstration, simulate adding nodes
             for i, target in enumerate(target_nodes):
+                logger.info(f"Adding node {i} with target {target}")
                 new_node = EdgeNode(
                     node_id=f"auto_scaled_{int(time.time())}_{i}",
                     node_type=NodeType.EDGE,
@@ -1034,11 +1059,13 @@ class EdgeComputingManager:
             # Remove from all routing groups
             for service, nodes in self.routing_table.items():
                 if node_id in nodes:
+                    logger.info(f"Removing node {node_id} from service {service}")
                     nodes.remove(node_id)
 
             # Remove from node groups
             for group, nodes in self.node_groups.items():
                 if node_id in nodes:
+                    logger.info(f"Removing node {node_id} from group {group}")
                     nodes.remove(node_id)
 
             logger.info(f" Node {node_id} removed from routing")

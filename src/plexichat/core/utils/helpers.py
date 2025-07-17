@@ -27,7 +27,7 @@ except ImportError:
 
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-    from plexichat.core_system.logging.performance_logger import get_performance_logger
+    from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
@@ -516,11 +516,12 @@ def current_timestamp() -> int:
 def format_bytes(bytes_value: int) -> str:
     """Format bytes to human readable string."""
     try:
+        value = float(bytes_value)
         for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-            if bytes_value < 1024.0:
-                return f"{bytes_value:.1f} {unit}"
-            bytes_value /= 1024.0
-        return f"{bytes_value:.1f} PB"
+            if value < 1024.0:
+                return f"{value:.1f} {unit}"
+            value /= 1024.0
+        return f"{value:.1f} PB"
     except Exception:
         return f"{bytes_value} B"
 

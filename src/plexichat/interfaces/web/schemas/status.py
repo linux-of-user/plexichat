@@ -30,12 +30,11 @@ def get_status():
     with Session(engine) as session:
         total_users = session.exec(select(User)).count()
         total_messages = session.exec(select(Message)).count()
+    from datetime import datetime
     return {
         "status": "ok",
-        "uptime": f"{(from datetime import datetime
-datetime.utcnow() - datetime(2025,1,1)).total_seconds()} seconds",  # example
+        "uptime": f"{(datetime.utcnow() - datetime(2025,1,1)).total_seconds()} seconds",  # example
         "total_users": total_users,
         "total_messages": total_messages,
-        "server_time": from datetime import datetime
-datetime.utcnow().isoformat() + "Z",
+        "server_time": datetime.utcnow().isoformat() + "Z",
     }

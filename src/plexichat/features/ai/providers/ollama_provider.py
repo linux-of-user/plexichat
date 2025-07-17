@@ -55,8 +55,7 @@ class OllamaModel:
             tag=data.get("tag", "latest"),
             size=data.get("size", 0),
             digest=data.get("digest", ""),
-            modified_at=datetime.fromisoformat(data.get("modified_at", from datetime import datetime
-datetime = datetime.now().isoformat())),
+            modified_at=datetime.fromisoformat(data.get("modified_at", datetime.now().isoformat())),
             details=data.get("details", {})
         )
 
@@ -73,6 +72,8 @@ class OllamaProvider(BaseAIProvider):
     async def _test_connection(self) -> bool:
         """Test Ollama connection."""
         try:
+            if not self.session:
+                return False
             async with self.session.get(f"{self.config.base_url}/api/tags") as response:
                 if response.status == 200:
                     data = await response.json()
@@ -144,6 +145,8 @@ class OllamaProvider(BaseAIProvider):
             }
 
             # Make request
+            if not self.session:
+                raise Exception("Session not available")
             async with self.session.post(
                 f"{self.config.base_url}/api/generate",
                 json=payload
@@ -230,6 +233,8 @@ class OllamaProvider(BaseAIProvider):
             }
 
             # Make streaming request
+            if not self.session:
+                raise Exception("Session not available")
             async with self.session.post(
                 f"{self.config.base_url}/api/generate",
                 json=payload
@@ -275,6 +280,8 @@ class OllamaProvider(BaseAIProvider):
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available models."""
         try:
+            if not self.session:
+                return []
             async with self.session.get(f"{self.config.base_url}/api/tags") as response:
                 if response.status == 200:
                     data = await response.json()
@@ -319,6 +326,8 @@ class OllamaProvider(BaseAIProvider):
         try:
             payload = {"name": model_id}
 
+            if not self.session:
+                return False
             async with self.session.post(
                 f"{self.config.base_url}/api/pull",
                 json=payload
@@ -353,6 +362,8 @@ class OllamaProvider(BaseAIProvider):
         try:
             payload = {"name": model_id}
 
+            if not self.session:
+                return False
             async with self.session.delete(
                 f"{self.config.base_url}/api/delete",
                 json=payload
@@ -374,6 +385,8 @@ class OllamaProvider(BaseAIProvider):
         try:
             payload = {"name": model_id}
 
+            if not self.session:
+                return {}
             async with self.session.post(
                 f"{self.config.base_url}/api/show",
                 json=payload
@@ -410,6 +423,8 @@ class OllamaProvider(BaseAIProvider):
 
         try:
             # Test basic connectivity
+            if not self.session:
+                return health_info
             async with self.session.get(f"{self.config.base_url}/api/tags") as response:
                 health_info["api_accessible"] = response.status == 200
                 if response.status == 200:

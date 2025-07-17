@@ -3,8 +3,8 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .error_handler import (
 from typing import Optional
+from .error_handler import (
     ErrorHandler,
     ErrorSeverity,
     SystemMonitor,

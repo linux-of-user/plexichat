@@ -38,19 +38,23 @@ intelligent dependency resolution, and seamless service integration.
 try:
     from plexichat.features.security import security_manager
     from plexichat.features.security.distributed_key_manager import distributed_key_manager
-except ImportError: Optional[security_manager] = None
+except ImportError:
+    security_manager = None
     distributed_key_manager = None
 
 try:
     from plexichat.infrastructure.services.service_loader import ServiceLoader
-except ImportError: Optional[ServiceLoader] = None
+except ImportError:
+    ServiceLoader = None
     ServiceMetadata = None
     ServiceType = None
     ServicePriority = None
     SecureService = None
 
 try:
-except ImportError: Optional[CacheManager] = None
+    from plexichat.core.caching import CacheManager
+except ImportError:
+    CacheManager = None
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +223,8 @@ class SecureModule:
 
             # Start service if available
             if self.service_instance:
-                await self.if service_instance and hasattr(service_instance, "start"): service_instance.start()
+                if hasattr(self.service_instance, "start"):
+                    await self.service_instance.start()
 
             self.status = ModuleStatus.ACTIVE
             self.health.status = ModuleStatus.ACTIVE
@@ -246,7 +251,8 @@ class SecureModule:
         try:
             # Stop service if running
             if self.service_instance:
-                await self.if service_instance and hasattr(service_instance, "stop"): service_instance.stop()
+                if hasattr(self.service_instance, "stop"):
+                    await self.service_instance.stop()
 
             # Deactivate module
             if hasattr(self.module_instance, 'deactivate'):
