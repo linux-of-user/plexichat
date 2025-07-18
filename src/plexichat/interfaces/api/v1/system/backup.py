@@ -9,7 +9,7 @@ from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.auth import require_admin
 from plexichat.core.backup.backup_manager import backup_manager
 from plexichat.core.security.input_validation import get_input_validator  # type: ignore
-from plexichat.core.security.unified_audit_system import (
+from plexichat.core.security.unified_audit_system import ()
     get_unified_audit_system, SecurityEventType, SecuritySeverity, ThreatLevel
 )
 from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel  # type: ignore
@@ -32,7 +32,7 @@ async def require_backup_auth(request: Request, token: str = Depends(security)) 
     try:
         auth_result = await auth_manager.require_authentication(token.credentials, AuthSecurityLevel.HIGH)  # type: ignore
         if not auth_result.get('authenticated'):
-            audit_system.log_security_event(  # type: ignore
+            audit_system.log_security_event(  # type: ignore)
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Failed backup authentication from {request.client.host if request.client else 'unknown'}",
                 SecuritySeverity.WARNING,
@@ -44,7 +44,7 @@ async def require_backup_auth(request: Request, token: str = Depends(security)) 
             raise HTTPException(status_code=401, detail="Authentication required")
         permissions = auth_result.get('permissions', [])
         if not any(perm in permissions for perm in ['admin', 'super_admin', 'backup_admin']):
-            audit_system.log_security_event(  # type: ignore
+            audit_system.log_security_event(  # type: ignore)
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Insufficient permissions for backup operations: {permissions}",
                 SecuritySeverity.WARNING,
@@ -77,7 +77,7 @@ class BackupResponse(BaseModel):
 @router.get("/status")
 async def get_backup_status(request: Request, current_user: dict = Depends(require_backup_auth)) -> Dict[str, Any]:  # type: ignore
     try:
-        audit_system.log_security_event(  # type: ignore
+        audit_system.log_security_event(  # type: ignore)
             SecurityEventType.DATA_ACCESS,
             "Backup system status requested",
             SecuritySeverity.INFO,
@@ -88,7 +88,7 @@ async def get_backup_status(request: Request, current_user: dict = Depends(requi
             action="GET"
         )
         status = backup_manager.get_stats()
-        audit_system.log_security_event(  # type: ignore
+        audit_system.log_security_event(  # type: ignore)
             SecurityEventType.DATA_ACCESS,
             "Backup system status accessed successfully",
             SecuritySeverity.INFO,

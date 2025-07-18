@@ -66,14 +66,14 @@ class ConfigUpdateRequest(BaseModel):
 async def require_admin(current_user: Dict = Depends(get_current_user)):
     """Require admin permissions."""
     if not current_user.get("is_admin", False):
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
     return current_user
 
 @router.get("/users", response_model=List[UserResponse])
-async def list_users(
+async def list_users()
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     search: Optional[str] = None,
@@ -83,15 +83,15 @@ async def list_users(
     try:
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
-        
-        users = await auth_manager.list_users(
+
+        users = await auth_manager.list_users()
             skip=skip,
             limit=limit,
             search=search
         )
-        
+
         return [
-            UserResponse(
+            UserResponse()
                 user_id=user["user_id"],
                 username=user["username"],
                 email=user["email"],
@@ -103,7 +103,7 @@ async def list_users(
             )
             for user in users
         ]
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -111,7 +111,7 @@ async def list_users(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/users", response_model=UserResponse)
-async def create_user(
+async def create_user()
     request: CreateUserRequest,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -119,19 +119,19 @@ async def create_user(
     try:
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
-        
-        result = await auth_manager.create_user(
+
+        result = await auth_manager.create_user()
             username=request.username,
             email=request.email,
             password=request.password,
             roles=request.roles,
             is_admin=request.is_admin
         )
-        
+
         if not result.success:
             raise HTTPException(status_code=400, detail=result.message)
-        
-        return UserResponse(
+
+        return UserResponse()
             user_id=result.user_id,
             username=request.username,
             email=request.email,
@@ -140,7 +140,7 @@ async def create_user(
             is_admin=request.is_admin,
             created_at=result.created_at or ""
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -148,7 +148,7 @@ async def create_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(
+async def get_user()
     user_id: str,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -156,13 +156,13 @@ async def get_user(
     try:
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
-        
+
         user = await auth_manager.get_user_by_id(user_id)
-        
+
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
-        return UserResponse(
+
+        return UserResponse()
             user_id=user["user_id"],
             username=user["username"],
             email=user["email"],
@@ -172,7 +172,7 @@ async def get_user(
             created_at=user.get("created_at", ""),
             last_login=user.get("last_login")
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -180,7 +180,7 @@ async def get_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(
+async def update_user()
     user_id: str,
     request: UpdateUserRequest,
     admin_user: Dict = Depends(require_admin)
@@ -189,23 +189,23 @@ async def update_user(
     try:
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
-        
+
         # Get current user data
         user = await auth_manager.get_user_by_id(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
+
         # Update user
         update_data = request.dict(exclude_unset=True)
         result = await auth_manager.update_user(user_id, update_data)
-        
+
         if not result.success:
             raise HTTPException(status_code=400, detail=result.message)
-        
+
         # Get updated user data
         updated_user = await auth_manager.get_user_by_id(user_id)
-        
-        return UserResponse(
+
+        return UserResponse()
             user_id=updated_user["user_id"],
             username=updated_user["username"],
             email=updated_user["email"],
@@ -215,7 +215,7 @@ async def update_user(
             created_at=updated_user.get("created_at", ""),
             last_login=updated_user.get("last_login")
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -223,7 +223,7 @@ async def update_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.delete("/users/{user_id}")
-async def delete_user(
+async def delete_user()
     user_id: str,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -231,18 +231,18 @@ async def delete_user(
     try:
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
-        
+
         # Prevent self-deletion
         if user_id == admin_user.get("user_id"):
             raise HTTPException(status_code=400, detail="Cannot delete your own account")
-        
+
         result = await auth_manager.delete_user(user_id)
-        
+
         if not result.success:
             raise HTTPException(status_code=400, detail=result.message)
-        
+
         return {"message": "User deleted successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -250,7 +250,7 @@ async def delete_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/users/{user_id}/reset-password")
-async def admin_reset_password(
+async def admin_reset_password()
     user_id: str,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -258,17 +258,17 @@ async def admin_reset_password(
     try:
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
-        
+
         result = await auth_manager.admin_reset_password(user_id)
-        
+
         if not result.success:
             raise HTTPException(status_code=400, detail=result.message)
-        
+
         return {
             "message": "Password reset successfully",
             "temporary_password": result.temporary_password
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -280,16 +280,16 @@ async def get_system_stats(admin_user: Dict = Depends(require_admin)):
     """Get system statistics."""
     try:
         stats = {}
-        
+
         if auth_manager:
             user_stats = await auth_manager.get_user_statistics()
             stats.update(user_stats)
-        
+
         # Add system stats
         import psutil
         import time
-        
-        stats.update({
+
+        stats.update({)
             "system_uptime": str(time.time()),
             "memory_usage": {
                 "total": psutil.virtual_memory().total,
@@ -302,9 +302,9 @@ async def get_system_stats(admin_user: Dict = Depends(require_admin)):
                 "percent": psutil.disk_usage('/').percent
             }
         })
-        
+
         return SystemStatsResponse(**stats)
-        
+
     except Exception as e:
         logger.error(f"Get system stats error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -315,20 +315,20 @@ async def get_config(admin_user: Dict = Depends(require_admin)):
     try:
         # Return sanitized config (remove sensitive data)
         config = dict(settings)
-        
+
         # Remove sensitive keys
         sensitive_keys = ["database_url", "secret_key", "api_keys", "passwords"]
         for key in sensitive_keys:
             config.pop(key, None)
-        
+
         return config
-        
+
     except Exception as e:
         logger.error(f"Get config error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/config")
-async def update_config(
+async def update_config()
     request: ConfigUpdateRequest,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -336,18 +336,18 @@ async def update_config(
     try:
         # Validate that key is allowed to be updated
         allowed_keys = ["max_file_size", "session_timeout", "rate_limits"]
-        
+
         if request.key not in allowed_keys:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Configuration key '{request.key}' cannot be updated via API"
             )
-        
+
         # Update configuration
         settings[request.key] = request.value
-        
+
         return {"message": f"Configuration '{request.key}' updated successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -360,7 +360,7 @@ async def start_maintenance(admin_user: Dict = Depends(require_admin)):
     try:
         # This would integrate with the actual maintenance system
         return {"message": "Maintenance mode started"}
-        
+
     except Exception as e:
         logger.error(f"Start maintenance error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -371,13 +371,13 @@ async def stop_maintenance(admin_user: Dict = Depends(require_admin)):
     try:
         # This would integrate with the actual maintenance system
         return {"message": "Maintenance mode stopped"}
-        
+
     except Exception as e:
         logger.error(f"Stop maintenance error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/logs")
-async def get_logs(
+async def get_logs()
     lines: int = Query(100, ge=1, le=10000),
     level: Optional[str] = Query(None),
     admin_user: Dict = Depends(require_admin)
@@ -389,9 +389,9 @@ async def get_logs(
             {"timestamp": "2024-01-01T00:00:00Z", "level": "INFO", "message": "System started"},
             {"timestamp": "2024-01-01T00:01:00Z", "level": "DEBUG", "message": "Debug message"},
         ]
-        
+
         return {"logs": logs[-lines:]}
-        
+
     except Exception as e:
         logger.error(f"Get logs error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

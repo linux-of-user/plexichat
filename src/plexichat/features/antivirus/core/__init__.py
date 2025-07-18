@@ -20,75 +20,75 @@ Core antivirus scanning and detection engines.
 class ThreatLevel(Enum):
     """Threat severity levels."""
 
-    CLEAN = 0
-    SUSPICIOUS = 1
-    LOW_RISK = 2
-    MEDIUM_RISK = 3
-    HIGH_RISK = 4
-    CRITICAL = 5
+CLEAN = 0
+SUSPICIOUS = 1
+LOW_RISK = 2
+MEDIUM_RISK = 3
+HIGH_RISK = 4
+CRITICAL = 5
 
 
 class ScanType(Enum):
     """Types of scans performed."""
 
-    QUICK_SCAN = "quick"
-    FULL_SCAN = "full"
-    HASH_SCAN = "hash"
-    BEHAVIORAL_SCAN = "behavioral"
-    LINK_SCAN = "link"
-    FILENAME_SCAN = "filename"
+QUICK_SCAN = "quick"
+FULL_SCAN = "full"
+HASH_SCAN = "hash"
+BEHAVIORAL_SCAN = "behavioral"
+LINK_SCAN = "link"
+FILENAME_SCAN = "filename"
 
 
 class ThreatType(Enum):
     """Types of threats detected."""
 
-    VIRUS = "virus"
-    MALWARE = "malware"
-    TROJAN = "trojan"
-    RANSOMWARE = "ransomware"
-    SPYWARE = "spyware"
-    ADWARE = "adware"
-    SUSPICIOUS_BEHAVIOR = "suspicious_behavior"
-    PHISHING = "phishing"
-    PHISHING_LINK = "phishing_link"
-    MALICIOUS_FILENAME = "malicious_filename"
-    UNKNOWN_THREAT = "unknown_threat"
+VIRUS = "virus"
+MALWARE = "malware"
+TROJAN = "trojan"
+RANSOMWARE = "ransomware"
+SPYWARE = "spyware"
+ADWARE = "adware"
+SUSPICIOUS_BEHAVIOR = "suspicious_behavior"
+PHISHING = "phishing"
+PHISHING_LINK = "phishing_link"
+MALICIOUS_FILENAME = "malicious_filename"
+UNKNOWN_THREAT = "unknown_threat"
 
 
 @dataclass
 class ScanResult:
     """Result of an antivirus scan."""
 
-    file_path: str
-    file_hash: str
-    threat_level: ThreatLevel
-    threat_type: Optional[ThreatType]
-    threat_name: Optional[str]
-    scan_type: ScanType
-    scan_duration: float
-    detected_at: datetime
-    confidence_score: float
-    details: Dict[str, Any]
-    quarantined: bool = False
-    cleaned: bool = False
+file_path: str
+file_hash: str
+threat_level: ThreatLevel
+threat_type: Optional[ThreatType]
+threat_name: Optional[str]
+scan_type: ScanType
+scan_duration: float
+detected_at: datetime
+confidence_score: float
+details: Dict[str, Any]
+quarantined: bool = False
+cleaned: bool = False
 
 
 @dataclass
 class ThreatSignature:
     """Threat signature for detection."""
 
-    signature_id: str
-    signature_type: str  # 'hash', 'url', 'file', 'pattern'
-    threat_name: str
-    threat_type: ThreatType
-    threat_level: ThreatLevel
-    hash_value: Optional[str] = None  # Combined hash field
-    url_pattern: Optional[str] = None
-    file_pattern: Optional[str] = None
-    confidence_score: float = 0.5
-    source: str = "unknown"
-    description: str = ""
-    created_at: Optional[datetime] = None
+signature_id: str
+signature_type: str  # 'hash', 'url', 'file', 'pattern'
+threat_name: str
+threat_type: ThreatType
+threat_level: ThreatLevel
+hash_value: Optional[str] = None  # Combined hash field
+url_pattern: Optional[str] = None
+file_pattern: Optional[str] = None
+confidence_score: float = 0.5
+source: str = "unknown"
+description: str = ""
+created_at: Optional[datetime] = None
 
 
 # Antivirus configuration constants

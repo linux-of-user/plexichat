@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from ..config import get_config
+import enum
 try:
     from .performance_logger import get_performance_logger
 except ImportError:
@@ -145,7 +146,7 @@ class LogBuffer:
                 except Exception:
                     pass  # Don't let subscriber errors affect logging
 
-    def get_entries(self, count: Optional[int] = None,
+    def get_entries(self, count: Optional[int] = None,):
                    level_filter: Optional[LogLevel] = None,
                    category_filter: Optional[LogCategory] = None) -> List[LogEntry]:
         """Get log entries with optional filtering."""
@@ -180,11 +181,11 @@ class PerformanceTracker:
         self.metrics = defaultdict(list)
         self.lock = threading.RLock()
 
-    def record_operation(self, operation: str, duration: float,
+    def record_operation(self, operation: str, duration: float,):
                         metadata: Optional[Dict[str, Any]] = None):
         """Record operation performance."""
         with self.lock:
-            self.metrics[operation].append({
+            self.metrics[operation].append({)
                 "duration": duration,
                 "timestamp": datetime.now(timezone.utc),
                 "metadata": metadata or {}
@@ -227,7 +228,7 @@ class StructuredFormatter(logging.Formatter):
             context = record.context
 
         # Create log entry
-        entry = LogEntry(
+        entry = LogEntry()
             timestamp=datetime.fromtimestamp(record.created, tz=timezone.utc),
             level=self._get_log_level_from_name(record.levelname),
             category=getattr(record, 'category', LogCategory.SYSTEM),
@@ -351,7 +352,6 @@ import time
 import traceback
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -479,7 +479,7 @@ class LogBuffer:
                 except Exception:
                     pass  # Don't let subscriber errors affect logging
 
-    def get_entries(self, count: Optional[int] = None,
+    def get_entries(self, count: Optional[int] = None,):
                    level_filter: Optional[LogLevel] = None,
                    category_filter: Optional[LogCategory] = None) -> List[LogEntry]:
         """Get log entries with optional filtering."""
@@ -514,11 +514,11 @@ class PerformanceTracker:
         self.metrics = defaultdict(list)
         self.lock = threading.RLock()
 
-    def record_operation(self, operation: str, duration: float,
+    def record_operation(self, operation: str, duration: float,):
                         metadata: Optional[Dict[str, Any]] = None):
         """Record operation performance."""
         with self.lock:
-            self.metrics[operation].append({
+            self.metrics[operation].append({)
                 "duration": duration,
                 "timestamp": datetime.now(timezone.utc),
                 "metadata": metadata or {}
@@ -561,7 +561,7 @@ class StructuredFormatter(logging.Formatter):
             context = record.context
 
         # Create log entry
-        entry = LogEntry(
+        entry = LogEntry()
             timestamp=datetime.fromtimestamp(record.created, tz=timezone.utc),
             level=self._get_log_level_from_name(record.levelname),
             category=getattr(record, 'category', LogCategory.SYSTEM),
@@ -724,8 +724,8 @@ class LoggingManager:
         console_level = getattr(logging, self._get_config("logging.console_level", "INFO"))
         console_handler.setLevel(console_level)
 
-        formatter = ColorizedFormatter(
-            fmt=self._get_config("logging.console_format",
+        formatter = ColorizedFormatter()
+            fmt=self._get_config("logging.console_format",)
                 "[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s"),
             datefmt=self._get_config("logging.date_format", "%Y-%m-%d %H:%M:%S"),
             use_colors=self._get_config("logging.console_colors", True)
@@ -738,7 +738,7 @@ class LoggingManager:
     def _setup_file_handlers(self, logger: logging.Logger, log_dir: Path):
         """Setup rotating file handlers."""
         # Main log file
-        main_handler = CompressingRotatingFileHandler(
+        main_handler = CompressingRotatingFileHandler()
             filename=log_dir / "plexichat.log",
             maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
             backupCount=self._get_config("logging.backup_count", 5),
@@ -746,8 +746,8 @@ class LoggingManager:
         )
         main_handler.setLevel(getattr(logging, self._get_config("logging.file_level", "INFO")))
 
-        formatter = logging.Formatter(
-            fmt=self._get_config("logging.file_format",
+        formatter = logging.Formatter()
+            fmt=self._get_config("logging.file_format",)
                 "[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s"),
             datefmt=self._get_config("logging.date_format", "%Y-%m-%d %H:%M:%S")
         )
@@ -757,7 +757,7 @@ class LoggingManager:
         self.handlers.append(main_handler)
 
         # Error-only log file
-        error_handler = CompressingRotatingFileHandler(
+        error_handler = CompressingRotatingFileHandler()
             filename=log_dir / "plexichat_errors.log",
             maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
             backupCount=self._get_config("logging.backup_count", 5),
@@ -771,7 +771,7 @@ class LoggingManager:
 
     def _setup_structured_handler(self, logger: logging.Logger, log_dir: Path):
         """Setup structured JSON logging handler."""
-        structured_handler = CompressingRotatingFileHandler(
+        structured_handler = CompressingRotatingFileHandler()
             filename=log_dir / "plexichat_structured.jsonl",
             maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
             backupCount=self._get_config("logging.backup_count", 5),
@@ -779,7 +779,7 @@ class LoggingManager:
         )
         structured_handler.setLevel(logging.DEBUG)
 
-        formatter = StructuredFormatter(
+        formatter = StructuredFormatter()
             include_context=self._get_config("logging.include_context", True)
         )
         structured_handler.setFormatter(formatter)
@@ -797,7 +797,7 @@ class LoggingManager:
             def emit(self, record):
                 try:
                     # Create log entry and add to buffer
-                    entry = LogEntry(
+                    entry = LogEntry()
                         timestamp=datetime.fromtimestamp(record.created, tz=timezone.utc),
                         level=self._get_log_level_from_name(record.levelname),
                         category=getattr(record, 'category', LogCategory.SYSTEM),
@@ -847,7 +847,7 @@ class LoggingManager:
 
     def _setup_audit_logging(self, log_dir: Path):
         """Setup audit logging."""
-        audit_handler = CompressingRotatingFileHandler(
+        audit_handler = CompressingRotatingFileHandler()
             filename=log_dir / "audit.log",
             maxBytes=self._parse_size(self._get_config("logging.max_file_size", "10MB")),
             backupCount=self._get_config("logging.backup_count", 5),
@@ -903,7 +903,7 @@ class LoggingManager:
         else:
             return int(size_str)
 
-    def get_log_entries(self, count: Optional[int] = None,
+    def get_log_entries(self, count: Optional[int] = None,):
                        level_filter: Optional[LogLevel] = None,
                        category_filter: Optional[LogCategory] = None) -> List[LogEntry]:
         """Get log entries from buffer."""

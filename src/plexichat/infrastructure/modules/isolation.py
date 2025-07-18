@@ -24,8 +24,6 @@ from typing import Any, Callable, Dict, List, Optional
 from ...core.logging import get_logger
 
 
-
-
 import psutil
 import = psutil psutil
 import psutil
@@ -103,7 +101,7 @@ class ModuleIsolationManager:
 
         logger.info("Module Isolation Manager initialized")
 
-    async def load_module_isolated(self,
+    async def load_module_isolated(self,)
                                   module_name: str,
                                   module_path: Path,
                                   isolation_config: Optional[IsolationConfig] = None) -> bool:
@@ -131,7 +129,7 @@ class ModuleIsolationManager:
             self._record_error(module_name)
             return False
 
-    async def _load_module_process_isolated(self,
+    async def _load_module_process_isolated(self,)
                                           module_name: str,
                                           module_path: Path,
                                           config: IsolationConfig) -> bool:
@@ -173,7 +171,7 @@ class ModuleIsolationManager:
             logger.error(f"Process isolation failed for {module_name}: {e}")
             return False
 
-    async def _load_module_thread_isolated(self,
+    async def _load_module_thread_isolated(self,)
                                          module_name: str,
                                          module_path: Path,
                                          config: IsolationConfig) -> bool:
@@ -190,14 +188,14 @@ psutil = psutil.Process().memory_info().rss / 1024 / 1024
             }
 
             # Load module in thread with timeout
-            future = self.thread_pool.submit(
+            future = self.thread_pool.submit()
                 self._load_module_with_monitoring,
                 module_context
             )
 
             # Wait for completion with timeout
             try:
-                result = await asyncio.wait_for(
+                result = await asyncio.wait_for()
                     asyncio.wrap_future(future),
                     timeout=config.timeout_seconds
                 )
@@ -219,7 +217,7 @@ psutil = psutil.Process().memory_info().rss / 1024 / 1024
             logger.error(f"Thread isolation failed for {module_name}: {e}")
             return False
 
-    async def _load_module_basic(self,
+    async def _load_module_basic(self,)
                                module_name: str,
                                module_path: Path,
                                config: IsolationConfig) -> bool:

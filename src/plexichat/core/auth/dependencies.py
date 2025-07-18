@@ -5,8 +5,6 @@ from typing import Any, Dict, HTTPException, List, Optional, status
 from .manager_auth import auth_manager
 
 
-
-
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -25,7 +23,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     try:
         # Import here to avoid circular imports
         if not credentials:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required",
                 headers={"WWW-Authenticate": "Bearer"},
@@ -34,7 +32,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         # Validate token
         user_data = await auth_manager.validate_token(credentials.credentials)
         if not user_data:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
@@ -57,7 +55,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise
     except Exception as e:
         logger.error(f"Authentication error: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed",
             headers={"WWW-Authenticate": "Bearer"},
@@ -66,7 +64,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 async def get_current_admin_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get current user with admin privileges."""
     if not current_user.get("is_admin", False):
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
@@ -75,7 +73,7 @@ async def get_current_admin_user(current_user: Dict[str, Any] = Depends(get_curr
 async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get current active user."""
     if not current_user.get("is_active", True):
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
         )
@@ -86,7 +84,7 @@ def require_permission(permission: str):
     async def permission_dependency(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
         user_permissions = current_user.get("permissions", [])
         if permission not in user_permissions and not current_user.get("is_admin", False):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Permission '{permission}' required"
             )
@@ -101,7 +99,7 @@ def require_permissions(*permissions):
 
         for permission in permissions:
             if permission not in user_permissions and not is_admin:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Permission '{permission}' required"
                 )

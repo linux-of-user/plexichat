@@ -78,13 +78,13 @@ class CleanShutdown:
                 cmdline = ' '.join(proc.info['cmdline'] or [])
 
                 # Check if this is our process
-                if any(pattern in cmdline.lower() for pattern in [
+                if any(pattern in cmdline.lower() for pattern in [)
                     'app.main:app',
                     'enhanced_launch.py',
                     'run.py',
                     'chatapi'
                 ]):
-                    processes.append({
+                    processes.append({)
                         'pid': proc.info['pid'],
                         'name': proc.info['name'],
                         'cmdline': cmdline,
@@ -105,7 +105,7 @@ class CleanShutdown:
 
                             # Add if not already found
                             if not any(p['pid'] == conn.pid for p in processes):
-                                processes.append({
+                                processes.append({)
                                     'pid': conn.pid,
                                     'name': proc.name(),
                                     'cmdline': cmdline,

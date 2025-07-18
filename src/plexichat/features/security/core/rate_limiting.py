@@ -13,7 +13,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 
-
 """
 PlexiChat Rate Limiting System
 
@@ -283,7 +282,7 @@ class RateLimiter:
         # Check if IP is permanently banned
         if request.ip_address in self.banned_ips:
             self.stats["blocked_requests"] += 1
-            return LimitStatus(
+            return LimitStatus()
                 allowed=False,
                 limit_type=LimitType.REQUESTS_PER_SECOND,
                 current_count=0,
@@ -298,7 +297,7 @@ class RateLimiter:
             ban_until = self.temporary_bans[request.ip_address]
             if request.timestamp < ban_until:
                 self.stats["blocked_requests"] += 1
-                return LimitStatus(
+                return LimitStatus()
                     allowed=False,
                     limit_type=LimitType.REQUESTS_PER_SECOND,
                     current_count=0,
@@ -327,7 +326,7 @@ class RateLimiter:
             # Block if IP is blacklisted
             if request.ip_address in limit.blacklist_ips:
                 self.stats["blocked_requests"] += 1
-                return LimitStatus(
+                return LimitStatus()
                     allowed=False,
                     limit_type=limit.limit_type,
                     current_count=0,
@@ -343,7 +342,7 @@ class RateLimiter:
                 return status
 
         # All limits passed
-        return LimitStatus(
+        return LimitStatus()
             allowed=True,
             limit_type=LimitType.REQUESTS_PER_SECOND,
             current_count=0,
@@ -367,7 +366,7 @@ class RateLimiter:
             return await self._check_upload_limit(request, limit, key, threat_level)
 
         # Default to allowing
-        return LimitStatus(
+        return LimitStatus()
             allowed=True,
             limit_type=limit.limit_type,
             current_count=0,
@@ -393,7 +392,7 @@ class RateLimiter:
         if current_count >= max_allowed:
             action_taken = await self._take_action(request, limit, threat_level)
 
-            return LimitStatus(
+            return LimitStatus()
                 allowed=False,
                 limit_type=limit.limit_type,
                 current_count=current_count,
@@ -407,7 +406,7 @@ class RateLimiter:
         # Add request to window
         window.add_request(request.timestamp)
 
-        return LimitStatus(
+        return LimitStatus()
             allowed=True,
             limit_type=limit.limit_type,
             current_count=current_count + 1,
@@ -427,7 +426,7 @@ class RateLimiter:
         if not bucket.consume(tokens_needed):
             action_taken = await self._take_action(request, limit, threat_level)
 
-            return LimitStatus(
+            return LimitStatus()
                 allowed=False,
                 limit_type=limit.limit_type,
                 current_count=int(bucket.capacity - bucket.tokens),
@@ -438,7 +437,7 @@ class RateLimiter:
                 threat_level=threat_level
             )
 
-        return LimitStatus(
+        return LimitStatus()
             allowed=True,
             limit_type=limit.limit_type,
             current_count=int(bucket.capacity - bucket.tokens),
@@ -451,7 +450,7 @@ class RateLimiter:
         """Check login attempt rate limit."""
         # Only apply to login endpoints
         if "login" not in request.endpoint.lower() and "auth" not in request.endpoint.lower():
-            return LimitStatus(
+            return LimitStatus()
                 allowed=True,
                 limit_type=limit.limit_type,
                 current_count=0,
@@ -466,7 +465,7 @@ class RateLimiter:
         """Check file upload rate limit."""
         # Only apply to upload endpoints
         if "upload" not in request.endpoint.lower() and request.method.upper() != "POST":
-            return LimitStatus(
+            return LimitStatus()
                 allowed=True,
                 limit_type=limit.limit_type,
                 current_count=0,
@@ -710,7 +709,7 @@ class RateLimiter:
         for fingerprint, requests in self.behavioral_analyzer.request_patterns.items():
             if requests and requests[0].ip_address == ip_address:
                 # Create a dummy request to get threat level
-                dummy_request = RequestInfo(
+                dummy_request = RequestInfo()
                     ip_address=ip_address,
                     user_id=None,
                     endpoint="/",
@@ -739,7 +738,7 @@ class RateLimiter:
             # Import limits
             if "limits" in config:
                 for limit_name, limit_data in config["limits"].items():
-                    limit = RateLimit(
+                    limit = RateLimit()
                         limit_type=LimitType(limit_data["limit_type"]),
                         max_requests=limit_data["max_requests"],
                         window_seconds=limit_data["window_seconds"],

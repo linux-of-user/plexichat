@@ -7,16 +7,12 @@ import logging
 from typing import Any, Dict, List, Optional
 
 
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.auth.dependencies import (
+from plexichat.core.auth.dependencies import ()
     from plexichat.infrastructure.utils.auth import require_admin,
-from plexichat.core.performance.multi_tier_cache_manager import (
+from plexichat.core.performance.multi_tier_cache_manager import ()
 
     from,
     import,
@@ -112,7 +108,7 @@ async def get_cache_status(current_user: Dict = Depends(require_auth)):
 
 
 @router.get("/stats", response_model=Dict[str, Any])
-async def get_cache_stats(
+async def get_cache_stats()
     tier: Optional[str] = Query(None, description="Specific tier to get stats for"),
     detailed: bool = Query(False, description="Include detailed statistics"),
     current_user: Dict = Depends(require_auth)
@@ -165,7 +161,7 @@ async def get_cache_stats(
 
 
 @router.get("/{key}", response_model=Dict[str, Any])
-async def get_cached_value(
+async def get_cached_value()
     key: str,
     default: Optional[str] = Query(None, description="Default value if key not found"),
     current_user: Dict = Depends(require_auth)
@@ -202,7 +198,7 @@ async def get_cached_value(
 
 
 @router.post("/{key}", response_model=CacheResponse)
-async def set_cached_value(
+async def set_cached_value()
     key: str,
     request: CacheSetRequest,
     current_user: Dict = Depends(require_auth)
@@ -229,7 +225,7 @@ async def set_cached_value(
 
         priority_map.get(request.priority, MessagePriority.NORMAL)
 
-        success = await cache_manager.set(
+        success = await cache_manager.set()
             key=key,
             value=request.value,
             ttl_seconds=request.ttl_seconds
@@ -238,7 +234,7 @@ async def set_cached_value(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to set cached value")
 
-        return CacheResponse(
+        return CacheResponse()
             success=True,
             message=f"Successfully cached key '{key}'",
             data={"key": key, "ttl_seconds": request.ttl_seconds},
@@ -253,7 +249,7 @@ async def set_cached_value(
 
 
 @router.delete("/{key}", response_model=CacheResponse)
-async def delete_cached_value(
+async def delete_cached_value()
     key: str,
     current_user: Dict = Depends(require_auth)
 ):
@@ -279,7 +275,7 @@ async def delete_cached_value(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to delete cached value")
 
-        return CacheResponse(
+        return CacheResponse()
             success=True,
             message=f"Successfully deleted key '{key}' from cache",
             data={"key": key},
@@ -294,7 +290,7 @@ async def delete_cached_value(
 
 
 @router.post("/clear", response_model=CacheResponse)
-async def clear_cache(
+async def clear_cache()
     request: CacheClearRequest,
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
 ):
@@ -306,7 +302,7 @@ async def clear_cache(
     """
     try:
         if not request.confirm:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail="Confirmation required for destructive cache clear operation"
             )
@@ -339,7 +335,7 @@ async def clear_cache(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to clear cache")
 
-        return CacheResponse(
+        return CacheResponse()
             success=True,
             message=message,
             data={"tier": request.tier or "all"},
@@ -394,7 +390,7 @@ async def get_cache_health(current_user: Dict = Depends(require_auth)):
 
 
 @router.post("/warm", response_model=CacheResponse)
-async def trigger_cache_warming(
+async def trigger_cache_warming()
     request: CacheWarmRequest,
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
 ):
@@ -414,7 +410,7 @@ async def trigger_cache_warming(
         # For now, return success response
         patterns = request.patterns or ["all_patterns"]
 
-        return CacheResponse(
+        return CacheResponse()
             success=True,
             message=f"Cache warming triggered for patterns: {', '.join(patterns)}",
             data={"patterns": patterns, "force": request.force},
@@ -456,7 +452,7 @@ async def get_cache_config(current_user: Dict = Depends(from plexichat.infrastru
 
 
 @router.post("/invalidate", response_model=CacheResponse)
-async def invalidate_cache_patterns(
+async def invalidate_cache_patterns()
     request: CacheInvalidateRequest,
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
 ):
@@ -476,7 +472,7 @@ async def invalidate_cache_patterns(
         # For now, return success response
         invalidated_count = len(request.patterns)  # Placeholder
 
-        return CacheResponse(
+        return CacheResponse()
             success=True,
             message=f"Invalidated {invalidated_count} cache patterns",
             data={

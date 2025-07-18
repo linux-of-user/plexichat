@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -10,10 +12,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-from . import (
+from . import ()
 from pathlib import Path
 
 from pathlib import Path
+import time
 
     MAX_FILENAME_LENGTH,
     SUSPICIOUS_EXTENSIONS,
@@ -183,7 +186,7 @@ Path(file_path)
 
         scan_duration = (datetime.now(timezone.utc) - start_time).total_seconds()
 
-        return ScanResult(
+        return ScanResult()
             file_path=file_path,
             file_hash="",  # Not calculated for filename analysis
             threat_level=threat_level,

@@ -14,10 +14,9 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 
-
-
 from plexichat.app.logger_config import logger
-from plexichat.app.models.calling import (
+from plexichat.app.models.calling import ()
+import time
 
     CallInvitation,
     CallParticipant,
@@ -80,24 +79,24 @@ class EncryptionManager:
     @staticmethod
     def generate_key_pair() -> Tuple[str, str]:
         """Generate RSA key pair for key exchange."""
-        private_key = rsa.generate_private_key(
+        private_key = rsa.generate_private_key()
             public_exponent=65537,
             key_size=2048
         )
 
-        private_pem = private_key.private_bytes(
+        private_pem = private_key.private_bytes()
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption()
         )
 
         public_key = private_key.public_key()
-        public_pem = public_key.public_bytes(
+        public_pem = public_key.public_bytes()
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
-        return (
+        return ()
             base64.b64encode(private_pem).decode('utf-8'),
             base64.b64encode(public_pem).decode('utf-8')
         )
@@ -116,9 +115,9 @@ class EncryptionManager:
 
             session_key_bytes = base64.b64decode(session_key.encode('utf-8'))
 
-            encrypted = public_key.encrypt(
+            encrypted = public_key.encrypt()
                 session_key_bytes,
-                padding.OAEP(
+                padding.OAEP()
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
                     algorithm=hashes.SHA256(),
                     label=None
@@ -135,16 +134,16 @@ class EncryptionManager:
         """Decrypt session key with RSA private key."""
         try:
             private_key_bytes = base64.b64decode(private_key_pem.encode('utf-8'))
-            private_key = serialization.load_pem_private_key(
+            private_key = serialization.load_pem_private_key()
                 private_key_bytes,
                 password=None
             )
 
             encrypted_bytes = base64.b64decode(encrypted_key.encode('utf-8'))
 
-            decrypted = private_key.decrypt(
+            decrypted = private_key.decrypt()
                 encrypted_bytes,
-                padding.OAEP(
+                padding.OAEP()
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
                     algorithm=hashes.SHA256(),
                     label=None
@@ -203,7 +202,7 @@ class CallingService:
         self.active_calls: Dict[str, CallSession] = {}
         self.call_participants: Dict[str, List[CallParticipant]] = {}
 
-    async def initiate_call(
+    async def initiate_call()
         self,
         initiator_id: int,
         target_user_ids: List[int],
@@ -221,7 +220,7 @@ class CallingService:
             master_key_hash = hashlib.sha256(master_key.encode()).hexdigest()
 
             # Create call session
-            call_session = CallSession(
+            call_session = CallSession()
                 call_id=call_id,
                 call_type=call_type,
                 initiator_id=initiator_id,
@@ -242,14 +241,14 @@ class CallingService:
             # Create initiator participant
             initiator_private_key, initiator_public_key = self.encryption_manager.generate_key_pair()
 
-            initiator_participant = CallParticipant(
+            initiator_participant = CallParticipant()
                 call_session_id=call_session.id,
                 user_id=initiator_id,
                 peer_id=f"peer_{secrets.token_urlsafe(8)}",
                 connection_id=f"conn_{secrets.token_urlsafe(8)}",
                 status=CallStatus.CONNECTING,
                 public_key=initiator_public_key,
-                session_key_encrypted=self.encryption_manager.encrypt_session_key(
+                session_key_encrypted=self.encryption_manager.encrypt_session_key()
                     master_key, initiator_public_key
                 )
             )
@@ -268,7 +267,7 @@ class CallingService:
             logger.error(f"Failed to initiate call: {e}")
             raise
 
-    async def join_call(
+    async def join_call()
         self,
         call_id: str,
         user_id: int,
@@ -289,12 +288,12 @@ class CallingService:
 
             # Get master key and encrypt for participant
             master_key = self._get_master_key(call_id)  # In production, retrieve securely
-            encrypted_session_key = self.encryption_manager.encrypt_session_key(
+            encrypted_session_key = self.encryption_manager.encrypt_session_key()
                 master_key, public_key
             )
 
             # Create participant
-            participant = CallParticipant(
+            participant = CallParticipant()
                 call_session_id=call_session.id,
                 user_id=user_id,
                 peer_id=f"peer_{secrets.token_urlsafe(8)}",
@@ -310,7 +309,7 @@ class CallingService:
             # Generate WebRTC offer
             self.webrtc_manager.get_ice_configuration()
 
-            call_offer = CallOffer(
+            call_offer = CallOffer()
                 call_id=call_id,
                 offer_sdp=offer_sdp or self._generate_default_sdp(),
                 ice_candidates=[],
@@ -326,7 +325,7 @@ class CallingService:
             logger.error(f"Failed to join call {call_id}: {e}")
             raise
 
-    async def answer_call(
+    async def answer_call()
         self,
         call_id: str,
         user_id: int,
@@ -357,7 +356,7 @@ class CallingService:
             # Update participant status
             participant.status = CallStatus.CONNECTED
 
-            call_answer = CallAnswer(
+            call_answer = CallAnswer()
                 call_id=call_id,
                 answer_sdp=secure_sdp,
                 ice_candidates=[],
@@ -412,7 +411,7 @@ class CallingService:
         """Get real-time call quality metrics."""
         try:
             # In production, this would collect real metrics from WebRTC
-            return CallQuality(
+            return CallQuality()
                 latency_ms=50.0,
                 packet_loss=0.01,
                 bandwidth_kbps=512.0,
@@ -424,14 +423,14 @@ class CallingService:
             logger.error(f"Failed to get call quality for {call_id}: {e}")
             raise
 
-    async def _send_call_invitation(
+    async def _send_call_invitation()
         self,
         call_session: CallSession,
         inviter_id: int,
         invitee_id: int
     ):
         """Send call invitation to user."""
-        CallInvitation(
+        CallInvitation()
             call_session_id=call_session.id,
             inviter_id=inviter_id,
             invitee_id=invitee_id,

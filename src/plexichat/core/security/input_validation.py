@@ -23,6 +23,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import warnings
 PlexiChat Unified Input Validation Framework - SINGLE SOURCE OF TRUTH
 
 CONSOLIDATED from multiple input validation systems:
@@ -166,8 +167,8 @@ class UnifiedInputValidator:
             r"<meta[^>]*>",
             r"<link[^>]*>",
             r"<style[^>]*>.*?</style>",
-            r"expression\s*\(",
-            r"url\s*\(",
+            r"expression\s*\(",)
+            r"url\s*\(",)
             r"@import"
         ]
 
@@ -263,7 +264,7 @@ class UnifiedInputValidator:
             logger.error(f" Input Validator initialization failed: {e}")
             return False
 
-    def validate(self,
+    def validate(self,):
                 value: Any,
                 input_type: InputType,
                 level: ValidationLevel = ValidationLevel.STANDARD,
@@ -402,7 +403,7 @@ class UnifiedInputValidator:
 
         processing_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
-        return ValidationResult(
+        return ValidationResult()
             original_value=original_value,
             sanitized_value=sanitized_value,
             is_valid=is_valid,
@@ -434,7 +435,7 @@ class UnifiedInputValidator:
             # Basic validation
             if not password:
                 errors.append("Password cannot be empty")
-                return PasswordValidationResult(
+                return PasswordValidationResult()
                     original_value=original_value,
                     sanitized_value=sanitized_value,
                     is_valid=False,
@@ -543,7 +544,7 @@ class UnifiedInputValidator:
 
         processing_time = (time.time() - start_time) * 1000
 
-        return PasswordValidationResult(
+        return PasswordValidationResult()
             original_value=original_value,
             sanitized_value=sanitized_value,
             is_valid=is_valid,
@@ -559,7 +560,7 @@ class UnifiedInputValidator:
             suggestions=suggestions
         )
 
-    def validate_dict(self,
+    def validate_dict(self,):
                      data: Dict[str, Any],
                      field_types: Dict[str, InputType],
                      level: ValidationLevel = ValidationLevel.STANDARD) -> Dict[str, ValidationResult]:

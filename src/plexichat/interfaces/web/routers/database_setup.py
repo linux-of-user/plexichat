@@ -4,6 +4,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat Database Setup Router
 
 Enhanced database setup and management with performance optimization.
@@ -69,18 +70,18 @@ class DatabaseConfig(BaseModel):
 
 class DatabaseService:
     """Service class for database operations using EXISTING systems."""
-    
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("database_status") if async_track_performance else lambda f: f
     async def get_database_status(self) -> DatabaseStatus:
         """Get database status using EXISTING database manager."""
         try:
             if self.db_manager:
                 status_data = await self.db_manager.get_status()
-                return DatabaseStatus(
+                return DatabaseStatus()
                     connected=status_data.get("connected", False),
                     database_type=status_data.get("type", "unknown"),
                     version=status_data.get("version"),
@@ -89,7 +90,7 @@ class DatabaseService:
                     health_score=status_data.get("health_score", 0.0)
                 )
             else:
-                return DatabaseStatus(
+                return DatabaseStatus()
                     connected=False,
                     database_type="not_configured",
                     version=None,
@@ -99,7 +100,7 @@ class DatabaseService:
                 )
         except Exception as e:
             logger.error(f"Error getting database status: {e}")
-            return DatabaseStatus(
+            return DatabaseStatus()
                 connected=False,
                 database_type="error",
                 version=None,
@@ -107,7 +108,7 @@ class DatabaseService:
                 last_backup=None,
                 health_score=0.0
             )
-    
+
     async def initialize_database(self) -> Dict[str, Any]:
         """Initialize database using EXISTING initialization system."""
         try:
@@ -135,67 +136,67 @@ class DatabaseService:
 # Initialize service
 database_service = DatabaseService()
 
-@router.get(
+@router.get()
     "/status",
     response_model=DatabaseStatus,
     summary="Get database status"
 )
-async def get_database_status(
+async def get_database_status()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Get comprehensive database status (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Database status requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("database_status_requests", 1, "count")
-    
+
     return await database_service.get_database_status()
 
-@router.post(
+@router.post()
     "/initialize",
     summary="Initialize database"
 )
-async def initialize_database(
+async def initialize_database()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Initialize database schema and tables (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Database initialization requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("database_init_requests", 1, "count")
-    
+
     result = await database_service.initialize_database()
-    
+
     if not result["success"]:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=result["message"]
         )
-    
+
     return result
 
-@router.post(
+@router.post()
     "/migrate",
     summary="Run database migrations"
 )
-async def run_migrations(
+async def run_migrations()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Run database migrations (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Database migration requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("database_migration_requests", 1, "count")
-    
+
     try:
         if database_service.db_manager:
             result = await database_service.db_manager.run_migrations()
@@ -211,27 +212,27 @@ async def run_migrations(
             }
     except Exception as e:
         logger.error(f"Error running migrations: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to run migrations"
         )
 
-@router.post(
+@router.post()
     "/backup",
     summary="Create database backup"
 )
-async def create_backup(
+async def create_backup()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Create database backup (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Database backup requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("database_backup_requests", 1, "count")
-    
+
     try:
         if database_service.db_manager:
             result = await database_service.db_manager.create_backup()
@@ -249,26 +250,26 @@ async def create_backup(
             }
     except Exception as e:
         logger.error(f"Error creating backup: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create backup"
         )
 
-@router.get(
+@router.get()
     "/health",
     summary="Database health check"
 )
-async def database_health_check(
+async def database_health_check()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Perform database health check (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("database_health_checks", 1, "count")
-    
+
     try:
         if database_service.db_manager:
             health_data = await database_service.db_manager.health_check()

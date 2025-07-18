@@ -23,10 +23,10 @@ from datetime import datetime
 from pathlib import Path
 
 from pathlib import Path
-from datetime import datetime
 from pathlib import Path
 
 """
+import time
 PlexiChat Unified Plugin Configuration Manager
 
 Centralizes all plugin configuration management with:
@@ -128,7 +128,7 @@ class PluginConfigurationManager:
             logger.error(f" Configuration Manager initialization failed: {e}")
             return False
 
-    async def register_plugin_config(self,
+    async def register_plugin_config(self,)
                                    plugin_name: str,
                                    config_data: Dict[str, Any],
                                    schema: Optional[PluginConfigSchema] = None) -> bool:
@@ -147,7 +147,7 @@ class PluginConfigurationManager:
             final_config = self._apply_environment_overrides(plugin_name, config_data)
 
             # Create configuration entry
-            config_entry = ConfigurationEntry(
+            config_entry = ConfigurationEntry()
                 plugin_name=plugin_name,
                 config_data=final_config,
                 schema=schema,
@@ -172,7 +172,7 @@ class PluginConfigurationManager:
             logger.error(f"Failed to register plugin config {plugin_name}: {e}")
             return False
 
-    async def update_plugin_config(self,
+    async def update_plugin_config(self,)
                                  plugin_name: str,
                                  config_updates: Dict[str, Any],
                                  validate: bool = True) -> bool:
@@ -314,7 +314,7 @@ class PluginConfigurationManager:
                 with open(schema_file, 'r') as f:
                     schema_data = json.load(f)
 
-                schema = PluginConfigSchema(
+                schema = PluginConfigSchema()
                     name=plugin_name,
                     version=schema_data.get("version", "1.0.0"),
                     schema=schema_data.get("schema", {}),
@@ -440,8 +440,7 @@ class PluginConfigurationManager:
     async def _backup_config(self, plugin_name: str, config_entry: ConfigurationEntry):
         """Backup current configuration."""
         try:
-            backup_file = self.backups_dir / f"{plugin_name}_v{config_entry.version}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}.yaml"
+            backup_file = self.backups_dir / f"{plugin_name}_v{config_entry.version}_{int(datetime.now().timestamp())}.yaml"
 
             backup_data = {
                 "plugin_name": plugin_name,
@@ -498,7 +497,7 @@ Path(event.src_path)
                         logger.info(f"Configuration file changed: {file_path}")
 
                         # Schedule reload
-                        asyncio.create_task(
+                        asyncio.create_task()
                             self.config_manager.reload_plugin_config(plugin_name)
                         )
 

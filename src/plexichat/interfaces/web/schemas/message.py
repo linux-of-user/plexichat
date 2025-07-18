@@ -32,7 +32,7 @@ class MessageBase(BaseModel):
     content: str = Field(..., min_length=1, max_length=2000, description="Message content")
     message_type: MessageType = Field(default=MessageType.TEXT, description="Message type")
     priority: MessagePriority = Field(default=MessagePriority.NORMAL, description="Message priority")
-    
+
     @validator('content')
     def validate_content(cls, v):
         if not v.strip():
@@ -52,7 +52,7 @@ class MessageUpdate(BaseModel):
     content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
     priority: Optional[MessagePriority] = Field(None, description="Updated priority")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Updated metadata")
-    
+
     @validator('content')
     def validate_content(cls, v):
         if v is not None and not v.strip():
@@ -71,7 +71,7 @@ class MessageResponse(MessageBase):
     is_read: bool = Field(default=False, description="Read status")
     is_edited: bool = Field(default=False, description="Edit status")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Message metadata")
-    
+
     class Config:
         from_attributes = True
 
@@ -116,7 +116,7 @@ class MessageSearch(BaseModel):
     message_type: Optional[MessageType] = Field(None, description="Filter by message type")
     start_date: Optional[datetime] = Field(None, description="Start date filter")
     end_date: Optional[datetime] = Field(None, description="End date filter")
-    
+
     @validator('query')
     def validate_query(cls, v):
         if not v.strip():

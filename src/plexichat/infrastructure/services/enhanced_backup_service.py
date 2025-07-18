@@ -24,7 +24,9 @@ from pathlib import Path
 from pathlib import Path
 
 from plexichat.app.logger_config import logger
-from plexichat.app.models.enhanced_backup import (
+from plexichat.app.models.enhanced_backup import ()
+import time
+import uuid
 
     BackupNode,
     BackupRecoveryLog,
@@ -60,20 +62,20 @@ from plexichat.app.models.enhanced_backup import (
 
 class EnhancedBackupService:
     """Government-level secure backup service with automatic distribution."""
-    
+
     def __init__(self, session: Session):
         self.session = session
-        self.from pathlib import Path
-backup_dir = Path()("secure_backups")
+        from pathlib import Path
+self.backup_dir = Path("secure_backups")
         self.backup_dir.mkdir(exist_ok=True, mode=0o700)  # Secure permissions
-        
+
         # Government security standards
         self.min_redundancy_factor = 5  # Minimum 5 copies
         self.max_shard_size = 10 * 1024 * 1024  # 10MB max per shard
         self.encryption_iterations = 200000  # High iteration count
         self.verification_interval_hours = 6  # Verify every 6 hours
-        
-    async def create_automatic_backup(
+
+    async def create_automatic_backup()
         self,
         backup_name: Optional[str] = None,
         security_level: SecurityLevel = SecurityLevel.CONFIDENTIAL,
@@ -83,11 +85,11 @@ backup_dir = Path()("secure_backups")
         try:
             if not backup_name:
                 backup_name = f"auto_backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
-            
+
             logger.info(f"Starting automatic backup: {backup_name}")
-            
+
             # Create backup record
-            backup = EnhancedBackup(
+            backup = EnhancedBackup()
                 backup_name=backup_name,
                 backup_type=BackupType.FULL,
                 security_level=security_level,
@@ -95,60 +97,60 @@ backup_dir = Path()("secure_backups")
                 created_by=created_by,
                 classification_reason="Automatic system backup for data protection"
             )
-            
+
             self.session.add(backup)
             self.session.commit()
             self.session.refresh(backup)
-            
+
             # Export database
             backup_data = await self._export_database()
-            
+
             # Update backup with data statistics
             backup.table_count = backup_data.get('table_count', 0)
             backup.record_count = backup_data.get('record_count', 0)
             backup.message_count = backup_data.get('message_count', 0)
             backup.user_count = backup_data.get('user_count', 0)
             backup.total_size_bytes = len(json.dumps(backup_data).encode())
-            
+
             # Compress data
             compressed_data = await self._compress_data(backup_data)
             backup.compressed_size_bytes = len(compressed_data)
-            
+
             # Generate encryption key and encrypt
             encryption_key, salt = await self._generate_encryption_key()
             encrypted_data = await self._encrypt_data(compressed_data, encryption_key)
             backup.encrypted_size_bytes = len(encrypted_data)
             backup.encryption_key_hash = hashlib.sha512(encryption_key).hexdigest()
             backup.salt = salt.hex()
-            
+
             backup.status = BackupStatus.ENCRYPTING
             self.session.commit()
-            
+
             # Create shards
             shards = await self._create_shards(backup, encrypted_data)
             backup.shard_count = len(shards)
             backup.recovery_threshold = max(1, len(shards) // 2 + 1)
-            
+
             backup.status = BackupStatus.SHARDING
             self.session.commit()
-            
+
             # Distribute shards automatically
             await self._distribute_shards_automatically(backup)
-            
+
             backup.status = BackupStatus.COMPLETED
             backup.completed_at = datetime.now(timezone.utc)
             self.session.commit()
-            
+
             logger.info(f"Automatic backup completed: {backup.uuid}")
             return backup
-            
+
         except Exception as e:
             logger.error(f"Failed to create automatic backup: {e}")
             if 'backup' in locals():
                 backup.status = BackupStatus.FAILED
                 self.session.commit()
             return None
-    
+
     async def _export_database(self) -> Dict[str, Any]:
         """Export entire database to backup format."""
         try:
@@ -162,7 +164,7 @@ backup_dir = Path()("secure_backups")
                     'security_level': 'confidential'
                 }
             }
-            
+
             # Export users
             users = self.session.exec(select(EnhancedUser)).all()
             backup_data['tables']['users'] = [
@@ -178,7 +180,7 @@ backup_dir = Path()("secure_backups")
                 }
                 for user in users
             ]
-            
+
             # Export messages
             messages = self.session.exec(select(Message)).all()
             backup_data['tables']['messages'] = [
@@ -195,76 +197,76 @@ backup_dir = Path()("secure_backups")
                 }
                 for msg in messages
             ]
-            
+
             # Add statistics
             backup_data['table_count'] = len(backup_data['tables'])
             backup_data['record_count'] = sum(len(table) for table in backup_data['tables'].values())
             backup_data['message_count'] = len(backup_data['tables']['messages'])
             backup_data['user_count'] = len(backup_data['tables']['users'])
-            
+
             logger.info(f"Exported database: {backup_data['user_count']} users, {backup_data['message_count']} messages")
             return backup_data
-            
+
         except Exception as e:
             logger.error(f"Failed to export database: {e}")
             raise
-    
+
     async def _compress_data(self, data: Dict[str, Any]) -> bytes:
         """Compress backup data with maximum compression."""
         try:
             json_data = json.dumps(data, separators=(',', ':')).encode('utf-8')
             compressed_data = gzip.compress(json_data, compresslevel=9)
-            
+
             compression_ratio = len(compressed_data) / len(json_data)
             logger.info(f"Compression ratio: {compression_ratio:.2f} ({len(json_data)} -> {len(compressed_data)} bytes)")
-            
+
             return compressed_data
-            
+
         except Exception as e:
             logger.error(f"Failed to compress data: {e}")
             raise
-    
+
     async def _generate_encryption_key(self) -> Tuple[bytes, bytes]:
         """Generate strong encryption key using PBKDF2."""
         try:
             # Generate random salt
             salt = secrets.token_bytes(32)
-            
+
             # Generate random password for key derivation
             password = secrets.token_bytes(64)
-            
+
             # Derive key using PBKDF2
-            kdf = PBKDF2HMAC(
+            kdf = PBKDF2HMAC()
                 algorithm=hashes.SHA512(),
                 length=32,
                 salt=salt,
                 iterations=self.encryption_iterations,
             )
             key = kdf.derive(password)
-            
+
             return key, salt
-            
+
         except Exception as e:
             logger.error(f"Failed to generate encryption key: {e}")
             raise
-    
+
     async def _encrypt_data(self, data: bytes, key: bytes) -> bytes:
         """Encrypt data using AES-256-GCM."""
         try:
             # Create Fernet cipher
             fernet_key = base64.urlsafe_b64encode(key)
             cipher = Fernet(fernet_key)
-            
+
             # Encrypt data
             encrypted_data = cipher.encrypt(data)
-            
+
             logger.info(f"Encrypted {len(data)} bytes to {len(encrypted_data)} bytes")
             return encrypted_data
-            
+
         except Exception as e:
             logger.error(f"Failed to encrypt data: {e}")
             raise
-    
+
     async def _create_shards(self, backup: EnhancedBackup, encrypted_data: bytes) -> List[EnhancedBackupShard]:
         """Create shards from encrypted backup data."""
         try:
@@ -272,22 +274,22 @@ backup_dir = Path()("secure_backups")
             data_size = len(encrypted_data)
             shard_size = min(self.max_shard_size, max(1024*1024, data_size // 100))  # 1MB to 10MB
             shard_count = (data_size + shard_size - 1) // shard_size
-            
+
             logger.info(f"Creating {shard_count} shards of {shard_size} bytes each")
-            
+
             shards = []
             for i in range(shard_count):
                 start_pos = i * shard_size
                 end_pos = min(start_pos + shard_size, data_size)
                 shard_data = encrypted_data[start_pos:end_pos]
-                
+
                 # Calculate multiple checksums for verification
                 sha256_hash = hashlib.sha256(shard_data).hexdigest()
                 sha512_hash = hashlib.sha512(shard_data).hexdigest()
                 blake2b_hash = hashlib.blake2b(shard_data).hexdigest()
-                
+
                 # Create shard record
-                shard = EnhancedBackupShard(
+                shard = EnhancedBackupShard()
                     backup_id=backup.id,
                     shard_index=i,
                     shard_name=f"{backup.backup_name}_shard_{i:04d}",
@@ -300,108 +302,108 @@ backup_dir = Path()("secure_backups")
                     target_distribution_count=backup.redundancy_factor or self.min_redundancy_factor,
                     status=ShardStatus.CREATED
                 )
-                
+
                 self.session.add(shard)
                 shards.append(shard)
-                
+
                 # Save shard data to secure storage
                 await self._save_shard_data(shard, shard_data)
-            
+
             self.session.commit()
             logger.info(f"Created {len(shards)} shards for backup {backup.uuid}")
             return shards
-            
+
         except Exception as e:
             logger.error(f"Failed to create shards: {e}")
             raise
-    
+
     async def _save_shard_data(self, shard: EnhancedBackupShard, data: bytes):
         """Save shard data to secure local storage."""
         try:
             shard_dir = self.backup_dir / "shards" / str(shard.backup_id)
             shard_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-            
+
             shard_file = shard_dir / f"{shard.uuid}.shard"
-            
+
             # Write with secure permissions
             with open(shard_file, 'wb') as f:
                 f.write(data)
-            
+
             # Set secure file permissions
             os.chmod(shard_file, 0o600)
-            
+
             logger.debug(f"Saved shard {shard.uuid} to {shard_file}")
-            
+
         except Exception as e:
             logger.error(f"Failed to save shard data: {e}")
             raise
-    
+
     async def _distribute_shards_automatically(self, backup: EnhancedBackup):
         """Automatically distribute shards to users and backup nodes."""
         try:
             logger.info(f"Starting automatic shard distribution for backup {backup.uuid}")
-            
+
             # Get all shards for this backup
-            shards = self.session.exec(
+            shards = self.session.exec()
                 select(EnhancedBackupShard).where(EnhancedBackupShard.backup_id == backup.id)
             ).all()
-            
+
             # Get available storage locations
             storage_locations = await self._get_available_storage_locations()
-            
+
             if len(storage_locations) < self.min_redundancy_factor:
                 logger.warning(f"Insufficient storage locations: {len(storage_locations)} < {self.min_redundancy_factor}")
-            
+
             distributed_count = 0
-            
+
             for shard in shards:
                 # Distribute each shard to multiple locations
                 distribution_count = 0
                 target_count = min(shard.target_distribution_count, len(storage_locations))
-                
+
                 # Sort storage locations by available space
-                sorted_locations = sorted(
+                sorted_locations = sorted()
                     storage_locations,
                     key=lambda x: x.get('available_space', 0),
                     reverse=True
                 )
-                
+
                 for location in sorted_locations[:target_count]:
                     if await self._distribute_shard_to_location(shard, location):
                         distribution_count += 1
-                
+
                 shard.distribution_count = distribution_count
                 shard.status = ShardStatus.DISTRIBUTED if distribution_count > 0 else ShardStatus.CREATED
                 distributed_count += distribution_count
-            
+
             backup.distributed_shards = len([s for s in shards if s.distribution_count > 0])
             backup.status = BackupStatus.DISTRIBUTING
-            
+
             self.session.commit()
-            
+
             logger.info(f"Distributed {distributed_count} shard copies for backup {backup.uuid}")
-            
+
         except Exception as e:
             logger.error(f"Failed to distribute shards: {e}")
             raise
-    
+
     async def _get_available_storage_locations(self) -> List[Dict[str, Any]]:
         """Get all available storage locations (users + backup nodes)."""
         try:
             locations = []
-            
+
             # Get active backup nodes
-            backup_nodes = self.session.exec(
-                select(BackupNode).where(
-                    (BackupNode.is_active) & 
+            backup_nodes = self.session.exec()
+                select(BackupNode).where()
+                    (BackupNode.is_active) &
                     (BackupNode.is_online)
                 )
             ).all()
-            
+
             for node in backup_nodes:
                 available_space = node.total_capacity_bytes - node.used_capacity_bytes
                 if available_space > 0:
-                    locations.append({
+                    locations.append({)
                         'type': 'backup_node',
                         'id': node.id,
                         'uuid': node.uuid,
@@ -410,16 +412,16 @@ backup_dir = Path()("secure_backups")
                         'security_level': node.security_level,
                         'endpoint': node.endpoint_url
                     })
-            
+
             # Get users with backup quotas
             user_quotas = self.session.exec(select(UserBackupQuota)).all()
-            
+
             for quota in user_quotas:
                 available_space = quota.max_storage_bytes - quota.used_storage_bytes
                 if available_space > 1024 * 1024:  # At least 1MB available
                     user = self.session.get(EnhancedUser, quota.user_id)
                     if user and user.status.value == 'active':
-                        locations.append({
+                        locations.append({)
                             'type': 'user_storage',
                             'id': quota.user_id,
                             'uuid': user.uuid,
@@ -428,17 +430,17 @@ backup_dir = Path()("secure_backups")
                             'security_level': quota.required_security_level,
                             'max_shards': quota.max_shards - quota.used_shards
                         })
-            
+
             logger.info(f"Found {len(locations)} available storage locations")
             return locations
-            
+
         except Exception as e:
             logger.error(f"Failed to get storage locations: {e}")
             return []
-    
-    async def _distribute_shard_to_location(
-        self, 
-        shard: EnhancedBackupShard, 
+
+    async def _distribute_shard_to_location()
+        self,
+        shard: EnhancedBackupShard,
         location: Dict[str, Any]
     ) -> bool:
         """Distribute a shard to a specific storage location."""
@@ -446,9 +448,9 @@ backup_dir = Path()("secure_backups")
             # Check if shard fits in location
             if location['available_space'] < shard.size_bytes:
                 return False
-            
+
             # Create distribution record
-            distribution = ShardDistribution(
+            distribution = ShardDistribution()
                 backup_id=shard.backup_id,
                 shard_id=shard.id,
                 storage_type=location['type'],
@@ -456,7 +458,7 @@ backup_dir = Path()("secure_backups")
                 used_space_bytes=shard.size_bytes,
                 is_active=True
             )
-            
+
             if location['type'] == 'backup_node':
                 distribution.storage_node_id = location['id']
                 distribution.endpoint_url = location.get('endpoint')
@@ -464,26 +466,26 @@ backup_dir = Path()("secure_backups")
             elif location['type'] == 'user_storage':
                 distribution.user_id = location['id']
                 distribution.storage_path = f"/user_backup/{shard.uuid}.shard"
-            
+
             self.session.add(distribution)
-            
+
             # Update location usage
             if location['type'] == 'user_storage':
-                quota = self.session.exec(
+                quota = self.session.exec()
                     select(UserBackupQuota).where(UserBackupQuota.user_id == location['id'])
                 ).first()
                 if quota:
                     quota.used_storage_bytes += shard.size_bytes
                     quota.used_shards += 1
-            
+
             logger.debug(f"Distributed shard {shard.uuid} to {location['type']} {location['name']}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to distribute shard to location: {e}")
             return False
 
-    async def recover_database_from_backup(
+    async def recover_database_from_backup()
         self,
         backup_id: int,
         recovery_type: str = "full",
@@ -498,7 +500,7 @@ backup_dir = Path()("secure_backups")
             logger.info(f"Starting database recovery from backup {backup.uuid}")
 
             # Create recovery log
-            recovery_log = BackupRecoveryLog(
+            recovery_log = BackupRecoveryLog()
                 backup_id=backup_id,
                 recovery_type=recovery_type,
                 requested_by=requested_by,
@@ -571,8 +573,8 @@ backup_dir = Path()("secure_backups")
         """Collect all available shards for a backup."""
         try:
             # Get all shards for the backup
-            shards = self.session.exec(
-                select(EnhancedBackupShard).where(
+            shards = self.session.exec()
+                select(EnhancedBackupShard).where()
                     EnhancedBackupShard.backup_id == backup.id
                 ).order_by(EnhancedBackupShard.shard_index)
             ).all()
@@ -611,8 +613,8 @@ backup_dir = Path()("secure_backups")
                     logger.warning(f"Checksum mismatch for shard {shard.uuid}")
 
             # Check distributed locations
-            distributions = self.session.exec(
-                select(ShardDistribution).where(
+            distributions = self.session.exec()
+                select(ShardDistribution).where()
                     (ShardDistribution.shard_id == shard.id) &
                     (ShardDistribution.is_active)
                 )
@@ -628,7 +630,7 @@ backup_dir = Path()("secure_backups")
             logger.error(f"Failed to verify shard availability: {e}")
             return False
 
-    async def _verify_distributed_shard(
+    async def _verify_distributed_shard()
         self,
         shard: EnhancedBackupShard,
         distribution: ShardDistribution
@@ -685,7 +687,7 @@ backup_dir = Path()("secure_backups")
             # Generate system key (in production, this would be securely stored)
             system_password = b"system_recovery_key_" + backup.uuid.encode()
 
-            kdf = PBKDF2HMAC(
+            kdf = PBKDF2HMAC()
                 algorithm=hashes.SHA512(),
                 length=32,
                 salt=salt,
@@ -730,13 +732,13 @@ backup_dir = Path()("secure_backups")
             # Restore users (only if they don't exist)
             if 'users' in backup_data.get('tables', {}):
                 for user_data in backup_data['tables']['users']:
-                    existing_user = self.session.exec(
+                    existing_user = self.session.exec()
                         select(EnhancedUser).where(EnhancedUser.uuid == user_data['uuid'])
                     ).first()
 
                     if not existing_user:
                         # Create new user from backup
-                        user = EnhancedUser(
+                        user = EnhancedUser()
                             uuid=user_data['uuid'],
                             username=user_data['username'],
                             email=user_data['email'],
@@ -752,12 +754,12 @@ backup_dir = Path()("secure_backups")
                 for msg_data in backup_data['tables']['messages']:
                     if not msg_data.get('is_deleted', False):
                         # Check if message already exists
-                        existing_msg = self.session.exec(
+                        existing_msg = self.session.exec()
                             select(Message).where(Message.id == msg_data['id'])
                         ).first()
 
                         if not existing_msg:
-                            message = Message(
+                            message = Message()
                                 sender_id=msg_data.get('sender_id'),
                                 recipient_id=msg_data.get('recipient_id'),
                                 content=msg_data.get('content'),

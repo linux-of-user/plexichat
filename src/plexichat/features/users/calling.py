@@ -15,6 +15,7 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 Voice and video calling models with end-to-end encryption.
 Supports WebRTC, secure key exchange, and call management.
 """
@@ -59,7 +60,7 @@ class CallSession(SQLModel, table=True):
     __tablename__ = "call_sessions"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -78,7 +79,7 @@ class CallSession(SQLModel, table=True):
     # Encryption details
     encryption_method: EncryptionMethod = Field(default=EncryptionMethod.AES_256_GCM)
     master_key_hash: str = Field(max_length=128)  # Hashed master key
-    session_keys: Dict[str, str] = Field(
+    session_keys: Dict[str, str] = Field()
         default={}, sa_column=Column(JSON)
     )  # Per-participant keys
 
@@ -98,7 +99,7 @@ class CallSession(SQLModel, table=True):
     recording_path: Optional[str] = Field(max_length=500)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
     started_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -120,7 +121,7 @@ class CallSession(SQLModel, table=True):
     initiator: Optional["EnhancedUser"] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_call_session_status", "status", "created_at"),
         Index("idx_call_session_initiator", "initiator_id", "status"),
         Index("idx_call_session_type", "call_type", "status"),
@@ -133,7 +134,7 @@ class CallParticipant(SQLModel, table=True):
     __tablename__ = "call_participants"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -174,7 +175,7 @@ class CallParticipant(SQLModel, table=True):
     user: Optional["EnhancedUser"] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_call_participant_session", "call_session_id", "status"),
         Index("idx_call_participant_user", "user_id", "status"),
     )
@@ -186,7 +187,7 @@ class CallInvitation(SQLModel, table=True):
     __tablename__ = "call_invitations"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -196,7 +197,7 @@ class CallInvitation(SQLModel, table=True):
     invitee_id: int = Field(foreign_key="users_enhanced.id", index=True)
 
     # Invitation status
-    status: str = Field(
+    status: str = Field()
         default="pending", max_length=50, index=True
     )  # pending, accepted, declined, expired
 
@@ -204,7 +205,7 @@ class CallInvitation(SQLModel, table=True):
     message: Optional[str] = Field(max_length=500)
 
     # Timestamps
-    sent_at: datetime = Field(
+    sent_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
     responded_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -219,7 +220,7 @@ class CallInvitation(SQLModel, table=True):
     invitee: Optional["EnhancedUser"] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_call_invitation_invitee", "invitee_id", "status"),
         Index("idx_call_invitation_session", "call_session_id", "status"),
     )
@@ -231,7 +232,7 @@ class CallRecording(SQLModel, table=True):
     __tablename__ = "call_recordings"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -271,7 +272,7 @@ class CallRecording(SQLModel, table=True):
     call_session: Optional[CallSession] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_call_recording_session", "call_session_id", "is_encrypted"),
         Index("idx_call_recording_deletion", "deletion_scheduled_at"),
     )
@@ -283,7 +284,7 @@ class CallAnalytics(SQLModel, table=True):
     __tablename__ = "call_analytics"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -311,10 +312,10 @@ class CallAnalytics(SQLModel, table=True):
     video_quality_score: Optional[float] = Field(ge=0.0, le=1.0)
 
     # Timestamps
-    measurement_start: datetime = Field(
+    measurement_start: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc)
     )
-    measurement_end: datetime = Field(
+    measurement_end: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
@@ -326,9 +327,9 @@ class CallAnalytics(SQLModel, table=True):
     participant: Optional[CallParticipant] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_call_analytics_session", "call_session_id", "measurement_start"),
-        Index(
+        Index()
             "idx_call_analytics_quality", "audio_quality_score", "video_quality_score"
         ),
     )

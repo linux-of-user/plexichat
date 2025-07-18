@@ -8,6 +8,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 """
+import time
 PlexiChat Login Router
 
 Enhanced login interface with comprehensive authentication and performance optimization.
@@ -92,12 +93,12 @@ class LoginResponse(BaseModel):
 
 class LoginService:
     """Service class for login operations using EXISTING database abstraction layer."""
-    
+
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[User]:
         """Authenticate user using EXISTING database abstraction layer."""
@@ -106,52 +107,52 @@ class LoginService:
                 # Use EXISTING database manager with optimized query
                 query = """
                     SELECT id, username, email, hashed_password, is_active
-                    FROM users 
+                    FROM users
                     WHERE username = ? AND is_active = 1
                 """
                 params = {"username": username}
-                
+
                 # Use performance tracking if available
                 if self.performance_logger and timer:
                     with timer("user_lookup"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 if result and len(result) > 0:
                     row = result[0]
-                    user = User(
+                    user = User()
                         id=row[0],  # pyright: ignore
                         username=row[1],  # pyright: ignore
                         email=row[2],  # pyright: ignore
                         hashed_password=row[3],  # pyright: ignore
                         is_active=bool(row[4])  # pyright: ignore
                     )
-                    
+
                     # Verify password
                     if verify_password(password, user.hashed_password):
                         # Update last login
                         await self.update_last_login(user.id)
                         return user
-                
+
                 return None
-                    
+
             except Exception as e:
                 logger.error(f"Error authenticating user: {e}")
                 return None
-        
+
         # Fallback for testing
         if username == "admin" and password == "password":
-            return User(
+            return User()
                 id=1,  # pyright: ignore
                 username="admin",  # pyright: ignore
                 email="admin@example.com",  # pyright: ignore
                 hashed_password="hashed_password",  # pyright: ignore
                 is_active=True  # pyright: ignore
             )
-        
+
         return None
-    
+
     @async_track_performance("last_login_update") if async_track_performance else lambda f: f
     async def update_last_login(self, user_id: int):
         """Update user's last login timestamp."""
@@ -159,20 +160,20 @@ class LoginService:
             try:
                 query = "UPDATE users SET last_login = ? WHERE id = ?"
                 params = {"last_login": datetime.now(), "id": user_id}
-                
+
                 if self.performance_logger and timer:
                     with timer("last_login_update"):
                         await self.db_manager.execute_query(query, params)
                 else:
                     await self.db_manager.execute_query(query, params)
-                    
+
             except Exception as e:
                 logger.error(f"Error updating last login: {e}")
 
 # Initialize service
 login_service = LoginService()
 
-@router.get(
+@router.get()
     "/",
     response_class=HTMLResponse,
     summary="Login page"
@@ -181,11 +182,11 @@ async def login_page(request: Request):
     """Display login page with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Login page accessed from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("login_page_requests", 1, "count")
-    
+
     # Generate login page HTML
     html_content = """
     <!DOCTYPE html>
@@ -284,41 +285,41 @@ async def login_page(request: Request):
                 <h1>PlexiChat</h1>
                 <p>Sign in to your account</p>
             </div>
-            
+
             <div id="error-message" class="error-message"></div>
-            
+
             <form id="login-form" method="post" action="/login/authenticate">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                
+
                 <button type="submit" class="login-button">Sign In</button>
             </form>
-            
+
             <div class="footer">
                 <p>&copy; 2024 PlexiChat. All rights reserved.</p>
             </div>
         </div>
-        
+
         <script>
-            document.getElementById('login-form').addEventListener('submit', async function(e) {
+            document.getElementById('login-form').addEventListener('submit', async function(e) {)
                 e.preventDefault();
-                
+
                 const formData = new FormData(this);
                 const errorDiv = document.getElementById('error-message');
-                
+
                 try {
-                    const response = await fetch('/login/authenticate', {
+                    const response = await fetch('/login/authenticate', {)
                         method: 'POST',
                         body: formData
                     });
-                    
+
                     if (response.ok) {
                         const data = await response.json();
                         localStorage.setItem('access_token', data.access_token);
@@ -337,15 +338,15 @@ async def login_page(request: Request):
     </body>
     </html>
     """
-    
+
     return HTMLResponse(content=html_content)
 
-@router.post(
+@router.post()
     "/authenticate",
     response_model=LoginResponse,
     summary="Authenticate user"
 )
-async def authenticate(
+async def authenticate()
     request: Request,
     username: str = Form(...),
     password: str = Form(...)
@@ -353,25 +354,25 @@ async def authenticate(
     """Authenticate user and return access token with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Login attempt for user '{username}' from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("login_attempts", 1, "count")
-    
+
     try:
         # Authenticate user using service
         user = await login_service.authenticate_user(username, password)
-        
+
         if not user:
             # Performance tracking for failed login
             if performance_logger:
                 performance_logger.record_metric("login_failures", 1, "count")
-            
-            raise HTTPException(
+
+            raise HTTPException()
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password"
             )
-        
+
         # Create access token
         access_token_expires = timedelta(minutes=getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 30))
         token_data = {
@@ -379,16 +380,16 @@ async def authenticate(
             "username": user.username,
             "iat": int(datetime.now().timestamp()),
         }
-        
+
         access_token = create_access_token(data=token_data, expires_delta=access_token_expires)
-        
+
         # Performance tracking for successful login
         if performance_logger:
             performance_logger.record_metric("login_successes", 1, "count")
-        
+
         logger.info(f"User '{user.username}' logged in successfully")
-        
-        return LoginResponse(
+
+        return LoginResponse()
             access_token=access_token,
             token_type="bearer",
             expires_in=int(access_token_expires.total_seconds()),
@@ -399,39 +400,39 @@ async def authenticate(
                 "is_active": user.is_active
             }
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected error during login: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
-@router.post(
+@router.post()
     "/logout",
     summary="Logout user"
 )
-async def logout(
+async def logout()
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Logout user (token invalidation would be handled by client)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"User '{current_user.get('username')}' logged out from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("logout_requests", 1, "count")
-    
+
     return {"message": "Successfully logged out"}
 
-@router.get(
+@router.get()
     "/status",
     summary="Check login status"
 )
-async def login_status(
+async def login_status()
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
@@ -444,7 +445,7 @@ async def login_status(
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("login_status_checks", 1, "count")
-    
+
     return {
         "logged_in": True,
         "user": {

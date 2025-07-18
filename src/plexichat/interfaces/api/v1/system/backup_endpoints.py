@@ -8,9 +8,10 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from ....backup import government_backup_manager
-from ....core_system.security.input_validation import (
+from ....core_system.security.input_validation import ()
 from ....core_system.security.input_validation import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.input_validation import (
+from ....core_system.security.input_validation import ()
+import time
 
 
     API,
@@ -93,14 +94,14 @@ async def require_backup_admin_auth(request: Request, token: str = Depends(secur
     """Require admin authentication for backup operations."""
     try:
         # Validate token with high security level
-        auth_result = await auth_manager.require_authentication(
+        auth_result = await auth_manager.require_authentication()
             token.credentials,
             AuthSecurityLevel.HIGH
         )
 
         if not auth_result.get('authenticated'):
             # Log failed authentication
-            audit_system.log_security_event(
+            audit_system.log_security_event()
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Failed backup admin authentication from {request.client.host if request.client else 'unknown'}",
                 SecuritySeverity.WARNING,
@@ -115,7 +116,7 @@ async def require_backup_admin_auth(request: Request, token: str = Depends(secur
         permissions = auth_result.get('permissions', [])
         if not any(perm in permissions for perm in ['admin', 'super_admin', 'backup_admin', 'system_config']):
             # Log authorization failure
-            audit_system.log_security_event(
+            audit_system.log_security_event()
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Insufficient permissions for backup operations: {permissions}",
                 SecuritySeverity.WARNING,
@@ -127,7 +128,7 @@ async def require_backup_admin_auth(request: Request, token: str = Depends(secur
             raise HTTPException(status_code=403, detail="Admin privileges required for backup operations")
 
         # Log successful authentication
-        audit_system.log_security_event(
+        audit_system.log_security_event()
             SecurityEventType.AUTHENTICATION_SUCCESS,
             "Successful backup admin authentication",
             SecuritySeverity.INFO,
@@ -211,14 +212,14 @@ class UserBackupPreferencesRequest(BaseModel):
 
 # Health and Status Endpoints
 @router.get("/health", response_model=SystemHealthResponse)
-async def get_backup_system_health(
+async def get_backup_system_health()
     request: Request,
     current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Get backup system health status with enhanced security."""
     try:
         # Log access attempt
-        audit_system.log_security_event(
+        audit_system.log_security_event()
             SecurityEventType.DATA_ACCESS,
             "Backup system health check requested",
             SecuritySeverity.INFO,
@@ -229,13 +230,14 @@ async def get_backup_system_health(
             action="GET"
         )
 
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         health = await government_backup_manager.get_system_health()
 
         # Log successful health check
-        audit_system.log_security_event(
+        audit_system.log_security_event()
             SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
             "Backup system health data accessed",
             SecuritySeverity.INFO,
@@ -246,7 +248,7 @@ async def get_backup_system_health(
             details={"status": health.overall_status.value, "active_nodes": health.active_backup_nodes}
         )
 
-        return SystemHealthResponse(
+        return SystemHealthResponse()
             status=health.overall_status.value,
             total_shards=health.total_shards,
             active_nodes=health.active_backup_nodes,
@@ -260,13 +262,14 @@ async def get_backup_system_health(
 
 
 @router.get("/overview")
-async def get_backup_overview(
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+async def get_backup_overview()
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Get backup system overview with recent activities."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         # Get recent backup operations
         recent_operations = await government_backup_manager.list_backups(limit=10)
@@ -274,7 +277,7 @@ async def get_backup_overview(
         # Get recent activities from audit log
         recent_activities = []
         for op in recent_operations[:5]:
-            recent_activities.append({
+            recent_activities.append({)
                 "operation": f"Backup {op.operation_type.value}",
                 "description": f"Backup operation {op.backup_id}",
                 "timestamp": op.created_at.isoformat(),
@@ -294,18 +297,19 @@ async def get_backup_overview(
 
 # Backup Operations
 @router.post("/create", response_model=BackupResponse)
-async def create_backup(
+async def create_backup()
     request: BackupCreateRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Create a new backup operation."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         # Create backup operation
-        operation = await government_backup_manager.create_backup(
+        operation = await government_backup_manager.create_backup()
             name=request.name,
             description=request.description,
             backup_type=request.backup_type,
@@ -315,7 +319,7 @@ async def create_backup(
             created_by=current_user.get("username", "admin")
         )
 
-        return BackupResponse(
+        return BackupResponse()
             backup_id=operation.backup_id,
             name=request.name,
             status=operation.status.value,
@@ -329,15 +333,16 @@ async def create_backup(
 
 
 @router.get("/operations")
-async def list_backup_operations(
+async def list_backup_operations()
     status_filter: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(100, description="Maximum number of operations to return"),
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """List backup operations with optional filtering."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         # Convert string filter to enum
         status_enum = None
@@ -347,7 +352,7 @@ async def list_backup_operations(
             except ValueError:
                 raise HTTPException(status_code=400, detail=f"Invalid status filter: {status_filter}")
 
-        operations = await government_backup_manager.list_backups(
+        operations = await government_backup_manager.list_backups()
             status_filter=status_enum,
             limit=limit
         )
@@ -370,14 +375,15 @@ async def list_backup_operations(
 
 
 @router.get("/operations/{backup_id}")
-async def get_backup_operation(
+async def get_backup_operation()
     backup_id: str,
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Get details of a specific backup operation."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         operation = await government_backup_manager.get_backup_status(backup_id)
         if not operation:
@@ -405,14 +411,15 @@ async def get_backup_operation(
 
 # Shard Management
 @router.get("/shards")
-async def list_shards(
+async def list_shards()
     limit: int = Query(100, description="Maximum number of shards to return"),
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """List backup shards."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         if not government_backup_manager.shard_manager:
             raise HTTPException(status_code=503, detail="Shard manager not available")
@@ -431,13 +438,14 @@ async def list_shards(
 
 
 @router.post("/shards/redistribute")
-async def redistribute_shards(
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+async def redistribute_shards()
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Redistribute shards across backup nodes."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         if not government_backup_manager.distribution_manager:
             raise HTTPException(status_code=503, detail="Distribution manager not available")
@@ -456,13 +464,14 @@ async def redistribute_shards(
 
 
 @router.post("/shards/verify")
-async def verify_shards(
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+async def verify_shards()
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Verify integrity of all shards."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         if not government_backup_manager.shard_manager:
             raise HTTPException(status_code=503, detail="Shard manager not available")
@@ -482,14 +491,14 @@ async def verify_shards(
 
 # Backup Node Management
 @router.get("/nodes")
-async def list_backup_nodes(
+async def list_backup_nodes()
     request: Request,
     current_user: dict = Depends(require_backup_admin_auth)
 ):
     """List backup nodes with enhanced security."""
     try:
         # Log access attempt
-        audit_system.log_security_event(
+        audit_system.log_security_event()
             SecurityEventType.DATA_ACCESS,
             "Backup nodes list requested",
             SecuritySeverity.INFO,
@@ -500,8 +509,9 @@ async def list_backup_nodes(
             action="GET"
         )
 
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         if not government_backup_manager.auth_manager:
             raise HTTPException(status_code=503, detail="Auth manager not available")
@@ -510,7 +520,7 @@ async def list_backup_nodes(
         nodes = []  # This would be populated from the auth manager
 
         # Log successful access
-        audit_system.log_security_event(
+        audit_system.log_security_event()
             SecurityEventType.DATA_ACCESS,
             "Backup nodes list accessed successfully",
             SecuritySeverity.INFO,
@@ -530,7 +540,7 @@ async def list_backup_nodes(
         logger.error(f"Error listing backup nodes: {e}")
 
         # Log error
-        audit_system.log_security_event(
+        audit_system.log_security_event()
             SecurityEventType.SYSTEM_COMPROMISE,
             f"Failed to list backup nodes: {str(e)}",
             SecuritySeverity.ERROR,
@@ -545,7 +555,7 @@ async def list_backup_nodes(
 
 
 @router.post("/nodes/api-key")
-async def generate_backup_node_api_key(
+async def generate_backup_node_api_key()
     request: Request,
     node_id: str,
     node_name: str,
@@ -566,7 +576,7 @@ async def generate_backup_node_api_key(
             raise HTTPException(status_code=400, detail="Invalid node name format")
 
         # Log API key generation attempt
-        audit_system.log_security_event(
+        audit_system.log_security_event()
             SecurityEventType.ADMIN_ACTION,
             f"Backup node API key generation requested for node: {node_id}",
             SecuritySeverity.WARNING,
@@ -584,10 +594,11 @@ async def generate_backup_node_api_key(
             }
         )
 
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
-        key_id, raw_key = await government_backup_manager.generate_backup_node_api_key(
+        key_id, raw_key = await government_backup_manager.generate_backup_node_api_key()
             node_id=node_id,
             node_name=node_name,
             permission_level=permission_level,
@@ -609,16 +620,17 @@ async def generate_backup_node_api_key(
 
 # Archive System
 @router.post("/archives", response_model=dict)
-async def create_archive(
+async def create_archive()
     request: ArchiveCreateRequest,
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Create a new archive."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
-        archive = await government_backup_manager.create_archive(
+        archive = await government_backup_manager.create_archive()
             name=request.name,
             description=request.description,
             created_by=current_user.get("username", "admin"),
@@ -642,14 +654,15 @@ async def create_archive(
 
 
 @router.get("/archives")
-async def list_archives(
+async def list_archives()
     limit: int = Query(100, description="Maximum number of archives to return"),
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """List archives."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         # Get archives from archive system
         archives = []  # This would be populated from the archive system
@@ -665,19 +678,20 @@ async def list_archives(
 
 # User Backup Preferences
 @router.post("/users/{user_id}/preferences")
-async def set_user_backup_preferences(
+async def set_user_backup_preferences()
     user_id: str,
     request: UserBackupPreferencesRequest,
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Set user backup preferences."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
-        await government_backup_manager.set_user_backup_preferences(
+        await government_backup_manager.set_user_backup_preferences()
             user_id=user_id,
-            username=f"user_{user_id}",
+            username=CacheKeyBuilder.user_key(user_id),
             backup_enabled=request.backup_enabled,
             opted_out_data_types=request.opted_out_data_types
         )
@@ -694,17 +708,18 @@ async def set_user_backup_preferences(
 
 
 @router.post("/users/{user_id}/opt-out")
-async def opt_out_user_backup(
+async def opt_out_user_backup()
     user_id: str,
     data_types: List[str] = Query([], description="Data types to opt out of"),
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Opt user out of backup system."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
-        result = await government_backup_manager.opt_out_user_backup(
+        result = await government_backup_manager.opt_out_user_backup()
             user_id=user_id,
             data_types=data_types if data_types else None
         )
@@ -721,17 +736,18 @@ async def opt_out_user_backup(
 
 
 @router.post("/users/{user_id}/opt-in")
-async def opt_in_user_backup(
+async def opt_in_user_backup()
     user_id: str,
     data_types: List[str] = Query([], description="Data types to opt into"),
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Opt user back into backup system."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
-        result = await government_backup_manager.opt_in_user_backup(
+        result = await government_backup_manager.opt_in_user_backup()
             user_id=user_id,
             data_types=data_types if data_types else None
         )
@@ -749,14 +765,15 @@ async def opt_in_user_backup(
 
 # Proxy Mode Management
 @router.post("/proxy-mode/enable")
-async def enable_proxy_mode(
+async def enable_proxy_mode()
     reason: str = "Manual activation",
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Enable backup proxy mode."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         await government_backup_manager.enable_proxy_mode(reason)
 
@@ -771,13 +788,14 @@ async def enable_proxy_mode(
 
 
 @router.post("/proxy-mode/disable")
-async def disable_proxy_mode(
-    current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
+async def disable_proxy_mode()
+    current_user: dict = Depends(require_backup_admin_auth)
 ):
     """Disable backup proxy mode."""
     try:
-        if not government_backup_manager.initialized:
-            await if government_backup_manager and hasattr(government_backup_manager, "initialize"): government_backup_manager.initialize()
+        if not government_backup_manager:
+            if government_backup_manager and hasattr(government_backup_manager, "initialize"):
+                await government_backup_manager.initialize()
 
         await government_backup_manager.disable_proxy_mode()
 

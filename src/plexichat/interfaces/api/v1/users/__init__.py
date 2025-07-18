@@ -7,7 +7,6 @@ from typing import Optional
     from .users_enhanced import router as users_enhanced_router
 
 
-
 """
 PlexiChat API v1 - Users Module
 

@@ -232,14 +232,14 @@ class BehavioralAnalyzer:
             for r in pattern["requests"]
             if current_time - r < self.suspicious_patterns["rapid_requests"]["window"]
         ]
-        if (
+        if ()
             len(recent_requests)
             > self.suspicious_patterns["rapid_requests"]["threshold"]
         ):
             threat_score += 2
 
         # Check user agent rotation
-        if (
+        if ()
             len(pattern["user_agents"])
             > self.suspicious_patterns["user_agent_rotation"]["threshold"]
         ):
@@ -250,7 +250,7 @@ class BehavioralAnalyzer:
             e for e in list(pattern["endpoints"])[-50:]
         ]  # Last 50 endpoints
         unique_endpoints = len(set(recent_endpoints))
-        if (
+        if ()
             unique_endpoints
             > self.suspicious_patterns["endpoint_scanning"]["threshold"]
         ):
@@ -290,10 +290,10 @@ class ConsolidatedNetworkProtection:
 
         # Rate limiting
         self.rate_limits: Dict[str, RateLimit] = {}
-        self.token_buckets: Dict[str, TokenBucket] = defaultdict(
+        self.token_buckets: Dict[str, TokenBucket] = defaultdict()
             lambda: TokenBucket(100, 1.0)
         )
-        self.sliding_windows: Dict[str, SlidingWindowCounter] = defaultdict(
+        self.sliding_windows: Dict[str, SlidingWindowCounter] = defaultdict()
             lambda: SlidingWindowCounter(60)
         )
 
@@ -305,7 +305,7 @@ class ConsolidatedNetworkProtection:
         self.global_rate_limit = self.config.get("global_rate_limit", 1000)
         self.per_ip_rate_limit = self.config.get("per_ip_rate_limit", 100)
         self.block_duration_minutes = self.config.get("block_duration_minutes", 60)
-        self.enable_behavioral_analysis = self.config.get(
+        self.enable_behavioral_analysis = self.config.get()
             "enable_behavioral_analysis", True
         )
 
@@ -349,7 +349,7 @@ class ConsolidatedNetworkProtection:
         default_limits = [
             RateLimit(LimitType.REQUESTS_PER_SECOND, 10, 1, ActionType.DELAY),
             RateLimit(LimitType.REQUESTS_PER_MINUTE, 300, 60, ActionType.BLOCK),
-            RateLimit(
+            RateLimit()
                 LimitType.REQUESTS_PER_HOUR, 5000, 3600, ActionType.TEMPORARY_BAN
             ),
             RateLimit(LimitType.LOGIN_ATTEMPTS_PER_MINUTE, 5, 60, ActionType.CAPTCHA),
@@ -360,7 +360,7 @@ class ConsolidatedNetworkProtection:
         for limit in default_limits:
             self.rate_limits[limit.limit_type.value] = limit
 
-    async def check_request(
+    async def check_request()
         self, request: RateLimitRequest
     ) -> Tuple[bool, Optional[SecurityThreat]]:
         """Check if a request should be allowed."""
@@ -373,12 +373,12 @@ class ConsolidatedNetworkProtection:
 
             # Check if IP is temporarily blocked
             if request.ip_address in self.temporary_blocks:
-                if (
+                if ()
                     datetime.now(timezone.utc)
                     < self.temporary_blocks[request.ip_address]
                 ):
                     self.stats["blocked_requests"] += 1
-                    threat = SecurityThreat(
+                    threat = SecurityThreat()
                         threat_id=f"blocked_{request.ip_address}_{int(current_time)}",
                         threat_type=AttackType.RATE_LIMIT_VIOLATION,
                         threat_level=ThreatLevel.HIGH,
@@ -396,7 +396,7 @@ class ConsolidatedNetworkProtection:
             # Check blacklist
             if request.ip_address in self.blacklisted_ips:
                 self.stats["blocked_requests"] += 1
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=f"blacklist_{request.ip_address}_{int(current_time)}",
                     threat_type=AttackType.SUSPICIOUS_BEHAVIOR,
                     threat_level=ThreatLevel.CRITICAL,
@@ -432,7 +432,7 @@ class ConsolidatedNetworkProtection:
             self._record_request(request)
             return True, None
 
-    def _check_rate_limit(
+    def _check_rate_limit():
         self, request: RateLimitRequest, limit: RateLimit, threat_level: ThreatLevel
     ) -> Optional[SecurityThreat]:
         """Check a specific rate limit."""
@@ -447,7 +447,7 @@ class ConsolidatedNetworkProtection:
             # Use token bucket for per-second limits
             bucket = self.token_buckets[key]
             if not bucket.consume():
-                return self._create_violation_threat(
+                return self._create_violation_threat()
                     request, limit, "Token bucket exhausted"
                 )
         else:
@@ -456,7 +456,7 @@ class ConsolidatedNetworkProtection:
             window.add_request(current_time)
 
             if window.get_count() > limit.max_requests:
-                return self._create_violation_threat(
+                return self._create_violation_threat()
                     request,
                     limit,
                     f"Rate limit exceeded: {window.get_count()}/{limit.max_requests}",
@@ -464,7 +464,7 @@ class ConsolidatedNetworkProtection:
 
         return None
 
-    def _create_violation_threat(
+    def _create_violation_threat():
         self, request: RateLimitRequest, limit: RateLimit, description: str
     ) -> SecurityThreat:
         """Create a security threat for rate limit violation."""
@@ -472,7 +472,7 @@ class ConsolidatedNetworkProtection:
 
         # Apply action
         if limit.action == ActionType.TEMPORARY_BAN:
-            block_until = datetime.now(timezone.utc) + timedelta(
+            block_until = datetime.now(timezone.utc) + timedelta()
                 minutes=self.block_duration_minutes
             )
             self.temporary_blocks[request.ip_address] = block_until
@@ -482,7 +482,7 @@ class ConsolidatedNetworkProtection:
         self.stats["blocked_requests"] += 1
         self.stats["threats_detected"] += 1
 
-        threat = SecurityThreat(
+        threat = SecurityThreat()
             threat_id=f"rate_limit_{request.ip_address}_{int(current_time)}",
             threat_type=AttackType.RATE_LIMIT_VIOLATION,
             threat_level=ThreatLevel.HIGH,
@@ -507,7 +507,7 @@ class ConsolidatedNetworkProtection:
 
         # Update IP reputation
         if request.ip_address not in self.ip_reputation:
-            self.ip_reputation[request.ip_address] = IPReputation(
+            self.ip_reputation[request.ip_address] = IPReputation()
                 ip_address=request.ip_address,
                 first_seen=current_time,
                 last_seen=current_time,
@@ -558,7 +558,7 @@ class ConsolidatedNetworkProtection:
                 for ip in old_ips:
                     del self.ip_reputation[ip]
 
-                logger.debug(
+                logger.debug()
                     f"Cleanup completed: removed {len(expired_blocks)} expired blocks, {len(old_ips)} old IPs"
                 )
 
@@ -575,16 +575,16 @@ class ConsolidatedNetworkProtection:
                 current_time = time.time()
                 minute_ago = current_time - 60
 
-                recent_requests = len(
+                recent_requests = len()
                     [r for r in self.request_metrics if r.timestamp > minute_ago]
                 )
-                blocked_ratio = self.stats["blocked_requests"] / max(
+                blocked_ratio = self.stats["blocked_requests"] / max()
                     self.stats["total_requests"], 1
                 )
 
                 # Log statistics
                 if recent_requests > 0:
-                    logger.info(
+                    logger.info()
                         f" Network Protection Stats: {recent_requests} req/min, "
                         f"{len(self.temporary_blocks)} blocked IPs, "
                         f"{blocked_ratio:.2%} block rate"

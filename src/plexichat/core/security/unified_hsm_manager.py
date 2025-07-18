@@ -15,7 +15,9 @@ from typing import Any, Dict, List, Optional
 
 from ...core.config import get_config
 from ...core.logging import get_logger
-from .unified_audit_system import (
+from .unified_audit_system import ()
+import logging
+import time
 
 
     CONSOLIDATED,
@@ -212,7 +214,7 @@ class UnifiedHSMInterface:
         """Authenticate with HSM with comprehensive audit logging."""
         try:
             # Log authentication attempt
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.AUTHENTICATION_SUCCESS if len(pin) >= 6 else SecurityEventType.AUTHENTICATION_FAILURE,
                 f"HSM authentication attempt for device {self.device.device_id}",
                 SecuritySeverity.INFO if len(pin) >= 6 else SecuritySeverity.WARNING,
@@ -241,7 +243,7 @@ class UnifiedHSMInterface:
             logger.error(f"HSM authentication error: {e}")
 
             # Log authentication error
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.SYSTEM_COMPROMISE,
                 f"HSM authentication system error: {str(e)}",
                 SecuritySeverity.ERROR,
@@ -253,7 +255,7 @@ class UnifiedHSMInterface:
 
             return False
 
-    async def generate_key(self,
+    async def generate_key(self,)
                           key_type: KeyType,
                           key_size: int,
                           usage: List[KeyUsage],
@@ -286,7 +288,7 @@ class UnifiedHSMInterface:
             if expires_days:
                 expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days)
 
-            key = HSMKey(
+            key = HSMKey()
                 key_id=key_id,
                 key_type=key_type,
                 key_size=key_size,
@@ -306,7 +308,7 @@ class UnifiedHSMInterface:
             self.keys[key_id] = key
 
             # Log key generation
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.ENCRYPTION_KEY_ROTATION,
                 f"HSM key generated: {key_type.value}-{key_size}",
                 SecuritySeverity.INFO,
@@ -330,7 +332,7 @@ class UnifiedHSMInterface:
             logger.error(f"Key generation error: {e}")
 
             # Log key generation error
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.SYSTEM_COMPROMISE,
                 f"HSM key generation failed: {str(e)}",
                 SecuritySeverity.ERROR,
@@ -404,7 +406,7 @@ class UnifiedHSMManager:
 
     async def _initialize_virtual_hsm(self):
         """Initialize virtual HSM for development/testing."""
-        virtual_device = HSMDevice(
+        virtual_device = HSMDevice()
             device_id="virtual_hsm_unified",
             device_type=HSMType.VIRTUAL_HSM,
             manufacturer="PlexiChat",
@@ -435,7 +437,7 @@ class UnifiedHSMManager:
         self.primary_hsm = virtual_device.device_id
 
         # Log HSM initialization
-        self.audit_system.log_security_event(
+        self.audit_system.log_security_event()
             SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
             "Virtual HSM initialized for unified security system",
             SecuritySeverity.INFO,
@@ -457,7 +459,7 @@ class UnifiedHSMManager:
 
         for config in hsm_configs:
             try:
-                device = HSMDevice(
+                device = HSMDevice()
                     device_id=config["device_id"],
                     device_type=HSMType(config["device_type"]),
                     manufacturer=config["manufacturer"],
@@ -485,15 +487,15 @@ class UnifiedHSMManager:
             self.devices[device.device_id] = hsm_interface
 
             # Set as primary if it's the first real HSM or has higher security level
-            if (not self.primary_hsm or
-                (device.device_type != HSMType.VIRTUAL_HSM and
+            if (not self.primary_hsm or)
+                (device.device_type != HSMType.VIRTUAL_HSM and)
                  device.security_level.value > self.devices[self.primary_hsm].device.security_level.value)):
                 self.primary_hsm = device.device_id
             else:
                 self.backup_hsms.append(device.device_id)
 
             # Log HSM addition
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
                 f"HSM device added to unified system: {device.device_id}",
                 SecuritySeverity.INFO,
@@ -517,7 +519,7 @@ class UnifiedHSMManager:
             logger.error(f"Failed to add HSM device: {e}")
 
             # Log error
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.SYSTEM_COMPROMISE,
                 f"Failed to add HSM device: {str(e)}",
                 SecuritySeverity.ERROR,
@@ -536,7 +538,7 @@ class UnifiedHSMManager:
 
         return await self.devices[device_id].authenticate(pin, admin_pin, user_id)
 
-    async def generate_master_key(self,
+    async def generate_master_key(self,)
                                  purpose: str,
                                  key_type: KeyType = KeyType.QUANTUM_RESISTANT,
                                  key_size: int = 256,
@@ -547,7 +549,7 @@ class UnifiedHSMManager:
             return None
 
         hsm = self.devices[self.primary_hsm]
-        key = await hsm.generate_key(
+        key = await hsm.generate_key()
             key_type=key_type,
             key_size=key_size,
             usage=[KeyUsage.ENCRYPTION, KeyUsage.DECRYPTION],
@@ -567,14 +569,14 @@ class UnifiedHSMManager:
 
     async def generate_backup_encryption_key(self, user_id: str = "system") -> Optional[HSMKey]:
         """Generate quantum-safe key for backup encryption."""
-        return await self.generate_master_key(
+        return await self.generate_master_key()
             purpose="backup_encryption",
             key_type=KeyType.QUANTUM_RESISTANT,
             key_size=512,
             user_id=user_id
         )
 
-    async def generate_signing_key(self,
+    async def generate_signing_key(self,)
                                   key_type: KeyType = KeyType.DILITHIUM,
                                   key_size: int = 3,
                                   user_id: str = "system") -> Optional[HSMKey]:
@@ -584,7 +586,7 @@ class UnifiedHSMManager:
             return None
 
         hsm = self.devices[self.primary_hsm]
-        key = await hsm.generate_key(
+        key = await hsm.generate_key()
             key_type=key_type,
             key_size=key_size,
             usage=[KeyUsage.SIGNING, KeyUsage.VERIFICATION],
@@ -661,7 +663,7 @@ class UnifiedHSMManager:
                     old_key = hsm.keys[key_id]
 
                     # Generate new key with same parameters
-                    new_key = await hsm.generate_key(
+                    new_key = await hsm.generate_key()
                         key_type=old_key.key_type,
                         key_size=old_key.key_size,
                         usage=old_key.usage,
@@ -685,7 +687,7 @@ class UnifiedHSMManager:
                             del self.key_rotation_schedule[key_id]
 
                         # Log key rotation
-                        self.audit_system.log_security_event(
+                        self.audit_system.log_security_event()
                             SecurityEventType.ENCRYPTION_KEY_ROTATION,
                             f"HSM key rotated: {key_id} -> {new_key.key_id}",
                             SecuritySeverity.INFO,

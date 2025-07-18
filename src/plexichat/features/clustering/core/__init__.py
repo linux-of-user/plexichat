@@ -64,50 +64,50 @@ HOT_UPDATE_SUPPORT = True  # Support for hot updates without downtime
 class ClusterRole(Enum, Optional):
     """Cluster node roles."""
 
-    MASTER = "master"
-    WORKER = "worker"
-    COORDINATOR = "coordinator"
-    BACKUP = "backup"
-    GATEWAY = "gateway"  # Gateway/proxy node
-    ANTIVIRUS = "antivirus"  # Specialized antivirus scanning node
-    GENERAL_PURPOSE = "general_purpose"  # Multi-purpose node
-    OBSERVER = "observer"
+MASTER = "master"
+WORKER = "worker"
+COORDINATOR = "coordinator"
+BACKUP = "backup"
+GATEWAY = "gateway"  # Gateway/proxy node
+ANTIVIRUS = "antivirus"  # Specialized antivirus scanning node
+GENERAL_PURPOSE = "general_purpose"  # Multi-purpose node
+OBSERVER = "observer"
 
 
 class NodeStatus(Enum):
     """Node status in cluster."""
 
-    ONLINE = "online"
-    OFFLINE = "offline"
-    DEGRADED = "degraded"
-    MAINTENANCE = "maintenance"
-    JOINING = "joining"
-    LEAVING = "leaving"
-    FAILED = "failed"
+ONLINE = "online"
+OFFLINE = "offline"
+DEGRADED = "degraded"
+MAINTENANCE = "maintenance"
+JOINING = "joining"
+LEAVING = "leaving"
+FAILED = "failed"
 
 
 class LoadBalancingStrategy(Enum):
     """Load balancing strategies."""
 
-    ROUND_ROBIN = "round_robin"
-    LEAST_CONNECTIONS = "least_connections"
-    WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
-    LEAST_RESPONSE_TIME = "least_response_time"
-    RESOURCE_BASED = "resource_based"
-    AI_OPTIMIZED = "ai_optimized"
+ROUND_ROBIN = "round_robin"
+LEAST_CONNECTIONS = "least_connections"
+WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
+LEAST_RESPONSE_TIME = "least_response_time"
+RESOURCE_BASED = "resource_based"
+AI_OPTIMIZED = "ai_optimized"
 
 
 class PerformanceMetric(Enum):
     """Performance metrics."""
 
-    CPU_USAGE = "cpu_usage"
-    MEMORY_USAGE = "memory_usage"
-    DISK_USAGE = "disk_usage"
-    NETWORK_THROUGHPUT = "network_throughput"
-    RESPONSE_TIME = "response_time"
-    REQUESTS_PER_SECOND = "requests_per_second"
-    ERROR_RATE = "error_rate"
-    AVAILABILITY = "availability"
+CPU_USAGE = "cpu_usage"
+MEMORY_USAGE = "memory_usage"
+DISK_USAGE = "disk_usage"
+NETWORK_THROUGHPUT = "network_throughput"
+RESPONSE_TIME = "response_time"
+REQUESTS_PER_SECOND = "requests_per_second"
+ERROR_RATE = "error_rate"
+AVAILABILITY = "availability"
 
 
 # Default Configuration

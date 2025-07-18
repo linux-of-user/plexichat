@@ -1,16 +1,26 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
+"""
+PlexiChat AI Features - MODERN ARCHITECTURE
+
+Comprehensive AI system with provider abstraction, featuring:
+- Multi-provider AI integration (OpenAI, Anthropic, Ollama, etc.)
+- AI-powered features (summarization, content suggestions, sentiment analysis)
+- Content moderation and safety systems
+- Real-time monitoring and analytics
+- Provider management and failover
+- API endpoints for AI features
+
+Uses shared components for consistent error handling and type definitions.
+"""
+
+# Import shared components (NEW ARCHITECTURE)
+from ...shared.models import User, Event, Priority, Status
+from ...shared.types import UserId, JSON, ConfigDict
+from ...shared.exceptions import ValidationError, SecurityError, RateLimitError
+from ...shared.constants import AI_REQUEST_TIMEOUT, MAX_AI_CONTEXT_LENGTH, AI_RATE_LIMIT
+
 # Import AI components
-from .ai_coordinator_simple import AICoordinator
-# from .api.ai_endpoints import router as ai_router
-# from .api.moderation_endpoints import router as moderation_router
-# from .api.monitoring_endpoints import router as monitoring_router
-# from .api.provider_endpoints import router as provider_router
 from typing import Optional
+from .ai_coordinator_simple import AICoordinator
 from .core.ai_abstraction_layer_simple import (
     AIAbstractionLayer,
     AIAccessControl,
@@ -22,18 +32,8 @@ from .core.ai_abstraction_layer_simple import (
     ModelStatus,
 )
 
-"""
-Comprehensive AI abstraction layer with multi-provider support, featuring:
-- Multi-provider AI integration (OpenAI, Anthropic, Ollama, etc.)
-- AI-powered features (summarization, content suggestions, sentiment analysis)
-- Content moderation and safety systems
-- Real-time monitoring and analytics
-- Provider management and failover
-- API endpoints for AI features
-"""
-
 # AI features and services
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 __all__ = [
     # Core AI components
     "AIAbstractionLayer",
@@ -45,6 +45,18 @@ __all__ = [
     "ModelStatus",
     "AIAccessControl",
     "AICoordinator",
+
+    # Shared components re-exports
+    "User",
+    "Event",
+    "Priority",
+    "Status",
+    "UserId",
+    "JSON",
+    "ConfigDict",
+    "ValidationError",
+    "SecurityError",
+    "RateLimitError",
 ]
 
 # AI system capabilities

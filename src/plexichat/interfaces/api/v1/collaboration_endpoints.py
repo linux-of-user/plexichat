@@ -9,11 +9,12 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from plexichat.core.logging import get_logger
-from ...services.collaboration_service import (
-
+from ...services.collaboration_service import ()
 
 
     from plexichat.infrastructure.utils.auth import require_admin_auth,
+import socket
+import time
 
     API,
     REST,
@@ -175,7 +176,7 @@ class CollaborationConnectionManager:
 
         logger.info(f"WebSocket disconnected: user {user_id} from session {session_id}")
 
-    async def broadcast_to_session(self, session_id: str, message: Dict[str, Any],
+    async def broadcast_to_session(self, session_id: str, message: Dict[str, Any],)
                                  exclude_user: Optional[str] = None):
         """Broadcast message to all users in a session."""
         if session_id not in self.connections:
@@ -224,7 +225,7 @@ connection_manager = CollaborationConnectionManager()
 # REST API Endpoints
 
 @router.post("/sessions", response_model=SessionResponse)
-async def create_collaboration_session(
+async def create_collaboration_session()
     request: CreateSessionRequest,
     current_user: dict = Depends(require_auth)
 ):
@@ -232,7 +233,7 @@ async def create_collaboration_session(
     try:
         collaboration_service = await get_collaboration_service()
 
-        session_id = await collaboration_service.create_session(
+        session_id = await collaboration_service.create_session()
             title=request.title,
             collaboration_type=request.collaboration_type,
             owner_id=current_user["user_id"],
@@ -243,7 +244,7 @@ async def create_collaboration_session(
         if not session:
             raise HTTPException(status_code=500, detail="Failed to create session")
 
-        return SessionResponse(
+        return SessionResponse()
             session_id=session.session_id,
             title=session.title,
             collaboration_type=session.collaboration_type,
@@ -268,7 +269,7 @@ async def create_collaboration_session(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/sessions", response_model=List[SessionResponse])
-async def list_user_sessions(
+async def list_user_sessions()
     current_user: dict = Depends(require_auth)
 ):
     """List all collaboration sessions for the current user."""
@@ -277,7 +278,7 @@ async def list_user_sessions(
         sessions = collaboration_service.get_user_sessions(current_user["user_id"])
 
         return [
-            SessionResponse(
+            SessionResponse()
                 session_id=session.session_id,
                 title=session.title,
                 collaboration_type=session.collaboration_type,
@@ -304,7 +305,7 @@ async def list_user_sessions(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/sessions/{session_id}", response_model=SessionResponse)
-async def get_collaboration_session(
+async def get_collaboration_session()
     session_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -320,7 +321,7 @@ async def get_collaboration_session(
         if current_user["user_id"] not in session.users:
             raise HTTPException(status_code=403, detail="Access denied")
 
-        return SessionResponse(
+        return SessionResponse()
             session_id=session.session_id,
             title=session.title,
             collaboration_type=session.collaboration_type,
@@ -347,7 +348,7 @@ async def get_collaboration_session(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/sessions/{session_id}/join")
-async def join_collaboration_session(
+async def join_collaboration_session()
     session_id: str,
     request: JoinSessionRequest,
     current_user: dict = Depends(require_auth)
@@ -356,7 +357,7 @@ async def join_collaboration_session(
     try:
         collaboration_service = await get_collaboration_service()
 
-        success = await collaboration_service.join_session(
+        success = await collaboration_service.join_session()
             session_id=session_id,
             user_id=current_user["user_id"],
             role=request.role
@@ -374,7 +375,7 @@ async def join_collaboration_session(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/sessions/{session_id}/leave")
-async def leave_collaboration_session(
+async def leave_collaboration_session()
     session_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -382,7 +383,7 @@ async def leave_collaboration_session(
     try:
         collaboration_service = await get_collaboration_service()
 
-        success = await collaboration_service.leave_session(
+        success = await collaboration_service.leave_session()
             session_id=session_id,
             user_id=current_user["user_id"]
         )
@@ -399,7 +400,7 @@ async def leave_collaboration_session(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/stats")
-async def get_collaboration_stats(
+async def get_collaboration_stats()
     current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
 ):
     """Get collaboration statistics (admin only)."""
@@ -424,7 +425,7 @@ async def get_collaboration_stats(
 # WebSocket Endpoint
 
 @router.websocket("/ws/{session_id}")
-async def collaboration_websocket(
+async def collaboration_websocket()
     websocket: WebSocket,
     session_id: str,
     token: str = Query(..., description="Authentication token")
@@ -451,7 +452,7 @@ async def collaboration_websocket(
     """
     try:
         # Authenticate user (simplified - would use proper JWT validation)
-        user_id = f"user_{token}"  # This would be extracted from JWT token
+        user_id = CacheKeyBuilder.user_key(token)  # This would be extracted from JWT token
 
         # Get collaboration service
         collaboration_service = await get_collaboration_service()
@@ -471,7 +472,7 @@ async def collaboration_websocket(
         await connection_manager.connect(websocket, session_id, user_id)
 
         # Send initial session state
-        await websocket.send_text(json.dumps({
+        await websocket.send_text(json.dumps({))
             "type": "session_state",
             "data": {
                 "session_id": session_id,
@@ -497,20 +498,20 @@ async def collaboration_websocket(
                 data = await websocket.receive_text()
                 message = json.loads(data)
 
-                await handle_collaboration_message(
+                await handle_collaboration_message()
                     websocket, session_id, user_id, message, collaboration_service
                 )
 
             except WebSocketDisconnect:
                 break
             except json.JSONDecodeError:
-                await websocket.send_text(json.dumps({
+                await websocket.send_text(json.dumps({))
                     "type": "error",
                     "message": "Invalid JSON format"
                 }))
             except Exception as e:
                 logger.error(f"Error handling WebSocket message: {e}")
-                await websocket.send_text(json.dumps({
+                await websocket.send_text(json.dumps({))
                     "type": "error",
                     "message": str(e)
                 }))
@@ -520,7 +521,7 @@ async def collaboration_websocket(
     finally:
         await connection_manager.disconnect(websocket)
 
-async def handle_collaboration_message(
+async def handle_collaboration_message()
     websocket: WebSocket, session_id: str, user_id: str,
     message: Dict[str, Any], collaboration_service
 ):
@@ -530,7 +531,7 @@ async def handle_collaboration_message(
 
     if message_type == "operation":
         # Handle collaborative operation
-        operation = Operation(
+        operation = Operation()
             op_id=str(uuid.uuid4()),
             user_id=user_id,
             operation_type=OperationType(data["operation_type"]),
@@ -543,7 +544,7 @@ async def handle_collaboration_message(
 
         success = await collaboration_service.apply_operation(session_id, operation)
         if not success:
-            await websocket.send_text(json.dumps({
+            await websocket.send_text(json.dumps({))
                 "type": "operation_failed",
                 "message": "Failed to apply operation"
             }))
@@ -559,7 +560,7 @@ async def handle_collaboration_message(
             user.last_seen = datetime.now(timezone.utc)
 
             # Broadcast cursor update to other users
-            await connection_manager.broadcast_to_session(session_id, {
+            await connection_manager.broadcast_to_session(session_id, {)
                 "type": "cursor_update",
                 "data": {
                     "user_id": user_id,
@@ -572,13 +573,13 @@ async def handle_collaboration_message(
 
     elif message_type == "ping":
         # Handle ping
-        await websocket.send_text(json.dumps({
+        await websocket.send_text(json.dumps({))
             "type": "pong",
             "timestamp": datetime.now(timezone.utc).isoformat()
         }))
 
     else:
-        await websocket.send_text(json.dumps({
+        await websocket.send_text(json.dumps({))
             "type": "error",
             "message": f"Unknown message type: {message_type}"
         }))

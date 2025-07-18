@@ -16,6 +16,7 @@ from ....infrastructure.utils.snowflake import SnowflakeGenerator
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 PlexiChat Space Model
 
 Reddit-like community space model.
@@ -43,7 +44,7 @@ class Space(SQLModel, table=True):
     __tablename__ = "spaces"
 
     # Primary identification
-    space_id: str = Field(
+    space_id: str = Field()
         default_factory=lambda: str(space_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -51,73 +52,73 @@ class Space(SQLModel, table=True):
     )
 
     # Basic space information
-    name: str = Field(
+    name: str = Field()
         max_length=50,
         unique=True,
         index=True,
         description="Unique space name (URL-friendly)",
     )
 
-    display_name: str = Field(
+    display_name: str = Field()
         max_length=100, index=True, description="Display name for the space"
     )
 
-    description: Optional[str] = Field(
+    description: Optional[str] = Field()
         default=None, sa_column=Column(Text), description="Space description"
     )
 
-    rules: Optional[str] = Field(
+    rules: Optional[str] = Field()
         default=None,
         sa_column=Column(Text),
         description="Community rules and guidelines",
     )
 
     # Space settings
-    type: SpaceType = Field(
+    type: SpaceType = Field()
         default=SpaceType.PUBLIC, index=True, description="Space visibility type"
     )
 
     # Visual customization
-    icon_url: Optional[str] = Field(
+    icon_url: Optional[str] = Field()
         default=None, max_length=500, description="Space icon URL"
     )
 
-    banner_url: Optional[str] = Field(
+    banner_url: Optional[str] = Field()
         default=None, max_length=500, description="Space banner URL"
     )
 
     # Space metadata
-    tags: List[str] = Field(
+    tags: List[str] = Field()
         default_factory=list,
         sa_column=Column(JSON),
         description="Topic tags for the space",
     )
 
     # Moderation settings
-    nsfw: bool = Field(
+    nsfw: bool = Field()
         default=False, index=True, description="Whether space contains NSFW content"
     )
 
-    quarantined: bool = Field(
+    quarantined: bool = Field()
         default=False, index=True, description="Whether space is quarantined"
     )
 
     # Space statistics
-    member_count: int = Field(
+    member_count: int = Field()
         default=0, ge=0, index=True, description="Number of members"
     )
 
     post_count: int = Field(default=0, ge=0, description="Number of posts")
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Space creation timestamp",
     )
 
-    updated_at: Optional[datetime] = Field(
+    updated_at: Optional[datetime] = Field()
         default=None, sa_column=Column(DateTime), description="Last update timestamp"
     )
 
@@ -168,7 +169,7 @@ class Space(SQLModel, table=True):
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index("idx_space_name_type", "name", "type"),
     Index("idx_space_type_member_count", "type", "member_count"),
     Index("idx_space_created_type", "created_at", "type"),

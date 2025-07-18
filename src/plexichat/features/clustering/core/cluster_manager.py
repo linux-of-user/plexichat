@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional
 
 import aiosqlite
 
-from ..hybrid_cloud.cloud_orchestrator import (  # Import enhanced clustering components
+from ..hybrid_cloud.cloud_orchestrator import (  # Import enhanced clustering components)
 from ..predictive_scaling.ml_scaler import predictive_scaler
 from ..serverless.faas_manager import faas_manager
 from ..service_mesh.mesh_manager import ServiceEndpoint, service_mesh_manager
@@ -30,6 +30,7 @@ from .load_balancer import SmartLoadBalancer
 from .node_manager import IntelligentNodeManager
 from .performance_monitor import RealTimePerformanceMonitor
 from .task_manager import AdvancedTaskManager
+from plexichat.infrastructure.modules.interfaces import ModulePriority
 
 
 from pathlib import Path
@@ -43,6 +44,7 @@ import psutil
 import psutil
 import psutil
 import psutil
+import time
 
     ENHANCED_CLUSTERING_AVAILABLE,
     Advanced,
@@ -155,7 +157,7 @@ class ClusterConfiguration:
 class AdvancedClusterManager:
     """
     Advanced Cluster Manager
-    
+
     Provides sophisticated clustering with tangible performance gains:
     - Intelligent node management and distribution
     - Real-time performance optimization
@@ -165,53 +167,53 @@ class AdvancedClusterManager:
     - Automatic failover and recovery
     - Government-level security and encryption
     """
-    
+
     def __init__(self, plexichat_app):
         """Initialize the advanced cluster manager."""
         self.plexichat_app = plexichat_app
-        self.from pathlib import Path
-cluster_dir = Path()("clustering")
+        from pathlib import Path
+self.cluster_dir = Path("clustering")
         self.databases_dir = self.cluster_dir / "databases"
         self.logs_dir = self.cluster_dir / "logs"
         self.config_dir = self.cluster_dir / "config"
-        
+
         # Ensure directories exist
         for directory in [self.cluster_dir, self.databases_dir, self.logs_dir, self.config_dir]:
             directory.mkdir(parents=True, exist_ok=True)
-        
+
         # Cluster state
         self.cluster_state = ClusterState.INITIALIZING
         self.cluster_nodes: Dict[str, ClusterNode] = {}
         self.cluster_config: Optional[ClusterConfiguration] = None
         self.master_node_id: Optional[str] = None
         self.local_node_id: str = f"node_{secrets.token_hex(8)}"
-        
+
         # Performance tracking
         self.baseline_performance: Optional[ClusterMetrics] = None
         self.current_performance: Optional[ClusterMetrics] = None
         self.performance_history: List[ClusterMetrics] = []
-        
+
         # Component managers (will be initialized)
         self.node_manager = None
         self.load_balancer = None
         self.performance_monitor = None
         self.failover_manager = None
-        
+
         # Database
         self.cluster_db_path = self.databases_dir / "cluster_registry.db"
-        
+
         # Configuration
         self.startup_time = datetime.now(timezone.utc)
         self.performance_gain_achieved = 1.0
-        
+
         logger.info(f"Advanced Cluster Manager initialized (Node ID: {self.local_node_id})")
-    
+
     async def initialize(self):
         """Initialize the cluster manager and all components."""
         await self._initialize_database()
         await self._load_cluster_configuration()
         await self._initialize_local_node()
-        
+
         # Initialize component managers
         self.node_manager = IntelligentNodeManager(self)
         self.load_balancer = SmartLoadBalancer(self)
@@ -246,15 +248,15 @@ cluster_dir = Path()("clustering")
 
         # Start cluster operations
         await self._start_cluster_operations()
-        
+
         logger.info("Advanced Cluster Manager fully initialized")
-    
+
     async def _initialize_database(self):
         """Initialize cluster registry database."""
         async with aiosqlite.connect(self.cluster_db_path) as db:
             # Cluster configuration table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS cluster_configuration (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS cluster_configuration ()
                     cluster_id TEXT PRIMARY KEY,
                     cluster_name TEXT NOT NULL,
                     security_level TEXT NOT NULL,
@@ -272,10 +274,10 @@ cluster_dir = Path()("clustering")
                     updated_at TEXT NOT NULL
                 )
             """)
-            
+
             # Cluster nodes table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS cluster_nodes (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS cluster_nodes ()
                     node_id TEXT PRIMARY KEY,
                     hostname TEXT NOT NULL,
                     ip_address TEXT NOT NULL,
@@ -295,10 +297,10 @@ cluster_dir = Path()("clustering")
                     metadata TEXT
                 )
             """)
-            
+
             # Performance metrics table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS cluster_metrics (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS cluster_metrics ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
                     total_nodes INTEGER NOT NULL,
@@ -315,10 +317,10 @@ cluster_dir = Path()("clustering")
                     throughput_improvement REAL NOT NULL
                 )
             """)
-            
+
             # Cluster events log
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS cluster_events (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS cluster_events ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
                     event_type TEXT NOT NULL,
@@ -328,18 +330,18 @@ cluster_dir = Path()("clustering")
                     metadata TEXT
                 )
             """)
-            
+
             await db.commit()
-    
+
     async def _load_cluster_configuration(self):
         """Load or create cluster configuration."""
         async with aiosqlite.connect(self.cluster_db_path) as db:
             async with db.execute("SELECT * FROM cluster_configuration LIMIT 1") as cursor:
                 row = await cursor.fetchone()
-                
+
                 if row:
                     # Load existing configuration
-                    self.cluster_config = ClusterConfiguration(
+                    self.cluster_config = ClusterConfiguration()
                         cluster_id=row[0],
                         cluster_name=row[1],
                         security_level=row[2],
@@ -360,13 +362,13 @@ cluster_dir = Path()("clustering")
                 else:
                     # Create default configuration
                     await self._create_default_configuration()
-    
+
     async def _create_default_configuration(self):
         """Create default cluster configuration."""
         cluster_id = f"cluster_{secrets.token_hex(16)}"
         now = datetime.now(timezone.utc)
-        
-        self.cluster_config = ClusterConfiguration(
+
+        self.cluster_config = ClusterConfiguration()
             cluster_id=cluster_id,
             cluster_name=DEFAULT_CLUSTER_CONFIG["cluster_name"],
             security_level=DEFAULT_CLUSTER_CONFIG["security_level"],
@@ -383,25 +385,25 @@ cluster_dir = Path()("clustering")
             created_at=now,
             updated_at=now
         )
-        
+
         # Save to database
         await self._save_cluster_configuration()
         logger.info(f"Created default cluster configuration: {cluster_id}")
-    
+
     async def _save_cluster_configuration(self):
         """Save cluster configuration to database."""
         if not self.cluster_config:
             return
-            
+
         async with aiosqlite.connect(self.cluster_db_path) as db:
-            await db.execute("""
-                INSERT OR REPLACE INTO cluster_configuration (
+            await db.execute(""")
+                INSERT OR REPLACE INTO cluster_configuration ()
                     cluster_id, cluster_name, security_level, encryption_enabled,
                     authentication_required, load_balancing_strategy, auto_scaling_enabled,
                     min_nodes, max_nodes, target_performance_gain, health_check_interval,
                     rebalance_interval, failover_timeout, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 self.cluster_config.cluster_id,
                 self.cluster_config.cluster_name,
                 self.cluster_config.security_level,
@@ -443,7 +445,7 @@ psutil.disk_usage('/').total / (1024**3)
             self.master_node_id = self.local_node_id
 
         # Create local node
-        local_node = ClusterNode(
+        local_node = ClusterNode()
             node_id=self.local_node_id,
             hostname=hostname,
             ip_address=ip_address,
@@ -726,14 +728,14 @@ psutil.disk_usage('/').total / (1024**3)
     async def _save_node_to_database(self, node: ClusterNode):
         """Save node information to database."""
         async with aiosqlite.connect(self.cluster_db_path) as db:
-            await db.execute("""
-                INSERT OR REPLACE INTO cluster_nodes (
+            await db.execute(""")
+                INSERT OR REPLACE INTO cluster_nodes ()
                     node_id, hostname, ip_address, port, role, status,
                     cpu_cores, memory_gb, disk_gb, network_bandwidth_mbps,
                     current_load, performance_score, reliability_score,
                     joined_at, last_heartbeat, capabilities, metadata
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 node.node_id,
                 node.hostname,
                 node.ip_address,
@@ -764,7 +766,7 @@ psutil.disk_usage('/').total / (1024**3)
         asyncio.create_task(self._health_check_task())
 
         # Log cluster startup
-        await self._log_cluster_event("cluster_started", "INFO",
+        await self._log_cluster_event("cluster_started", "INFO",)
                                      f"Cluster started with {len(self.cluster_nodes)} nodes")
 
         logger.info(f"Cluster operations started - State: {self.cluster_state.value}")
@@ -807,11 +809,11 @@ psutil.disk_usage('/').total / (1024**3)
     async def _log_cluster_event(self, event_type: str, severity: str, message: str, node_id: Optional[str] = None):
         """Log cluster events."""
         async with aiosqlite.connect(self.cluster_db_path) as db:
-            await db.execute("""
-                INSERT INTO cluster_events (
+            await db.execute(""")
+                INSERT INTO cluster_events ()
                     timestamp, event_type, node_id, severity, message, metadata
                 ) VALUES (?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 datetime.now(timezone.utc).isoformat(),
                 event_type,
                 node_id,
@@ -1093,7 +1095,7 @@ psutil.disk_usage('/').total / (1024**3)
         try:
             # Register core cluster services
             services = [
-                ServiceEndpoint(
+                ServiceEndpoint()
                     service_name="cluster-manager",
                     namespace="plexichat-cluster",
                     host=self.local_node.ip_address,
@@ -1102,7 +1104,7 @@ psutil.disk_usage('/').total / (1024**3)
                     health_check_path="/api/v1/health",
                     labels={"component": "cluster-core", "role": "manager"}
                 ),
-                ServiceEndpoint(
+                ServiceEndpoint()
                     service_name="load-balancer",
                     namespace="plexichat-cluster",
                     host=self.local_node.ip_address,
@@ -1131,7 +1133,7 @@ psutil.disk_usage('/').total / (1024**3)
             )
 
             # Create hybrid cluster configuration
-            primary_region = CloudRegion(
+            primary_region = CloudRegion()
                 provider=CloudProvider.PRIVATE,
                 region_id="local",
                 region_name="Local Data Center",
@@ -1144,7 +1146,7 @@ psutil.disk_usage('/').total / (1024**3)
                 compute_types=["Bare Metal", "VM"]
             )
 
-            cluster_config = HybridClusterConfig(
+            cluster_config = HybridClusterConfig()
                 cluster_id=f"plexichat-cluster-{self.local_node_id}",
                 primary_region=primary_region,
                 secondary_regions=[],
@@ -1190,7 +1192,7 @@ psutil.disk_usage('/').total / (1024**3)
                     timestamp = datetime.now(timezone.utc)
 
                     # CPU metrics
-                    cpu_metric = MetricDataPoint(
+                    cpu_metric = MetricDataPoint()
                         timestamp=timestamp,
                         value=node_metrics.get("cpu_usage", 0.0) / 100.0,
                         resource_type=ResourceType.CPU,

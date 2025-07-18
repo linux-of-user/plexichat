@@ -15,6 +15,8 @@ import aiohttp
 
 
 """
+import http.client
+import time
 Backup Node Client
 
 Client for communicating with backup nodes in the distributed system.
@@ -91,7 +93,7 @@ class BackupNodeClient:
 
     async def __aenter__(self):
         """Async context manager entry."""
-        self.session = aiohttp.ClientSession(
+        self.session = aiohttp.ClientSession()
             timeout=aiohttp.ClientTimeout(total=30),
             headers={"Authorization": f"Bearer {self.api_key}"} if self.api_key else {},
         )
@@ -124,25 +126,25 @@ class BackupNodeClient:
         try:
             data = aiohttp.FormData()
             data.add_field("shard_id", shard_id)
-            data.add_field(
+            data.add_field()
                 "shard_data", shard_data, content_type="application/octet-stream"
             )
 
-            async with self.session.post(
+            async with self.session.post()
                 f"{self.base_url}/shards", data=data
             ) as response:
                 if response.status == 201:
-                    logger.info(
+                    logger.info()
                         f"Successfully uploaded shard {shard_id} to node {self.node_info.node_id}"
                     )
                     return True
                 else:
-                    logger.error(
+                    logger.error()
                         f"Failed to upload shard {shard_id}: HTTP {response.status}"
                     )
                     return False
         except Exception as e:
-            logger.error(
+            logger.error()
                 f"Error uploading shard {shard_id} to node {self.node_info.node_id}: {e}"
             )
             return False
@@ -150,22 +152,22 @@ class BackupNodeClient:
     async def download_shard(self, shard_id: str) -> Optional[bytes]:
         """Download a shard from the backup node."""
         try:
-            async with self.session.get(
+            async with self.session.get()
                 f"{self.base_url}/shards/{shard_id}"
             ) as response:
                 if response.status == 200:
                     shard_data = await response.read()
-                    logger.info(
+                    logger.info()
                         f"Successfully downloaded shard {shard_id} from node {self.node_info.node_id}"
                     )
                     return shard_data
                 else:
-                    logger.error(
+                    logger.error()
                         f"Failed to download shard {shard_id}: HTTP {response.status}"
                     )
                     return None
         except Exception as e:
-            logger.error(
+            logger.error()
                 f"Error downloading shard {shard_id} from node {self.node_info.node_id}: {e}"
             )
             return None
@@ -173,7 +175,7 @@ class BackupNodeClient:
     async def verify_shard(self, shard_id: str, expected_checksum: str) -> bool:
         """Verify a shard on the backup node."""
         try:
-            async with self.session.get(
+            async with self.session.get()
                 f"{self.base_url}/shards/{shard_id}/verify"
             ) as response:
                 if response.status == 200:
@@ -183,7 +185,7 @@ class BackupNodeClient:
                 else:
                     return False
         except Exception as e:
-            logger.error(
+            logger.error()
                 f"Error verifying shard {shard_id} on node {self.node_info.node_id}: {e}"
             )
             return False
@@ -196,13 +198,13 @@ class BackupNodeClient:
                     data = await response.json()
                     shards = []
                     for shard_data in data.get("shards", []):
-                        shard = ShardInfo(
+                        shard = ShardInfo()
                             shard_id=shard_data["shard_id"],
                             node_id=self.node_info.node_id,
                             status=ShardStatus(shard_data.get("status", "available")),
                             size_bytes=shard_data.get("size_bytes", 0),
                             checksum=shard_data.get("checksum", ""),
-                            last_verified=datetime.fromisoformat(
+                            last_verified=datetime.fromisoformat()
                                 shard_data["last_verified"]
                             ),
                         )
@@ -217,21 +219,21 @@ class BackupNodeClient:
     async def delete_shard(self, shard_id: str) -> bool:
         """Delete a shard from the backup node."""
         try:
-            async with self.session.delete(
+            async with self.session.delete()
                 f"{self.base_url}/shards/{shard_id}"
             ) as response:
                 if response.status == 204:
-                    logger.info(
+                    logger.info()
                         f"Successfully deleted shard {shard_id} from node {self.node_info.node_id}"
                     )
                     return True
                 else:
-                    logger.error(
+                    logger.error()
                         f"Failed to delete shard {shard_id}: HTTP {response.status}"
                     )
                     return False
         except Exception as e:
-            logger.error(
+            logger.error()
                 f"Error deleting shard {shard_id} from node {self.node_info.node_id}: {e}"
             )
             return False
@@ -268,7 +270,7 @@ class BackupNodeManager:
     async def _discover_nodes(self):
         """Discover available backup nodes."""
         # Add localhost as default node
-        localhost_node = BackupNodeInfo(
+        localhost_node = BackupNodeInfo()
             node_id="localhost",
             hostname="localhost",
             ip_address="127.0.0.1",
@@ -287,7 +289,7 @@ class BackupNodeManager:
         self.nodes[node_info.node_id] = node_info
         self.clients[node_info.node_id] = BackupNodeClient(node_info, api_key)
 
-        logger.info(
+        logger.info()
             f"Registered backup node {node_info.node_id} at {node_info.ip_address}:{node_info.port}"
         )
 
@@ -304,19 +306,19 @@ class BackupNodeManager:
         healthy_nodes = await self.get_healthy_nodes()
 
         if len(healthy_nodes) < redundancy_factor:
-            logger.warning(
+            logger.warning()
                 f"Only {len(healthy_nodes)} healthy nodes available, need {redundancy_factor}"
             )
             redundancy_factor = len(healthy_nodes)
 
         # Simple selection based on capacity
-        selected_nodes = sorted(
+        selected_nodes = sorted()
             healthy_nodes, key=lambda n: n.used_bytes / n.capacity_bytes
         )[:redundancy_factor]
 
         return [node.node_id for node in selected_nodes]
 
-    async def upload_shard_to_nodes(
+    async def upload_shard_to_nodes()
         self, shard_id: str, shard_data: bytes, node_ids: List[str]
     ) -> List[str]:
         """Upload shard to multiple nodes."""
@@ -333,17 +335,17 @@ class BackupNodeManager:
                         self.nodes[node_id].used_bytes += len(shard_data)
                         self.nodes[node_id].shard_count += 1
 
-        logger.info(
+        logger.info()
             f"Uploaded shard {shard_id} to {len(successful_uploads)}/{len(node_ids)} nodes"
         )
         return successful_uploads
 
-    async def download_shard_from_nodes(
+    async def download_shard_from_nodes()
         self, shard_id: str, node_ids: List[str]
     ) -> Optional[bytes]:
         """Download shard from any available node."""
         for node_id in node_ids:
-            if (
+            if ()
                 node_id in self.clients
                 and self.nodes[node_id].status == NodeStatus.ONLINE
             ):
@@ -351,7 +353,7 @@ class BackupNodeManager:
                 async with client:
                     shard_data = await client.download_shard(shard_id)
                     if shard_data:
-                        logger.info(
+                        logger.info()
                             f"Successfully downloaded shard {shard_id} from node {node_id}"
                         )
                         return shard_data

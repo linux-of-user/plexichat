@@ -1,4 +1,5 @@
 """
+import threading
 PlexiChat Event Manager
 
 Event management with threading and performance optimization.
@@ -71,94 +72,94 @@ class EventHandler:
 
 class EventManager:
     """Event manager with threading support."""
-    
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.async_thread_manager = async_thread_manager
-        
+
         # Event storage
         self.event_queue = asyncio.PriorityQueue()
         self.handlers: Dict[str, List[EventHandler]] = {}
         self.global_handlers: List[EventHandler] = []
-        
+
         # Processing state
         self.processing = False
         self.processor_tasks: List[asyncio.Task] = []
         self.max_processors = 5
-        
+
         # Statistics
         self.events_processed = 0
         self.events_failed = 0
         self.handlers_registered = 0
         self.total_processing_time = 0.0
-    
+
     async def start_processing(self):
         """Start event processing."""
         if self.processing:
             return
-        
+
         self.processing = True
-        
+
         # Start processor tasks
         for i in range(self.max_processors):
             task = asyncio.create_task(self._processor_loop(f"processor_{i}"))
             self.processor_tasks.append(task)
-        
+
         logger.info(f"Event processing started with {self.max_processors} processors")
-    
+
     async def stop_processing(self):
         """Stop event processing."""
         if not self.processing:
             return
-        
+
         self.processing = False
-        
+
         # Cancel processor tasks
         for task in self.processor_tasks:
             task.cancel()
-        
+
         # Wait for tasks to complete
         if self.processor_tasks:
             await asyncio.gather(*self.processor_tasks, return_exceptions=True)
-        
+
         self.processor_tasks.clear()
         logger.info("Event processing stopped")
-    
+
     async def _processor_loop(self, processor_name: str):
         """Event processor loop."""
         while self.processing:
             try:
                 # Get event from queue with timeout
                 try:
-                    priority, event = await asyncio.wait_for(
+                    priority, event = await asyncio.wait_for()
                         self.event_queue.get(), timeout=1.0
                     )
                 except asyncio.TimeoutError:
                     continue
-                
+
                 # Process event
                 await self._process_event(event, processor_name)
-                
+
                 # Mark task done
                 self.event_queue.task_done()
-                
+
             except Exception as e:
                 logger.error(f"Processor {processor_name} error: {e}")
                 await asyncio.sleep(1)
-    
+
     async def _process_event(self, event: Event, processor_name: str):
         """Process a single event."""
         try:
             start_time = time.time()
-            
+
             # Get handlers for event type
             event_handlers = self.handlers.get(event.event_type, [])
             all_handlers = event_handlers + self.global_handlers
-            
+
             # Sort handlers by priority
             all_handlers.sort(key=lambda h: h.priority, reverse=True)
-            
+
             # Process handlers
             results = []
             for handler in all_handlers:
@@ -166,44 +167,44 @@ class EventManager:
                     # Apply filter if present
                     if handler.filter_func and not handler.filter_func(event):
                         continue
-                    
+
                     # Execute handler
                     if handler.async_handler:
                         if self.async_thread_manager:
-                            result = await self.async_thread_manager.run_in_thread(
+                            result = await self.async_thread_manager.run_in_thread()
                                 self._execute_handler_sync, handler, event
                             )
                         else:
                             result = await self._execute_handler_async(handler, event)
                     else:
                         result = await self._execute_handler_async(handler, event)
-                    
+
                     if result is not None:
                         results.append(result)
-                        
+
                 except Exception as e:
                     logger.error(f"Handler {handler.handler_id} error: {e}")
                     self.events_failed += 1
-            
+
             # Mark event as processed
             event.processed = True
-            
+
             # Store event in database
             await self._store_event(event, results)
-            
+
             # Performance tracking
             processing_time = time.time() - start_time
             self.total_processing_time += processing_time
             self.events_processed += 1
-            
+
             if self.performance_logger:
                 self.performance_logger.record_metric("event_processing_duration", processing_time, "seconds")
                 self.performance_logger.record_metric("events_processed", 1, "count")
                 self.performance_logger.record_metric("event_handlers_executed", len(all_handlers), "count")
-            
+
             # Track analytics
             if track_event:
-                await track_event(
+                await track_event()
                     "event_processed",
                     properties={
                         "event_type": event.event_type,
@@ -214,13 +215,13 @@ class EventManager:
                         "processor": processor_name
                     }
                 )
-            
+
             logger.debug(f"Event processed: {event.event_id} by {processor_name} in {processing_time:.3f}s")
-            
+
         except Exception as e:
             logger.error(f"Error processing event {event.event_id}: {e}")
             self.events_failed += 1
-    
+
     def _execute_handler_sync(self, handler: EventHandler, event: Event) -> Any:
         """Execute handler synchronously for threading."""
         try:
@@ -228,7 +229,7 @@ class EventManager:
         except Exception as e:
             logger.error(f"Sync handler execution error: {e}")
             raise
-    
+
     async def _execute_handler_async(self, handler: EventHandler, event: Event) -> Any:
         """Execute handler asynchronously."""
         try:
@@ -239,15 +240,15 @@ class EventManager:
         except Exception as e:
             logger.error(f"Async handler execution error: {e}")
             raise
-    
-    async def emit_event(self, event_type: str, source: str, data: Dict[str, Any],
+
+    async def emit_event(self, event_type: str, source: str, data: Dict[str, Any],)
                         priority: EventPriority = EventPriority.NORMAL,
                         metadata: Dict[str, Any] = None) -> str:
         """Emit an event."""
         try:
             event_id = str(uuid4())
-            
-            event = Event(
+
+            event = Event()
                 event_id=event_id,
                 event_type=event_type,
                 source=source,
@@ -256,18 +257,18 @@ class EventManager:
                 data=data,
                 metadata=metadata or {}
             )
-            
+
             # Add to queue with priority
             priority_value = self._get_priority_value(priority)
             await self.event_queue.put((priority_value, event))
-            
+
             logger.debug(f"Event emitted: {event_type} from {source} (ID: {event_id})")
             return event_id
-            
+
         except Exception as e:
             logger.error(f"Error emitting event: {e}")
             raise
-    
+
     def _get_priority_value(self, priority: EventPriority) -> int:
         """Get numeric priority value (lower = higher priority)."""
         priority_map = {
@@ -277,15 +278,15 @@ class EventManager:
             EventPriority.LOW: 3
         }
         return priority_map.get(priority, 2)
-    
-    def register_handler(self, event_type: str, handler_func: Callable,
+
+    def register_handler(self, event_type: str, handler_func: Callable,):
                         priority: int = 100, handler_id: Optional[str] = None,
                         filter_func: Optional[Callable] = None) -> str:
         """Register event handler."""
         try:
             handler_id = handler_id or str(uuid4())
-            
-            handler = EventHandler(
+
+            handler = EventHandler()
                 handler_id=handler_id,
                 event_type=event_type,
                 handler_func=handler_func,
@@ -293,7 +294,7 @@ class EventManager:
                 async_handler=asyncio.iscoroutinefunction(handler_func),
                 filter_func=filter_func
             )
-            
+
             if event_type == "*":
                 # Global handler
                 self.global_handlers.append(handler)
@@ -302,16 +303,16 @@ class EventManager:
                 if event_type not in self.handlers:
                     self.handlers[event_type] = []
                 self.handlers[event_type].append(handler)
-            
+
             self.handlers_registered += 1
-            
+
             logger.debug(f"Handler registered: {handler_id} for {event_type}")
             return handler_id
-            
+
         except Exception as e:
             logger.error(f"Error registering handler: {e}")
             raise
-    
+
     def unregister_handler(self, handler_id: str) -> bool:
         """Unregister event handler."""
         try:
@@ -321,7 +322,7 @@ class EventManager:
                     del self.global_handlers[i]
                     logger.debug(f"Global handler unregistered: {handler_id}")
                     return True
-            
+
             # Remove from specific event handlers
             for event_type, handlers in self.handlers.items():
                 for i, handler in enumerate(handlers):
@@ -329,20 +330,20 @@ class EventManager:
                         del handlers[i]
                         logger.debug(f"Handler unregistered: {handler_id} for {event_type}")
                         return True
-            
+
             logger.warning(f"Handler not found for unregistration: {handler_id}")
             return False
-            
+
         except Exception as e:
             logger.error(f"Error unregistering handler: {e}")
             return False
-    
+
     async def _store_event(self, event: Event, results: List[Any]):
         """Store event in database."""
         try:
             if self.db_manager:
                 query = """
-                    INSERT INTO events (
+                    INSERT INTO events ()
                         event_id, event_type, source, timestamp, priority,
                         data, metadata, processed, results
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -361,33 +362,33 @@ class EventManager:
                 await self.db_manager.execute_query(query, params)
         except Exception as e:
             logger.error(f"Error storing event: {e}")
-    
-    async def get_events(self, event_type: Optional[str] = None, 
+
+    async def get_events(self, event_type: Optional[str] = None, )
                         source: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
         """Get events from database."""
         try:
             if not self.db_manager:
                 return []
-            
+
             query = "SELECT * FROM events WHERE 1=1"
             params = {}
-            
+
             if event_type:
                 query += " AND event_type = ?"
                 params["event_type"] = event_type
-            
+
             if source:
                 query += " AND source = ?"
                 params["source"] = source
-            
+
             query += " ORDER BY timestamp DESC LIMIT ?"
             params["limit"] = limit
-            
+
             result = await self.db_manager.execute_query(query, params)
-            
+
             events = []
             for row in result:
-                events.append({
+                events.append({)
                     "event_id": row[0],
                     "event_type": row[1],
                     "source": row[2],
@@ -398,18 +399,18 @@ class EventManager:
                     "processed": row[7],
                     "results": json.loads(row[8]) if row[8] else []
                 })
-            
+
             return events
-            
+
         except Exception as e:
             logger.error(f"Error getting events: {e}")
             return []
-    
+
     def get_handlers(self) -> Dict[str, List[Dict[str, Any]]]:
         """Get all registered handlers."""
         try:
             result = {}
-            
+
             # Add specific event handlers
             for event_type, handlers in self.handlers.items():
                 result[event_type] = [
@@ -421,7 +422,7 @@ class EventManager:
                     }
                     for h in handlers
                 ]
-            
+
             # Add global handlers
             if self.global_handlers:
                 result["*"] = [
@@ -433,24 +434,24 @@ class EventManager:
                     }
                     for h in self.global_handlers
                 ]
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error getting handlers: {e}")
             return {}
-    
+
     def get_queue_size(self) -> int:
         """Get current queue size."""
         return self.event_queue.qsize()
-    
+
     def get_stats(self) -> Dict[str, Any]:
         """Get event manager statistics."""
-        avg_processing_time = (
-            self.total_processing_time / self.events_processed 
+        avg_processing_time = ()
+            self.total_processing_time / self.events_processed
             if self.events_processed > 0 else 0
         )
-        
+
         return {
             "processing": self.processing,
             "max_processors": self.max_processors,

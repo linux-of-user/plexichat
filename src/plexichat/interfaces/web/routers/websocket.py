@@ -4,6 +4,8 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import socket
+import time
 PlexiChat WebSocket Router
 
 Enhanced WebSocket handling with comprehensive validation, security, and performance optimization.
@@ -91,69 +93,69 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 class ConnectionManager:
     """WebSocket connection manager with performance optimization."""
-    
+
     def __init__(self):
         self.active_connections: List[WebSocket] = []
         self.user_connections: Dict[int, WebSocket] = {}
         self.performance_logger = performance_logger
-    
+
     async def connect(self, websocket: WebSocket, user_id: int):
         """Connect a WebSocket with performance tracking."""
         await websocket.accept()
         self.active_connections.append(websocket)
         self.user_connections[user_id] = websocket
-        
+
         # Performance tracking
         if self.performance_logger:
             self.performance_logger.record_metric("websocket_connections", len(self.active_connections), "count")
-        
+
         logger.info(f"WebSocket connected for user {user_id}. Total connections: {len(self.active_connections)}")
-    
+
     def disconnect(self, websocket: WebSocket, user_id: int):
         """Disconnect a WebSocket with performance tracking."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        
+
         if user_id in self.user_connections:
             del self.user_connections[user_id]
-        
+
         # Performance tracking
         if self.performance_logger:
             self.performance_logger.record_metric("websocket_connections", len(self.active_connections), "count")
-        
+
         logger.info(f"WebSocket disconnected for user {user_id}. Total connections: {len(self.active_connections)}")
-    
+
     async def send_personal_message(self, message: str, user_id: int):
         """Send message to specific user."""
         if user_id in self.user_connections:
             websocket = self.user_connections[user_id]
             try:
                 await websocket.send_text(message)
-                
+
                 # Performance tracking
                 if self.performance_logger:
                     self.performance_logger.record_metric("websocket_messages_sent", 1, "count")
-                
+
             except Exception as e:
                 logger.error(f"Error sending message to user {user_id}: {e}")
                 self.disconnect(websocket, user_id)
-    
+
     async def broadcast(self, message: str):
         """Broadcast message to all connected clients."""
         disconnected = []
-        
+
         for websocket in self.active_connections:
             try:
                 await websocket.send_text(message)
             except Exception as e:
                 logger.error(f"Error broadcasting message: {e}")
                 disconnected.append(websocket)
-        
+
         # Clean up disconnected websockets
         for websocket in disconnected:
             if websocket in self.active_connections:
                 self.active_connections.remove(websocket)
-        
+
         # Performance tracking
         if self.performance_logger:
             self.performance_logger.record_metric("websocket_broadcasts", 1, "count")
@@ -164,12 +166,12 @@ manager = ConnectionManager()
 
 class WebSocketService:
     """Service class for WebSocket operations using EXISTING database abstraction layer."""
-    
+
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("websocket_user_validation") if async_track_performance else lambda f: f
     async def validate_user_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate user token using EXISTING authentication system."""
@@ -183,7 +185,7 @@ class WebSocketService:
             if token == "valid-token":
                 return {"id": 1, "username": "admin", "is_admin": True}
             return None
-    
+
     @async_track_performance("websocket_message_log") if async_track_performance else lambda f: f
     async def log_websocket_message(self, user_id: int, message_type: str, content: str):
         """Log WebSocket message using EXISTING database abstraction layer."""
@@ -200,14 +202,14 @@ class WebSocketService:
                     "content": content[:1000],  # Limit content length
                     "timestamp": datetime.now()
                 }
-                
+
                 # Use performance tracking if available
                 if self.performance_logger and timer:
                     with timer("websocket_log_insert"):
                         await self.db_manager.execute_query(query, params)
                 else:
                     await self.db_manager.execute_query(query, params)
-                    
+
             except Exception as e:
                 logger.error(f"Error logging WebSocket message: {e}")
 
@@ -218,7 +220,7 @@ websocket_service = WebSocketService()
 async def websocket_endpoint(websocket: WebSocket, token: str = None):
     """WebSocket endpoint with enhanced security and performance monitoring."""
     user_id = None
-    
+
     try:
         # Validate user token
         if token:
@@ -231,10 +233,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
         else:
             # For testing, allow connection without token
             user_id = 1
-        
+
         # Connect user
         await manager.connect(websocket, user_id)
-        
+
         # Send welcome message
         welcome_message = {
             "type": "welcome",
@@ -247,31 +249,31 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
             }
         }
         await websocket.send_text(json.dumps(welcome_message))
-        
+
         # Log connection
         await websocket_service.log_websocket_message(user_id, "connection", "User connected")
-        
+
         # Message handling loop
         while True:
             try:
                 # Receive message
                 data = await websocket.receive_text()
-                
+
                 # Parse and validate message
                 try:
                     message_data = json.loads(data)
                     message_type = message_data.get("type", "unknown")
-                    
+
                     # Sanitize input
                     if "content" in message_data:
                         message_data["content"] = InputSanitizer.sanitize_input(message_data["content"])
-                    
+
                     # Log message
                     await websocket_service.log_websocket_message(user_id, message_type, data)
-                    
+
                     # Handle different message types
                     await handle_websocket_message(websocket, user_id, message_data)
-                    
+
                 except json.JSONDecodeError:
                     error_response = {
                         "type": "error",
@@ -279,7 +281,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
                         "timestamp": datetime.now().isoformat()
                     }
                     await websocket.send_text(json.dumps(error_response))
-                
+
             except WebSocketDisconnect:
                 break
             except Exception as e:
@@ -290,10 +292,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
                     "timestamp": datetime.now().isoformat()
                 }
                 await websocket.send_text(json.dumps(error_response))
-    
+
     except Exception as e:
         logger.error(f"WebSocket connection error: {e}")
-    
+
     finally:
         # Disconnect user
         if user_id:
@@ -303,7 +305,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
 async def handle_websocket_message(websocket: WebSocket, user_id: int, message_data: Dict[str, Any]):
     """Handle different types of WebSocket messages."""
     message_type = message_data.get("type", "unknown")
-    
+
     if message_type == "ping":
         # Handle ping message
         pong_response = {
@@ -311,7 +313,7 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message_d
             "timestamp": datetime.now().isoformat()
         }
         await websocket.send_text(json.dumps(pong_response))
-    
+
     elif message_type == "status":
         # Handle status request
         status_info = await get_system_status()
@@ -321,7 +323,7 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message_d
             "timestamp": datetime.now().isoformat()
         }
         await websocket.send_text(json.dumps(status_response))
-    
+
     elif message_type == "broadcast":
         # Handle broadcast message (admin only)
         user_data = await websocket_service.validate_user_token(message_data.get("token", ""))
@@ -340,7 +342,7 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message_d
                 "timestamp": datetime.now().isoformat()
             }
             await websocket.send_text(json.dumps(error_response))
-    
+
     else:
         # Handle unknown message type
         error_response = {
@@ -362,14 +364,14 @@ async def get_system_status() -> Dict[str, Any]:
                 "log_level": getattr(settings, 'LOG_LEVEL', 'INFO')
             }
         }
-        
+
         # Add system metrics if psutil is available
         if psutil:
             try:
                 cpu_percent = psutil.cpu_percent(interval=0.1)
                 memory = psutil.virtual_memory()
                 disk = psutil.disk_usage('/')
-                
+
                 status_info["system"] = {
                     "cpu_usage_percent": cpu_percent,
                     "memory_usage_percent": memory.percent,
@@ -384,9 +386,9 @@ async def get_system_status() -> Dict[str, Any]:
                 status_info["system"] = {"error": "Unable to retrieve system metrics"}
         else:
             status_info["system"] = {"error": "System monitoring not available"}
-        
+
         return status_info
-        
+
     except Exception as e:
         logger.error(f"Error getting system status: {e}")
         return {

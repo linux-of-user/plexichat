@@ -14,9 +14,7 @@ from typing import Optional
 import tabulate
 
 
-
-
-from plexichat.ai.core.ai_abstraction_layer import (  # !/usr/bin/env python3; Add parent directory to path for imports
+from plexichat.ai.core.ai_abstraction_layer import (  # !/usr/bin/env python3; Add parent directory to path for imports)
 
     AI,
     CLI,
@@ -102,7 +100,7 @@ class AICommandLineInterface:
                 if len(base_url) > 25:
                     base_url = base_url[:22] + "..."
 
-                rows.append([
+                rows.append([)
                     provider_type.value,
                     "Yes" if config.get("enabled", False) else "No",
                     status.get("status", ProviderStatus.UNAVAILABLE).value,
@@ -260,7 +258,7 @@ class AICommandLineInterface:
         logger.info(f"Prompt: {prompt}")
         logger.info("-" * 50)
 
-        request = AIRequest(
+        request = AIRequest()
             user_id=user_id,
             model_id=model_id,
             prompt=prompt,
@@ -309,7 +307,7 @@ class AICommandLineInterface:
     async def add_model(self, model_data: dict):
         """Add new AI model."""
         try:
-            model = AIModel(
+            model = AIModel()
                 id=model_data["id"],
                 name=model_data["name"],
                 provider=AIProvider(model_data["provider"]),
@@ -441,7 +439,7 @@ async def main():
         elif args.command == "test":
             await cli.test_model(args.model_id, args.prompt, args.user_id)
         elif args.command == "configure":
-            await cli.configure_provider(args.provider, args.api_key,
+            await cli.configure_provider(args.provider, args.api_key,)
                                        args.base_url or "", not args.disabled)
         elif args.command == "add-model":
             with open(args.config_file, 'r') as f:

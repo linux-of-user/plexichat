@@ -7,21 +7,6 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
@@ -29,6 +14,8 @@ from plexichat.core.logging import logger
 from plexichat.infrastructure.services.p2p_messaging import p2p_messaging_service
 
 """
+import socket
+import time
 Peer-to-peer messaging API endpoints.
 Provides P2P messaging with database fallback capabilities.
 """
@@ -63,7 +50,7 @@ async def send_p2p_message(request: P2PMessageRequest):
         # In production, get sender_id from authentication
         sender_id = 1  # Placeholder
 
-        message = await p2p_messaging_service.send_message(
+        message = await p2p_messaging_service.send_message()
             sender_id=sender_id,
             recipient_id=request.recipient_id,
             content=request.content,
@@ -86,7 +73,7 @@ async def send_p2p_message(request: P2PMessageRequest):
 
 
 @router.get("/messages")
-async def get_p2p_messages(
+async def get_p2p_messages()
     other_user_id: Optional[int] = None,
     limit: int = 50
 ):
@@ -95,7 +82,7 @@ async def get_p2p_messages(
         # In production, get user_id from authentication
         user_id = 1  # Placeholder
 
-        messages = await p2p_messaging_service.get_messages(
+        messages = await p2p_messaging_service.get_messages()
             user_id=user_id,
             other_user_id=other_user_id,
             limit=limit
@@ -108,7 +95,7 @@ async def get_p2p_messages(
             if msg.encrypted:
                 content = p2p_messaging_service._decrypt_content(msg.content)
 
-            message_responses.append(P2PMessageResponse(
+            message_responses.append(P2PMessageResponse())
                 id=msg.id,
                 sender_id=msg.sender_id,
                 recipient_id=msg.recipient_id,
@@ -146,8 +133,7 @@ async def get_p2p_status():
                 "offline_caching": True,
                 "automatic_sync": True
             },
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
 
     except Exception as e:
@@ -180,7 +166,7 @@ async def get_connected_peers():
         peers_info = []
 
         for user_id, peer in p2p_messaging_service.peers.items():
-            peers_info.append({
+            peers_info.append({)
                 "user_id": user_id,
                 "connection_id": peer.connection_id,
                 "is_online": peer.is_online,
@@ -223,7 +209,7 @@ async def force_database_sync():
     """Force synchronization of cached messages to database."""
     try:
         if not p2p_messaging_service.database_available:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=503,
                 detail="Database is not available for synchronization"
             )
@@ -270,12 +256,11 @@ async def websocket_p2p_connection(websocket: WebSocket):
         logger.info(f" P2P WebSocket connected for user {user_id}")
 
         # Send connection confirmation
-        await websocket.send_json({
+        await websocket.send_json({)
             "type": "connection_established",
             "connection_id": connection_id,
             "user_id": user_id,
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
         })
 
         while True:
@@ -291,10 +276,9 @@ datetime = datetime.now().isoformat()
 last_seen = datetime.now()
 datetime = datetime.now()
 
-                await websocket.send_json({
+                await websocket.send_json({)
                     "type": "pong",
-                    "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat()
                 })
 
             elif message_type == "send_message":
@@ -303,13 +287,13 @@ datetime = datetime.now().isoformat()
                 content = data.get("content")
 
                 if recipient_id and content:
-                    message = await p2p_messaging_service.send_message(
+                    message = await p2p_messaging_service.send_message()
                         sender_id=user_id,
                         recipient_id=recipient_id,
                         content=content
                     )
 
-                    await websocket.send_json({
+                    await websocket.send_json({)
                         "type": "message_sent",
                         "message_id": message.id,
                         "timestamp": message.timestamp.isoformat()
@@ -319,11 +303,10 @@ datetime = datetime.now().isoformat()
                 # Handle status request
                 status = p2p_messaging_service.get_network_status()
 
-                await websocket.send_json({
+                await websocket.send_json({)
                     "type": "status_update",
                     "status": status,
-                    "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat()
                 })
 
             else:

@@ -1,20 +1,52 @@
 """
-PlexiChat Core System Authentication
+import logging
+PlexiChat Core Authentication System - SINGLE SOURCE OF TRUTH
 
-Core authentication components for the PlexiChat system.
+Consolidates ALL authentication components into a unified system.
 """
 
 from typing import Any, Dict, Optional
 
+# Import unified authentication system (NEW SINGLE SOURCE OF TRUTH)
+try:
+    from .unified_auth import (
+        UnifiedAuthManager,
+        unified_auth_manager,
+        AuthenticationMethod,
+        SecurityLevel,
+        AuthSession,
+        AuthResult,
+    )
+    # Backward compatibility aliases
+    AuthManager = UnifiedAuthManager
+    auth_manager = unified_auth_manager
+except ImportError:
+    # Fallback definitions
+    class UnifiedAuthManager:
+        pass
+    unified_auth_manager = UnifiedAuthManager()
+    AuthManager = UnifiedAuthManager
+    auth_manager = unified_auth_manager
+
+    class AuthenticationMethod:
+        PASSWORD = "password"
+        MFA_TOTP = "mfa_totp"
+
+    class SecurityLevel:
+        BASIC = 1
+        GOVERNMENT = 6
+
+    class AuthSession:
+        pass
+
+    class AuthResult:
+        pass
+
+# Import legacy components for backward compatibility
 try:
     from .audit_manager import AuthAuditManager, auth_audit_manager
 except ImportError:
     AuthAuditManager = auth_audit_manager = None
-
-try:
-    from .auth_manager import AuthManager, auth_manager
-except ImportError:
-    AuthManager = auth_manager = None
 
 try:
     from .biometric_manager import BiometricManager, biometric_manager
@@ -35,181 +67,63 @@ try:
     from .token_manager import TokenManager, token_manager
 except ImportError:
     TokenManager = token_manager = None
-    BiometricValidator,
-    Consolidates,
-    Core,
-    FastAPIAuthMiddleware,
-    FlaskAuthMiddleware,
-    Management,
-    OAuthManager,
-    PasswordManager,
-    PasswordValidator,
-    PlexiChat,
-    SessionManager,
-    System,
-    This,
-    TokenManager,
-    TokenValidator,
-    Unified,
-    """,
-    -,
-    .auth_manager,
-    .decorators,
-    .mfa_manager,
-    .middleware,
-    .oauth_manager,
-    .password_manager,
-    .session_manager,
-    .token_manager,
-    .validators,
-    a,
-    advanced,
-    all,
-    and,
-    authentication,
-    biometric,
-    components,
-    comprehensive,
-    consolidates:,
-    exists,
-    features.,
-    from,
-    government-level,
-    if,
-    import,
-    into,
-    logging,
-    module,
-    oauth_manager,
-    optional_auth,
-    password_manager,
-    plexichat.infrastructure.utils.auth,
-    replaces,
-    require_auth,
-    require_level,
-    require_mfa,
-    security,
-    session_manager,
-    single,
-    src/plexichat/app/auth/,
-    src/plexichat/core/auth/,
-    support,
-    system,
-)
-- Authentication components from security modules
-
-Features:
-- Multi-factor authentication (2FA/MFA) with TOTP, SMS, email
-- Biometric authentication support (fingerprint, face, voice)
-- Zero-knowledge authentication protocols
-- Hardware security key support (FIDO2/WebAuthn)
-- Government-level security with quantum-resistant algorithms
-- JWT token management with refresh tokens
-- Session management with security levels
-- Brute force protection and account lockout
-- Password policies and strength validation
-- OAuth2/OpenID Connect integration
-- Single Sign-On (SSO) support
-- Device fingerprinting and trusted devices
-- Risk-based authentication
-- Audit logging and compliance reporting
-"""
-
-# Import new unified components
-# Import authentication utilities
+# Import authentication exceptions
 try:
-    from .exceptions import (
-        AccountLockError,
+    from ..exceptions import (
         AuthenticationError,
         AuthorizationError,
-        BiometricError,
-        DeviceError,
-        MFAError,
-        OAuthError,
-        PasswordError,
-        RateLimitError,
-        SessionError,
-        TokenError,
     )
 except ImportError:
     # Fallback if exceptions module doesn't exist
-    class AccountLockError(Exception): pass
-    class AuthenticationError(Exception): pass
-    class AuthorizationError(Exception): pass
-    class BiometricError(Exception): pass
-    class DeviceError(Exception): pass
-    class MFAError(Exception): pass
-    class OAuthError(Exception): pass
-    class PasswordError(Exception): pass
-    class RateLimitError(Exception): pass
-    class SessionError(Exception): pass
-    class TokenError(Exception): pass
-# Import existing authentication components (consolidated)
-# Note: Removed duplicate authentication systems - now using unified core system
-# Removed: features/security/advanced_auth.py (CONSOLIDATED)
-# Removed: features/security/core/government_auth.py (CONSOLIDATED)
-# Removed: features/security/core/advanced_authentication.py (CONSOLIDATED)
-# Removed: features/security/login_manager.py (CONSOLIDATED)
+    class AuthenticationError(Exception):
+        pass
+    class AuthorizationError(Exception):
+        pass
 
+# Additional auth-specific exceptions
+class AccountLockError(AuthenticationError):
+    pass
+class BiometricError(AuthenticationError):
+    pass
+class DeviceError(AuthenticationError):
+    pass
+class MFAError(AuthenticationError):
+    pass
+class OAuthError(AuthenticationError):
+    pass
+class PasswordError(AuthenticationError):
+    pass
+class RateLimitError(AuthenticationError):
+    pass
+class SessionError(AuthenticationError):
+    pass
+class TokenError(AuthenticationError):
+    pass
 
 
 __version__ = "3.0.0"
 __all__ = [
-    # Core authentication management
-    "AuthManager",
-    "auth_manager",
+    # Unified authentication system (NEW SINGLE SOURCE OF TRUTH)
+    "UnifiedAuthManager",
+    "unified_auth_manager",
+    "AuthManager",  # Backward compatibility
+    "auth_manager", # Backward compatibility
+    "AuthenticationMethod",
+    "SecurityLevel",
+    "AuthSession",
+    "AuthResult",
 
-    # Token management
+    # Legacy components (for backward compatibility)
     "TokenManager",
     "token_manager",
-
-    # Session management
-    "SessionManager",
-    "session_manager",
-
-    # Password management
-    "PasswordManager",
-    "password_manager",
-
-    # Multi-factor authentication
     "MFAManager",
     "mfa_manager",
-
-    # Biometric authentication
     "BiometricManager",
     "biometric_manager",
-
-    # OAuth management
-    "OAuthManager",
-    "oauth_manager",
-
-    # Device management
     "DeviceManager",
     "device_manager",
-
-    # Audit management
     "AuthAuditManager",
     "auth_audit_manager",
-
-    # Legacy components (now consolidated into unified system)
-    # Note: These are now provided by the unified auth system above
-
-    # Middleware
-    "AuthenticationMiddleware",
-    "FlaskAuthMiddleware",
-    "FastAPIAuthMiddleware",
-
-    # Validators
-    "PasswordValidator",
-    "TokenValidator",
-    "BiometricValidator",
-
-    # Decorators
-    "require_auth",
-    "from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin",
-    "require_mfa",
-    "require_level",
-    "optional_auth",
 
     # Exceptions
     "AuthenticationError",
@@ -570,7 +484,7 @@ async def authenticate_user(username: str, password: str, mfa_code: Optional[str
     """Authenticate user with username/password and optional MFA."""
     # Import the request class locally to avoid circular imports
     # Create authentication request
-    request = AuthenticationRequest(
+    request = AuthenticationRequest()
         username=username,
         password=password,
         mfa_code=mfa_code or "",

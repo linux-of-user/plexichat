@@ -386,6 +386,54 @@ async def expensive_operation(): pass
 async def long_running_task(): pass
 ```
 
+### New Extension Points (v3+)
+
+PlexiChat plugins can now extend the system in the following ways:
+
+- Register CLI commands
+- Register API/web routers
+- Register database extensions (models, DAOs, adapters)
+- Register security features (middleware, policies)
+- Provide self-tests for automated validation
+
+#### `get_routers() -> Dict[str, Any]`
+Return a dictionary of routers to be registered, e.g. `{ "/myroute": router }`.
+
+#### `get_db_extensions() -> Dict[str, Any]`
+Return a dictionary of database models, DAOs, or adapters to register.
+
+#### `get_security_features() -> Dict[str, Any]`
+Return a dictionary of security features (middleware, policies, etc.) to register.
+
+#### `self_test() -> Dict[str, Any]`
+Return a dictionary describing the results of plugin self-tests.
+
+See the `mega_cli` plugin for a comprehensive example of all extension points.
+
+### mega_cli Plugin
+
+The `mega_cli` plugin demonstrates all extension points and adds 400+ CLI commands for power users and automation. Features include:
+
+- Hundreds of categorized CLI commands (see `plexichat mega --help`)
+- Example API router at `/mega-cli/health`
+- Example DB extension and security middleware
+- Self-test support for plugin health
+
+#### Using mega_cli CLI Commands
+
+```bash
+# List all mega_cli commands
+plexichat mega --help
+
+# Get help for a specific command
+plexichat mega user create --help
+
+# Run a mega_cli command
+plexichat mega dev info
+```
+
+All commands support `--help` for detailed usage and options.
+
 ## Advanced Features
 
 ### Database Access
@@ -722,6 +770,59 @@ class BackupPlugin(Plugin):
             content=f"Daily backup completed: {backup_id}"
         )
 ```
+
+## Example: Mega CLI Plugin
+
+The `mega_cli` plugin demonstrates all major extension points for PlexiChat plugins:
+- Registers 400+ CLI commands, each with a detailed help string (shown with --help)
+- Adds a FastAPI router
+- Adds a database extension
+- Adds a security feature
+- Provides a self-test method
+
+### Plugin Docstring Example
+
+```python
+"""
+mega_cli Plugin for PlexiChat
+
+This plugin registers 400+ advanced CLI commands for power users, automation, and developers.
+
+Features:
+- Registers 400+ CLI commands, each with a --help option and detailed help string
+- Demonstrates plugin extension points: CLI, routers, DB extensions, security features, and self-tests
+- All commands are grouped by category (dev, net, sys, user, file, chat, ai, etc.)
+- Each command is self-documenting and discoverable via --help
+- See docs/PLUGIN_DEVELOPMENT.md for extension API details
+
+Usage:
+  plexichat mega <command> --help
+  plexichat dev <command> --help
+  plexichat net <command> --help
+  ...
+"""
+```
+
+### CLI Command Registration Example
+
+```python
+cmd = UltimateCommand(
+    name="dev_cmd_1",
+    description="Mega CLI: dev command #1 (from mega_cli plugin)\n\nUsage: plexichat dev dev_cmd_1 [OPTIONS]\n\nOptions:\n  --help    Show this help message and exit.\n\nThis command is provided by the mega_cli plugin.",
+    category=CommandCategory.DEV,
+    handler=handler,
+    version_added="1.0.0",
+    admin_only=False,
+    dangerous=False,
+    requires_auth=False,
+)
+ultimate_cli.register_command(cmd)
+```
+
+### Discoverability
+- All plugin CLI commands are discoverable with `--help`.
+- Plugin docstrings and command descriptions should be detailed for both users and developers.
+- See `docs/PLUGIN_DEVELOPMENT.md` for more details and best practices.
 
 ---
 

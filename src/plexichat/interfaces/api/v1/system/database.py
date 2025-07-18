@@ -8,32 +8,12 @@ from datetime import datetime
 from typing import Optional
 
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
-from plexichat.app.database.database_manager import (
+from plexichat.app.database.database_manager import ()
+import stat
+import time
 
     API,
     Database,
@@ -145,7 +125,7 @@ async def get_supported_database_types():
 
 
 @router.post("/backup")
-async def create_database_backup(
+async def create_database_backup()
     request: BackupRequest,
     background_tasks: BackgroundTasks
 ):
@@ -156,7 +136,6 @@ async def create_database_backup(
         # Add timestamp to backup path if requested
         backup_path = request.backup_path
         if request.include_timestamp:
-            from datetime import datetime
 timestamp = datetime.now()
 datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
             name, ext = os.path.splitext(backup_path)
@@ -172,8 +151,7 @@ datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
             "success": True,
             "message": "Database backup started",
             "backup_path": backup_path,
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
 
     except Exception as e:
@@ -182,20 +160,20 @@ datetime = datetime.now().isoformat()
 
 
 @router.post("/restore")
-async def restore_database_backup(
+async def restore_database_backup()
     request: RestoreRequest,
     background_tasks: BackgroundTasks
 ):
     """Restore database from backup."""
     try:
         if not request.confirm:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail="Database restore requires confirmation. Set 'confirm' to true."
             )
 
         if not os.path.exists(request.backup_path):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=404,
                 detail=f"Backup file not found: {request.backup_path}"
             )
@@ -209,8 +187,7 @@ async def restore_database_backup(
             "success": True,
             "message": "Database restore started",
             "backup_path": request.backup_path,
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "warning": "Database will be unavailable during restore process"
         }
 
@@ -222,7 +199,7 @@ datetime = datetime.now().isoformat(),
 
 
 @router.post("/migrate")
-async def migrate_database(
+async def migrate_database()
     request: MigrationRequest,
     background_tasks: BackgroundTasks
 ):
@@ -234,13 +211,13 @@ async def migrate_database(
         try:
             target_db_type = DatabaseType(request.target_config.db_type)
         except ValueError:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Unsupported database type: {request.target_config.db_type}"
             )
 
         # Create target database config
-        target_config = DatabaseConfig(
+        target_config = DatabaseConfig()
             db_type=target_db_type,
             host=request.target_config.host,
             port=request.target_config.port,
@@ -258,8 +235,7 @@ async def migrate_database(
 
         # Create backup if requested
         if request.backup_source:
-            backup_path = f"backups/pre_migration_{from datetime import datetime
-datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
+            backup_path = f"backups/pre_migration_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
             os.makedirs(os.path.dirname(backup_path), exist_ok=True)
             await manager.backup_database(backup_path)
 
@@ -272,8 +248,7 @@ datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
             "source_type": manager.config.db_type.value,
             "target_type": target_config.db_type.value,
             "backup_created": request.backup_source,
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "warning": "Database will be unavailable during migration process"
         }
 
@@ -298,11 +273,10 @@ async def reconnect_database():
             return {
                 "success": True,
                 "message": "Database reconnected successfully",
-                "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat()
             }
         else:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=500,
                 detail="Failed to reconnect to database"
             )
@@ -331,7 +305,7 @@ async def list_database_backups(backup_dir: str = "backups"):
             file_path = os.path.join(backup_dir, filename)
             if os.path.isfile(file_path):
                 stat = os.stat(file_path)
-                backups.append({
+                backups.append({)
                     "filename": filename,
                     "path": file_path,
                     "size": stat.st_size,
@@ -361,14 +335,14 @@ async def delete_database_backup(filename: str, backup_dir: str = "backups"):
         file_path = os.path.join(backup_dir, filename)
 
         if not os.path.exists(file_path):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=404,
                 detail=f"Backup file not found: {filename}"
             )
 
         # Security check - ensure file is in backup directory
         if not os.path.abspath(file_path).startswith(os.path.abspath(backup_dir)):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail="Invalid backup file path"
             )
@@ -378,8 +352,7 @@ async def delete_database_backup(filename: str, backup_dir: str = "backups"):
         return {
             "success": True,
             "message": f"Backup file deleted: {filename}",
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
 
     except HTTPException:
@@ -410,8 +383,7 @@ async def get_database_statistics():
             "connection_response_time_ms": connection_test.get("response_time_ms"),
             "last_test_successful": connection_test.get("success"),
             "engine_info": info.get("engine_info", {}),
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
 
         # Add database-specific stats
@@ -478,8 +450,7 @@ async def optimize_database():
             "success": True,
             "message": "Database optimization completed",
             "optimizations": optimization_results,
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
 
     except Exception as e:

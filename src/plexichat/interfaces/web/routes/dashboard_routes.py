@@ -16,6 +16,7 @@ from fastapi.templating import Jinja2Templates
 # from typing import Optional  # Unused import
 
 """
+import time
 PlexiChat Main Dashboard Web Routes
 
 Main dashboard web routes providing overview of system status, quick access
@@ -28,7 +29,7 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templa
 logger = get_logger(__name__)
 
 @router.get("/", response_class=HTMLResponse)
-async def main_dashboard(
+async def main_dashboard()
     request: Request,
     current_user: dict = Depends(require_auth)
 ):
@@ -39,7 +40,7 @@ async def main_dashboard(
 
         # Gather dashboard overview data
         overview_data = {
-            "system_health": performance_service._calculate_health_score(
+            "system_health": performance_service._calculate_health_score()
                 performance_service.get_current_metrics()
             ),
             "active_alerts": len(performance_service._get_active_alerts()),
@@ -47,7 +48,7 @@ async def main_dashboard(
             "quick_stats": _get_quick_stats(performance_service)
         }
 
-        return templates.TemplateResponse("main_dashboard.html", {
+        return templates.TemplateResponse("main_dashboard.html", {)
             "request": request,
             "user": current_user,
             "overview": overview_data,
@@ -60,7 +61,7 @@ async def main_dashboard(
         raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")
 
 @router.get("/admin", response_class=HTMLResponse)
-async def admin_dashboard(
+async def admin_dashboard()
     request: Request,
     current_user: dict = Depends(require_admin_auth)
 ):
@@ -72,13 +73,13 @@ async def admin_dashboard(
         admin_data = {
             "system_overview": performance_service.get_performance_summary(),
             "active_alerts": performance_service._get_active_alerts(),
-            "system_health": performance_service._calculate_health_score(
+            "system_health": performance_service._calculate_health_score()
                 performance_service.get_current_metrics()
             ),
             "admin_stats": _get_admin_stats()
         }
 
-        return templates.TemplateResponse("admin_dashboard.html", {
+        return templates.TemplateResponse("admin_dashboard.html", {)
             "request": request,
             "user": current_user,
             "admin_data": admin_data,

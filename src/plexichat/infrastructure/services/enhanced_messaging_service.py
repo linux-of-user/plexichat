@@ -12,14 +12,7 @@ from sqlmodel import Session, and_, or_, select
 
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from sqlalchemy import desc
 
@@ -27,6 +20,23 @@ from plexichat.app.db import engine
 from plexichat.app.logger_config import logger
 from plexichat.app.models.guild import Emoji
 from plexichat.app.models.message import Message, MessageReaction, MessageType
+import time
+
+# Import unified cache integration
+try:
+    from plexichat.core.caching.unified_cache_integration import ()
+        cache_get, cache_set, cache_delete, CacheKeyBuilder
+    )
+    CACHE_AVAILABLE = True
+except ImportError:
+    # Fallback if cache not available
+    async def cache_get(key: str, default=None): return default
+    async def cache_set(key: str, value, ttl=None): return True
+    async def cache_delete(key: str): return True
+    class CacheKeyBuilder:
+        @staticmethod
+        def message_key(msg_id: str, suffix: str = ""): return f"msg:{msg_id}:{suffix}"
+    CACHE_AVAILABLE = False
 
 """
 Enhanced Messaging Service
@@ -37,7 +47,7 @@ class EmojiService:
     """Service for handling emoji operations."""
 
     # Unicode emoji patterns and mappings
-    UNICODE_EMOJI_PATTERN = re.compile(
+    UNICODE_EMOJI_PATTERN = re.compile()
         r'[\U0001F600-\U0001F64F]|'  # emoticons
         r'[\U0001F300-\U0001F5FF]|'  # symbols & pictographs
         r'[\U0001F680-\U0001F6FF]|'  # transport & map symbols
@@ -200,12 +210,12 @@ class EmojiService:
             ]
 
     @classmethod
-    async def add_custom_emoji(cls, guild_id: int, name: str, image: str,
+    async def add_custom_emoji(cls, guild_id: int, name: str, image: str,)
                              user_id: int, animated: bool = False) -> Optional[Emoji]:
         """Add a custom emoji to a guild."""
         try:
             with Session(engine) as session:
-                emoji = Emoji(
+                emoji = Emoji()
                     guild_id=guild_id,
                     name=name,
                     image=image,
@@ -226,18 +236,18 @@ class ReactionService:
     """Service for handling message reactions."""
 
     @classmethod
-    async def add_reaction(cls, message_id: int, user_id: int, emoji: str,
+    async def add_reaction(cls, message_id: int, user_id: int, emoji: str,)
                           emoji_id: Optional[int] = None) -> bool:
         """Add a reaction to a message."""
         try:
             with Session(engine) as session:
                 # Check if reaction already exists
-                existing = session.exec(
-                    select(MessageReaction).where(
-                        and_(
+                existing = session.exec()
+                    select(MessageReaction).where()
+                        and_()
                             MessageReaction.message_id == message_id,
                             MessageReaction.user_id == user_id,
-                            or_(
+                            or_()
                                 MessageReaction.emoji == emoji,
                                 MessageReaction.emoji_id == emoji_id
                             )
@@ -249,7 +259,7 @@ class ReactionService:
                     return False  # Already reacted
 
                 # Add new reaction
-                reaction = MessageReaction(
+                reaction = MessageReaction()
                     message_id=message_id,
                     user_id=user_id,
                     emoji=emoji,
@@ -265,17 +275,17 @@ class ReactionService:
             return False
 
     @classmethod
-    async def remove_reaction(cls, message_id: int, user_id: int, emoji: str,
+    async def remove_reaction(cls, message_id: int, user_id: int, emoji: str,)
                             emoji_id: Optional[int] = None) -> bool:
         """Remove a reaction from a message."""
         try:
             with Session(engine) as session:
-                reaction = session.exec(
-                    select(MessageReaction).where(
-                        and_(
+                reaction = session.exec()
+                    select(MessageReaction).where()
+                        and_()
                             MessageReaction.message_id == message_id,
                             MessageReaction.user_id == user_id,
-                            or_(
+                            or_()
                                 MessageReaction.emoji == emoji,
                                 MessageReaction.emoji_id == emoji_id
                             )
@@ -298,7 +308,7 @@ class ReactionService:
         """Get all reactions for a message."""
         try:
             with Session(engine) as session:
-                reactions = session.exec(
+                reactions = session.exec()
                     select(MessageReaction).where(MessageReaction.message_id == message_id)
                 ).all()
 
@@ -328,7 +338,7 @@ class ReplyService:
     """Service for handling message replies."""
 
     @classmethod
-    async def create_reply(cls, original_message_id: int, reply_content: str,
+    async def create_reply(cls, original_message_id: int, reply_content: str,)
                           sender_id: int, **kwargs) -> Optional[Message]:
         """Create a reply to a message."""
         try:
@@ -339,7 +349,7 @@ class ReplyService:
                     return None
 
                 # Create reply message
-                reply_message = Message(
+                reply_message = Message()
                     sender_id=sender_id,
                     recipient_id=kwargs.get('recipient_id', original_message.sender_id),
                     channel_id=kwargs.get('channel_id', original_message.channel_id),
@@ -368,7 +378,7 @@ class ReplyService:
         """Get replies to a message."""
         try:
             with Session(engine) as session:
-                replies = session.exec(
+                replies = session.exec()
                     select(Message)
                     .where(Message.referenced_message_id == message_id)
                     .order_by(Message.timestamp)
@@ -388,7 +398,7 @@ class EnhancedMessagingService:
         self.emoji_service = EmojiService()
         self.reaction_service = ReactionService()
         self.reply_service = ReplyService()
-        self.message_cache = {}  # Simple in-memory cache
+        # Using unified cache instead of local cache
         self.rate_limits = {}  # Rate limiting storage
 
     async def send_message(self, sender_id: int, content: str, **kwargs) -> Optional[Message]:
@@ -402,7 +412,7 @@ class EnhancedMessagingService:
                 raise Exception("Rate limit exceeded")
 
             with Session(engine) as session:
-                message = Message(
+                message = Message()
                     sender_id=sender_id,
                     recipient_id=kwargs.get('recipient_id'),
                     channel_id=kwargs.get('channel_id'),
@@ -427,7 +437,7 @@ class EnhancedMessagingService:
             logger.error(f"Failed to send message: {e}")
             return None
 
-    async def send_reply(self, sender_id: int, original_message_id: int,
+    async def send_reply(self, sender_id: int, original_message_id: int,)
                         content: str, **kwargs) -> Optional[Message]:
         """Send a reply to a message."""
         try:
@@ -438,7 +448,7 @@ class EnhancedMessagingService:
             if not await self._check_rate_limit(sender_id):
                 raise Exception("Rate limit exceeded")
 
-            reply = await self.reply_service.create_reply(
+            reply = await self.reply_service.create_reply()
                 original_message_id=original_message_id,
                 reply_content=processed_content,
                 sender_id=sender_id,
@@ -535,7 +545,6 @@ class EnhancedMessagingService:
     async def _check_rate_limit(self, user_id: int, action: str = "message") -> bool:
         """Check if user is within rate limits."""
         try:
-            from datetime import datetime
 now = datetime.now()
 datetime.utcnow()
             key = f"{user_id}_{action}"
@@ -571,8 +580,8 @@ datetime.utcnow()
         """Search messages with text search and emoji filtering."""
         try:
             with Session(engine) as session:
-                search_query = select(Message).where(
-                    and_(
+                search_query = select(Message).where()
+                    and_()
                         not Message.is_deleted,
                         Message.content.contains(query)
                     )
@@ -676,7 +685,6 @@ datetime.utcnow()
                 if filters.get('guild_id'):
                     query = query.where(Message.guild_id == filters['guild_id'])
                 if filters.get('days'):
-                    from datetime import datetime
 since = datetime.now()
 datetime.utcnow() - timedelta(days=filters['days'])
                     query = query.where(Message.timestamp >= since)

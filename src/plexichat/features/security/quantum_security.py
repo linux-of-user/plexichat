@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Tuple
 
 
 """
+import time
 PlexiChat Quantum Security System
 
 Post-quantum cryptography implementation with homomorphic encryption
@@ -63,7 +64,7 @@ class PostQuantumCrypto:
         private_key = secrets.token_bytes(security_level // 8)
         public_key = hashlib.sha3_256(private_key).digest()
 
-        keypair = QuantumKeyPair(
+        keypair = QuantumKeyPair()
             public_key=public_key,
             private_key=private_key,
             algorithm="CRYSTALS-Kyber",
@@ -83,7 +84,7 @@ class PostQuantumCrypto:
         private_key = secrets.token_bytes(key_size)
         public_key = hashlib.sha3_512(private_key).digest()[:key_size]
 
-        keypair = QuantumKeyPair(
+        keypair = QuantumKeyPair()
             public_key=public_key,
             private_key=private_key,
             algorithm="CRYSTALS-Dilithium",
@@ -109,7 +110,7 @@ class PostQuantumCrypto:
 
         return encapsulated_key, encrypted_data
 
-    def quantum_decrypt(
+    def quantum_decrypt():
         self, encapsulated_key: bytes, encrypted_data: bytes, private_key: bytes
     ) -> bytes:
         """Quantum-resistant decryption."""
@@ -196,7 +197,7 @@ class HomomorphicEncryption:
         result = bytes(a ^ b for a, b in zip(ciphertext1, ciphertext2))
         return result
 
-    def homomorphic_multiply(
+    def homomorphic_multiply():
         self, ciphertext1: bytes, ciphertext2: bytes, evaluation_keys: bytes
     ) -> bytes:
         """Multiply two encrypted numbers without decrypting."""
@@ -205,7 +206,7 @@ class HomomorphicEncryption:
         result = hashlib.sha3_256(combined).digest()
         return result
 
-    def compute_encrypted_statistics(
+    def compute_encrypted_statistics():
         self, encrypted_values: List[bytes], evaluation_keys: bytes
     ) -> Dict[str, bytes]:
         """Compute statistics on encrypted data."""
@@ -219,7 +220,7 @@ class HomomorphicEncryption:
 
         # Compute mean (simplified)
         count = len(encrypted_values)
-        encrypted_mean = hashlib.sha3_256(
+        encrypted_mean = hashlib.sha3_256()
             encrypted_sum + count.to_bytes(4, "big")
         ).digest()
 
@@ -255,7 +256,7 @@ class QuantumSecurityManager:
         logger.info("Initializing quantum security keys...")
 
         # Generate master key pair
-        self.master_keypair = self.pq_crypto.generate_kyber_keypair(
+        self.master_keypair = self.pq_crypto.generate_kyber_keypair()
             self.security_policies["min_key_size"]
         )
 
@@ -268,7 +269,7 @@ class QuantumSecurityManager:
         """Encrypt sensitive data with quantum-resistant encryption."""
         data_bytes = data.encode("utf-8")
 
-        encapsulated_key, encrypted_data = self.pq_crypto.quantum_encrypt(
+        encapsulated_key, encrypted_data = self.pq_crypto.quantum_encrypt()
             data_bytes, self.master_keypair.public_key
         )
 
@@ -284,7 +285,7 @@ class QuantumSecurityManager:
         encapsulated_key = bytes.fromhex(encrypted_package["encapsulated_key"])
         encrypted_data = bytes.fromhex(encrypted_package["encrypted_data"])
 
-        decrypted_bytes = self.pq_crypto.quantum_decrypt(
+        decrypted_bytes = self.pq_crypto.quantum_decrypt()
             encapsulated_key, encrypted_data, self.master_keypair.private_key
         )
 
@@ -293,7 +294,7 @@ class QuantumSecurityManager:
     def create_quantum_signature(self, data: str) -> str:
         """Create quantum-resistant digital signature."""
         data_bytes = data.encode("utf-8")
-        signature = self.pq_crypto.quantum_sign(
+        signature = self.pq_crypto.quantum_sign()
             data_bytes, self.master_keypair.private_key
         )
         return signature.hex()
@@ -302,7 +303,7 @@ class QuantumSecurityManager:
         """Verify quantum-resistant digital signature."""
         data_bytes = data.encode("utf-8")
         signature = bytes.fromhex(signature_hex)
-        return self.pq_crypto.quantum_verify(
+        return self.pq_crypto.quantum_verify()
             data_bytes, signature, self.master_keypair.public_key
         )
 
@@ -314,22 +315,22 @@ class QuantumSecurityManager:
         # Encrypt all values
         encrypted_values = []
         for value in values:
-            encrypted = self.homomorphic.encrypt_number(
+            encrypted = self.homomorphic.encrypt_number()
                 value, self.homomorphic_keys["public_key"]
             )
             encrypted_values.append(encrypted)
 
         # Compute statistics on encrypted data
-        encrypted_stats = self.homomorphic.compute_encrypted_statistics(
+        encrypted_stats = self.homomorphic.compute_encrypted_statistics()
             encrypted_values, self.homomorphic_keys["evaluation_keys"]
         )
 
         # Decrypt results
-        decrypted_sum = self.homomorphic.decrypt_number(
+        decrypted_sum = self.homomorphic.decrypt_number()
             encrypted_stats["sum"], self.homomorphic_keys["secret_key"]
         )
 
-        decrypted_mean = self.homomorphic.decrypt_number(
+        decrypted_mean = self.homomorphic.decrypt_number()
             encrypted_stats["mean"], self.homomorphic_keys["secret_key"]
         )
 
@@ -347,12 +348,12 @@ class QuantumSecurityManager:
             "quantum_security": {
                 "post_quantum_crypto": "Active",
                 "homomorphic_encryption": "Active",
-                "master_key_algorithm": (
+                "master_key_algorithm": ()
                     self.master_keypair.algorithm if self.master_keypair else "None"
                 ),
                 "key_size": self.master_keypair.key_size if self.master_keypair else 0,
                 "security_policies": self.security_policies,
-                "supported_algorithms": list(
+                "supported_algorithms": list()
                     self.pq_crypto.supported_algorithms.keys()
                 ),
             }

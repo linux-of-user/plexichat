@@ -15,6 +15,7 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 Advanced moderation models with AI-powered capabilities and human review system.
 Supports fine-grained access control and configurable moderation endpoints.
 """
@@ -84,12 +85,12 @@ class ModerationConfiguration(SQLModel, table=True):
     __tablename__ = "moderation_configurations"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
     # Configuration identification
-    server_id: Optional[str] = Field(
+    server_id: Optional[str] = Field()
         max_length=255, index=True
     )  # For multi-server support
     config_name: str = Field(max_length=255, index=True)
@@ -136,7 +137,7 @@ class ModerationConfiguration(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_moderation_config_server", "server_id", "is_active"),
         Index("idx_moderation_config_ai", "ai_moderation_enabled", "ai_provider"),
     )
@@ -148,7 +149,7 @@ class ModerationItem(SQLModel, table=True):
     __tablename__ = "moderation_items"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -174,7 +175,7 @@ class ModerationItem(SQLModel, table=True):
     ai_analysis_data: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
 
     # Human Review
-    assigned_moderator_id: Optional[int] = Field(
+    assigned_moderator_id: Optional[int] = Field()
         foreign_key="users_enhanced.id", index=True
     )
     human_decision: Optional[ModerationAction] = Field()
@@ -187,7 +188,7 @@ class ModerationItem(SQLModel, table=True):
     action_taken_at: Optional[datetime] = Field(sa_column=Column(DateTime))
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
     reviewed_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -208,7 +209,7 @@ class ModerationItem(SQLModel, table=True):
     final_decision_user: Optional["EnhancedUser"] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_moderation_item_content", "content_type", "content_id"),
         Index("idx_moderation_item_status", "status", "created_at"),
         Index("idx_moderation_item_priority", "priority_score", "created_at"),
@@ -222,7 +223,7 @@ class ModerationRule(SQLModel, table=True):
     __tablename__ = "moderation_rules"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -260,7 +261,7 @@ class ModerationRule(SQLModel, table=True):
     rule_config: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_moderation_rule_server", "server_id", "is_active"),
         Index("idx_moderation_rule_type", "rule_type", "is_active"),
     )
@@ -272,7 +273,7 @@ class ModerationAppeal(SQLModel, table=True):
     __tablename__ = "moderation_appeals"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -304,7 +305,7 @@ class AIModelEndpoint(SQLModel, table=True):
     __tablename__ = "ai_model_endpoints"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -345,7 +346,7 @@ class AIModelEndpoint(SQLModel, table=True):
     created_by: int = Field(foreign_key="users_enhanced.id")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_ai_endpoint_provider", "provider", "is_active"),
         Index("idx_ai_endpoint_health", "health_status", "last_health_check"),
     )
@@ -357,7 +358,7 @@ class ModerationWorkflow(SQLModel, table=True):
     __tablename__ = "moderation_workflows"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 

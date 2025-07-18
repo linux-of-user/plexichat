@@ -11,23 +11,23 @@ from datetime import datetime
 @dataclass
 class EnhancedUser:
     """Enhanced user model."""
-    id: str
-    username: str
-    email: str
-    created_at: datetime
-    last_login: Optional[datetime] = None
-    preferences: Optional[Dict[str, Any]] = None
-    roles: Optional[List[str]] = None
+id: str
+username: str
+email: str
+created_at: datetime
+last_login: Optional[datetime] = None
+preferences: Optional[Dict[str, Any]] = None
+roles: Optional[List[str]] = None
 
 @dataclass
 class EnhancedMessage:
     """Enhanced message model."""
-    id: str
-    content: str
-    user_id: str
-    channel_id: str
-    created_at: datetime
-    edited_at: Optional[datetime] = None
-    metadata: Optional[Dict[str, Any]] = None
+id: str
+content: str
+user_id: str
+channel_id: str
+created_at: datetime
+edited_at: Optional[datetime] = None
+metadata: Optional[Dict[str, Any]] = None
 
 __all__ = ["EnhancedUser", "EnhancedMessage"]

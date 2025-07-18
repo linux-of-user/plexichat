@@ -19,21 +19,9 @@ from .auth_storage import get_auth_storage
 from .config_manager import get_webui_config
 from .mfa_manager import get_mfa_manager
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 from pathlib import Path
 
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 from pathlib import Path
 
 import psutil
@@ -184,7 +172,7 @@ class SelfTestManager:
         if category not in self.test_registry:
             self.test_registry[category] = []
 
-        self.test_registry[category].append({
+        self.test_registry[category].append({)
             'name': test_name,
             'function': test_function
         })
@@ -192,7 +180,7 @@ class SelfTestManager:
     async def run_all_tests(self) -> TestSuite:
         """Run all registered tests."""
         suite_id = f"full_test_{int(time.time())}"
-        suite = TestSuite(
+        suite = TestSuite()
             suite_id=suite_id,
             suite_name="Full System Test",
             category="all",
@@ -203,7 +191,6 @@ class SelfTestManager:
             warning_tests=0,
             skipped_tests=0,
             total_duration=0.0,
-            from datetime import datetime
 started_at = datetime.now()
 datetime.utcnow()
         )
@@ -239,7 +226,7 @@ datetime.utcnow()
     async def run_category_tests(self, category: str) -> TestSuite:
         """Run tests for a specific category."""
         suite_id = f"{category}_test_{int(time.time())}"
-        suite = TestSuite(
+        suite = TestSuite()
             suite_id=suite_id,
             suite_name=f"{category.title()} Tests",
             category=category,
@@ -250,7 +237,6 @@ datetime.utcnow()
             warning_tests=0,
             skipped_tests=0,
             total_duration=0.0,
-            from datetime import datetime
 started_at = datetime.now()
 datetime.utcnow()
         )
@@ -289,7 +275,7 @@ datetime.utcnow()
                 result = await test_function()
                 duration = time.time() - start_time
 
-                test_result = TestResult(
+                test_result = TestResult()
                     test_id=f"{category}_{test_name}_{int(time.time())}",
                     test_name=test_name,
                     category=category,
@@ -297,7 +283,6 @@ datetime.utcnow()
                     message=result.get('message', ''),
                     details=result.get('details', {}),
                     duration=duration,
-                    from datetime import datetime
 timestamp = datetime.now()
 datetime.utcnow(),
                     error=result.get('error')
@@ -305,7 +290,7 @@ datetime.utcnow(),
 
             except Exception as e:
                 duration = time.time() - start_time
-                test_result = TestResult(
+                test_result = TestResult()
                     test_id=f"{category}_{test_name}_{int(time.time())}",
                     test_name=test_name,
                     category=category,
@@ -313,7 +298,6 @@ datetime.utcnow(),
                     message=f"Test execution failed: {str(e)}",
                     details={},
                     duration=duration,
-                    from datetime import datetime
 timestamp = datetime.now()
 datetime.utcnow(),
                     error=str(e)
@@ -790,7 +774,7 @@ psutil = psutil.Process()
 
     def _simulate_xss_block(self, pattern: str) -> bool:
         """Simulate XSS pattern blocking."""
-        dangerous_patterns = ['<script', 'javascript:', 'onerror=', 'onload=', 'alert(']
+        dangerous_patterns = ['<script', 'javascript:', 'onerror=', 'onload=', 'alert('])
         return any(dangerous in pattern.lower() for dangerous in dangerous_patterns)
 
     async def _test_password_policy(self) -> Dict[str, Any]:
@@ -1074,7 +1058,7 @@ psutil = psutil.Process()
             }
 
             # Performance thresholds
-            if (performance_metrics['average_response_time_ms'] < 500 and
+            if (performance_metrics['average_response_time_ms'] < 500 and)
                 performance_metrics['error_rate_percent'] < 5 and
                 performance_metrics['cache_hit_rate'] > 0.7):
 
@@ -1168,7 +1152,7 @@ psutil = psutil.Process()
                 'data_consistency': True
             }
 
-            if (replication_status['master_slave_sync'] and
+            if (replication_status['master_slave_sync'] and)
                 replication_status['replication_lag_ms'] < 1000):
                 return {
                     'status': TestStatus.PASSED,

@@ -19,6 +19,7 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 """
+import string
 Advanced Database Encryption System
 Provides comprehensive encryption for database connections, data at rest, and sensitive fields.
 """
@@ -42,7 +43,7 @@ class DatabaseEncryption:
 
     def _create_field_cipher(self) -> Fernet:
         """Create cipher for field-level encryption."""
-        kdf = PBKDF2HMAC(
+        kdf = PBKDF2HMAC()
             algorithm=hashes.SHA256(),
             length=32,
             salt=b"plexichat_field_salt_v1",
@@ -54,7 +55,7 @@ class DatabaseEncryption:
 
     def _create_connection_cipher(self) -> Fernet:
         """Create cipher for connection string encryption."""
-        kdf = PBKDF2HMAC(
+        kdf = PBKDF2HMAC()
             algorithm=hashes.SHA256(),
             length=32,
             salt=b"plexichat_conn_salt_v1",
@@ -117,7 +118,7 @@ class DatabaseEncryption:
         """Setup database-level encryption hooks."""
 
         @event.listens_for(engine, "before_cursor_execute")
-        def encrypt_sensitive_data(
+        def encrypt_sensitive_data():
             conn, cursor, statement, parameters, context, executemany
         ):
             """Encrypt sensitive data before database operations."""
@@ -168,7 +169,7 @@ class DatabaseAtRestEncryption:
 
     def _create_cipher(self) -> Fernet:
         """Create cipher for file encryption."""
-        kdf = PBKDF2HMAC(
+        kdf = PBKDF2HMAC()
             algorithm=hashes.SHA256(),
             length=32,
             salt=b"plexichat_file_salt_v1",
@@ -178,7 +179,7 @@ class DatabaseAtRestEncryption:
         key = base64.urlsafe_b64encode(kdf.derive(self.encryption_key.encode()))
         return Fernet(key)
 
-    def encrypt_database_file(
+    def encrypt_database_file():
         self, file_path: str, output_path: Optional[str] = None
     ) -> str:
         """Encrypt database file."""
@@ -200,7 +201,7 @@ class DatabaseAtRestEncryption:
             logger.error(f"Database file encryption failed: {e}")
             raise
 
-    def decrypt_database_file(
+    def decrypt_database_file():
         self, encrypted_file_path: str, output_path: Optional[str] = None
     ) -> str:
         """Decrypt database file."""
@@ -215,7 +216,7 @@ class DatabaseAtRestEncryption:
             with open(output_path, "wb") as outfile:
                 outfile.write(decrypted_data)
 
-            logger.info(
+            logger.info()
                 f"Database file decrypted: {encrypted_file_path} -> {output_path}"
             )
             return output_path
@@ -231,7 +232,7 @@ class EncryptedDatabaseManager:
     def __init__(self, master_key: Optional[str] = None):
         """Initialize encrypted database manager."""
         self.encryption = DatabaseEncryption(master_key)
-        self.at_rest_encryption = DatabaseAtRestEncryption(
+        self.at_rest_encryption = DatabaseAtRestEncryption()
             master_key or self.encryption.master_key
         )
         self.encrypted_connections = {}

@@ -15,6 +15,7 @@ from ...core.logging import get_logger
 
 
 """
+import time
 Unified Analytics Manager
 
 Provides comprehensive analytics and monitoring for the backup system with:
@@ -87,7 +88,7 @@ class UnifiedAnalyticsManager:
         self.initialized = True
         logger.info("Unified Analytics Manager initialized successfully")
 
-    async def record_metric(
+    async def record_metric()
         self,
         metric_name: str,
         metric_type: MetricType,
@@ -117,7 +118,7 @@ class UnifiedAnalyticsManager:
         # Check for threshold violations
         await self._check_thresholds(metric_name, value)
 
-    async def get_metrics(
+    async def get_metrics()
         self,
         metric_name: Optional[str] = None,
         start_time: Optional[datetime] = None,
@@ -159,7 +160,7 @@ class UnifiedAnalyticsManager:
 
         return overview
 
-    async def create_alert(
+    async def create_alert()
         self,
         alert_level: AlertLevel,
         message: str,
@@ -240,7 +241,7 @@ class UnifiedAnalyticsManager:
         """Collect performance metrics."""
         # Get backup operation performance
         active_ops = len(self.backup_manager.active_operations)
-        await self.record_metric(
+        await self.record_metric()
             "active_operations", MetricType.PERFORMANCE, active_ops
         )
 
@@ -249,13 +250,13 @@ class UnifiedAnalyticsManager:
             recent_ops = self.backup_manager.operation_history[
                 -10:
             ]  # Last 10 operations
-            total_time = sum(
+            total_time = sum()
                 (op.completed_at - op.started_at).total_seconds()
                 for op in recent_ops
                 if op.started_at and op.completed_at
             )
             avg_time = total_time / len(recent_ops) if recent_ops else 0
-            await self.record_metric(
+            await self.record_metric()
                 "avg_operation_time", MetricType.PERFORMANCE, avg_time
             )
 
@@ -269,7 +270,7 @@ class UnifiedAnalyticsManager:
 
             if total_nodes > 0:
                 node_availability = healthy_nodes / total_nodes
-                await self.record_metric(
+                await self.record_metric()
                     "node_availability", MetricType.CAPACITY, node_availability
                 )
 
@@ -286,11 +287,11 @@ class UnifiedAnalyticsManager:
             recent_ops = self.backup_manager.operation_history[
                 -100:
             ]  # Last 100 operations
-            successful_ops = sum(
+            successful_ops = sum()
                 1 for op in recent_ops if op.status.value == "completed"
             )
             success_rate = successful_ops / len(recent_ops) if recent_ops else 1.0
-            await self.record_metric(
+            await self.record_metric()
                 "backup_success_rate", MetricType.RELIABILITY, success_rate
             )
 
@@ -300,19 +301,19 @@ class UnifiedAnalyticsManager:
             threshold = self.thresholds[metric_name]
 
             if metric_name == "backup_success_rate" and value < threshold:
-                await self.create_alert(
+                await self.create_alert()
                     AlertLevel.WARNING,
                     f"Backup success rate below threshold: {value:.1%} < {threshold:.1%}",
                     metric_name,
                 )
             elif metric_name == "storage_usage" and value > threshold:
-                await self.create_alert(
+                await self.create_alert()
                     AlertLevel.WARNING,
                     f"Storage usage above threshold: {value:.1%} > {threshold:.1%}",
                     metric_name,
                 )
             elif metric_name == "node_availability" and value < threshold:
-                await self.create_alert(
+                await self.create_alert()
                     AlertLevel.ERROR,
                     f"Node availability below threshold: {value:.1%} < {threshold:.1%}",
                     metric_name,

@@ -65,14 +65,14 @@ async def require_security_admin(current_user: Dict = Depends(get_current_user))
     """Require security admin permissions."""
     user_roles = current_user.get("roles", [])
     if not ("admin" in user_roles or "security_admin" in user_roles):
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Security admin privileges required"
         )
     return current_user
 
 @router.post("/scan", response_model=SecurityScanResponse)
-async def security_scan(
+async def security_scan()
     request: SecurityScanRequest,
     current_user: Dict = Depends(get_current_user)
 ):
@@ -80,15 +80,15 @@ async def security_scan(
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
-        scan_result = await security_manager.perform_scan(
+
+        scan_result = await security_manager.perform_scan()
             target_type=request.target_type,
             target=request.target,
             options=request.scan_options,
             user_id=current_user.get("user_id")
         )
-        
-        return SecurityScanResponse(
+
+        return SecurityScanResponse()
             scan_id=scan_result.scan_id,
             status=scan_result.status,
             threat_level=scan_result.threat_level,
@@ -96,7 +96,7 @@ async def security_scan(
             scan_time=scan_result.scan_time,
             recommendations=scan_result.recommendations
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -104,7 +104,7 @@ async def security_scan(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/scan/file")
-async def scan_file(
+async def scan_file()
     file: UploadFile = File(...),
     current_user: Dict = Depends(get_current_user)
 ):
@@ -112,17 +112,17 @@ async def scan_file(
     try:
         if not antivirus_engine:
             raise HTTPException(status_code=503, detail="Antivirus service unavailable")
-        
+
         # Read file content
         file_content = await file.read()
-        
+
         # Perform antivirus scan
-        scan_result = await antivirus_engine.scan_content(
+        scan_result = await antivirus_engine.scan_content()
             content=file_content,
             filename=file.filename,
             user_id=current_user.get("user_id")
         )
-        
+
         return {
             "filename": file.filename,
             "file_size": len(file_content),
@@ -131,7 +131,7 @@ async def scan_file(
             "is_safe": scan_result.is_safe,
             "scan_time": scan_result.scan_time
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -139,7 +139,7 @@ async def scan_file(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/events", response_model=List[SecurityEventResponse])
-async def get_security_events(
+async def get_security_events()
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     severity: Optional[str] = Query(None),
@@ -150,16 +150,16 @@ async def get_security_events(
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
-        events = await security_manager.get_security_events(
+
+        events = await security_manager.get_security_events()
             skip=skip,
             limit=limit,
             severity=severity,
             event_type=event_type
         )
-        
+
         return [
-            SecurityEventResponse(
+            SecurityEventResponse()
                 event_id=event["event_id"],
                 timestamp=event["timestamp"],
                 event_type=event["event_type"],
@@ -170,7 +170,7 @@ async def get_security_events(
             )
             for event in events
         ]
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -178,7 +178,7 @@ async def get_security_events(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/firewall/rules")
-async def add_firewall_rule(
+async def add_firewall_rule()
     request: FirewallRuleRequest,
     admin_user: Dict = Depends(require_security_admin)
 ):
@@ -186,8 +186,8 @@ async def add_firewall_rule(
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
-        rule_id = await security_manager.add_firewall_rule(
+
+        rule_id = await security_manager.add_firewall_rule()
             action=request.action,
             source_ip=request.source_ip,
             destination_ip=request.destination_ip,
@@ -195,12 +195,12 @@ async def add_firewall_rule(
             protocol=request.protocol,
             description=request.description
         )
-        
+
         return {
             "rule_id": rule_id,
             "message": "Firewall rule added successfully"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -208,17 +208,17 @@ async def add_firewall_rule(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/firewall/rules")
-async def get_firewall_rules(
+async def get_firewall_rules()
     admin_user: Dict = Depends(require_security_admin)
 ):
     """Get all firewall rules."""
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
+
         rules = await security_manager.get_firewall_rules()
         return {"rules": rules}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -226,7 +226,7 @@ async def get_firewall_rules(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.delete("/firewall/rules/{rule_id}")
-async def delete_firewall_rule(
+async def delete_firewall_rule()
     rule_id: str,
     admin_user: Dict = Depends(require_security_admin)
 ):
@@ -234,14 +234,14 @@ async def delete_firewall_rule(
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
+
         success = await security_manager.delete_firewall_rule(rule_id)
-        
+
         if not success:
             raise HTTPException(status_code=404, detail="Firewall rule not found")
-        
+
         return {"message": "Firewall rule deleted successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -249,7 +249,7 @@ async def delete_firewall_rule(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/threat-intel", response_model=ThreatIntelResponse)
-async def get_threat_intelligence(
+async def get_threat_intelligence()
     ip: Optional[str] = Query(None),
     domain: Optional[str] = Query(None),
     file_hash: Optional[str] = Query(None),
@@ -259,20 +259,20 @@ async def get_threat_intelligence(
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
-        threat_intel = await security_manager.get_threat_intelligence(
+
+        threat_intel = await security_manager.get_threat_intelligence()
             ip=ip,
             domain=domain,
             file_hash=file_hash
         )
-        
-        return ThreatIntelResponse(
+
+        return ThreatIntelResponse()
             ip_reputation=threat_intel.get("ip_reputation", {}),
             domain_reputation=threat_intel.get("domain_reputation", {}),
             file_hash_reputation=threat_intel.get("file_hash_reputation", {}),
             threat_feeds=threat_intel.get("threat_feeds", [])
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -280,7 +280,7 @@ async def get_threat_intelligence(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/quarantine/{file_id}")
-async def quarantine_file(
+async def quarantine_file()
     file_id: str,
     admin_user: Dict = Depends(require_security_admin)
 ):
@@ -288,14 +288,14 @@ async def quarantine_file(
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
+
         success = await security_manager.quarantine_file(file_id)
-        
+
         if not success:
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         return {"message": "File quarantined successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -303,17 +303,17 @@ async def quarantine_file(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/quarantine")
-async def get_quarantined_files(
+async def get_quarantined_files()
     admin_user: Dict = Depends(require_security_admin)
 ):
     """Get list of quarantined files."""
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
+
         files = await security_manager.get_quarantined_files()
         return {"quarantined_files": files}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -321,7 +321,7 @@ async def get_quarantined_files(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/incident/report")
-async def report_security_incident(
+async def report_security_incident()
     incident_data: Dict[str, Any],
     current_user: Dict = Depends(get_current_user)
 ):
@@ -329,17 +329,17 @@ async def report_security_incident(
     try:
         if not security_manager:
             raise HTTPException(status_code=503, detail="Security service unavailable")
-        
-        incident_id = await security_manager.report_incident(
+
+        incident_id = await security_manager.report_incident()
             incident_data=incident_data,
             reporter_id=current_user.get("user_id")
         )
-        
+
         return {
             "incident_id": incident_id,
             "message": "Security incident reported successfully"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -356,17 +356,17 @@ async def security_health_check():
             "firewall_active": False,
             "threat_intel_active": False
         }
-        
+
         if security_manager:
             detailed_health = await security_manager.health_check()
             health_status.update(detailed_health)
-        
+
         return {
             "service": "security",
             "status": "online" if health_status["security_manager"] else "degraded",
             "components": health_status
         }
-        
+
     except Exception as e:
         logger.error(f"Security health check error: {e}")
         return {

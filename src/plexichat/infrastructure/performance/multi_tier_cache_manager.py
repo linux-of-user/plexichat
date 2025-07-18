@@ -16,11 +16,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
 import aiomcache
+import http.client
 try:
     import redis.asyncio as redis
 except ImportError:
     redis = None
-
 
 
 """
@@ -207,7 +207,7 @@ class MultiTierCacheManager:
 
         try:
             redis_config = self.config.get("redis", {})
-            self.redis_client = redis.Redis(
+            self.redis_client = redis.Redis()
                 host=redis_config.get("host", "localhost"),
                 port=redis_config.get("port", 6379),
                 db=redis_config.get("db", 0),
@@ -263,15 +263,15 @@ class MultiTierCacheManager:
         try:
             cdn_config = self.config.get("cdn", {})
 
-            timeout = aiohttp.ClientTimeout(
+            timeout = aiohttp.ClientTimeout()
                 total=cdn_config.get("timeout", 30),
                 connect=cdn_config.get("connect_timeout", 10)
             )
 
-            self.cdn_session = aiohttp.ClientSession(
+            self.cdn_session = aiohttp.ClientSession()
                 timeout=timeout,
                 headers=cdn_config.get("headers", {}),
-                connector=aiohttp.TCPConnector(
+                connector=aiohttp.TCPConnector()
                     limit=cdn_config.get("max_connections", 100),
                     limit_per_host=cdn_config.get("max_connections_per_host", 30)
                 )
@@ -622,7 +622,7 @@ class MultiTierCacheManager:
             # Create cache entry
             expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds) if ttl_seconds > 0 else None
 
-            entry = CacheEntry(
+            entry = CacheEntry()
                 key=key,
                 value=value,  # Store original value in L1 for speed
                 tier=CacheTier.L1_MEMORY,
@@ -667,7 +667,7 @@ class MultiTierCacheManager:
             serialized_value, _ = self._serialize_and_compress(value)
             exptime = ttl_seconds if ttl_seconds > 0 else 0
 
-            await self.memcached_client.set(
+            await self.memcached_client.set()
                 key.encode(),
                 serialized_value,
                 exptime=exptime
@@ -754,7 +754,9 @@ class MultiTierCacheManager:
             try:
                 decompressed = gzip.decompress(data)
                 data = decompressed
-              # Not compressed
+            except:
+                # Not compressed
+                pass
 
             # Try JSON first (faster)
             try:
@@ -826,7 +828,7 @@ class MultiTierCacheManager:
             # Check entry count limit
             if len(self.l1_cache) >= self.l1_max_size:
                 # Evict least recently used entries
-                sorted_entries = sorted(
+                sorted_entries = sorted()
                     self.l1_cache.items(),
                     key=lambda x: x[1].last_accessed or x[1].created_at
                 )
@@ -844,7 +846,7 @@ class MultiTierCacheManager:
 
             if total_memory > max_memory_bytes:
                 # Evict largest entries first
-                sorted_by_size = sorted(
+                sorted_by_size = sorted()
                     self.l1_cache.items(),
                     key=lambda x: x[1].size_bytes,
                     reverse=True
@@ -881,7 +883,7 @@ class MultiTierCacheManager:
 
                 if total_ops > 1:
                     # Running average
-                    tier_stats.average_access_time_ms = (
+                    tier_stats.average_access_time_ms = ()
                         (current_avg * (total_ops - 1) + access_time * 1000) / total_ops
                     )
                 else:
@@ -996,15 +998,15 @@ class MultiTierCacheManager:
 
             # Close connections
             if self.redis_client:
-                await if self.redis_client: self.redis_client.close()
+                await self.redis_client.close()
                 logger.info(" Redis connection closed")
 
             if self.memcached_client:
-                await if self.memcached_client: self.memcached_client.close()
+                await self.memcached_client.close()
                 logger.info(" Memcached connection closed")
 
             if self.cdn_session:
-                await if self.cdn_session: self.cdn_session.close()
+                await self.cdn_session.close()
                 logger.info(" CDN session closed")
 
             # Clear L1 cache

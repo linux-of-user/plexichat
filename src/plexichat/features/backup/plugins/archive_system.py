@@ -18,6 +18,7 @@ import aiosqlite
 
 
 """
+import time
 Archive System Plugin for PlexiChat Backup System
 Provides versioning and archival capabilities through the shard system.
 """
@@ -130,9 +131,9 @@ class ArchiveSystemPlugin:
         """Initialize archive database."""
         async with aiosqlite.connect(self.archive_db_path) as db:
             # Archives table
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS archives (
+                CREATE TABLE IF NOT EXISTS archives ()
                     archive_id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
                     description TEXT NOT NULL,
@@ -151,9 +152,9 @@ class ArchiveSystemPlugin:
             )
 
             # Archive versions table
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS archive_versions (
+                CREATE TABLE IF NOT EXISTS archive_versions ()
                     version_id TEXT PRIMARY KEY,
                     archive_id TEXT NOT NULL,
                     version_number INTEGER NOT NULL,
@@ -173,9 +174,9 @@ class ArchiveSystemPlugin:
             )
 
             # Archive access logs
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS archive_access_logs (
+                CREATE TABLE IF NOT EXISTS archive_access_logs ()
                     log_id TEXT PRIMARY KEY,
                     archive_id TEXT NOT NULL,
                     version_id TEXT,
@@ -193,7 +194,7 @@ class ArchiveSystemPlugin:
 
         logger.info("Archive system database initialized")
 
-    async def create_archive(
+    async def create_archive()
         self,
         name: str,
         description: str,
@@ -246,14 +247,14 @@ class ArchiveSystemPlugin:
         checksum = hashlib.sha512(data_bytes).hexdigest()
 
         # Create through shard system
-        shard_ids = await self._create_archive_shards(
+        shard_ids = await self._create_archive_shards()
             archive_id, compressed_data, encryption_enabled
         )
 
         # Create version
         version_id = f"ver_{hashlib.sha256(f'{archive_id}_v1_{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:16]}"
 
-        version = ArchiveVersion(
+        version = ArchiveVersion()
             version_id=version_id,
             archive_id=archive_id,
             version_number=1,
@@ -271,7 +272,7 @@ class ArchiveSystemPlugin:
         )
 
         # Create archive entry
-        archive = ArchiveEntry(
+        archive = ArchiveEntry()
             archive_id=archive_id,
             name=name,
             description=description,
@@ -297,7 +298,7 @@ class ArchiveSystemPlugin:
         await self._save_archive_version(version)
 
         # Log creation
-        await self._log_archive_access(
+        await self._log_archive_access()
             archive_id,
             version_id,
             created_by,
@@ -309,7 +310,7 @@ class ArchiveSystemPlugin:
         logger.info(f"Created archive '{name}' ({archive_id}) with version 1")
         return archive
 
-    async def create_archive_version(
+    async def create_archive_version()
         self,
         archive_id: str,
         data: Union[bytes, str, Dict[str, Any]],
@@ -358,7 +359,7 @@ class ArchiveSystemPlugin:
         checksum = hashlib.sha512(data_bytes).hexdigest()
 
         # Create shards
-        shard_ids = await self._create_archive_shards(
+        shard_ids = await self._create_archive_shards()
             archive_id, compressed_data, archive.encryption_enabled
         )
 
@@ -366,7 +367,7 @@ class ArchiveSystemPlugin:
         new_version_number = archive.current_version + 1
         version_id = f"ver_{hashlib.sha256(f'{archive_id}_v{new_version_number}_{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:16]}"
 
-        version = ArchiveVersion(
+        version = ArchiveVersion()
             version_id=version_id,
             archive_id=archive_id,
             version_number=new_version_number,
@@ -377,7 +378,7 @@ class ArchiveSystemPlugin:
             size_bytes=len(data_bytes),
             compressed_size_bytes=compressed_size,
             shard_ids=shard_ids,
-            parent_version_id=(
+            parent_version_id=()
                 archive.versions[-1].version_id if archive.versions else None
             ),
             checksum=checksum,
@@ -399,7 +400,7 @@ class ArchiveSystemPlugin:
         await self._save_archive_version(version)
 
         # Log creation
-        await self._log_archive_access(
+        await self._log_archive_access()
             archive_id,
             version_id,
             created_by,
@@ -411,7 +412,7 @@ class ArchiveSystemPlugin:
         logger.info(f"Created version {new_version_number} for archive {archive_id}")
         return version
 
-    async def _create_archive_shards(
+    async def _create_archive_shards()
         self, archive_id: str, data: bytes, encryption_enabled: bool
     ) -> List[str]:
         """Create shards for archive data."""
@@ -435,15 +436,15 @@ class ArchiveSystemPlugin:
     async def _save_archive(self, archive: ArchiveEntry):
         """Save archive to database."""
         async with aiosqlite.connect(self.archive_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT OR REPLACE INTO archives
-                (archive_id, name, description, created_by, created_at, updated_at,
+                (archive_id, name, description, created_by, created_at, updated_at,)
                  current_version, total_versions, retention_policy, compression_enabled,
                  encryption_enabled, tags, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     archive.archive_id,
                     archive.name,
                     archive.description,
@@ -464,15 +465,15 @@ class ArchiveSystemPlugin:
     async def _save_archive_version(self, version: ArchiveVersion):
         """Save archive version to database."""
         async with aiosqlite.connect(self.archive_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT OR REPLACE INTO archive_versions
-                (version_id, archive_id, version_number, archive_type, created_at,
+                (version_id, archive_id, version_number, archive_type, created_at,)
                  expires_at, size_bytes, compressed_size_bytes, shard_ids,
                  parent_version_id, checksum, metadata, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     version.version_id,
                     version.archive_id,
                     version.version_number,
@@ -490,7 +491,7 @@ class ArchiveSystemPlugin:
             )
             await db.commit()
 
-    async def _log_archive_access(
+    async def _log_archive_access()
         self,
         archive_id: str,
         version_id: Optional[str],
@@ -504,14 +505,14 @@ class ArchiveSystemPlugin:
         log_id = f"log_{hashlib.sha256(f'{archive_id}_{user_id}_{action}_{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:16]}"
 
         async with aiosqlite.connect(self.archive_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT INTO archive_access_logs
-                (log_id, archive_id, version_id, user_id, action, timestamp,
+                (log_id, archive_id, version_id, user_id, action, timestamp,)
                  ip_address, success, details)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     log_id,
                     archive_id,
                     version_id,

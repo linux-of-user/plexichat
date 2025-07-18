@@ -17,8 +17,10 @@ from ..core.config import get_config
 from .base_service import BaseService
 
 
-
 """
+import socket
+import string
+import time
 PlexiChat Real-time Collaboration Service
 
 Comprehensive real-time collaboration system providing document collaboration,
@@ -129,7 +131,7 @@ class OperationalTransform:
         """Transform two concurrent insert operations."""
         if op1.position <= op2.position:
             # op1 comes before op2, adjust op2's position
-            op2_prime = Operation(
+            op2_prime = Operation()
                 op_id=op2.op_id,
                 user_id=op2.user_id,
                 operation_type=op2.operation_type,
@@ -142,7 +144,7 @@ class OperationalTransform:
             return op1, op2_prime
         else:
             # op2 comes before op1, adjust op1's position
-            op1_prime = Operation(
+            op1_prime = Operation()
                 op_id=op1.op_id,
                 user_id=op1.user_id,
                 operation_type=op1.operation_type,
@@ -159,7 +161,7 @@ class OperationalTransform:
         """Transform insert and delete operations."""
         if insert_op.position <= delete_op.position:
             # Insert comes before delete, adjust delete position
-            delete_prime = Operation(
+            delete_prime = Operation()
                 op_id=delete_op.op_id,
                 user_id=delete_op.user_id,
                 operation_type=delete_op.operation_type,
@@ -172,7 +174,7 @@ class OperationalTransform:
             return insert_op, delete_prime
         elif insert_op.position >= delete_op.position + delete_op.length:
             # Insert comes after delete, adjust insert position
-            insert_prime = Operation(
+            insert_prime = Operation()
                 op_id=insert_op.op_id,
                 user_id=insert_op.user_id,
                 operation_type=insert_op.operation_type,
@@ -185,7 +187,7 @@ class OperationalTransform:
             return insert_prime, delete_op
         else:
             # Insert is within delete range, adjust both
-            insert_prime = Operation(
+            insert_prime = Operation()
                 op_id=insert_op.op_id,
                 user_id=insert_op.user_id,
                 operation_type=insert_op.operation_type,
@@ -203,7 +205,7 @@ class OperationalTransform:
         # Handle overlapping deletes
         if op1.position + op1.length <= op2.position:
             # op1 comes completely before op2
-            op2_prime = Operation(
+            op2_prime = Operation()
                 op_id=op2.op_id,
                 user_id=op2.user_id,
                 operation_type=op2.operation_type,
@@ -216,7 +218,7 @@ class OperationalTransform:
             return op1, op2_prime
         elif op2.position + op2.length <= op1.position:
             # op2 comes completely before op1
-            op1_prime = Operation(
+            op1_prime = Operation()
                 op_id=op1.op_id,
                 user_id=op1.user_id,
                 operation_type=op1.operation_type,
@@ -234,7 +236,7 @@ class OperationalTransform:
                 # Adjust op2 to account for op1
                 new_position = max(op1.position, op2.position - op1.length)
                 new_length = max(0, op2.length - max(0, op1.position + op1.length - op2.position))
-                op2_prime = Operation(
+                op2_prime = Operation()
                     op_id=op2.op_id,
                     user_id=op2.user_id,
                     operation_type=op2.operation_type,
@@ -249,7 +251,7 @@ class OperationalTransform:
                 # Adjust op1 to account for op2
                 new_position = max(op2.position, op1.position - op2.length)
                 new_length = max(0, op1.length - max(0, op2.position + op2.length - op1.position))
-                op1_prime = Operation(
+                op1_prime = Operation()
                     op_id=op1.op_id,
                     user_id=op1.user_id,
                     operation_type=op1.operation_type,
@@ -349,7 +351,7 @@ class CollaborationService(BaseService):
                 "error": str(e)
             }
 
-    async def create_session(self, title: str, collaboration_type: CollaborationType,
+    async def create_session(self, title: str, collaboration_type: CollaborationType,)
                            owner_id: str, initial_content: str = "") -> str:
         """Create a new collaboration session."""
         session_id = str(uuid.uuid4())
@@ -359,7 +361,7 @@ class CollaborationService(BaseService):
             raise ValueError(f"User has reached maximum session limit ({self.max_sessions_per_user})")
 
         # Create session
-        session = CollaborationSession(
+        session = CollaborationSession()
             session_id=session_id,
             title=title,
             collaboration_type=collaboration_type,
@@ -370,9 +372,9 @@ class CollaborationService(BaseService):
         )
 
         # Add owner as user
-        owner_user = CollaborationUser(
+        owner_user = CollaborationUser()
             user_id=owner_id,
-            username=f"user_{owner_id}",  # Would be fetched from user service
+            username=CacheKeyBuilder.user_key(owner_id),  # Would be fetched from user service
             role=UserRole.OWNER,
             color=self._generate_user_color(owner_id)
         )
@@ -401,9 +403,9 @@ class CollaborationService(BaseService):
             return False
 
         # Add user to session
-        user = CollaborationUser(
+        user = CollaborationUser()
             user_id=user_id,
-            username=f"user_{user_id}",  # Would be fetched from user service
+            username=CacheKeyBuilder.user_key(user_id),  # Would be fetched from user service
             role=role,
             color=self._generate_user_color(user_id)
         )

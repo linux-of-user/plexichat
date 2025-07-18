@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from datetime import datetime
 from plexichat.core.config import settings
+import time
 
 try:
     from .advanced_user_system import advanced_user_manager
@@ -165,7 +166,7 @@ class AdvancedMessagingCoordinator:
         except Exception as e:
             logger.error(f"Failed to create demo data: {e}")
 
-    async def send_message(self, sender_id: str, target_id: str, message: str,
+    async def send_message(self, sender_id: str, target_id: str, message: str,)
                           target_type: str = "user", message_type: str = "text",
                           media_url: Optional[str] = None) -> Dict[str, Any]:
         """Send message with advanced features."""
@@ -192,7 +193,7 @@ class AdvancedMessagingCoordinator:
             logger.error(f"Failed to send message: {e}")
             return {"success": False, "error": str(e)}
 
-    async def _send_direct_message(self, sender: RichUserProfile, recipient_id: str,
+    async def _send_direct_message(self, sender: RichUserProfile, recipient_id: str,)
                                  message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send direct message between users."""
         recipient = self.user_manager.get_user_profile(recipient_id)
@@ -206,8 +207,7 @@ settings.get("allow_direct_messages", True):
 
         # Create message data
         message_data = {
-            "message_id": f"dm_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}_{sender.user_id}_{recipient_id}",
+            "message_id": f"dm_{int(datetime.now().timestamp())}_{sender.user_id}_{recipient_id}",
             "sender_id": sender.user_id,
             "sender_username": sender.username,
             "sender_display_name": sender.display_name,
@@ -220,14 +220,13 @@ datetime = datetime.now().timestamp())}_{sender.user_id}_{recipient_id}",
 
         # Check for business automation
         if recipient.business_profile:
-            auto_response = await self.business_manager.process_incoming_message(
+            auto_response = await self.business_manager.process_incoming_message()
                 sender.user_id, message, recipient.business_profile.business_id
             )
             if auto_response:
                 # Send automated response
                 response_data = {
-                    "message_id": f"auto_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}_{recipient_id}_{sender.user_id}",
+                    "message_id": f"auto_{int(datetime.now().timestamp())}_{recipient_id}_{sender.user_id}",
                     "sender_id": recipient_id,
                     "sender_username": recipient.username,
                     "sender_display_name": recipient.display_name,
@@ -240,7 +239,7 @@ datetime = datetime.now().timestamp())}_{recipient_id}_{sender.user_id}",
 
         return {"success": True, "message_data": message_data}
 
-    async def _send_group_message(self, sender: RichUserProfile, group_id: str,
+    async def _send_group_message(self, sender: RichUserProfile, group_id: str,)
                                 message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send message to group."""
         if group_id not in self.group_manager.groups:
@@ -262,8 +261,7 @@ datetime = datetime.now().timestamp())}_{recipient_id}_{sender.user_id}",
         group.update_analytics("message", user_id=sender.user_id)
 
         message_data = {
-            "message_id": f"group_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}_{sender.user_id}_{group_id}",
+            "message_id": f"group_{int(datetime.now().timestamp())}_{sender.user_id}_{group_id}",
             "sender_id": sender.user_id,
             "sender_username": sender.username,
             "sender_display_name": sender.display_name,
@@ -277,7 +275,7 @@ datetime = datetime.now().timestamp())}_{sender.user_id}_{group_id}",
 
         return {"success": True, "message_data": message_data}
 
-    async def _send_channel_message(self, sender: RichUserProfile, channel_id: str,
+    async def _send_channel_message(self, sender: RichUserProfile, channel_id: str,)
                                   message: str, media_url: Optional[str]) -> Dict[str, Any]:
         """Send message to voice/video channel."""
         if channel_id not in self.voice_video_manager.channels:
@@ -290,8 +288,7 @@ datetime = datetime.now().timestamp())}_{sender.user_id}_{group_id}",
             return {"success": False, "error": "Not in channel"}
 
         message_data = {
-            "message_id": f"channel_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}_{sender.user_id}_{channel_id}",
+            "message_id": f"channel_{int(datetime.now().timestamp())}_{sender.user_id}_{channel_id}",
             "sender_id": sender.user_id,
             "sender_username": sender.username,
             "sender_display_name": sender.display_name,
@@ -333,7 +330,7 @@ datetime = datetime.now().timestamp())}_{sender.user_id}_{channel_id}",
 
     async def remove_reaction(self, user_id: str, message_id: str, reaction: str) -> bool:
         """Remove reaction from message."""
-        if (message_id in self.message_reactions and
+        if (message_id in self.message_reactions and)
             reaction in self.message_reactions[message_id] and
             user_id in self.message_reactions[message_id][reaction]):
 

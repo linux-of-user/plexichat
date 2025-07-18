@@ -42,17 +42,17 @@ class CacheEntry:
     expires_at: Optional[float]
     access_count: int = 0
     last_accessed: float = None
-    
+
     def __post_init__(self):
         if self.last_accessed is None:
             self.last_accessed = self.created_at
-    
+
     def is_expired(self) -> bool:
         """Check if entry is expired."""
         if self.expires_at is None:
             return False
         return time.time() > self.expires_at
-    
+
     def touch(self):
         """Update access information."""
         self.access_count += 1
@@ -60,7 +60,7 @@ class CacheEntry:
 
 class CacheManager:
     """Cache manager with threading support."""
-    
+
     def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
         self.max_size = max_size
         self.default_ttl = default_ttl
@@ -69,23 +69,23 @@ class CacheManager:
         self.performance_logger = performance_logger
         self.db_manager = database_manager
         self.async_thread_manager = async_thread_manager
-        
+
         # Statistics
         self.hits = 0
         self.misses = 0
         self.evictions = 0
-        
+
         # Background cleanup
         self._cleanup_running = False
         self._start_cleanup_thread()
-    
+
     def _start_cleanup_thread(self):
         """Start background cleanup thread."""
         if not self._cleanup_running:
             self._cleanup_running = True
             cleanup_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
             cleanup_thread.start()
-    
+
     def _cleanup_loop(self):
         """Background cleanup loop."""
         while self._cleanup_running:
@@ -94,7 +94,7 @@ class CacheManager:
                 time.sleep(60)  # Cleanup every minute
             except Exception as e:
                 logger.error(f"Cache cleanup error: {e}")
-    
+
     def _cleanup_expired(self):
         """Remove expired entries."""
         with self.lock:
@@ -102,47 +102,47 @@ class CacheManager:
                 key for key, entry in self.cache.items()
                 if entry.is_expired()
             ]
-            
+
             for key in expired_keys:
                 del self.cache[key]
                 self.evictions += 1
-            
+
             if expired_keys and self.performance_logger:
                 self.performance_logger.record_metric("cache_expired_entries", len(expired_keys), "count")
-    
+
     def _evict_lru(self):
         """Evict least recently used entries."""
         if len(self.cache) <= self.max_size:
             return
-        
+
         with self.lock:
             # Sort by last accessed time
-            sorted_entries = sorted(
+            sorted_entries = sorted()
                 self.cache.items(),
                 key=lambda x: x[1].last_accessed
             )
-            
+
             # Remove oldest entries
             entries_to_remove = len(self.cache) - self.max_size + 1
             for i in range(entries_to_remove):
                 key, _ = sorted_entries[i]
                 del self.cache[key]
                 self.evictions += 1
-            
+
             if self.performance_logger:
                 self.performance_logger.record_metric("cache_lru_evictions", entries_to_remove, "count")
-    
+
     def get(self, key: str, default: Any = None) -> Any:
         """Get value from cache."""
         with self.lock:
             entry = self.cache.get(key)
-            
+
             if entry is None:
                 self.misses += 1
                 if self.performance_logger:
                     self.performance_logger.record_metric("cache_misses", 1, "count")
                 return default
-            
+
             if entry.is_expired():
                 del self.cache[key]
                 self.misses += 1
@@ -151,47 +151,47 @@ class CacheManager:
                     self.performance_logger.record_metric("cache_misses", 1, "count")
                     self.performance_logger.record_metric("cache_expired_on_access", 1, "count")
                 return default
-            
+
             entry.touch()
             self.hits += 1
             if self.performance_logger:
                 self.performance_logger.record_metric("cache_hits", 1, "count")
-            
+
             return entry.value
-    
+
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """Set value in cache."""
         try:
             with self.lock:
                 current_time = time.time()
                 expires_at = None
-                
+
                 if ttl is not None:
                     expires_at = current_time + ttl
                 elif self.default_ttl > 0:
                     expires_at = current_time + self.default_ttl
-                
-                entry = CacheEntry(
+
+                entry = CacheEntry()
                     key=key,
                     value=value,
                     created_at=current_time,
                     expires_at=expires_at
                 )
-                
+
                 self.cache[key] = entry
-                
+
                 # Evict if necessary
                 if len(self.cache) > self.max_size:
                     self._evict_lru()
-                
+
                 if self.performance_logger:
                     self.performance_logger.record_metric("cache_sets", 1, "count")
-                
+
                 return True
         except Exception as e:
             logger.error(f"Error setting cache key {key}: {e}")
             return False
-    
+
     def delete(self, key: str) -> bool:
         """Delete key from cache."""
         with self.lock:
@@ -201,7 +201,7 @@ class CacheManager:
                     self.performance_logger.record_metric("cache_deletes", 1, "count")
                 return True
             return False
-    
+
     def clear(self):
         """Clear all cache entries."""
         with self.lock:
@@ -210,37 +210,37 @@ class CacheManager:
             if self.performance_logger:
                 self.performance_logger.record_metric("cache_clears", 1, "count")
                 self.performance_logger.record_metric("cache_cleared_entries", cleared_count, "count")
-    
+
     def exists(self, key: str) -> bool:
         """Check if key exists and is not expired."""
         with self.lock:
             entry = self.cache.get(key)
             if entry is None:
                 return False
-            
+
             if entry.is_expired():
                 del self.cache[key]
                 self.evictions += 1
                 return False
-            
+
             return True
-    
+
     def keys(self, pattern: Optional[str] = None) -> List[str]:
         """Get cache keys, optionally filtered by pattern."""
         with self.lock:
             if pattern is None:
                 return list(self.cache.keys())
-            
+
             import re
             regex = re.compile(pattern)
             return [key for key in self.cache.keys() if regex.match(key)]
-    
+
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         with self.lock:
             total_requests = self.hits + self.misses
             hit_rate = (self.hits / total_requests) if total_requests > 0 else 0
-            
+
             return {
                 "size": len(self.cache),
                 "max_size": self.max_size,
@@ -250,7 +250,7 @@ class CacheManager:
                 "hit_rate": hit_rate,
                 "memory_usage": self._estimate_memory_usage()
             }
-    
+
     def _estimate_memory_usage(self) -> int:
         """Estimate memory usage in bytes."""
         try:
@@ -263,70 +263,70 @@ class CacheManager:
             return total_size
         except Exception:
             return 0
-    
+
     async def get_async(self, key: str, default: Any = None) -> Any:
         """Async get from cache."""
         if self.async_thread_manager:
             return await self.async_thread_manager.run_in_thread(self.get, key, default)
         return self.get(key, default)
-    
+
     async def set_async(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """Async set to cache."""
         if self.async_thread_manager:
             return await self.async_thread_manager.run_in_thread(self.set, key, value, ttl)
         return self.set(key, value, ttl)
-    
+
     async def delete_async(self, key: str) -> bool:
         """Async delete from cache."""
         if self.async_thread_manager:
             return await self.async_thread_manager.run_in_thread(self.delete, key)
         return self.delete(key)
-    
+
     def stop_cleanup(self):
         """Stop background cleanup."""
         self._cleanup_running = False
 
 class DistributedCacheManager(CacheManager):
     """Distributed cache manager with database persistence."""
-    
+
     def __init__(self, max_size: int = 10000, default_ttl: int = 3600):
         super().__init__(max_size, default_ttl)
         self.db_manager = database_manager
-    
+
     async def get_from_db(self, key: str) -> Optional[Any]:
         """Get value from database cache."""
         if not self.db_manager:
             return None
-        
+
         try:
             query = """
-                SELECT value, expires_at FROM cache_entries 
+                SELECT value, expires_at FROM cache_entries
                 WHERE key = ? AND (expires_at IS NULL OR expires_at > ?)
             """
             params = {"key": key, "expires_at": time.time()}
-            
+
             result = await self.db_manager.execute_query(query, params)
             if result:
                 value_json, expires_at = result[0]
                 return json.loads(value_json)
-            
+
             return None
         except Exception as e:
             logger.error(f"Error getting from database cache: {e}")
             return None
-    
+
     async def set_to_db(self, key: str, value: Any, ttl: Optional[int] = None):
         """Set value to database cache."""
         if not self.db_manager:
             return
-        
+
         try:
             expires_at = None
             if ttl is not None:
                 expires_at = time.time() + ttl
             elif self.default_ttl > 0:
                 expires_at = time.time() + self.default_ttl
-            
+
             query = """
                 INSERT OR REPLACE INTO cache_entries (key, value, created_at, expires_at)
                 VALUES (?, ?, ?, ?)
@@ -337,82 +337,89 @@ class DistributedCacheManager(CacheManager):
                 "created_at": time.time(),
                 "expires_at": expires_at
             }
-            
+
             await self.db_manager.execute_query(query, params)
         except Exception as e:
             logger.error(f"Error setting to database cache: {e}")
-    
+
     async def get_distributed(self, key: str, default: Any = None) -> Any:
         """Get from local cache, fallback to database."""
         # Try local cache first
         value = self.get(key, None)
         if value is not None:
             return value
-        
+
         # Try database cache
         value = await self.get_from_db(key)
         if value is not None:
             # Store in local cache
             self.set(key, value)
             return value
-        
+
         return default
-    
+
     async def set_distributed(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """Set to both local cache and database."""
         # Set to local cache
         local_success = self.set(key, value, ttl)
-        
+
         # Set to database cache
         await self.set_to_db(key, value, ttl)
-        
+
         return local_success
 
 # Global cache managers
 cache_manager = CacheManager()
 distributed_cache_manager = DistributedCacheManager()
 
-# Convenience functions
+# DEPRECATED: Use unified_cache_integration instead
+import warnings
+
 def cache_get(key: str, default: Any = None) -> Any:
-    """Get from global cache."""
+    """DEPRECATED: Use unified_cache_integration.cache_get_sync instead."""
+    warnings.warn("cache_get is deprecated. Use unified_cache_integration.cache_get_sync", DeprecationWarning)
     return cache_manager.get(key, default)
 
 def cache_set(key: str, value: Any, ttl: Optional[int] = None) -> bool:
-    """Set to global cache."""
+    """DEPRECATED: Use unified_cache_integration.cache_set_sync instead."""
+    warnings.warn("cache_set is deprecated. Use unified_cache_integration.cache_set_sync", DeprecationWarning)
     return cache_manager.set(key, value, ttl)
 
 def cache_delete(key: str) -> bool:
-    """Delete from global cache."""
+    """DEPRECATED: Use unified_cache_integration.cache_delete_sync instead."""
+    warnings.warn("cache_delete is deprecated. Use unified_cache_integration.cache_delete_sync", DeprecationWarning)
     return cache_manager.delete(key)
 
 async def cache_get_async(key: str, default: Any = None) -> Any:
-    """Async get from global cache."""
+    """DEPRECATED: Use unified_cache_integration.cache_get instead."""
+    warnings.warn("cache_get_async is deprecated. Use unified_cache_integration.cache_get", DeprecationWarning)
     return await cache_manager.get_async(key, default)
 
 async def cache_set_async(key: str, value: Any, ttl: Optional[int] = None) -> bool:
-    """Async set to global cache."""
+    """DEPRECATED: Use unified_cache_integration.cache_set instead."""
+    warnings.warn("cache_set_async is deprecated. Use unified_cache_integration.cache_set", DeprecationWarning)
     return await cache_manager.set_async(key, value, ttl)
 
 # Decorators
 def cached(ttl: Optional[int] = None, key_func: Optional[callable] = None):
     """Decorator to cache function results."""
     def decorator(func):
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             # Generate cache key
             if key_func:
                 cache_key = key_func(*args, **kwargs)
             else:
                 cache_key = f"{func.__name__}_{hash(str(args) + str(kwargs))}"
-            
+
             # Try to get from cache
-            result = cache_get(cache_key)
+            result = await cache_get(cache_key)
             if result is not None:
                 return result
-            
+
             # Execute function and cache result
             result = func(*args, **kwargs)
-            cache_set(cache_key, result, ttl)
-            
+            await cache_set(cache_key, result, ttl)
+
             return result
         return wrapper
     return decorator
@@ -426,16 +433,16 @@ def async_cached(ttl: Optional[int] = None, key_func: Optional[callable] = None)
                 cache_key = key_func(*args, **kwargs)
             else:
                 cache_key = f"{func.__name__}_{hash(str(args) + str(kwargs))}"
-            
+
             # Try to get from cache
             result = await cache_get_async(cache_key)
             if result is not None:
                 return result
-            
+
             # Execute function and cache result
             result = await func(*args, **kwargs)
             await cache_set_async(cache_key, result, ttl)
-            
+
             return result
         return wrapper
     return decorator

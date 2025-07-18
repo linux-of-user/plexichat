@@ -29,6 +29,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 """
+import time
 PlexiChat Backup Node Server
 Government-Grade Independent Backup Storage System Server
 
@@ -97,39 +98,39 @@ class BackupNodeConfig:
 class BackupNodeServer:
     """
     PlexiChat Backup Node Server
-    
+
     Provides comprehensive backup node functionality:
     - Shard storage and retrieval
     - Health monitoring and reporting
     - Clustering and synchronization
     - Performance optimization
     """
-    
+
     def __init__(self, config: BackupNodeConfig):
         self.config = config
         self.app = FastAPI(title="PlexiChat Backup Node", version="3.0.0")
-        self.from pathlib import Path
-storage_path = Path()(config.storage_path)
+        from pathlib import Path
+self.storage_path = Path(config.storage_path)
         self.db_path = self.storage_path / "shards_database.db"
         self.shards: Dict[str, BackupShard] = {}
         self.nodes: Dict[str, NodeInfo] = {}
         self.startup_time = datetime.now(timezone.utc)
-        
+
         # Ensure storage directory exists
         self.storage_path.mkdir(parents=True, exist_ok=True)
-        
+
         # Setup routes
         self._setup_routes()
-        
+
     def _setup_routes(self):
         """Setup FastAPI routes."""
-        
+
         @self.app.get("/health")
         async def health_check():
             """Health check endpoint."""
             storage_used = self._calculate_storage_used()
             storage_capacity = self.config.max_storage_gb * 1024 * 1024 * 1024
-            
+
             return {
                 "status": "healthy",
                 "node_id": self.config.node_id,
@@ -143,9 +144,9 @@ storage_path = Path()(config.storage_path)
                 "encryption_enabled": self.config.encryption_enabled,
                 "quantum_resistant": self.config.quantum_resistant
             }
-            
+
         @self.app.post("/store")
-        async def store_shard(
+        async def store_shard()
             shard_data: UploadFile = File(...),
             request_data: str = Form(...)
         ):
@@ -157,104 +158,104 @@ storage_path = Path()(config.storage_path)
                 expected_checksum = request_info['checksum']
                 expected_size = request_info['size']
                 metadata = request_info.get('metadata', {})
-                
+
                 # Read shard data
                 data = await shard_data.read()
-                
+
                 # Verify size and checksum
                 if len(data) != expected_size:
                     raise HTTPException(status_code=400, detail="Size mismatch")
-                    
+
                 actual_checksum = hashlib.sha256(data).hexdigest()
                 if actual_checksum != expected_checksum:
                     raise HTTPException(status_code=400, detail="Checksum mismatch")
-                
+
                 # Check storage capacity
                 if not self._check_storage_capacity(len(data)):
                     raise HTTPException(status_code=507, detail="Insufficient storage")
-                
+
                 # Store shard
                 shard_file_path = self.storage_path / f"shard_{shard_id}"
                 with open(shard_file_path, 'wb') as f:
                     f.write(data)
-                
+
                 # Create shard record
-                shard = BackupShard(
+                shard = BackupShard()
                     shard_id=shard_id,
                     original_hash=actual_checksum,
                     size_bytes=len(data),
                     created_at=datetime.now(timezone.utc),
                     metadata=metadata
                 )
-                
+
                 self.shards[shard_id] = shard
                 await self._save_shard_to_db(shard)
-                
+
                 logger.info(f" Stored shard {shard_id} ({len(data)} bytes)")
-                
+
                 return {
                     "success": True,
                     "shard_id": shard_id,
                     "size": len(data),
                     "checksum": actual_checksum
                 }
-                
+
             except Exception as e:
                 logger.error(f" Failed to store shard: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-                
+
         @self.app.get("/retrieve/{shard_id}")
         async def retrieve_shard(shard_id: str):
             """Retrieve a shard from this backup node."""
             try:
                 if shard_id not in self.shards:
                     raise HTTPException(status_code=404, detail="Shard not found")
-                
+
                 shard_file_path = self.storage_path / f"shard_{shard_id}"
                 if not shard_file_path.exists():
                     logger.error(f" Shard file missing: {shard_id}")
                     raise HTTPException(status_code=404, detail="Shard file not found")
-                
+
                 logger.info(f" Retrieved shard {shard_id}")
-                return FileResponse(
+                return FileResponse()
                     path=str(shard_file_path),
                     filename=f"shard_{shard_id}",
                     media_type="application/octet-stream"
                 )
-                
+
             except HTTPException:
                 raise
             except Exception as e:
                 logger.error(f" Failed to retrieve shard {shard_id}: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-                
+
         @self.app.post("/verify/{shard_id}")
         async def verify_shard(shard_id: str):
             """Verify a shard's integrity."""
             try:
                 if shard_id not in self.shards:
                     raise HTTPException(status_code=404, detail="Shard not found")
-                
+
                 shard = self.shards[shard_id]
                 shard_file_path = self.storage_path / f"shard_{shard_id}"
-                
+
                 if not shard_file_path.exists():
                     return {"valid": False, "error": "Shard file missing"}
-                
+
                 # Calculate current checksum
                 with open(shard_file_path, 'rb') as f:
                     data = f.read()
                     current_checksum = hashlib.sha256(data).hexdigest()
-                
+
                 is_valid = current_checksum == shard.original_hash
-                
+
                 # Update verification info
                 shard.last_verified = datetime.now(timezone.utc)
                 shard.verification_count += 1
                 await self._update_shard_in_db(shard)
-                
+
                 logger.info(f" Verified shard {shard_id}: {'VALID' if is_valid else 'INVALID'}")
-                
+
                 return {
                     "valid": is_valid,
                     "shard_id": shard_id,
@@ -263,44 +264,44 @@ storage_path = Path()(config.storage_path)
                     "verification_count": shard.verification_count,
                     "last_verified": shard.last_verified.isoformat()
                 }
-                
+
             except HTTPException:
                 raise
             except Exception as e:
                 logger.error(f" Failed to verify shard {shard_id}: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-                
+
         @self.app.delete("/delete/{shard_id}")
         async def delete_shard(shard_id: str):
             """Delete a shard from this backup node."""
             try:
                 if shard_id not in self.shards:
                     raise HTTPException(status_code=404, detail="Shard not found")
-                
+
                 shard_file_path = self.storage_path / f"shard_{shard_id}"
                 if shard_file_path.exists():
                     shard_file_path.unlink()
-                
+
                 del self.shards[shard_id]
                 await self._delete_shard_from_db(shard_id)
-                
+
                 logger.info(f" Deleted shard {shard_id}")
-                
+
                 return {"success": True, "shard_id": shard_id}
-                
+
             except HTTPException:
                 raise
             except Exception as e:
                 logger.error(f" Failed to delete shard {shard_id}: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-                
+
         @self.app.get("/shards")
         async def list_shards():
             """List all shards on this backup node."""
             try:
                 shards_info = []
                 for shard_id, shard in self.shards.items():
-                    shards_info.append({
+                    shards_info.append({)
                         "shard_id": shard.shard_id,
                         "size_bytes": shard.size_bytes,
                         "checksum": shard.original_hash,
@@ -309,13 +310,13 @@ storage_path = Path()(config.storage_path)
                         "verification_count": shard.verification_count,
                         "metadata": shard.metadata
                     })
-                
+
                 return {
                     "shards": shards_info,
                     "total_count": len(shards_info),
                     "total_size": sum(shard.size_bytes for shard in self.shards.values())
                 }
-                
+
             except Exception as e:
                 logger.error(f" Failed to list shards: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
@@ -337,8 +338,8 @@ storage_path = Path()(config.storage_path)
     async def _init_database(self):
         """Initialize the SQLite database for shard metadata."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS shards (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS shards ()
                     shard_id TEXT PRIMARY KEY,
                     original_hash TEXT NOT NULL,
                     size_bytes INTEGER NOT NULL,
@@ -358,7 +359,7 @@ storage_path = Path()(config.storage_path)
             async with aiosqlite.connect(self.db_path) as db:
                 async with db.execute("SELECT * FROM shards") as cursor:
                     async for row in cursor:
-                        shard = BackupShard(
+                        shard = BackupShard()
                             shard_id=row[0],
                             original_hash=row[1],
                             size_bytes=row[2],
@@ -379,12 +380,12 @@ storage_path = Path()(config.storage_path)
     async def _save_shard_to_db(self, shard: BackupShard):
         """Save shard metadata to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT OR REPLACE INTO shards
-                (shard_id, original_hash, size_bytes, created_at, last_verified,
+                (shard_id, original_hash, size_bytes, created_at, last_verified,)
                  verification_count, source_node, redundancy_level, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 shard.shard_id,
                 shard.original_hash,
                 shard.size_bytes,
@@ -416,7 +417,7 @@ storage_path = Path()(config.storage_path)
         await self._load_shards_from_db()
 
         # Start the FastAPI server
-        config = uvicorn.Config(
+        config = uvicorn.Config()
             self.app,
             host="0.0.0.0",
             port=self.config.port,
@@ -440,7 +441,7 @@ Path(config_path).exists():
         config = BackupNodeConfig(**config_data)
     else:
         # Default configuration
-        config = BackupNodeConfig(
+        config = BackupNodeConfig()
             node_id=f"backup_node_{secrets.token_hex(4)}",
             storage_path="./backup_storage",
             max_storage_gb=100,
@@ -465,7 +466,7 @@ async def main():
     if args.config:
         server = create_backup_node_server(args.config)
     else:
-        config = BackupNodeConfig(
+        config = BackupNodeConfig()
             node_id=args.node_id or f"backup_node_{secrets.token_hex(4)}",
             storage_path=args.storage_path,
             max_storage_gb=args.max_storage_gb,

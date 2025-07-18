@@ -1,4 +1,5 @@
 """
+import threading
 PlexiChat Main CLI
 
 Command-line interface with threading and performance optimization.
@@ -51,6 +52,11 @@ try:
 except ImportError:
     analytics_manager = None
     track_event = None
+
+try:
+    from plexichat.interfaces.cli.commands.tests import handle_test_command
+except ImportError:
+    handle_test_command = None
 
 # Import CLI command groups
 try:
@@ -108,18 +114,18 @@ def print_table(data: List[Dict[str, Any]], title: str = "Results"):
     if not data:
         print_message("No data to display", "warning")
         return
-    
+
     if console and Table:
         table = Table(title=title)
-        
+
         # Add columns
         for key in data[0].keys():
             table.add_column(str(key).title())
-        
+
         # Add rows
         for row in data:
             table.add_row(*[str(value) for value in row.values()])
-        
+
         console.print(table)
     else:
         # Fallback to simple print
@@ -138,14 +144,14 @@ if click:
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.INFO)
-        
+
         print_message("PlexiChat CLI initialized", "success")
-    
+
     @cli.group()
     def server():
         """Server management commands."""
         pass
-    
+
     @server.command()
     @click.option('--host', default='0.0.0.0', help='Host to bind to')
     @click.option('--port', default=8000, help='Port to bind to')
@@ -154,60 +160,60 @@ if click:
         """Start the PlexiChat server."""
         try:
             print_message(f"Starting PlexiChat server on {host}:{port}", "info")
-            
+
             # Initialize components
             if database_manager:
                 asyncio.run(database_manager.initialize())
                 print_message("Database initialized", "success")
-            
+
             if message_processor:
                 asyncio.run(message_processor.start_processing())
                 print_message("Message processor started", "success")
-            
+
             if analytics_manager:
                 asyncio.run(analytics_manager.start_processing())
                 print_message("Analytics manager started", "success")
-            
+
             # Start server
             from plexichat.interfaces.api.main_api import run_server
             run_server(host=host, port=port, reload=reload)
-            
+
         except Exception as e:
             print_message(f"Failed to start server: {e}", "error")
             sys.exit(1)
-    
+
     @server.command()
     def stop():
         """Stop the PlexiChat server."""
         try:
             print_message("Stopping PlexiChat server...", "info")
-            
+
             # Stop components
             if message_processor:
                 asyncio.run(message_processor.stop_processing())
                 print_message("Message processor stopped", "success")
-            
+
             if analytics_manager:
                 asyncio.run(analytics_manager.stop_processing())
                 print_message("Analytics manager stopped", "success")
-            
+
             if thread_manager:
                 thread_manager.shutdown(wait=True)
                 print_message("Thread manager stopped", "success")
-            
+
             print_message("Server stopped successfully", "success")
-            
+
         except Exception as e:
             print_message(f"Error stopping server: {e}", "error")
-    
+
     @server.command()
     def status():
         """Show server status."""
         try:
             print_message("Checking server status...", "info")
-            
+
             status_data = []
-            
+
             # Check database
             if database_manager:
                 try:
@@ -217,7 +223,7 @@ if click:
                     status_data.append({"Component": "Database", "Status": "Unhealthy"})
             else:
                 status_data.append({"Component": "Database", "Status": "Not Available"})
-            
+
             # Check thread manager
             if thread_manager:
                 thread_status = thread_manager.get_status()
@@ -225,7 +231,7 @@ if click:
                 status_data.append({"Component": "Thread Manager", "Status": status})
             else:
                 status_data.append({"Component": "Thread Manager", "Status": "Not Available"})
-            
+
             # Check message processor
             if message_processor:
                 processor_status = message_processor.get_status()
@@ -233,40 +239,40 @@ if click:
                 status_data.append({"Component": "Message Processor", "Status": status})
             else:
                 status_data.append({"Component": "Message Processor", "Status": "Not Available"})
-            
+
             print_table(status_data, "Server Status")
-            
+
         except Exception as e:
             print_message(f"Error checking status: {e}", "error")
-    
+
     @cli.group()
     def database():
         """Database management commands."""
         pass
-    
+
     @database.command()
     def init():
         """Initialize the database."""
         try:
             print_message("Initializing database...", "info")
-            
+
             if database_manager:
                 asyncio.run(database_manager.initialize())
                 print_message("Database initialized successfully", "success")
             else:
                 print_message("Database manager not available", "error")
-                
+
         except Exception as e:
             print_message(f"Database initialization failed: {e}", "error")
             sys.exit(1)
-    
+
     @database.command()
     def stats():
         """Show database statistics."""
         try:
             if database_manager:
                 stats = database_manager.get_stats()
-                
+
                 stats_data = [
                     {"Metric": "Queries Executed", "Value": stats["queries_executed"]},
                     {"Metric": "Queries Failed", "Value": stats["queries_failed"]},
@@ -274,19 +280,19 @@ if click:
                     {"Metric": "Average Execution Time", "Value": f"{stats['average_execution_time']:.4f}s"},
                     {"Metric": "Connection Pool Size", "Value": stats["connection_pool_size"]},
                 ]
-                
+
                 print_table(stats_data, "Database Statistics")
             else:
                 print_message("Database manager not available", "error")
-                
+
         except Exception as e:
             print_message(f"Error getting database stats: {e}", "error")
-    
+
     @cli.group()
     def users():
         """User management commands."""
         pass
-    
+
     @users.command()
     @click.argument('username')
     @click.argument('email')
@@ -295,38 +301,38 @@ if click:
         """Create a new user."""
         try:
             print_message(f"Creating user: {username}", "info")
-            
+
             # Hash password
             if hash_password:
                 password_hash = hash_password(password)
             else:
                 password_hash = password
-            
+
             # Create user (threaded)
             if submit_task:
                 task_id = f"create_user_{username}_{int(time.time())}"
                 submit_task(task_id, _create_user_sync, username, email, password_hash)
-                
+
                 if Progress:
                     with Progress() as progress:
                         task = progress.add_task("Creating user...", total=100)
-                        
+
                         for i in range(100):
                             time.sleep(0.01)
                             progress.update(task, advance=1)
-                
+
                 success = get_task_result(task_id, timeout=10.0)
-                
+
                 if success:
                     print_message(f"User '{username}' created successfully", "success")
                 else:
                     print_message("User creation failed", "error")
             else:
                 print_message("Threading not available", "error")
-                
+
         except Exception as e:
             print_message(f"Error creating user: {e}", "error")
-    
+
     @users.command()
     @click.argument('username')
     def delete(username: str):
@@ -335,13 +341,13 @@ if click:
             # Confirm deletion
             if click.confirm(f"Are you sure you want to delete user '{username}'?"):
                 print_message(f"Deleting user: {username}", "info")
-                
+
                 # Delete user (threaded)
                 if submit_task:
                     task_id = f"delete_user_{username}_{int(time.time())}"
                     submit_task(task_id, _delete_user_sync, username)
                     success = get_task_result(task_id, timeout=10.0)
-                    
+
                     if success:
                         print_message(f"User '{username}' deleted successfully", "success")
                     else:
@@ -350,51 +356,109 @@ if click:
                     print_message("Threading not available", "error")
             else:
                 print_message("User deletion cancelled", "info")
-                
+
         except Exception as e:
             print_message(f"Error deleting user: {e}", "error")
-    
+
     @users.command()
     def list():
         """List all users."""
         try:
             print_message("Fetching users...", "info")
-            
+
             # Get users (threaded)
             if submit_task:
                 task_id = f"list_users_{int(time.time())}"
                 submit_task(task_id, _list_users_sync)
                 users_data = get_task_result(task_id, timeout=10.0)
-                
+
                 if users_data:
                     print_table(users_data, "Users")
                 else:
                     print_message("No users found", "warning")
             else:
                 print_message("Threading not available", "error")
-                
+
         except Exception as e:
             print_message(f"Error listing users: {e}", "error")
-    
+
     @cli.group()
     def analytics():
         """Analytics commands."""
         pass
-    
+
+    @cli.group()
+    def test():
+        """Test execution commands."""
+        pass
+
+    @test.command()
+    @click.argument('categories', nargs=-1)
+    @click.option('--quick', is_flag=True, help='Run quick smoke tests')
+    @click.option('--no-save', is_flag=True, help='Do not save test report')
+    @click.option('--quiet', is_flag=True, help='Reduce output verbosity')
+    def run(categories, quick, no_save, quiet):
+        """Run tests (all or specific categories)."""
+        try:
+            if handle_test_command:
+                if quick:
+                    asyncio.run(handle_test_command(['quick']))
+                elif categories:
+                    asyncio.run(handle_test_command(['run'] + list(categories)))
+                else:
+                    asyncio.run(handle_test_command(['run', 'all']))
+            else:
+                print_message("Test system not available", "error")
+        except Exception as e:
+            print_message(f"Error running tests: {e}", "error")
+
+    @test.command()
+    def list():
+        """List available test categories."""
+        try:
+            if handle_test_command:
+                asyncio.run(handle_test_command(['list']))
+            else:
+                print_message("Test system not available", "error")
+        except Exception as e:
+            print_message(f"Error listing test categories: {e}", "error")
+
+    @test.command()
+    def config():
+        """Show test configuration."""
+        try:
+            if handle_test_command:
+                asyncio.run(handle_test_command(['config']))
+            else:
+                print_message("Test system not available", "error")
+        except Exception as e:
+            print_message(f"Error showing test config: {e}", "error")
+
+    @test.command()
+    def validate():
+        """Validate test environment."""
+        try:
+            if handle_test_command:
+                asyncio.run(handle_test_command(['validate']))
+            else:
+                print_message("Test system not available", "error")
+        except Exception as e:
+            print_message(f"Error validating test environment: {e}", "error")
+
     @analytics.command()
     @click.option('--days', default=7, help='Number of days to analyze')
     def report(days: int):
         """Generate analytics report."""
         try:
             print_message(f"Generating analytics report for last {days} days...", "info")
-            
+
             if analytics_manager:
                 # Get analytics data (threaded)
                 if submit_task:
                     task_id = f"analytics_report_{int(time.time())}"
                     submit_task(task_id, _get_analytics_report_sync, days)
                     report_data = get_task_result(task_id, timeout=15.0)
-                    
+
                     if report_data:
                         print_table(report_data, f"Analytics Report ({days} days)")
                     else:
@@ -403,7 +467,7 @@ if click:
                     print_message("Threading not available", "error")
             else:
                 print_message("Analytics manager not available", "error")
-                
+
         except Exception as e:
             print_message(f"Error generating report: {e}", "error")
 
@@ -429,7 +493,7 @@ if click:
             "Python": sys.version.split()[0],
             "Platform": sys.platform
         }
-        
+
         if console and Panel:
             content = "\n".join([f"{k}: {v}" for k, v in version_info.items()])
             panel = Panel(content, title="Version Information", border_style="blue")
@@ -445,10 +509,10 @@ else:
         """Fallback CLI without click."""
         print("PlexiChat CLI")
         print("Click library not available - limited functionality")
-        
+
         if len(sys.argv) > 1:
             command = sys.argv[1]
-            
+
             if command == "version":
                 print(f"PlexiChat version 1.0.0")
             elif command == "status":

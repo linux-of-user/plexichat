@@ -6,16 +6,11 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import os
+import time
 PlexiChat Zero-Downtime Database Migration System
 
 Advanced migration system with:
@@ -160,7 +155,7 @@ class DualWriteManager:
         self.write_interceptors: Dict[str, Callable] = {}
         self.error_counts: Dict[str, int] = {}
 
-    async def setup_dual_write(self, table_name: str, old_schema: Dict[str, Any],
+    async def setup_dual_write(self, table_name: str, old_schema: Dict[str, Any],)
                              new_schema: Dict[str, Any]) -> bool:
         """Setup dual-write for table migration."""
         try:
@@ -293,7 +288,7 @@ class ZeroDowntimeMigrationManager:
 
     async def execute_migration(self, migration: ZeroDowntimeMigration) -> MigrationExecution:
         """Execute zero-downtime migration."""
-        execution = MigrationExecution(
+        execution = MigrationExecution()
             migration_id=migration.migration_id,
             current_phase=MigrationPhase.PREPARING,
             current_step=0,
@@ -347,7 +342,7 @@ class ZeroDowntimeMigrationManager:
 
         return execution
 
-    async def _execute_phase(self, migration: ZeroDowntimeMigration,
+    async def _execute_phase(self, migration: ZeroDowntimeMigration,)
                            execution: MigrationExecution, phase: MigrationPhase) -> bool:
         """Execute specific migration phase."""
         try:
@@ -374,7 +369,7 @@ class ZeroDowntimeMigrationManager:
             logger.error(f"Phase {phase.value} failed: {e}")
             return False
 
-    async def _prepare_migration(self, migration: ZeroDowntimeMigration,
+    async def _prepare_migration(self, migration: ZeroDowntimeMigration,)
                                execution: MigrationExecution) -> bool:
         """Prepare migration environment."""
         try:
@@ -398,7 +393,7 @@ class ZeroDowntimeMigrationManager:
             logger.error(f"Migration preparation failed: {e}")
             return False
 
-    async def _setup_dual_write_phase(self, migration: ZeroDowntimeMigration,
+    async def _setup_dual_write_phase(self, migration: ZeroDowntimeMigration,)
                                     execution: MigrationExecution) -> bool:
         """Setup dual-write for affected tables."""
         try:
@@ -411,7 +406,7 @@ class ZeroDowntimeMigrationManager:
                 new_schema = await self._get_target_schema(table_name, migration)
 
                 # Setup dual-write
-                success = await self.dual_write_manager.setup_dual_write(
+                success = await self.dual_write_manager.setup_dual_write()
                     table_name, old_schema, new_schema
                 )
 
@@ -430,14 +425,13 @@ class ZeroDowntimeMigrationManager:
             logger.error(f"Dual-write setup failed: {e}")
             return False
 
-    async def _execute_schema_changes(self, migration: ZeroDowntimeMigration,
+    async def _execute_schema_changes(self, migration: ZeroDowntimeMigration,)
                                     execution: MigrationExecution) -> bool:
         """Execute schema changes."""
         try:
             schema_steps = [step for step in migration.steps if step.phase == MigrationPhase.SCHEMA_CHANGE]
 
             for step in schema_steps:
-                from datetime import datetime
 step_start = datetime.now()
 datetime = datetime.now()
 
@@ -453,8 +447,7 @@ datetime = datetime.now()
                             raise Exception(f"Validation failed for step: {step.step_id}")
 
                 # Track timing
-                step_duration = (from datetime import datetime
-datetime = datetime.now() - step_start).total_seconds()
+                step_duration = (datetime.now() - step_start).total_seconds()
                 execution.step_durations[step.step_id] = step_duration
                 execution.completed_steps.append(step.step_id)
 
@@ -466,14 +459,13 @@ datetime = datetime.now() - step_start).total_seconds()
             logger.error(f"Schema changes failed: {e}")
             return False
 
-    async def _migrate_data(self, migration: ZeroDowntimeMigration,
+    async def _migrate_data(self, migration: ZeroDowntimeMigration,)
                           execution: MigrationExecution) -> bool:
         """Migrate data between schemas."""
         try:
             data_steps = [step for step in migration.steps if step.phase == MigrationPhase.DATA_MIGRATION]
 
             for step in data_steps:
-                from datetime import datetime
 step_start = datetime.now()
 datetime = datetime.now()
 
@@ -483,8 +475,7 @@ datetime = datetime.now()
                     execution.data_migrated_rows += rows_affected
 
                 # Track timing
-                step_duration = (from datetime import datetime
-datetime = datetime.now() - step_start).total_seconds()
+                step_duration = (datetime.now() - step_start).total_seconds()
                 execution.step_durations[step.step_id] = step_duration
                 execution.completed_steps.append(step.step_id)
 
@@ -496,7 +487,7 @@ datetime = datetime.now() - step_start).total_seconds()
             logger.error(f"Data migration failed: {e}")
             return False
 
-    async def _validate_migration(self, migration: ZeroDowntimeMigration,
+    async def _validate_migration(self, migration: ZeroDowntimeMigration,)
                                 execution: MigrationExecution) -> bool:
         """Validate migration results."""
         try:
@@ -523,7 +514,7 @@ datetime = datetime.now() - step_start).total_seconds()
             logger.error(f"Migration validation failed: {e}")
             return False
 
-    async def _execute_cutover(self, migration: ZeroDowntimeMigration,
+    async def _execute_cutover(self, migration: ZeroDowntimeMigration,)
                              execution: MigrationExecution) -> bool:
         """Execute cutover to new schema."""
         try:
@@ -549,7 +540,7 @@ datetime = datetime.now() - step_start).total_seconds()
             logger.error(f"Cutover failed: {e}")
             return False
 
-    async def _cleanup_migration(self, migration: ZeroDowntimeMigration,
+    async def _cleanup_migration(self, migration: ZeroDowntimeMigration,)
                                execution: MigrationExecution) -> bool:
         """Cleanup migration artifacts."""
         try:
@@ -568,7 +559,7 @@ datetime = datetime.now() - step_start).total_seconds()
             logger.error(f"Migration cleanup failed: {e}")
             return False
 
-    async def _rollback_migration(self, migration: ZeroDowntimeMigration,
+    async def _rollback_migration(self, migration: ZeroDowntimeMigration,)
                                 execution: MigrationExecution):
         """Rollback failed migration."""
         try:

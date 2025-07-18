@@ -40,17 +40,17 @@ def create(output_dir: str, include_files: bool, include_logs: bool, compress: b
     try:
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        
+
         click.echo(f"🔄 Creating backup in {output_path}...")
-        
+
         if backup_manager:
-            result = asyncio.run(backup_manager.create_full_backup(
+            result = asyncio.run(backup_manager.create_full_backup())
                 output_dir=output_path,
                 include_files=include_files,
                 include_logs=include_logs,
                 compress=compress
             ))
-            
+
             if result.success:
                 click.echo(f"✅ Backup created successfully!")
                 click.echo(f"📁 Location: {result.backup_path}")
@@ -62,7 +62,7 @@ def create(output_dir: str, include_files: bool, include_logs: bool, compress: b
         else:
             click.echo("❌ Backup manager not available")
             sys.exit(1)
-            
+
     except Exception as e:
         click.echo(f"❌ Error creating backup: {e}")
         sys.exit(1)
@@ -78,22 +78,22 @@ def restore(backup_path: str, target_dir: str, force: bool):
         if not backup_file.exists():
             click.echo(f"❌ Backup file not found: {backup_path}")
             sys.exit(1)
-        
+
         target_path = Path(target_dir)
-        
+
         if not force:
             if not click.confirm(f"Restore backup to {target_path}? This may overwrite existing data."):
                 click.echo("Operation cancelled")
                 return
-        
+
         click.echo(f"🔄 Restoring backup from {backup_file}...")
-        
+
         if backup_manager:
-            result = asyncio.run(backup_manager.restore_backup(
+            result = asyncio.run(backup_manager.restore_backup())
                 backup_path=backup_file,
                 target_dir=target_path
             ))
-            
+
             if result.success:
                 click.echo(f"✅ Backup restored successfully!")
                 click.echo(f"📁 Restored to: {target_path}")
@@ -104,7 +104,7 @@ def restore(backup_path: str, target_dir: str, force: bool):
         else:
             click.echo("❌ Backup manager not available")
             sys.exit(1)
-            
+
     except Exception as e:
         click.echo(f"❌ Error restoring backup: {e}")
         sys.exit(1)
@@ -116,7 +116,7 @@ def list(limit: int):
     try:
         if backup_manager:
             backups = asyncio.run(backup_manager.list_backups(limit=limit))
-            
+
             if backups:
                 click.echo("Available Backups:")
                 click.echo("=" * 50)
@@ -130,7 +130,7 @@ def list(limit: int):
                 click.echo("No backups found")
         else:
             click.echo("❌ Backup manager not available")
-            
+
     except Exception as e:
         click.echo(f"❌ Error listing backups: {e}")
 
@@ -144,10 +144,10 @@ def delete(backup_name: str, confirm: bool):
             if not click.confirm(f"Are you sure you want to delete backup '{backup_name}'?"):
                 click.echo("Operation cancelled")
                 return
-        
+
         if backup_manager:
             result = asyncio.run(backup_manager.delete_backup(backup_name))
-            
+
             if result.success:
                 click.echo(f"✅ Backup '{backup_name}' deleted successfully!")
             else:
@@ -156,7 +156,7 @@ def delete(backup_name: str, confirm: bool):
         else:
             click.echo("❌ Backup manager not available")
             sys.exit(1)
-            
+
     except Exception as e:
         click.echo(f"❌ Error deleting backup: {e}")
         sys.exit(1)
@@ -167,10 +167,10 @@ def status():
     try:
         click.echo("Backup System Status")
         click.echo("=" * 30)
-        
+
         if backup_manager:
             status_info = asyncio.run(backup_manager.get_status())
-            
+
             click.echo(f"✅ Backup Manager: Online")
             click.echo(f"📊 Total Backups: {status_info.get('total_backups', 0)}")
             click.echo(f"💾 Storage Used: {status_info.get('storage_used', 'Unknown')}")
@@ -178,7 +178,7 @@ def status():
             click.echo(f"⚙️  Auto Backup: {'Enabled' if status_info.get('auto_backup_enabled') else 'Disabled'}")
         else:
             click.echo("❌ Backup Manager: Offline")
-        
+
         # Check backup nodes
         try:
             if BackupNodeManager:
@@ -189,7 +189,7 @@ def status():
                 click.echo("🌐 Backup Nodes: Not available")
         except Exception:
             click.echo("🌐 Backup Nodes: Error checking status")
-            
+
     except Exception as e:
         click.echo(f"❌ Error getting backup status: {e}")
 
@@ -201,22 +201,22 @@ def start_node(port: int, storage_path: str, max_storage_gb: int):
     """Start a backup node."""
     try:
         click.echo(f"🚀 Starting backup node on port {port}...")
-        
+
         if BackupNodeMain:
             config = {
                 "port": port,
                 "storage_path": storage_path,
                 "max_storage_gb": max_storage_gb
             }
-            
+
             node = BackupNodeMain()
             node.config.update(config)
-            
+
             asyncio.run(node.start())
         else:
             click.echo("❌ Backup node not available")
             sys.exit(1)
-            
+
     except KeyboardInterrupt:
         click.echo("\n🛑 Backup node stopped by user")
     except Exception as e:
@@ -246,7 +246,7 @@ def auto(schedule: Optional[str], enable: bool):
                     click.echo(f"❌ Failed to disable auto backup: {result.error}")
         else:
             click.echo("❌ Backup manager not available")
-            
+
     except Exception as e:
         click.echo(f"❌ Error configuring auto backup: {e}")
 
@@ -259,12 +259,12 @@ def verify(backup_path: str):
         if not backup_file.exists():
             click.echo(f"❌ Backup file not found: {backup_path}")
             sys.exit(1)
-        
+
         click.echo(f"🔍 Verifying backup: {backup_file}")
-        
+
         if backup_manager:
             result = asyncio.run(backup_manager.verify_backup(backup_file))
-            
+
             if result.valid:
                 click.echo("✅ Backup verification successful!")
                 click.echo(f"📊 Files verified: {result.files_verified}")
@@ -278,7 +278,7 @@ def verify(backup_path: str):
         else:
             click.echo("❌ Backup manager not available")
             sys.exit(1)
-            
+
     except Exception as e:
         click.echo(f"❌ Error verifying backup: {e}")
         sys.exit(1)
@@ -290,7 +290,7 @@ def report(output: Optional[str]):
     try:
         if backup_manager:
             report_data = asyncio.run(backup_manager.generate_report())
-            
+
             if output:
                 output_file = Path(output)
                 with open(output_file, 'w') as f:
@@ -302,7 +302,7 @@ def report(output: Optional[str]):
                 click.echo(json.dumps(report_data, indent=2))
         else:
             click.echo("❌ Backup manager not available")
-            
+
     except Exception as e:
         click.echo(f"❌ Error generating report: {e}")
 

@@ -9,7 +9,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ..moderation import (
+from ..moderation import ()
+import time
 
 
     AI,
@@ -99,14 +100,14 @@ async def moderate_content(request: ModerationRequest, background_tasks: Backgro
     """Moderate content using AI."""
     try:
         # Cache content for potential feedback
-        background_tasks.add_task(
+        background_tasks.add_task()
             feedback_collector.cache_content,
             request.content_id,
             request.content
         )
 
         # Perform moderation
-        result = await moderation_engine.moderate_content(
+        result = await moderation_engine.moderate_content()
             content=request.content,
             content_id=request.content_id,
             content_type=request.content_type,
@@ -114,7 +115,7 @@ async def moderate_content(request: ModerationRequest, background_tasks: Backgro
             metadata=request.metadata
         )
 
-        return ModerationResponse(
+        return ModerationResponse()
             content_id=result.content_id,
             confidence_score=result.confidence_score,
             recommended_action=result.recommended_action.value,
@@ -135,7 +136,7 @@ async def moderate_content(request: ModerationRequest, background_tasks: Backgro
 async def submit_feedback(request: FeedbackRequest):
     """Submit feedback for moderation improvement."""
     try:
-        success = await feedback_collector.submit_feedback(
+        success = await feedback_collector.submit_feedback()
             content_id=request.content_id,
             user_id=request.user_id,
             feedback_type=FeedbackType(request.feedback_type),
@@ -163,7 +164,7 @@ async def submit_feedback(request: FeedbackRequest):
 async def add_training_data(request: TrainingRequest):
     """Add training data for model improvement."""
     try:
-        success = training_system.add_training_data(
+        success = training_system.add_training_data()
             content=request.content,
             label=ModerationAction(request.label),
             confidence=request.confidence,

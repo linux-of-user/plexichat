@@ -5,6 +5,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import warnings
 Enhanced Input Validation System
 Provides comprehensive input validation and sanitization to prevent XSS, SQL injection, and other attacks.
 """
@@ -70,8 +71,8 @@ class EnhancedInputValidator:
             r'<link[^>]*>',
             r'<meta[^>]*>',
             r'<style[^>]*>.*?</style>',
-            r'expression\s*\(',
-            r'url\s*\(',
+            r'expression\s*\(',)
+            r'url\s*\(',)
             r'@import',
             r'<svg[^>]*>.*?</svg>',
         ]
@@ -83,32 +84,32 @@ class EnhancedInputValidator:
             r"(--|#|/\*|\*/)",
             r"(\bUNION\s+SELECT\b)",
             r"(\bINTO\s+OUTFILE\b)",
-            r"(\bLOAD_FILE\s*\()",
-            r"(\bCHAR\s*\()",
-            r"(\bCONCAT\s*\()",
-            r"(\bSUBSTRING\s*\()",
-            r"(\bCAST\s*\()",
-            r"(\bCONVERT\s*\()",
-            r"(\bHEX\s*\()",
-            r"(\bUNHEX\s*\()",
-            r"(\bASCII\s*\()",
-            r"(\bBENCHMARK\s*\()",
-            r"(\bSLEEP\s*\()",
+            r"(\bLOAD_FILE\s*\()",)
+            r"(\bCHAR\s*\()",)
+            r"(\bCONCAT\s*\()",)
+            r"(\bSUBSTRING\s*\()",)
+            r"(\bCAST\s*\()",)
+            r"(\bCONVERT\s*\()",)
+            r"(\bHEX\s*\()",)
+            r"(\bUNHEX\s*\()",)
+            r"(\bASCII\s*\()",)
+            r"(\bBENCHMARK\s*\()",)
+            r"(\bSLEEP\s*\()",)
             r"(\bWAITFOR\s+DELAY\b)",
         ]
 
         self.command_injection_patterns = [
-            r"(\||&|;|`|\$\(|\${)",
+            r"(\||&|;|`|\$\(|\${)",)
             r"(\b(cat|ls|pwd|whoami|id|uname|ps|netstat|ifconfig|ping|wget|curl|nc|telnet|ssh|ftp)\b)",
             r"(\.\.\/|\.\.\\)",
             r"(\/etc\/passwd|\/etc\/shadow|\/etc\/hosts)",
-            r"(\beval\s*\()",
-            r"(\bexec\s*\()",
-            r"(\bsystem\s*\()",
-            r"(\bshell_exec\s*\()",
-            r"(\bpassthru\s*\()",
-            r"(\bpopen\s*\()",
-            r"(\bproc_open\s*\()",
+            r"(\beval\s*\()",)
+            r"(\bexec\s*\()",)
+            r"(\bsystem\s*\()",)
+            r"(\bshell_exec\s*\()",)
+            r"(\bpassthru\s*\()",)
+            r"(\bpopen\s*\()",)
+            r"(\bproc_open\s*\()",)
         ]
 
         self.path_traversal_patterns = [
@@ -130,7 +131,7 @@ class EnhancedInputValidator:
     def validate_input(self, value: Any, validation_level: ValidationLevel = ValidationLevel.STANDARD) -> ValidationResult:
         """Validate and sanitize input with threat detection."""
         if value is None:
-            return ValidationResult(
+            return ValidationResult()
                 is_valid=True,
                 sanitized_value=None,
                 threats_detected=[],
@@ -149,7 +150,7 @@ class EnhancedInputValidator:
             try:
                 value = str(value)
             except Exception:
-                return ValidationResult(
+                return ValidationResult()
                     is_valid=False,
                     sanitized_value=None,
                     threats_detected=[],
@@ -185,7 +186,7 @@ class EnhancedInputValidator:
 
         is_valid = len(threats_detected) == 0 or validation_level == ValidationLevel.BASIC
 
-        return ValidationResult(
+        return ValidationResult()
             is_valid=is_valid,
             sanitized_value=sanitized_value,
             threats_detected=threats_detected,
@@ -201,7 +202,7 @@ class EnhancedInputValidator:
         if ThreatType.XSS in threats or level in [ValidationLevel.STRICT, ValidationLevel.PARANOID]:
             # HTML escape
             sanitized = html.escape(sanitized, quote=True)
-            
+
             # Remove dangerous attributes and tags
             sanitized = re.sub(r'<script[^>]*>.*?</script>', '', sanitized, flags=re.IGNORECASE | re.DOTALL)
             sanitized = re.sub(r'javascript:', '', sanitized, flags=re.IGNORECASE)
@@ -236,10 +237,10 @@ class EnhancedInputValidator:
             # URL decode
             decoded = urllib.parse.unquote(decoded)
             decoded = urllib.parse.unquote_plus(decoded)
-            
+
             # HTML decode
             decoded = html.unescape(decoded)
-            
+
             # Base64 decode (if it looks like base64)
             if re.match(r'^[A-Za-z0-9+/]*={0,2}$', decoded) and len(decoded) % 4 == 0:
                 try:
@@ -258,7 +259,7 @@ class EnhancedInputValidator:
         """Validate JSON input."""
         try:
             parsed = json.loads(json_str)
-            return ValidationResult(
+            return ValidationResult()
                 is_valid=True,
                 sanitized_value=parsed,
                 threats_detected=[],
@@ -267,7 +268,7 @@ class EnhancedInputValidator:
                 original_value=json_str
             )
         except json.JSONDecodeError as e:
-            return ValidationResult(
+            return ValidationResult()
                 is_valid=False,
                 sanitized_value=None,
                 threats_detected=[],
@@ -278,13 +279,13 @@ class EnhancedInputValidator:
 
     def validate_email(self, email: str) -> ValidationResult:
         """Validate email address."""
-        email_pattern = re.compile(
+        email_pattern = re.compile()
             r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         )
-        
+
         is_valid = bool(email_pattern.match(email))
-        
-        return ValidationResult(
+
+        return ValidationResult()
             is_valid=is_valid,
             sanitized_value=email.lower().strip() if is_valid else None,
             threats_detected=[],

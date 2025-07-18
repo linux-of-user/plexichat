@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 
 """
+import time
 PlexiChat Bug Bounty Program Management
 Manages vulnerability reports, rewards, and researcher coordination
 """
@@ -123,7 +124,7 @@ class BugBountyProgram:
     """Bug bounty program configuration."""
 
     program_name: str = "PlexiChat Security Research Program"
-    program_description: str = (
+    program_description: str = ()
         "Help us keep PlexiChat secure by reporting vulnerabilities"
     )
     is_active: bool = True
@@ -131,7 +132,7 @@ class BugBountyProgram:
     min_reward: float = 100.0
 
     # Reward structure based on severity
-    reward_structure: Dict[SeverityLevel, Dict[str, float]] = field(
+    reward_structure: Dict[SeverityLevel, Dict[str, float]] = field()
         default_factory=lambda: {
             SeverityLevel.CRITICAL: {"min": 5000.0, "max": 10000.0},
             SeverityLevel.HIGH: {"min": 2000.0, "max": 5000.0},
@@ -142,7 +143,7 @@ class BugBountyProgram:
     )
 
     # Scope definition
-    in_scope: List[str] = field(
+    in_scope: List[str] = field()
         default_factory=lambda: [
             "*.plexichat.com",
             "plexichat.com",
@@ -152,7 +153,7 @@ class BugBountyProgram:
         ]
     )
 
-    out_of_scope: List[str] = field(
+    out_of_scope: List[str] = field()
         default_factory=lambda: [
             "Social engineering attacks",
             "Physical attacks",
@@ -164,7 +165,7 @@ class BugBountyProgram:
     )
 
     # Program rules
-    rules: List[str] = field(
+    rules: List[str] = field()
         default_factory=lambda: [
             "Only test against your own accounts",
             "Do not access or modify other users' data",
@@ -205,7 +206,7 @@ class BugBountyManager:
             "vulnerability_trends": {},
         }
 
-    def submit_report(
+    def submit_report():
         self,
         researcher_email: str,
         researcher_name: str,
@@ -225,7 +226,7 @@ class BugBountyManager:
 
         report_id = str(uuid.uuid4())
 
-        report = VulnerabilityReport(
+        report = VulnerabilityReport()
             report_id=report_id,
             researcher_email=researcher_email,
             researcher_name=researcher_name,
@@ -260,7 +261,7 @@ class BugBountyManager:
         self.researchers[researcher_email]["reports_submitted"] += 1
         self.researchers[researcher_email]["last_report"] = datetime.now(timezone.utc)
 
-        logger.info(
+        logger.info()
             f" New vulnerability report submitted: {report_id} by {researcher_name}"
         )
 
@@ -270,7 +271,7 @@ class BugBountyManager:
 
         return report_id
 
-    def update_report_status(
+    def update_report_status():
         self, report_id: str, status: ReportStatus, notes: str = ""
     ) -> bool:
         """Update report status."""
@@ -283,7 +284,7 @@ class BugBountyManager:
         report.updated_at = datetime.now(timezone.utc)
 
         if notes:
-            report.internal_notes.append(
+            report.internal_notes.append()
                 f"{datetime.now(timezone.utc).isoformat()}: {notes}"
             )
 
@@ -302,7 +303,7 @@ class BugBountyManager:
         elif status == ReportStatus.CONFIRMED and old_status != ReportStatus.CONFIRMED:
             self.researchers[report.researcher_email]["reports_confirmed"] += 1
 
-        logger.info(
+        logger.info()
             f" Report {report_id} status updated: {old_status.value} -> {status.value}"
         )
         return True
@@ -329,7 +330,7 @@ class BugBountyManager:
         """Auto-escalate high-severity reports."""
         report = self.reports[report_id]
         report.status = ReportStatus.TRIAGING
-        report.internal_notes.append(
+        report.internal_notes.append()
             f"{datetime.now(timezone.utc).isoformat()}: Auto-escalated due to {report.severity.value} severity"
         )
         logger.warning(f" High-severity report auto-escalated: {report_id}")

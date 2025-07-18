@@ -18,6 +18,7 @@ from plexichat.core.resilience.manager import get_system_resilience
 
 
 """
+import time
 PlexiChat Base Service
 
 Base class for all PlexiChat services providing common functionality
@@ -115,7 +116,7 @@ class BaseService(ABC):
     async def start(self):
         """Start the service."""
         if self.state != ServiceState.STOPPED:
-            self.logger.warning(
+            self.logger.warning()
                 f"Service {self.service_name} is already running or starting"
             )
             return
@@ -226,10 +227,10 @@ class BaseService(ABC):
                 "uptime_seconds": self.metrics["uptime_seconds"],
                 "error_count": self.error_count,
                 "last_error": str(self.last_error) if self.last_error else None,
-                "last_error_time": (
+                "last_error_time": ()
                     self.last_error_time.isoformat() if self.last_error_time else None
                 ),
-                "last_health_check": (
+                "last_health_check": ()
                     self.last_health_check.isoformat()
                     if self.last_health_check
                     else None
@@ -285,7 +286,7 @@ class BaseService(ABC):
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                self.logger.error(
+                self.logger.error()
                     f"Health monitoring error for {self.service_name}: {e}"
                 )
                 await asyncio.sleep(self.health_check_interval)
@@ -295,7 +296,7 @@ class BaseService(ABC):
         # This would check if required services are running
         # For now, just log the dependencies
         if self.dependencies:
-            self.logger.info(
+            self.logger.info()
                 f"Service {self.service_name} depends on: {', '.join(self.dependencies)}"
             )
 
@@ -347,7 +348,7 @@ class ServiceRegistry:
                 if service and hasattr(service, "start"):
                     await service.start()
             except Exception as e:
-                self.logger.error(
+                self.logger.error()
                     f"Failed to start service {service.service_name}: {e}"
                 )
 

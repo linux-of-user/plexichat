@@ -7,23 +7,15 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.testing.individual_tests import (
+from plexichat.app.testing.individual_tests import ()
+import asyncio
+import time
 
     API,
     UI,
@@ -202,14 +194,14 @@ TEST_SUITES = {
 
 
 @router.get("/suites")
-async def get_test_suites(
+async def get_test_suites()
     current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
 ) -> List[Dict[str, Any]]:
     """Get list of available test suites with descriptions."""
     suites = []
 
     for suite_id, suite_info in TEST_SUITES.items():
-        suites.append({
+        suites.append({)
             "id": suite_id,
             "name": suite_info["name"],
             "description": suite_info["description"],
@@ -223,7 +215,7 @@ async def get_test_suites(
 
 
 @router.post("/run/{suite_id}")
-async def run_test_suite(
+async def run_test_suite()
     suite_id: str,
     request: TestSuiteRequest,
     background_tasks: BackgroundTasks,
@@ -239,7 +231,7 @@ async def run_test_suite(
         logger.info(f" Starting individual test suite: {suite_info['name']}")
 
         # Run test suite in background
-        background_tasks.add_task(
+        background_tasks.add_task()
             _run_test_suite_background,
             suite_id,
             suite_info,
@@ -248,14 +240,13 @@ async def run_test_suite(
             current_user.id if current_user else None
         )
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": f"Test suite '{suite_info['name']}' started",
             "suite_id": suite_id,
             "estimated_duration_minutes": suite_info["estimated_duration_minutes"],
             "endpoints_to_test": len(suite_info["endpoints_tested"]),
-            "test_run_id": f"individual_{suite_id}_{from datetime import datetime
-datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            "test_run_id": f"individual_{suite_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         })
 
     except Exception as e:
@@ -264,7 +255,7 @@ datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
 
 @router.post("/run-multiple")
-async def run_multiple_test_suites(
+async def run_multiple_test_suites()
     request: TestExecutionRequest,
     background_tasks: BackgroundTasks,
     current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
@@ -274,12 +265,12 @@ async def run_multiple_test_suites(
         # Validate all requested suites exist
         invalid_suites = [suite for suite in request.test_suites if suite not in TEST_SUITES]
         if invalid_suites:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Invalid test suites: {invalid_suites}"
             )
 
-        total_estimated_time = sum(
+        total_estimated_time = sum()
             TEST_SUITES[suite_id]["estimated_duration_minutes"]
             for suite_id in request.test_suites
         )
@@ -293,7 +284,7 @@ async def run_multiple_test_suites(
         logger.info(f" Starting multiple test suites: {request.test_suites}")
 
         # Run test suites in background
-        background_tasks.add_task(
+        background_tasks.add_task()
             _run_multiple_suites_background,
             request.test_suites,
             request.parallel_execution,
@@ -302,18 +293,17 @@ async def run_multiple_test_suites(
             current_user.id if current_user else None
         )
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": f"Started {len(request.test_suites)} test suites",
             "test_suites": request.test_suites,
             "parallel_execution": request.parallel_execution,
             "estimated_duration_minutes": estimated_time,
-            "total_endpoints": sum(
+            "total_endpoints": sum()
                 len(TEST_SUITES[suite_id]["endpoints_tested"])
                 for suite_id in request.test_suites
             ),
-            "test_run_id": f"multi_{from datetime import datetime
-datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            "test_run_id": f"multi_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         })
 
     except Exception as e:
@@ -322,7 +312,7 @@ datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
 
 @router.get("/results/{suite_id}")
-async def get_test_results(
+async def get_test_results()
     suite_id: str,
     limit: int = Query(50, le=100),
     current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
@@ -337,8 +327,7 @@ async def get_test_results(
         return {
             "suite_id": suite_id,
             "suite_name": TEST_SUITES[suite_id]["name"],
-            "last_run": from datetime import datetime
-datetime = datetime.now().isoformat(),
+            "last_run": datetime.now().isoformat(),
             "status": "completed",
             "summary": {
                 "total_tests": 15,
@@ -375,7 +364,7 @@ datetime = datetime.now().isoformat(),
 
 
 @router.get("/dashboard")
-async def get_testing_dashboard(
+async def get_testing_dashboard()
     current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
 ) -> HTMLResponse:
     """Get wonderful testing dashboard UI."""
@@ -572,7 +561,7 @@ async def get_testing_dashboard(
                     const suites = await response.json();
 
                     const grid = document.getElementById('suitesGrid');
-                    grid.innerHTML = suites.map(suite => `
+                    grid.innerHTML = suites.map(suite => `)
                         <div class="suite-card" id="suite-${suite.id}">
                             <div class="status-indicator" id="status-${suite.id}"></div>
                             <div class="suite-header">
@@ -606,7 +595,7 @@ async def get_testing_dashboard(
                 statusIndicator.className = 'status-indicator running';
 
                 try {
-                    const response = await fetch(`/api/v1/individual-testing/run/${suiteId}`, {
+                    const response = await fetch(`/api/v1/individual-testing/run/${suiteId}`, {)
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ test_suite: suiteId })
@@ -618,7 +607,7 @@ async def get_testing_dashboard(
                         alert(` Started ${suiteName}\\nEstimated duration: ${result.estimated_duration_minutes} minutes`);
 
                         // Simulate test completion (in real app, this would poll for status)
-                        setTimeout(() => {
+                        setTimeout(() => {)
                             statusIndicator.className = 'status-indicator passed';
                         }, result.estimated_duration_minutes * 1000); // Convert to milliseconds for demo
                     } else {
@@ -633,15 +622,15 @@ async def get_testing_dashboard(
 
             // Run all test suites
             async function runAllSuites() {
-                const suiteIds = Array.from(document.querySelectorAll('.suite-card')).map(card =>
+                const suiteIds = Array.from(document.querySelectorAll('.suite-card')).map(card =>)
                     card.id.replace('suite-', '')
                 );
 
                 try {
-                    const response = await fetch('/api/v1/individual-testing/run-multiple', {
+                    const response = await fetch('/api/v1/individual-testing/run-multiple', {)
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
+                        body: JSON.stringify({)
                             test_suites: suiteIds,
                             parallel_execution: true,
                             save_results: true
@@ -654,7 +643,7 @@ async def get_testing_dashboard(
                         alert(` Started all test suites\\nEstimated duration: ${result.estimated_duration_minutes} minutes`);
 
                         // Mark all as running
-                        suiteIds.forEach(id => {
+                        suiteIds.forEach(id => {)
                             document.getElementById(`status-${id}`).className = 'status-indicator running';
                         });
                     }
@@ -678,7 +667,7 @@ async def get_testing_dashboard(
             // Clear test results
             function clearResults() {
                 if (confirm('Are you sure you want to clear all test results?')) {
-                    document.querySelectorAll('.status-indicator').forEach(indicator => {
+                    document.querySelectorAll('.status-indicator').forEach(indicator => {)
                         indicator.className = 'status-indicator';
                     });
                     alert(' Test results cleared');
@@ -696,7 +685,7 @@ async def get_testing_dashboard(
 
 
 # Background task functions
-async def _run_test_suite_background(
+async def _run_test_suite_background()
     suite_id: str,
     suite_info: Dict[str, Any],
     base_url: str,
@@ -721,7 +710,7 @@ async def _run_test_suite_background(
         logger.error(f"Background test suite {suite_id} failed: {e}")
 
 
-async def _run_multiple_suites_background(
+async def _run_multiple_suites_background()
     suite_ids: List[str],
     parallel_execution: bool,
     base_url: str,

@@ -12,6 +12,7 @@ from typing import Dict, Any, Optional
 
 from src.plexichat.infrastructure.modules.plugin_manager import PluginInterface
 from fastapi import APIRouter, HTTPException, Request
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -85,4 +86,4 @@ async def verify_2fa_code(request: Request):
     if user_data.get("code") != code:
         raise HTTPException(status_code=401, detail="Invalid 2FA code")
     # Optionally, check code expiry
-    return {"success": True, "message": "2FA verified"} 
+    return {"success": True, "message": "2FA verified"}

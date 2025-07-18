@@ -17,19 +17,15 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from pathlib import Path
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 from pathlib import Path
 from pathlib import Path
 
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 from pathlib import Path
 from pathlib import Path
 
 """
+import time
 PlexiChat Serverless/FaaS Manager
 
 Advanced serverless computing integration with:
@@ -235,14 +231,14 @@ Path("config/functions")
                     self.functions[function_config.function_name] = function_config
 
                     # Initialize metrics
-                    self.metrics[function_config.function_name] = FunctionMetrics(
+                    self.metrics[function_config.function_name] = FunctionMetrics()
                         function_name=function_config.function_name
                     )
 
                 except Exception as e:
                     logger.error(f"Failed to load function config {config_file}: {e}")
 
-    async def deploy_function(self, config: FunctionConfig,
+    async def deploy_function(self, config: FunctionConfig,)
                             provider: Optional[FaaSProvider] = None) -> bool:
         """Deploy function to specified provider."""
         try:
@@ -273,7 +269,7 @@ Path("config/functions")
                 self.functions[config.function_name] = config
 
                 # Initialize metrics
-                self.metrics[config.function_name] = FunctionMetrics(
+                self.metrics[config.function_name] = FunctionMetrics()
                     function_name=config.function_name
                 )
 
@@ -290,7 +286,7 @@ Path("config/functions")
             logger.error(f"Function deployment failed: {e}")
             return False
 
-    async def invoke_function(self, function_name: str, payload: Dict[str, Any],
+    async def invoke_function(self, function_name: str, payload: Dict[str, Any],)
                             trigger_type: TriggerType = TriggerType.HTTP,
                             async_execution: bool = False) -> Union[Any, str]:
         """Invoke function with payload."""
@@ -299,11 +295,10 @@ Path("config/functions")
                 raise ValueError(f"Function not found: {function_name}")
 
             config = self.functions[function_name]
-            execution_id = f"exec_{function_name}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+            execution_id = f"exec_{function_name}_{int(datetime.now().timestamp())}"
 
             # Create execution record
-            execution = FunctionExecution(
+            execution = FunctionExecution()
                 execution_id=execution_id,
                 function_name=function_name,
                 trigger_type=trigger_type,
@@ -325,11 +320,10 @@ datetime = datetime.now().timestamp())}"
             logger.error(f"Function invocation failed: {e}")
             raise
 
-    async def _execute_function(self, execution: FunctionExecution,
+    async def _execute_function(self, execution: FunctionExecution,)
                               config: FunctionConfig, payload: Dict[str, Any]) -> Any:
         """Execute function and return result."""
         try:
-            from datetime import datetime
 start_time = datetime.now()
 datetime = datetime.now()
 
@@ -346,7 +340,6 @@ datetime = datetime.now()
                 result = await self._execute_cloud_function(config, payload)
 
             # Calculate execution metrics
-            from datetime import datetime
 end_time = datetime.now()
 datetime = datetime.now()
             duration_ms = (end_time - start_time).total_seconds() * 1000
@@ -375,7 +368,7 @@ datetime = datetime.now()
             logger.error(f"Function execution failed: {e}")
             raise
 
-    async def _execute_function_async(self, execution: FunctionExecution,
+    async def _execute_function_async(self, execution: FunctionExecution,)
                                     config: FunctionConfig, payload: Dict[str, Any]):
         """Execute function asynchronously."""
         try:
@@ -527,7 +520,7 @@ Path(config.code_path)
             return self.warm_functions[function_name].pop(0)
         return None
 
-    async def _update_function_metrics(self, function_name: str,
+    async def _update_function_metrics(self, function_name: str,)
                                      execution: FunctionExecution,
                                      is_cold_start: bool):
         """Update function performance metrics."""
@@ -549,7 +542,7 @@ Path(config.code_path)
         # Update timing metrics
         if execution.duration_ms:
             # Simple moving average (in production, use proper percentile calculation)
-            metrics.average_duration_ms = (
+            metrics.average_duration_ms = ()
                 (metrics.average_duration_ms * (metrics.total_invocations - 1) + execution.duration_ms) /
                 metrics.total_invocations
             )

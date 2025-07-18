@@ -145,50 +145,50 @@ class AIResponse:
 
 class AIAccessControl:
     """AI access control and rate limiting."""
-    
+
     def __init__(self):
         self.user_permissions: Dict[str, Dict[str, List[ModelCapability]]] = {}
         self.rate_limits: Dict[str, Dict[str, List[float]]] = {}
         self.usage_tracking: Dict[str, Dict[str, Dict[str, Any]]] = {}
         self.admin_users: List[str] = []
-        
+
     def add_user_permission(self, user_id: str, model_id: str, capabilities: List[ModelCapability]):
         """Add user permission for specific model and capabilities."""
         if user_id not in self.user_permissions:
             self.user_permissions[user_id] = {}
         self.user_permissions[user_id][model_id] = capabilities
-        
+
     def check_user_permission(self, user_id: str, model_id: str, capability: ModelCapability) -> bool:
         """Check if user has permission for model and capability."""
         if user_id in self.admin_users:
             return True
-            
+
         user_perms = self.user_permissions.get(user_id, {})
         model_perms = user_perms.get(model_id, [])
         return capability in model_perms
-        
+
     def check_rate_limit(self, user_id: str, model_id: str, tokens: int = 1) -> bool:
         """Check if user is within rate limits."""
         current_time = time.time()
-        
+
         if user_id not in self.rate_limits:
             self.rate_limits[user_id] = {}
         if model_id not in self.rate_limits[user_id]:
             self.rate_limits[user_id][model_id] = []
-            
+
         # Clean old requests (older than 1 minute)
         requests = self.rate_limits[user_id][model_id]
         requests = [req_time for req_time in requests if current_time - req_time < 60]
-        
+
         # Check limits (simplified - 60 requests per minute)
         if len(requests) >= 60:
             return False
-            
+
         # Add current request
         requests.append(current_time)
         self.rate_limits[user_id][model_id] = requests
         return True
-        
+
     def record_usage(self, user_id: str, model_id: str, tokens: int, cost: float):
         """Record usage for billing and analytics."""
         if user_id not in self.usage_tracking:
@@ -199,7 +199,7 @@ class AIAccessControl:
                 "total_cost": 0.0,
                 "requests": 0
             }
-            
+
         tracking = self.usage_tracking[user_id][model_id]
         tracking["total_tokens"] += tokens
         tracking["total_cost"] += cost
@@ -207,7 +207,7 @@ class AIAccessControl:
 
 class AIAbstractionLayer:
     """Simplified AI abstraction layer."""
-    
+
     def __init__(self, config_path: str = "config/ai_config.json"):
         self.config_path = Path(config_path)
         self.config = {}
@@ -216,28 +216,28 @@ class AIAbstractionLayer:
         self.access_control = AIAccessControl()
         self.cache: Dict[str, AIResponse] = {}
         self.encryption_key = None
-        
+
         # Load configuration
         self.load_config()
-        
+
     async def initialize(self) -> bool:
         """Initialize the AI abstraction layer."""
         try:
             logger.info("Initializing AI Abstraction Layer...")
-            
+
             # Create encryption key if needed
             self.encryption_key = self._get_or_create_encryption_key()
-            
+
             # Initialize basic providers
             self._initialize_providers()
-            
+
             logger.info("AI Abstraction Layer initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize AI Abstraction Layer: {e}")
             return False
-    
+
     def _get_or_create_encryption_key(self) -> Fernet:
         """Get or create encryption key for API keys."""
         key_file = Path("config/ai_encryption.key")
@@ -250,13 +250,13 @@ class AIAbstractionLayer:
             with open(key_file, "wb") as f:
                 f.write(key)
         return Fernet(key)
-    
+
     def _initialize_providers(self):
         """Initialize AI providers."""
         # This is a simplified version - in real implementation,
         # you would initialize actual provider instances
         logger.info("Initializing AI providers...")
-    
+
     def load_config(self):
         """Load AI configuration."""
         try:
@@ -269,7 +269,7 @@ class AIAbstractionLayer:
         except Exception as e:
             logger.error(f"Failed to load AI config: {e}")
             self.config = self._create_default_config()
-    
+
     def _create_default_config(self) -> Dict[str, Any]:
         """Create default AI configuration."""
         return {
@@ -283,7 +283,7 @@ class AIAbstractionLayer:
                 "rate_limiting": True
             }
         }
-    
+
     def save_config(self):
         """Save AI configuration."""
         try:
@@ -292,15 +292,15 @@ class AIAbstractionLayer:
                 json.dump(self.config, f, indent=2, default=str)
         except Exception as e:
             logger.error(f"Failed to save AI config: {e}")
-    
+
     async def process_request(self, request: AIRequest) -> AIResponse:
         """Process an AI request."""
         try:
             # Check permissions
-            if not self.access_control.check_user_permission(
+            if not self.access_control.check_user_permission()
                 request.user_id, request.model_id, ModelCapability.CHAT_COMPLETION
             ):
-                return AIResponse(
+                return AIResponse()
                     request_id=request.request_id or "error",
                     model_id=request.model_id,
                     content="",
@@ -312,10 +312,10 @@ class AIAbstractionLayer:
                     success=False,
                     error="Access denied"
                 )
-            
+
             # Check rate limits
             if not self.access_control.check_rate_limit(request.user_id, request.model_id):
-                return AIResponse(
+                return AIResponse()
                     request_id=request.request_id or "error",
                     model_id=request.model_id,
                     content="",
@@ -327,15 +327,15 @@ class AIAbstractionLayer:
                     success=False,
                     error="Rate limit exceeded"
                 )
-            
+
             # Process the request (simplified)
             start_time = time.time()
-            
+
             # Simulate AI response
             response_content = f"AI response to: {request.prompt[:50]}..."
             latency_ms = int((time.time() - start_time) * 1000)
-            
-            response = AIResponse(
+
+            response = AIResponse()
                 request_id=request.request_id or "success",
                 model_id=request.model_id,
                 content=response_content,
@@ -345,20 +345,20 @@ class AIAbstractionLayer:
                 provider=AIProvider.OPENAI,
                 timestamp=datetime.now()
             )
-            
+
             # Record usage
-            self.access_control.record_usage(
-                request.user_id, 
-                request.model_id, 
+            self.access_control.record_usage()
+                request.user_id,
+                request.model_id,
                 response.usage.get("prompt_tokens", 0) + response.usage.get("completion_tokens", 0),
                 response.cost
             )
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"Failed to process AI request: {e}")
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id or "error",
                 model_id=request.model_id,
                 content="",
@@ -370,7 +370,7 @@ class AIAbstractionLayer:
                 success=False,
                 error=str(e)
             )
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
         return {
@@ -379,4 +379,4 @@ class AIAbstractionLayer:
             "models": len(self.models),
             "cache_size": len(self.cache),
             "timestamp": datetime.now().isoformat()
-        } 
+        }

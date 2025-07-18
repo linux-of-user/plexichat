@@ -8,7 +8,6 @@ from typing import Optional
     from .plugins import router as plugins_router
 
 
-
 """
 PlexiChat API v1 - Plugins Module
 

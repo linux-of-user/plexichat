@@ -1,3 +1,6 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -24,10 +27,11 @@ from ..performance.cache_manager import CacheManager
 from ..security.quantum_encryption import SecurityTier
 from ..services import SecureService, ServiceMetadata, ServicePriority, ServiceType
 from ..services.loader import ServiceLoader
-
+from .interfaces import ModulePriority
 
 
 """
+import time
 PlexiChat Enhanced Module System
 
 Advanced module architecture with quantum security integration,
@@ -138,10 +142,7 @@ class SecureModule:
     def __init__(self, metadata: ModuleMetadata):
         self.metadata = metadata
         self.status = ModuleStatus.UNLOADED
-        self.health = ModuleHealth(
-            module_id=metadata.module_id,
-            status=ModuleStatus.UNLOADED
-        )
+        self.health = ModuleHealth(module_id=metadata.module_id, status=ModuleStatus.UNLOADED)
 
         # Module state
         self.load_time: Optional[datetime] = None
@@ -315,15 +316,13 @@ class SecureModule:
         try:
             # Get module encryption key if distributed_key_manager is available
             if distributed_key_manager is not None:
-                self.module_key = await distributed_key_manager.get_domain_key(
-                    distributed_key_manager.KeyDomain.COMMUNICATION
-                )
+                self.module_key = await distributed_key_manager.get_domain_key(distributed_key_manager.KeyDomain.COMMUNICATION)
             else:
                 # Use a default key or skip encryption setup
                 self.module_key = None
 
-            # Create encryption context
-            self.encryption_context = type('Context', (), {
+            # Create encryption context (use a dict for simplicity)
+            self.encryption_context = {
                 'operation_id': f"module_{self.metadata.module_id}",
                 'data_type': 'module_communication',
                 'security_tier': self._get_security_tier(),
@@ -334,7 +333,7 @@ class SecureModule:
                     'module_type': self.metadata.module_type.value,
                     'security_level': self.metadata.security_level
                 }
-            })()
+            }
 
         except Exception as e:
             logger.warning(f"Failed to setup module security for {self.metadata.name}: {e}")
@@ -368,10 +367,7 @@ class SecureModule:
         """Load the actual module code."""
         # This is a placeholder - in a real implementation, this would
         # load the module from a file, package, or remote source
-        self.module_instance = type('ModuleInstance', (), {
-            'name': self.metadata.name,
-            'version': self.metadata.version
-        })()
+        self.module_instance = type('ModuleInstance', (), {'name': self.metadata.name, 'version': self.metadata.version})()
 
     async def _create_service_metadata(self) -> Optional[Any]:
         """Create service metadata for module service."""

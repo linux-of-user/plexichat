@@ -9,17 +9,14 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 
-
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 
-from plexichat.core.auth.dependencies import (
+from plexichat.core.auth.dependencies import ()
     from plexichat.infrastructure.utils.auth import require_admin_auth,
 from plexichat.core.logging import get_logger
 from plexichat.infrastructure.services.performance_service import get_performance_service
+import socket
+import time
 
     from,
     import,
@@ -140,7 +137,7 @@ asyncio.create_task(metrics_broadcast_task())
 # REST API Endpoints
 
 @router.get("/metrics/current")
-async def get_current_metrics(
+async def get_current_metrics()
     metric_types: Optional[str] = Query(None, description="Comma-separated list of metric types to include"),
     current_user: dict = Depends(require_auth)
 ):
@@ -165,7 +162,7 @@ async def get_current_metrics(
         raise HTTPException(status_code=500, detail=f"Failed to get current metrics: {str(e)}")
 
 @router.get("/metrics/historical")
-async def get_historical_metrics(
+async def get_historical_metrics()
     hours: int = Query(1, description="Number of hours of historical data", ge=1, le=168),
     metric_types: Optional[str] = Query(None, description="Comma-separated list of metric types"),
     resolution: str = Query("5m", description="Data resolution: 1m, 5m, 15m, 1h"),
@@ -198,7 +195,7 @@ async def get_historical_metrics(
         raise HTTPException(status_code=500, detail=f"Failed to get historical metrics: {str(e)}")
 
 @router.get("/summary")
-async def get_performance_summary(
+async def get_performance_summary()
     current_user: dict = Depends(require_auth)
 ):
     """Get comprehensive performance summary."""
@@ -216,7 +213,7 @@ async def get_performance_summary(
         raise HTTPException(status_code=500, detail=f"Failed to get performance summary: {str(e)}")
 
 @router.get("/health")
-async def get_system_health(
+async def get_system_health()
     current_user: dict = Depends(require_auth)
 ):
     """Get system health status."""
@@ -248,7 +245,7 @@ async def get_system_health(
         raise HTTPException(status_code=500, detail=f"Failed to get system health: {str(e)}")
 
 @router.post("/metrics/custom")
-async def record_custom_metric(
+async def record_custom_metric()
     metric_data: Dict[str, Any],
     current_user: dict = Depends(require_auth)
 ):
@@ -273,7 +270,7 @@ async def record_custom_metric(
         raise HTTPException(status_code=500, detail=f"Failed to record custom metric: {str(e)}")
 
 @router.get("/alerts")
-async def get_performance_alerts(
+async def get_performance_alerts()
     active_only: bool = Query(True, description="Return only active alerts"),
     hours: int = Query(24, description="Hours of alert history", ge=1, le=168),
     current_user: dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin_auth)
@@ -300,7 +297,7 @@ async def get_performance_alerts(
         raise HTTPException(status_code=500, detail=f"Failed to get performance alerts: {str(e)}")
 
 @router.get("/analytics/trends")
-async def get_performance_trends(
+async def get_performance_trends()
     days: int = Query(7, description="Number of days for trend analysis", ge=1, le=30),
     metrics: Optional[str] = Query(None, description="Comma-separated list of metrics to analyze"),
     current_user: dict = Depends(require_auth)
@@ -330,7 +327,7 @@ async def get_performance_trends(
         raise HTTPException(status_code=500, detail=f"Failed to get performance trends: {str(e)}")
 
 @router.get("/dashboard/data")
-async def get_dashboard_data(
+async def get_dashboard_data()
     current_user: dict = Depends(require_auth)
 ):
     """Get comprehensive dashboard data."""
@@ -341,11 +338,11 @@ async def get_dashboard_data(
         dashboard_data = {
             "current_metrics": performance_service.get_current_metrics(),
             "summary": performance_service.get_performance_summary(),
-            "recent_trends": performance_service._calculate_trends(
+            "recent_trends": performance_service._calculate_trends()
                 performance_service.get_historical_metrics(24)
             ),
             "active_alerts": performance_service._get_active_alerts(),
-            "health_score": performance_service._calculate_health_score(
+            "health_score": performance_service._calculate_health_score()
                 performance_service.get_current_metrics()
             ),
             "timestamp": datetime.now(timezone.utc).isoformat()
@@ -362,7 +359,7 @@ async def get_dashboard_data(
 
 # WebSocket endpoint for real-time metrics
 @router.websocket("/metrics/stream")
-async def metrics_websocket(
+async def metrics_websocket()
     websocket: WebSocket,
     metric_types: Optional[str] = Query(None, description="Comma-separated list of metric types"),
     update_interval: int = Query(5, description="Update interval in seconds", ge=1, le=60)

@@ -81,7 +81,7 @@ async def get_navigation_tree():
 
 
 @router.get("/search")
-async def search_documents(
+async def search_documents()
     q: str = Query(..., description="Search query"),
     category: Optional[str] = Query(None, description="Filter by category"),
     limit: int = Query(10, description="Maximum number of results"),
@@ -114,7 +114,7 @@ async def get_document(filename: str):
         document = documentation_service.get_document(filename)
 
         if not document:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=404, detail=f"Document not found: {filename}"
             )
 
@@ -163,7 +163,7 @@ async def get_documents_by_category(category: str):
         categories = documentation_service.get_categories()
 
         if category not in categories:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=404, detail=f"Category not found: {category}"
             )
 

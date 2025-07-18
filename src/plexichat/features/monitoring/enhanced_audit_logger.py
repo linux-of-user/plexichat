@@ -87,19 +87,19 @@ class EnhancedAuditLogger:
     def __init__(self, log_directory: str = "audit_logs", encryption_key: Optional[bytes] = None):
         self.log_directory = Path(log_directory)
         self.log_directory.mkdir(exist_ok=True)
-        
+
         # Encryption for sensitive logs
         self.encryption_key = encryption_key or Fernet.generate_key()
         self.cipher = Fernet(self.encryption_key)
-        
+
         # Hash chain for tamper detection
         self.last_hash = "0" * 64  # Genesis hash
         self.hash_chain_file = self.log_directory / "hash_chain.json"
-        
+
         # Async logging queue
         self.log_queue = Queue()
         self.logging_active = True
-        
+
         # Compliance configurations
         self.compliance_configs = {
             ComplianceStandard.SOX: {
@@ -127,7 +127,7 @@ class EnhancedAuditLogger:
                 "network_monitoring": True
             }
         }
-        
+
         # Statistics
         self.stats = {
             "total_events": 0,
@@ -137,15 +137,15 @@ class EnhancedAuditLogger:
             "integrity_checks": 0,
             "tamper_attempts": 0
         }
-        
+
         # Load existing hash chain
         self._load_hash_chain()
-        
+
         # Start background logging thread
         self.log_thread = threading.Thread(target=self._background_logger, daemon=True)
         self.if log_thread and hasattr(log_thread, "start"): log_thread.start()
 
-    async def log_event(
+    async def log_event()
         self,
         event_type: AuditEventType,
         user_id: Optional[str],
@@ -162,12 +162,12 @@ class EnhancedAuditLogger:
     ):
         """Log an audit event."""
         event_id = self._generate_event_id()
-        
+
         # Determine retention period based on compliance requirements
         retention_period = self._calculate_retention_period(compliance_tags or [])
-        
+
         # Create audit event
-        audit_event = AuditEvent(
+        audit_event = AuditEvent()
             timestamp=datetime.now(timezone.utc),
             event_id=event_id,
             event_type=event_type,
@@ -184,13 +184,13 @@ class EnhancedAuditLogger:
             data_classification=data_classification,
             retention_period=retention_period
         )
-        
+
         # Add to hash chain for tamper detection
         audit_event.hash_chain = self._calculate_hash_chain(audit_event)
-        
+
         # Queue for background processing
         self.log_queue.put(audit_event)
-        
+
         # Update statistics
         self._update_statistics(audit_event)
 
@@ -214,13 +214,13 @@ class EnhancedAuditLogger:
         try:
             # Determine log file based on date and compliance requirements
             log_file = self._get_log_file(event)
-            
+
             # Serialize event
             event_data = asdict(event)
             event_data['timestamp'] = event.timestamp.isoformat()
             event_data['event_type'] = event.event_type.value
             event_data['compliance_tags'] = [tag.value for tag in event.compliance_tags]
-            
+
             # Encrypt if required
             if self._requires_encryption(event):
                 event_json = json.dumps(event_data)
@@ -231,28 +231,28 @@ class EnhancedAuditLogger:
                 }
             else:
                 log_entry = event_data
-            
+
             # Write to file
             with open(log_file, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(log_entry) + '\n')
-            
+
             # Update hash chain
             self._update_hash_chain(event)
-            
+
         except Exception as e:
             logger.error(f"Failed to write audit event: {e}")
 
     def _get_log_file(self, event: AuditEvent) -> Path:
         """Get appropriate log file for event."""
         date_str = event.timestamp.strftime("%Y-%m-%d")
-        
+
         # Separate files for different compliance standards
         if event.compliance_tags:
             compliance_str = "_".join([tag.value for tag in event.compliance_tags])
             filename = f"audit_{compliance_str}_{date_str}.log"
         else:
             filename = f"audit_{date_str}.log"
-        
+
         return self.log_directory / filename
 
     def _requires_encryption(self, event: AuditEvent) -> bool:
@@ -260,31 +260,31 @@ class EnhancedAuditLogger:
         # High-risk events always encrypted
         if event.risk_level in ["high", "critical"]:
             return True
-        
+
         # Confidential/restricted data always encrypted
         if event.data_classification in ["confidential", "restricted"]:
             return True
-        
+
         # Check compliance requirements
         for tag in event.compliance_tags:
             config = self.compliance_configs.get(tag, {})
             if config.get("encryption_required", False):
                 return True
-        
+
         return False
 
     def _calculate_retention_period(self, compliance_tags: List[ComplianceStandard]) -> int:
         """Calculate retention period based on compliance requirements."""
         if not compliance_tags:
             return 365  # Default 1 year
-        
+
         # Use the longest retention period required
         max_retention = 365
         for tag in compliance_tags:
             config = self.compliance_configs.get(tag, {})
             retention = config.get("retention_days", 365)
             max_retention = max(max_retention, retention)
-        
+
         return max_retention
 
     def _generate_event_id(self) -> str:
@@ -298,11 +298,11 @@ class EnhancedAuditLogger:
         # Create hash input from event data and previous hash
         event_data = f"{event.timestamp.isoformat()}{event.event_id}{event.event_type.value}{event.user_id}{event.action}{event.outcome}"
         hash_input = f"{self.last_hash}{event_data}"
-        
+
         # Calculate SHA-256 hash
         current_hash = hashlib.sha256(hash_input.encode()).hexdigest()
         self.last_hash = current_hash
-        
+
         return current_hash
 
     def _update_hash_chain(self, event: AuditEvent):
@@ -314,10 +314,10 @@ class EnhancedAuditLogger:
                 "hash": event.hash_chain,
                 "previous_hash": self.last_hash
             }
-            
+
             with open(self.hash_chain_file, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(hash_entry) + '\n')
-                
+
         except Exception as e:
             logger.error(f"Failed to update hash chain: {e}")
 
@@ -336,15 +336,15 @@ class EnhancedAuditLogger:
     def _update_statistics(self, event: AuditEvent):
         """Update audit statistics."""
         self.stats["total_events"] += 1
-        
+
         # By event type
         event_type = event.event_type.value
         self.stats["events_by_type"][event_type] = self.stats["events_by_type"].get(event_type, 0) + 1
-        
+
         # By user
         if event.user_id:
             self.stats["events_by_user"][event.user_id] = self.stats["events_by_user"].get(event.user_id, 0) + 1
-        
+
         # By compliance
         for tag in event.compliance_tags:
             tag_value = tag.value
@@ -353,15 +353,15 @@ class EnhancedAuditLogger:
     def verify_integrity(self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None) -> Dict[str, Any]:
         """Verify audit log integrity."""
         self.stats["integrity_checks"] += 1
-        
+
         try:
             # Read hash chain
             if not self.hash_chain_file.exists() if self.hash_chain_file else False:
                 return {"status": "error", "message": "Hash chain file not found"}
-            
+
             with open(self.hash_chain_file, 'r', encoding='utf-8') as f:
                 hash_entries = [json.loads(line.strip()) for line in f.readlines()]
-            
+
             # Verify chain integrity
             verification_results = {
                 "status": "success",
@@ -370,14 +370,14 @@ class EnhancedAuditLogger:
                 "tamper_detected": False,
                 "broken_chains": []
             }
-            
+
             previous_hash = "0" * 64  # Genesis hash
-            
+
             for i, entry in enumerate(hash_entries):
                 # Verify hash chain
                 if entry.get("previous_hash") != previous_hash:
                     verification_results["tamper_detected"] = True
-                    verification_results["broken_chains"].append({
+                    verification_results["broken_chains"].append({)
                         "entry_index": i,
                         "event_id": entry.get("event_id"),
                         "expected_previous": previous_hash,
@@ -385,20 +385,20 @@ class EnhancedAuditLogger:
                     })
                 else:
                     verification_results["verified_entries"] += 1
-                
+
                 previous_hash = entry.get("hash")
-            
+
             if verification_results["tamper_detected"]:
                 self.stats["tamper_attempts"] += len(verification_results["broken_chains"])
                 logger.critical(f"Audit log tampering detected! {len(verification_results['broken_chains'])} broken chains found")
-            
+
             return verification_results
-            
+
         except Exception as e:
             logger.error(f"Integrity verification failed: {e}")
             return {"status": "error", "message": str(e)}
 
-    def export_compliance_report(self, compliance_standard: ComplianceStandard, 
+    def export_compliance_report(self, compliance_standard: ComplianceStandard, ):
                                 start_date: datetime, end_date: datetime) -> Dict[str, Any]:
         """Export compliance report for specific standard."""
         try:
@@ -417,55 +417,55 @@ class EnhancedAuditLogger:
                     "integrity_verified": False
                 }
             }
-            
+
             # Read relevant log files
             current_date = start_date.date()
             end_date_only = end_date.date()
-            
+
             while current_date <= end_date_only:
                 log_file = self.log_directory / f"audit_{compliance_standard.value}_{current_date.strftime('%Y-%m-%d')}.log"
-                
+
                 if log_file.exists():
                     with open(log_file, 'r', encoding='utf-8') as f:
                         for line in f:
                             try:
                                 log_entry = json.loads(line.strip())
-                                
+
                                 # Decrypt if necessary
                                 if log_entry.get("encrypted"):
                                     decrypted_data = self.cipher.decrypt(log_entry["data"].encode())
                                     event_data = json.loads(decrypted_data.decode())
                                 else:
                                     event_data = log_entry
-                                
+
                                 # Check if event is in date range
                                 event_time = datetime.fromisoformat(event_data["timestamp"])
                                 if start_date <= event_time <= end_date:
                                     report["events"].append(event_data)
                                     report["summary"]["total_events"] += 1
-                                    
+
                                     # Update summary
                                     event_type = event_data["event_type"]
                                     report["summary"]["events_by_type"][event_type] = \
                                         report["summary"]["events_by_type"].get(event_type, 0) + 1
-                                    
+
                                     if event_data.get("user_id"):
                                         report["summary"]["users_active"].add(event_data["user_id"])
-                                        
+
                             except Exception as e:
                                 logger.error(f"Error processing log entry: {e}")
-                
+
                 current_date += timedelta(days=1)
-            
+
             # Convert set to list for JSON serialization
             report["summary"]["users_active"] = list(report["summary"]["users_active"])
-            
+
             # Verify integrity
             integrity_result = self.verify_integrity(start_date, end_date)
             report["summary"]["integrity_verified"] = integrity_result["status"] == "success" and not integrity_result.get("tamper_detected", True)
-            
+
             return report
-            
+
         except Exception as e:
             logger.error(f"Failed to export compliance report: {e}")
             return {"error": str(e)}

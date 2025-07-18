@@ -37,25 +37,25 @@ def status():
     try:
         click.echo("PlexiChat System Status")
         click.echo("=" * 40)
-        
+
         # Basic system info
         click.echo(f"🏷️  Version: {settings.get('system', {}).get('version', 'Unknown')}")
         click.echo(f"🌍 Environment: {settings.get('environment', 'Unknown')}")
         click.echo(f"🐍 Python: {sys.version.split()[0]}")
-        
+
         # System resources
         try:
             import psutil
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
-            
+
             click.echo(f"💻 CPU Usage: {cpu_percent}%")
             click.echo(f"🧠 Memory: {memory.percent}% ({memory.used // 1024**3}GB / {memory.total // 1024**3}GB)")
             click.echo(f"💾 Disk: {disk.percent}% ({disk.used // 1024**3}GB / {disk.total // 1024**3}GB)")
         except ImportError:
             click.echo("📊 System metrics: psutil not available")
-        
+
         # Database status
         if database_manager:
             try:
@@ -68,7 +68,7 @@ def status():
                 click.echo("🗄️  Database: ❌ Error")
         else:
             click.echo("🗄️  Database: ❌ Not available")
-        
+
         # System monitor
         if system_monitor:
             try:
@@ -78,7 +78,7 @@ def status():
                 click.echo("📊 Monitoring: ❌ Error")
         else:
             click.echo("📊 Monitoring: ❌ Not available")
-        
+
         # Uptime
         try:
             uptime = time.time() - settings.get('start_time', time.time())
@@ -87,7 +87,7 @@ def status():
             click.echo(f"⏱️  Uptime: {hours}h {minutes}m")
         except Exception:
             click.echo("⏱️  Uptime: Unknown")
-            
+
     except Exception as e:
         click.echo(f"❌ Error getting system status: {e}")
 
@@ -102,7 +102,7 @@ def restart(service: Optional[str], force: bool):
                 if not click.confirm(f"Restart service '{service}'?"):
                     click.echo("Operation cancelled")
                     return
-            
+
             click.echo(f"🔄 Restarting service: {service}")
             # This would integrate with actual service management
             click.echo(f"✅ Service '{service}' restarted successfully")
@@ -111,11 +111,11 @@ def restart(service: Optional[str], force: bool):
                 if not click.confirm("Restart all services? This will cause downtime."):
                     click.echo("Operation cancelled")
                     return
-            
+
             click.echo("🔄 Restarting all services...")
             # This would restart all services
             click.echo("✅ All services restarted successfully")
-            
+
     except Exception as e:
         click.echo(f"❌ Error restarting services: {e}")
 
@@ -125,9 +125,9 @@ def health():
     try:
         click.echo("🏥 Performing system health check...")
         click.echo()
-        
+
         health_status = {"overall": "healthy", "issues": []}
-        
+
         # Check database
         if database_manager:
             try:
@@ -144,11 +144,11 @@ def health():
                 health_status["overall"] = "unhealthy"
         else:
             click.echo("⚠️  Database: Not configured")
-        
+
         # Check system resources
         try:
             import psutil
-            
+
             # CPU check
             cpu_percent = psutil.cpu_percent(interval=1)
             if cpu_percent > 90:
@@ -157,7 +157,7 @@ def health():
                 health_status["overall"] = "degraded"
             else:
                 click.echo(f"✅ CPU: Normal ({cpu_percent}%)")
-            
+
             # Memory check
             memory = psutil.virtual_memory()
             if memory.percent > 90:
@@ -166,7 +166,7 @@ def health():
                 health_status["overall"] = "degraded"
             else:
                 click.echo(f"✅ Memory: Normal ({memory.percent}%)")
-            
+
             # Disk check
             disk = psutil.disk_usage('/')
             if disk.percent > 90:
@@ -175,10 +175,10 @@ def health():
                 health_status["overall"] = "degraded"
             else:
                 click.echo(f"✅ Disk: Normal ({disk.percent}%)")
-                
+
         except ImportError:
             click.echo("⚠️  System metrics: psutil not available")
-        
+
         # Check log files
         log_dir = Path("logs")
         if log_dir.exists():
@@ -189,7 +189,7 @@ def health():
                 click.echo("⚠️  Logs: No log files found")
         else:
             click.echo("⚠️  Logs: Log directory not found")
-        
+
         # Overall status
         click.echo()
         if health_status["overall"] == "healthy":
@@ -204,7 +204,7 @@ def health():
             click.echo("Critical issues found:")
             for issue in health_status["issues"]:
                 click.echo(f"   • {issue}")
-            
+
     except Exception as e:
         click.echo(f"❌ Error performing health check: {e}")
 
@@ -214,7 +214,7 @@ def info(output: Optional[str]):
     """Get detailed system information."""
     try:
         import platform
-        
+
         system_info = {
             "plexichat": {
                 "version": settings.get('system', {}).get('version', 'Unknown'),
@@ -229,7 +229,7 @@ def info(output: Optional[str]):
                 "hostname": platform.node()
             }
         }
-        
+
         # Add system resources if available
         try:
             import psutil
@@ -243,7 +243,7 @@ def info(output: Optional[str]):
             }
         except ImportError:
             system_info["resources"] = "psutil not available"
-        
+
         if output:
             output_file = Path(output)
             with open(output_file, 'w') as f:
@@ -253,7 +253,7 @@ def info(output: Optional[str]):
             click.echo("System Information")
             click.echo("=" * 30)
             click.echo(json.dumps(system_info, indent=2))
-            
+
     except Exception as e:
         click.echo(f"❌ Error getting system info: {e}")
 
@@ -265,11 +265,11 @@ def cleanup(days: int, dry_run: bool):
     try:
         import time
         from datetime import datetime, timedelta
-        
+
         cutoff_time = time.time() - (days * 24 * 3600)
         files_to_delete = []
         total_size = 0
-        
+
         # Find old log files
         log_dir = Path("logs")
         if log_dir.exists():
@@ -277,7 +277,7 @@ def cleanup(days: int, dry_run: bool):
                 if log_file.stat().st_mtime < cutoff_time:
                     files_to_delete.append(log_file)
                     total_size += log_file.stat().st_size
-        
+
         # Find temporary files
         temp_dirs = [Path("temp"), Path("tmp"), Path(".tmp")]
         for temp_dir in temp_dirs:
@@ -286,11 +286,11 @@ def cleanup(days: int, dry_run: bool):
                     if temp_file.is_file() and temp_file.stat().st_mtime < cutoff_time:
                         files_to_delete.append(temp_file)
                         total_size += temp_file.stat().st_size
-        
+
         if files_to_delete:
             click.echo(f"Found {len(files_to_delete)} files to clean up")
             click.echo(f"Total size: {total_size / 1024 / 1024:.2f} MB")
-            
+
             if dry_run:
                 click.echo("\nFiles that would be deleted:")
                 for file_path in files_to_delete:
@@ -304,13 +304,13 @@ def cleanup(days: int, dry_run: bool):
                             deleted_count += 1
                         except Exception as e:
                             click.echo(f"⚠️  Could not delete {file_path}: {e}")
-                    
+
                     click.echo(f"✅ Cleaned up {deleted_count} files")
                 else:
                     click.echo("Cleanup cancelled")
         else:
             click.echo("No files found for cleanup")
-            
+
     except Exception as e:
         click.echo(f"❌ Error during cleanup: {e}")
 
@@ -333,19 +333,19 @@ def config(key: Optional[str], value: Optional[str]):
             # Show all configuration
             click.echo("System Configuration")
             click.echo("=" * 30)
-            
+
             # Filter out sensitive keys
             safe_config = {}
             sensitive_keys = ["password", "secret", "key", "token"]
-            
+
             for k, v in settings.items():
                 if not any(sensitive in k.lower() for sensitive in sensitive_keys):
                     safe_config[k] = v
                 else:
                     safe_config[k] = "***HIDDEN***"
-            
+
             click.echo(json.dumps(safe_config, indent=2))
-            
+
     except Exception as e:
         click.echo(f"❌ Error with configuration: {e}")
 
@@ -362,7 +362,7 @@ def maintenance(enable: bool):
             settings['maintenance_mode'] = False
             click.echo("✅ Maintenance mode disabled")
             click.echo("   System is now operational")
-            
+
     except Exception as e:
         click.echo(f"❌ Error setting maintenance mode: {e}")
 
@@ -373,11 +373,11 @@ def logs(lines: int, follow: bool):
     """View system logs."""
     try:
         log_file = Path("logs/plexichat.log")
-        
+
         if not log_file.exists():
             click.echo("❌ Log file not found")
             return
-        
+
         if follow:
             click.echo("📄 Following log output (Ctrl+C to stop)...")
             # This would implement log following
@@ -385,11 +385,11 @@ def logs(lines: int, follow: bool):
         else:
             with open(log_file, 'r') as f:
                 log_lines = f.readlines()
-                
+
             # Show last N lines
             for line in log_lines[-lines:]:
                 click.echo(line.rstrip())
-                
+
     except Exception as e:
         click.echo(f"❌ Error reading logs: {e}")
 

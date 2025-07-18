@@ -16,6 +16,7 @@ import yaml
 
 
 """
+import string
 PlexiChat Logging Configuration
 
 Centralized configuration for the comprehensive logging system.
@@ -49,7 +50,7 @@ class LoggingConfig:
     # File logging
     file_enabled: bool = True
     file_level: str = "INFO"
-    file_format: str = (
+    file_format: str = ()
         "[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s"
     )
     max_file_size: str = "10MB"
@@ -96,7 +97,7 @@ class LoggingConfig:
     # Third-party logger settings
     silence_third_party: bool = True
     third_party_level: str = "WARNING"
-    third_party_loggers: List[str] = field(
+    third_party_loggers: List[str] = field()
         default_factory=lambda: [
             "urllib3",
             "requests",
@@ -230,7 +231,7 @@ class ConfigurationManager:
                     except yaml.YAMLError:
                         return json.loads(content) or {}
         except Exception as e:
-            logging.warning(
+            logging.warning()
                 f"Failed to load logging config from {self.config_file}: {e}"
             )
             return {}
@@ -250,13 +251,13 @@ class ConfigurationManager:
             "PLEXICHAT_LOG_FILE_FORMAT": "file_format",
             "PLEXICHAT_LOG_MAX_FILE_SIZE": "max_file_size",
             "PLEXICHAT_LOG_BACKUP_COUNT": ("backup_count", int),
-            "PLEXICHAT_LOG_STRUCTURED_ENABLED": (
+            "PLEXICHAT_LOG_STRUCTURED_ENABLED": ()
                 "structured_enabled",
                 self._parse_bool,
             ),
             "PLEXICHAT_LOG_INCLUDE_CONTEXT": ("include_context", self._parse_bool),
             "PLEXICHAT_LOG_DATE_FORMAT": "date_format",
-            "PLEXICHAT_LOG_PERFORMANCE_ENABLED": (
+            "PLEXICHAT_LOG_PERFORMANCE_ENABLED": ()
                 "performance_enabled",
                 self._parse_bool,
             ),
@@ -268,13 +269,13 @@ class ConfigurationManager:
             "PLEXICHAT_LOG_ALERT_EMAIL": "alert_email",
             "PLEXICHAT_LOG_ALERT_WEBHOOK": "alert_webhook",
             "PLEXICHAT_LOG_ALERT_SLACK": "alert_slack",
-            "PLEXICHAT_LOG_COMPRESSION_ENABLED": (
+            "PLEXICHAT_LOG_COMPRESSION_ENABLED": ()
                 "compression_enabled",
                 self._parse_bool,
             ),
             "PLEXICHAT_LOG_ARCHIVE_ENABLED": ("archive_enabled", self._parse_bool),
             "PLEXICHAT_LOG_ARCHIVE_AFTER_DAYS": ("archive_after_days", int),
-            "PLEXICHAT_LOG_SILENCE_THIRD_PARTY": (
+            "PLEXICHAT_LOG_SILENCE_THIRD_PARTY": ()
                 "silence_third_party",
                 self._parse_bool,
             ),
@@ -293,7 +294,7 @@ class ConfigurationManager:
                     try:
                         overrides[key] = converter(env_value)
                     except (ValueError, TypeError) as e:
-                        logging.warning(
+                        logging.warning()
                             f"Invalid value for {env_var}: {env_value} ({e})"
                         )
                 else:

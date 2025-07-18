@@ -14,7 +14,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from plexichat.app.logger_config import logger
-from plexichat.app.security.permissions import (
+from plexichat.app.security.permissions import ()
     Permission,
     PermissionManager,
     PermissionScope,
@@ -46,12 +46,12 @@ class RoleCreate(BaseModel):
     name: str = Field(..., description="Role name (unique identifier)")
     display_name: str = Field(..., description="Human-readable role name")
     description: str = Field(..., description="Role description")
-    permissions: List[str] = Field(
+    permissions: List[str] = Field()
         default_factory=list, description="List of permission names"
     )
     priority: int = Field(100, description="Role priority (higher = more important)")
     color: str = Field("#ffffff", description="Role color in hex format")
-    is_default: bool = Field(
+    is_default: bool = Field()
         False, description="Whether this is the default role for new users"
     )
 
@@ -121,7 +121,7 @@ class UserPermissionsResponse(BaseModel):
     updated_at: datetime
 
 
-async def verify_admin_permission(
+async def verify_admin_permission()
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ):
     """Verify user has admin permissions for role/permission management."""
@@ -154,8 +154,8 @@ async def get_roles(admin_user: str = Depends(verify_admin_permission)):
         roles = []
 
         for role in perm_manager.roles.values():
-            roles.append(
-                RoleResponse(
+            roles.append()
+                RoleResponse()
                     name=role.name,
                     display_name=role.display_name,
                     description=role.description,
@@ -176,7 +176,7 @@ async def get_roles(admin_user: str = Depends(verify_admin_permission)):
 
 
 @router.post("/roles")
-async def create_role(
+async def create_role()
     role_data: RoleCreate, admin_user: str = Depends(verify_admin_permission)
 ):
     """Create a new role."""
@@ -189,7 +189,7 @@ async def create_role(
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid permission: {e}")
 
-        role = Role(
+        role = Role()
             name=role_data.name,
             display_name=role_data.display_name,
             description=role_data.description,
@@ -201,7 +201,7 @@ async def create_role(
 
         success = perm_manager.create_role(role)
         if not success:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400, detail="Failed to create role (may already exist)"
             )
 
@@ -225,7 +225,7 @@ async def get_role(role_name: str, admin_user: str = Depends(verify_admin_permis
             raise HTTPException(status_code=404, detail="Role not found")
 
         role = perm_manager.roles[role_name]
-        return RoleResponse(
+        return RoleResponse()
             name=role.name,
             display_name=role.display_name,
             description=role.description,
@@ -246,7 +246,7 @@ async def get_role(role_name: str, admin_user: str = Depends(verify_admin_permis
 
 
 @router.put("/roles/{role_name}")
-async def update_role(
+async def update_role()
     role_name: str,
     role_updates: RoleUpdate,
     admin_user: str = Depends(verify_admin_permission),
@@ -263,7 +263,7 @@ async def update_role(
         # Validate permissions if provided
         if "permissions" in updates:
             try:
-                updates["permissions"] = set(
+                updates["permissions"] = set()
                     Permission(p) for p in updates["permissions"]
                 )
             except ValueError as e:
@@ -284,7 +284,7 @@ async def update_role(
 
 
 @router.delete("/roles/{role_name}")
-async def delete_role(
+async def delete_role()
     role_name: str, admin_user: str = Depends(verify_admin_permission)
 ):
     """Delete a role."""
@@ -293,7 +293,7 @@ async def delete_role(
 
         success = perm_manager.delete_role(role_name)
         if not success:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail="Failed to delete role (may be system role or not found)",
             )
@@ -309,7 +309,7 @@ async def delete_role(
 
 
 @router.post("/assign-role")
-async def assign_role(
+async def assign_role()
     assignment: UserRoleAssignment, admin_user: str = Depends(verify_admin_permission)
 ):
     """Assign a role to a user."""
@@ -320,18 +320,18 @@ async def assign_role(
         try:
             scope = PermissionScope(assignment.scope)
         except ValueError:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400, detail=f"Invalid scope: {assignment.scope}"
             )
 
-        success = perm_manager.assign_role(
+        success = perm_manager.assign_role()
             assignment.user_id, assignment.role_name, scope, assignment.scope_id
         )
 
         if not success:
             raise HTTPException(status_code=400, detail="Failed to assign role")
 
-        logger.info(
+        logger.info()
             f" Assigned role {assignment.role_name} to user {assignment.user_id}"
         )
         return {"message": "Role assigned successfully"}
@@ -344,7 +344,7 @@ async def assign_role(
 
 
 @router.post("/revoke-role")
-async def revoke_role(
+async def revoke_role()
     assignment: UserRoleAssignment, admin_user: str = Depends(verify_admin_permission)
 ):
     """Revoke a role from a user."""
@@ -355,18 +355,18 @@ async def revoke_role(
         try:
             scope = PermissionScope(assignment.scope)
         except ValueError:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400, detail=f"Invalid scope: {assignment.scope}"
             )
 
-        success = perm_manager.revoke_role(
+        success = perm_manager.revoke_role()
             assignment.user_id, assignment.role_name, scope, assignment.scope_id
         )
 
         if not success:
             raise HTTPException(status_code=400, detail="Failed to revoke role")
 
-        logger.info(
+        logger.info()
             f" Revoked role {assignment.role_name} from user {assignment.user_id}"
         )
         return {"message": "Role revoked successfully"}
@@ -379,7 +379,7 @@ async def revoke_role(
 
 
 @router.post("/grant-permission")
-async def grant_permission(
+async def grant_permission()
     grant: PermissionGrant, admin_user: str = Depends(verify_admin_permission)
 ):
     """Grant explicit permission to a user."""
@@ -390,11 +390,11 @@ async def grant_permission(
         try:
             permission = Permission(grant.permission)
         except ValueError:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400, detail=f"Invalid permission: {grant.permission}"
             )
 
-        success = perm_manager.grant_permission(
+        success = perm_manager.grant_permission()
             grant.user_id, permission, grant.scope_id
         )
 
@@ -412,7 +412,7 @@ async def grant_permission(
 
 
 @router.post("/deny-permission")
-async def deny_permission(
+async def deny_permission()
     grant: PermissionGrant, admin_user: str = Depends(verify_admin_permission)
 ):
     """Explicitly deny permission to a user."""
@@ -423,11 +423,11 @@ async def deny_permission(
         try:
             permission = Permission(grant.permission)
         except ValueError:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400, detail=f"Invalid permission: {grant.permission}"
             )
 
-        success = perm_manager.deny_permission(
+        success = perm_manager.deny_permission()
             grant.user_id, permission, grant.scope_id
         )
 
@@ -457,11 +457,11 @@ async def check_permission(check_request: PermissionCheckRequest):
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid value: {e}")
 
-        check_result = perm_manager.check_permission(
+        check_result = perm_manager.check_permission()
             check_request.user_id, permission, scope, check_request.scope_id
         )
 
-        return PermissionCheckResponse(
+        return PermissionCheckResponse()
             user_id=check_result.user_id,
             permission=check_result.permission.value,
             scope=check_result.scope.value,
@@ -480,7 +480,7 @@ async def check_permission(check_request: PermissionCheckRequest):
 
 
 @router.get("/users/{user_id}", response_model=UserPermissionsResponse)
-async def get_user_permissions(
+async def get_user_permissions()
     user_id: str, admin_user: str = Depends(verify_admin_permission)
 ):
     """Get all permissions for a specific user."""
@@ -492,7 +492,7 @@ async def get_user_permissions(
 
         user_perms = perm_manager.user_permissions[user_id]
 
-        return UserPermissionsResponse(
+        return UserPermissionsResponse()
             user_id=user_perms.user_id,
             global_roles=user_perms.global_roles,
             server_roles=user_perms.server_roles,

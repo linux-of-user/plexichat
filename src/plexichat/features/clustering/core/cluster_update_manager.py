@@ -16,16 +16,10 @@ from ...core.versioning.version_manager import Version
 from .encrypted_communication import EncryptedCommunication, MessageType
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import time
 PlexiChat Cluster Update Manager
 
 Manages coordinated updates across cluster nodes with:
@@ -164,7 +158,7 @@ class ClusterUpdateManager:
             logger.error(f"Failed to initialize cluster update manager: {e}")
             raise
 
-    async def plan_cluster_update(self,
+    async def plan_cluster_update(self,)
                                 target_version: Version,
                                 update_type: UpdateType = UpdateType.UPGRADE,
                                 strategy: ClusterUpdateStrategy = ClusterUpdateStrategy.ROLLING,
@@ -172,8 +166,7 @@ class ClusterUpdateManager:
         """Plan a cluster-wide update operation."""
 
         # Generate operation ID
-        operation_id = f"cluster_update_{from datetime import datetime
-datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        operation_id = f"cluster_update_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         # Determine target nodes
         if target_nodes is None:
@@ -186,7 +179,7 @@ datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
             raise ValueError(f"Invalid node IDs: {invalid_nodes}")
 
         # Create operation
-        operation = ClusterUpdateOperation(
+        operation = ClusterUpdateOperation()
             operation_id=operation_id,
             target_version=target_version,
             update_type=update_type,
@@ -199,7 +192,7 @@ datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
         # Initialize node statuses
         for node_id in target_nodes:
             node = self.cluster_manager.cluster_nodes[node_id]
-            operation.node_statuses[node_id] = NodeUpdateStatus(
+            operation.node_statuses[node_id] = NodeUpdateStatus()
                 node_id=node_id,
                 node_name=getattr(node, 'name', node_id),
                 status=UpdateStatus.PENDING,
@@ -216,8 +209,7 @@ datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}"
         else:
             estimated_minutes = base_time_per_node * 2
 
-        operation.estimated_completion = datetime.now(timezone.utc).replace(
-            from datetime import datetime
+        operation.estimated_completion = datetime.now(timezone.utc).replace()
 minute = datetime.now()
 datetime = datetime.now().minute + estimated_minutes
         )
@@ -322,7 +314,7 @@ datetime = datetime.now().minute + estimated_minutes
         for node_id in operation.target_nodes:
             try:
                 # Send maintenance mode message to node
-                await self._send_node_message(node_id, {
+                await self._send_node_message(node_id, {)
                     "type": "enter_maintenance_mode",
                     "operation_id": operation.operation_id
                 })
@@ -449,15 +441,13 @@ datetime = datetime.now().minute + estimated_minutes
     async def _monitor_node_update(self, node_id: str, operation: ClusterUpdateOperation) -> bool:
         """Monitor update progress on a node."""
         timeout = 600  # 10 minutes timeout
-        from datetime import datetime
 start_time = datetime.now()
 datetime = datetime.now()
 
-        while (from datetime import datetime
-datetime = datetime.now() - start_time).seconds < timeout:
+        while (datetime.now() - start_time).seconds < timeout:
             try:
                 # Check node status
-                status_response = await self._send_node_message(node_id, {
+                status_response = await self._send_node_message(node_id, {)
                     "type": "get_update_status",
                     "operation_id": operation.operation_id
                 })
@@ -503,7 +493,7 @@ datetime = datetime.now() - start_time).seconds < timeout:
 
         # Notify all nodes
         for node_id in operation.target_nodes:
-            await self._send_node_message(node_id, {
+            await self._send_node_message(node_id, {)
                 "type": "exit_maintenance_mode",
                 "operation_id": operation.operation_id
             })
@@ -515,7 +505,7 @@ datetime = datetime.now() - start_time).seconds < timeout:
         # Rollback each node
         for node_id in operation.target_nodes:
             try:
-                await self._send_node_message(node_id, {
+                await self._send_node_message(node_id, {)
                     "type": "rollback_update",
                     "operation_id": operation.operation_id
                 })
@@ -545,7 +535,7 @@ datetime = datetime.now() - start_time).seconds < timeout:
         """Send message to a cluster node."""
         try:
             if self.communication:
-                response = await self.communication.send_message(
+                response = await self.communication.send_message()
                     node_id, MessageType.CONSENSUS_REQUEST, message
                 )
                 return response

@@ -33,7 +33,7 @@ class FileBase(BaseModel):
     """Base file schema."""
     filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
     content_type: str = Field(..., description="MIME content type")
-    
+
     @validator('filename')
     def validate_filename(cls, v):
         if not v.strip():
@@ -52,7 +52,7 @@ class FileUpload(BaseModel):
     description: Optional[str] = Field(None, max_length=500, description="File description")
     tags: Optional[List[str]] = Field(None, description="File tags")
     is_public: bool = Field(default=False, description="Public access flag")
-    
+
     @validator('filename')
     def validate_filename(cls, v):
         if not v.strip():
@@ -61,7 +61,7 @@ class FileUpload(BaseModel):
         if re.search(r'[<>:"/\\|?*]', v):
             raise ValueError('Filename contains invalid characters')
         return v.strip()
-    
+
     @validator('tags')
     def validate_tags(cls, v):
         if v is not None:
@@ -89,7 +89,7 @@ class FileResponse(FileBase):
     description: Optional[str] = Field(None, description="File description")
     tags: Optional[List[str]] = Field(None, description="File tags")
     metadata: Optional[Dict[str, Any]] = Field(None, description="File metadata")
-    
+
     class Config:
         from_attributes = True
 
@@ -111,7 +111,7 @@ class FileUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=500, description="Updated description")
     tags: Optional[List[str]] = Field(None, description="Updated tags")
     is_public: Optional[bool] = Field(None, description="Updated public access flag")
-    
+
     @validator('filename')
     def validate_filename(cls, v):
         if v is not None:
@@ -122,7 +122,7 @@ class FileUpdate(BaseModel):
                 raise ValueError('Filename contains invalid characters')
             return v.strip()
         return v
-    
+
     @validator('tags')
     def validate_tags(cls, v):
         if v is not None:
@@ -145,7 +145,7 @@ class FileSearch(BaseModel):
     start_date: Optional[datetime] = Field(None, description="Start date filter")
     end_date: Optional[datetime] = Field(None, description="End date filter")
     is_public: Optional[bool] = Field(None, description="Filter by public status")
-    
+
     @validator('query')
     def validate_query(cls, v):
         if v is not None and not v.strip():

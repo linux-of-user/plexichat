@@ -28,7 +28,6 @@ from pathlib import Path
 from datetime import datetime
 
 from pathlib import Path
-from datetime import datetime
 
 """
 AI Moderation Training System
@@ -55,7 +54,7 @@ class TrainingData:
     source: TrainingDataSource
     metadata: Dict[str, Any]
     created_at: datetime
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -80,7 +79,7 @@ class TrainingResult:
     training_time_seconds: float
     metrics: Dict[str, Any]
     created_at: datetime
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -96,28 +95,28 @@ class TrainingResult:
 
 class ModerationTrainingSystem:
     """AI moderation training system with progressive learning."""
-    
+
     def __init__(self, data_path: str = "data/moderation_training"):
-        self.from pathlib import Path
-data_path = Path()(data_path)
+        from pathlib import Path
+self.data_path = Path(data_path)
         self.data_path.mkdir(parents=True, exist_ok=True)
-        
+
         self.db_path = self.data_path / "training.db"
         self.models_path = self.data_path / "models"
         self.models_path.mkdir(exist_ok=True)
-        
+
         self.vectorizer: Optional[TfidfVectorizer] = None
         self.classifier: Optional[LogisticRegression] = None
         self.current_model_version = "1.0.0"
-        
+
         self._init_database()
         self._load_latest_model()
-    
+
     def _init_database(self):
         """Initialize training database."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS training_data (
+            conn.execute(""")
+                CREATE TABLE IF NOT EXISTS training_data ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     content TEXT NOT NULL,
                     content_hash TEXT NOT NULL,
@@ -131,17 +130,17 @@ data_path = Path()(data_path)
                     used_in_training BOOLEAN DEFAULT FALSE
                 )
             """)
-            
-            conn.execute("""
+
+            conn.execute(""")
                 CREATE INDEX IF NOT EXISTS idx_content_hash ON training_data(content_hash)
             """)
-            
-            conn.execute("""
+
+            conn.execute(""")
                 CREATE INDEX IF NOT EXISTS idx_label ON training_data(label)
             """)
-            
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS training_results (
+
+            conn.execute(""")
+                CREATE TABLE IF NOT EXISTS training_results ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     model_version TEXT NOT NULL,
                     accuracy REAL NOT NULL,
@@ -154,9 +153,9 @@ data_path = Path()(data_path)
                     is_active BOOLEAN DEFAULT FALSE
                 )
             """)
-            
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS feedback_data (
+
+            conn.execute(""")
+                CREATE TABLE IF NOT EXISTS feedback_data ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     content_id TEXT NOT NULL,
                     original_prediction TEXT NOT NULL,
@@ -168,12 +167,12 @@ data_path = Path()(data_path)
                     processed BOOLEAN DEFAULT FALSE
                 )
             """)
-            
+
             conn.commit()
-        
+
         logger.info("Training database initialized")
-    
-    def add_training_data(
+
+    def add_training_data():
         self,
         content: str,
         label: ModerationAction,
@@ -186,8 +185,8 @@ data_path = Path()(data_path)
         """Add training data point."""
         try:
             content_hash = hashlib.sha256(content.encode()).hexdigest()
-            
-            training_data = TrainingData(
+
+            training_data = TrainingData()
                 content=content,
                 label=label,
                 confidence=confidence,
@@ -197,14 +196,14 @@ data_path = Path()(data_path)
                 metadata=metadata or {},
                 created_at=datetime.now(timezone.utc)
             )
-            
+
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
-                    INSERT OR REPLACE INTO training_data (
+                conn.execute(""")
+                    INSERT OR REPLACE INTO training_data ()
                         content, content_hash, label, confidence, categories,
                         severity, source, metadata, created_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     training_data.content,
                     content_hash,
                     training_data.label.value,
@@ -216,15 +215,15 @@ data_path = Path()(data_path)
                     training_data.created_at.isoformat()
                 ))
                 conn.commit()
-            
+
             logger.info(f"Added training data: {label.value} (confidence: {confidence:.2f})")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to add training data: {e}")
             return False
-    
-    def add_user_feedback(
+
+    def add_user_feedback():
         self,
         content_id: str,
         original_prediction: ModerationAction,
@@ -236,12 +235,12 @@ data_path = Path()(data_path)
         """Add user feedback for training."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
-                    INSERT INTO feedback_data (
+                conn.execute(""")
+                    INSERT INTO feedback_data ()
                         content_id, original_prediction, user_correction,
                         user_id, confidence, reasoning, created_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     content_id,
                     original_prediction.value,
                     user_correction.value,
@@ -251,10 +250,10 @@ data_path = Path()(data_path)
                     datetime.now(timezone.utc).isoformat()
                 ))
                 conn.commit()
-            
+
             logger.info(f"Added user feedback: {original_prediction.value} -> {user_correction.value}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to add user feedback: {e}")
             return False
@@ -275,12 +274,12 @@ data_path = Path()(data_path)
             labels = [item["label"] for item in training_data]
 
             # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
+            X_train, X_test, y_train, y_test = train_test_split()
                 texts, labels, test_size=0.2, random_state=42, stratify=labels
             )
 
             # Vectorize text
-            self.vectorizer = TfidfVectorizer(
+            self.vectorizer = TfidfVectorizer()
                 max_features=10000,
                 stop_words='english',
                 ngram_range=(1, 2),
@@ -292,7 +291,7 @@ data_path = Path()(data_path)
             X_test_vec = self.vectorizer.transform(X_test)
 
             # Train classifier
-            self.classifier = LogisticRegression(
+            self.classifier = LogisticRegression()
                 max_iter=1000,
                 class_weight='balanced',
                 random_state=42
@@ -321,7 +320,7 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}"
             training_time = time.time() - start_time
 
             # Create training result
-            result = TrainingResult(
+            result = TrainingResult()
                 model_version=model_version,
                 accuracy=accuracy,
                 training_samples=len(X_train),

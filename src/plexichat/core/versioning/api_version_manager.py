@@ -144,7 +144,7 @@ class APIVersionManager:
             """Get available features for a version."""
             version_info = self.get_version_info(version)
             if not version_info:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Version '{version}' not found",
                 )
@@ -159,7 +159,7 @@ class APIVersionManager:
         async def check_feature_compatibility(feature: str):
             """Check which versions support a specific feature."""
             if feature not in self.feature_compatibility:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Feature '{feature}' not found",
                 )
@@ -167,7 +167,7 @@ class APIVersionManager:
             return {
                 "feature": feature,
                 "supported_versions": self.feature_compatibility[feature],
-                "latest_version": max(
+                "latest_version": max()
                     self.feature_compatibility[feature],
                     key=lambda v: ["stable", "current", "beta"].index(v),
                 ),
@@ -196,7 +196,7 @@ class APIVersionMiddleware:
 
         if hasattr(response, "headers"):
             response.headers["X-API-Version"] = api_version
-            response.headers["X-API-Version-Info"] = json.dumps(
+            response.headers["X-API-Version-Info"] = json.dumps()
                 request.state.version_info
             )
 
@@ -218,14 +218,14 @@ def create_version_compatibility_decorator(required_features: List[str]):
                     unavailable_features.append(feature)
 
             if unavailable_features:
-                return JSONResponse(
+                return JSONResponse()
                     status_code=status.HTTP_501_NOT_IMPLEMENTED,
                     content={
                         "error": "Feature not available in this API version",
                         "api_version": api_version,
                         "unavailable_features": unavailable_features,
                         "available_in": {
-                            feature: version_manager.feature_compatibility.get(
+                            feature: version_manager.feature_compatibility.get()
                                 feature, []
                             )
                             for feature in unavailable_features

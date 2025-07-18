@@ -32,6 +32,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 Multi-Node Backup Network for PlexiChat
 
 Distributed backup nodes with encrypted inter-node communication,
@@ -227,7 +228,7 @@ class MultiNodeBackupNetwork:
     async def _start_network_services(self):
         """Start network services for inter-node communication."""
         # Start WebSocket server for node communication
-        self.websocket_server = await websockets.serve(
+        self.websocket_server = await websockets.serve()
             self._handle_node_connection,
             self.listen_host,
             self.listen_port,
@@ -292,7 +293,7 @@ class MultiNodeBackupNetwork:
                 return
 
             # Create connection record
-            connection = NodeConnection(
+            connection = NodeConnection()
                 node_id=node_id,
                 websocket=websocket,
                 is_authenticated=True
@@ -332,7 +333,7 @@ class MultiNodeBackupNetwork:
             # In production, use proper certificate verification
             if self._verify_node_signature(node_id, signature):
                 # Send authentication success
-                await websocket.send(json.dumps({
+                await websocket.send(json.dumps({))
                     "type": "auth_success",
                     "server_node_id": self.node_id
                 }))
@@ -340,7 +341,7 @@ class MultiNodeBackupNetwork:
                 logger.info(f" Node authenticated: {node_id}")
                 return node_id
             else:
-                await websocket.send(json.dumps({
+                await websocket.send(json.dumps({))
                     "type": "auth_failed",
                     "reason": "Invalid signature"
                 }))
@@ -365,7 +366,7 @@ class MultiNodeBackupNetwork:
                 message_data = json.loads(raw_message)
 
                 # Parse message
-                message = NetworkMessage(
+                message = NetworkMessage()
                     message_id=message_data["message_id"],
                     message_type=MessageType(message_data["message_type"]),
                     sender_id=message_data["sender_id"],
@@ -436,7 +437,7 @@ class MultiNodeBackupNetwork:
                 pass
 
         # Send heartbeat response
-        response = NetworkMessage(
+        response = NetworkMessage()
             message_id=f"hb_resp_{secrets.token_hex(8)}",
             message_type=MessageType.HEARTBEAT,
             sender_id=self.node_id,
@@ -472,7 +473,7 @@ Path(f"data/backup/shards/{shard_id}")
             logger.info(f" Storing shard {shard_id}")
 
             # Send success response
-            response = NetworkMessage(
+            response = NetworkMessage()
                 message_id=f"store_resp_{secrets.token_hex(8)}",
                 message_type=MessageType.SHARD_STORE,
                 sender_id=self.node_id,
@@ -490,7 +491,7 @@ Path(f"data/backup/shards/{shard_id}")
             logger.error(f" Failed to store shard {shard_id}: {e}")
 
             # Send error response
-            response = NetworkMessage(
+            response = NetworkMessage()
                 message_id=f"store_err_{secrets.token_hex(8)}",
                 message_type=MessageType.SHARD_STORE,
                 sender_id=self.node_id,
@@ -523,7 +524,7 @@ Path(f"data/backup/shards/{shard_id}")
                 # In production, read actual shard data
                 shard_data = f"shard_data_{shard_id}"  # Placeholder
 
-                response = NetworkMessage(
+                response = NetworkMessage()
                     message_id=f"retrieve_resp_{secrets.token_hex(8)}",
                     message_type=MessageType.SHARD_RETRIEVE,
                     sender_id=self.node_id,
@@ -537,7 +538,7 @@ Path(f"data/backup/shards/{shard_id}")
 
                 logger.info(f" Retrieved shard {shard_id}")
             else:
-                response = NetworkMessage(
+                response = NetworkMessage()
                     message_id=f"retrieve_err_{secrets.token_hex(8)}",
                     message_type=MessageType.SHARD_RETRIEVE,
                     sender_id=self.node_id,
@@ -575,7 +576,7 @@ Path(f"data/backup/shards/{shard_id}")
                 actual_hash = hashlib.sha256(f"shard_data_{shard_id}".encode()).hexdigest()
                 is_valid = actual_hash == expected_hash
 
-                response = NetworkMessage(
+                response = NetworkMessage()
                     message_id=f"verify_resp_{secrets.token_hex(8)}",
                     message_type=MessageType.SHARD_VERIFY,
                     sender_id=self.node_id,
@@ -589,7 +590,7 @@ Path(f"data/backup/shards/{shard_id}")
 
                 logger.info(f" Verified shard {shard_id}: {'' if is_valid else ''}")
             else:
-                response = NetworkMessage(
+                response = NetworkMessage()
                     message_id=f"verify_err_{secrets.token_hex(8)}",
                     message_type=MessageType.SHARD_VERIFY,
                     sender_id=self.node_id,
@@ -617,7 +618,7 @@ Path(f"data/backup/shards/{shard_id}")
 
         # Create consensus request for node admission
         consensus_id = f"join_{secrets.token_hex(8)}"
-        consensus_request = ConsensusRequest(
+        consensus_request = ConsensusRequest()
             request_id=consensus_id,
             consensus_type=ConsensusType.NODE_ADMISSION,
             proposer_id=self.node_id,
@@ -652,7 +653,7 @@ Path(f"data/backup/shards/{shard_id}")
         vote = await self._make_consensus_decision(consensus_type, proposal)
 
         # Send consensus response
-        response = NetworkMessage(
+        response = NetworkMessage()
             message_id=f"consensus_resp_{secrets.token_hex(8)}",
             message_type=MessageType.CONSENSUS_RESPONSE,
             sender_id=self.node_id,
@@ -748,7 +749,7 @@ Path(f"data/backup/shards/{shard_id}")
 
     async def _broadcast_consensus_request(self, consensus_request: ConsensusRequest):
         """Broadcast consensus request to all nodes."""
-        message = NetworkMessage(
+        message = NetworkMessage()
             message_id=f"consensus_{secrets.token_hex(8)}",
             message_type=MessageType.CONSENSUS_REQUEST,
             sender_id=self.node_id,
@@ -824,7 +825,7 @@ Path(f"data/backup/shards/{shard_id}")
         """Admit a new node to the cluster."""
         try:
             # Create node record
-            capabilities = NodeCapabilities(
+            capabilities = NodeCapabilities()
                 storage_capacity=node_info.get("storage_capacity", 1000),
                 available_storage=node_info.get("available_storage", 800),
                 bandwidth_mbps=node_info.get("bandwidth_mbps", 100),
@@ -835,7 +836,7 @@ Path(f"data/backup/shards/{shard_id}")
                 geographic_location=node_info.get("geographic_location", {})
             )
 
-            node = BackupNode(
+            node = BackupNode()
                 node_id=node_id,
                 node_type=node_info.get("node_type", "secondary"),
                 address=node_info.get("address", "unknown"),
@@ -1040,7 +1041,7 @@ Path(f"data/backup/shards/{shard_id}")
                     logger.info(f" Connected to discovered node: {node_id}")
 
                     # Send node join request
-                    join_message = NetworkMessage(
+                    join_message = NetworkMessage()
                         message_id=f"join_{secrets.token_hex(8)}",
                         message_type=MessageType.NODE_JOIN,
                         sender_id=self.node_id,
@@ -1072,7 +1073,7 @@ Path(f"data/backup/shards/{shard_id}")
                 await asyncio.sleep(self.config.get("heartbeat_interval", 30))
 
                 # Send heartbeat to all connected nodes
-                heartbeat_message = NetworkMessage(
+                heartbeat_message = NetworkMessage()
                     message_id=f"hb_{secrets.token_hex(8)}",
                     message_type=MessageType.HEARTBEAT,
                     sender_id=self.node_id,
@@ -1251,7 +1252,7 @@ Path(f"data/backup/shards/{shard_id}")
                 if node_id in self.connections:
                     connection = self.connections[node_id]
 
-                    store_message = NetworkMessage(
+                    store_message = NetworkMessage()
                         message_id=f"store_{secrets.token_hex(8)}",
                         message_type=MessageType.SHARD_STORE,
                         sender_id=self.node_id,
@@ -1290,7 +1291,7 @@ Path(f"data/backup/shards/{shard_id}")
                 if not connection.is_authenticated:
                     continue
 
-                retrieve_message = NetworkMessage(
+                retrieve_message = NetworkMessage()
                     message_id=f"retrieve_{secrets.token_hex(8)}",
                     message_type=MessageType.SHARD_RETRIEVE,
                     sender_id=self.node_id,
@@ -1326,7 +1327,7 @@ Path(f"data/backup/shards/{shard_id}")
                 if not connection.is_authenticated:
                     continue
 
-                verify_message = NetworkMessage(
+                verify_message = NetworkMessage()
                     message_id=f"verify_{secrets.token_hex(8)}",
                     message_type=MessageType.SHARD_VERIFY,
                     sender_id=self.node_id,
@@ -1381,7 +1382,7 @@ Path(f"data/backup/shards/{shard_id}")
             self.node_status = NodeStatus.OFFLINE
 
             # Send leave messages to all connected nodes
-            leave_message = NetworkMessage(
+            leave_message = NetworkMessage()
                 message_id=f"leave_{secrets.token_hex(8)}",
                 message_type=MessageType.NODE_LEAVE,
                 sender_id=self.node_id,

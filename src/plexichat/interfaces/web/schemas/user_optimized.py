@@ -17,7 +17,7 @@ class UserBase(BaseModel):
     """Base user schema."""
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     email: EmailStr = Field(..., description="Email address")
-    
+
     @validator('username')
     def validate_username(cls, v):
         if not v.strip():
@@ -33,7 +33,7 @@ class UserCreate(UserBase):
     """User creation schema."""
     password: str = Field(..., min_length=6, max_length=100, description="Password")
     is_admin: bool = Field(default=False, description="Admin status")
-    
+
     @validator('password')
     def validate_password(cls, v):
         # Basic password validation
@@ -48,7 +48,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = Field(None, description="Email address")
     is_active: Optional[bool] = Field(None, description="Active status")
     is_admin: Optional[bool] = Field(None, description="Admin status")
-    
+
     @validator('username')
     def validate_username(cls, v):
         if v is not None:
@@ -68,7 +68,7 @@ class UserResponse(UserBase):
     is_admin: bool = Field(..., description="Admin status")
     created_at: datetime = Field(..., description="Creation timestamp")
     last_login: Optional[datetime] = Field(None, description="Last login timestamp")
-    
+
     class Config:
         from_attributes = True
 

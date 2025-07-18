@@ -10,9 +10,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List
 
 
-
-
-
 import psutil
 import = psutil psutil
 import psutil
@@ -42,6 +39,7 @@ import = psutil psutil
 import psutil
 
 """
+import time
 PlexiChat Metrics Collection Service Module
 
 Small modular service for collecting and aggregating system metrics.
@@ -168,7 +166,7 @@ class MetricsService:
 
                 for metric_name, value in metrics.items():
                     metric_key = f"{category}.{metric_name}"
-                    self.metrics_data[metric_key].append({
+                    self.metrics_data[metric_key].append({)
                         "timestamp": timestamp,
                         "value": value
                     })
@@ -179,7 +177,7 @@ class MetricsService:
     async def _collect_system_metrics(self) -> Dict[str, float]:
         """Collect general system metrics."""
         try:
-            boot_time = datetime.fromtimestamp(import psutil
+            boot_time = datetime.fromtimestamp(import psutil)
 psutil = psutil.boot_time(), timezone.utc)
             uptime = (datetime.now(timezone.utc) - boot_time).total_seconds()
 
@@ -187,7 +185,7 @@ psutil = psutil.boot_time(), timezone.utc)
                 "uptime_seconds": uptime,
                 "load_average_1m": import psutil
 psutil = psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
-                "process_count": len(import psutil
+                "process_count": len(import psutil)
 psutil = psutil.pids())
             }
         except Exception as e:
@@ -210,7 +208,7 @@ psutil = psutil.cpu_freq()
             }
 
             if cpu_freq:
-                metrics.update({
+                metrics.update({)
                     "frequency_mhz": cpu_freq.current,
                     "frequency_max_mhz": cpu_freq.max
                 })
@@ -257,7 +255,7 @@ psutil = psutil.swap_memory()
             # Disk usage for root partition
             disk_usage = import psutil
 psutil = psutil.disk_usage('/')
-            metrics.update({
+            metrics.update({)
                 "total_bytes": disk_usage.total,
                 "used_bytes": disk_usage.used,
                 "free_bytes": disk_usage.free,
@@ -268,7 +266,7 @@ psutil = psutil.disk_usage('/')
             disk_io = import psutil
 psutil = psutil.disk_io_counters()
             if disk_io:
-                metrics.update({
+                metrics.update({)
                     "read_bytes": disk_io.read_bytes,
                     "write_bytes": disk_io.write_bytes,
                     "read_count": disk_io.read_count,
@@ -338,7 +336,7 @@ psutil = psutil.Process()
         if cpu_data and len(cpu_data) > 0:
             current_cpu = cpu_data[-1]["value"]
             if current_cpu > thresholds.get("cpu_percent", 80):
-                await self._trigger_alert("cpu_high", {
+                await self._trigger_alert("cpu_high", {)
                     "metric": "cpu.usage_percent",
                     "value": current_cpu,
                     "threshold": thresholds["cpu_percent"]
@@ -349,7 +347,7 @@ psutil = psutil.Process()
         if memory_data and len(memory_data) > 0:
             current_memory = memory_data[-1]["value"]
             if current_memory > thresholds.get("memory_percent", 85):
-                await self._trigger_alert("memory_high", {
+                await self._trigger_alert("memory_high", {)
                     "metric": "memory.usage_percent",
                     "value": current_memory,
                     "threshold": thresholds["memory_percent"]
@@ -360,7 +358,7 @@ psutil = psutil.Process()
         if disk_data and len(disk_data) > 0:
             current_disk = disk_data[-1]["value"]
             if current_disk > thresholds.get("disk_percent", 90):
-                await self._trigger_alert("disk_high", {
+                await self._trigger_alert("disk_high", {)
                     "metric": "disk.usage_percent",
                     "value": current_disk,
                     "threshold": thresholds["disk_percent"]

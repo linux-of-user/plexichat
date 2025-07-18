@@ -12,14 +12,11 @@ from sqlmodel import JSON, Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
-from datetime import datetime
-
-
-from datetime import datetime
 
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 PlexiChat Post Model
 
 Reddit-like post model for community spaces.
@@ -55,7 +52,7 @@ class Post(SQLModel, table=True):
     __tablename__ = "posts"
 
     # Primary identification
-    post_id: str = Field(
+    post_id: str = Field()
         default_factory=lambda: str(post_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -63,122 +60,122 @@ class Post(SQLModel, table=True):
     )
 
     # Space and author relationships
-    space_id: str = Field(
+    space_id: str = Field()
         foreign_key="spaces.space_id",
         index=True,
         description="Space this post belongs to"
     )
 
-    author_id: str = Field(
+    author_id: str = Field()
         foreign_key="users.id",
         index=True,
         description="User who created this post"
     )
 
     # Post content
-    title: str = Field(
+    title: str = Field()
         max_length=300,
         index=True,
         description="Post title"
     )
 
-    content: Optional[str] = Field(
+    content: Optional[str] = Field()
         default=None,
         sa_column=Column(Text),
         description="Post content/body"
     )
 
     # Post type and metadata
-    type: PostType = Field(
+    type: PostType = Field()
         default=PostType.TEXT,
         index=True,
         description="Type of post content"
     )
 
-    url: Optional[str] = Field(
+    url: Optional[str] = Field()
         default=None,
         max_length=2000,
         description="External URL for link posts"
     )
 
-    media_ids: Optional[List[str]] = Field(
+    media_ids: Optional[List[str]] = Field()
         default=None,
         sa_column=Column(JSON),
         description="Media file IDs for image/video posts"
     )
 
     # Post flags
-    spoiler: bool = Field(
+    spoiler: bool = Field()
         default=False,
         index=True,
         description="Whether post contains spoilers"
     )
 
-    nsfw: bool = Field(
+    nsfw: bool = Field()
         default=False,
         index=True,
         description="Whether post is NSFW"
     )
 
     # Post categorization
-    flair_id: Optional[str] = Field(
+    flair_id: Optional[str] = Field()
         default=None,
         description="Post flair/category ID"
     )
 
     # Poll data (for poll posts)
-    poll_options: Optional[List[Dict[str, Any]]] = Field(
+    poll_options: Optional[List[Dict[str, Any]]] = Field()
         default=None,
         sa_column=Column(JSON),
         description="Poll options and vote counts"
     )
 
-    poll_expires_at: Optional[datetime] = Field(
+    poll_expires_at: Optional[datetime] = Field()
         default=None,
         sa_column=Column(DateTime),
         description="When poll voting expires"
     )
 
     # Voting and engagement
-    upvote_count: int = Field(
+    upvote_count: int = Field()
         default=0,
         index=True,
         description="Number of upvotes"
     )
 
-    downvote_count: int = Field(
+    downvote_count: int = Field()
         default=0,
         index=True,
         description="Number of downvotes"
     )
 
-    comment_count: int = Field(
+    comment_count: int = Field()
         default=0,
         index=True,
         description="Number of comments"
     )
 
-    view_count: int = Field(
+    view_count: int = Field()
         default=0,
         description="Number of views"
     )
 
     # Post status
-    status: PostStatus = Field(
+    status: PostStatus = Field()
         default=PostStatus.ACTIVE,
         index=True,
         description="Post status"
     )
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Post creation timestamp"
     )
 
-    updated_at: Optional[datetime] = Field(
+    updated_at: Optional[datetime] = Field()
         default=None,
         sa_column=Column(DateTime),
         description="Last update timestamp"
@@ -258,7 +255,7 @@ datetime.utcnow() < self.poll_expires_at
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index('idx_post_space_created', 'space_id', 'created_at'),
     Index('idx_post_space_score', 'space_id', 'upvote_count', 'downvote_count'),
     Index('idx_post_author_created', 'author_id', 'created_at'),

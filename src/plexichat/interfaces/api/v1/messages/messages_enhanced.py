@@ -9,9 +9,6 @@ from typing import Any, Dict, List, Optional
 from sqlmodel import Session, select
 
 
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -20,7 +17,7 @@ from plexichat.app.db import get_session
 from plexichat.app.models.message import Message, MessageType
 from plexichat.app.models.user import User
 from plexichat.app.services.message_service import MessageService
-from plexichat.app.utils.auth import (
+from plexichat.app.utils.auth import ()
     from plexichat.infrastructure.utils.auth import get_current_user,
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
@@ -86,7 +83,7 @@ router = APIRouter(prefix="/api/v1/messages", tags=["Enhanced Messages"])
 
 
 @router.post("/create", response_model=MessageResponse)
-async def create_message(
+async def create_message()
     request: MessageCreateRequest,
     http_request: Request,
     session: Session = Depends(get_session),
@@ -99,7 +96,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     ip_address = http_request.client.host
     user_agent = http_request.headers.get("user-agent")
 
-    message = await message_service.create_message_with_files(
+    message = await message_service.create_message_with_files()
         sender_id=current_user.id,
         recipient_id=request.recipient_id,
         channel_id=request.channel_id,
@@ -113,7 +110,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         user_agent=user_agent
     )
 
-    return MessageResponse(
+    return MessageResponse()
         id=message.id,
         sender_id=message.sender_id,
         recipient_id=message.recipient_id,
@@ -132,7 +129,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/{message_id}", response_model=MessageResponse)
-async def get_message(
+async def get_message()
     message_id: int,
     http_request: Request,
     session: Session = Depends(get_session),
@@ -146,7 +143,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     # Check if user can access this message
     # For now, allow access if user is sender, recipient, or in the same channel/guild
-    can_access = (
+    can_access = ()
         message.sender_id == current_user.id or
         message.recipient_id == current_user.id or
         message.author_id == current_user.id
@@ -154,7 +151,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     )
 
     if not can_access:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot access this message"
         )
@@ -164,11 +161,11 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     ip_address = http_request.client.host
     user_agent = http_request.headers.get("user-agent")
 
-    file_access = await message_service.validate_message_file_access(
+    file_access = await message_service.validate_message_file_access()
         message_id, current_user.id, ip_address, user_agent
     )
 
-    return MessageResponse(
+    return MessageResponse()
         id=message.id,
         sender_id=message.sender_id,
         recipient_id=message.recipient_id,
@@ -189,7 +186,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.put("/{message_id}", response_model=MessageResponse)
-async def update_message(
+async def update_message()
     message_id: int,
     request: MessageUpdateRequest,
     http_request: Request,
@@ -203,7 +200,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     ip_address = http_request.client.host
     user_agent = http_request.headers.get("user-agent")
 
-    message = await message_service.update_message(
+    message = await message_service.update_message()
         message_id=message_id,
         user_id=current_user.id,
         content=request.content,
@@ -213,7 +210,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         user_agent=user_agent
     )
 
-    return MessageResponse(
+    return MessageResponse()
         id=message.id,
         sender_id=message.sender_id,
         recipient_id=message.recipient_id,
@@ -232,7 +229,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.delete("/{message_id}")
-async def delete_message(
+async def delete_message()
     message_id: int,
     hard_delete: bool = Query(False),
     session: Session = Depends(get_session),
@@ -242,26 +239,26 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     """Delete a message (soft delete by default)."""
     message_service = MessageService(session)
 
-    success = await message_service.delete_message(
+    success = await message_service.delete_message()
         message_id=message_id,
         user_id=current_user.id,
         hard_delete=hard_delete
     )
 
     if success:
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": "Message deleted successfully"
         })
     else:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete message"
         )
 
 
 @router.get("/{message_id}/file-access")
-async def validate_message_file_access(
+async def validate_message_file_access()
     message_id: int,
     http_request: Request,
     session: Session = Depends(get_session),
@@ -274,13 +271,13 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     ip_address = http_request.client.host
     user_agent = http_request.headers.get("user-agent")
 
-    return await message_service.validate_message_file_access(
+    return await message_service.validate_message_file_access()
         message_id, current_user.id, ip_address, user_agent
     )
 
 
 @router.get("/")
-async def list_messages(
+async def list_messages()
     recipient_id: Optional[int] = Query(None),
     channel_id: Optional[int] = Query(None),
     guild_id: Optional[int] = Query(None),
@@ -297,7 +294,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     # Apply filters
     if recipient_id:
-        statement = statement.where(
+        statement = statement.where()
             (Message.sender_id == current_user.id) & (Message.recipient_id == recipient_id) |
             (Message.sender_id == recipient_id) & (Message.recipient_id == current_user.id)
         )
@@ -307,7 +304,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         statement = statement.where(Message.guild_id == guild_id)
     else:
         # Default to messages involving current user
-        statement = statement.where(
+        statement = statement.where()
             (Message.sender_id == current_user.id) |
             (Message.recipient_id == current_user.id) |
             (Message.author_id == current_user.id)
@@ -322,7 +319,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     result = []
     for message in messages:
-        result.append(MessageResponse(
+        result.append(MessageResponse())
             id=message.id,
             sender_id=message.sender_id,
             recipient_id=message.recipient_id,

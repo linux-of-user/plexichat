@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 """
+import random
 PlexiChat Semantic Search Engine
 Advanced semantic search with vector embeddings and AI-powered relevance
 """
@@ -319,7 +320,7 @@ class SemanticSearchEngine:
 
             # Track popular queries
             query_key = query.query.lower()
-            self.stats["popular_queries"][query_key] = (
+            self.stats["popular_queries"][query_key] = ()
                 self.stats["popular_queries"].get(query_key, 0) + 1
             )
 
@@ -350,10 +351,10 @@ class SemanticSearchEngine:
 
             # Add highlighting and context
             for result in results:
-                result.highlighted_content = await self._highlight_matches(
+                result.highlighted_content = await self._highlight_matches()
                     result.content, query.query
                 )
-                result.context_snippet = await self._generate_context_snippet(
+                result.context_snippet = await self._generate_context_snippet()
                     result.content, query.query
                 )
 
@@ -361,7 +362,7 @@ class SemanticSearchEngine:
             search_time = (time.time() - start_time) * 1000
             self._update_search_statistics(search_time, len(results) > 0)
 
-            logger.info(
+            logger.info()
                 f"Search completed: '{query.query}' -> {len(results)} results in {search_time:.2f}ms"
             )
 
@@ -416,7 +417,7 @@ class SemanticSearchEngine:
             # No filters, return all documents
             return list(self.documents.keys())
 
-    async def _semantic_search(
+    async def _semantic_search()
         self, query: SearchQuery, candidate_docs: List[str]
     ) -> List[SearchResult]:
         """Perform semantic search using vector embeddings."""
@@ -443,7 +444,7 @@ class SemanticSearchEngine:
             similarity = self._cosine_similarity(query_embedding, doc_embedding)
 
             if similarity >= self.similarity_threshold:
-                result = SearchResult(
+                result = SearchResult()
                     doc_id=doc_id,
                     content=doc.content,
                     content_type=doc.content_type,
@@ -458,7 +459,7 @@ class SemanticSearchEngine:
 
         return results
 
-    async def _keyword_search(
+    async def _keyword_search()
         self, query: SearchQuery, candidate_docs: List[str]
     ) -> List[SearchResult]:
         """Perform keyword-based search."""
@@ -472,12 +473,12 @@ class SemanticSearchEngine:
             doc = self.documents[doc_id]
 
             # Calculate keyword similarity
-            keyword_score = self._calculate_keyword_similarity(
+            keyword_score = self._calculate_keyword_similarity()
                 query_keywords, doc.keywords
             )
 
             if keyword_score > 0:
-                result = SearchResult(
+                result = SearchResult()
                     doc_id=doc_id,
                     content=doc.content,
                     content_type=doc.content_type,
@@ -495,7 +496,7 @@ class SemanticSearchEngine:
 
         return results
 
-    async def _hybrid_search(
+    async def _hybrid_search()
         self, query: SearchQuery, candidate_docs: List[str]
     ) -> List[SearchResult]:
         """Perform hybrid search combining semantic and keyword matching."""
@@ -516,7 +517,7 @@ class SemanticSearchEngine:
             keyword_result = keyword_dict.get(doc_id)
 
             # Calculate combined score
-            semantic_score = (
+            semantic_score = ()
                 semantic_result.semantic_similarity if semantic_result else 0.0
             )
             keyword_score = keyword_result.keyword_similarity if keyword_result else 0.0
@@ -527,14 +528,14 @@ class SemanticSearchEngine:
             # Use the result with more information
             base_result = semantic_result or keyword_result
 
-            result = SearchResult(
+            result = SearchResult()
                 doc_id=base_result.doc_id,
                 content=base_result.content,
                 content_type=base_result.content_type,
                 relevance_score=combined_score,
                 semantic_similarity=semantic_score,
                 keyword_similarity=keyword_score,
-                matched_keywords=(
+                matched_keywords=()
                     keyword_result.matched_keywords if keyword_result else []
                 ),
                 metadata=base_result.metadata,
@@ -546,7 +547,7 @@ class SemanticSearchEngine:
 
         return combined_results
 
-    async def _fuzzy_search(
+    async def _fuzzy_search()
         self, query: SearchQuery, candidate_docs: List[str]
     ) -> List[SearchResult]:
         """Perform fuzzy search for typo tolerance."""
@@ -601,7 +602,7 @@ class SemanticSearchEngine:
 
         return list(set(keywords))  # Remove duplicates
 
-    def _calculate_keyword_similarity(
+    def _calculate_keyword_similarity():
         self, query_keywords: List[str], doc_keywords: List[str]
     ) -> float:
         """Calculate keyword similarity score."""
@@ -683,7 +684,7 @@ class SemanticSearchEngine:
         # Update average search time
         current_avg = self.stats["average_search_time"]
         total_searches = self.stats["total_searches"]
-        new_avg = (
+        new_avg = ()
             (current_avg * (total_searches - 1)) + search_time_ms
         ) / total_searches
         self.stats["average_search_time"] = new_avg

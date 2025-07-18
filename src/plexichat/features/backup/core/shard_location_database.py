@@ -24,6 +24,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 Enhanced Shard Location Database
 
 Encrypted and redundant database for storing shard locations with access control.
@@ -57,7 +58,7 @@ class ShardLocationEntry:
 class EnhancedShardLocationDatabase:
     """
     Enhanced encrypted and redundant shard location database.
-    
+
     Features:
     - Encrypted storage of shard locations
     - Access control based on node type
@@ -65,25 +66,25 @@ class EnhancedShardLocationDatabase:
     - Backup node API key verification
     - Prevention of complete shard enumeration
     """
-    
+
     def __init__(self, data_dir: Path, encryption_manager: QuantumResistantEncryptionManager):
-        self.from pathlib import Path
-data_dir = Path()(data_dir)
+        from pathlib import Path
+self.data_dir = Path(data_dir)
         self.encryption_manager = encryption_manager
-        
+
         # Database paths for redundancy
         self.primary_db_path = self.data_dir / "shard_locations_primary.db"
         self.secondary_db_path = self.data_dir / "shard_locations_secondary.db"
         self.tertiary_db_path = self.data_dir / "shard_locations_tertiary.db"
-        
+
         # In-memory cache for performance
         self.location_cache: Dict[str, ShardLocationEntry] = {}
         self.backup_node_keys: Set[str] = set()
-        
+
         # Access control
         self.access_logs: List[Dict[str, Any]] = []
         self.failed_access_attempts: Dict[str, int] = {}
-        
+
         # Statistics
         self.stats = {
             'total_locations': 0,
@@ -93,33 +94,33 @@ data_dir = Path()(data_dir)
             'denied_access_attempts': 0,
             'database_syncs': 0
         }
-        
+
         self._initialized = False
 
     async def initialize(self):
         """Initialize the shard location database."""
         if self._initialized:
             return
-        
+
         logger.info("Initializing Enhanced Shard Location Database")
-        
+
         # Create data directory
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize all database replicas
         await self._initialize_database(self.primary_db_path)
         await self._initialize_database(self.secondary_db_path)
         await self._initialize_database(self.tertiary_db_path)
-        
+
         # Load backup node keys
         await self._load_backup_node_keys()
-        
+
         # Load existing locations into cache
         await self._load_locations_cache()
-        
+
         # Start background sync task
         asyncio.create_task(self._background_sync_task())
-        
+
         self._initialized = True
         logger.info("Enhanced Shard Location Database initialized")
 
@@ -127,8 +128,8 @@ data_dir = Path()(data_dir)
         """Initialize a single database replica."""
         async with aiosqlite.connect(db_path) as db:
             # Shard locations table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS shard_locations (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS shard_locations ()
                     shard_id TEXT PRIMARY KEY,
                     encrypted_location_data BLOB NOT NULL,
                     access_level_required TEXT NOT NULL,
@@ -140,10 +141,10 @@ data_dir = Path()(data_dir)
                     verification_hash TEXT NOT NULL
                 )
             """)
-            
+
             # Backup node keys table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS backup_node_keys (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS backup_node_keys ()
                     key_id TEXT PRIMARY KEY,
                     key_hash TEXT NOT NULL,
                     node_id TEXT NOT NULL,
@@ -153,10 +154,10 @@ data_dir = Path()(data_dir)
                     active BOOLEAN DEFAULT TRUE
                 )
             """)
-            
+
             # Access logs table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS access_logs (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS access_logs ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     shard_id TEXT NOT NULL,
                     requester_id TEXT NOT NULL,
@@ -167,21 +168,21 @@ data_dir = Path()(data_dir)
                     user_agent TEXT
                 )
             """)
-            
+
             await db.commit()
 
-    async def store_shard_location(self, shard_id: str, location_data: Dict[str, Any],
+    async def store_shard_location(self, shard_id: str, location_data: Dict[str, Any],)
                                  backup_node_only: bool = False,
                                  api_key: Optional[str] = None) -> bool:
         """
         Store encrypted shard location with access control.
-        
+
         Args:
             shard_id: Unique shard identifier
             location_data: Location information to encrypt and store
             backup_node_only: If True, only backup nodes can access
             api_key: API key for verification (required for backup_node_only)
-            
+
         Returns:
             True if stored successfully
         """
@@ -190,24 +191,24 @@ data_dir = Path()(data_dir)
             if backup_node_only and not await self._verify_backup_node_key(api_key):
                 logger.warning(f"Invalid backup node API key for shard {shard_id}")
                 return False
-            
+
             # Encrypt location data
             location_json = json.dumps(location_data)
-            encrypted_data, metadata = await self.encryption_manager.encrypt_data(
+            encrypted_data, metadata = await self.encryption_manager.encrypt_data()
                 location_json.encode(),
                 EncryptionAlgorithm.MULTI_LAYER_QUANTUM
             )
-            
+
             # Determine access level
             access_level = AccessLevel.BACKUP_NODE if backup_node_only else AccessLevel.REGULAR_NODE
-            
+
             # Create verification hash
-            verification_hash = hashlib.sha512(
+            verification_hash = hashlib.sha512()
                 f"{shard_id}_{location_json}_{datetime.now(timezone.utc).isoformat()}".encode()
             ).hexdigest()
-            
+
             # Create location entry
-            entry = ShardLocationEntry(
+            entry = ShardLocationEntry()
                 shard_id=shard_id,
                 encrypted_location_data=encrypted_data,
                 access_level_required=access_level,
@@ -215,78 +216,78 @@ data_dir = Path()(data_dir)
                 created_at=datetime.now(timezone.utc),
                 verification_hash=verification_hash
             )
-            
+
             # Store in all database replicas
             await self._store_in_all_databases(entry)
-            
+
             # Update cache
             self.location_cache[shard_id] = entry
-            
+
             # Update statistics
             self.stats['total_locations'] += 1
             if backup_node_only:
                 self.stats['backup_node_locations'] += 1
             else:
                 self.stats['regular_locations'] += 1
-            
+
             logger.debug(f"Stored shard location for {shard_id} (backup_only: {backup_node_only})")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to store shard location for {shard_id}: {e}")
             return False
 
-    async def get_shard_location(self, shard_id: str, requester_id: str,
+    async def get_shard_location(self, shard_id: str, requester_id: str,)
                                api_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
         Retrieve shard location with access control.
-        
+
         Args:
             shard_id: Shard to locate
             requester_id: ID of the requesting entity
             api_key: API key for backup node access
-            
+
         Returns:
             Decrypted location data if access granted, None otherwise
         """
         try:
             self.stats['access_attempts'] += 1
-            
+
             # Check if shard exists
             if shard_id not in self.location_cache:
                 await self._load_shard_from_database(shard_id)
-            
+
             entry = self.location_cache.get(shard_id)
             if not entry:
                 logger.warning(f"Shard location not found: {shard_id}")
                 return None
-            
+
             # Check access permissions
-            access_granted = await self._check_access_permission(
+            access_granted = await self._check_access_permission()
                 entry, requester_id, api_key
             )
-            
+
             # Log access attempt
             await self._log_access_attempt(shard_id, requester_id, entry.access_level_required, access_granted)
-            
+
             if not access_granted:
                 self.stats['denied_access_attempts'] += 1
                 logger.warning(f"Access denied for shard {shard_id} to requester {requester_id}")
                 return None
-            
+
             # Decrypt location data
-            decrypted_data = await self.encryption_manager.decrypt_data(
+            decrypted_data = await self.encryption_manager.decrypt_data()
                 entry.encrypted_location_data,
                 EncryptionAlgorithm.MULTI_LAYER_QUANTUM
             )
-            
+
             # Update access tracking
             entry.last_accessed = datetime.now(timezone.utc)
             entry.access_count += 1
-            
+
             # Update database
             await self._update_access_tracking(shard_id, entry)
-            
+
             return json.loads(decrypted_data.decode())
 
         except Exception as e:
@@ -301,7 +302,7 @@ data_dir = Path()(data_dir)
         key_hash = hashlib.sha256(api_key.encode()).hexdigest()
         return key_hash in self.backup_node_keys
 
-    async def _check_access_permission(self, entry: ShardLocationEntry,
+    async def _check_access_permission(self, entry: ShardLocationEntry,)
                                      requester_id: str, api_key: Optional[str]) -> bool:
         """Check if requester has permission to access shard location."""
         # Backup node only shards require valid API key
@@ -322,12 +323,12 @@ data_dir = Path()(data_dir)
         for db_path in databases:
             try:
                 async with aiosqlite.connect(db_path) as db:
-                    await db.execute("""
+                    await db.execute(""")
                         INSERT OR REPLACE INTO shard_locations
-                        (shard_id, encrypted_location_data, access_level_required,
+                        (shard_id, encrypted_location_data, access_level_required,)
                          backup_node_only, created_at, redundancy_locations, verification_hash)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, (
+                    """, ()
                         entry.shard_id,
                         entry.encrypted_location_data,
                         entry.access_level_required.value,
@@ -344,7 +345,7 @@ data_dir = Path()(data_dir)
         """Load backup node API keys from database."""
         try:
             async with aiosqlite.connect(self.primary_db_path) as db:
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT key_hash FROM backup_node_keys
                     WHERE active = TRUE AND (expires_at IS NULL OR expires_at > ?)
                 """, (datetime.now(timezone.utc).isoformat(),)) as cursor:
@@ -359,14 +360,14 @@ data_dir = Path()(data_dir)
         """Load shard locations into memory cache."""
         try:
             async with aiosqlite.connect(self.primary_db_path) as db:
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT shard_id, encrypted_location_data, access_level_required,
                            backup_node_only, created_at, last_accessed, access_count,
                            redundancy_locations, verification_hash
                     FROM shard_locations
                 """) as cursor:
                     async for row in cursor:
-                        entry = ShardLocationEntry(
+                        entry = ShardLocationEntry()
                             shard_id=row[0],
                             encrypted_location_data=row[1],
                             access_level_required=AccessLevel(row[2]),
@@ -383,7 +384,7 @@ data_dir = Path()(data_dir)
         except Exception as e:
             logger.error(f"Failed to load locations cache: {e}")
 
-    async def _log_access_attempt(self, shard_id: str, requester_id: str,
+    async def _log_access_attempt(self, shard_id: str, requester_id: str,)
                                 access_level: AccessLevel, granted: bool):
         """Log access attempt for security auditing."""
         log_entry = {
@@ -399,7 +400,7 @@ data_dir = Path()(data_dir)
         # Store in database
         try:
             async with aiosqlite.connect(self.primary_db_path) as db:
-                await db.execute("""
+                await db.execute(""")
                     INSERT INTO access_logs
                     (shard_id, requester_id, access_level, granted, timestamp)
                     VALUES (?, ?, ?, ?, ?)
@@ -436,14 +437,14 @@ data_dir = Path()(data_dir)
         for db_path in [self.primary_db_path, self.secondary_db_path, self.tertiary_db_path]:
             try:
                 async with aiosqlite.connect(db_path) as db:
-                    await db.execute("""
+                    await db.execute(""")
                         DELETE FROM access_logs WHERE timestamp < ?
                     """, (cutoff_date.isoformat(),))
                     await db.commit()
             except Exception as e:
                 logger.error(f"Failed to cleanup logs in {db_path}: {e}")
 
-    async def add_backup_node_key(self, node_id: str, api_key: str,
+    async def add_backup_node_key(self, node_id: str, api_key: str,)
                                 permissions: List[str], expires_at: Optional[datetime] = None) -> bool:
         """Add a new backup node API key."""
         try:
@@ -453,11 +454,11 @@ data_dir = Path()(data_dir)
             # Store in all databases
             for db_path in [self.primary_db_path, self.secondary_db_path, self.tertiary_db_path]:
                 async with aiosqlite.connect(db_path) as db:
-                    await db.execute("""
+                    await db.execute(""")
                         INSERT INTO backup_node_keys
                         (key_id, key_hash, node_id, created_at, expires_at, permissions, active)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, (
+                    """, ()
                         key_id, key_hash, node_id,
                         datetime.now(timezone.utc).isoformat(),
                         expires_at.isoformat() if expires_at else None,

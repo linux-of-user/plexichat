@@ -8,23 +8,6 @@ from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, func, select
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -32,7 +15,7 @@ from pydantic import BaseModel
 
 from plexichat.app.db import get_session
 from plexichat.app.logger_config import logger
-from plexichat.app.models.device_management import (
+from plexichat.app.models.device_management import ()
     from plexichat.infrastructure.utils.auth import get_current_user,
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
@@ -42,6 +25,7 @@ from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
+import time
 
     API,
     ConnectionType,
@@ -125,7 +109,7 @@ router = APIRouter(prefix="/api/v1/devices", tags=["Device Management"])
 
 
 @router.post("/register")
-async def register_device(
+async def register_device()
     request: DeviceRegistrationRequest,
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
@@ -134,7 +118,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     """Register a new storage device."""
     try:
         # Check if device already exists
-        existing_device = session.exec(
+        existing_device = session.exec()
             select(StorageDevice).where(StorageDevice.hardware_id == request.hardware_id)
         ).first()
 
@@ -165,7 +149,7 @@ datetime.utcnow()
             session.commit()
             session.refresh(existing_device)
 
-            return JSONResponse({
+            return JSONResponse({)
                 "success": True,
                 "message": "Device updated successfully",
                 "device_id": existing_device.id,
@@ -173,7 +157,7 @@ datetime.utcnow()
             })
 
         # Create new device
-        device = StorageDevice(
+        device = StorageDevice()
             device_name=request.device_name,
             device_type=request.device_type,
             hardware_id=request.hardware_id,
@@ -190,7 +174,6 @@ datetime.utcnow()
             geographic_region=request.geographic_region,
             capabilities=request.capabilities,
             status=DeviceStatus.ONLINE,
-            from datetime import datetime
 last_seen_at = datetime.now()
 datetime.utcnow()
         )
@@ -201,7 +184,7 @@ datetime.utcnow()
 
         logger.info(f"Registered new device: {device.device_name} ({device.hardware_id}) for user {current_user.id}")
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": "Device registered successfully",
             "device_id": device.id,
@@ -214,7 +197,7 @@ datetime.utcnow()
 
 
 @router.post("/{device_id}/heartbeat")
-async def device_heartbeat(
+async def device_heartbeat()
     device_id: int,
     update: DeviceStatusUpdate,
     session: Session = Depends(get_session),
@@ -258,7 +241,7 @@ datetime.utcnow()
 
         session.commit()
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": "Heartbeat received",
             "device_status": device.status.value,
@@ -273,7 +256,7 @@ datetime.utcnow()
 
 
 @router.post("/{device_id}/capability-report")
-async def submit_capability_report(
+async def submit_capability_report()
     device_id: int,
     report: DeviceCapabilityReportRequest,
     session: Session = Depends(get_session),
@@ -290,8 +273,8 @@ async def submit_capability_report(
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Count current shards
-        shard_counts = session.exec(
-            select(
+        shard_counts = session.exec()
+            select()
                 func.count(DeviceShardAssignment.id).label("total"),
                 func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified).label("verified")
             ).where(
@@ -304,7 +287,7 @@ async def submit_capability_report(
         verified_shards = shard_counts.verified if shard_counts else 0
 
         # Create capability report
-        capability_report = DeviceCapabilityReport(
+        capability_report = DeviceCapabilityReport()
             device_id=device_id,
             cpu_usage_percent=report.cpu_usage_percent,
             memory_usage_percent=report.memory_usage_percent,
@@ -337,7 +320,7 @@ datetime.utcnow()
 
         session.commit()
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": "Capability report submitted",
             "stored_shards": stored_shards,
@@ -352,29 +335,29 @@ datetime.utcnow()
 
 
 @router.get("/my-devices")
-async def get_my_devices(
+async def get_my_devices()
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
 User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get devices owned by the current user."""
     try:
-        devices = session.exec(
+        devices = session.exec()
             select(StorageDevice).where(StorageDevice.user_id == current_user.id)
         ).all()
 
         result = []
         for device in devices:
             # Get shard assignments
-            shard_assignments = session.exec(
-                select(DeviceShardAssignment).where(
+            shard_assignments = session.exec()
+                select(DeviceShardAssignment).where()
                     (DeviceShardAssignment.device_id == device.id) &
                     (DeviceShardAssignment.is_active)
                 )
             ).all()
 
             # Get latest capability report
-            latest_report = session.exec(
+            latest_report = session.exec()
                 select(DeviceCapabilityReport)
                 .where(DeviceCapabilityReport.device_id == device.id)
                 .order_by(DeviceCapabilityReport.reported_at.desc())
@@ -440,7 +423,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/{device_id}/shards")
-async def get_device_shards(
+async def get_device_shards()
     device_id: int,
     limit: int = Query(50, le=100),
     offset: int = Query(0, ge=0),
@@ -459,7 +442,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Get shard assignments
-        assignments = session.exec(
+        assignments = session.exec()
             select(DeviceShardAssignment)
             .where(DeviceShardAssignment.device_id == device_id)
             .order_by(DeviceShardAssignment.assigned_at.desc())
@@ -469,7 +452,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
         shard_info = []
         for assignment in assignments:
-            shard_info.append({
+            shard_info.append({)
                 "assignment_id": assignment.id,
                 "shard_id": assignment.shard_id,
                 "backup_id": assignment.backup_id,
@@ -500,7 +483,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.delete("/{device_id}/shards/{shard_id}")
-async def delete_device_shard(
+async def delete_device_shard()
     device_id: int,
     shard_id: int,
     request: ShardDeletionRequest,
@@ -519,8 +502,8 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Find shard assignment
-        assignment = session.exec(
-            select(DeviceShardAssignment).where(
+        assignment = session.exec()
+            select(DeviceShardAssignment).where()
                 (DeviceShardAssignment.device_id == device_id) &
                 (DeviceShardAssignment.shard_id == shard_id) &
                 (DeviceShardAssignment.is_active)
@@ -542,7 +525,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
         logger.info(f"Deleted shard {shard_id} from device {device_id} (reason: {request.reason})")
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": "Shard deleted successfully",
             "shard_id": shard_id,
@@ -558,7 +541,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/network-status")
-async def get_network_status(
+async def get_network_status()
     session: Session = Depends(get_session),
     current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
 ) -> Dict[str, Any]:
@@ -575,7 +558,7 @@ async def get_network_status(
 
 
 @router.get("/backup-coverage")
-async def get_backup_coverage(
+async def get_backup_coverage()
     force_refresh: bool = Query(False, description="Force refresh of cached data"),
     session: Session = Depends(get_session),
     current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
@@ -618,7 +601,7 @@ datetime.utcnow().isoformat()
 
 
 @router.get("/shard-distribution")
-async def get_shard_distribution(
+async def get_shard_distribution()
     session: Session = Depends(get_session),
     current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
 ) -> Dict[str, Any]:

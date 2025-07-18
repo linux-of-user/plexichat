@@ -9,14 +9,11 @@ from typing import Any, Dict, List, Optional
 from sqlmodel import Session, select
 
 from ....core_system.security.input_validation import get_input_validator
-from ....core_system.security.unified_audit_system import (
+from ....core_system.security.unified_audit_system import ()
 from ....core_system.security.unified_audit_system import SecurityLevel
 from ....core_system.security.unified_audit_system import SecurityLevel as AuthSecurityLevel
-from ....core_system.security.unified_audit_system import (
-from datetime import datetime
+from ....core_system.security.unified_audit_system import ()
 
-
-from datetime import datetime
 
     from plexichat.infrastructure.utils.auth import get_current_user,
 from plexichat.features.users.user import User
@@ -37,6 +34,7 @@ from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
+import time
 
     API,
     AUTHENTICATION,
@@ -134,14 +132,14 @@ async def require_enhanced_backup_auth(request: Request, token: str = Depends(se
     """Require enhanced authentication for backup operations."""
     try:
         # Validate token with critical security level for enhanced backups
-        auth_result = await auth_manager.require_authentication(
+        auth_result = await auth_manager.require_authentication()
             token.credentials,
             AuthSecurityLevel.CRITICAL
         )
 
         if not auth_result.get('authenticated'):
             # Log failed authentication
-            audit_system.log_security_event(
+            audit_system.log_security_event()
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Failed enhanced backup authentication from {request.client.host if request.client else 'unknown'}",
                 SecuritySeverity.CRITICAL,
@@ -156,7 +154,7 @@ async def require_enhanced_backup_auth(request: Request, token: str = Depends(se
         permissions = auth_result.get('permissions', [])
         if not any(perm in permissions for perm in ['super_admin', 'enhanced_backup_admin', 'government_backup']):
             # Log authorization failure
-            audit_system.log_security_event(
+            audit_system.log_security_event()
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Insufficient permissions for enhanced backup operations: {permissions}",
                 SecuritySeverity.CRITICAL,
@@ -208,7 +206,7 @@ router = APIRouter(prefix="/api/v1/backup", tags=["Enhanced Backup"])
 
 
 @router.post("/create")
-async def create_backup(
+async def create_backup()
     request: BackupCreateRequest,
     background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
@@ -222,14 +220,14 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     # For now, allow all authenticated users
 
     # Create backup in background
-    backup = await backup_service.create_automatic_backup(
+    backup = await backup_service.create_automatic_backup()
         backup_name=request.backup_name,
         security_level=request.security_level,
         created_by=current_user.id
     )
 
     if backup:
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "backup_id": backup.id,
             "backup_uuid": backup.uuid,
@@ -238,14 +236,14 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             "message": "Backup creation started"
         })
     else:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create backup"
         )
 
 
 @router.get("/list")
-async def list_backups(
+async def list_backups()
     limit: int = Query(50, le=100),
     offset: int = Query(0, ge=0),
     backup_type: Optional[BackupType] = Query(None),
@@ -269,7 +267,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     result = []
     for backup in backups:
-        result.append({
+        result.append({)
             "id": backup.id,
             "uuid": backup.uuid,
             "backup_name": backup.backup_name,
@@ -289,7 +287,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/{backup_id}")
-async def get_backup_details(
+async def get_backup_details()
     backup_id: int,
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
@@ -301,11 +299,11 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise HTTPException(status_code=404, detail="Backup not found")
 
     # Get shard distribution information
-    shards = session.exec(
+    shards = session.exec()
         select(EnhancedBackupShard).where(EnhancedBackupShard.backup_id == backup_id)
     ).all()
 
-    distributions = session.exec(
+    distributions = session.exec()
         select(ShardDistribution).where(ShardDistribution.backup_id == backup_id)
     ).all()
 
@@ -378,7 +376,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.post("/recover")
-async def recover_database(
+async def recover_database()
     request: BackupRecoveryRequest,
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
@@ -390,14 +388,14 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     # Check if user has recovery permissions
     # This should be restricted to administrators
 
-    result = await backup_service.recover_database_from_backup(
+    result = await backup_service.recover_database_from_backup()
         backup_id=request.backup_id,
         recovery_type=request.recovery_type,
         requested_by=current_user.id
     )
 
     if result and result.get('success'):
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "recovery_id": result.get('recovery_id'),
             "restored_records": result.get('restored_records'),
@@ -405,14 +403,14 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             "message": "Database recovery completed successfully"
         })
     else:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database recovery failed"
         )
 
 
 @router.get("/recovery/logs")
-async def get_recovery_logs(
+async def get_recovery_logs()
     limit: int = Query(20, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
@@ -420,7 +418,7 @@ async def get_recovery_logs(
 User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get recovery operation logs."""
-    statement = select(BackupRecoveryLog).order_by(
+    statement = select(BackupRecoveryLog).order_by()
         BackupRecoveryLog.started_at.desc()
     ).offset(offset).limit(limit)
 
@@ -431,7 +429,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         backup = session.get(EnhancedBackup, log.backup_id)
         requester = session.get(EnhancedUser, log.requested_by)
 
-        result.append({
+        result.append({)
             "id": log.id,
             "uuid": log.uuid,
             "backup_name": backup.backup_name if backup else "Unknown",
@@ -451,7 +449,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.post("/nodes/register")
-async def register_backup_node(
+async def register_backup_node()
     request: BackupNodeRequest,
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
@@ -460,7 +458,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     """Register a new backup node."""
     # Check if user has admin permissions
 
-    backup_node = BackupNode(
+    backup_node = BackupNode()
         node_name=request.node_name,
         node_type=request.node_type,
         hostname=request.hostname,
@@ -475,7 +473,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     session.commit()
     session.refresh(backup_node)
 
-    return JSONResponse({
+    return JSONResponse({)
         "success": True,
         "node_id": backup_node.id,
         "node_uuid": backup_node.uuid,
@@ -484,7 +482,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/nodes/list")
-async def list_backup_nodes(
+async def list_backup_nodes()
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
 User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
@@ -496,7 +494,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     for node in nodes:
         utilization = (node.used_capacity_bytes / node.total_capacity_bytes * 100) if node.total_capacity_bytes > 0 else 0
 
-        result.append({
+        result.append({)
             "id": node.id,
             "uuid": node.uuid,
             "node_name": node.node_name,
@@ -525,7 +523,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.post("/quotas/set")
-async def set_user_quota(
+async def set_user_quota()
     request: UserQuotaRequest,
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
@@ -535,7 +533,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     # Check if user has admin permissions
 
     # Check if quota already exists
-    existing_quota = session.exec(
+    existing_quota = session.exec()
         select(UserBackupQuota).where(UserBackupQuota.user_id == request.user_id)
     ).first()
 
@@ -549,7 +547,7 @@ updated_at = datetime.now()
 datetime.utcnow()
     else:
         # Create new quota
-        quota = UserBackupQuota(
+        quota = UserBackupQuota()
             user_id=request.user_id,
             max_storage_bytes=int(request.max_storage_gb * 1024**3),
             max_shards=request.max_shards,
@@ -559,14 +557,14 @@ datetime.utcnow()
 
     session.commit()
 
-    return JSONResponse({
+    return JSONResponse({)
         "success": True,
         "message": "User backup quota updated successfully"
     })
 
 
 @router.get("/statistics")
-async def get_backup_statistics(
+async def get_backup_statistics()
     session: Session = Depends(get_session),
     current_user: Enhancedfrom plexichat.features.users.user import User
 User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)

@@ -4,6 +4,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat Updates Router
 
 Enhanced update management with comprehensive version control and performance optimization.
@@ -96,32 +97,32 @@ class UpdateHistory(BaseModel):
 
 class UpdateService:
     """Service class for update operations using EXISTING database abstraction layer."""
-    
+
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("version_check") if async_track_performance else lambda f: f
     async def get_version_info(self) -> VersionInfo:
         """Get version information with update check."""
         try:
             current_version = getattr(settings, 'VERSION', '1.0.0')
-            version_info = VersionInfo(
+            version_info = VersionInfo()
                 current_version=current_version,
                 latest_version=None,
                 update_available=False,
                 release_notes=None,
                 download_url=None
             )
-            
+
             # Check for updates if httpx is available
             if httpx:
                 try:
                     if self.performance_logger and timer:
                         with timer("update_check_request"):
                             async with httpx.AsyncClient(timeout=10.0) as client:
-                                response = await client.get(
+                                response = await client.get()
                                     getattr(settings, 'UPDATE_CHECK_URL', 'https://api.github.com/repos/plexichat/plexichat/releases/latest')
                                 )
                                 if response.status_code == 200:
@@ -133,7 +134,7 @@ class UpdateService:
                                     version_info.download_url = data.get('html_url', '')
                     else:
                         async with httpx.AsyncClient(timeout=10.0) as client:
-                            response = await client.get(
+                            response = await client.get()
                                 getattr(settings, 'UPDATE_CHECK_URL', 'https://api.github.com/repos/plexichat/plexichat/releases/latest')
                             )
                             if response.status_code == 200:
@@ -145,19 +146,19 @@ class UpdateService:
                                 version_info.download_url = data.get('html_url', '')
                 except Exception as e:
                     logger.error(f"Error checking for updates: {e}")
-            
+
             return version_info
-            
+
         except Exception as e:
             logger.error(f"Error getting version info: {e}")
-            return VersionInfo(
+            return VersionInfo()
                 current_version=getattr(settings, 'VERSION', '1.0.0'),
                 latest_version=None,
                 update_available=False,
                 release_notes=None,
                 download_url=None
             )
-    
+
     @async_track_performance("update_history") if async_track_performance else lambda f: f
     async def get_update_history(self, limit: int = 50) -> List[UpdateHistory]:
         """Get update history using EXISTING database abstraction layer."""
@@ -165,22 +166,22 @@ class UpdateService:
             try:
                 query = """
                     SELECT id, version_from, version_to, status, started_at, completed_at, error_message
-                    FROM update_history 
+                    FROM update_history
                     ORDER BY started_at DESC
                     LIMIT ?
                 """
                 params = {"limit": limit}
-                
+
                 if self.performance_logger and timer:
                     with timer("update_history_query"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 history = []
                 if result:
                     for row in result:
-                        history.append(UpdateHistory(
+                        history.append(UpdateHistory())
                             id=row[0],
                             version_from=row[1],
                             version_to=row[2],
@@ -189,15 +190,15 @@ class UpdateService:
                             completed_at=row[5],
                             error_message=row[6]
                         ))
-                
+
                 return history
-                    
+
             except Exception as e:
                 logger.error(f"Error getting update history: {e}")
                 return []
-        
+
         return []
-    
+
     @async_track_performance("update_log") if async_track_performance else lambda f: f
     async def log_update_attempt(self, version_from: str, version_to: str, status: str, error_message: Optional[str] = None) -> int:
         """Log update attempt using EXISTING database abstraction layer."""
@@ -216,29 +217,29 @@ class UpdateService:
                     "completed_at": datetime.now() if status in ["completed", "failed"] else None,
                     "error_message": error_message
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("update_log_insert"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 return result[0][0] if result else 0
-                    
+
             except Exception as e:
                 logger.error(f"Error logging update attempt: {e}")
                 return 0
-        
+
         return 0
-    
+
     async def perform_update(self, target_version: str) -> UpdateStatus:
         """Perform system update (placeholder implementation)."""
         try:
             current_version = getattr(settings, 'VERSION', '1.0.0')
-            
+
             # Log update attempt
             update_id = await self.log_update_attempt(current_version, target_version, "started")
-            
+
             # Placeholder update logic
             # In a real implementation, this would:
             # 1. Download the new version
@@ -246,27 +247,27 @@ class UpdateService:
             # 3. Install new version
             # 4. Restart services
             # 5. Verify installation
-            
+
             # For now, just simulate an update
             import asyncio
             await asyncio.sleep(2)  # Simulate update time
-            
+
             # Log completion
             await self.log_update_attempt(current_version, target_version, "completed")
-            
-            return UpdateStatus(
+
+            return UpdateStatus()
                 status="completed",
                 message=f"Successfully updated from {current_version} to {target_version}",
                 progress=100,
                 started_at=datetime.now(),
                 completed_at=datetime.now()
             )
-            
+
         except Exception as e:
             logger.error(f"Error performing update: {e}")
             await self.log_update_attempt(current_version, target_version, "failed", str(e))
-            
-            return UpdateStatus(
+
+            return UpdateStatus()
                 status="failed",
                 message=f"Update failed: {str(e)}",
                 progress=0,
@@ -277,31 +278,31 @@ class UpdateService:
 # Initialize service
 update_service = UpdateService()
 
-@router.get(
+@router.get()
     "/version",
     response_model=VersionInfo,
     summary="Get version information"
 )
-async def get_version_info(
+async def get_version_info()
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Get current version and check for updates."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Version info requested by user {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("version_check_requests", 1, "count")
-    
+
     return await update_service.get_version_info()
 
-@router.get(
+@router.get()
     "/history",
     response_model=List[UpdateHistory],
     summary="Get update history"
 )
-async def get_update_history(
+async def get_update_history()
     request: Request,
     limit: int = 50,
     current_user: Dict[str, Any] = Depends(require_admin)
@@ -309,38 +310,38 @@ async def get_update_history(
     """Get update history (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Update history requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("update_history_requests", 1, "count")
-    
+
     return await update_service.get_update_history(limit)
 
-@router.post(
+@router.post()
     "/check",
     response_model=VersionInfo,
     summary="Check for updates"
 )
-async def check_for_updates(
+async def check_for_updates()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Force check for updates (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Update check forced by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("forced_update_checks", 1, "count")
-    
+
     return await update_service.get_version_info()
 
-@router.post(
+@router.post()
     "/install/{version}",
     response_model=UpdateStatus,
     summary="Install update"
 )
-async def install_update(
+async def install_update()
     request: Request,
     version: str,
     background_tasks: BackgroundTasks,
@@ -349,79 +350,79 @@ async def install_update(
     """Install a specific version update (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Update to version {version} initiated by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("update_installations", 1, "count")
-    
+
     # Start update in background
     background_tasks.add_task(update_service.perform_update, version)
-    
-    return UpdateStatus(
+
+    return UpdateStatus()
         status="started",
         message=f"Update to version {version} has been initiated",
         progress=0,
         started_at=datetime.now()
     )
 
-@router.get(
+@router.get()
     "/status",
     response_model=UpdateStatus,
     summary="Get update status"
 )
-async def get_update_status(
+async def get_update_status()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Get current update status (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("update_status_requests", 1, "count")
-    
+
     # In a real implementation, this would check the actual update status
     # For now, return a default status
-    return UpdateStatus(
+    return UpdateStatus()
         status="idle",
         message="No update in progress",
         progress=0
     )
 
-@router.post(
+@router.post()
     "/backup",
     summary="Create backup before update"
 )
-async def create_backup(
+async def create_backup()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Create a backup before performing updates (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Backup creation requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("backup_requests", 1, "count")
-    
+
     try:
         # Placeholder backup logic
         # In a real implementation, this would:
         # 1. Create database backup
         # 2. Archive current installation
         # 3. Store configuration files
-        
+
         backup_path = f"/backups/plexichat_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         return {
             "message": "Backup created successfully",
             "backup_path": backup_path,
             "timestamp": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Error creating backup: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create backup"
         )

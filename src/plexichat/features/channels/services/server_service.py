@@ -49,7 +49,7 @@ class ServerService:
             server_data["owner_id"] = owner_id
 
             # Create server with defaults
-            server = await self.server_repository.create_server_with_defaults(
+            server = await self.server_repository.create_server_with_defaults()
                 server_data
             )
 
@@ -86,7 +86,7 @@ class ServerService:
             logger.error(f"Failed to get server {server_id}: {e}")
             return None
 
-    async def update_server(
+    async def update_server()
         self, server_id: str, user_id: str, update_data: Dict[str, Any]
     ) -> Optional[Server]:
         """
@@ -146,7 +146,7 @@ class ServerService:
             logger.error(f"Failed to delete server {server_id}: {e}")
             raise
 
-    async def join_server(
+    async def join_server()
         self, server_id: str, user_id: str, invite_code: Optional[str] = None
     ) -> bool:
         """
@@ -233,7 +233,7 @@ class ServerService:
             logger.error(f"Failed to get user servers for {user_id}: {e}")
             return []
 
-    async def get_server_members(
+    async def get_server_members()
         self, server_id: str, user_id: str
     ) -> List[Dict[str, Any]]:
         """
@@ -249,7 +249,7 @@ class ServerService:
         try:
             # Check permissions
             if not await self._can_user_view_server(server_id, user_id):
-                raise PermissionError(
+                raise PermissionError()
                     "User does not have permission to view server members"
                 )
 
@@ -260,7 +260,7 @@ class ServerService:
             logger.error(f"Failed to get server members for {server_id}: {e}")
             raise
 
-    async def kick_member(
+    async def kick_member()
         self, server_id: str, user_id: str, target_user_id: str
     ) -> bool:
         """
@@ -286,7 +286,7 @@ class ServerService:
             # TODO: Remove ServerMember record
             # TODO: Update server member count
 
-            logger.info(
+            logger.info()
                 f"User {target_user_id} kicked from server {server_id} by {user_id}"
             )
             return True
@@ -300,7 +300,7 @@ class ServerService:
     async def _can_user_view_server(self, server_id: str, user_id: str) -> bool:
         """Check if user can view server."""
         # User can view if they are a member or owner
-        return await self.server_repository.is_member(
+        return await self.server_repository.is_member()
             server_id, user_id
         ) or await self.server_repository.is_owner(server_id, user_id)
 
@@ -316,7 +316,7 @@ class ServerService:
 
     # Validation methods
 
-    async def _validate_server_creation(
+    async def _validate_server_creation()
         self, owner_id: str, server_data: Dict[str, Any]
     ) -> None:
         """Validate server creation data."""

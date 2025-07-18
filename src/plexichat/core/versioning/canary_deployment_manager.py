@@ -18,9 +18,9 @@ from .canary_node_selector import CanaryNodeSelector
 
 from datetime import datetime
 
-from datetime import datetime
 
 """
+import time
 PlexiChat Canary Deployment Manager
 
 Advanced canary deployment system for staged rollouts with:
@@ -163,19 +163,19 @@ class CanaryDeploymentManager:
 
         # Default health checks
         self.default_health_checks = [
-            HealthCheck(
+            HealthCheck()
                 check_type=HealthCheckType.HTTP_ENDPOINT,
                 endpoint="/api/v1/health",
                 threshold=200,
                 comparison="equals"
             ),
-            HealthCheck(
+            HealthCheck()
                 check_type=HealthCheckType.ERROR_RATE,
                 metric_name="error_rate_percent",
                 threshold=1.0,
                 comparison="less_than"
             ),
-            HealthCheck(
+            HealthCheck()
                 check_type=HealthCheckType.RESPONSE_TIME,
                 metric_name="avg_response_time_ms",
                 threshold=1000.0,
@@ -198,14 +198,13 @@ class CanaryDeploymentManager:
 
         logger.info("Canary deployment manager initialized")
 
-    async def create_deployment_plan(self, update_id: str,
+    async def create_deployment_plan(self, update_id: str,)
                                    strategy: CanaryStrategy = CanaryStrategy.PERCENTAGE_BASED,
                                    custom_config: Optional[Dict[str, Any]] = None) -> CanaryDeploymentPlan:
         """Create canary deployment plan."""
-        deployment_id = f"canary_{update_id}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+        deployment_id = f"canary_{update_id}_{int(datetime.now().timestamp())}"
 
-        plan = CanaryDeploymentPlan(
+        plan = CanaryDeploymentPlan()
             deployment_id=deployment_id,
             update_id=update_id,
             strategy=strategy
@@ -274,7 +273,7 @@ datetime = datetime.now().timestamp())}"
 
     async def execute_canary_deployment(self, plan: CanaryDeploymentPlan) -> CanaryDeploymentResult:
         """Execute canary deployment with progressive rollout."""
-        result = CanaryDeploymentResult(
+        result = CanaryDeploymentResult()
             deployment_id=plan.deployment_id,
             phase=CanaryPhase.PREPARING,
             success=False,
@@ -299,7 +298,7 @@ datetime = datetime.now().timestamp())}"
 
                 # Deploy to selected nodes
                 result.phase = CanaryPhase.DEPLOYING
-                deployment_success = await self._deploy_to_canary_nodes(
+                deployment_success = await self._deploy_to_canary_nodes()
                     selected_nodes, plan, result
                 )
 
@@ -308,7 +307,7 @@ datetime = datetime.now().timestamp())}"
 
                 # Monitor health during phase
                 result.phase = CanaryPhase.MONITORING
-                monitoring_success = await self._monitor_canary_health(
+                monitoring_success = await self._monitor_canary_health()
                     selected_nodes, plan, result, phase_config.get("duration_minutes", 15)
                 )
 
@@ -317,7 +316,7 @@ datetime = datetime.now().timestamp())}"
 
                 # Evaluate success criteria
                 result.phase = CanaryPhase.EVALUATING
-                evaluation_success = await self._evaluate_canary_success(
+                evaluation_success = await self._evaluate_canary_success()
                     selected_nodes, plan, result
                 )
 
@@ -357,7 +356,7 @@ datetime = datetime.now().timestamp())}"
 
         return result
 
-    async def _select_canary_nodes(self, plan: CanaryDeploymentPlan,
+    async def _select_canary_nodes(self, plan: CanaryDeploymentPlan,)
                                  phase_config: Dict[str, Any],
                                  result: CanaryDeploymentResult) -> List[CanaryNode]:
         """Select nodes for canary deployment phase."""
@@ -368,7 +367,7 @@ datetime = datetime.now().timestamp())}"
                 return nodes
             else:
                 # Fallback for standalone mode
-                return [CanaryNode(
+                return [CanaryNode()
                     node_id="local",
                     node_type="standalone",
                     region="local",
@@ -380,7 +379,7 @@ datetime = datetime.now().timestamp())}"
             result.add_log(f"Node selection failed: {e}", "ERROR")
             return []
 
-    async def _deploy_to_canary_nodes(self, nodes: List[CanaryNode],
+    async def _deploy_to_canary_nodes(self, nodes: List[CanaryNode],)
                                     plan: CanaryDeploymentPlan,
                                     result: CanaryDeploymentResult) -> bool:
         """Deploy update to canary nodes."""
@@ -419,7 +418,7 @@ datetime = datetime.now().timestamp())}"
         await asyncio.sleep(1)  # Simulate deployment time
         return True  # Simulate successful deployment
 
-    async def _monitor_canary_health(self, nodes: List[CanaryNode],
+    async def _monitor_canary_health(self, nodes: List[CanaryNode],)
                                    plan: CanaryDeploymentPlan,
                                    result: CanaryDeploymentResult,
                                    duration_minutes: int) -> bool:
@@ -485,7 +484,7 @@ datetime = datetime.now().timestamp())}"
 
         return health_data
 
-    async def _evaluate_canary_success(self, nodes: List[CanaryNode],
+    async def _evaluate_canary_success(self, nodes: List[CanaryNode],)
                                      plan: CanaryDeploymentPlan,
                                      result: CanaryDeploymentResult) -> bool:
         """Evaluate if canary deployment meets success criteria."""
@@ -511,7 +510,7 @@ datetime = datetime.now().timestamp())}"
             result.add_log(f"Success evaluation failed: {e}", "ERROR")
             return False
 
-    async def _rollback_canary_deployment(self, plan: CanaryDeploymentPlan,
+    async def _rollback_canary_deployment(self, plan: CanaryDeploymentPlan,)
                                         result: CanaryDeploymentResult) -> bool:
         """Rollback canary deployment."""
         try:

@@ -45,38 +45,38 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 class PerformanceTracker:
     """Performance tracking using EXISTING systems."""
-    
+
     def __init__(self):
         self.performance_logger = performance_logger
         self.optimization_engine = optimization_engine
         self.metrics: Dict[str, Any] = {}
         self.start_times: Dict[str, float] = {}
-    
+
     def start_timer(self, operation: str):
         """Start timing an operation."""
         self.start_times[operation] = time.time()
-    
+
     def end_timer(self, operation: str) -> float:
         """End timing and return duration."""
         if operation in self.start_times:
             duration = time.time() - self.start_times[operation]
             del self.start_times[operation]
-            
+
             # Log to EXISTING performance logger
             if self.performance_logger:
                 self.performance_logger.record_metric(f"{operation}_duration", duration, "seconds")
-            
+
             return duration
         return 0.0
-    
+
     def record_metric(self, name: str, value: Any, unit: str = "count"):
         """Record performance metric."""
         if self.performance_logger:
             self.performance_logger.record_metric(name, value, unit)
-        
+
         # Store locally as well
         self.metrics[name] = {"value": value, "unit": unit, "timestamp": datetime.now()}
-    
+
     def get_metrics(self) -> Dict[str, Any]:
         """Get current metrics."""
         return self.metrics.copy()
@@ -90,7 +90,7 @@ def async_track_performance(operation_name: str):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             start_time = time.time()
-            
+
             try:
                 # Use EXISTING timer if available
                 if performance_logger and timer:
@@ -98,12 +98,12 @@ def async_track_performance(operation_name: str):
                         result = await func(*args, **kwargs)
                 else:
                     result = await func(*args, **kwargs)
-                
+
                 # Track success
                 performance_tracker.record_metric(f"{operation_name}_success", 1)
-                
+
                 return result
-                
+
             except Exception as e:
                 # Track failure
                 performance_tracker.record_metric(f"{operation_name}_failure", 1)
@@ -113,7 +113,7 @@ def async_track_performance(operation_name: str):
                 # Track duration
                 duration = time.time() - start_time
                 performance_tracker.record_metric(f"{operation_name}_duration", duration, "seconds")
-        
+
         return wrapper
     return decorator
 
@@ -123,7 +123,7 @@ def track_performance(operation_name: str):
         @wraps(func)
         def wrapper(*args, **kwargs):
             start_time = time.time()
-            
+
             try:
                 # Use EXISTING timer if available
                 if performance_logger and timer:
@@ -131,12 +131,12 @@ def track_performance(operation_name: str):
                         result = func(*args, **kwargs)
                 else:
                     result = func(*args, **kwargs)
-                
+
                 # Track success
                 performance_tracker.record_metric(f"{operation_name}_success", 1)
-                
+
                 return result
-                
+
             except Exception as e:
                 # Track failure
                 performance_tracker.record_metric(f"{operation_name}_failure", 1)
@@ -146,17 +146,17 @@ def track_performance(operation_name: str):
                 # Track duration
                 duration = time.time() - start_time
                 performance_tracker.record_metric(f"{operation_name}_duration", duration, "seconds")
-        
+
         return wrapper
     return decorator
 
 class PerformanceOptimizer:
     """Performance optimizer using EXISTING systems."""
-    
+
     def __init__(self):
         self.optimization_engine = optimization_engine
         self.performance_logger = performance_logger
-    
+
     async def optimize_query(self, query: str, params: Dict[str, Any]) -> str:
         """Optimize database query using EXISTING optimization engine."""
         try:
@@ -166,20 +166,20 @@ class PerformanceOptimizer:
         except Exception as e:
             logger.error(f"Query optimization error: {e}")
             return query
-    
+
     async def cache_result(self, key: str, value: Any, ttl: int = 300):
         """Cache result using EXISTING optimization engine."""
         try:
             if self.optimization_engine:
-                await self.optimization_engine.cache_set(key, value, ttl)
+                await self.optimization_engine.await cache_set(key, value, ttl)
         except Exception as e:
             logger.error(f"Cache set error: {e}")
-    
+
     async def get_cached_result(self, key: str) -> Optional[Any]:
         """Get cached result using EXISTING optimization engine."""
         try:
             if self.optimization_engine:
-                return await self.optimization_engine.cache_get(key)
+                return await self.optimization_engine.await cache_get(key)
             return None
         except Exception as e:
             logger.error(f"Cache get error: {e}")
@@ -216,51 +216,51 @@ def cache_result(ttl: int = 300, key_func: Optional[Callable] = None):
                 cache_key = key_func(*args, **kwargs)
             else:
                 cache_key = f"{func.__name__}_{hash(str(args) + str(kwargs))}"
-            
+
             # Try to get from cache
             cached_result = await performance_optimizer.get_cached_result(cache_key)
             if cached_result is not None:
                 record_metric("cache_hits", 1)
                 return cached_result
-            
+
             # Execute function
             result = await func(*args, **kwargs)
-            
+
             # Cache result
             await performance_optimizer.cache_result(cache_key, result, ttl)
             record_metric("cache_misses", 1)
-            
+
             return result
-        
+
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             # For sync functions, just execute without caching
             return func(*args, **kwargs)
-        
+
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
     return decorator
 
 # Rate limiting
 class RateLimiter:
     """Simple rate limiter."""
-    
+
     def __init__(self):
         self.requests: Dict[str, list] = {}
-    
+
     def is_allowed(self, key: str, limit: int, window: int) -> bool:
         """Check if request is allowed."""
         now = time.time()
-        
+
         if key not in self.requests:
             self.requests[key] = []
-        
+
         # Clean old requests
         self.requests[key] = [req_time for req_time in self.requests[key] if now - req_time < window]
-        
+
         # Check limit
         if len(self.requests[key]) >= limit:
             return False
-        
+
         # Add current request
         self.requests[key].append(now)
         return True
@@ -278,16 +278,16 @@ def rate_limit(limit: int, window: int = 60, key_func: Optional[Callable] = None
                 rate_key = key_func(*args, **kwargs)
             else:
                 rate_key = f"{func.__name__}_default"
-            
+
             if not rate_limiter.is_allowed(rate_key, limit, window):
                 from fastapi import HTTPException, status
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail="Rate limit exceeded"
                 )
-            
+
             return await func(*args, **kwargs)
-        
+
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             # Generate rate limit key
@@ -295,12 +295,12 @@ def rate_limit(limit: int, window: int = 60, key_func: Optional[Callable] = None
                 rate_key = key_func(*args, **kwargs)
             else:
                 rate_key = f"{func.__name__}_default"
-            
+
             if not rate_limiter.is_allowed(rate_key, limit, window):
                 raise Exception("Rate limit exceeded")
-            
+
             return func(*args, **kwargs)
-        
+
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
     return decorator
 
@@ -311,7 +311,7 @@ def get_memory_usage() -> Dict[str, Any]:
         import psutil
         process = psutil.Process()
         memory_info = process.memory_info()
-        
+
         return {
             "rss": memory_info.rss,
             "vms": memory_info.vms,

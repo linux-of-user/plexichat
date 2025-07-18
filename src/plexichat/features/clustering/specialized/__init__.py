@@ -47,7 +47,7 @@ def create_specialized_node(node_type: str, node_id: str, cluster_config: dict):
         ValueError: If node_type is not supported
     """
     if node_type not in NODE_TYPES:
-        raise ValueError(
+        raise ValueError()
             f"Unsupported node type: {node_type}. Supported types: {list(NODE_TYPES.keys())}"
         )
 

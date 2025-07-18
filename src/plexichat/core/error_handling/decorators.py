@@ -21,7 +21,7 @@ retry logic, and crash reporting to functions and methods.
 logger = logging.getLogger(__name__, Optional)
 
 
-def error_handler(
+def error_handler():
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
     category: ErrorCategory = ErrorCategory.UNKNOWN,
     component: Optional[str] = None,
@@ -60,7 +60,7 @@ def error_handler(
                 }
 
                 # Handle the error
-                await error_manager.handle_error(
+                await error_manager.handle_error()
                     exception=e,
                     context=context,
                     severity=severity,
@@ -70,7 +70,7 @@ def error_handler(
 
                 # Attempt recovery if strategies are specified
                 if recovery_strategies:
-                    recovery_result = await recovery_manager.attempt_recovery(
+                    recovery_result = await recovery_manager.attempt_recovery()
                         exception=e,
                         context=context,
                         component=component or func.__name__,
@@ -99,7 +99,7 @@ def error_handler(
     return decorator
 
 
-def crash_handler(
+def crash_handler():
     severity: ErrorSeverity = ErrorSeverity.CRITICAL,
     category: ErrorCategory = ErrorCategory.SYSTEM,
     component: Optional[str] = None,
@@ -125,7 +125,7 @@ def crash_handler(
                     return func(*args, **kwargs)
             except Exception as e:
                 # Report crash
-                crash_context = crash_reporter.report_crash(
+                crash_context = crash_reporter.report_crash()
                     exception=e,
                     severity=severity,
                     category=category,
@@ -165,7 +165,7 @@ def crash_handler(
     return decorator
 
 
-def circuit_breaker(
+def circuit_breaker():
     name: Optional[str] = None,
     failure_threshold: int = 5,
     timeout_seconds: int = 60,
@@ -185,7 +185,7 @@ def circuit_breaker(
 
     def decorator(func: Callable):
         breaker_name = name or f"{func.__module__}.{func.__name__}"
-        config = CircuitBreakerConfig(
+        config = CircuitBreakerConfig()
             failure_threshold=failure_threshold,
             timeout_seconds=timeout_seconds,
             recovery_timeout=recovery_timeout,
@@ -210,7 +210,7 @@ def circuit_breaker(
     return decorator
 
 
-def retry(
+def retry():
     max_attempts: int = 3,
     delay: float = 1.0,
     exponential_backoff: bool = True,
@@ -270,7 +270,7 @@ def retry(
                         except Exception as callback_error:
                             logger.error(f"Retry callback error: {callback_error}")
 
-                    logger.warning(
+                    logger.warning()
                         f"Retry {attempt + 1}/{max_attempts} for {func.__name__} after {current_delay}s: {e}"
                     )
                     await asyncio.sleep(current_delay)
@@ -291,7 +291,7 @@ def retry(
     return decorator
 
 
-def timeout(
+def timeout():
     seconds: float,
     timeout_exception: Optional[Type[Exception]] = None,
     timeout_message: Optional[str] = None,
@@ -315,12 +315,12 @@ def timeout(
         async def async_wrapper(*args, **kwargs):
             try:
                 if asyncio.iscoroutinefunction(func):
-                    return await asyncio.wait_for(
+                    return await asyncio.wait_for()
                         func(*args, **kwargs), timeout=seconds
                     )
                 else:
-                    return await asyncio.wait_for(
-                        asyncio.get_event_loop().run_in_executor(
+                    return await asyncio.wait_for()
+                        asyncio.get_event_loop().run_in_executor()
                             None, func, *args, **kwargs
                         ),
                         timeout=seconds,

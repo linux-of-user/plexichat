@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+import time
 PlexiChat Backup Node Main
 
 Main entry point for running PlexiChat backup nodes.
@@ -33,18 +34,18 @@ logger = get_logger(__name__)
 
 class BackupNodeMain:
     """Main backup node application."""
-    
+
     def __init__(self, config_path: Optional[str] = None):
         self.config_path = config_path
         self.config = self._load_config()
         self.server: Optional[BackupNodeServer] = None
         self.manager: Optional[BackupNodeManager] = None
         self.running = False
-        
+
         # Setup signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
-    
+
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file or create default."""
         default_config = {
@@ -67,7 +68,7 @@ class BackupNodeMain:
             "quantum_resistant": True,
             "geographic_location": "unknown"
         }
-        
+
         if self.config_path and Path(self.config_path).exists():
             try:
                 with open(self.config_path, 'r') as f:
@@ -86,14 +87,14 @@ class BackupNodeMain:
                 logger.info(f"Created default configuration: {config_file}")
             except Exception as e:
                 logger.error(f"Error saving default config: {e}")
-        
+
         return default_config
-    
+
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, initiating shutdown...")
         self.running = False
-    
+
     async def start(self) -> bool:
         """Start the backup node."""
         try:
@@ -102,54 +103,54 @@ class BackupNodeMain:
             logger.info(f"Storage Path: {self.config['storage_path']}")
             logger.info(f"Max Storage: {self.config['max_storage_gb']} GB")
             logger.info(f"Port: {self.config['port']}")
-            
+
             # Create backup node configuration
             if BackupNodeConfig:
                 node_config = BackupNodeConfig(**self.config)
-                
+
                 # Create and start server
                 self.server = BackupNodeServer(node_config)
-                
+
                 # Start background tasks
                 asyncio.create_task(self._health_monitor())
                 asyncio.create_task(self._cleanup_task())
                 asyncio.create_task(self._verification_task())
-                
+
                 self.running = True
-                
+
                 # Start the server
                 await self.server.start()
-                
+
             else:
                 logger.error("BackupNodeServer not available")
                 return False
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Error starting backup node: {e}")
             return False
-    
+
     async def stop(self) -> bool:
         """Stop the backup node."""
         try:
             logger.info("🛑 Stopping PlexiChat Backup Node")
-            
+
             self.running = False
-            
+
             if self.server:
                 await self.server.stop()
-            
+
             if self.manager:
                 await self.manager.close_all()
-            
+
             logger.info("✅ Backup node stopped successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error stopping backup node: {e}")
             return False
-    
+
     async def status(self) -> Dict[str, Any]:
         """Get backup node status."""
         try:
@@ -159,18 +160,18 @@ class BackupNodeMain:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "config": self.config
             }
-            
+
             if self.server:
                 # Get server status
                 server_status = await self.server.get_status()
                 status_info.update(server_status)
-            
+
             return status_info
-            
+
         except Exception as e:
             logger.error(f"Error getting status: {e}")
             return {"error": str(e)}
-    
+
     async def _health_monitor(self):
         """Background health monitoring task."""
         while self.running:
@@ -178,49 +179,49 @@ class BackupNodeMain:
                 if self.server:
                     # Perform health checks
                     health_status = await self.server.health_check()
-                    
+
                     if not health_status.get("healthy", False):
                         logger.warning("Health check failed")
                         # Could trigger alerts or recovery actions
-                
+
                 await asyncio.sleep(self.config.get("heartbeat_interval", 30))
-                
+
             except Exception as e:
                 logger.error(f"Error in health monitor: {e}")
                 await asyncio.sleep(60)  # Wait longer on error
-    
+
     async def _cleanup_task(self):
         """Background cleanup task."""
         while self.running:
             try:
                 if self.server and self.config.get("auto_cleanup_enabled", True):
                     await self.server.cleanup_old_shards()
-                
+
                 # Run cleanup every hour
                 await asyncio.sleep(3600)
-                
+
             except Exception as e:
                 logger.error(f"Error in cleanup task: {e}")
                 await asyncio.sleep(3600)
-    
+
     async def _verification_task(self):
         """Background verification task."""
         while self.running:
             try:
                 if self.server:
                     await self.server.verify_all_shards()
-                
+
                 # Run verification based on config interval
                 interval_hours = self.config.get("verification_interval_hours", 6)
                 await asyncio.sleep(interval_hours * 3600)
-                
+
             except Exception as e:
                 logger.error(f"Error in verification task: {e}")
                 await asyncio.sleep(3600)
 
 async def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser()
         description="PlexiChat Backup Node",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -231,51 +232,51 @@ Examples:
   python backup_node_main.py stop                     # Stop the node
         """
     )
-    
-    parser.add_argument(
+
+    parser.add_argument()
         "command",
         choices=["start", "stop", "status", "restart"],
         help="Command to execute"
     )
-    
-    parser.add_argument(
+
+    parser.add_argument()
         "--config", "-c",
         help="Configuration file path"
     )
-    
-    parser.add_argument(
+
+    parser.add_argument()
         "--port", "-p",
         type=int,
         help="Override port number"
     )
-    
-    parser.add_argument(
+
+    parser.add_argument()
         "--storage-path", "-s",
         help="Override storage path"
     )
-    
-    parser.add_argument(
+
+    parser.add_argument()
         "--max-storage-gb", "-m",
         type=int,
         help="Override maximum storage in GB"
     )
-    
-    parser.add_argument(
+
+    parser.add_argument()
         "--node-id", "-n",
         help="Override node ID"
     )
-    
-    parser.add_argument(
+
+    parser.add_argument()
         "--daemon", "-d",
         action="store_true",
         help="Run as daemon (background process)"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Create backup node instance
     backup_node = BackupNodeMain(args.config)
-    
+
     # Apply command line overrides
     if args.port:
         backup_node.config["port"] = args.port
@@ -285,24 +286,24 @@ Examples:
         backup_node.config["max_storage_gb"] = args.max_storage_gb
     if args.node_id:
         backup_node.config["node_id"] = args.node_id
-    
+
     try:
         if args.command == "start":
             logger.info("Starting backup node...")
             success = await backup_node.start()
             if not success:
                 sys.exit(1)
-                
+
         elif args.command == "stop":
             logger.info("Stopping backup node...")
             success = await backup_node.stop()
             if not success:
                 sys.exit(1)
-                
+
         elif args.command == "status":
             status = await backup_node.status()
             print(json.dumps(status, indent=2))
-            
+
         elif args.command == "restart":
             logger.info("Restarting backup node...")
             await backup_node.stop()
@@ -310,7 +311,7 @@ Examples:
             success = await backup_node.start()
             if not success:
                 sys.exit(1)
-    
+
     except KeyboardInterrupt:
         logger.info("Received interrupt signal")
         await backup_node.stop()

@@ -5,7 +5,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 from datetime import datetime
-from typing import Any, Dict
+from typing import Optional, Any, Dict
 
 from sqlmodel import Column, Field, SQLModel
 
@@ -15,6 +15,7 @@ from ....infrastructure.utils.snowflake import SnowflakeGenerator
 from sqlalchemy import DateTime, Index
 
 """
+import time
 PlexiChat Status View Model
 
 Tracking who viewed status updates.
@@ -34,7 +35,7 @@ class StatusView(SQLModel, table=True):
     __tablename__ = "status_views"
 
     # Primary identification
-    view_id: str = Field(
+    view_id: str = Field()
         default_factory=lambda: str(view_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -42,18 +43,18 @@ class StatusView(SQLModel, table=True):
     )
 
     # Status and user relationships
-    status_id: str = Field(
+    status_id: str = Field()
         foreign_key="status_updates.status_id",
         index=True,
         description="Status update that was viewed",
     )
 
-    user_id: str = Field(
+    user_id: str = Field()
         foreign_key="users.id", index=True, description="User who viewed the status"
     )
 
     # View timestamp
-    viewed_at: datetime = Field(
+    viewed_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
@@ -84,7 +85,7 @@ class StatusView(SQLModel, table=True):
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index("idx_view_status_viewed", "status_id", "viewed_at"),
     Index("idx_view_user_viewed", "user_id", "viewed_at"),
     # Unique constraint to prevent duplicate views

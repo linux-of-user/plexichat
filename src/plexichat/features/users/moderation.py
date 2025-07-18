@@ -15,6 +15,7 @@ from sqlmodel import JSON, Column, Field, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 Moderation system models for PlexiChat.
 Handles user moderation, message moderation, and server-specific moderation roles.
 """
@@ -73,7 +74,7 @@ class ModeratorRole(SQLModel, table=True):
     can_moderate_users: bool = Field(default=True)
     can_ban_users: bool = Field(default=False)
     can_manage_roles: bool = Field(default=False)
-    max_punishment_severity: ModerationSeverity = Field(
+    max_punishment_severity: ModerationSeverity = Field()
         default=ModerationSeverity.MEDIUM
     )
 
@@ -88,7 +89,7 @@ class ModeratorRole(SQLModel, table=True):
     revoked_by: Optional[int] = Field(foreign_key="users_enhanced.id")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_moderator_guild_user", "guild_id", "user_id"),
         Index("idx_moderator_active", "is_active", "expires_at"),
     )
@@ -100,7 +101,7 @@ class ModerationLog(SQLModel, table=True):
     __tablename__ = "moderation_logs"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -128,7 +129,7 @@ class ModerationLog(SQLModel, table=True):
     new_content: Optional[str] = Field(sa_column=Column(Text))
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
     expires_at: Optional[datetime] = Field(sa_column=Column(DateTime), index=True)
@@ -145,7 +146,7 @@ class ModerationLog(SQLModel, table=True):
     metadata: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_moderation_target_time", "target_user_id", "created_at"),
         Index("idx_moderation_moderator_time", "moderator_id", "created_at"),
         Index("idx_moderation_guild_time", "guild_id", "created_at"),
@@ -185,7 +186,7 @@ class UserModerationStatus(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_user_moderation_muted", "is_muted", "mute_expires_at"),
         Index("idx_user_moderation_banned", "is_banned", "ban_expires_at"),
         Index("idx_user_moderation_timeout", "is_timed_out", "timeout_expires_at"),
@@ -201,7 +202,7 @@ class MessageModerationQueue(SQLModel, table=True):
     message_id: int = Field(foreign_key="messages.id", unique=True, index=True)
 
     # Detection details
-    flagged_by: Optional[str] = Field(
+    flagged_by: Optional[str] = Field()
         max_length=50
     )  # 'auto', 'user_report', 'moderator'
     flag_reason: str = Field(max_length=200)
@@ -215,13 +216,13 @@ class MessageModerationQueue(SQLModel, table=True):
     is_reviewed: bool = Field(default=False, index=True)
     reviewed_by: Optional[int] = Field(foreign_key="users_enhanced.id")
     reviewed_at: Optional[datetime] = Field(sa_column=Column(DateTime))
-    review_decision: Optional[str] = Field(
+    review_decision: Optional[str] = Field()
         max_length=50
     )  # 'approved', 'removed', 'edited'
     review_notes: Optional[str] = Field(sa_column=Column(Text))
 
     # Timestamps
-    flagged_at: datetime = Field(
+    flagged_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
 
@@ -229,7 +230,7 @@ class MessageModerationQueue(SQLModel, table=True):
     priority: int = Field(default=1, index=True)  # 1=low, 5=critical
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_moderation_queue_review", "is_reviewed", "priority", "flagged_at"),
     )
 
@@ -244,7 +245,7 @@ class AutoModerationRule(SQLModel, table=True):
     description: Optional[str] = Field(sa_column=Column(Text))
 
     # Rule configuration
-    rule_type: str = Field(
+    rule_type: str = Field()
         max_length=50, index=True
     )  # 'keyword', 'spam', 'link', 'mention'
     patterns: List[str] = Field(default=[], sa_column=Column(JSON))
@@ -261,7 +262,7 @@ class AutoModerationRule(SQLModel, table=True):
 
     # Thresholds
     trigger_threshold: int = Field(default=1)  # Number of violations before action
-    time_window_minutes: Optional[int] = Field(
+    time_window_minutes: Optional[int] = Field()
         default=None
     )  # Time window for counting violations
 
@@ -276,7 +277,7 @@ class AutoModerationRule(SQLModel, table=True):
     last_triggered_at: Optional[datetime] = Field(sa_column=Column(DateTime))
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_auto_mod_guild_active", "guild_id", "is_active"),
         Index("idx_auto_mod_type_active", "rule_type", "is_active"),
     )

@@ -381,14 +381,124 @@ Initialize plugin instance and set up basic configuration.
 #### `get_metadata() -> PluginMetadata`
 Return plugin metadata. Must be implemented.
 
-#### `_plugin_initialize() -> bool`
+#### `initialize() -> bool`
 Initialize plugin functionality. Must be implemented.
 
-#### `cleanup()`
+#### `shutdown() -> bool`
 Clean up plugin resources when unloaded.
 
 #### `health_check() -> Dict[str, Any]`
 Return plugin health status.
+
+### New Extension Points (v3+)
+
+PlexiChat plugins can now extend the system in the following ways:
+
+- Register CLI commands
+- Register API/web routers
+- Register database extensions (models, DAOs, adapters)
+- Register security features (middleware, policies)
+- Provide self-tests for automated validation
+
+#### `get_routers() -> Dict[str, Any]`
+Return a dictionary of routers to be registered, e.g. `{ "/myroute": router }`.
+
+```python
+def get_routers(self):
+    from fastapi import APIRouter
+    router = APIRouter()
+    @router.get("/my-plugin/health")
+    async def health():
+        return {"status": "ok", "plugin": "my_plugin"}
+    return {"/my-plugin": router}
+```
+
+#### `get_db_extensions() -> Dict[str, Any]`
+Return a dictionary of database models, DAOs, or adapters to register.
+
+```python
+def get_db_extensions(self):
+    # Example: return a fake model or DAO
+    return {"my_plugin_model": object()}
+```
+
+#### `get_security_features() -> Dict[str, Any]`
+Return a dictionary of security features (middleware, policies, etc.) to register.
+
+```python
+def get_security_features(self):
+    def fake_middleware(request, call_next):
+        return call_next(request)
+    return {"my_plugin_middleware": fake_middleware}
+```
+
+#### `self_test() -> Dict[str, Any]`
+Return a dictionary describing the results of plugin self-tests.
+
+```python
+async def self_test(self):
+    return {"passed": True, "tests": ["cli commands", "routers", "db extensions", "security features"], "message": "All self-tests passed"}
+```
+
+See the `mega_cli` plugin for a comprehensive example of all extension points.
+
+### Advanced Extension Points and Developer Ergonomics
+
+PlexiChat plugins can now leverage a wide range of advanced extension points for deep integration and developer productivity:
+
+- **Event Hooks**: Register pre/post hooks for any system event (startup, shutdown, user actions, etc.)
+- **Custom Config Sections/Schemas**: Define and validate your own config sections for UI and runtime
+- **Custom Health Checks**: Add readiness/liveness/health probes for your plugin
+- **Custom Backup/Restore Handlers**: Integrate with the backup system for custom data
+- **Custom Middleware**: Register middleware for web, API, or CLI
+- **Plugin Context Object**: Access all core systems, config, and utilities via `self.context`
+- **Helper Decorators**: Use `@on_event`, `@register_middleware`, `@register_backup_handler` for common patterns
+
+#### Example: Using Advanced Extension Points
+
+```python
+from plexichat.core.plugins.unified_plugin_manager import PluginInterface
+
+class MyAdvancedPlugin(PluginInterface):
+    def get_event_hooks(self):
+        return {
+            'startup': self.on_startup,
+            'shutdown': self.on_shutdown
+        }
+    def get_config_schema(self):
+        return {
+            'type': 'object',
+            'properties': {'my_setting': {'type': 'string', 'default': 'hi'}}
+        }
+    def get_health_checks(self):
+        return {'ready': self.ready_check}
+    def get_backup_handlers(self):
+        return {'backup': self.backup_data, 'restore': self.restore_data}
+    def get_middleware(self):
+        return {'web': [self.web_middleware], 'api': [self.api_middleware]}
+    @PluginInterface.on_event('startup')
+    def on_startup(self):
+        self.context.logger.info('Plugin started!')
+    @PluginInterface.register_middleware('web')
+    def web_middleware(self, request, call_next):
+        # ...
+        return call_next(request)
+    @PluginInterface.register_backup_handler('backup')
+    def backup_data(self):
+        # ...
+        pass
+    def set_context(self, context):
+        self.context = context
+        # Now self.context.logger, self.context.analytics, etc. are available
+```
+
+#### Best Practices
+- Always declare your extension points via the appropriate `get_*` methods
+- Use the plugin context for all core system access
+- Use decorators for event/middleware/backup registration for clarity
+- Document your extension points in your plugin's README and manifest
+
+See the full PluginInterface and PluginContext API for all available features.
 
 ### Configuration Management
 
@@ -779,4 +889,138 @@ class UIPlugin(PluginInterface):
                 app.mount(f"/plugins/ui/static", StaticFiles(directory=str(ui_dir / "static")), name="ui_static")
 ```
 
+## Plugin Documentation Folders
+
+Plugins can include a `docs` folder in their root directory. Any Markdown (`.md`) or HTML (`.html`) files in this folder will be automatically registered by the plugin loader and made available in the PlexiChat web UI's `/docs` page.
+
+- Place all plugin-specific documentation in the `docs` folder inside your plugin directory.
+- Supported formats: Markdown (`.md`), HTML (`.html`).
+- The web UI `/docs` page is an interactive document viewer for all documentation, including core and plugin docs.
+- Users can browse, search, and interact with all documentation from the web interface.
+
+**Example plugin structure:**
+
+```
+plugins/
+  my_plugin/
+    main.py
+    plugin.json
+    docs/
+      README.md
+      USAGE.md
+      API_REFERENCE.html
+```
+
+**Best practices:**
+- Provide a `README.md` as the main entry point for your plugin docs.
+- Use clear section headings and links for navigation.
+- Keep documentation up to date with plugin features and CLI commands.
+
 This guide provides a comprehensive foundation for developing plugins for PlexiChat. Follow the best practices and examples to create robust, maintainable plugins that integrate seamlessly with the PlexiChat ecosystem. 
+
+## Example: Mega CLI Plugin
+
+The `mega_cli` plugin demonstrates all extension points:
+- Registers 400+ CLI commands, each with a detailed help string (shown with --help)
+- Adds a FastAPI router
+- Adds a database extension
+- Adds a security feature
+- Provides a self-test method
+
+### Plugin Docstring Example
+
+```python
+"""
+mega_cli Plugin for PlexiChat
+
+This plugin registers 400+ advanced CLI commands for power users, automation, and developers.
+
+Features:
+- Registers 400+ CLI commands, each with a --help option and detailed help string
+- Demonstrates plugin extension points: CLI, routers, DB extensions, security features, and self-tests
+- All commands are grouped by category (dev, net, sys, user, file, chat, ai, etc.)
+- Each command is self-documenting and discoverable via --help
+- See docs/PLUGIN_DEVELOPMENT.md for extension API details
+
+Usage:
+  plexichat mega <command> --help
+  plexichat dev <command> --help
+  plexichat net <command> --help
+  ...
+"""
+```
+
+### CLI Command Registration Example
+
+```python
+cmd = UltimateCommand(
+    name="dev_cmd_1",
+    description="Mega CLI: dev command #1 (from mega_cli plugin)\n\nUsage: plexichat dev dev_cmd_1 [OPTIONS]\n\nOptions:\n  --help    Show this help message and exit.\n\nThis command is provided by the mega_cli plugin.",
+    category=CommandCategory.DEV,
+    handler=handler,
+    version_added="1.0.0",
+    admin_only=False,
+    dangerous=False,
+    requires_auth=False,
+)
+ultimate_cli.register_command(cmd)
+```
+
+### Discoverability
+- All plugin CLI commands are discoverable with `--help`.
+- Plugin docstrings and command descriptions should be detailed for both users and developers. 
+
+## Core System Integration for Plugins
+
+Plugins can now easily integrate with all major PlexiChat systems:
+- **Logging**: Request a logger via `get_services()` and use `self.logger` in your plugin.
+- **Analytics**: Request analytics via `get_services()` and use `self.analytics`.
+- **AI**: Request AI via `get_services()` and use `self.ai` (the main AI assistant) or `self.ai_provider` (the raw provider manager).
+- **Database**: Request DB via `get_services()` and use `self.db`.
+- **Backup**: Request backup via `get_services()` and use `self.backup`.
+- **Security**: Request security via `get_services()` and use `self.security`.
+
+### Declaring Service Dependencies
+
+Override the `get_services()` method in your plugin class to declare which services you want:
+
+```python
+class MyPlugin(PluginInterface):
+    def get_services(self):
+        return {
+            "logger": True,
+            "analytics": True,
+            "ai": True,
+            "db": True,
+            "backup": True,
+            "security": True,
+        }
+```
+
+### Using Injected Services
+
+After your plugin is loaded, the requested services will be available as attributes:
+
+```python
+class MyPlugin(PluginInterface):
+    def get_services(self):
+        return {"logger": True, "ai": True}
+    async def initialize(self):
+        self.logger.info("MyPlugin initialized!")
+        result = await self.ai.generate_content("Hello, AI!")
+        # ...
+```
+
+### Advanced: Custom Logging and Analytics Hooks
+
+You can also provide custom logging handlers or analytics hooks:
+
+```python
+class MyPlugin(PluginInterface):
+    def register_logging_handlers(self):
+        return {"myplugin": MyCustomHandler()}
+    def register_analytics_hooks(self):
+        return {"my_event": my_analytics_hook}
+```
+
+See the main plugin manager and interface for all available extension points. 

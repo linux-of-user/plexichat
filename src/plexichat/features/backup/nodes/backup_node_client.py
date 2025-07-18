@@ -13,11 +13,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
     import httpx
 
-from datetime import datetime
-
-from datetime import datetime
 
 """
+import time
 PlexiChat Backup Node Client
 Client library for interacting with backup nodes.
 """
@@ -65,7 +63,7 @@ class BackupNodeClient:
             logger.error(f"Failed to get node status: {e}")
             raise
 
-    async def store_shard(
+    async def store_shard()
         self,
         shard_id: str,
         shard_data: bytes,
@@ -89,7 +87,7 @@ class BackupNodeClient:
                 "metadata": metadata
             }
 
-            response = await self.client.post(
+            response = await self.client.post()
                 f"{self.base_url}/api/v1/shards/store",
                 json=request_data
             )
@@ -154,7 +152,7 @@ class BackupNodeClient:
             logger.error(f"Failed to list shards: {e}")
             return []
 
-    async def register_node(
+    async def register_node()
         self,
         node_id: str,
         node_type: str,
@@ -172,7 +170,7 @@ class BackupNodeClient:
                 "storage_capacity": storage_capacity
             }
 
-            response = await self.client.post(
+            response = await self.client.post()
                 f"{self.base_url}/api/v1/nodes/register",
                 json=request_data
             )
@@ -206,7 +204,7 @@ class BackupNodeManager:
         self.nodes: Dict[str, BackupNodeClient] = {}
         self.node_configs: Dict[str, Dict[str, Any]] = {}
 
-    def add_node(
+    def add_node():
         self,
         node_id: str,
         address: str,
@@ -243,7 +241,6 @@ class BackupNodeManager:
                 await client.health_check()
                 results[node_id] = True
                 self.node_configs[node_id]["is_healthy"] = True
-                from datetime import datetime
 
                 self.node_configs[node_id]["last_health_check"] = datetime.now().now().isoformat()
             except Exception as e:
@@ -253,7 +250,7 @@ class BackupNodeManager:
 
         return results
 
-    async def store_shard_redundant(
+    async def store_shard_redundant()
         self,
         shard_id: str,
         shard_data: bytes,
@@ -288,7 +285,7 @@ class BackupNodeManager:
     async def retrieve_shard_any(self, shard_id: str) -> Optional[bytes]:
         """Retrieve a shard from any available node."""
         # Try nodes in priority order
-        sorted_nodes = sorted(
+        sorted_nodes = sorted()
             [(node_id, client) for node_id, client in self.nodes.items()
              if self.node_configs[node_id]["is_healthy"]],
             key=lambda x: self.node_configs[x[0]]["priority"]

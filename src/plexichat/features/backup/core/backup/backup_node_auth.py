@@ -18,6 +18,7 @@ import aiosqlite
 
 
 """
+import time
 Backup Node Authentication Manager
 
 Manages authentication and authorization for backup nodes in the distributed system.
@@ -110,9 +111,9 @@ class BackupNodeAuthManager:
     async def _initialize_database(self):
         """Initialize the authentication database."""
         async with aiosqlite.connect(self.auth_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS node_credentials (
+                CREATE TABLE IF NOT EXISTS node_credentials ()
                     node_id TEXT PRIMARY KEY,
                     api_key_hash TEXT NOT NULL,
                     permission_level TEXT NOT NULL,
@@ -126,9 +127,9 @@ class BackupNodeAuthManager:
             """
             )
 
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS auth_events (
+                CREATE TABLE IF NOT EXISTS auth_events ()
                     event_id TEXT PRIMARY KEY,
                     node_id TEXT NOT NULL,
                     event_type TEXT NOT NULL,
@@ -146,7 +147,7 @@ class BackupNodeAuthManager:
             async with db.execute("SELECT * FROM node_credentials") as cursor:
                 async for row in cursor:
                     # Note: We don't store the actual API key, only the hash
-                    credentials = BackupNodeCredentials(
+                    credentials = BackupNodeCredentials()
                         node_id=row[0],
                         api_key="",  # Not stored
                         api_key_hash=row[1],
@@ -160,7 +161,7 @@ class BackupNodeAuthManager:
                     )
                     self.node_credentials[credentials.node_id] = credentials
 
-    async def create_node_credentials(
+    async def create_node_credentials()
         self,
         node_id: str,
         permission_level: NodePermissionLevel = NodePermissionLevel.READ_WRITE,
@@ -176,7 +177,7 @@ class BackupNodeAuthManager:
         expires_at = datetime.now(timezone.utc) + timedelta(days=expiry_days)
 
         # Create credentials object
-        credentials = BackupNodeCredentials(
+        credentials = BackupNodeCredentials()
             node_id=node_id,
             api_key=api_key,
             api_key_hash=api_key_hash,
@@ -191,7 +192,7 @@ class BackupNodeAuthManager:
         await self._save_credentials_to_database(credentials)
 
         # Log event
-        await self._log_auth_event(
+        await self._log_auth_event()
             node_id,
             "credentials_created",
             {
@@ -200,7 +201,7 @@ class BackupNodeAuthManager:
             },
         )
 
-        logger.info(
+        logger.info()
             f"Created credentials for node {node_id} with {permission_level.value} permissions"
         )
         return api_key, api_key_hash
@@ -216,7 +217,7 @@ class BackupNodeAuthManager:
     async def authenticate_node(self, node_id: str, api_key: str) -> bool:
         """Authenticate a backup node."""
         if node_id not in self.node_credentials:
-            await self._log_auth_event(
+            await self._log_auth_event()
                 node_id, "auth_failed", {"reason": "node_not_found"}
             )
             return False
@@ -225,18 +226,18 @@ class BackupNodeAuthManager:
 
         # Check if credentials are active
         if credentials.status != APIKeyStatus.ACTIVE:
-            await self._log_auth_event(
+            await self._log_auth_event()
                 node_id, "auth_failed", {"reason": "inactive_credentials"}
             )
             return False
 
         # Check expiry
-        if credentials.expires_at and credentials.expires_at <= datetime.now(
+        if credentials.expires_at and credentials.expires_at <= datetime.now()
             timezone.utc
         ):
             credentials.status = APIKeyStatus.EXPIRED
             await self._save_credentials_to_database(credentials)
-            await self._log_auth_event(
+            await self._log_auth_event()
                 node_id, "auth_failed", {"reason": "expired_credentials"}
             )
             return False
@@ -244,7 +245,7 @@ class BackupNodeAuthManager:
         # Verify API key
         api_key_hash = self._hash_api_key(api_key)
         if api_key_hash != credentials.api_key_hash:
-            await self._log_auth_event(
+            await self._log_auth_event()
                 node_id, "auth_failed", {"reason": "invalid_key"}
             )
             return False
@@ -257,7 +258,7 @@ class BackupNodeAuthManager:
         await self._log_auth_event(node_id, "auth_success", {})
         return True
 
-    async def authorize_operation(
+    async def authorize_operation()
         self, node_id: str, operation: str, resource: Optional[str] = None
     ) -> bool:
         """Authorize a node operation based on permissions."""
@@ -313,7 +314,7 @@ class BackupNodeAuthManager:
         old_credentials = self.node_credentials[node_id]
 
         # Create new credentials with same permissions
-        new_api_key, new_api_key_hash = await self.create_node_credentials(
+        new_api_key, new_api_key_hash = await self.create_node_credentials()
             node_id, old_credentials.permission_level
         )
 
@@ -329,25 +330,25 @@ class BackupNodeAuthManager:
     async def _save_credentials_to_database(self, credentials: BackupNodeCredentials):
         """Save credentials to database."""
         async with aiosqlite.connect(self.auth_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT OR REPLACE INTO node_credentials
-                (node_id, api_key_hash, permission_level, status, created_at,
+                (node_id, api_key_hash, permission_level, status, created_at,)
                  expires_at, last_used, usage_count, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     credentials.node_id,
                     credentials.api_key_hash,
                     credentials.permission_level.value,
                     credentials.status.value,
                     credentials.created_at.isoformat(),
-                    (
+                    ()
                         credentials.expires_at.isoformat()
                         if credentials.expires_at
                         else None
                     ),
-                    (
+                    ()
                         credentials.last_used.isoformat()
                         if credentials.last_used
                         else None
@@ -358,19 +359,19 @@ class BackupNodeAuthManager:
             )
             await db.commit()
 
-    async def _log_auth_event(
+    async def _log_auth_event()
         self, node_id: str, event_type: str, details: Dict[str, Any]
     ):
         """Log authentication event."""
         event_id = f"auth_{secrets.token_hex(8)}"
 
         async with aiosqlite.connect(self.auth_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT INTO auth_events (event_id, node_id, event_type, timestamp, details)
                 VALUES (?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     event_id,
                     node_id,
                     event_type,
@@ -400,12 +401,12 @@ class BackupNodeAuthManager:
                     # Key expired
                     credentials.status = APIKeyStatus.EXPIRED
                     await self._save_credentials_to_database(credentials)
-                    logger.warning(
+                    logger.warning()
                         f"API key for node {credentials.node_id} has expired"
                     )
                 elif credentials.expires_at <= warning_threshold:
                     # Key expiring soon
-                    logger.info(
+                    logger.info()
                         f"API key for node {credentials.node_id} expires in {(credentials.expires_at - now).days} days"
                     )
 

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Type
 
-from .exceptions import (
+from .exceptions import ()
 
 
     Advanced,
@@ -159,7 +159,7 @@ class ErrorRecoveryManager:
             RecoveryStrategy.GRACEFUL_DEGRADATION
         ]
 
-    async def attempt_recovery(self, exception: Exception,
+    async def attempt_recovery(self, exception: Exception,)
                               context: Dict[str, Any] = None,
                               component: Optional[str] = None) -> Dict[str, Any]:
         """Attempt to recover from an error using appropriate strategies."""
@@ -183,7 +183,7 @@ class ErrorRecoveryManager:
             recovery_result['attempts'].append(attempt)
 
             try:
-                success, result = await self._execute_recovery_strategy(
+                success, result = await self._execute_recovery_strategy()
                     strategy, exception, context, config
                 )
 
@@ -208,7 +208,7 @@ class ErrorRecoveryManager:
 
         return recovery_result
 
-    async def _execute_recovery_strategy(self, strategy: RecoveryStrategy,
+    async def _execute_recovery_strategy(self, strategy: RecoveryStrategy,)
                                        exception: Exception,
                                        context: Dict[str, Any],
                                        config: RecoveryConfig) -> tuple[bool, Any]:
@@ -227,7 +227,7 @@ class ErrorRecoveryManager:
         else:
             return False, None
 
-    async def _retry_strategy(self, exception: Exception,
+    async def _retry_strategy(self, exception: Exception,)
                             context: Dict[str, Any],
                             config: RecoveryConfig) -> tuple[bool, Any]:
         """Implement retry strategy with exponential backoff."""
@@ -264,7 +264,7 @@ class ErrorRecoveryManager:
 
         return False, None
 
-    async def _fallback_strategy(self, exception: Exception,
+    async def _fallback_strategy(self, exception: Exception,)
                                context: Dict[str, Any],
                                config: RecoveryConfig) -> tuple[bool, Any]:
         """Implement fallback strategy."""
@@ -281,7 +281,7 @@ class ErrorRecoveryManager:
 
         return False, None
 
-    async def _cache_fallback_strategy(self, exception: Exception,
+    async def _cache_fallback_strategy(self, exception: Exception,)
                                      context: Dict[str, Any],
                                      config: RecoveryConfig) -> tuple[bool, Any]:
         """Implement cache fallback strategy."""
@@ -300,7 +300,7 @@ class ErrorRecoveryManager:
 
         return False, None
 
-    async def _default_response_strategy(self, exception: Exception,
+    async def _default_response_strategy(self, exception: Exception,)
                                        context: Dict[str, Any],
                                        config: RecoveryConfig) -> tuple[bool, Any]:
         """Implement default response strategy."""
@@ -321,7 +321,7 @@ class ErrorRecoveryManager:
 
         return False, None
 
-    async def _graceful_degradation_strategy(self, exception: Exception,
+    async def _graceful_degradation_strategy(self, exception: Exception,)
                                            context: Dict[str, Any],
                                            config: RecoveryConfig) -> tuple[bool, Any]:
         """Implement graceful degradation strategy."""
@@ -343,7 +343,7 @@ class ErrorRecoveryManager:
             'error': str(exception)
         }
 
-    def register_recovery_strategy(self, exception_type: Type[Exception],
+    def register_recovery_strategy(self, exception_type: Type[Exception],):
                                  strategies: List[RecoveryStrategy]):
         """Register recovery strategies for an exception type."""
         self.recovery_strategies[exception_type] = strategies

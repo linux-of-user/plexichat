@@ -1,5 +1,6 @@
 
 """
+import time
 Authentication schemas for PlexiChat API.
 Enhanced with comprehensive validation and security.
 """
@@ -13,7 +14,7 @@ class LoginRequest(BaseModel):
     """Login request schema."""
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     password: str = Field(..., min_length=6, max_length=100, description="Password")
-    
+
     @validator('username')
     def validate_username(cls, v):
         if not v.strip():
@@ -50,7 +51,7 @@ class PasswordChangeRequest(BaseModel):
     current_password: str = Field(..., min_length=6, description="Current password")
     new_password: str = Field(..., min_length=6, max_length=100, description="New password")
     confirm_password: str = Field(..., description="Password confirmation")
-    
+
     @validator('confirm_password')
     def passwords_match(cls, v, values):
         if 'new_password' in values and v != values['new_password']:

@@ -17,6 +17,7 @@ from .role import Permissions
 from sqlalchemy import DateTime, Index
 
 """
+import time
 PlexiChat Permission Overwrite Model
 
 Channel-specific permission overrides for roles and users.
@@ -43,7 +44,7 @@ class PermissionOverwrite(SQLModel, table=True):
     __tablename__ = "permission_overwrites"
 
     # Primary identification
-    overwrite_id: str = Field(
+    overwrite_id: str = Field()
         default_factory=lambda: str(overwrite_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -51,37 +52,37 @@ class PermissionOverwrite(SQLModel, table=True):
     )
 
     # Channel relationship
-    channel_id: str = Field(
+    channel_id: str = Field()
         foreign_key="channels.channel_id",
         index=True,
         description="Channel this overwrite applies to",
     )
 
     # Target (role or user)
-    target_id: str = Field(
+    target_id: str = Field()
         index=True, description="ID of the role or user this overwrite applies to"
     )
 
-    target_type: OverwriteType = Field(
+    target_type: OverwriteType = Field()
         index=True, description="Whether this overwrite targets a role or member"
     )
 
     # Permission overrides
-    allow: int = Field(
+    allow: int = Field()
         default=0, description="Permissions explicitly allowed (bitfield)"
     )
 
     deny: int = Field(default=0, description="Permissions explicitly denied (bitfield)")
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Overwrite creation timestamp",
     )
 
-    updated_at: Optional[datetime] = Field(
+    updated_at: Optional[datetime] = Field()
         default=None, sa_column=Column(DateTime), description="Last update timestamp"
     )
 
@@ -151,7 +152,7 @@ class PermissionOverwrite(SQLModel, table=True):
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index("idx_overwrite_channel_target", "channel_id", "target_id", "target_type"),
     Index("idx_overwrite_target_type", "target_type", "target_id"),
     Index("idx_overwrite_permissions", "allow", "deny"),

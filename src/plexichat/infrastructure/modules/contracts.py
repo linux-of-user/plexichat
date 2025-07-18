@@ -11,7 +11,10 @@ from typing import Any, Dict, List, Optional, Type, get_type_hints
 import jsonschema
 
 from ...core.logging import get_logger
-from .interfaces import (
+from .interfaces import ()
+import os
+import time
+import warnings
 
 
     BaseModule,
@@ -70,7 +73,7 @@ class ContractValidationResult:
 
     def add_violation(self, severity: str, category: str, message: str, details: Dict[str, Any] = None):
         """Add a contract violation."""
-        violation = ContractViolation(
+        violation = ContractViolation()
             severity=severity,
             category=category,
             message=message,
@@ -179,7 +182,7 @@ class ModuleContractValidator:
             logger.info(f"Module validation completed: {result.score:.1f}% compliance")
 
         except Exception as e:
-            result.add_violation(
+            result.add_violation()
                 "error",
                 "validation",
                 f"Validation process failed: {str(e)}"
@@ -192,7 +195,7 @@ class ModuleContractValidator:
         """Validate interface compliance."""
         # Check if module inherits from BaseModule
         if not isinstance(module, BaseModule):
-            result.add_violation(
+            result.add_violation()
                 "error",
                 "interface",
                 "Module must inherit from BaseModule",
@@ -202,7 +205,7 @@ class ModuleContractValidator:
         # Check required interfaces
         for interface in self.required_interfaces:
             if not isinstance(module, interface):
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "interface",
                     f"Module must implement {interface.__name__}",
@@ -212,7 +215,7 @@ class ModuleContractValidator:
         # Check optional interfaces (warnings only)
         for interface in self.optional_interfaces:
             if not isinstance(module, interface):
-                result.add_violation(
+                result.add_violation()
                     "warning",
                     "interface",
                     f"Module should consider implementing {interface.__name__}",
@@ -233,7 +236,7 @@ class ModuleContractValidator:
 
         for method_name, requirements in required_methods.items():
             if not hasattr(module, method_name):
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "interface",
                     f"Missing required method: {method_name}"
@@ -244,7 +247,7 @@ class ModuleContractValidator:
 
             # Check if method is callable
             if not callable(method):
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "interface",
                     f"Method {method_name} is not callable"
@@ -253,7 +256,7 @@ class ModuleContractValidator:
 
             # Check if method is async when required
             if requirements["async"] and not inspect.iscoroutinefunction(method):
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "interface",
                     f"Method {method_name} must be async"
@@ -268,7 +271,7 @@ class ModuleContractValidator:
 
                     # Basic type checking (can be enhanced)
                     if expected_type != actual_type and not issubclass(actual_type, expected_type):
-                        result.add_violation(
+                        result.add_violation()
                             "warning",
                             "interface",
                             f"Method {method_name} return type mismatch",
@@ -288,7 +291,7 @@ class ModuleContractValidator:
             try:
                 permissions = module.get_required_permissions()
                 if not isinstance(permissions, ModulePermissions):
-                    result.add_violation(
+                    result.add_violation()
                         "error",
                         "security",
                         "get_required_permissions must return ModulePermissions instance"
@@ -296,7 +299,7 @@ class ModuleContractValidator:
                 else:
                     # Validate permission declarations
                     if permissions.is_privileged():
-                        result.add_violation(
+                        result.add_violation()
                             "warning",
                             "security",
                             "Module requires privileged access - ensure proper justification",
@@ -305,14 +308,14 @@ class ModuleContractValidator:
 
                     # Check for excessive permissions
                     if len(permissions.capabilities) > 10:
-                        result.add_violation(
+                        result.add_violation()
                             "warning",
                             "security",
                             "Module declares many capabilities - consider reducing scope",
                             {"capability_count": len(permissions.capabilities)}
                         )
             except Exception as e:
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "security",
                     f"Failed to get required permissions: {str(e)}"
@@ -324,7 +327,7 @@ class ModuleContractValidator:
 
         for method in module_methods:
             if any(sensitive in method.lower() for sensitive in sensitive_methods):
-                result.add_violation(
+                result.add_violation()
                     "warning",
                     "security",
                     f"Method name '{method}' suggests potentially unsafe operations",
@@ -341,7 +344,7 @@ class ModuleContractValidator:
                 try:
                     jsonschema.Draft7Validator.check_schema(schema)
                 except jsonschema.SchemaError as e:
-                    result.add_violation(
+                    result.add_violation()
                         "error",
                         "configuration",
                         f"Invalid configuration schema: {str(e)}"
@@ -349,14 +352,14 @@ class ModuleContractValidator:
 
                 # Check for required configuration fields
                 if "properties" not in schema:
-                    result.add_violation(
+                    result.add_violation()
                         "warning",
                         "configuration",
                         "Configuration schema should define properties"
                     )
 
             except Exception as e:
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "configuration",
                     f"Failed to get configuration schema: {str(e)}"
@@ -367,7 +370,7 @@ class ModuleContractValidator:
             try:
                 # Test with empty config
                 if not module.validate_config({}):
-                    result.add_violation(
+                    result.add_violation()
                         "info",
                         "configuration",
                         "Module rejects empty configuration (may be expected)"
@@ -375,14 +378,14 @@ class ModuleContractValidator:
 
                 # Test with invalid config
                 if module.validate_config("invalid"):
-                    result.add_violation(
+                    result.add_violation()
                         "warning",
                         "configuration",
                         "Module accepts invalid configuration type"
                     )
 
             except Exception as e:
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "configuration",
                     f"Configuration validation method failed: {str(e)}"
@@ -397,7 +400,7 @@ class ModuleContractValidator:
             # Check timeout settings
             if hasattr(config, "timeout_seconds"):
                 if config.timeout_seconds > 300:  # 5 minutes
-                    result.add_violation(
+                    result.add_violation()
                         "warning",
                         "performance",
                         "Module timeout is very high - may impact system responsiveness",
@@ -407,7 +410,7 @@ class ModuleContractValidator:
             # Check memory limits
             if hasattr(config, "max_memory_mb"):
                 if config.max_memory_mb > 1000:  # 1GB
-                    result.add_violation(
+                    result.add_violation()
                         "warning",
                         "performance",
                         "Module memory limit is very high",
@@ -420,7 +423,7 @@ class ModuleContractValidator:
                         inspect.iscoroutinefunction(getattr(module, name))]
 
         if len(async_methods) == 0:
-            result.add_violation(
+            result.add_violation()
                 "warning",
                 "performance",
                 "Module has no async methods - may block event loop"
@@ -432,7 +435,7 @@ class ModuleContractValidator:
             try:
                 methods = module.get_available_methods()
                 if not isinstance(methods, list):
-                    result.add_violation(
+                    result.add_violation()
                         "error",
                         "interface",
                         "get_available_methods must return a list"
@@ -441,13 +444,13 @@ class ModuleContractValidator:
                     # Check if declared methods actually exist
                     for method_name in methods:
                         if not hasattr(module, method_name):
-                            result.add_violation(
+                            result.add_violation()
                                 "error",
                                 "interface",
                                 f"Declared method '{method_name}' does not exist"
                             )
             except Exception as e:
-                result.add_violation(
+                result.add_violation()
                     "error",
                     "interface",
                     f"Failed to get available methods: {str(e)}"
@@ -457,7 +460,7 @@ class ModuleContractValidator:
         """Validate documentation compliance."""
         # Check for docstrings
         if not module.__doc__:
-            result.add_violation(
+            result.add_violation()
                 "warning",
                 "documentation",
                 "Module class lacks documentation"
@@ -466,13 +469,13 @@ class ModuleContractValidator:
         # Check for method documentation
         methods_without_docs = []
         for name in dir(module):
-            if (callable(getattr(module, name)) and
+            if (callable(getattr(module, name)) and)
                 not name.startswith('_') and
                 not getattr(module, name).__doc__):
                 methods_without_docs.append(name)
 
         if methods_without_docs:
-            result.add_violation(
+            result.add_violation()
                 "warning",
                 "documentation",
                 f"Methods lack documentation: {', '.join(methods_without_docs[:5])}"

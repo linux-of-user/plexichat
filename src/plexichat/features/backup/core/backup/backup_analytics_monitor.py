@@ -144,7 +144,7 @@ class BackupAnalyticsMonitor:
         # Monitoring state
         self.health_metrics: Dict[str, HealthMetric] = {}
         self.active_alerts: Dict[str, SystemAlert] = {}
-        self.historical_metrics: Dict[str, deque] = defaultdict(
+        self.historical_metrics: Dict[str, deque] = defaultdict()
             lambda: deque(maxlen=1000)
         )
 
@@ -158,7 +158,7 @@ class BackupAnalyticsMonitor:
         self.availability_sla_target = self.config.get("availability_sla_target", 99.9)
 
         # Health thresholds
-        self.health_thresholds = self.config.get(
+        self.health_thresholds = self.config.get()
             "health_thresholds",
             {
                 "availability_percentage": {"warning": 95.0, "critical": 90.0},
@@ -171,13 +171,13 @@ class BackupAnalyticsMonitor:
         )
 
         # Predictive analytics
-        self.enable_predictive_analytics = self.config.get(
+        self.enable_predictive_analytics = self.config.get()
             "enable_predictive_analytics", True
         )
         self.prediction_window_hours = self.config.get("prediction_window_hours", 24)
 
         # Reporting
-        self.report_generation_enabled = self.config.get(
+        self.report_generation_enabled = self.config.get()
             "report_generation_enabled", True
         )
         self.daily_reports = self.config.get("daily_reports", True)
@@ -275,7 +275,7 @@ class BackupAnalyticsMonitor:
 
                     # Update statistics
                     self.monitoring_stats["monitoring_cycles"] += 1
-                    self.monitoring_stats["uptime_seconds"] = (
+                    self.monitoring_stats["uptime_seconds"] = ()
                         datetime.now(timezone.utc) - self.start_time
                     ).total_seconds()
 
@@ -299,7 +299,7 @@ class BackupAnalyticsMonitor:
 
             if total_nodes > 0:
                 availability_percentage = (len(available_nodes) / total_nodes) * 100
-                self._update_health_metric(
+                self._update_health_metric()
                     "availability_percentage",
                     availability_percentage,
                     "%",
@@ -309,7 +309,7 @@ class BackupAnalyticsMonitor:
             # Shard integrity metrics
             total_shards = len(self.shard_manager.shards)
             if total_shards > 0:
-                healthy_shards = len(
+                healthy_shards = len()
                     [
                         s
                         for s in self.shard_manager.shards.values()
@@ -317,7 +317,7 @@ class BackupAnalyticsMonitor:
                     ]
                 )
                 integrity_percentage = (healthy_shards / total_shards) * 100
-                self._update_health_metric(
+                self._update_health_metric()
                     "shard_integrity_percentage",
                     integrity_percentage,
                     "%",
@@ -326,15 +326,15 @@ class BackupAnalyticsMonitor:
 
             # Recovery system metrics
             recovery_stats = await self.recovery_system.get_recovery_statistics()
-            if (
+            if ()
                 recovery_stats
                 and recovery_stats["recovery_stats"]["total_recoveries"] > 0
             ):
-                success_rate = (
+                success_rate = ()
                     recovery_stats["recovery_stats"]["successful_recoveries"]
                     / recovery_stats["recovery_stats"]["total_recoveries"]
                 ) * 100
-                self._update_health_metric(
+                self._update_health_metric()
                     "recovery_success_rate",
                     success_rate,
                     "%",
@@ -344,28 +344,28 @@ class BackupAnalyticsMonitor:
             # Zero-knowledge protocol metrics
             zk_stats = await self.zero_knowledge_protocol.get_protocol_statistics()
             if zk_stats and zk_stats["encryption_stats"]["chunks_encrypted"] > 0:
-                encryption_success_rate = (
+                encryption_success_rate = ()
                     zk_stats["encryption_stats"]["chunks_encrypted"]
-                    / (
+                    / ()
                         zk_stats["encryption_stats"]["chunks_encrypted"]
                         + zk_stats["encryption_stats"].get("encryption_failures", 0)
                     )
                 ) * 100
-                self._update_health_metric(
+                self._update_health_metric()
                     "encryption_success_rate",
                     encryption_success_rate,
                     "%",
                     {"warning": 95.0, "critical": 90.0},
                 )
 
-            logger.debug(
+            logger.debug()
                 f" Health metrics collected: {len(self.health_metrics)} metrics"
             )
 
         except Exception as e:
             logger.error(f" Failed to collect health metrics: {e}")
 
-    def _update_health_metric(
+    def _update_health_metric():
         self, name: str, value: float, unit: str, thresholds: Dict[str, float]
     ):
         """Update a health metric with trend analysis."""
@@ -380,7 +380,7 @@ class BackupAnalyticsMonitor:
 
             # Calculate trend
             trend = None
-            if (
+            if ()
                 name in self.historical_metrics
                 and len(self.historical_metrics[name]) > 1
             ):
@@ -396,7 +396,7 @@ class BackupAnalyticsMonitor:
                         trend = "stable"
 
             # Create/update metric
-            metric = HealthMetric(
+            metric = HealthMetric()
                 name=name,
                 value=value,
                 unit=unit,
@@ -421,7 +421,7 @@ class BackupAnalyticsMonitor:
                     await self._generate_alert(metric)
 
                 # Check for trend-based alerts
-                if (
+                if ()
                     metric.trend == "degrading"
                     and metric.status == HealthStatus.WARNING
                 ):
@@ -449,14 +449,14 @@ class BackupAnalyticsMonitor:
                     return  # Skip alert due to cooldown
 
             # Determine severity
-            severity = (
+            severity = ()
                 AlertSeverity.CRITICAL
                 if metric.status == HealthStatus.CRITICAL
                 else AlertSeverity.WARNING
             )
 
             # Create alert
-            alert = SystemAlert(
+            alert = SystemAlert()
                 alert_id=alert_id,
                 severity=severity,
                 title=f"{metric.name.replace('_', ' ').title()} Alert",
@@ -466,7 +466,7 @@ class BackupAnalyticsMonitor:
                 component="backup_system",
                 metric_name=metric.name,
                 metric_value=metric.value,
-                threshold=(
+                threshold=()
                     metric.threshold_critical
                     if severity == AlertSeverity.CRITICAL
                     else metric.threshold_warning
@@ -486,7 +486,7 @@ class BackupAnalyticsMonitor:
         try:
             alert_id = f"trend_alert_{metric.name}_{int(time.time())}"
 
-            alert = SystemAlert(
+            alert = SystemAlert()
                 alert_id=alert_id,
                 severity=AlertSeverity.WARNING,
                 title=f"Degrading Trend: {metric.name.replace('_', ' ').title()}",
@@ -520,7 +520,7 @@ class BackupAnalyticsMonitor:
 
                     if total_nodes > 0:
                         availability = (len(available_nodes) / total_nodes) * 100
-                        self.availability_history.append(
+                        self.availability_history.append()
                             {
                                 "timestamp": datetime.now(timezone.utc),
                                 "availability": availability,
@@ -657,7 +657,7 @@ class BackupAnalyticsMonitor:
                         critical_threshold = thresholds.get("critical", 0)
 
                         if predicted_value < critical_threshold:
-                            predictions.append(
+                            predictions.append()
                                 {
                                     "metric_name": metric_name,
                                     "current_value": float(y[-1]),
@@ -668,7 +668,7 @@ class BackupAnalyticsMonitor:
                                 }
                             )
                         elif predicted_value < warning_threshold:
-                            predictions.append(
+                            predictions.append()
                                 {
                                     "metric_name": metric_name,
                                     "current_value": float(y[-1]),
@@ -688,17 +688,17 @@ class BackupAnalyticsMonitor:
     async def _generate_predictive_alert(self, prediction: Dict[str, Any]):
         """Generate predictive alert based on analysis."""
         try:
-            alert_id = (
+            alert_id = ()
                 f"predictive_alert_{prediction['metric_name']}_{int(time.time())}"
             )
 
-            severity = (
+            severity = ()
                 AlertSeverity.CRITICAL
                 if prediction["severity"] == "critical"
                 else AlertSeverity.WARNING
             )
 
-            alert = SystemAlert(
+            alert = SystemAlert()
                 alert_id=alert_id,
                 severity=severity,
                 title=f"Predictive Alert: {prediction['metric_name'].replace('_', ' ').title()}",
@@ -734,7 +734,7 @@ class BackupAnalyticsMonitor:
                         await self._generate_daily_report()
 
                     # Generate weekly reports (Sunday at midnight)
-                    if (
+                    if ()
                         self.weekly_reports
                         and current_time.weekday() == 6
                         and current_time.hour == 0
@@ -742,7 +742,7 @@ class BackupAnalyticsMonitor:
                         await self._generate_weekly_report()
 
                     # Generate monthly reports (1st of month at midnight)
-                    if (
+                    if ()
                         self.monthly_reports
                         and current_time.day == 1
                         and current_time.hour == 0
@@ -804,7 +804,7 @@ class BackupAnalyticsMonitor:
         except Exception as e:
             logger.error(f" Failed to generate monthly report: {e}")
 
-    async def _create_backup_report(
+    async def _create_backup_report()
         self, report_type: str, start_time: datetime, end_time: datetime
     ) -> BackupReport:
         """Create comprehensive backup report."""
@@ -822,7 +822,7 @@ class BackupAnalyticsMonitor:
                 for entry in self.availability_history
                 if start_time <= entry["timestamp"] <= end_time
             ]
-            avg_availability = (
+            avg_availability = ()
                 statistics.mean(availability_data) if availability_data else 0.0
             )
 
@@ -837,7 +837,7 @@ class BackupAnalyticsMonitor:
             # Shard integrity
             total_shards = shard_stats.get("total_shards", 0)
             corrupted_shards = shard_stats.get("shard_states", {}).get("corrupted", 0)
-            integrity_percentage = (
+            integrity_percentage = ()
                 ((total_shards - corrupted_shards) / total_shards * 100)
                 if total_shards > 0
                 else 100.0
@@ -845,11 +845,11 @@ class BackupAnalyticsMonitor:
 
             # Recovery success rate
             recovery_success_rate = 0.0
-            if (
+            if ()
                 recovery_stats
                 and recovery_stats["recovery_stats"]["total_recoveries"] > 0
             ):
-                recovery_success_rate = (
+                recovery_success_rate = ()
                     recovery_stats["recovery_stats"]["successful_recoveries"]
                     / recovery_stats["recovery_stats"]["total_recoveries"]
                     * 100
@@ -862,15 +862,15 @@ class BackupAnalyticsMonitor:
             capacity_predictions = await self._generate_capacity_predictions()
 
             # Create report
-            report = BackupReport(
+            report = BackupReport()
                 report_id=report_id,
                 report_type=report_type,
                 generated_at=datetime.now(timezone.utc),
                 time_period=(start_time, end_time),
-                total_backups=zk_stats.get("encryption_stats", {}).get(
+                total_backups=zk_stats.get("encryption_stats", {}).get()
                     "chunks_encrypted", 0
                 ),
-                successful_backups=zk_stats.get("encryption_stats", {}).get(
+                successful_backups=zk_stats.get("encryption_stats", {}).get()
                     "chunks_encrypted", 0
                 ),
                 failed_backups=0,  # TODO: Track failed backups
@@ -888,7 +888,7 @@ class BackupAnalyticsMonitor:
                     "recovery_statistics": recovery_stats,
                     "zero_knowledge_statistics": zk_stats,
                     "monitoring_statistics": self.monitoring_stats.copy(),
-                    "active_alerts": len(
+                    "active_alerts": len()
                         [a for a in self.active_alerts.values() if not a.resolved]
                     ),
                     "health_metrics": {
@@ -914,7 +914,7 @@ class BackupAnalyticsMonitor:
             # Simple capacity prediction based on growth trends
             # TODO: Implement more sophisticated capacity planning
 
-            current_usage = sum(
+            current_usage = sum()
                 shard.metadata.size for shard in self.shard_manager.shards.values()
             )
 
@@ -932,7 +932,7 @@ class BackupAnalyticsMonitor:
 
             # Add capacity warnings if needed
             if predictions["predicted_usage_90_days"] > current_usage * 5:
-                predictions["capacity_warnings"].append(
+                predictions["capacity_warnings"].append()
                     "High growth rate detected - consider capacity expansion"
                 )
 
@@ -995,7 +995,7 @@ class BackupAnalyticsMonitor:
                 "critical_alerts": len(critical_alerts),
                 "availability_sla": {
                     "target": self.availability_sla_target,
-                    "current": self.health_metrics.get(
+                    "current": self.health_metrics.get()
                         "availability_percentage",
                         HealthMetric("", 0, "", HealthStatus.GOOD, 0, 0),
                     ).value,
@@ -1008,7 +1008,7 @@ class BackupAnalyticsMonitor:
             logger.error(f" Failed to get current health status: {e}")
             return {}
 
-    async def get_system_alerts(
+    async def get_system_alerts()
         self, include_resolved: bool = False
     ) -> List[Dict[str, Any]]:
         """Get system alerts."""
@@ -1019,7 +1019,7 @@ class BackupAnalyticsMonitor:
                 if not include_resolved and alert.resolved:
                     continue
 
-                alerts.append(
+                alerts.append()
                     {
                         "alert_id": alert.alert_id,
                         "severity": alert.severity.value,

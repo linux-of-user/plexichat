@@ -25,7 +25,7 @@ class AuthAuditManager:
         self.initialized = True
         logger.info(" Auth Audit Manager initialized")
 
-    async def log_auth_attempt(
+    async def log_auth_attempt()
         self,
         audit_id: str,
         username: str,
@@ -37,7 +37,7 @@ class AuthAuditManager:
         """Log authentication attempt."""
         pass  # Mock implementation
 
-    async def log_auth_success(
+    async def log_auth_success()
         self,
         audit_id: str,
         user_id: str,
@@ -51,7 +51,7 @@ class AuthAuditManager:
         """Log successful authentication."""
         pass  # Mock implementation
 
-    async def log_auth_error(
+    async def log_auth_error()
         self, audit_id: str, username: str, error: str, duration: float
     ):
         """Log authentication error."""

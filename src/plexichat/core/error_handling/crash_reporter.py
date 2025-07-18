@@ -13,14 +13,10 @@ from .exceptions import ErrorCategory, ErrorSeverity
 
 from pathlib import Path
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
 
 
 from pathlib import Path
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
 
 import psutil
 import psutil
@@ -31,6 +27,7 @@ import logging
 
 
 """
+import time
 PlexiChat Crash Reporter
 
 Comprehensive crash reporting system with detailed context collection,
@@ -48,23 +45,23 @@ class CrashContext:
     stack_trace: str
     severity: ErrorSeverity
     category: ErrorCategory
-    
+
     # System information
     python_version: str
     platform_info: str
     memory_usage: Dict[str, Any]
     cpu_usage: float
-    
+
     # Application context
     user_id: Optional[str] = None
     session_id: Optional[str] = None
     request_id: Optional[str] = None
     component: Optional[str] = None
-    
+
     # Additional context
     additional_context: Dict[str, Any] = None
     recovery_suggestions: Optional[List[str]] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = asdict(self)
@@ -76,16 +73,16 @@ class CrashContext:
 
 class CrashReporter:
     """Advanced crash reporting system."""
-    
+
     def __init__(self, crash_log_dir: str = "logs/crashes"):
-        self.from pathlib import Path
-crash_log_dir = Path()(crash_log_dir)
+        from pathlib import Path
+self.crash_log_dir = Path(crash_log_dir)
         self.crash_log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.crash_history: List[CrashContext] = []
         self.max_history_size = 1000
         self.initialized = False
-        
+
         # Recovery suggestions database
         self.recovery_suggestions = {
             'DatabaseError': [
@@ -113,46 +110,45 @@ crash_log_dir = Path()(crash_log_dir)
                 "Clear authentication cache"
             ]
         }
-    
+
     async def initialize(self, config: Dict[str, Any] = None):
         """Initialize the crash reporter."""
         if config:
-            self.from pathlib import Path
-crash_log_dir = Path()(config.get('crash_log_dir', self.crash_log_dir))
+            from pathlib import Path
+self.crash_log_dir = Path(config.get('crash_log_dir', self.crash_log_dir))
             self.max_history_size = config.get('max_history_size', self.max_history_size)
-        
+
         self.crash_log_dir.mkdir(parents=True, exist_ok=True)
         self.initialized = True
-    
-    def report_crash(self, exception: Exception, 
+
+    def report_crash(self, exception: Exception, ):
                     severity: ErrorSeverity = ErrorSeverity.CRITICAL,
                     category: ErrorCategory = ErrorCategory.SYSTEM,
                     user_id: Optional[str] = None, session_id: Optional[str] = None,
                     request_id: Optional[str] = None, component: Optional[str] = None,
                     additional_context: Dict[str, Any] = None) -> CrashContext:
         """Report a crash with comprehensive context."""
-        
+
         # Generate unique error ID
         error_id = str(uuid.uuid4())
-        
+
         # Collect system information
         system_info = self._collect_system_info()
-        
+
         # Get stack trace
         stack_trace = traceback.format_exc()
-        
+
         # Get recovery suggestions
         exception_type = type(exception).__name__
-        suggestions = self.recovery_suggestions.get(exception_type, [
+        suggestions = self.recovery_suggestions.get(exception_type, [)
             "Check application logs for more details",
             "Restart the affected component",
             "Contact system administrator if issue persists"
         ])
-        
+
         # Create crash context
-        crash_context = CrashContext(
+        crash_context = CrashContext()
             error_id=error_id,
-            from datetime import datetime
 
             timestamp = datetime().now(),
             exception_type=exception_type,
@@ -171,17 +167,17 @@ crash_log_dir = Path()(config.get('crash_log_dir', self.crash_log_dir))
             additional_context=additional_context or {},
             recovery_suggestions=suggestions
         )
-        
+
         # Store crash context
         self._store_crash_context(crash_context)
-        
+
         # Add to history
         self.crash_history.append(crash_context)
         if len(self.crash_history) > self.max_history_size:
             self.crash_history.pop(0)
-        
+
         return crash_context
-    
+
     def _collect_system_info(self) -> Dict[str, Any]:
         """Collect comprehensive system information."""
         try:
@@ -189,7 +185,7 @@ crash_log_dir = Path()(config.get('crash_log_dir', self.crash_log_dir))
 psutil.virtual_memory()
             cpu_percent = import psutil
 psutil.cpu_percent(interval=1)
-            
+
             return {
                 'python_version': sys.version,
                 'platform_info': platform.platform(),
@@ -208,7 +204,7 @@ psutil.cpu_percent(interval=1)
                 'memory_usage': {'error': str(e)},
                 'cpu_usage': 0.0
             }
-    
+
     def _store_crash_context(self, crash_context: CrashContext):
         """Store crash context to file."""
         try:
@@ -217,26 +213,26 @@ psutil.cpu_percent(interval=1)
                 json.dump(crash_context.to_dict(), f, indent=2, default=str)
         except Exception as e:
             logger.info(f"Failed to store crash context: {e}")
-    
+
     def get_crash_history(self, limit: int = 100) -> List[CrashContext]:
         """Get recent crash history."""
         return self.crash_history[-limit:]
-    
+
     def get_crash_statistics(self) -> Dict[str, Any]:
         """Get crash statistics."""
         if not self.crash_history:
             return {'total_crashes': 0}
-        
+
         # Count by exception type
         exception_counts = {}
         severity_counts = {}
         category_counts = {}
-        
+
         for crash in self.crash_history:
             exception_counts[crash.exception_type] = exception_counts.get(crash.exception_type, 0) + 1
             severity_counts[crash.severity.value] = severity_counts.get(crash.severity.value, 0) + 1
             category_counts[crash.category.value] = category_counts.get(crash.category.value, 0) + 1
-        
+
         return {
             'total_crashes': len(self.crash_history),
             'exception_types': exception_counts,
@@ -244,7 +240,7 @@ psutil.cpu_percent(interval=1)
             'category_distribution': category_counts,
             'most_recent': self.crash_history[-1].to_dict() if self.crash_history else None
         }
-    
+
     def clear_crash_history(self):
         """Clear crash history."""
         self.crash_history.clear()
@@ -256,7 +252,7 @@ psutil.cpu_percent(interval=1)
             if self.crash_history:
                 summary_file = self.crash_log_dir / "crash_summary.json"
                 with open(summary_file, 'w') as f:
-                    json.dump({
+                    json.dump({)
                         'total_crashes': len(self.crash_history),
                         'statistics': self.get_crash_statistics(),
                         'shutdown_time': datetime.now().isoformat()

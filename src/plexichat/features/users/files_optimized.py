@@ -5,6 +5,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat File Model
 
 Enhanced file model with comprehensive functionality and performance optimization.
@@ -74,7 +75,7 @@ class FileStatus(str, Enum):
 
 class FileRecord(SQLModel, table=True):
     """Enhanced file record model."""
-    
+
     # Primary fields
     id: Optional[int] = Field(default=None, primary_key=True, description="File ID")
     filename: str = Field(..., max_length=255, description="Original filename")
@@ -82,33 +83,33 @@ class FileRecord(SQLModel, table=True):
     file_size: int = Field(..., description="File size in bytes")
     content_type: str = Field(..., description="MIME content type")
     file_type: FileType = Field(..., description="File type category")
-    
+
     # User relationship
     user_id: int = Field(..., foreign_key="user.id", description="Owner user ID")
-    
+
     # Status and metadata
     status: FileStatus = Field(default=FileStatus.UPLOADING, description="File processing status")
     is_public: bool = Field(default=False, description="Public access flag")
     is_temporary: bool = Field(default=False, description="Temporary file flag")
-    
+
     # Timestamps
     upload_date: datetime = Field(default_factory=datetime.now, description="Upload timestamp")
     last_accessed: Optional[datetime] = Field(None, description="Last access timestamp")
     expires_at: Optional[datetime] = Field(None, description="Expiration timestamp")
-    
+
     # Usage statistics
     download_count: int = Field(default=0, description="Download count")
     view_count: int = Field(default=0, description="View count")
-    
+
     # File metadata
     description: Optional[str] = Field(None, max_length=500, description="File description")
     tags: Optional[str] = Field(None, description="JSON string of tags")
     metadata: Optional[str] = Field(None, description="Additional metadata as JSON")
-    
+
     # Security
     checksum: Optional[str] = Field(None, description="File checksum")
     virus_scan_status: Optional[str] = Field(None, description="Virus scan status")
-    
+
     # Image/video specific
     width: Optional[int] = Field(None, description="Image/video width")
     height: Optional[int] = Field(None, description="Image/video height")
@@ -122,7 +123,7 @@ class FileUpload(BaseModel):
     tags: Optional[List[str]] = Field(None, description="File tags")
     is_public: bool = Field(default=False, description="Public access flag")
     is_temporary: bool = Field(default=False, description="Temporary file flag")
-    
+
     @validator('filename')
     def validate_filename(cls, v):
         if not v.strip():
@@ -132,7 +133,7 @@ class FileUpload(BaseModel):
         if re.search(r'[<>:"/\\|?*]', v):
             raise ValueError('Filename contains invalid characters')
         return v.strip()
-    
+
     @validator('tags')
     def validate_tags(cls, v):
         if v is not None:
@@ -149,7 +150,7 @@ class FileUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=500, description="Updated description")
     tags: Optional[List[str]] = Field(None, description="Updated tags")
     is_public: Optional[bool] = Field(None, description="Updated public access flag")
-    
+
     @validator('filename')
     def validate_filename(cls, v):
         if v is not None:
@@ -174,19 +175,19 @@ class FileResponse(BaseModel):
     download_count: int = Field(..., description="Download count")
     description: Optional[str] = Field(None, description="File description")
     tags: Optional[List[str]] = Field(None, description="File tags")
-    
+
     class Config:
         from_attributes = True
 
 class FileService:
     """Enhanced file service using EXISTING database abstraction."""
-    
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
         self.upload_dir = Path("uploads")
         self.upload_dir.mkdir(exist_ok=True)
-    
+
     def _get_file_type(self, content_type: str) -> FileType:
         """Determine file type from content type."""
         if content_type.startswith('image/'):
@@ -203,30 +204,30 @@ class FileService:
             return FileType.CODE
         else:
             return FileType.OTHER
-    
+
     def _generate_file_path(self, user_id: int, filename: str) -> str:
         """Generate unique file path."""
         import uuid
         file_ext = Path(filename).suffix
         unique_name = f"{uuid.uuid4()}{file_ext}"
         return str(self.upload_dir / str(user_id) / unique_name)
-    
+
     @async_track_performance("file_upload") if async_track_performance else lambda f: f
     async def create_file_record(self, user_id: int, file_data: FileUpload, file_size: int) -> Optional[FileRecord]:
         """Create file record using EXISTING database abstraction."""
         if self.db_manager:
             try:
                 import json
-                
+
                 # Generate file path
                 file_path = self._generate_file_path(user_id, file_data.filename)
-                
+
                 # Determine file type
                 file_type = self._get_file_type(file_data.content_type or "application/octet-stream")
-                
+
                 # Create file record
                 create_query = """
-                    INSERT INTO files (
+                    INSERT INTO files ()
                         filename, file_path, file_size, content_type, file_type,
                         user_id, status, is_public, is_temporary, upload_date,
                         description, tags, metadata
@@ -248,20 +249,20 @@ class FileService:
                     "tags": json.dumps(file_data.tags) if file_data.tags else None,
                     "metadata": json.dumps({"upload_method": "api"})
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("file_record_creation"):
                         result = await self.db_manager.execute_query(create_query, create_params)
                 else:
                     result = await self.db_manager.execute_query(create_query, create_params)
-                
+
                 if result:
                     # Update user file count
                     await self._update_user_file_count(user_id)
-                    
+
                     # Convert result to FileRecord object
                     row = result[0]
-                    file_record = FileRecord(
+                    file_record = FileRecord()
                         id=row[0],
                         filename=row[1],
                         file_path=row[2],
@@ -273,20 +274,20 @@ class FileService:
                         # ... map other fields
                         upload_date=row[10]
                     )
-                    
+
                     # Performance tracking
                     if self.performance_logger:
                         self.performance_logger.record_metric("files_uploaded", 1, "count")
                         self.performance_logger.record_metric("upload_size_bytes", file_size, "bytes")
-                    
+
                     return file_record
-                
+
             except Exception as e:
                 logger.error(f"Error creating file record: {e}")
                 return None
-        
+
         return None
-    
+
     @async_track_performance("file_update") if async_track_performance else lambda f: f
     async def update_file(self, file_id: int, user_id: int, file_data: FileUpdate) -> Optional[FileRecord]:
         """Update file record using EXISTING database abstraction."""
@@ -295,16 +296,16 @@ class FileService:
                 # Check if user owns the file
                 check_query = "SELECT user_id FROM files WHERE id = ?"
                 check_params = {"id": file_id}
-                
+
                 result = await self.db_manager.execute_query(check_query, check_params)
                 if not result or result[0][0] != user_id:
                     return None  # Not authorized
-                
+
                 # Build update query
                 import json
                 update_fields = []
                 params = {"id": file_id}
-                
+
                 for field, value in file_data.dict(exclude_unset=True).items():
                     if value is not None:
                         if field == "tags":
@@ -313,42 +314,42 @@ class FileService:
                         else:
                             update_fields.append(f"{field} = ?")
                             params[field] = value
-                
+
                 if not update_fields:
                     return None
-                
+
                 update_query = f"""
-                    UPDATE files 
+                    UPDATE files
                     SET {', '.join(update_fields)}
                     WHERE id = ?
                     RETURNING *
                 """
-                
+
                 if self.performance_logger and timer:
                     with timer("file_update_query"):
                         result = await self.db_manager.execute_query(update_query, params)
                 else:
                     result = await self.db_manager.execute_query(update_query, params)
-                
+
                 if result:
                     # Performance tracking
                     if self.performance_logger:
                         self.performance_logger.record_metric("files_updated", 1, "count")
-                    
+
                     # Convert result to FileRecord object
                     row = result[0]
-                    return FileRecord(
+                    return FileRecord()
                         id=row[0],
                         filename=row[1],
                         # ... map other fields
                     )
-                
+
             except Exception as e:
                 logger.error(f"Error updating file: {e}")
                 return None
-        
+
         return None
-    
+
     async def _update_user_file_count(self, user_id: int):
         """Update user's file count."""
         if self.db_manager:
@@ -358,24 +359,24 @@ class FileService:
                 await self.db_manager.execute_query(query, params)
             except Exception as e:
                 logger.error(f"Error updating user file count: {e}")
-    
+
     @async_track_performance("file_download") if async_track_performance else lambda f: f
     async def increment_download_count(self, file_id: int):
         """Increment file download count."""
         if self.db_manager:
             try:
                 query = """
-                    UPDATE files 
+                    UPDATE files
                     SET download_count = download_count + 1, last_accessed = ?
                     WHERE id = ?
                 """
                 params = {"last_accessed": datetime.now(), "id": file_id}
                 await self.db_manager.execute_query(query, params)
-                
+
                 # Performance tracking
                 if self.performance_logger:
                     self.performance_logger.record_metric("file_downloads", 1, "count")
-                    
+
             except Exception as e:
                 logger.error(f"Error incrementing download count: {e}")
 

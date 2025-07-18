@@ -111,7 +111,7 @@ if ai_router:
 
 if moderation_router:
     try:
-        router.include_router(
+        router.include_router()
             moderation_router, prefix="/moderation", tags=["moderation"]
         )
         logger.info(" Moderation router included")
@@ -120,7 +120,7 @@ if moderation_router:
 
 if monitoring_router:
     try:
-        router.include_router(
+        router.include_router()
             monitoring_router, prefix="/monitoring", tags=["monitoring"]
         )
         logger.info(" Monitoring router included")
@@ -143,14 +143,14 @@ async def health_check():
         "status": "healthy",
         "version": "a.1.0-1",
         "services": {
-            "auth": (
+            "auth": ()
                 "initialized"
                 if auth_manager
                 and hasattr(auth_manager, "initialized")
                 and auth_manager.initialized
                 else "not_initialized"
             ),
-            "backup": (
+            "backup": ()
                 "initialized"
                 if backup_manager
                 and hasattr(backup_manager, "initialized")

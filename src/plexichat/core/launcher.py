@@ -14,7 +14,7 @@ except ImportError:
         pass
 
 try:
-    from plexichat.core.database import (
+    from plexichat.core.database import ()
         initialize_database_system_legacy,
         shutdown_database_system,
     )
@@ -150,7 +150,7 @@ class PlexiChatLauncher:
             logger.info(f" Starting PlexiChat on {self.config.host}:{self.config.port}")
 
             # Start the server
-            config = uvicorn.Config(
+            config = uvicorn.Config()
                 self.app,
                 host=self.config.host,
                 port=self.config.port,

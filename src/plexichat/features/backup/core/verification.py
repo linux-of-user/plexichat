@@ -21,6 +21,7 @@ from plexichat.core.config import settings
 from plexichat.app.logger_config import get_logger
 
 """
+import warnings
 PlexiChat Backup Verification System
 Comprehensive backup verification, integrity checking, and automated recovery testing
 
@@ -185,7 +186,7 @@ class ComprehensiveBackupVerifier:
             self.security_violations: List[Dict[str, Any]] = []
 
             # Concurrency control
-            self.verification_semaphore = asyncio.Semaphore(
+            self.verification_semaphore = asyncio.Semaphore()
                 self.verification_config.get("max_concurrent_verifications", 5)
             )
             self.verification_locks: Dict[str, asyncio.Lock] = {}
@@ -403,7 +404,7 @@ settings.
                 logger.error(f" Audit maintenance error: {e}")
                 await asyncio.sleep(300)
 
-    async def verify_backup_integrity(self, backup_id: str,
+    async def verify_backup_integrity(self, backup_id: str,)
                                     level: Optional[VerificationLevel] = None,
                                     force_refresh: bool = False) -> VerificationResult:
         """
@@ -453,7 +454,7 @@ settings.
                         raise SecurityError(f"Access denied for backup: {backup_id}")
 
                     # Initialize verification result with enhanced tracking
-                    result = VerificationResult(
+                    result = VerificationResult()
                         verification_id=verification_id,
                         timestamp=datetime.now(timezone.utc),
                         level=level,
@@ -510,7 +511,7 @@ settings.
             result.verification_time_ms = (time.time() - start_time) * 1000
             return result
 
-    async def verify_shard_integrity(self, shard_id: str,
+    async def verify_shard_integrity(self, shard_id: str,)
                                    level: Optional[VerificationLevel] = None) -> VerificationResult:
         """Verify the integrity of a single shard."""
         verification_id = f"shard_verify_{secrets.token_hex(8)}"
@@ -520,7 +521,7 @@ settings.
             level = level or self.verification_config["default_verification_level"]
             logger.debug(f" Verifying shard: {shard_id} (level: {level.value})")
 
-            result = VerificationResult(
+            result = VerificationResult()
                 verification_id=verification_id,
                 timestamp=datetime.now(timezone.utc),
                 level=level,
@@ -613,7 +614,7 @@ settings.
                 integrity_score = 100.0
 
             # Generate recommendations
-            recommendations = self._generate_integrity_recommendations(
+            recommendations = self._generate_integrity_recommendations()
                 verified_items, failed_items, corrupted_items, missing_items
             )
 
@@ -621,11 +622,11 @@ settings.
             auto_repair_actions = self._generate_auto_repair_actions(relevant_results)
 
             # Calculate next verification due
-            next_verification = timestamp + timedelta(
+            next_verification = timestamp + timedelta()
                 hours=self.verification_config["verification_interval_hours"]
             )
 
-            report = IntegrityReport(
+            report = IntegrityReport()
                 report_id=report_id,
                 timestamp=timestamp,
                 scope=scope,
@@ -663,7 +664,7 @@ settings.
 
             logger.info(f" Starting recovery test: {backup_id} (type: {test_type})")
 
-            result = RecoveryTestResult(
+            result = RecoveryTestResult()
                 test_id=test_id,
                 timestamp=datetime.now(timezone.utc),
                 backup_id=backup_id,
@@ -704,7 +705,7 @@ settings.
             result.recovery_time_seconds = time.time() - start_time
             return result
 
-    async def schedule_automatic_verification(self, target_id: str, target_type: str,
+    async def schedule_automatic_verification(self, target_id: str, target_type: str,)
                                             interval_hours: Optional[int] = None) -> bool:
         """Schedule automatic verification for a target."""
         try:
@@ -793,7 +794,7 @@ settings.
             logger.error(f"Failed to get shard metadata for {shard_id}: {e}")
             return None
 
-    async def _perform_basic_verification(self, result: VerificationResult,
+    async def _perform_basic_verification(self, result: VerificationResult,)
                                         backup_metadata: Dict[str, Any]) -> None:
         """Perform basic verification (checksums only)."""
         try:
@@ -815,7 +816,7 @@ settings.
         except Exception as e:
             result.error_details.append(f"Basic verification failed: {str(e)}")
 
-    async def _perform_standard_verification(self, result: VerificationResult,
+    async def _perform_standard_verification(self, result: VerificationResult,)
                                            backup_metadata: Dict[str, Any]) -> None:
         """Perform standard verification (checksums + metadata)."""
         await self._perform_basic_verification(result, backup_metadata)
@@ -837,7 +838,7 @@ settings.
         except Exception as e:
             result.error_details.append(f"Standard verification failed: {str(e)}")
 
-    async def _perform_comprehensive_verification(self, result: VerificationResult,
+    async def _perform_comprehensive_verification(self, result: VerificationResult,)
                                                 backup_metadata: Dict[str, Any]) -> None:
         """Perform comprehensive verification (full integrity + recovery test)."""
         await self._perform_standard_verification(result, backup_metadata)
@@ -866,7 +867,7 @@ settings.
         except Exception as e:
             result.error_details.append(f"Comprehensive verification failed: {str(e)}")
 
-    async def _perform_forensic_verification(self, result: VerificationResult,
+    async def _perform_forensic_verification(self, result: VerificationResult,)
                                            backup_metadata: Dict[str, Any]) -> None:
         """Perform forensic verification (audit trail + zero-knowledge proofs)."""
         await self._perform_comprehensive_verification(result, backup_metadata)
@@ -893,7 +894,7 @@ settings.
         except Exception as e:
             result.error_details.append(f"Forensic verification failed: {str(e)}")
 
-    async def _perform_government_verification(self, result: VerificationResult,
+    async def _perform_government_verification(self, result: VerificationResult,)
                                              backup_metadata: Dict[str, Any]) -> None:
         """Perform government-level verification (quantum signatures + blockchain audit)."""
         await self._perform_forensic_verification(result, backup_metadata)
@@ -928,7 +929,7 @@ settings.
         except Exception as e:
             result.error_details.append(f"Government verification failed: {str(e)}")
 
-    async def _verify_shard_checksums(self, result: VerificationResult,
+    async def _verify_shard_checksums(self, result: VerificationResult,)
                                     shard_data: bytes, shard_metadata: Dict[str, Any]) -> None:
         """Verify shard checksums using multiple algorithms."""
         try:
@@ -1008,10 +1009,10 @@ settings.
                 self.verification_stats["corrupted_items_detected"] += 1
 
             # Update average verification time
-            total_time = (self.verification_stats["average_verification_time_ms"] *
+            total_time = (self.verification_stats["average_verification_time_ms"] *)
                          (self.verification_stats["total_verifications"] - 1) +
                          result.verification_time_ms)
-            self.verification_stats["average_verification_time_ms"] = (
+            self.verification_stats["average_verification_time_ms"] = ()
                 total_time / self.verification_stats["total_verifications"]
             )
 
@@ -1045,7 +1046,7 @@ settings.
         except Exception as e:
             logger.error(f"Failed to log verification audit: {e}")
 
-    def _generate_integrity_recommendations(self, verified: int, failed: int,
+    def _generate_integrity_recommendations(self, verified: int, failed: int,):
                                           corrupted: int, missing: int) -> List[str]:
         """Generate integrity recommendations."""
         recommendations = []
@@ -1264,7 +1265,7 @@ settings.
             # Limit cache size
             if len(self.verification_cache) > 1000:
                 # Remove oldest entries
-                sorted_items = sorted(
+                sorted_items = sorted()
                     self.verification_cache.items(),
                     key=lambda x: x[1][1]
                 )
@@ -1366,7 +1367,7 @@ settings.
             self.verification_locks.clear()
 
             # Final audit log entry
-            await self._log_verification_audit(VerificationResult(
+            await self._log_verification_audit(VerificationResult())
                 verification_id="system_shutdown",
                 timestamp=datetime.now(timezone.utc),
                 level=VerificationLevel.BASIC,
@@ -1396,7 +1397,7 @@ settings.
 
             # Recent activity
             recent_cutoff = current_time - timedelta(hours=24)
-            recent_verifications = len([
+            recent_verifications = len([)
                 r for r in self.verification_results.values()
                 if r.timestamp >= recent_cutoff
             ])

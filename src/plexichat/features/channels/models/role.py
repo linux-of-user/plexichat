@@ -16,6 +16,8 @@ from ....infrastructure.utils.snowflake import SnowflakeGenerator
 from sqlalchemy import DateTime, Index
 
 """
+import string
+import time
 PlexiChat Role Model
 
 Discord-like role model with comprehensive permission system.
@@ -82,7 +84,7 @@ class Role(SQLModel, table=True):
     __tablename__ = "roles"
 
     # Primary identification
-    role_id: str = Field(
+    role_id: str = Field()
         default_factory=lambda: str(role_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -90,14 +92,14 @@ class Role(SQLModel, table=True):
     )
 
     # Server relationship
-    server_id: str = Field(
+    server_id: str = Field()
         foreign_key="servers.server_id",
         index=True,
         description="Server this role belongs to",
     )
 
     # Basic role information
-    name: str = Field(
+    name: str = Field()
         max_length=100, index=True, description="Role name (1-100 characters)"
     )
 
@@ -105,7 +107,7 @@ class Role(SQLModel, table=True):
     permissions: int = Field(default=0, description="Permission bitfield for this role")
 
     # Visual appearance
-    color: int = Field(
+    color: int = Field()
         default=0,
         ge=0,
         le=16777215,  # 0xFFFFFF
@@ -113,57 +115,57 @@ class Role(SQLModel, table=True):
     )
 
     # Role behavior
-    hoist: bool = Field(
+    hoist: bool = Field()
         default=False, description="Whether role is displayed separately in member list"
     )
 
-    mentionable: bool = Field(
+    mentionable: bool = Field()
         default=False, description="Whether role can be mentioned by everyone"
     )
 
     # Role hierarchy
-    position: int = Field(
+    position: int = Field()
         default=0,
         index=True,
         description="Position in role hierarchy (higher = more permissions)",
     )
 
     # Role management
-    managed: bool = Field(
+    managed: bool = Field()
         default=False, description="Whether role is managed by an integration"
     )
 
     # Role icon (premium feature)
-    icon_url: Optional[str] = Field(
+    icon_url: Optional[str] = Field()
         default=None, max_length=500, description="Role icon URL (premium servers only)"
     )
 
-    unicode_emoji: Optional[str] = Field(
+    unicode_emoji: Optional[str] = Field()
         default=None, max_length=100, description="Unicode emoji for the role"
     )
 
     # Role tags (for special roles)
-    bot_id: Optional[str] = Field(
+    bot_id: Optional[str] = Field()
         default=None, foreign_key="users.id", description="Bot ID if this is a bot role"
     )
 
-    integration_id: Optional[str] = Field(
+    integration_id: Optional[str] = Field()
         default=None, description="Integration ID if this is an integration role"
     )
 
-    premium_subscriber: bool = Field(
+    premium_subscriber: bool = Field()
         default=False, description="Whether this is the premium subscriber role"
     )
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Role creation timestamp",
     )
 
-    updated_at: Optional[datetime] = Field(
+    updated_at: Optional[datetime] = Field()
         default=None, sa_column=Column(DateTime), description="Last update timestamp"
     )
 
@@ -234,7 +236,7 @@ class Role(SQLModel, table=True):
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index("idx_role_server_position", "server_id", "position"),
     Index("idx_role_server_name", "server_id", "name"),
     Index("idx_role_permissions", "permissions"),

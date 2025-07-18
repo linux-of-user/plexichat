@@ -17,6 +17,8 @@ from typing import Any, Dict, List, Optional  # , Tuple  # Unused import
 import os
 
 """
+import string
+import time
 PlexiChat Advanced Version Management System
 
 New versioning scheme: {major}{type}{minor}
@@ -58,14 +60,14 @@ class Version:
     type: VersionType
     minor: int
     build: Optional[str] = None
-    
+
     def __post_init__(self):
         """Validate version components."""
         if self.major < 0:
             raise ValueError("Major version cannot be negative")
         if self.minor < 1:
             raise ValueError("Minor version must be >= 1")
-    
+
     @classmethod
     def parse(cls, version_string: str) -> 'Version':
         """Parse version string into Version object."""
@@ -95,56 +97,56 @@ class Version:
             minor=int(minor),
             build=build
         )
-    
+
     def __str__(self) -> str:
         """String representation of version."""
         version_str = f"{self.type.value}.{self.major}.{self.minor}-{self.build or '1'}"
         return version_str
-    
+
     def __eq__(self, other) -> bool:
         """Version equality comparison."""
         if not isinstance(other, Version):
             return False
         return (self.major, self.type, self.minor) == (other.major, other.type, other.minor)
-    
+
     def __lt__(self, other) -> bool:
         """Version less than comparison."""
         if not isinstance(other, Version):
             return NotImplemented
-        
+
         # Compare major version first
         if self.major != other.major:
             return self.major < other.major
-        
+
         # Compare type (alpha < beta < release)
         type_order = {VersionType.ALPHA: 0, VersionType.BETA: 1, VersionType.RELEASE: 2}
         if self.type != other.type:
             return type_order[self.type] < type_order[other.type]
-        
+
         # Compare minor version
         return self.minor < other.minor
-    
+
     def __le__(self, other) -> bool:
         return self == other or self < other
-    
+
     def __gt__(self, other) -> bool:
         return not self <= other
-    
+
     def __ge__(self, other) -> bool:
         return not self < other
-    
+
     def is_compatible_with(self, other: 'Version') -> bool:
         """Check if versions are compatible for upgrades."""
         # Same major version is always compatible
         if self.major == other.major:
             return True
-        
+
         # Can upgrade from previous major version
         if other.major == self.major - 1:
             return True
-        
+
         return False
-    
+
     def get_status(self) -> VersionStatus:
         """Get version status based on type."""
         if self.type == VersionType.ALPHA:
@@ -168,7 +170,7 @@ class VersionInfo:
     config_version: Optional[str] = None
     dependencies: Dict[str, str] = field(default_factory=dict)
     security_updates: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -183,7 +185,7 @@ class VersionInfo:
             "dependencies": self.dependencies,
             "security_updates": self.security_updates
         }
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'VersionInfo':
         """Create from dictionary."""
@@ -203,7 +205,7 @@ class VersionInfo:
 
 class VersionManager:
     """Manages version information and auto-generates version files."""
-    
+
     def __init__(self):
         self.current_version = "a.1.1-16"
         self.version_type = "alpha"
@@ -212,10 +214,10 @@ class VersionManager:
         self.build_number = 16
         self.api_version = "v1"
         self.release_date = datetime.now().strftime("%Y-%m-%d")
-        
+
         # Parse version components
         self._parse_version()
-        
+
     def _parse_version(self):
         """Parse version string into components."""
         try:
@@ -238,7 +240,7 @@ class VersionManager:
             self.version_type = type_mapping.get(letter, 'unknown')
         except Exception as e:
             logger.error(f"Failed to parse version {self.current_version}: {e}")
-    
+
     def generate_version_json(self) -> Dict[str, Any]:
         """Generate version.json content."""
         return {
@@ -281,7 +283,7 @@ class VersionManager:
                 }
             ]
         }
-    
+
     def generate_changelog_json(self) -> Dict[str, Any]:
         """Generate changelog.json content."""
         return {
@@ -382,13 +384,13 @@ class VersionManager:
                 ],
                 "letters": {
                     "a": "alpha",
-                    "b": "beta", 
+                    "b": "beta",
                     "r": "release",
                     "c": "candidate"
                 }
             }
         }
-    
+
     def _write_version_file(self):
         """Write the current version to version.json in the repo root."""
         version_data = {
@@ -413,7 +415,7 @@ class VersionManager:
         self.release_date = datetime.now().strftime("%Y-%m-%d")
         logger.info(f"Updated version to {new_version}")
         self._write_version_file()
-    
+
     def increment_build(self):
         """Increment build number."""
         self.build_number += 1
@@ -421,7 +423,7 @@ class VersionManager:
         self.release_date = datetime.now().strftime("%Y-%m-%d")
         logger.info(f"Incremented build to {self.current_version}")
         self._write_version_file()
-    
+
     def increment_minor(self):
         """Increment minor version."""
         self.minor_version += 1
@@ -430,7 +432,7 @@ class VersionManager:
         self.release_date = datetime.now().strftime("%Y-%m-%d")
         logger.info(f"Incremented minor version to {self.current_version}")
         self._write_version_file()
-    
+
     def increment_major(self):
         """Increment major version."""
         self.major_version += 1
@@ -440,7 +442,7 @@ class VersionManager:
         self.release_date = datetime.now().strftime("%Y-%m-%d")
         logger.info(f"Incremented major version to {self.current_version}")
         self._write_version_file()
-    
+
     def auto_generate_files(self):
         """Auto-generate version.json and changelog.json files."""
         try:
@@ -449,16 +451,16 @@ class VersionManager:
             with open("version.json", "w") as f:
                 json.dump(version_data, f, indent=2)
             logger.info("Auto-generated version.json")
-            
+
             # Generate changelog.json
             changelog_data = self.generate_changelog_json()
             with open("changelog.json", "w") as f:
                 json.dump(changelog_data, f, indent=2)
             logger.info("Auto-generated changelog.json")
-            
+
         except Exception as e:
             logger.error(f"Failed to auto-generate version files: {e}")
-    
+
     def get_version_info(self) -> Dict[str, Any]:
         """Get current version information."""
         return {
@@ -481,3 +483,5 @@ def get_version_manager() -> VersionManager:
 def auto_generate_version_files():
     """Auto-generate version files."""
     version_manager.auto_generate_files()
+# Monkey-patch: set_current_version as alias for update_version
+VersionManager.set_current_version = VersionManager.update_version

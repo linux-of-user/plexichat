@@ -11,18 +11,11 @@ from sqlmodel import JSON, Column, Field, SQLModel
 
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from sqlalchemy import DateTime, Index
 
 """
+import time
 PlexiChat Server Member Model
 
 Server membership model tracking user participation in servers.
@@ -41,7 +34,7 @@ class ServerMember(SQLModel, table=True):
     __tablename__ = "server_members"
 
     # Primary identification
-    member_id: str = Field(
+    member_id: str = Field()
         default_factory=lambda: str(member_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -49,67 +42,67 @@ class ServerMember(SQLModel, table=True):
     )
 
     # Server and user relationships
-    server_id: str = Field(
+    server_id: str = Field()
         foreign_key="servers.server_id",
         index=True,
         description="Server the user is a member of"
     )
 
-    user_id: str = Field(
+    user_id: str = Field()
         foreign_key="users.id",
         index=True,
         description="User who is a member"
     )
 
     # Member customization
-    nickname: Optional[str] = Field(
+    nickname: Optional[str] = Field()
         default=None,
         max_length=32,
         description="Server-specific nickname"
     )
 
     # Role assignments
-    roles: List[str] = Field(
+    roles: List[str] = Field()
         default_factory=list,
         sa_column=Column(JSON),
         description="List of role IDs assigned to this member"
     )
 
     # Membership timestamps
-    joined_at: datetime = Field(
+    joined_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="When the user joined the server"
     )
 
-    premium_since: Optional[datetime] = Field(
+    premium_since: Optional[datetime] = Field()
         default=None,
         sa_column=Column(DateTime),
         description="When the user started boosting the server"
     )
 
     # Membership status
-    pending: bool = Field(
+    pending: bool = Field()
         default=False,
         index=True,
         description="Whether member is pending verification"
     )
 
     # Moderation
-    muted: bool = Field(
+    muted: bool = Field()
         default=False,
         index=True,
         description="Whether member is server muted"
     )
 
-    deafened: bool = Field(
+    deafened: bool = Field()
         default=False,
         description="Whether member is server deafened"
     )
 
     # Timeout/discipline
-    timeout_until: Optional[datetime] = Field(
+    timeout_until: Optional[datetime] = Field()
         default=None,
         sa_column=Column(DateTime),
         index=True,
@@ -117,20 +110,20 @@ class ServerMember(SQLModel, table=True):
     )
 
     # Member flags
-    flags: int = Field(
+    flags: int = Field()
         default=0,
         description="Member flags bitfield"
     )
 
     # Avatar override
-    avatar_url: Optional[str] = Field(
+    avatar_url: Optional[str] = Field()
         default=None,
         max_length=500,
         description="Server-specific avatar URL"
     )
 
     # Communication disabled
-    communication_disabled_until: Optional[datetime] = Field(
+    communication_disabled_until: Optional[datetime] = Field()
         default=None,
         sa_column=Column(DateTime),
         description="When communication restriction expires"
@@ -188,7 +181,7 @@ datetime.utcnow() < self.communication_disabled_until
 
     def days_since_joined(self) -> int:
         """Get number of days since member joined."""
-        return (from datetime import datetime
+        return (from datetime import datetime)
 datetime.utcnow() - self.joined_at).days
 
     def to_dict(self) -> Dict[str, Any]:
@@ -212,7 +205,7 @@ datetime.utcnow() - self.joined_at).days
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index('idx_member_server_user', 'server_id', 'user_id', unique=True),
     Index('idx_member_server_joined', 'server_id', 'joined_at'),
     Index('idx_member_user_joined', 'user_id', 'joined_at'),

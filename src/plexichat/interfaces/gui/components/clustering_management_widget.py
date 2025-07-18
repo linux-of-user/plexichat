@@ -16,14 +16,10 @@ from typing import Any, Dict, List, Optional
 from ...features.clustering import AdvancedClusterManager
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import time
 Enhanced Clustering Management GUI Widget
 Comprehensive GUI component for cluster management, load balancing, and failover.
 
@@ -65,20 +61,19 @@ except ImportError:
             self.initialized = True
 
         async def get_cluster_overview(self):
-            return type('Overview', (), {
+            return type('Overview', (), {)
                 'total_nodes': 3,
                 'active_nodes': 2,
                 'cluster_load_percentage': 45.5,
                 'performance_improvement_percentage': 150.0,
                 'total_failover_events': 2,
-                'last_failover_timestamp': from datetime import datetime
-datetime = datetime.now() - timedelta(hours=2)
+                'last_failover_timestamp': datetime.now() - timedelta(hours=2)
             })()
 
         async def get_cluster_health(self):
-            return type('Health', (), {
+            return type('Health', (), {)
                 'node_health_status': [
-                    type('Node', (), {
+                    type('Node', (), {)
                         'node_id': 'node-001',
                         'status': type('Status', (), {'value': 'ONLINE'})(),
                         'health_score': 95.5,
@@ -86,7 +81,7 @@ datetime = datetime.now() - timedelta(hours=2)
                         'memory_usage_percentage': 42.1,
                         'current_connections': 150
                     })(),
-                    type('Node', (), {
+                    type('Node', (), {)
                         'node_id': 'node-002',
                         'status': type('Status', (), {'value': 'ONLINE'})(),
                         'health_score': 88.3,
@@ -98,7 +93,7 @@ datetime = datetime.now() - timedelta(hours=2)
             })()
 
         async def get_load_balancer_stats(self):
-            return type('Stats', (), {
+            return type('Stats', (), {)
                 'total_requests': 15420,
                 'current_rps': 23.5,
                 'average_response_time_ms': 145.2,
@@ -263,7 +258,7 @@ class EnhancedClusteringManagementWidget:
             header_frame.pack(fill=tk.X, pady=(0, 10))
 
             # Title
-            title_label = ttk.Label(
+            title_label = ttk.Label()
                 header_frame,
                 text=" Enhanced Clustering Management",
                 font=("Arial", 18, "bold")
@@ -271,7 +266,7 @@ class EnhancedClusteringManagementWidget:
             title_label.pack(side=tk.LEFT)
 
             # Status indicator
-            self.status_indicator = ttk.Label(
+            self.status_indicator = ttk.Label()
                 header_frame,
                 text=" Connecting...",
                 foreground="orange",
@@ -342,7 +337,8 @@ class EnhancedClusteringManagementWidget:
         """Load cluster status from the cluster manager."""
         try:
             if not cluster_manager.initialized:
-                await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
+                if cluster_manager and hasattr(cluster_manager, "initialize"):
+                    await cluster_manager.initialize()
 
             # Get cluster overview
             overview = await cluster_manager.get_cluster_overview()
@@ -352,7 +348,7 @@ class EnhancedClusteringManagementWidget:
             # Convert to our data structure
             node_health = []
             for node in health.node_health_status:
-                node_info = NodeHealthInfo(
+                node_info = NodeHealthInfo()
                     node_id=node.node_id,
                     name=node.node_id,
                     status=node.status.value,
@@ -364,7 +360,7 @@ class EnhancedClusteringManagementWidget:
                 )
                 node_health.append(node_info)
 
-            return ClusterSystemStatus(
+            return ClusterSystemStatus()
                 total_nodes=overview.total_nodes,
                 active_nodes=overview.active_nodes,
                 offline_nodes=overview.total_nodes - overview.active_nodes,
@@ -385,7 +381,7 @@ class EnhancedClusteringManagementWidget:
         except Exception as e:
             logger.error(f"Error loading cluster status: {e}")
             # Return default status
-            return ClusterSystemStatus(
+            return ClusterSystemStatus()
                 total_nodes=0,
                 active_nodes=0,
                 offline_nodes=0
@@ -421,8 +417,7 @@ class EnhancedClusteringManagementWidget:
                 self.status_text.config(state=tk.NORMAL)
                 self.status_text.delete(1.0, tk.END)
 
-                status_info = f"Cluster Status Report - {from datetime import datetime
-datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                status_info = f"Cluster Status Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                 status_info += f"{'='*60}\n"
                 status_info += f"Total Nodes: {self.status_data.total_nodes}\n"
                 status_info += f"Active Nodes: {self.status_data.active_nodes}\n"
@@ -456,7 +451,7 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
 
             # Add nodes
             for node in self.status_data.node_health:
-                values = (
+                values = ()
                     node.node_id,
                     node.name,
                     node.node_type,
@@ -572,25 +567,25 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             control_frame = ttk.Frame(self.nodes_frame)
             control_frame.pack(fill=tk.X, padx=10, pady=5)
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Add Node",
                 command=self.add_cluster_node_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Remove Node",
                 command=self.remove_cluster_node_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Refresh",
                 command=self.refresh_nodes
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Maintenance",
                 command=self.toggle_maintenance_mode
@@ -601,11 +596,11 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             nodes_list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
             # Create treeview for nodes
-            node_columns = ("ID", "Name", "Type", "Address", "Status", "CPU", "Memory", "Health")
+            node_columns = ("ID", "Name", Type, "Address", "Status", "CPU", "Memory", "Health")
             self.nodes_tree = ttk.Treeview(nodes_list_frame, columns=node_columns, show="headings", height=12)
 
             # Configure columns with better widths
-            column_widths = {"ID": 80, "Name": 100, "Type": 80, "Address": 120,
+            column_widths = {"ID": 80, "Name": 100, Type: 80, "Address": 120,
                            "Status": 80, "CPU": 60, "Memory": 60, "Health": 60}
 
             for col in node_columns:
@@ -701,7 +696,7 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
 
             # Auto refresh checkbox
             if self.auto_refresh_var:
-                auto_refresh_cb = ttk.Checkbutton(
+                auto_refresh_cb = ttk.Checkbutton()
                     control_frame,
                     text="Auto Refresh",
                     variable=self.auto_refresh_var,
@@ -710,14 +705,14 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                 auto_refresh_cb.pack(side=tk.LEFT, padx=(0, 10))
 
             # Manual refresh button
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Refresh Now",
                 command=self.manual_refresh
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             # Export button
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Export Data",
                 command=self.export_cluster_data
@@ -730,7 +725,7 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         """Start background monitoring thread."""
         if not self.background_thread or not self.background_thread.is_alive():
             self.background_thread = threading.Thread(target=self._background_monitor, daemon=True)
-            self.if background_thread and hasattr(background_thread, "start"): background_thread.start()
+            self.background_thread.start()
 
     def _background_monitor(self):
         """Background monitoring loop."""
@@ -894,15 +889,14 @@ datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                 messagebox.showwarning("Warning", "No data to export")
                 return
 
-            filename = filedialog.asksaveasfilename(
+            filename = filedialog.asksaveasfilename()
                 defaultextension=".json",
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
             )
 
             if filename:
                 export_data = {
-                    'timestamp': from datetime import datetime
-datetime = datetime.now().isoformat(),
+                    'timestamp': datetime.now().isoformat(),
                     'cluster_status': {
                         'total_nodes': self.status_data.total_nodes,
                         'active_nodes': self.status_data.active_nodes,

@@ -15,6 +15,8 @@ import yaml
 from cryptography.fernet import Fernet
 
 """
+import secrets
+import time
 PlexiChat WebUI Configuration Manager
 
 Enhanced configuration system for WebUI with configurable ports,
@@ -112,42 +114,42 @@ class FeatureToggleConfig:
 
 class WebUIConfigManager:
     """Enhanced WebUI configuration manager."""
-    
+
     def __init__(self, config_dir: str = "config"):
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(exist_ok=True)
-        
+
         self.config_file = self.config_dir / "webui_config.yaml"
         self.auth_config_file = self.config_dir / "webui_auth.yaml"
         self.secrets_file = self.config_dir / "webui_secrets.json"
-        
+
         # Encryption for sensitive data
         self.encryption_key = self._get_or_create_encryption_key()
         self.cipher = Fernet(self.encryption_key)
-        
+
         # Configuration objects
         self.port_config = WebUIPortConfig()
         self.mfa_config = MFAConfig()
         self.auth_storage_config = AuthStorageConfig()
         self.self_test_config = SelfTestConfig()
         self.feature_toggle_config = FeatureToggleConfig()
-        
+
         # Load existing configuration
         self.load_configuration()
-        
+
         logger.info("WebUI Configuration Manager initialized")
 
     def _get_or_create_encryption_key(self) -> bytes:
         """Get or create encryption key for sensitive data."""
         key_file = self.config_dir / ".webui_key"
-        
+
         if key_file.exists():
             try:
                 with open(key_file, 'rb') as f:
                     return f.read()
             except Exception as e:
                 logger.warning(f"Failed to read encryption key: {e}")
-        
+
         # Generate new key
         key = Fernet.generate_key()
         try:
@@ -157,7 +159,7 @@ class WebUIConfigManager:
             os.chmod(key_file, 0o600)
         except Exception as e:
             logger.error(f"Failed to save encryption key: {e}")
-        
+
         return key
 
     def load_configuration(self):
@@ -167,20 +169,20 @@ class WebUIConfigManager:
             if self.config_file and self.config_file.exists():
                 with open(self.config_file, 'r') as f:
                     config_data = yaml.safe_load(f)
-                
+
                 if config_data:
                     self._update_config_objects(config_data)
-            
+
             # Load authentication configuration
             if self.auth_config_file and self.auth_config_file.exists():
                 with open(self.auth_config_file, 'r') as f:
                     auth_data = yaml.safe_load(f)
-                
+
                 if auth_data:
                     self._update_auth_config(auth_data)
-            
+
             logger.info("WebUI configuration loaded successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to load WebUI configuration: {e}")
             self._create_default_configuration()
@@ -189,16 +191,16 @@ class WebUIConfigManager:
         """Update configuration objects from loaded data."""
         if 'ports' in config_data:
             self.port_config = WebUIPortConfig(**config_data['ports'])
-        
+
         if 'mfa' in config_data:
             self.mfa_config = MFAConfig(**config_data['mfa'])
-        
+
         if 'auth_storage' in config_data:
             self.auth_storage_config = AuthStorageConfig(**config_data['auth_storage'])
-        
+
         if 'self_tests' in config_data:
             self.self_test_config = SelfTestConfig(**config_data['self_tests'])
-        
+
         if 'feature_toggles' in config_data:
             self.feature_toggle_config = FeatureToggleConfig(**config_data['feature_toggles'])
 
@@ -227,36 +229,36 @@ class WebUIConfigManager:
                 'self_tests': asdict(self.self_test_config),
                 'feature_toggles': asdict(self.feature_toggle_config)
             }
-            
+
             # Save main configuration
             with open(self.config_file, 'w') as f:
                 yaml.dump(config_data, f, default_flow_style=False, indent=2)
-            
+
             # Save authentication configuration (encrypted)
             auth_data = {
                 'version': '1.0.0',
                 'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
                 'storage_config': asdict(self.auth_storage_config)
             }
-            
+
             # Encrypt sensitive authentication data
             encrypted_data = self.cipher.encrypt(json.dumps(auth_data).encode())
-            
+
             with open(self.auth_config_file, 'w') as f:
-                yaml.dump({
+                yaml.dump({)
                     'encrypted_data': encrypted_data.decode(),
                     'encryption_version': '1.0.0'
                 }, f)
-            
+
             logger.info("WebUI configuration saved successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to save WebUI configuration: {e}")
 
     def _create_default_configuration(self):
         """Create default configuration."""
         logger.info("Creating default WebUI configuration")
-        
+
         # Set default values (already set in dataclass defaults)
         self.save_configuration()
 
@@ -268,7 +270,7 @@ class WebUIConfigManager:
             'docs': self.port_config.docs_port,
             'websocket': self.port_config.websocket_port
         }
-        
+
         return service_port_map.get(service) or self.port_config.primary_port
 
     def is_feature_enabled(self, feature: str, user_role: str = "user") -> bool:
@@ -276,37 +278,37 @@ class WebUIConfigManager:
         # Check if feature is explicitly disabled
         if self.feature_toggle_config.disabled_features and feature in self.feature_toggle_config.disabled_features:
             return False
-        
+
         # Check if feature requires admin role
         if self.feature_toggle_config.admin_only_features and feature in self.feature_toggle_config.admin_only_features and user_role != "admin":
             return False
-        
+
         # Check if feature is enabled
         if self.feature_toggle_config.enabled_features and feature in self.feature_toggle_config.enabled_features:
             return True
-        
+
         # Check beta features
         if self.feature_toggle_config.beta_features and feature in self.feature_toggle_config.beta_features:
             return user_role in ["admin", "beta_tester"]
-        
+
         # Check feature permissions
         if self.feature_toggle_config.feature_permissions and feature in self.feature_toggle_config.feature_permissions:
             return user_role in self.feature_toggle_config.feature_permissions[feature]
-        
+
         return False
 
     def get_mfa_methods_for_user(self, user_role: str = "user") -> List[str]:
         """Get available MFA methods for a user."""
         if not self.mfa_config:
             return []
-        
+
         methods = self.mfa_config.methods.copy() if self.mfa_config.methods else []
-        
+
         # Admin users might have additional methods
         if user_role == "admin" and self.mfa_config.require_mfa_for_admin:
             if 'totp' not in methods:
                 methods.append('totp')
-        
+
         return methods
 
     def get_session_timeout(self, has_mfa: bool = False) -> int:
@@ -342,7 +344,7 @@ class WebUIConfigManager:
                 self.feature_toggle_config.enabled_features.remove(feature)
             if self.feature_toggle_config.disabled_features is not None and feature not in self.feature_toggle_config.disabled_features:
                 self.feature_toggle_config.disabled_features.append(feature)
-        
+
         self.save_configuration()
 
     def get_self_test_schedule(self) -> List[str]:

@@ -5,6 +5,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 Simplified AI Coordinator for PlexiChat
 =======================================
 
@@ -212,4 +213,4 @@ class AICoordinator:
                 "smart_suggestions": self.smart_suggestions_enabled
             },
             "timestamp": datetime.now().isoformat()
-        } 
+        }

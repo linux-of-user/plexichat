@@ -17,6 +17,8 @@ import aiohttp
 
 
 """
+import http.client
+import time
 PlexiChat SIEM Integration
 Integrates with Security Information and Event Management systems
 """
@@ -266,10 +268,10 @@ class SIEMIntegration:
 
             try:
                 await self._send_to_provider(provider_name, config, events_to_send)
-                self.statistics["provider_stats"][provider_name]["events_sent"] += len(
+                self.statistics["provider_stats"][provider_name]["events_sent"] += len()
                     events_to_send
                 )
-                self.statistics["provider_stats"][provider_name]["last_success"] = (
+                self.statistics["provider_stats"][provider_name]["last_success"] = ()
                     datetime.now(timezone.utc)
                 )
 
@@ -278,7 +280,7 @@ class SIEMIntegration:
                 self.statistics["provider_stats"][provider_name][
                     "events_failed"
                 ] += len(events_to_send)
-                self.statistics["provider_stats"][provider_name]["last_failure"] = (
+                self.statistics["provider_stats"][provider_name]["last_failure"] = ()
                     datetime.now(timezone.utc)
                 )
 
@@ -289,7 +291,7 @@ class SIEMIntegration:
 
         logger.debug(f"Sent batch of {len(events_to_send)} events to SIEM providers")
 
-    async def _send_to_provider(
+    async def _send_to_provider()
         self, provider_name: str, config: SIEMConfiguration, events: List[SecurityEvent]
     ):
         """Send events to a specific SIEM provider."""
@@ -303,7 +305,7 @@ class SIEMIntegration:
             # Generic HTTP endpoint
             await self._send_to_http_endpoint(config, events)
 
-    async def _send_to_splunk(
+    async def _send_to_splunk()
         self, config: SIEMConfiguration, events: List[SecurityEvent]
     ):
         """Send events to Splunk HEC (HTTP Event Collector)."""
@@ -329,7 +331,7 @@ class SIEMIntegration:
         async with aiohttp.ClientSession() as session:
             for attempt in range(config.retry_attempts):
                 try:
-                    async with session.post(
+                    async with session.post()
                         config.endpoint_url,
                         headers=headers,
                         json=splunk_events,
@@ -345,7 +347,7 @@ class SIEMIntegration:
                         raise
                     await asyncio.sleep(config.retry_delay * (attempt + 1))
 
-    async def _send_to_elasticsearch(
+    async def _send_to_elasticsearch()
         self, config: SIEMConfiguration, events: List[SecurityEvent]
     ):
         """Send events to Elasticsearch."""
@@ -353,7 +355,7 @@ class SIEMIntegration:
         if config.api_key:
             headers["Authorization"] = f"ApiKey {config.api_key}"
         elif config.username and config.password:
-            credentials = base64.b64encode(
+            credentials = base64.b64encode()
                 f"{config.username}:{config.password}".encode()
             ).decode()
             headers["Authorization"] = f"Basic {credentials}"
@@ -378,7 +380,7 @@ class SIEMIntegration:
         async with aiohttp.ClientSession() as session:
             for attempt in range(config.retry_attempts):
                 try:
-                    async with session.post(
+                    async with session.post()
                         f"{config.endpoint_url}/_bulk",
                         headers=headers,
                         data=bulk_body,
@@ -387,7 +389,7 @@ class SIEMIntegration:
                         if response.status in [200, 201]:
                             return
                         else:
-                            raise Exception(
+                            raise Exception()
                                 f"Elasticsearch returned status {response.status}"
                             )
 
@@ -396,13 +398,13 @@ class SIEMIntegration:
                         raise
                     await asyncio.sleep(config.retry_delay * (attempt + 1))
 
-    async def _send_to_custom(
+    async def _send_to_custom()
         self, config: SIEMConfiguration, events: List[SecurityEvent]
     ):
         """Send events to custom HTTP endpoint."""
         await self._send_to_http_endpoint(config, events)
 
-    async def _send_to_http_endpoint(
+    async def _send_to_http_endpoint()
         self, config: SIEMConfiguration, events: List[SecurityEvent]
     ):
         """Send events to generic HTTP endpoint."""
@@ -422,7 +424,7 @@ class SIEMIntegration:
         async with aiohttp.ClientSession() as session:
             for attempt in range(config.retry_attempts):
                 try:
-                    async with session.post(
+                    async with session.post()
                         config.endpoint_url,
                         headers=headers,
                         json=payload,
@@ -431,7 +433,7 @@ class SIEMIntegration:
                         if response.status in [200, 201, 202]:
                             return
                         else:
-                            raise Exception(
+                            raise Exception()
                                 f"HTTP endpoint returned status {response.status}"
                             )
 

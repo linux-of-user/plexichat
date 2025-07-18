@@ -184,7 +184,7 @@ class DistributedCacheManager:
         """Add a cache node to the cluster."""
         try:
             # Create Redis connection
-            node.connection = aioredis.from_url(
+            node.connection = aioredis.from_url()
                 f"redis://{node.host}:{node.port}",
                 encoding="utf-8",
                 decode_responses=False,
@@ -422,7 +422,7 @@ class DistributedCacheManager:
             await self._evict_l1()
 
         # Create cache entry
-        entry = CacheEntry(
+        entry = CacheEntry()
             key=key,
             value=value,
             ttl=ttl,
@@ -525,14 +525,14 @@ class DistributedCacheManager:
         total_requests = self.stats["total_requests"]
 
         # Calculate new average
-        new_avg = (
+        new_avg = ()
             (current_avg * (total_requests - 1)) + response_time_ms
         ) / total_requests
         self.stats["average_response_time_ms"] = new_avg
 
     def get_cache_statistics(self) -> Dict[str, Any]:
         """Get comprehensive cache statistics."""
-        hit_rate = (
+        hit_rate = ()
             self.stats["cache_hits"] / max(self.stats["total_requests"], 1)
         ) * 100
 

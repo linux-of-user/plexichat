@@ -9,16 +9,10 @@ from .crash_reporter import CrashReporter
 from .exceptions import ErrorCategory, ErrorSeverity
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import time
 PlexiChat Enhanced Error Handler
 
 Advanced error handling with intelligent recovery, pattern detection,
@@ -42,7 +36,6 @@ class ErrorPattern:
     def add_occurrence(self, timestamp: Optional[datetime] = None):
         """Add an occurrence of this pattern."""
         if timestamp is None:
-            from datetime import datetime
 timestamp = datetime.now()
 datetime = datetime.now()
 
@@ -65,12 +58,10 @@ datetime = datetime.now()
         if self.last_alert_time is None:
             return True
 
-        return from datetime import datetime
-datetime = datetime.now() - self.last_alert_time > timedelta(minutes=self.alert_cooldown_minutes)
+        return datetime.now() - self.last_alert_time > timedelta(minutes=self.alert_cooldown_minutes)
 
     def mark_alerted(self):
         """Mark that an alert was sent for this pattern."""
-        self.from datetime import datetime
 last_alert_time = datetime.now()
 datetime = datetime.now()
 
@@ -112,7 +103,7 @@ class EnhancedErrorHandler:
 
     def _initialize_default_patterns(self):
         """Initialize default error patterns to detect."""
-        self.error_patterns.update({
+        self.error_patterns.update({)
             'database_connection_failures': ErrorPattern('database_connection', threshold=3, window_minutes=5),
             'authentication_failures': ErrorPattern('authentication', threshold=10, window_minutes=15),
             'external_service_failures': ErrorPattern('external_service', threshold=5, window_minutes=10),
@@ -120,7 +111,7 @@ class EnhancedErrorHandler:
             'network_timeouts': ErrorPattern('network_timeout', threshold=3, window_minutes=5),
         })
 
-    async def handle_error(self, exception: Exception,
+    async def handle_error(self, exception: Exception,)
                           context: Dict[str, Any] = None,
                           severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                           category: ErrorCategory = ErrorCategory.UNKNOWN,
@@ -136,8 +127,7 @@ class EnhancedErrorHandler:
             'category': category,
             'component': component,
             'context': context or {},
-            'timestamp': from datetime import datetime
-datetime = datetime.now(),
+            'timestamp': datetime.now(),
             'recovered': False,
             'recovery_method': None
         }
@@ -163,7 +153,7 @@ datetime = datetime.now(),
 
         # Crash reporting for critical errors
         if severity in [ErrorSeverity.CRITICAL, ErrorSeverity.EMERGENCY]:
-            crash_context = self.crash_reporter.report_crash(
+            crash_context = self.crash_reporter.report_crash()
                 exception=exception,
                 severity=severity,
                 category=category,
@@ -230,7 +220,7 @@ datetime = datetime.now(),
     async def _handle_circuit_breaker(self, component: str, exception: Exception):
         """Handle circuit breaker for component."""
         if component not in self.circuit_breakers:
-            config = CircuitBreakerConfig(
+            config = CircuitBreakerConfig()
                 failure_threshold=5,
                 timeout_seconds=60,
                 expected_exceptions=[type(exception)]

@@ -19,7 +19,7 @@ from starlette.responses import Response
 from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
 from plexichat.core.security.input_validation import get_input_validator, InputType, ValidationLevel
-from plexichat.core.security.unified_audit_system import (
+from plexichat.core.security.unified_audit_system import ()
     SecurityEventType, SecuritySeverity, ThreatLevel, get_unified_audit_system, UnifiedAuditSystem
 )
 from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager, SecurityLevel as AuthSecurityLevel
@@ -181,7 +181,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         except ValueError:
             return {'allowed': False, 'reason': 'Invalid IP address', 'action': 'blocked'}
         if self.network_protection:
-            rate_request = RateLimitRequest(
+            rate_request = RateLimitRequest()
                 ip_address=client_ip,
                 endpoint=request_info['path'],
                 method=request_info['method'],
@@ -190,7 +190,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             allowed, threat = await self.network_protection.check_request(rate_request)
             if not allowed:
                 self.stats['blocked_requests'] += 1
-                await self._log_security_event(
+                await self._log_security_event()
                     SecurityEventType.SUSPICIOUS_ACTIVITY,
                     f"IP blocked by network protection: {threat.description if threat else 'Unknown reason'}",
                     SecuritySeverity.WARNING,
@@ -204,7 +204,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         path = request_info['path']
         client_ip = request_info['client_ip']
         if self.network_protection:
-            rate_request = RateLimitRequest(
+            rate_request = RateLimitRequest()
                 ip_address=client_ip,
                 endpoint=path,
                 method=request_info['method'],
@@ -214,7 +214,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             allowed, threat = await self.network_protection.check_request(rate_request)
             if not allowed:
                 self.stats['rate_limit_violations'] += 1
-                await self._log_security_event(
+                await self._log_security_event()
                     SecurityEventType.RATE_LIMIT_EXCEEDED,
                     f"Rate limit exceeded for {client_ip} on {path}",
                     SecuritySeverity.WARNING,
@@ -238,13 +238,13 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             if self._detect_xss(body):
                 threats_detected.append("XSS attempt in request body")
             if self.input_validator:
-                validation_result = self.input_validator.validate(
+                validation_result = self.input_validator.validate()
                     body,
                     InputType.TEXT,
                     ValidationLevel.STANDARD
                 )
                 if not validation_result.is_safe:
-                    threats_detected.extend([
+                    threats_detected.extend([)
                         f"Input validation threat: {threat.value}"
                         for threat in validation_result.threats_detected
                     ])
@@ -253,7 +253,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
             threats_detected.append("Suspicious user agent detected")
         if threats_detected:
             self.stats['threats_detected'] += 1
-            await self._log_security_event(
+            await self._log_security_event()
                 SecurityEventType.MALICIOUS_CONTENT,
                 f"Input security threats detected: {', '.join(threats_detected)}",
                 SecuritySeverity.WARNING,
@@ -302,7 +302,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         return None
 
     def _detect_sql_injection(self, text: str) -> bool:
-        patterns = [r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)", r"(--|#|/\*|\*/)", r"(\b(OR|AND)\s+\d+\s*=\s*\d+)", r"(\bUNION\s+SELECT\b)", r"(\b(EXEC|EXECUTE)\s*\()", r"(\bxp_cmdshell\b)"]
+        patterns = [r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)", r"(--|#|/\*|\*/)", r"(\b(OR|AND)\s+\d+\s*=\s*\d+)", r"(\bUNION\s+SELECT\b)", r"(\b(EXEC|EXECUTE)\s*\()", r"(\bxp_cmdshell\b)"])
         for pattern in patterns:
             if re.search(pattern, text, re.IGNORECASE):
                 return True
@@ -323,7 +323,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         return False
 
     def _create_security_response(self, check_result: Dict[str, Any], status_code: int) -> JSONResponse:
-        return JSONResponse({
+        return JSONResponse({)
             'success': False,
             'reason': check_result.get('reason', 'Security check failed'),
             'action': check_result.get('action', 'blocked'),
@@ -337,7 +337,7 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
 
     async def _log_security_event(self, event_type, description, severity, threat_level, request_info, details=None):
         # Use UnifiedAuditSystem's log_security_event
-        self.audit_system.log_security_event(
+        self.audit_system.log_security_event()
             event_type,
             description,
             severity,

@@ -15,6 +15,9 @@ import yaml
 
 
 """
+import platform
+import subprocess
+import time
 PlexiChat Container Orchestration System
 Manages Docker containers and Kubernetes deployments
 """
@@ -96,7 +99,7 @@ class ContainerOrchestrator:
     - Network policy enforcement
     """
 
-    def __init__(
+    def __init__():
         self, platform: OrchestrationPlatform = OrchestrationPlatform.DOCKER_COMPOSE
     ):
         self.platform = platform
@@ -124,7 +127,7 @@ class ContainerOrchestrator:
         """Initialize default container configurations."""
 
         # Main PlexiChat application
-        self.containers["plexichat-app"] = ContainerConfig(
+        self.containers["plexichat-app"] = ContainerConfig()
             name="plexichat-app",
             image=f"{self.base_image_registry}/plexichat",
             tag="latest",
@@ -151,7 +154,7 @@ class ContainerOrchestrator:
         )
 
         # PostgreSQL database
-        self.containers["postgres"] = ContainerConfig(
+        self.containers["postgres"] = ContainerConfig()
             name="postgres",
             image="postgres",
             tag="14",
@@ -172,7 +175,7 @@ class ContainerOrchestrator:
         )
 
         # Redis cache
-        self.containers["redis"] = ContainerConfig(
+        self.containers["redis"] = ContainerConfig()
             name="redis",
             image="redis",
             tag="7-alpine",
@@ -188,7 +191,7 @@ class ContainerOrchestrator:
         )
 
         # Nginx reverse proxy
-        self.containers["nginx"] = ContainerConfig(
+        self.containers["nginx"] = ContainerConfig()
             name="nginx",
             image="nginx",
             tag="alpine",
@@ -295,7 +298,7 @@ class ContainerOrchestrator:
                                         {"name": k, "value": v}
                                         for k, v in config.environment.items()
                                     ],
-                                    "resources": (
+                                    "resources": ()
                                         {"limits": config.resource_limits}
                                         if config.resource_limits
                                         else {}
@@ -317,7 +320,7 @@ class ContainerOrchestrator:
                         "periodSeconds": 30,
                     }
 
-            manifests[f"{config.name}-deployment.yaml"] = yaml.dump(
+            manifests[f"{config.name}-deployment.yaml"] = yaml.dump()
                 deployment, default_flow_style=False
             )
 
@@ -344,7 +347,7 @@ class ContainerOrchestrator:
                     },
                 }
 
-                manifests[f"{config.name}-service.yaml"] = yaml.dump(
+                manifests[f"{config.name}-service.yaml"] = yaml.dump()
                     service, default_flow_style=False
                 )
 
@@ -361,7 +364,7 @@ class ContainerOrchestrator:
                 f.write(compose_content)
 
             # Deploy with docker-compose
-            result = await self._run_command(
+            result = await self._run_command()
                 ["docker-compose", "-f", self.docker_compose_file, "up", "-d"]
             )
 
@@ -382,7 +385,7 @@ class ContainerOrchestrator:
         """Deploy using Kubernetes."""
         try:
             # Create namespace if it doesn't exist
-            await self._run_command(
+            await self._run_command()
                 [
                     "kubectl",
                     "create",
@@ -393,7 +396,7 @@ class ContainerOrchestrator:
                     "yaml",
                 ]
             )
-            await self._run_command(
+            await self._run_command()
                 ["kubectl", "apply", "-f", "-"],
                 input_data=f"apiVersion: v1\nkind: Namespace\nmetadata:\n  name: {self.kubernetes_namespace}",
             )
@@ -403,7 +406,7 @@ class ContainerOrchestrator:
 
             for filename, content in manifests.items():
                 # Apply manifest
-                result = await self._run_command(
+                result = await self._run_command()
                     ["kubectl", "apply", "-f", "-"], input_data=content
                 )
 
@@ -424,7 +427,7 @@ class ContainerOrchestrator:
         """Scale a service to the specified number of replicas."""
         try:
             if self.platform == OrchestrationPlatform.KUBERNETES:
-                result = await self._run_command(
+                result = await self._run_command()
                     [
                         "kubectl",
                         "scale",
@@ -444,7 +447,7 @@ class ContainerOrchestrator:
                     return False
 
             elif self.platform == OrchestrationPlatform.DOCKER_COMPOSE:
-                result = await self._run_command(
+                result = await self._run_command()
                     [
                         "docker-compose",
                         "-f",
@@ -475,7 +478,7 @@ class ContainerOrchestrator:
 
         try:
             if self.platform == OrchestrationPlatform.DOCKER_COMPOSE:
-                result = await self._run_command(
+                result = await self._run_command()
                     [
                         "docker-compose",
                         "-f",
@@ -487,7 +490,7 @@ class ContainerOrchestrator:
                 )
 
                 if result["returncode"] == 0:
-                    containers_data = (
+                    containers_data = ()
                         json.loads(result["stdout"]) if result["stdout"] else []
                     )
                     for container in containers_data:
@@ -498,7 +501,7 @@ class ContainerOrchestrator:
                         }
 
             elif self.platform == OrchestrationPlatform.KUBERNETES:
-                result = await self._run_command(
+                result = await self._run_command()
                     [
                         "kubectl",
                         "get",
@@ -529,19 +532,19 @@ class ContainerOrchestrator:
 
         return container_statuses
 
-    async def _run_command(
+    async def _run_command()
         self, cmd: List[str], input_data: Optional[str] = None
     ) -> Dict[str, Any]:
         """Run a shell command asynchronously."""
         try:
-            process = await asyncio.create_subprocess_exec(
+            process = await asyncio.create_subprocess_exec()
                 *cmd,
                 stdin=asyncio.subprocess.PIPE if input_data else None,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdout, stderr = await process.communicate(
+            stdout, stderr = await process.communicate()
                 input=input_data.encode() if input_data else None
             )
 

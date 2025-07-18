@@ -11,7 +11,7 @@ Custom exception classes for authentication and authorization errors.
 class AuthenticationError(Exception):
     """Base authentication error."""
 
-    def __init__(
+    def __init__():
         self, message: str, error_code: Optional[str] = None, details: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message)
@@ -23,7 +23,7 @@ class AuthenticationError(Exception):
 class AuthorizationError(Exception):
     """Authorization/permission error."""
 
-    def __init__(
+    def __init__():
         self, message: str, error_code: Optional[str] = None, required_level: Optional[str] = None
     ):
         super().__init__(message)
@@ -35,7 +35,7 @@ class AuthorizationError(Exception):
 class MFAError(Exception):
     """Multi-factor authentication error."""
 
-    def __init__(
+    def __init__():
         self, message: str, error_code: Optional[str] = None, available_methods: Optional[list] = None
     ):
         super().__init__(message)
@@ -67,7 +67,7 @@ class SessionError(Exception):
 class PasswordError(Exception):
     """Password-related error."""
 
-    def __init__(
+    def __init__():
         self, message: str, error_code: Optional[str] = None, requirements: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message)
@@ -79,7 +79,7 @@ class PasswordError(Exception):
 class BiometricError(Exception):
     """Biometric authentication error."""
 
-    def __init__(
+    def __init__():
         self, message: str, error_code: Optional[str] = None, biometric_type: Optional[str] = None
     ):
         super().__init__(message)

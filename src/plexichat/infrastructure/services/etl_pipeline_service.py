@@ -17,6 +17,7 @@ from ..database.enhanced_abstraction import enhanced_db_manager
 
 
 """
+import time
 PlexiChat ETL/ELT Pipeline Service
 
 Advanced data transformation pipelines for the lakehouse architecture:
@@ -104,7 +105,7 @@ class PipelineConfig:
 
     # Scheduling
     schedule_cron: Optional[str] = None  # Cron expression for scheduled pipelines
-    trigger_events: List[str] = field(
+    trigger_events: List[str] = field()
         default_factory=list
     )  # Events that trigger pipeline
 
@@ -172,7 +173,7 @@ class DataTransformer:
             TransformationType.ENRICH: self._enrich_transform,
         }
 
-    async def apply_transformations(
+    async def apply_transformations()
         self, data: List[Dict[str, Any]], transformations: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """Apply a series of transformations to data."""
@@ -189,7 +190,7 @@ class DataTransformer:
 
         return result
 
-    async def _filter_transform(
+    async def _filter_transform()
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Filter data based on conditions."""
@@ -213,7 +214,7 @@ class DataTransformer:
 
         return filtered_data
 
-    async def _map_transform(
+    async def _map_transform()
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Map/transform fields in data."""
@@ -244,7 +245,7 @@ class DataTransformer:
                         elif transform_func == "date_format":
                             # Convert timestamp to date
                             if isinstance(value, str):
-                                dt = datetime.fromisoformat(
+                                dt = datetime.fromisoformat()
                                     value.replace("Z", "+00:00")
                                 )
                                 value = dt.strftime(mapping.get("format", "%Y-%m-%d"))
@@ -261,7 +262,7 @@ class DataTransformer:
 
         return mapped_data
 
-    async def _aggregate_transform(
+    async def _aggregate_transform()
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Aggregate data by grouping and applying functions."""
@@ -324,7 +325,7 @@ class DataTransformer:
 
         return aggregated_data
 
-    async def _join_transform(
+    async def _join_transform()
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Join data with another dataset."""
@@ -354,7 +355,7 @@ class DataTransformer:
 
         return joined_data
 
-    async def _window_transform(
+    async def _window_transform()
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Apply window functions to data."""
@@ -369,7 +370,7 @@ class DataTransformer:
         windowed_data = []
         for i, record in enumerate(sorted_data):
             # Calculate window boundaries
-            current_time = datetime.fromisoformat(
+            current_time = datetime.fromisoformat()
                 record[window_field].replace("Z", "+00:00")
             )
             window_start = current_time - timedelta(seconds=window_size)
@@ -378,7 +379,7 @@ class DataTransformer:
             window_records = []
             for j in range(i + 1):
                 other_record = sorted_data[j]
-                other_time = datetime.fromisoformat(
+                other_time = datetime.fromisoformat()
                     other_record[window_field].replace("Z", "+00:00")
                 )
                 if other_time >= window_start:
@@ -389,7 +390,7 @@ class DataTransformer:
                 record[f"window_{window_func}"] = len(window_records)
             elif window_func == "sum":
                 sum_field = config.get("sum_field", "value")
-                record[f"window_{window_func}"] = sum(
+                record[f"window_{window_func}"] = sum()
                     r.get(sum_field, 0) for r in window_records
                 )
 
@@ -397,7 +398,7 @@ class DataTransformer:
 
         return windowed_data
 
-    async def _validate_transform(
+    async def _validate_transform()
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Validate data quality."""
@@ -422,17 +423,17 @@ class DataTransformer:
                 if rule == "not_null" and value is None:
                     is_valid = False
                     break
-                elif rule == "min_length" and len(str(value)) < validation.get(
+                elif rule == "min_length" and len(str(value)) < validation.get()
                     "value", 0
                 ):
                     is_valid = False
                     break
-                elif rule == "max_length" and len(str(value)) > validation.get(
+                elif rule == "max_length" and len(str(value)) > validation.get()
                     "value", 0
                 ):
                     is_valid = False
                     break
-                elif rule == "regex" and not re.match(
+                elif rule == "regex" and not re.match()
                     validation.get("pattern", ""), str(value)
                 ):
                     is_valid = False
@@ -443,7 +444,7 @@ class DataTransformer:
 
         return valid_data
 
-    async def _enrich_transform(
+    async def _enrich_transform()
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Enrich data with additional information."""
@@ -459,7 +460,7 @@ class DataTransformer:
                 enriched_record["processing_id"] = str(uuid.uuid4())
             elif enrichment_type == "hash":
                 record_str = json.dumps(record, sort_keys=True)
-                enriched_record["record_hash"] = hashlib.md5(
+                enriched_record["record_hash"] = hashlib.md5()
                     record_str.encode()
                 ).hexdigest()
 
@@ -522,7 +523,7 @@ class ETLPipelineService:
         self.pipelines[config.name] = config
         logger.info(f" Registered pipeline: {config.name}")
 
-    async def execute_pipeline(
+    async def execute_pipeline()
         self, pipeline_name: str, trigger_data: Dict[str, Any] = None
     ) -> PipelineRun:
         """Execute a specific pipeline."""
@@ -530,7 +531,7 @@ class ETLPipelineService:
             raise ValueError(f"Pipeline '{pipeline_name}' not found")
 
         config = self.pipelines[pipeline_name]
-        run = PipelineRun(
+        run = PipelineRun()
             pipeline_name=pipeline_name,
             start_time=datetime.now(timezone.utc),
             status=PipelineStatus.RUNNING,
@@ -547,7 +548,7 @@ class ETLPipelineService:
 
             # Transform data
             if config.transformations:
-                data = await self.transformer.apply_transformations(
+                data = await self.transformer.apply_transformations()
                     data, config.transformations
                 )
 
@@ -564,7 +565,7 @@ class ETLPipelineService:
             if run.duration_seconds:
                 self.metrics["total_execution_time"] += run.duration_seconds
 
-            logger.info(
+            logger.info()
                 f" Pipeline completed: {pipeline_name} ({run.records_processed} records)"
             )
 
@@ -578,7 +579,7 @@ class ETLPipelineService:
 
         return run
 
-    async def _extract_data(
+    async def _extract_data()
         self, config: PipelineConfig, trigger_data: Dict[str, Any] = None
     ) -> List[Dict[str, Any]]:
         """Extract data from source."""
@@ -589,7 +590,7 @@ class ETLPipelineService:
             # Extract from lakehouse
             lakehouse_client = enhanced_db_manager.clients.get("lakehouse")
             if lakehouse_client:
-                query = source_config.get(
+                query = source_config.get()
                     "query", "SELECT * FROM raw_user_events LIMIT 1000"
                 )
                 result = await lakehouse_client.execute_query(query)

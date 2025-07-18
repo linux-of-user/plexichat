@@ -11,8 +11,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 
-
-
 from plexichat.core.config import settings
 from plexichat.core.config import settings
 from plexichat.core.config import settings
@@ -25,6 +23,7 @@ from plexichat.core.config import settings
 from plexichat.core.config import settings
 
 """
+import time
 PlexiChat Advanced Group Management System
 
 Comprehensive group management with Discord/Telegram/WhatsApp Business features:
@@ -227,14 +226,14 @@ class AdvancedGroup:
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-    def add_member(self, user_id: str, username: str, display_name: str,
+    def add_member(self, user_id: str, username: str, display_name: str,):
                    role: MemberRole = MemberRole.MEMBER) -> bool:
         """Add member to group."""
         if user_id in self.banned_users:
             return False
 
         if user_id not in self.members:
-            member = GroupMember(
+            member = GroupMember()
                 user_id=user_id,
                 username=username,
                 display_name=display_name,
@@ -352,13 +351,13 @@ class AdvancedGroup:
             "online_members": len(self.get_online_members()),
             "created_at": self.created_at.isoformat(),
             "settings": {
-                "allow_member_invites": self.from plexichat.core.config import settings
+                "allow_member_invites": from plexichat.core.config import settings
 settings.allow_member_invites,
-                "require_approval": self.from plexichat.core.config import settings
+                "require_approval": from plexichat.core.config import settings
 settings.require_approval_for_join,
-                "slow_mode_delay": self.from plexichat.core.config import settings
+                "slow_mode_delay": from plexichat.core.config import settings
 settings.slow_mode_delay,
-                "max_members": self.from plexichat.core.config import settings
+                "max_members": from plexichat.core.config import settings
 settings.max_members
             },
             "analytics": {
@@ -379,7 +378,7 @@ class GroupManager:
 
     async def create_group(self, group_data: Dict[str, Any], creator_id: str) -> AdvancedGroup:
         """Create new group."""
-        group = AdvancedGroup(
+        group = AdvancedGroup()
             group_id=group_data["group_id"],
             name=group_data["name"],
             description=group_data.get("description", ""),
@@ -388,7 +387,7 @@ class GroupManager:
         )
 
         # Add creator as owner
-        group.add_member(creator_id, group_data.get("creator_username", ""),
+        group.add_member(creator_id, group_data.get("creator_username", ""),)
                         group_data.get("creator_display_name", ""), MemberRole.OWNER)
 
         self.groups[group.group_id] = group

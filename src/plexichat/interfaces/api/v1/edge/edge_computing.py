@@ -8,17 +8,15 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 
-from ....core.auth import (
+from ....core.auth import ()
 from ....core.logging import get_logger
 from ....core.performance.edge_computing_manager import get_edge_computing_manager
-
-
-
 
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
     from plexichat.infrastructure.utils.auth import require_admin,
+import time
 
     from,
     import,
@@ -38,7 +36,7 @@ router = APIRouter(prefix="/api/v1/edge", tags=["Edge Computing"])
 
 
 @router.get("/status")
-async def get_edge_status(
+async def get_edge_status()
     current_user: Dict = Depends(require_auth)
 ) -> Dict[str, Any]:
     """Get comprehensive edge computing system status."""
@@ -46,7 +44,8 @@ async def get_edge_status(
         manager = get_edge_computing_manager()
 
         if not manager.initialized:
-            await if manager and hasattr(manager, "initialize"): manager.initialize()
+            if manager and hasattr(manager, "initialize"):
+                await manager.initialize()
 
         status = await manager.get_edge_status()
 
@@ -62,7 +61,7 @@ async def get_edge_status(
 
 
 @router.get("/nodes")
-async def list_edge_nodes(
+async def list_edge_nodes()
     node_type: Optional[str] = Query(None, description="Filter by node type"),
     region: Optional[str] = Query(None, description="Filter by region"),
     active_only: bool = Query(True, description="Show only active nodes"),
@@ -109,7 +108,7 @@ async def list_edge_nodes(
 
 
 @router.get("/nodes/{node_id}")
-async def get_node_details(
+async def get_node_details()
     node_id: str,
     current_user: Dict = Depends(require_auth)
 ) -> Dict[str, Any]:
@@ -136,9 +135,9 @@ async def get_node_details(
 
 
 @router.post("/nodes/{node_id}/actions/drain")
-async def drain_node(
+async def drain_node()
     node_id: str,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Gracefully drain connections from a node."""
     try:
@@ -166,9 +165,9 @@ async def drain_node(
 
 
 @router.post("/nodes/{node_id}/actions/activate")
-async def activate_node(
+async def activate_node()
     node_id: str,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Activate a deactivated node."""
     try:
@@ -200,9 +199,9 @@ async def activate_node(
 
 
 @router.post("/nodes/{node_id}/actions/deactivate")
-async def deactivate_node(
+async def deactivate_node()
     node_id: str,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Deactivate a node (remove from routing)."""
     try:
@@ -237,7 +236,7 @@ async def deactivate_node(
 
 
 @router.get("/scaling/status")
-async def get_scaling_status(
+async def get_scaling_status()
     current_user: Dict = Depends(require_auth)
 ) -> Dict[str, Any]:
     """Get auto-scaling system status and recent decisions."""
@@ -247,7 +246,7 @@ async def get_scaling_status(
         # Get recent scaling decisions
         recent_decisions = []
         for decision in list(manager.scaling_decisions)[-10:]:  # Last 10 decisions
-            recent_decisions.append({
+            recent_decisions.append({)
                 "action": decision.action.value,
                 "target_nodes": decision.target_nodes,
                 "reason": decision.reason,
@@ -281,9 +280,9 @@ async def get_scaling_status(
 
 
 @router.post("/scaling/actions/scale-up")
-async def manual_scale_up(
+async def manual_scale_up()
     node_count: int = Query(1, description="Number of nodes to add"),
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Manually trigger scale-up operation."""
     try:
@@ -295,7 +294,7 @@ async def manual_scale_up(
         # Check if we can scale up
         current_nodes = len([n for n in manager.edge_nodes.values() if n.is_active])
         if current_nodes + node_count > manager.max_nodes:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Cannot scale up: would exceed maximum nodes ({manager.max_nodes})"
             )
@@ -329,7 +328,7 @@ async def manual_scale_up(
 
 
 @router.get("/routing/status")
-async def get_routing_status(
+async def get_routing_status()
     current_user: Dict = Depends(require_auth)
 ) -> Dict[str, Any]:
     """Get traffic routing system status."""
@@ -382,7 +381,7 @@ async def get_routing_status(
 
 
 @router.get("/metrics")
-async def get_edge_metrics(
+async def get_edge_metrics()
     hours: int = Query(1, description="Hours of metrics to retrieve"),
     current_user: Dict = Depends(require_auth)
 ) -> Dict[str, Any]:
@@ -414,7 +413,7 @@ async def get_edge_metrics(
         # Convert metrics to API format
         metrics_data = []
         for metric in recent_metrics:
-            metrics_data.append({
+            metrics_data.append({)
                 "timestamp": metric.timestamp.isoformat(),
                 "requests_per_second": metric.total_requests_per_second,
                 "response_time_ms": metric.average_response_time_ms,
@@ -456,14 +455,16 @@ async def get_edge_metrics(
 
 
 @router.post("/initialize")
-async def initialize_edge_computing(
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+async def initialize_edge_computing()
+    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import require_admin)
 ) -> Dict[str, Any]:
     """Initialize or reinitialize the edge computing system."""
     try:
         manager = get_edge_computing_manager()
 
-        result = await if manager and hasattr(manager, "initialize"): manager.initialize()
+        result = None
+        if manager and hasattr(manager, "initialize"):
+            result = await manager.initialize()
 
         logger.info(f" Edge computing system initialized by {current_user.get('username')}")
 

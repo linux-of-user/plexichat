@@ -13,9 +13,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from datetime import datetime
 
-from datetime import datetime
 
 """
+import time
 PlexiChat Predictive Scaling with Machine Learning
 
 Advanced ML-powered auto-scaling system with:
@@ -275,7 +275,7 @@ class TimeSeriesForecaster:
 
         return max(0.0, prediction)
 
-    async def forecast(self, service_name: str, resource_type: ResourceType,
+    async def forecast(self, service_name: str, resource_type: ResourceType,)
                      hours_ahead: int = 1) -> Optional[float]:
         """Forecast resource demand."""
         key = f"{service_name}_{resource_type.value}"
@@ -298,7 +298,7 @@ class TimeSeriesForecaster:
 
             # Add predicted value to data for next prediction
             next_timestamp = current_data[-1].timestamp + timedelta(hours=1)
-            predicted_point = MetricDataPoint(
+            predicted_point = MetricDataPoint()
                 timestamp=next_timestamp,
                 value=next_value,
                 resource_type=resource_type,
@@ -316,7 +316,7 @@ class AnomalyDetector:
         self.baseline_models: Dict[str, Dict[str, float]] = {}
         self.anomaly_threshold = 2.0  # Standard deviations
 
-    def update_baseline(self, service_name: str, resource_type: ResourceType,
+    def update_baseline(self, service_name: str, resource_type: ResourceType,):
                        data_points: List[MetricDataPoint]):
         """Update baseline model for anomaly detection."""
         if len(data_points) < 10:
@@ -338,7 +338,7 @@ class AnomalyDetector:
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
 
-    def detect_anomaly(self, service_name: str, resource_type: ResourceType,
+    def detect_anomaly(self, service_name: str, resource_type: ResourceType,):
                       current_value: float) -> Tuple[bool, float]:
         """Detect if current value is anomalous."""
         key = f"{service_name}_{resource_type.value}"
@@ -398,13 +398,13 @@ class PredictiveScaler:
         key = f"{data_point.service_name}_{data_point.resource_type.value}"
         recent_data = self.forecaster.training_data.get(key, [])[-100:]  # Last 100 points
         if len(recent_data) >= 10:
-            self.anomaly_detector.update_baseline(
+            self.anomaly_detector.update_baseline()
                 data_point.service_name,
                 data_point.resource_type,
                 recent_data
             )
 
-    async def predict_scaling_need(self, service_name: str, resource_type: ResourceType,
+    async def predict_scaling_need(self, service_name: str, resource_type: ResourceType,)
                                  current_value: float) -> Optional[ScalingPrediction]:
         """Predict if scaling is needed for service."""
         try:
@@ -415,7 +415,7 @@ class PredictiveScaler:
                 return None
 
             # Check for anomalies
-            is_anomaly, anomaly_score = self.anomaly_detector.detect_anomaly(
+            is_anomaly, anomaly_score = self.anomaly_detector.detect_anomaly()
                 service_name, resource_type, current_value
             )
 
@@ -448,7 +448,7 @@ class PredictiveScaler:
             # Calculate cost impact
             cost_impact = self._calculate_cost_impact(resource_type, scale_factor)
 
-            return ScalingPrediction(
+            return ScalingPrediction()
                 service_name=service_name,
                 resource_type=resource_type,
                 current_value=current_value,
@@ -473,10 +473,9 @@ class PredictiveScaler:
 
     async def execute_scaling_action(self, prediction: ScalingPrediction) -> ScalingAction:
         """Execute scaling action based on prediction."""
-        action_id = f"scale_{prediction.service_name}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+        action_id = f"scale_{prediction.service_name}_{int(datetime.now().timestamp())}"
 
-        action = ScalingAction(
+        action = ScalingAction()
             action_id=action_id,
             service_name=prediction.service_name,
             resource_type=prediction.resource_type,

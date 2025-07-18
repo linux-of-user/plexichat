@@ -44,4 +44,4 @@ class RandomQuotePlugin(PluginInterface):
             "version": "1.0.0",
             "description": "A plugin that returns a random inspirational quote.",
             "plugin_type": "utility"
-        } 
+        }

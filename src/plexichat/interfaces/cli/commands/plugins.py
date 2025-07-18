@@ -59,7 +59,7 @@ class PluginCLI:
                     "critical": ""
                 }.get(plugin.get("security", {}).get("risk_level", "low"), "")
 
-                logger.info(f"{status_emoji} {plugin['name']:<20} v{plugin['version']:<10} "
+                logger.info(f"{status_emoji} {plugin['name']:<20} v{plugin['version']:<10} ")
                       f"{plugin['source']:<12} {risk_emoji} {plugin['size_mb']:.1f}MB")
 
                 if plugin.get("update_info", {}).get("update_available"):
@@ -252,7 +252,7 @@ Path(args[0])
                     logger.info(f" {total_updates} update(s) available:")
                     for name, update_info in updates.items():
                         if update_info.get("update_available"):
-                            logger.info(f"    {name}: v{update_info.get('current_version', '?')}  "
+                            logger.info(f"    {name}: v{update_info.get('current_version', '?')}  ")
                                   f"v{update_info.get('latest_version', '?')}")
             else:
                 logger.info(f" Update check failed: {result['error']}")

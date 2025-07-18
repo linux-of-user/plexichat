@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -12,6 +14,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
+import time
 
 try:
 
@@ -20,7 +23,6 @@ try:
 except ImportError:
 
     np = None
-
 
 
 """
@@ -235,7 +237,7 @@ class BehavioralAnalyzer:
         identifier = event.user_id or event.ip_address
 
         if identifier not in self.profiles:
-            self.profiles[identifier] = BehaviorProfile(
+            self.profiles[identifier] = BehaviorProfile()
                 identifier=identifier,
                 first_seen=datetime.fromtimestamp(event.timestamp, timezone.utc),
                 last_seen=datetime.fromtimestamp(event.timestamp, timezone.utc)
@@ -265,18 +267,18 @@ class BehavioralAnalyzer:
 
         # Update error/success rates
         if event.status_code >= 400:
-            error_count = sum(1 for req in self.request_history
+            error_count = sum(1 for req in self.request_history)
                             if (req.user_id or req.ip_address) == profile.identifier
                             and req.status_code >= 400)
             profile.error_rate = error_count / profile.total_requests
         else:
-            success_count = sum(1 for req in self.request_history
+            success_count = sum(1 for req in self.request_history)
                               if (req.user_id or req.ip_address) == profile.identifier
                               and req.status_code < 400)
             profile.success_rate = success_count / profile.total_requests
 
         # Update average request size
-        total_size = sum(req.response_size for req in self.request_history
+        total_size = sum(req.response_size for req in self.request_history)
                         if (req.user_id or req.ip_address) == profile.identifier)
         profile.average_request_size = total_size / profile.total_requests
 
@@ -292,7 +294,7 @@ class BehavioralAnalyzer:
 
         # Frequency anomaly detection
         if profile.peak_request_rate > self.thresholds["max_requests_per_minute"]:
-            anomalies.append(AnomalyDetection(
+            anomalies.append(AnomalyDetection())
                 anomaly_type=AnomalyType.FREQUENCY_ANOMALY,
                 severity=ThreatLevel.HIGH,
                 confidence=0.9,
@@ -302,7 +304,7 @@ class BehavioralAnalyzer:
 
         # Pattern anomaly detection
         if len(profile.unique_endpoints) > self.thresholds["max_unique_endpoints_per_hour"]:
-            anomalies.append(AnomalyDetection(
+            anomalies.append(AnomalyDetection())
                 anomaly_type=AnomalyType.PATTERN_ANOMALY,
                 severity=ThreatLevel.MEDIUM,
                 confidence=0.8,
@@ -316,7 +318,7 @@ class BehavioralAnalyzer:
             if len(recent_intervals) > 1:
                 avg_interval = np.mean(recent_intervals)
                 if avg_interval < self.thresholds["min_request_interval"]:
-                    anomalies.append(AnomalyDetection(
+                    anomalies.append(AnomalyDetection())
                         anomaly_type=AnomalyType.TIMING_ANOMALY,
                         severity=ThreatLevel.MEDIUM,
                         confidence=0.7,
@@ -326,7 +328,7 @@ class BehavioralAnalyzer:
 
         # User agent anomaly detection
         if len(profile.unique_user_agents) > self.thresholds["max_user_agents_per_session"]:
-            anomalies.append(AnomalyDetection(
+            anomalies.append(AnomalyDetection())
                 anomaly_type=AnomalyType.USER_AGENT_ANOMALY,
                 severity=ThreatLevel.MEDIUM,
                 confidence=0.8,
@@ -337,7 +339,7 @@ class BehavioralAnalyzer:
         # Endpoint anomaly detection
         for pattern in self.thresholds["suspicious_endpoint_patterns"]:
             if re.search(pattern, event.endpoint, re.IGNORECASE):
-                anomalies.append(AnomalyDetection(
+                anomalies.append(AnomalyDetection())
                     anomaly_type=AnomalyType.ENDPOINT_ANOMALY,
                     severity=ThreatLevel.HIGH,
                     confidence=0.9,
@@ -347,7 +349,7 @@ class BehavioralAnalyzer:
 
         # Error rate anomaly detection
         if profile.error_rate > self.thresholds["max_error_rate"]:
-            anomalies.append(AnomalyDetection(
+            anomalies.append(AnomalyDetection())
                 anomaly_type=AnomalyType.PATTERN_ANOMALY,
                 severity=ThreatLevel.MEDIUM,
                 confidence=0.7,
@@ -371,19 +373,19 @@ class BehavioralAnalyzer:
         if anomaly_counts[AnomalyType.FREQUENCY_ANOMALY] > 0 and profile.peak_request_rate > 200:
             return BehaviorType.DDOS
 
-        if (anomaly_counts[AnomalyType.ENDPOINT_ANOMALY] > 0 and
+        if (anomaly_counts[AnomalyType.ENDPOINT_ANOMALY] > 0 and)
             len(profile.unique_endpoints) > 20):
             return BehaviorType.RECONNAISSANCE
 
-        if (profile.error_rate > 0.8 and
+        if (profile.error_rate > 0.8 and)
             any("login" in endpoint or "auth" in endpoint for endpoint in profile.unique_endpoints)):
             return BehaviorType.BRUTE_FORCE
 
-        if (len(profile.unique_user_agents) > 5 or
+        if (len(profile.unique_user_agents) > 5 or)
             profile.peak_request_rate > 50):
             return BehaviorType.BOT
 
-        if (len(profile.unique_endpoints) > 30 and
+        if (len(profile.unique_endpoints) > 30 and)
             profile.success_rate > 0.8):
             return BehaviorType.SCRAPER
 
@@ -489,7 +491,7 @@ class BehavioralAnalyzer:
             if "profiles" in data:
                 for identifier, profile_data in data["profiles"].items():
                     # Reconstruct profile (simplified)
-                    profile = BehaviorProfile(
+                    profile = BehaviorProfile()
                         identifier=identifier,
                         first_seen=datetime.fromisoformat(profile_data["first_seen"]),
                         last_seen=datetime.fromisoformat(profile_data["last_seen"]),

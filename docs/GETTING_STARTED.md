@@ -286,7 +286,22 @@ plexichat backup restore backup_id
 plexichat db migrate
 plexichat cache clear
 plexichat logs --tail 100
+
+# Discover all available commands (including plugin commands)
+plexichat --help
+
+# Get help for a specific command or plugin
+plexichat user --help
+plexichat mega --help
+
+# All CLI commands (including those from plugins like mega_cli) support --help for detailed usage and options.
+# Example: List all mega_cli commands
+plexichat mega --help
+# Example: Get help for a specific mega_cli command
+plexichat mega user create --help
 ```
+
+Plugins can add their own CLI commands, which will appear in the help output. Use --help to discover and learn about all available commands.
 
 ### API Usage
 

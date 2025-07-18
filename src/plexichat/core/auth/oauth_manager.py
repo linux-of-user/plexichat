@@ -14,19 +14,19 @@ logger = logging.getLogger(__name__)
 class OAuthManager:
     """OAuth authentication manager."""
 
-    def __init__(self):
+def __init__(self):
         self.config = {}
-        self.initialized = False
+self.initialized = False
 
-    async def initialize(self, config: Dict[str, Any]):
+async def initialize(self, config: Dict[str, Any]):
         """Initialize OAuth manager."""
-        self.config = config
-        self.initialized = True
-        logger.info(" OAuth Manager initialized")
+self.config = config
+self.initialized = True
+logger.info(" OAuth Manager initialized")
 
-    async def shutdown(self):
+async def shutdown(self):
         """Shutdown OAuth manager."""
-        logger.info(" OAuth Manager shutdown complete")
+logger.info(" OAuth Manager shutdown complete")
 
 
 # Global instance

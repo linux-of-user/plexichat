@@ -18,18 +18,13 @@ from .siem_integration import EventCategory, EventSeverity, SecurityEvent, siem_
 from .waf import waf
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
 """
+import time
 PlexiChat Phase I Security Integration
 Integrates all Phase I security enhancements into a unified system
 """
@@ -98,9 +93,8 @@ class Phase1SecurityCoordinator:
             await if siem_integration and hasattr(siem_integration, "start"): siem_integration.start()
 
             # Send initialization event
-            init_event = SecurityEvent(
-                event_id=f"phase1_init_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}",
+            init_event = SecurityEvent()
+                event_id=f"phase1_init_{int(datetime.now().timestamp())}",
                 timestamp=datetime.now(timezone.utc),
                 source_system="plexichat_security",
                 event_type="SECURITY_SYSTEM_INIT",
@@ -140,7 +134,7 @@ datetime = datetime.now().timestamp())}",
 
                 if not waf_allowed and waf_violation:
                     security_results["allowed"] = False
-                    security_results["violations"].append({
+                    security_results["violations"].append({)
                         "component": "waf",
                         "rule_id": waf_violation.rule_id,
                         "description": waf_violation.description,
@@ -151,9 +145,8 @@ datetime = datetime.now().timestamp())}",
 
                     # Create SIEM event for WAF violation
                     if self.components["siem"]:
-                        waf_event = SecurityEvent(
-                            event_id=f"waf_violation_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}",
+                        waf_event = SecurityEvent()
+                            event_id=f"waf_violation_{int(datetime.now().timestamp())}",
                             timestamp=datetime.now(timezone.utc),
                             source_system="plexichat_waf",
                             event_type="WAF_VIOLATION",
@@ -181,7 +174,7 @@ datetime = datetime.now().timestamp())}",
 
         return security_results
 
-    def generate_security_headers(self,
+    def generate_security_headers(self,):
                                  request: Request,
                                  session_id: Optional[str] = None) -> Dict[str, str]:
         """Generate comprehensive security headers for response."""
@@ -193,14 +186,14 @@ datetime = datetime.now().timestamp())}",
         try:
             # Get path-specific security requirements
             request_path = str(request.url.path)
-            is_secure_page = (
+            is_secure_page = ()
                 request_path.startswith("/admin") or
                 request_path.startswith("/api/v1/auth") or
                 request_path.startswith("/api/v1/admin")
             )
 
             # Get security headers
-            security_headers = security_headers_manager.get_headers_for_response(
+            security_headers = security_headers_manager.get_headers_for_response()
                 path=request_path,
                 is_secure_page=is_secure_page
             )
@@ -222,7 +215,7 @@ datetime = datetime.now().timestamp())}",
             raise Exception("Bug bounty program is disabled")
 
         try:
-            report_id = bug_bounty_manager.submit_report(
+            report_id = bug_bounty_manager.submit_report()
                 researcher_email=report_data["researcher_email"],
                 researcher_name=report_data["researcher_name"],
                 title=report_data["title"],
@@ -242,7 +235,7 @@ datetime = datetime.now().timestamp())}",
 
             # Send SIEM event for vulnerability report
             if self.components["siem"]:
-                vuln_event = SecurityEvent(
+                vuln_event = SecurityEvent()
                     event_id=f"vuln_report_{report_id}",
                     timestamp=datetime.now(timezone.utc),
                     source_system="plexichat_bugbounty",
@@ -286,9 +279,8 @@ datetime = datetime.now().timestamp())}",
 
             # Send SIEM event for security scan
             if self.components["siem"]:
-                scan_event = SecurityEvent(
-                    event_id=f"security_scan_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}",
+                scan_event = SecurityEvent()
+                    event_id=f"security_scan_{int(datetime.now().timestamp())}",
                     timestamp=datetime.now(timezone.utc),
                     source_system="plexichat_scanner",
                     event_type="SECURITY_SCAN_COMPLETED",
@@ -355,7 +347,7 @@ async def phase1_security_middleware(request: Request, call_next):
 
         # Block request if not allowed
         if not security_result["allowed"]:
-            return JSONResponse(
+            return JSONResponse()
                 status_code=403,
                 content={
                     "error": "Request blocked by security system",

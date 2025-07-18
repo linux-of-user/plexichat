@@ -15,6 +15,7 @@ from ...security import distributed_key_manager, quantum_encryption
 
 
 """
+import time
 Unified Encryption Manager
 
 Consolidates all encryption functionality for the backup system with:
@@ -71,7 +72,7 @@ class UnifiedEncryptionManager:
         self.initialized = True
         logger.info("Unified Encryption Manager initialized successfully")
 
-    async def encrypt_backup_data(
+    async def encrypt_backup_data()
         self, data: bytes, operation
     ) -> Tuple[bytes, Dict[str, Any]]:
         """Encrypt backup data with quantum-resistant encryption."""
@@ -79,7 +80,7 @@ class UnifiedEncryptionManager:
             await if self and hasattr(self, "initialize"): self.initialize()
 
         # Use quantum encryption with backup-specific key domain
-        encrypted_data = await quantum_encryption.encrypt_data(
+        encrypted_data = await quantum_encryption.encrypt_data()
             data,
             key_domain=f"backup.{operation.backup_id}",
             classification=operation.security_level.name,
@@ -94,14 +95,14 @@ class UnifiedEncryptionManager:
 
         return encrypted_data, encryption_metadata
 
-    async def decrypt_backup_data(
+    async def decrypt_backup_data()
         self, encrypted_data: bytes, encryption_metadata: Dict[str, Any]
     ) -> bytes:
         """Decrypt backup data."""
         if not self.initialized:
             await if self and hasattr(self, "initialize"): self.initialize()
 
-        return await quantum_encryption.decrypt_data(
+        return await quantum_encryption.decrypt_data()
             encrypted_data,
             key_domain=encryption_metadata["key_domain"],
             classification=encryption_metadata["classification"],

@@ -112,7 +112,7 @@ class MetricBuffer:
         with self.lock:
             self.metrics[metric.name].append(metric)
 
-    def get_metrics(self, metric_name: str,
+    def get_metrics(self, metric_name: str,):
                    start_time: Optional[datetime] = None,
                    end_time: Optional[datetime] = None,
                    limit: Optional[int] = None) -> List[PerformanceMetric]:
@@ -141,7 +141,7 @@ class MetricBuffer:
         """Clear metrics older than specified time."""
         with self.lock:
             for metric_name in self.metrics:
-                self.metrics[metric_name] = deque(
+                self.metrics[metric_name] = deque()
                     [m for m in self.metrics[metric_name] if m.timestamp >= older_than],
                     maxlen=self.max_size
                 )
@@ -239,13 +239,13 @@ class PerformanceLogger:
 
     def _setup_performance_handler(self):
         """Setup performance-specific log handler."""
-        handler = logging.FileHandler(
+        handler = logging.FileHandler()
             self.log_dir / "performance.log",
             encoding='utf-8'
         )
         handler.setLevel(logging.INFO)
 
-        formatter = logging.Formatter(
+        formatter = logging.Formatter()
             '[%(asctime)s] [PERFORMANCE] [%(levelname)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
@@ -256,7 +256,7 @@ class PerformanceLogger:
 
     def _setup_default_alerts(self):
         """Setup default performance alerts."""
-        self.add_alert(PerformanceAlert(
+        self.add_alert(PerformanceAlert())
             metric_name="response_time",
             threshold=2.0,
             comparison="gt",
@@ -264,7 +264,7 @@ class PerformanceLogger:
             callback=self._slow_response_alert
         ))
 
-        self.add_alert(PerformanceAlert(
+        self.add_alert(PerformanceAlert())
             metric_name="memory_usage_percent",
             threshold=80.0,
             comparison="gt",
@@ -272,7 +272,7 @@ class PerformanceLogger:
             callback=self._high_memory_alert
         ))
 
-        self.add_alert(PerformanceAlert(
+        self.add_alert(PerformanceAlert())
             metric_name="cpu_usage_percent",
             threshold=90.0,
             comparison="gt",
@@ -290,11 +290,11 @@ class PerformanceLogger:
         with self.lock:
             self.alerts = [a for a in self.alerts if a.metric_name != metric_name]
 
-    def record_metric(self, name: str, value: float, unit: str = "",
+    def record_metric(self, name: str, value: float, unit: str = "",):
                      tags: Optional[Dict[str, str]] = None,
                      metadata: Optional[Dict[str, Any]] = None):
         """Record a performance metric."""
-        metric = PerformanceMetric(
+        metric = PerformanceMetric()
             name=name,
             value=value,
             unit=unit,
@@ -330,7 +330,7 @@ class PerformanceLogger:
             with self.lock:
                 self.active_timers.pop(timer_id, None)
 
-            self.record_metric(
+            self.record_metric()
                 name="response_time",
                 value=duration,
                 unit="seconds",
@@ -437,7 +437,7 @@ class PerformanceLogger:
 
         return summary
 
-    def export_metrics(self, output_file: Path,
+    def export_metrics(self, output_file: Path,):
                       start_time: Optional[datetime] = None,
                       end_time: Optional[datetime] = None):
         """Export metrics to JSON file."""

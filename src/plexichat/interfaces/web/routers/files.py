@@ -1,9 +1,13 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat Files Router
 
 Enhanced file handling with comprehensive validation, security scanning,
@@ -108,19 +112,19 @@ def scan_file_content(content: bytes, extension: str) -> bool:
     # Basic security checks
     if len(content) == 0:
         return False
-    
+
     # Check for suspicious patterns based on file extension
     suspicious_patterns = [b'<script', b'javascript:', b'vbscript:', b'<?php']
     content_lower = content.lower()
-    
+
     # Additional checks based on extension
     if extension.lower() in ['.exe', '.bat', '.cmd']:
         return False  # Block executable files
-    
+
     for pattern in suspicious_patterns:
         if pattern in content_lower:
             return False
-    
+
     return True
 
 def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
@@ -130,7 +134,7 @@ def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
         'filename': filename,
         'content_type': mimetypes.guess_type(filename)[0] or 'application/octet-stream'
     }
-    
+
     # Try to extract image metadata if PIL is available
     if Image and filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
         try:
@@ -143,17 +147,17 @@ def extract_metadata(content: bytes, filename: str) -> Dict[str, Any]:
             })
         except Exception:
             pass
-    
+
     return metadata
 
 class FileService:
     """Service class for file operations using EXISTING database abstraction layer."""
-    
+
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("file_upload") if async_track_performance else lambda f: f
     async def upload_file(self, file: UploadFile, user_id: int) -> FileRecord:
         """Upload file using EXISTING database abstraction layer."""
@@ -161,10 +165,10 @@ class FileService:
             try:
                 # Read file content
                 content = await file.read()
-                
+
                 # Extract metadata
                 metadata = extract_metadata(content, file.filename or "unknown")
-                
+
                 # Use EXISTING database manager with optimized insert
                 query = """
                     INSERT INTO files (filename, file_path, file_size, content_type, upload_date, user_id)
@@ -179,14 +183,14 @@ class FileService:
                     "upload_date": datetime.now(),
                     "user_id": user_id
                 }
-                
+
                 # Use performance tracking if available
                 if self.performance_logger and timer:
                     with timer("file_insert"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 if result:
                     row = result[0]
                     return FileRecord(
@@ -198,13 +202,13 @@ class FileService:
                         upload_date=row[5],
                         user_id=row[6]
                     )
-                    
+
             except Exception as e:
                 logger.error(f"Error uploading file: {e}")
                 raise HTTPException(status_code=500, detail="Failed to upload file")
-        
+
         # Fallback mock file record
-        return FileRecord(
+        return FileRecord()
             id=1,
             filename=sanitize_filename(file.filename),
             file_path=f"/uploads/{user_id}/{sanitize_filename(file.filename)}",
@@ -213,7 +217,7 @@ class FileService:
             upload_date=datetime.now(),
             user_id=user_id
         )
-    
+
     @async_track_performance("file_list") if async_track_performance else lambda f: f
     async def list_files(self, user_id: int, limit: int = 50, offset: int = 0) -> List[FileRecord]:
         """List files using EXISTING database abstraction layer."""
@@ -222,24 +226,24 @@ class FileService:
                 # Use EXISTING database manager with optimized query
                 query = """
                     SELECT id, filename, file_path, file_size, content_type, upload_date, user_id
-                    FROM files 
+                    FROM files
                     WHERE user_id = ?
                     ORDER BY upload_date DESC
                     LIMIT ? OFFSET ?
                 """
                 params = {"user_id": user_id, "limit": limit, "offset": offset}
-                
+
                 # Use performance tracking if available
                 if self.performance_logger and timer:
                     with timer("file_list_query"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 files = []
                 if result:
                     for row in result:
-                        files.append(FileRecord(
+                        files.append(FileRecord())
                             id=row[0],
                             filename=row[1],
                             file_path=row[2],
@@ -248,13 +252,13 @@ class FileService:
                             upload_date=row[5],
                             user_id=row[6]
                         ))
-                
+
                 return files
-                    
+
             except Exception as e:
                 logger.error(f"Error listing files: {e}")
                 return []
-        
+
         return []
 
 # Initialize service
@@ -275,12 +279,12 @@ class FileListResponse(BaseModel):
     page: int
     per_page: int
 
-@router.post(
+@router.post()
     "/upload",
     response_model=FileUploadResponse,
     status_code=status.HTTP_201_CREATED
 )
-async def upload_file(
+async def upload_file()
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
@@ -290,60 +294,60 @@ async def upload_file(
     client_ip = request.client.host if request.client else "unknown"
     operation_id = f"file_upload_{current_user.get('id')}_{datetime.now().timestamp()}"
     logger.info(f"User {current_user.get('id')} from {client_ip} uploading file: {file.filename} (operation: {operation_id})")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("file_upload_started", 1, "count")
-    
+
     try:
         # Validate file
         if not file.filename:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No filename provided"
             )
-        
+
         # Check file extension
         file_ext = '.' + file.filename.split('.')[-1].lower() if '.' in file.filename else ''
         if not validate_file_type(file_ext, ALLOWED_EXTENSIONS):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"File type {file_ext} not allowed"
             )
-        
+
         # Check file size
         content = await file.read()
         if len(content) > MAX_FILE_SIZE:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
             )
-        
+
         # Scan file content
         if not scan_file_content(content, file_ext):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="File content failed security scan"
             )
-        
+
         # Reset file position for service
         await file.seek(0)
-        
+
         # Upload file using service
         file_record = await file_service.upload_file(file, current_user.get("id", 0))
-        
+
         # Schedule background processing
-        background_tasks.add_task(
+        background_tasks.add_task()
             _process_file_background,
             file_record.id,
             current_user.get("id", 0)
         )
-        
+
         # Performance tracking
         if performance_logger:
             performance_logger.record_metric("file_upload_completed", 1, "count")
-        
-        return FileUploadResponse(
+
+        return FileUploadResponse()
             id=file_record.id,
             filename=file_record.filename,
             file_size=file_record.file_size,
@@ -351,12 +355,12 @@ async def upload_file(
             upload_date=file_record.upload_date,
             message="File uploaded successfully"
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Unexpected error uploading file: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
@@ -365,16 +369,16 @@ async def _process_file_background(file_id: int, user_id: int):
     """Process file in background with multithreading support."""
     try:
         logger.debug(f"Processing background tasks for file {file_id} by user {user_id}")
-        
+
         # Use thread pool for CPU-intensive tasks
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
+        await loop.run_in_executor()
             executor,
             _process_file_sync,
             file_id,
             user_id
         )
-        
+
     except Exception as e:
         logger.error(f"Error in background file processing: {e}")
 

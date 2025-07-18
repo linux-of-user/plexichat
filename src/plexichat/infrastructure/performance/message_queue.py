@@ -9,15 +9,10 @@ from typing import Any, Dict, List, Optional
     from the dead letter queue.
 
 
-
-
-
-
-
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.auth.dependencies import (
+from plexichat.core.auth.dependencies import ()
     from plexichat.infrastructure.utils.auth import require_admin,
 from plexichat.core.performance.message_queue_manager import MessagePriority, get_queue_manager
 
@@ -119,7 +114,7 @@ async def get_queue_status(current_user: Dict = Depends(require_auth)):
 
 
 @router.get("/stats", response_model=Dict[str, Any])
-async def get_queue_stats(
+async def get_queue_stats()
     topic: Optional[str] = Query(None, description="Specific topic to get stats for"),
     detailed: bool = Query(False, description="Include detailed statistics"),
     current_user: Dict = Depends(require_auth)
@@ -173,7 +168,7 @@ async def get_queue_stats(
 
 
 @router.post("/publish", response_model=QueueResponse)
-async def publish_message(
+async def publish_message()
     request: PublishMessageRequest,
     current_user: Dict = Depends(require_auth)
 ):
@@ -199,7 +194,7 @@ async def publish_message(
 
         priority = priority_map.get(request.priority, MessagePriority.NORMAL)
 
-        success = await queue_manager.publish(
+        success = await queue_manager.publish()
             topic=request.topic,
             payload=request.payload,
             headers=request.headers,
@@ -210,7 +205,7 @@ async def publish_message(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to publish message")
 
-        return QueueResponse(
+        return QueueResponse()
             success=True,
             message=f"Successfully published message to topic '{request.topic}'",
             data={
@@ -229,7 +224,7 @@ async def publish_message(
 
 
 @router.post("/subscribe", response_model=QueueResponse)
-async def subscribe_to_topic(
+async def subscribe_to_topic()
     request: SubscribeRequest,
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
 ):
@@ -251,7 +246,7 @@ async def subscribe_to_topic(
             logger.info(f" Received message on topic {message.topic}: {message.payload}")
             return True
 
-        success = await queue_manager.subscribe(
+        success = await queue_manager.subscribe()
             topic=request.topic,
             handler=demo_handler,
             consumer_group=request.consumer_group
@@ -260,7 +255,7 @@ async def subscribe_to_topic(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to subscribe to topic")
 
-        return QueueResponse(
+        return QueueResponse()
             success=True,
             message=f"Successfully subscribed to topic '{request.topic}'",
             data={
@@ -278,7 +273,7 @@ async def subscribe_to_topic(
 
 
 @router.delete("/subscribe/{topic}", response_model=QueueResponse)
-async def unsubscribe_from_topic(
+async def unsubscribe_from_topic()
     topic: str,
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
 ):
@@ -299,7 +294,7 @@ async def unsubscribe_from_topic(
         if not success:
             raise HTTPException(status_code=404, detail=f"No subscription found for topic '{topic}'")
 
-        return QueueResponse(
+        return QueueResponse()
             success=True,
             message=f"Successfully unsubscribed from topic '{topic}'",
             data={"topic": topic},
@@ -331,7 +326,7 @@ async def list_topics(current_user: Dict = Depends(require_auth)):
 
         topic_list = []
         for topic_name, topic_stats in topics.items():
-            topic_list.append({
+            topic_list.append({)
                 "name": topic_name,
                 "messages_sent": topic_stats.get("messages_sent", 0),
                 "messages_received": topic_stats.get("messages_received", 0),
@@ -353,7 +348,7 @@ async def list_topics(current_user: Dict = Depends(require_auth)):
 
 
 @router.post("/purge/{topic}", response_model=QueueResponse)
-async def purge_topic(
+async def purge_topic()
     topic: str,
     request: PurgeTopicRequest,
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
@@ -366,7 +361,7 @@ async def purge_topic(
     """
     try:
         if not request.confirm:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail="Confirmation required for destructive purge operation"
             )
@@ -381,7 +376,7 @@ async def purge_topic(
         if not success:
             raise HTTPException(status_code=500, detail=f"Failed to purge topic '{topic}'")
 
-        return QueueResponse(
+        return QueueResponse()
             success=True,
             message=f"Successfully purged all messages from topic '{topic}'",
             data={"topic": topic},
@@ -438,7 +433,7 @@ async def get_queue_health(current_user: Dict = Depends(require_auth)):
 
 
 @router.get("/dead-letter", response_model=Dict[str, Any])
-async def get_dead_letter_queue(
+async def get_dead_letter_queue()
     limit: int = Query(10, description="Maximum number of messages to return"),
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
 ):
@@ -474,7 +469,7 @@ async def get_dead_letter_queue(
 
 
 @router.post("/dead-letter/reprocess", response_model=QueueResponse)
-async def reprocess_dead_letter_messages(
+async def reprocess_dead_letter_messages()
     message_ids: Optional[List[str]] = Body(None, description="Specific message IDs to reprocess"),
     current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
 ):
@@ -493,7 +488,7 @@ async def reprocess_dead_letter_messages(
         # For now, return success response
         reprocessed_count = len(message_ids) if message_ids else 0
 
-        return QueueResponse(
+        return QueueResponse()
             success=True,
             message=f"Initiated reprocessing of {reprocessed_count} dead letter messages",
             data={

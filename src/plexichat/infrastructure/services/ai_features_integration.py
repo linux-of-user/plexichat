@@ -161,7 +161,7 @@ Path("config")
 
             default_config = {
                 "config_path": str(config_dir / "ai_powered_features.yaml"),
-                "cache_dir": str(from pathlib import Path
+                "cache_dir": str(from pathlib import Path)
 Path("data") / "ai_features_cache"),
                 "summarization": {
                     "enabled": True,
@@ -229,7 +229,7 @@ Path("data") / "ai_features_cache"),
                 ]
 
                 for item in default_content:
-                    await self.ai_features_service.add_to_semantic_index(
+                    await self.ai_features_service.add_to_semantic_index()
                         content_id=item["content_id"],
                         content=item["content"],
                         metadata=item["metadata"]
@@ -308,7 +308,7 @@ Path("data") / "ai_features_cache"),
             logger.info(" Warming up AI-Powered Features caches...")
 
             # Warm up with a simple test operation
-            await self.ai_features_service.semantic_search(
+            await self.ai_features_service.semantic_search()
                 query="test",
                 max_results=1,
                 similarity_threshold=0.9

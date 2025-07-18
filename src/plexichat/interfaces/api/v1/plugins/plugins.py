@@ -54,7 +54,7 @@ async def list_plugins():
             else:
                 # Get basic info from config file
                 try:
-                    config_file = (
+                    config_file = ()
                         plugin_manager.plugins_dir / plugin_name / "plugin.json"
                     )
                     if config_file.exists():
@@ -65,7 +65,7 @@ async def list_plugins():
                             "metadata": {
                                 "name": config.get("name", plugin_name),
                                 "version": config.get("version", "unknown"),
-                                "description": config.get(
+                                "description": config.get()
                                     "description", "No description"
                                 ),
                                 "author": config.get("author", "Unknown"),
@@ -156,7 +156,7 @@ async def load_plugin(request: PluginActionRequest):
                 "message": f"Plugin '{request.plugin_name}' loaded successfully",
             }
         else:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400, detail=f"Failed to load plugin '{request.plugin_name}'"
             )
 
@@ -180,7 +180,7 @@ async def unload_plugin(request: PluginActionRequest):
                 "message": f"Plugin '{request.plugin_name}' unloaded successfully",
             }
         else:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Failed to unload plugin '{request.plugin_name}'",
             )
@@ -205,7 +205,7 @@ async def reload_plugin(request: PluginActionRequest):
                 "message": f"Plugin '{request.plugin_name}' reloaded successfully",
             }
         else:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Failed to reload plugin '{request.plugin_name}'",
             )
@@ -230,7 +230,7 @@ async def enable_plugin(request: PluginActionRequest):
                 "message": f"Plugin '{request.plugin_name}' enabled successfully",
             }
         else:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Failed to enable plugin '{request.plugin_name}'",
             )
@@ -255,7 +255,7 @@ async def disable_plugin(request: PluginActionRequest):
                 "message": f"Plugin '{request.plugin_name}' disabled successfully",
             }
         else:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=400,
                 detail=f"Failed to disable plugin '{request.plugin_name}'",
             )
@@ -326,7 +326,7 @@ async def get_plugin_info(plugin_name: str):
                     },
                 }
             else:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=404, detail=f"Plugin '{plugin_name}' not found"
                 )
 
@@ -344,7 +344,7 @@ async def get_plugin_endpoints(plugin_name: str):
         plugin_manager = get_plugin_manager()
 
         if plugin_name not in plugin_manager.loaded_plugins:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=404, detail=f"Plugin '{plugin_name}' not loaded"
             )
 
@@ -372,7 +372,7 @@ async def get_plugin_commands(plugin_name: str):
         plugin_manager = get_plugin_manager()
 
         if plugin_name not in plugin_manager.loaded_plugins:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=404, detail=f"Plugin '{plugin_name}' not loaded"
             )
 

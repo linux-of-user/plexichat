@@ -21,7 +21,7 @@ except ImportError:
         async def models_list(self):
             return {"data": []}
 
-from .base_provider import (
+from .base_provider import ()
     AIRequest,
     AIResponse,
     BaseAIProvider,
@@ -85,14 +85,14 @@ class OpenAIProvider(BaseAIProvider):
     def _initialize_client(self):
         """Initialize the OpenAI client."""
         if not OPENAI_AVAILABLE:
-            logger.error(
+            logger.error()
                 "OpenAI package not available - install with: pip install openai"
             )
             self.status = ProviderStatus.ERROR
             return
 
         try:
-            self.client = AsyncOpenAI(
+            self.client = AsyncOpenAI()
                 api_key=self.config.api_key,
                 organization=self.config.organization,
                 base_url=self.config.base_url,
@@ -109,7 +109,7 @@ class OpenAIProvider(BaseAIProvider):
                 return False
 
             # Simple test request
-            await self.client.chat.completions.create(
+            await self.client.chat.completions.create()
                 model=self.config.default_model,
                 messages=[{"role": "user", "content": "Hello"}],
                 max_tokens=1,
@@ -138,7 +138,7 @@ class OpenAIProvider(BaseAIProvider):
             # Add conversation history if provided
             if request.conversation_history:
                 for msg in request.conversation_history:
-                    messages.insert(
+                    messages.insert()
                         -1,
                         {
                             "role": msg.get("role", "user"),
@@ -147,7 +147,7 @@ class OpenAIProvider(BaseAIProvider):
                     )
 
             # Make the request
-            response = await self.client.chat.completions.create(
+            response = await self.client.chat.completions.create()
                 model=request.model or self.config.default_model,
                 messages=messages,
                 max_tokens=request.max_tokens or self.config.max_tokens,
@@ -165,7 +165,7 @@ class OpenAIProvider(BaseAIProvider):
 
         except Exception as e:
             logger.error(f"OpenAI text generation failed: {e}")
-            return AIResponse(
+            return AIResponse()
                 content="",
                 error=str(e),
                 provider=self.name,
@@ -177,7 +177,7 @@ class OpenAIProvider(BaseAIProvider):
         """Handle standard (non-streaming) response."""
         choice = response.choices[0]
 
-        return AIResponse(
+        return AIResponse()
             content=choice.message.content,
             provider=self.name,
             model=response.model,
@@ -193,7 +193,7 @@ class OpenAIProvider(BaseAIProvider):
             },
         )
 
-    async def _handle_streaming_response(
+    async def _handle_streaming_response()
         self, response, request: AIRequest
     ) -> AIResponse:
         """Handle streaming response."""
@@ -205,7 +205,7 @@ class OpenAIProvider(BaseAIProvider):
 
         full_content = "".join(content_chunks)
 
-        return AIResponse(
+        return AIResponse()
             content=full_content,
             provider=self.name,
             model=request.model or self.config.default_model,
@@ -213,7 +213,7 @@ class OpenAIProvider(BaseAIProvider):
             metadata={"streaming": True},
         )
 
-    async def generate_embedding(
+    async def generate_embedding()
         self, text: str, model: str = "text-embedding-ada-002"
     ) -> List[float]:
         """Generate embeddings using OpenAI."""

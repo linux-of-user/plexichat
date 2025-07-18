@@ -490,6 +490,12 @@
                     </a>
                 </div>
             </div>
+
+            <!-- Plugin Docs Section (dynamically generated) -->
+            <div class="nav-section" id="plugin-docs-section">
+                <div class="nav-section-title">Plugin Docs</div>
+                <!-- Plugin doc links will be injected here by JS -->
+            </div>
         </nav>
     </div>
 
@@ -677,6 +683,20 @@ def hello_world():
                 </div>
             </div>
 
+            <!-- Advanced Plugin Dashboard Section -->
+            <div class="plugin-dashboard card shadow mb-4" style="margin:2rem;">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-puzzle-piece"></i> Plugin Dashboard</h4>
+                    <input type="text" id="plugin-search" class="form-control form-control-sm w-25" placeholder="Search plugins...">
+                </div>
+                <div class="card-body" id="plugin-dashboard-body">
+                    <!-- Plugin summary will be injected here by JS -->
+                </div>
+                <div class="card-footer" id="recent-plugins-section">
+                    <!-- Recently updated/added plugins will be shown here -->
+                </div>
+            </div>
+
             <!-- Other sections would be loaded dynamically -->
             <div id="placeholder-section" class="doc-section" style="display: none;">
                 <h2 id="placeholderTitle">Section Title</h2>
@@ -688,6 +708,7 @@ def hello_world():
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         // Navigation and section management
         function showSection(sectionName) {
@@ -827,6 +848,193 @@ def hello_world():
         function launchGUI() {
             alert('Desktop GUI application would be launched here');
         }
+
+        // Plugin Docs: Fetch and render plugin docs in the sidebar and main content
+        async function loadPluginDocs() {
+            const response = await fetch('/docs/api/documents');
+            const data = await response.json();
+            if (!data.success) return;
+            const pluginDocs = data.documents.filter(doc => doc.category.startsWith('plugin-'));
+            const section = document.getElementById('plugin-docs-section');
+            pluginDocs.forEach(doc => {
+                const div = document.createElement('div');
+                div.className = 'nav-item';
+                const a = document.createElement('a');
+                a.className = 'nav-link';
+                a.href = '#';
+                a.textContent = doc.title;
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    showPluginDoc(doc.id);
+                };
+                div.appendChild(a);
+                section.appendChild(div);
+            });
+        }
+        async function showPluginDoc(docId) {
+            const response = await fetch(`/docs/api/documents/${docId}`);
+            const data = await response.json();
+            if (!data.success) return;
+            // Hide all sections
+            document.querySelectorAll('.doc-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            // Create or update plugin doc section
+            let pluginSection = document.getElementById('plugin-doc-section');
+            if (!pluginSection) {
+                pluginSection = document.createElement('div');
+                pluginSection.id = 'plugin-doc-section';
+                pluginSection.className = 'doc-section';
+                document.querySelector('.content-area').appendChild(pluginSection);
+            }
+            pluginSection.innerHTML = `<h2><i class='fas fa-puzzle-piece'></i> ${data.document.title}</h2><div class='plugin-doc-content'>${data.document.content}</div>`;
+            pluginSection.style.display = 'block';
+            document.getElementById('contentTitle').textContent = data.document.title;
+            document.getElementById('contentDescription').textContent = `Plugin Documentation: ${data.document.title}`;
+        }
+        // Load plugin docs on page load
+        loadPluginDocs();
+
+        // Advanced Plugin Dashboard: Fetch and render all plugin info
+        async function loadPluginDashboard() {
+            const response = await fetch('/docs/api/plugins');
+            const data = await response.json();
+            if (!data.success) return;
+            const plugins = data.plugins;
+            const dashboard = document.getElementById('plugin-dashboard-body');
+            dashboard.innerHTML = '';
+            plugins.forEach(plugin => {
+                const card = document.createElement('div');
+                card.className = 'plugin-summary mb-3 p-3 border rounded bg-light';
+                card.innerHTML = `
+                    <div class='d-flex justify-content-between align-items-center'>
+                        <div>
+                            <strong>${plugin.metadata.name}</strong> <span class='badge bg-secondary'>v${plugin.metadata.version}</span> <span class='text-muted'>by ${plugin.metadata.author}</span>
+                            <span class='badge ${plugin.metadata.enabled ? 'bg-success' : 'bg-danger'} ms-2'>${plugin.metadata.enabled ? 'Enabled' : 'Disabled'}</span>
+                            <span class='badge bg-info ms-2'>${plugin.metadata.type}</span>
+                        </div>
+                        <div>
+                            <button class='btn btn-sm btn-outline-primary' onclick='showPluginDoc("plugin-${plugin.plugin_id}-README")'>Docs</button>
+                            <button class='btn btn-sm btn-outline-success' onclick='runSelfTest("${plugin.plugin_id}", this)'>Self-Test</button>
+                            <button class='btn btn-sm btn-outline-info' onclick='showFeatures("${plugin.plugin_id}")'>Features</button>
+                            <button class='btn btn-sm btn-outline-${plugin.metadata.enabled ? 'danger' : 'success'}' onclick='togglePlugin("${plugin.plugin_id}", this)'>${plugin.metadata.enabled ? 'Disable' : 'Enable'}</button>
+                        </div>
+                    </div>
+                    <div class='plugin-desc mt-2'>${plugin.metadata.description}</div>
+                    <div class='plugin-actions mt-2' id='plugin-actions-${plugin.plugin_id}'></div>
+                `;
+                dashboard.appendChild(card);
+            });
+            // Plugin search
+            document.getElementById('plugin-search').addEventListener('input', function() {
+                const q = this.value.toLowerCase();
+                Array.from(dashboard.children).forEach(card => {
+                    card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+        }
+        // Recently updated/added plugins
+        async function loadRecentPlugins() {
+            const response = await fetch('/docs/api/plugins/recent');
+            const data = await response.json();
+            if (!data.success) return;
+            const section = document.getElementById('recent-plugins-section');
+            section.innerHTML = '<strong>Recently Updated Plugins:</strong> ' + data.plugins.map(p => `<span class='badge bg-warning text-dark ms-1'>${p.metadata.name}</span>`).join(' ');
+        }
+        // Run plugin self-test
+        async function runSelfTest(pluginId, btn) {
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            const response = await fetch(`/docs/api/plugins/${pluginId}/selftest`);
+            const data = await response.json();
+            btn.textContent = 'Self-Test';
+            btn.disabled = false;
+            const actions = document.getElementById(`plugin-actions-${pluginId}`);
+            if (data.success) {
+                actions.innerHTML = `<div class='alert alert-${data.result.passed ? 'success' : 'danger'} mt-2'>Self-Test: ${data.result.passed ? 'Passed' : 'Failed'}<br>${data.result.message || ''}</div>`;
+            } else {
+                actions.innerHTML = `<div class='alert alert-danger mt-2'>Self-Test Error: ${data.error}</div>`;
+            }
+        }
+        // Show plugin features
+        async function showFeatures(pluginId) {
+            const response = await fetch(`/docs/api/plugins/${pluginId}/features`);
+            const data = await response.json();
+            let html = '';
+            if (data.success) {
+                html = `<div class='mt-2'><strong>Features:</strong><ul>`;
+                Object.entries(data.features).forEach(([k, v]) => {
+                    html += `<li><strong>${k}:</strong> ${v.length ? v.join(', ') : '<em>None</em>'}</li>`;
+                });
+                html += '</ul></div>';
+            } else {
+                html = `<div class='alert alert-danger mt-2'>Feature Error: ${data.error}</div>`;
+            }
+            const actions = document.getElementById(`plugin-actions-${pluginId}`);
+            actions.innerHTML = html;
+        }
+        // Enable/disable plugin
+        async function togglePlugin(pluginId, btn) {
+            btn.disabled = true;
+            const enable = btn.textContent === 'Enable';
+            const response = await fetch(`/docs/api/plugins/${pluginId}/${enable ? 'enable' : 'disable'}`, {method: 'POST'});
+            btn.disabled = false;
+            if (response.ok) {
+                btn.textContent = enable ? 'Disable' : 'Enable';
+                btn.className = 'btn btn-sm btn-outline-' + (enable ? 'danger' : 'success');
+                loadPluginDashboard();
+            }
+        }
+        // Render plugin docs as HTML with syntax highlighting
+        window.showPluginDoc = async function(docId) {
+            const response = await fetch(`/docs/api/documents/${docId}`);
+            const data = await response.json();
+            if (!data.success) return;
+            document.querySelectorAll('.doc-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            let pluginSection = document.getElementById('plugin-doc-section');
+            if (!pluginSection) {
+                pluginSection = document.createElement('div');
+                pluginSection.id = 'plugin-doc-section';
+                pluginSection.className = 'doc-section';
+                document.querySelector('.content-area').appendChild(pluginSection);
+            }
+            // Use marked.js for markdown rendering
+            let html = data.document.content;
+            if (data.document.content && data.document.content.trim().startsWith('#')) {
+                html = marked.parse(data.document.content);
+            }
+            pluginSection.innerHTML = `<h2><i class='fas fa-puzzle-piece'></i> ${data.document.title}</h2><div class='plugin-doc-content'>${html}</div>`;
+            pluginSection.style.display = 'block';
+            document.getElementById('contentTitle').textContent = data.document.title;
+            document.getElementById('contentDescription').textContent = `Plugin Documentation: ${data.document.title}`;
+            // Syntax highlighting
+            document.querySelectorAll('pre code').forEach(block => {
+                window.Prism && Prism.highlightElement(block);
+            });
+        };
+        // Make plugin docs section collapsible and visually distinct
+        const pluginDocsSection = document.getElementById('plugin-docs-section');
+        if (pluginDocsSection) {
+            pluginDocsSection.style.background = '#f0f4fa';
+            pluginDocsSection.style.borderRadius = '8px';
+            pluginDocsSection.style.margin = '1rem 0';
+            pluginDocsSection.style.padding = '1rem';
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn btn-sm btn-outline-secondary mb-2';
+            toggleBtn.textContent = 'Toggle Plugin Docs';
+            toggleBtn.onclick = () => {
+                const items = pluginDocsSection.querySelectorAll('.nav-item');
+                items.forEach(item => {
+                    item.style.display = item.style.display === 'none' ? '' : 'none';
+                });
+            };
+            pluginDocsSection.insertBefore(toggleBtn, pluginDocsSection.children[1]);
+        }
+        // Load plugin dashboard and recent plugins on page load
+        loadPluginDashboard();
+        loadRecentPlugins();
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {

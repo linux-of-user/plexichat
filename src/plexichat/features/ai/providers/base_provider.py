@@ -15,6 +15,8 @@ import aiohttp
 
 
 """
+import http.client
+import time
 Base AI Provider Interface
 Common interface for all AI providers with standardized methods and error handling.
 """
@@ -115,7 +117,7 @@ class BaseAIProvider(ABC):
     async def initialize(self) -> bool:
         """Initialize the provider."""
         try:
-            self.session = aiohttp.ClientSession(
+            self.session = aiohttp.ClientSession()
                 timeout=aiohttp.ClientTimeout(total=self.config.timeout_seconds),
                 headers=self.config.custom_headers,
             )

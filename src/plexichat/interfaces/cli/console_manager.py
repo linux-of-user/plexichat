@@ -119,7 +119,7 @@ class EnhancedSplitScreen:
         self.active = True
         self.layout = self._create_enhanced_layout()
 
-        self.live_display = Live(
+        self.live_display = Live()
             self.layout,
             console=self.console,
             refresh_per_second=self.config['refresh_rate'],
@@ -149,30 +149,30 @@ class EnhancedSplitScreen:
         """Create the enhanced split-screen layout."""
         if not RICH_AVAILABLE:
             return None
-            
+
         layout = Layout()
 
         # Main structure
-        layout.split_column(
+        layout.split_column()
             Layout(name="header", size=4),
             Layout(name="main"),
             Layout(name="input", size=3)
         )
 
         # Main area split
-        layout["main"].split_row(
+        layout["main"].split_row()
             Layout(name="left_panel", ratio=2),
             Layout(name="right_panel", ratio=1)
         )
 
         # Left panel split
-        layout["left_panel"].split_column(
+        layout["left_panel"].split_column()
             Layout(name="logs", ratio=3),
             Layout(name="operations", ratio=1)
         )
 
         # Right panel split
-        layout["right_panel"].split_column(
+        layout["right_panel"].split_column()
             Layout(name="metrics", ratio=1),
             Layout(name="system", ratio=1),
             Layout(name="commands", ratio=1)
@@ -184,7 +184,7 @@ class EnhancedSplitScreen:
         """Main update loop for the display."""
         if not RICH_AVAILABLE or not self.live_display:
             return
-            
+
         try:
             with self.live_display:
                 while self.active:
@@ -231,11 +231,11 @@ class EnhancedSplitScreen:
         """Update the header panel."""
         if not RICH_AVAILABLE or not self.layout:
             return
-            
+
         uptime = datetime.now() - self.stats['start_time']
         uptime_str = str(uptime).split('.')[0]  # Remove microseconds
 
-        status_text = (
+        status_text = ()
             f"[bold blue]PlexiChat Enhanced Console[/bold blue] | "
             f"Uptime: {uptime_str} | "
             f"Logs: {self.stats['total_logs']} | "
@@ -246,7 +246,7 @@ class EnhancedSplitScreen:
         if self.current_filter:
             status_text += f" | Filter: {self.current_filter}"
 
-        self.layout["header"].update(Panel(
+        self.layout["header"].update(Panel())
             Align.center(status_text),
             style="blue",
             title="System Status"
@@ -256,7 +256,7 @@ class EnhancedSplitScreen:
         """Update the logs display panel."""
         if not RICH_AVAILABLE or not self.layout:
             return
-            
+
         log_table = Table(show_header=True, header_style="bold magenta", expand=True)
         log_table.add_column("Time", style="dim", width=12)
         log_table.add_column("Level", width=8)
@@ -278,14 +278,14 @@ class EnhancedSplitScreen:
             if entry.level.upper() in ['ERROR', 'CRITICAL'] and self.config['highlight_errors']:
                 message = f"[bold red]{message}[/bold red]"
 
-            log_table.add_row(
+            log_table.add_row()
                 entry.timestamp.strftime('%H:%M:%S'),
                 f"[{level_style}]{entry.level}[/{level_style}]",
                 entry.module,
                 message
             )
 
-        self.layout["logs"].update(Panel(
+        self.layout["logs"].update(Panel())
             log_table,
             title="Recent Logs",
             border_style="green"
@@ -295,10 +295,10 @@ class EnhancedSplitScreen:
         """Update the operations panel."""
         if not RICH_AVAILABLE or not self.layout:
             return
-            
+
         operations_table = Table(show_header=True, header_style="bold cyan", expand=True)
         operations_table.add_column("ID", style="dim", width=10)
-        operations_table.add_column("Type", width=12)
+        operations_table.add_column(Type, width=12)
         operations_table.add_column("Status", width=10)
         operations_table.add_column("Duration", width=12)
 
@@ -308,14 +308,14 @@ class EnhancedSplitScreen:
                 duration = str(datetime.now() - operation['start_time']).split('.')[0]
 
             status_style = "green" if operation.get('success') else "yellow"
-            operations_table.add_row(
+            operations_table.add_row()
                 op_id[:8],
                 operation.get('type', 'unknown'),
                 f"[{status_style}]{operation.get('status', 'running')}[/{status_style}]",
                 duration
             )
 
-        self.layout["operations"].update(Panel(
+        self.layout["operations"].update(Panel())
             operations_table,
             title="Active Operations",
             border_style="cyan"
@@ -334,7 +334,7 @@ class EnhancedSplitScreen:
 
     def add_log_entry(self, level: str, module: str, message: str, **kwargs):
         """Add a log entry to the display."""
-        entry = LogEntry(
+        entry = LogEntry()
             timestamp=datetime.now(),
             level=level,
             module=module,
@@ -342,10 +342,10 @@ class EnhancedSplitScreen:
             thread_id=str(threading.get_ident()),
             **kwargs
         )
-        
+
         self.log_buffer.append(entry)
         self.stats['total_logs'] += 1
-        
+
         if level.upper() in ['ERROR', 'CRITICAL']:
             self.stats['errors'] += 1
             self.stats['last_error'] = entry
@@ -378,7 +378,7 @@ class EnhancedSplitScreen:
         logger.info("=" * 80)
 
         self.active = True
-        
+
         # Start input handler
         input_thread = threading.Thread(target=self._input_handler, daemon=True)
         if input_thread and hasattr(input_thread, "start"): input_thread.start()
@@ -389,7 +389,7 @@ class EnhancedSplitScreen:
     def _fallback_loop(self):
         """Fallback display loop without Rich library."""
         logger = logging.getLogger(__name__)
-        
+
         while self.active:
             try:
                 # Simple console output
@@ -398,15 +398,15 @@ class EnhancedSplitScreen:
                 logger = logging.getLogger(__name__)
                 logger.info(f"PlexiChat Console - Logs: {self.stats['total_logs']} | Errors: {self.stats['errors']}")
                 logger.info("-" * 80)
-                
+
                 for entry in recent_logs:
                     logger.info(f"[{entry.timestamp.strftime('%H:%M:%S')}] {entry.level}: {entry.message}")
-                
+
                 logger.info("-" * 80)
                 logger.info("Press 'q' to quit, 'c' to clear logs")
-                
+
                 time.sleep(2)  # Update every 2 seconds
-                
+
             except KeyboardInterrupt:
                 self.active = False
             except Exception as e:
@@ -417,7 +417,7 @@ class EnhancedSplitScreen:
         """Update the metrics panel."""
         if not RICH_AVAILABLE or not self.layout:
             return
-            
+
         try:
             # Get current system metrics
             cpu_percent = psutil.cpu_percent(interval=None)
@@ -437,14 +437,14 @@ class EnhancedSplitScreen:
             metrics_table.add_row("Peak Memory", f"{self.stats['peak_memory']:.1f}%")
             metrics_table.add_row("Active Operations", str(len(self.active_operations)))
 
-            self.layout["metrics"].update(Panel(
+            self.layout["metrics"].update(Panel())
                 metrics_table,
                 title="System Metrics",
                 border_style="green"
             ))
 
         except Exception:
-            self.layout["metrics"].update(Panel(
+            self.layout["metrics"].update(Panel())
                 "[dim]psutil not available\nInstall with: pip install psutil[/dim]",
                 title="System Metrics",
                 border_style="dim"
@@ -454,7 +454,7 @@ class EnhancedSplitScreen:
         """Update the system information panel."""
         if not RICH_AVAILABLE or not self.layout:
             return
-            
+
         try:
             # Network and disk info
             disk = psutil.disk_usage('/')
@@ -474,14 +474,14 @@ class EnhancedSplitScreen:
             system_table.add_row("Process PID", str(process.pid))
             system_table.add_row("Threads", str(process.num_threads()))
 
-            self.layout["system"].update(Panel(
+            self.layout["system"].update(Panel())
                 system_table,
                 title="System Info",
                 border_style="blue"
             ))
 
         except Exception:
-            self.layout["system"].update(Panel(
+            self.layout["system"].update(Panel())
                 "[dim]System info unavailable[/dim]",
                 title="System Info",
                 border_style="dim"
@@ -491,7 +491,7 @@ class EnhancedSplitScreen:
         """Update the commands/help panel."""
         if not RICH_AVAILABLE or not self.layout:
             return
-            
+
         commands_text = Text()
         commands_text.append("Available Commands:\n", style="bold")
         commands_text.append(" ", style="dim")
@@ -515,7 +515,7 @@ class EnhancedSplitScreen:
             for cmd in list(self.command_history)[-3:]:
                 commands_text.append(f" {cmd}\n", style="dim cyan")
 
-        self.layout["commands"].update(Panel(
+        self.layout["commands"].update(Panel())
             commands_text,
             title="Commands",
             border_style="magenta"
@@ -525,13 +525,13 @@ class EnhancedSplitScreen:
         """Update the input panel."""
         if not RICH_AVAILABLE or not self.layout:
             return
-            
+
         if self.input_mode:
             input_text = "[bold yellow]Input Mode Active[/bold yellow] - Type command and press Enter"
         else:
             input_text = "[dim]Press any key for commands, 'q' to quit[/dim]"
 
-        self.layout["input"].update(Panel(
+        self.layout["input"].update(Panel())
             Align.center(input_text),
             style="yellow" if self.input_mode else "dim",
             title="Input"

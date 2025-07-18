@@ -15,6 +15,7 @@ import aiosqlite
 
 
 """
+import time
 PlexiChat Backup User Preferences System
 
 Comprehensive user preference management for backup operations:
@@ -80,7 +81,7 @@ class UserBackupPreferences:
     max_storage_quota_mb: Optional[int] = None
 
     # Metadata
-    preferences_updated: datetime = field(
+    preferences_updated: datetime = field()
         default_factory=lambda: datetime.now(timezone.utc)
     )
     preferences_version: int = 1
@@ -148,7 +149,7 @@ class UserPreferencesManager:
     def _initialize_default_policies(self):
         """Initialize default backup policies."""
         for backup_type in BackupType:
-            self.backup_policies[backup_type] = BackupPolicy(
+            self.backup_policies[backup_type] = BackupPolicy()
                 backup_type=backup_type,
                 default_retention_days=365,
                 auto_archive_after_days=90,
@@ -164,9 +165,9 @@ class UserPreferencesManager:
     async def _initialize_database(self):
         """Initialize the preferences database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS user_preferences (
+                CREATE TABLE IF NOT EXISTS user_preferences ()
                     user_id INTEGER PRIMARY KEY,
                     backup_opt_outs TEXT,
                     retention_preferences TEXT,
@@ -185,9 +186,9 @@ class UserPreferencesManager:
             """
             )
 
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS backup_policies (
+                CREATE TABLE IF NOT EXISTS backup_policies ()
                     backup_type TEXT PRIMARY KEY,
                     default_retention_days INTEGER,
                     auto_archive_after_days INTEGER,
@@ -203,9 +204,9 @@ class UserPreferencesManager:
             """
             )
 
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS preference_audit_log (
+                CREATE TABLE IF NOT EXISTS preference_audit_log ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER,
                     change_type TEXT,
@@ -241,7 +242,7 @@ class UserPreferencesManager:
                         BackupType(k): v for k, v in retention_preferences.items()
                     }
 
-                    preferences = UserBackupPreferences(
+                    preferences = UserBackupPreferences()
                         user_id=user_id,
                         backup_opt_outs=backup_opt_outs,
                         retention_preferences=retention_preferences,
@@ -254,7 +255,7 @@ class UserPreferencesManager:
                         custom_encryption_key=row[9],
                         backup_schedule_preference=row[10] or "daily",
                         max_storage_quota_mb=row[11],
-                        preferences_updated=(
+                        preferences_updated=()
                             datetime.fromisoformat(row[12])
                             if row[12]
                             else datetime.now(timezone.utc)
@@ -273,7 +274,7 @@ class UserPreferencesManager:
                 async for row in cursor:
                     backup_type = BackupType(row[0])
 
-                    policy = BackupPolicy(
+                    policy = BackupPolicy()
                         backup_type=backup_type,
                         default_retention_days=row[1],
                         auto_archive_after_days=row[2],
@@ -290,13 +291,13 @@ class UserPreferencesManager:
 
         logger.info(f"Loaded {len(self.backup_policies)} backup policies")
 
-    async def get_user_preferences(
+    async def get_user_preferences()
         self, user_id: int
     ) -> Optional[UserBackupPreferences]:
         """Get user backup preferences."""
         return self.user_preferences.get(user_id)
 
-    async def set_user_preferences(
+    async def set_user_preferences()
         self,
         user_id: int,
         preferences: UserBackupPreferences,
@@ -311,7 +312,7 @@ class UserPreferencesManager:
             # Update timestamp and version
             preferences.preferences_updated = datetime.now(timezone.utc)
             if old_preferences:
-                preferences.preferences_version = (
+                preferences.preferences_version = ()
                     old_preferences.preferences_version + 1
                 )
 
@@ -322,7 +323,7 @@ class UserPreferencesManager:
             self.user_preferences[user_id] = preferences
 
             # Audit log
-            await self._log_preference_change(
+            await self._log_preference_change()
                 user_id,
                 "preferences_updated",
                 old_preferences,
@@ -339,7 +340,7 @@ class UserPreferencesManager:
             logger.error(f"Failed to set user preferences: {e}")
             return False
 
-    async def should_backup_user_data(
+    async def should_backup_user_data()
         self, user_id: int, backup_type: BackupType
     ) -> tuple[bool, BackupOptOutLevel]:
         """Check if user data should be backed up based on preferences."""
@@ -349,7 +350,7 @@ class UserPreferencesManager:
             # Default: full backup for users without preferences
             return True, BackupOptOutLevel.NONE
 
-        opt_out_level = preferences.backup_opt_outs.get(
+        opt_out_level = preferences.backup_opt_outs.get()
             backup_type, BackupOptOutLevel.NONE
         )
 
@@ -358,7 +359,7 @@ class UserPreferencesManager:
 
         return should_backup, opt_out_level
 
-    async def get_user_retention_period(
+    async def get_user_retention_period()
         self, user_id: int, backup_type: BackupType
     ) -> int:
         """Get retention period for user data based on preferences and policy."""
@@ -373,7 +374,7 @@ class UserPreferencesManager:
             user_retention = preferences.retention_preferences[backup_type]
 
             # Enforce policy limits
-            return max(
+            return max()
                 policy.minimum_retention_days,
                 min(user_retention, policy.maximum_retention_days),
             )
@@ -384,17 +385,17 @@ class UserPreferencesManager:
     async def _save_user_preferences(self, preferences: UserBackupPreferences):
         """Save user preferences to database."""
         # Convert enums to strings for JSON storage
-        backup_opt_outs_json = json.dumps(
+        backup_opt_outs_json = json.dumps()
             {k.value: v.value for k, v in preferences.backup_opt_outs.items()}
         )
-        retention_preferences_json = json.dumps(
+        retention_preferences_json = json.dumps()
             {k.value: v for k, v in preferences.retention_preferences.items()}
         )
 
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
-                INSERT OR REPLACE INTO user_preferences (
+                INSERT OR REPLACE INTO user_preferences ()
                     user_id, backup_opt_outs, retention_preferences,
                     encrypt_personal_data, allow_cross_node_replication,
                     require_local_storage_only, notify_on_backup_completion,
@@ -403,7 +404,7 @@ class UserPreferencesManager:
                     max_storage_quota_mb, preferences_updated, preferences_version
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     preferences.user_id,
                     backup_opt_outs_json,
                     retention_preferences_json,
@@ -422,7 +423,7 @@ class UserPreferencesManager:
             )
             await db.commit()
 
-    async def _log_preference_change(
+    async def _log_preference_change()
         self,
         user_id: int,
         change_type: str,
@@ -434,14 +435,14 @@ class UserPreferencesManager:
     ):
         """Log preference changes for audit purposes."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
-                INSERT INTO preference_audit_log (
+                INSERT INTO preference_audit_log ()
                     user_id, change_type, old_value, new_value,
                     changed_by, ip_address, user_agent
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     user_id,
                     change_type,
                     json.dumps(str(old_value)) if old_value else None,
@@ -469,7 +470,7 @@ class UserPreferencesManager:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=365)
 
         async with aiosqlite.connect(self.db_path) as db:
-            result = await db.execute(
+            result = await db.execute()
                 """
                 DELETE FROM preference_audit_log
                 WHERE changed_at < ?

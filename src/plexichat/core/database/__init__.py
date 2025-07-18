@@ -4,6 +4,7 @@
 from typing import Optional
 
 from .db_manager import *
+import logging
 
 # Import consolidated database components
 try:
@@ -21,7 +22,23 @@ try:
 except ImportError:
     pass
 
+# Import unified database components (NEW CONSOLIDATED MODULES)
+try:
+    from .unified_engines import UnifiedEngineManager, unified_engine_manager, DatabaseEngine, SQLiteEngine, PostgreSQLEngine, MongoDBEngine, EngineConfig
+    # Backward compatibility aliases
+    engine_manager = unified_engine_manager
+except ImportError:
+    pass
+
+try:
+    from .unified_migrations import UnifiedMigrationManager, unified_migration_manager, Migration, MigrationStatus, MigrationStrategy
+    # Backward compatibility aliases
+    migration_manager = unified_migration_manager
+except ImportError:
+    pass
+
 # Note: Consolidated from database_manager.py, unified_database_manager.py, enhanced_abstraction.py
+# PLUS: infrastructure/database/db_engines.py and infrastructure/database/db_migrations.py
 # Legacy imports maintained for backward compatibility
 DatabaseManager = ConsolidatedDatabaseManager  # Alias for backward compatibility
 
@@ -51,12 +68,7 @@ class DatabaseProvider:
 
 # Exception classes
 try:
-    from .db_manager import (
-        ConnectionError,
-        DatabaseError,
-        EncryptionError,
-        MigrationError,
-    )
+    from .db_manager import ConnectionError, DatabaseError, EncryptionError, MigrationError
 except ImportError:
     # Create placeholder exception classes
     class DatabaseError(Exception):
@@ -85,6 +97,24 @@ __all__ = [
     # Initialization functions
     "initialize_database_system",
     "get_database_manager",
+
+    # Unified engine management (CONSOLIDATES infrastructure/database/db_engines.py)
+    "UnifiedEngineManager",
+    "unified_engine_manager",
+    "engine_manager",  # Backward compatibility
+    "DatabaseEngine",
+    "SQLiteEngine",
+    "PostgreSQLEngine",
+    "MongoDBEngine",
+    "EngineConfig",
+
+    # Unified migration management (CONSOLIDATES infrastructure/database/db_migrations.py)
+    "UnifiedMigrationManager",
+    "unified_migration_manager",
+    "migration_manager",  # Backward compatibility
+    "Migration",
+    "MigrationStatus",
+    "MigrationStrategy",
 
     # Exceptions
     "DatabaseError",
@@ -258,21 +288,44 @@ DEFAULT_SECURITY_LEVEL = "GOVERNMENT"
 PERFORMANCE_SETTINGS = {
     "query_optimization": {
         "enable_query_cache": True,
-        "cache_size_mb": 256,
+        "cache_size_mb": 512,  # Increased cache size
         "cache_ttl_seconds": 300,
-        "enable_prepared_statements": True
+        "enable_prepared_statements": True,
+        "enable_query_rewriting": True,
+        "enable_execution_plan_caching": True,
+        "max_query_complexity": 1000,
+        "slow_query_threshold_ms": 1000
     },
     "connection_optimization": {
         "enable_connection_pooling": True,
         "pool_pre_ping": True,
         "pool_recycle_seconds": 3600,
-        "enable_connection_validation": True
+        "enable_connection_validation": True,
+        "connection_health_check_interval": 30,
+        "max_connection_age_hours": 24,
+        "enable_connection_multiplexing": True
     },
     "index_optimization": {
         "auto_create_indexes": True,
         "analyze_query_patterns": True,
         "suggest_missing_indexes": True,
-        "monitor_index_usage": True
+        "monitor_index_usage": True,
+        "auto_drop_unused_indexes": False,
+        "index_usage_threshold": 0.1,
+        "rebuild_fragmented_indexes": True
+    },
+    "monitoring": {
+        "enable_real_time_monitoring": True,
+        "collect_execution_stats": True,
+        "track_resource_usage": True,
+        "enable_performance_alerts": True,
+        "metrics_retention_days": 30,
+        "alert_thresholds": {
+            "cpu_usage_percent": 80,
+            "memory_usage_percent": 85,
+            "disk_io_wait_ms": 100,
+            "connection_pool_usage_percent": 90
+        }
     }
 }
 

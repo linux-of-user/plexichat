@@ -17,6 +17,7 @@ import aiosqlite
 
 
 """
+import time
 Universal User and Message Backup System
 Government-level backup system with opt-out capabilities and intelligent shard distribution.
 """
@@ -135,9 +136,9 @@ class UniversalBackupManager:
         """Initialize universal backup database."""
         async with aiosqlite.connect(self.universal_db_path) as db:
             # User backup preferences
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS user_backup_preferences (
+                CREATE TABLE IF NOT EXISTS user_backup_preferences ()
                     user_id TEXT PRIMARY KEY,
                     username TEXT NOT NULL,
                     backup_status TEXT NOT NULL,
@@ -156,9 +157,9 @@ class UniversalBackupManager:
             )
 
             # Message backups
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS message_backups (
+                CREATE TABLE IF NOT EXISTS message_backups ()
                     backup_id TEXT PRIMARY KEY,
                     message_id TEXT NOT NULL,
                     user_id TEXT NOT NULL,
@@ -178,9 +179,9 @@ class UniversalBackupManager:
             )
 
             # Backup statistics
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS backup_statistics (
+                CREATE TABLE IF NOT EXISTS backup_statistics ()
                     stat_id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
                     data_type TEXT NOT NULL,
@@ -198,7 +199,7 @@ class UniversalBackupManager:
 
         logger.info("Universal backup database initialized")
 
-    async def set_user_backup_preferences(
+    async def set_user_backup_preferences()
         self,
         user_id: str,
         username: str,
@@ -220,7 +221,7 @@ class UniversalBackupManager:
             opted_out_data_types = set()
 
         # Create or update preferences
-        preferences = UserBackupPreferences(
+        preferences = UserBackupPreferences()
             user_id=user_id,
             username=username,
             backup_status=backup_status,
@@ -231,7 +232,7 @@ class UniversalBackupManager:
             prefer_local_storage=prefer_local_storage,
             encryption_preference=encryption_preference,
             shard_distribution_preference=shard_distribution_preference,
-            created_at=(
+            created_at=()
                 datetime.now(timezone.utc)
                 if user_id not in self.user_preferences
                 else self.user_preferences[user_id].created_at
@@ -245,12 +246,12 @@ class UniversalBackupManager:
         # Save to database
         await self._save_user_preferences(preferences)
 
-        logger.info(
+        logger.info()
             f"Updated backup preferences for user {user_id}: {backup_status.value}"
         )
         return preferences
 
-    async def opt_out_user_backup(
+    async def opt_out_user_backup()
         self, user_id: str, data_types: Optional[Set[BackupDataType]] = None
     ) -> bool:
         """
@@ -265,7 +266,7 @@ class UniversalBackupManager:
         """
         if user_id not in self.user_preferences:
             # Create default preferences first
-            await self.set_user_backup_preferences(user_id, f"user_{user_id}")
+            await self.set_user_backup_preferences(user_id, CacheKeyBuilder.user_key(user_id))
 
         preferences = self.user_preferences[user_id]
 
@@ -286,12 +287,12 @@ class UniversalBackupManager:
         # Save to database
         await self._save_user_preferences(preferences)
 
-        logger.info(
+        logger.info()
             f"User {user_id} opted out of backup: {data_types or 'all data types'}"
         )
         return True
 
-    async def opt_in_user_backup(
+    async def opt_in_user_backup()
         self, user_id: str, data_types: Optional[Set[BackupDataType]] = None
     ) -> bool:
         """
@@ -306,7 +307,7 @@ class UniversalBackupManager:
         """
         if user_id not in self.user_preferences:
             # Create default preferences
-            await self.set_user_backup_preferences(user_id, f"user_{user_id}")
+            await self.set_user_backup_preferences(user_id, CacheKeyBuilder.user_key(user_id))
             return True
 
         preferences = self.user_preferences[user_id]
@@ -328,12 +329,12 @@ class UniversalBackupManager:
         # Save to database
         await self._save_user_preferences(preferences)
 
-        logger.info(
+        logger.info()
             f"User {user_id} opted into backup: {data_types or 'all data types'}"
         )
         return True
 
-    async def backup_user_message(
+    async def backup_user_message()
         self,
         message_id: str,
         user_id: str,
@@ -350,7 +351,7 @@ class UniversalBackupManager:
             MessageBackupEntry if backed up, None if opted out
         """
         # Check if user has opted out
-        if not await self._should_backup_user_data(
+        if not await self._should_backup_user_data()
             user_id, BackupDataType.USER_MESSAGES
         ):
             logger.debug(f"Skipping message backup for user {user_id} - opted out")
@@ -360,15 +361,15 @@ class UniversalBackupManager:
         preferences = self.user_preferences.get(user_id)
         if not preferences:
             # Create default preferences
-            preferences = await self.set_user_backup_preferences(
-                user_id, f"user_{user_id}"
+            preferences = await self.set_user_backup_preferences()
+                user_id, CacheKeyBuilder.user_key(user_id)
             )
 
         # Generate backup ID
         backup_id = f"msg_backup_{hashlib.sha256(f'{message_id}_{user_id}_{datetime.now(timezone.utc).isoformat()}'.encode()).hexdigest()[:16]}"
 
         # Create backup entry
-        backup_entry = MessageBackupEntry(
+        backup_entry = MessageBackupEntry()
             backup_id=backup_id,
             message_id=message_id,
             user_id=user_id,
@@ -386,7 +387,7 @@ class UniversalBackupManager:
         )
 
         # Calculate checksum
-        content_for_checksum = json.dumps(
+        content_for_checksum = json.dumps()
             {
                 "message_id": message_id,
                 "user_id": user_id,
@@ -397,7 +398,7 @@ class UniversalBackupManager:
             },
             sort_keys=True,
         )
-        backup_entry.checksum = hashlib.sha512(
+        backup_entry.checksum = hashlib.sha512()
             content_for_checksum.encode()
         ).hexdigest()
 
@@ -410,7 +411,7 @@ class UniversalBackupManager:
         logger.info(f"Queued message backup for user {user_id}, message {message_id}")
         return backup_entry
 
-    async def _should_backup_user_data(
+    async def _should_backup_user_data()
         self, user_id: str, data_type: BackupDataType
     ) -> bool:
         """Check if user data should be backed up based on preferences."""
@@ -437,15 +438,15 @@ class UniversalBackupManager:
     async def _save_user_preferences(self, preferences: UserBackupPreferences):
         """Save user preferences to database."""
         async with aiosqlite.connect(self.universal_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT OR REPLACE INTO user_backup_preferences
-                (user_id, username, backup_status, opted_out_data_types, backup_frequency,
+                (user_id, username, backup_status, opted_out_data_types, backup_frequency,)
                  max_backup_retention_days, allow_cross_region_backup, prefer_local_storage,
                  encryption_preference, shard_distribution_preference, created_at, updated_at, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     preferences.user_id,
                     preferences.username,
                     preferences.backup_status.value,

@@ -15,6 +15,7 @@ import aiosqlite
 
 
 """
+import time
 Universal Backup Manager
 
 Manages backup of user messages and data with opt-out capabilities
@@ -105,9 +106,9 @@ class UniversalBackupManager:
     async def _initialize_database(self):
         """Initialize the user backup database."""
         async with aiosqlite.connect(self.user_backup_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS user_backup_preferences (
+                CREATE TABLE IF NOT EXISTS user_backup_preferences ()
                     user_id INTEGER PRIMARY KEY,
                     opt_status TEXT NOT NULL,
                     data_types TEXT NOT NULL,
@@ -119,9 +120,9 @@ class UniversalBackupManager:
             """
             )
 
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS user_backup_history (
+                CREATE TABLE IF NOT EXISTS user_backup_history ()
                     backup_id TEXT PRIMARY KEY,
                     user_id INTEGER NOT NULL,
                     data_type TEXT NOT NULL,
@@ -139,7 +140,7 @@ class UniversalBackupManager:
         async with aiosqlite.connect(self.user_backup_db_path) as db:
             async with db.execute("SELECT * FROM user_backup_preferences") as cursor:
                 async for row in cursor:
-                    preferences = UserBackupPreferences(
+                    preferences = UserBackupPreferences()
                         user_id=row[0],
                         opt_status=BackupOptStatus(row[1]),
                         data_types=[BackupDataType(dt) for dt in json.loads(row[2])],
@@ -150,7 +151,7 @@ class UniversalBackupManager:
                     )
                     self.user_preferences[preferences.user_id] = preferences
 
-    async def set_user_backup_preferences(
+    async def set_user_backup_preferences()
         self,
         user_id: int,
         opt_status: BackupOptStatus,
@@ -175,7 +176,7 @@ class UniversalBackupManager:
             preferences.updated_at = now
         else:
             # Create new preferences
-            preferences = UserBackupPreferences(
+            preferences = UserBackupPreferences()
                 user_id=user_id,
                 opt_status=opt_status,
                 data_types=data_types,
@@ -189,21 +190,21 @@ class UniversalBackupManager:
         # Save to database
         await self._save_user_preferences(preferences)
 
-        logger.info(
+        logger.info()
             f"Updated backup preferences for user {user_id}: {opt_status.value}"
         )
 
     async def _save_user_preferences(self, preferences: UserBackupPreferences):
         """Save user preferences to database."""
         async with aiosqlite.connect(self.user_backup_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT OR REPLACE INTO user_backup_preferences
-                (user_id, opt_status, data_types, retention_days, encryption_level,
+                (user_id, opt_status, data_types, retention_days, encryption_level,)
                  created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     preferences.user_id,
                     preferences.opt_status.value,
                     json.dumps([dt.value for dt in preferences.data_types]),
@@ -215,7 +216,7 @@ class UniversalBackupManager:
             )
             await db.commit()
 
-    async def should_backup_user_data(
+    async def should_backup_user_data()
         self, user_id: int, data_type: BackupDataType
     ) -> bool:
         """Check if user data should be backed up."""
@@ -236,12 +237,12 @@ class UniversalBackupManager:
             # Default behavior
             return True
 
-    async def backup_user_data(
+    async def backup_user_data()
         self, user_id: int, data_type: BackupDataType, data: Any
     ) -> Optional[str]:
         """Backup user data if allowed."""
         if not await self.should_backup_user_data(user_id, data_type):
-            logger.debug(
+            logger.debug()
                 f"Skipping backup for user {user_id}, data type {data_type.value} (opted out)"
             )
             return None
@@ -260,7 +261,7 @@ class UniversalBackupManager:
         backup_id = f"user_{user_id}_{data_type.value}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
         # Use the main backup manager to create the backup
-        await self.backup_manager.create_backup(
+        await self.backup_manager.create_backup()
             backup_id=backup_id,
             data=serialized_data,
             backup_type="user_data",
@@ -272,21 +273,21 @@ class UniversalBackupManager:
         )
 
         # Record backup history
-        await self._record_backup_history(
+        await self._record_backup_history()
             user_id, data_type, backup_id, len(serialized_data)
         )
 
-        logger.info(
+        logger.info()
             f"Backed up {data_type.value} data for user {user_id}: {len(serialized_data)} bytes"
         )
         return backup_id
 
-    async def _record_backup_history(
+    async def _record_backup_history()
         self, user_id: int, data_type: BackupDataType, backup_id: str, backup_size: int
     ):
         """Record backup in history."""
         preferences = self.user_preferences.get(user_id)
-        retention_days = (
+        retention_days = ()
             preferences.retention_days
             if preferences
             else self.config["default_retention_days"]
@@ -295,13 +296,13 @@ class UniversalBackupManager:
         expires_at = datetime.now(timezone.utc) + timedelta(days=retention_days)
 
         async with aiosqlite.connect(self.user_backup_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT INTO user_backup_history
                 (backup_id, user_id, data_type, backup_size, created_at, expires_at)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     backup_id,
                     user_id,
                     data_type.value,
@@ -327,7 +328,7 @@ class UniversalBackupManager:
 
         # Count backups
         async with aiosqlite.connect(self.user_backup_db_path) as db:
-            async with db.execute(
+            async with db.execute()
                 "SELECT COUNT(*) FROM user_backup_history WHERE user_id = ?", (user_id,)
             ) as cursor:
                 backup_count = (await cursor.fetchone())[0]
@@ -349,7 +350,7 @@ class UniversalBackupManager:
 
         async with aiosqlite.connect(self.user_backup_db_path) as db:
             # Find expired backups
-            async with db.execute(
+            async with db.execute()
                 "SELECT backup_id FROM user_backup_history WHERE expires_at < ?",
                 (now.isoformat(),),
             ) as cursor:
@@ -358,7 +359,7 @@ class UniversalBackupManager:
             if expired_backups:
                 # Delete expired backup records
                 placeholders = ",".join("?" * len(expired_backups))
-                await db.execute(
+                await db.execute()
                     f"DELETE FROM user_backup_history WHERE backup_id IN ({placeholders})",
                     expired_backups,
                 )

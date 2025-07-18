@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 """
+import time
 PlexiChat AI-Powered Recommendation Engine
 Intelligent content and connection recommendations using machine learning
 """
@@ -225,7 +226,7 @@ class AIRecommendationEngine:
 
         logger.info(" AI Recommendation Engine stopped")
 
-    async def get_recommendations(
+    async def get_recommendations()
         self,
         user_id: str,
         recommendation_type: RecommendationType,
@@ -245,36 +246,36 @@ class AIRecommendationEngine:
 
             # Generate recommendations based on algorithm
             if algorithm == RecommendationAlgorithm.COLLABORATIVE_FILTERING:
-                recommendations = await self._collaborative_filtering(
+                recommendations = await self._collaborative_filtering()
                     user_profile, recommendation_type, count, context
                 )
             elif algorithm == RecommendationAlgorithm.CONTENT_BASED:
-                recommendations = await self._content_based_filtering(
+                recommendations = await self._content_based_filtering()
                     user_profile, recommendation_type, count, context
                 )
             elif algorithm == RecommendationAlgorithm.MATRIX_FACTORIZATION:
-                recommendations = await self._matrix_factorization(
+                recommendations = await self._matrix_factorization()
                     user_profile, recommendation_type, count, context
                 )
             elif algorithm == RecommendationAlgorithm.HYBRID:
-                recommendations = await self._hybrid_recommendations(
+                recommendations = await self._hybrid_recommendations()
                     user_profile, recommendation_type, count, context
                 )
             else:
-                recommendations = await self._fallback_recommendations(
+                recommendations = await self._fallback_recommendations()
                     user_profile, recommendation_type, count, context
                 )
 
             # Apply diversity and novelty filters
-            recommendations = await self._apply_diversity_filter(
+            recommendations = await self._apply_diversity_filter()
                 recommendations, user_profile
             )
-            recommendations = await self._apply_novelty_filter(
+            recommendations = await self._apply_novelty_filter()
                 recommendations, user_profile
             )
 
             # Sort by relevance and confidence
-            recommendations.sort(
+            recommendations.sort()
                 key=lambda x: (x.relevance_score, x.confidence_score), reverse=True
             )
 
@@ -284,7 +285,7 @@ class AIRecommendationEngine:
             # Update statistics
             self._update_recommendation_stats(recommendations, algorithm)
 
-            logger.info(
+            logger.info()
                 f"Generated {len(recommendations)} recommendations for user {user_id} using {algorithm.value}"
             )
 
@@ -294,7 +295,7 @@ class AIRecommendationEngine:
             logger.error(f"Failed to generate recommendations for user {user_id}: {e}")
             return []
 
-    async def _collaborative_filtering(
+    async def _collaborative_filtering()
         self,
         user_profile: UserProfile,
         rec_type: RecommendationType,
@@ -324,12 +325,12 @@ class AIRecommendationEngine:
                 item = self.content_items[item_id]
 
                 # Calculate collaborative score
-                score = await self._calculate_collaborative_score(
+                score = await self._calculate_collaborative_score()
                     user_profile.user_id, item_id, similar_users
                 )
 
                 if score > self.min_confidence_threshold:
-                    recommendation = Recommendation(
+                    recommendation = Recommendation()
                         item_id=item_id,
                         item_type=rec_type,
                         title=item.title,
@@ -349,7 +350,7 @@ class AIRecommendationEngine:
 
         return recommendations
 
-    async def _content_based_filtering(
+    async def _content_based_filtering()
         self,
         user_profile: UserProfile,
         rec_type: RecommendationType,
@@ -365,19 +366,19 @@ class AIRecommendationEngine:
         # Score all available content items
         for item_id, item in self.content_items.items():
             # Skip items already interacted with
-            if (
+            if ()
                 item_id in user_profile.viewed_content
                 or item_id in user_profile.liked_content
             ):
                 continue
 
             # Calculate content similarity score
-            similarity_score = await self._calculate_content_similarity(
+            similarity_score = await self._calculate_content_similarity()
                 user_interests, item
             )
 
             if similarity_score > self.min_confidence_threshold:
-                recommendation = Recommendation(
+                recommendation = Recommendation()
                     item_id=item_id,
                     item_type=rec_type,
                     title=item.title,
@@ -395,7 +396,7 @@ class AIRecommendationEngine:
 
         return recommendations
 
-    async def _hybrid_recommendations(
+    async def _hybrid_recommendations()
         self,
         user_profile: UserProfile,
         rec_type: RecommendationType,
@@ -405,10 +406,10 @@ class AIRecommendationEngine:
         """Generate recommendations using hybrid approach."""
 
         # Get recommendations from different algorithms
-        collaborative_recs = await self._collaborative_filtering(
+        collaborative_recs = await self._collaborative_filtering()
             user_profile, rec_type, count * 2, context
         )
-        content_based_recs = await self._content_based_filtering(
+        content_based_recs = await self._content_based_filtering()
             user_profile, rec_type, count * 2, context
         )
 
@@ -433,7 +434,7 @@ class AIRecommendationEngine:
                 existing_rec.confidence_score += rec.confidence_score * weight
                 existing_rec.relevance_score += rec.relevance_score * weight
                 existing_rec.algorithm_used = RecommendationAlgorithm.HYBRID
-                existing_rec.explanation = (
+                existing_rec.explanation = ()
                     "Based on both similar users and your content preferences"
                 )
                 existing_rec.reasoning.extend(rec.reasoning)
@@ -444,7 +445,7 @@ class AIRecommendationEngine:
 
         return list(combined_recs.values())
 
-    async def _find_similar_users(
+    async def _find_similar_users()
         self, user_id: str, top_k: int = 50
     ) -> List[Tuple[str, float]]:
         """Find users similar to the given user."""
@@ -459,7 +460,7 @@ class AIRecommendationEngine:
                 continue
 
             # Calculate user similarity
-            similarity = await self._calculate_user_similarity(
+            similarity = await self._calculate_user_similarity()
                 user_profile, other_profile
             )
 
@@ -470,7 +471,7 @@ class AIRecommendationEngine:
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:top_k]
 
-    async def _calculate_user_similarity(
+    async def _calculate_user_similarity()
         self, user1: UserProfile, user2: UserProfile
     ) -> float:
         """Calculate similarity between two users."""
@@ -494,7 +495,7 @@ class AIRecommendationEngine:
         interest_intersection = len(interests1.intersection(interests2))
         interest_union = len(interests1.union(interests2))
 
-        interest_similarity = (
+        interest_similarity = ()
             interest_intersection / interest_union if interest_union > 0 else 0.0
         )
 
@@ -503,7 +504,7 @@ class AIRecommendationEngine:
 
         return combined_similarity
 
-    async def _calculate_collaborative_score(
+    async def _calculate_collaborative_score()
         self, user_id: str, item_id: str, similar_users: List[Tuple[str, float]]
     ) -> float:
         """Calculate collaborative filtering score for an item."""
@@ -525,7 +526,7 @@ class AIRecommendationEngine:
 
         return weighted_sum / similarity_sum
 
-    async def _build_user_interest_profile(
+    async def _build_user_interest_profile()
         self, user_profile: UserProfile
     ) -> Dict[str, float]:
         """Build user interest profile from interaction history."""
@@ -556,7 +557,7 @@ class AIRecommendationEngine:
 
         return dict(interests)
 
-    async def _calculate_content_similarity(
+    async def _calculate_content_similarity()
         self, user_interests: Dict[str, float], item: ContentItem
     ) -> float:
         """Calculate content similarity score."""
@@ -592,7 +593,7 @@ class AIRecommendationEngine:
 
         return min(similarity_score, 1.0)  # Cap at 1.0
 
-    async def _apply_diversity_filter(
+    async def _apply_diversity_filter()
         self, recommendations: List[Recommendation], user_profile: UserProfile
     ) -> List[Recommendation]:
         """Apply diversity filter to avoid too similar recommendations."""
@@ -615,7 +616,7 @@ class AIRecommendationEngine:
             # Check category diversity
             item_categories = set(item.categories)
 
-            if (
+            if ()
                 not selected_categories
                 or len(item_categories.intersection(selected_categories))
                 / len(item_categories)
@@ -626,7 +627,7 @@ class AIRecommendationEngine:
 
         return diverse_recs
 
-    async def _apply_novelty_filter(
+    async def _apply_novelty_filter()
         self, recommendations: List[Recommendation], user_profile: UserProfile
     ) -> List[Recommendation]:
         """Apply novelty filter to promote new and trending content."""
@@ -650,7 +651,7 @@ class AIRecommendationEngine:
 
         return recommendations
 
-    async def _fallback_recommendations(
+    async def _fallback_recommendations()
         self,
         user_profile: UserProfile,
         rec_type: RecommendationType,
@@ -672,7 +673,7 @@ class AIRecommendationEngine:
             if item_id in self.content_items:
                 item = self.content_items[item_id]
 
-                recommendation = Recommendation(
+                recommendation = Recommendation()
                     item_id=item_id,
                     item_type=rec_type,
                     title=item.title,
@@ -699,7 +700,7 @@ class AIRecommendationEngine:
 
         return self.user_profiles[user_id]
 
-    async def record_interaction(
+    async def record_interaction()
         self,
         user_id: str,
         item_id: str,
@@ -722,7 +723,7 @@ class AIRecommendationEngine:
                 user_profile.shared_content.append(item_id)
 
         # Update user-item interaction matrix
-        interaction_weight = {"view": 1.0, "like": 3.0, "share": 5.0}.get(
+        interaction_weight = {"view": 1.0, "like": 3.0, "share": 5.0}.get()
             interaction_type, 1.0
         )
         self.user_item_matrix[(user_id, item_id)] = interaction_weight
@@ -730,7 +731,7 @@ class AIRecommendationEngine:
         # Update profile timestamp
         user_profile.updated_at = datetime.now(timezone.utc)
 
-        logger.debug(
+        logger.debug()
             f"Recorded {interaction_type} interaction: user {user_id} -> item {item_id}"
         )
 
@@ -777,7 +778,7 @@ class AIRecommendationEngine:
         # Sort items by engagement metrics
         items_with_scores = []
         for item_id, item in self.content_items.items():
-            popularity_score = (item.likes * 3 + item.shares * 5 + item.views) / max(
+            popularity_score = (item.likes * 3 + item.shares * 5 + item.views) / max()
                 1, item.views
             )
             items_with_scores.append((item_id, popularity_score))
@@ -806,7 +807,7 @@ class AIRecommendationEngine:
         items_with_scores.sort(key=lambda x: x[1], reverse=True)
         self.trending_items_cache = [item_id for item_id, _ in items_with_scores[:100]]
 
-    def _update_recommendation_stats(
+    def _update_recommendation_stats():
         self, recommendations: List[Recommendation], algorithm: RecommendationAlgorithm
     ):
         """Update recommendation statistics."""
@@ -815,12 +816,12 @@ class AIRecommendationEngine:
 
         if recommendations:
             # Update average confidence
-            avg_confidence = sum(rec.confidence_score for rec in recommendations) / len(
+            avg_confidence = sum(rec.confidence_score for rec in recommendations) / len()
                 recommendations
             )
             current_avg = self.stats["average_confidence"]
             total_recs = self.stats["total_recommendations"]
-            new_avg = (
+            new_avg = ()
                 (current_avg * (total_recs - len(recommendations)))
                 + (avg_confidence * len(recommendations))
             ) / total_recs
@@ -835,8 +836,8 @@ class AIRecommendationEngine:
 
             algo_stats = self.stats["algorithm_performance"][algorithm.value]
             algo_stats["count"] += len(recommendations)
-            algo_stats["avg_confidence"] = (
-                (
+            algo_stats["avg_confidence"] = ()
+                ()
                     algo_stats["avg_confidence"]
                     * (algo_stats["count"] - len(recommendations))
                 )

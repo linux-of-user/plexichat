@@ -14,6 +14,7 @@ from sqlalchemy.orm import selectinload, sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
 
 """
+import time
 PlexiChat Advanced ORM Layer
 Enhanced SQLModel integration with advanced features and optimizations
 """
@@ -143,12 +144,12 @@ class AdvancedORM:
                 self.async_engine = self._create_async_engine()
 
             # Create session factories
-            self.sync_session_factory = sessionmaker(
+            self.sync_session_factory = sessionmaker()
                 bind=self.sync_engine, class_=Session, expire_on_commit=False
             )
 
             if self.async_engine:
-                self.async_session_factory = async_sessionmaker(
+                self.async_session_factory = async_sessionmaker()
                     bind=self.async_engine, class_=AsyncSession, expire_on_commit=False
                 )
 
@@ -179,7 +180,7 @@ class AdvancedORM:
 
         # Add pool configuration
         if pool_class != NullPool:
-            engine_kwargs.update(
+            engine_kwargs.update()
                 {
                     "pool_size": self.config.pool_size,
                     "max_overflow": self.config.max_overflow,
@@ -203,7 +204,7 @@ class AdvancedORM:
 
         # Add pool configuration
         if pool_class != NullPool:
-            engine_kwargs.update(
+            engine_kwargs.update()
                 {
                     "pool_size": self.config.pool_size,
                     "max_overflow": self.config.max_overflow,
@@ -238,7 +239,7 @@ class AdvancedORM:
             self.connection_metrics["active_connections"] -= 1
 
         @event.listens_for(self.sync_engine, "before_cursor_execute")
-        def on_before_execute(
+        def on_before_execute():
             conn, cursor, statement, parameters, context, executemany
         ):
             context._query_start_time = datetime.now(timezone.utc)
@@ -247,7 +248,7 @@ class AdvancedORM:
         @event.listens_for(self.sync_engine, "after_cursor_execute")
         def on_after_execute(conn, cursor, statement, parameters, context, executemany):
             if hasattr(context, "_query_start_time"):
-                execution_time = (
+                execution_time = ()
                     datetime.now(timezone.utc) - context._query_start_time
                 ).total_seconds()
                 self._update_query_metrics(execution_time)
@@ -276,7 +277,7 @@ class AdvancedORM:
             raise RuntimeError("Async ORM not initialized")
         return self.async_session_factory()
 
-    async def execute_query(
+    async def execute_query()
         self,
         query: str,
         parameters: Optional[Dict[str, Any]] = None,
@@ -342,7 +343,7 @@ class AdvancedORM:
 
     # Advanced Query Builder
 
-    async def find_by_id(
+    async def find_by_id()
         self,
         model_class: Type[T],
         id: Any,
@@ -355,7 +356,7 @@ class AdvancedORM:
                 # Use getattr to safely access id attribute
                 id_attr = getattr(model_class, "id", None)
                 if id_attr is None:
-                    raise ValueError(
+                    raise ValueError()
                         f"Model {model_class.__name__} does not have an 'id' attribute"
                     )
                 query = select(model_class).where(id_attr == id)
@@ -364,7 +365,7 @@ class AdvancedORM:
                 if include_relations:
                     for relation in include_relations:
                         if hasattr(model_class, relation):
-                            query = query.options(
+                            query = query.options()
                                 selectinload(getattr(model_class, relation))
                             )
 
@@ -391,7 +392,7 @@ class AdvancedORM:
                 result = session.execute(query)
                 return result.scalar_one_or_none()
 
-    async def find_all(
+    async def find_all()
         self,
         model_class: Type[T],
         filters: Optional[Dict[str, Any]] = None,
@@ -496,7 +497,7 @@ class AdvancedORM:
 
     # Caching Methods
 
-    def _get_cache_key(
+    def _get_cache_key():
         self, query: str, parameters: Optional[Dict[str, Any]] = None
     ) -> str:
         """Generate cache key for query."""
@@ -510,7 +511,7 @@ class AdvancedORM:
 
         # Check TTL
         if key in self.cache_timestamps:
-            age = (
+            age = ()
                 datetime.now(timezone.utc) - self.cache_timestamps[key]
             ).total_seconds()
             if age > self.cache_ttl:
@@ -540,7 +541,7 @@ class AdvancedORM:
         """Update query performance metrics."""
         self.query_metrics.query_count += 1
         self.query_metrics.total_execution_time += execution_time
-        self.query_metrics.average_execution_time = (
+        self.query_metrics.average_execution_time = ()
             self.query_metrics.total_execution_time / self.query_metrics.query_count
         )
 
@@ -568,7 +569,7 @@ class AdvancedORM:
     def get_statistics(self) -> Dict[str, Any]:
         """Get ORM statistics."""
         cache_hit_rate = 0.0
-        total_cache_operations = (
+        total_cache_operations = ()
             self.query_metrics.cache_hits + self.query_metrics.cache_misses
         )
         if total_cache_operations > 0:
@@ -579,7 +580,7 @@ class AdvancedORM:
                 "query_count": self.query_metrics.query_count,
                 "average_execution_time": self.query_metrics.average_execution_time,
                 "slowest_query_time": self.query_metrics.slowest_query_time,
-                "fastest_query_time": (
+                "fastest_query_time": ()
                     self.query_metrics.fastest_query_time
                     if self.query_metrics.fastest_query_time != float("inf")
                     else 0.0

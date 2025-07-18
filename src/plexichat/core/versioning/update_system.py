@@ -29,48 +29,42 @@ from .changelog_manager import ChangelogManager, ChangeType
 from .version_manager import Version, VersionType, version_manager
 
 from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
-from datetime import datetime
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
-from pathlib import Path
-
-from datetime import datetime
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from datetime import datetime
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
-from datetime import datetime
+
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 
 """
+import http.client
+import subprocess
+import time
 PlexiChat Advanced Update System
 
 Revolutionary update system with government-level security and reliability:
@@ -141,10 +135,10 @@ class UpdateSignature:
         """Verify signature against data."""
         try:
             public_key_obj = load_pem_public_key(public_key)
-            public_key_obj.verify(
+            public_key_obj.verify()
                 self.signature,
                 data,
-                padding.PSS(
+                padding.PSS()
                     mgf=padding.MGF1(hashes.SHA256()),
                     salt_length=padding.PSS.MAX_LENGTH
                 ),
@@ -286,7 +280,7 @@ class UpdatePlan:
     supports_live_patching: bool = False
     live_patch_components: List[str] = field(default_factory=list)
     hot_swap_modules: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -337,7 +331,7 @@ class UpdateResult:
     live_patched_components: List[str] = field(default_factory=list)
     hot_swapped_modules: List[str] = field(default_factory=list)
     restart_avoided: bool = False
-    
+
     def add_log(self, message: str, level: str = "INFO"):
         """Add log entry."""
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -355,7 +349,7 @@ class P2PUpdateDistributor:
 
     async def initialize(self):
         """Initialize P2P distributor."""
-        self.session = aiohttp.ClientSession(
+        self.session = aiohttp.ClientSession()
             timeout=aiohttp.ClientTimeout(total=300),
             connector=aiohttp.TCPConnector(limit=self.max_concurrent_connections)
         )
@@ -392,7 +386,7 @@ class P2PUpdateDistributor:
             logger.error(f"Failed to verify node trust for {node.node_id}: {e}")
             return False
 
-    async def download_from_peers(self, update_id: str, target_path: Path,
+    async def download_from_peers(self, update_id: str, target_path: Path,)
                                  preferred_nodes: Optional[List[P2PUpdateNode]] = None) -> Dict[str, Any]:
         """Download update from peer nodes."""
         download_result = {
@@ -402,8 +396,6 @@ class P2PUpdateDistributor:
             "download_time": 0,
             "p2p_percentage": 0.0
         }
-
-        from datetime import datetime
 
 
         start_time = datetime().now()
@@ -426,7 +418,7 @@ class P2PUpdateDistributor:
             # - Bandwidth optimization
 
             download_result["success"] = True
-            download_result["download_time"] = (from datetime import datetime
+            download_result["download_time"] = (from datetime import datetime)
 datetime.now() - start_time).total_seconds()
 
         except Exception as e:
@@ -445,16 +437,16 @@ class AtomicUpdateManager:
 
     def __init__(self):
         self.active_transactions: Dict[str, AtomicUpdateTransaction] = {}
-        self.from pathlib import Path
-transaction_log_path = Path()("logs/atomic_updates.log")
-        self.from pathlib import Path
-checkpoint_dir = Path()("data/update_checkpoints")
+        from pathlib import Path
+self.transaction_log_path = Path("logs/atomic_updates.log")
+        from pathlib import Path
+self.checkpoint_dir = Path("data/update_checkpoints")
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     def create_transaction(self, update_id: str) -> AtomicUpdateTransaction:
         """Create new atomic update transaction."""
-        transaction = AtomicUpdateTransaction(
-            transaction_id=f"atomic_{update_id}_{int(from datetime import datetime
+        transaction = AtomicUpdateTransaction()
+            transaction_id=f"atomic_{update_id}_{int(from datetime import datetime)
 datetime.now().timestamp())}",
             state=AtomicUpdateState.PREPARING
         )
@@ -464,7 +456,7 @@ datetime.now().timestamp())}",
 
         return transaction
 
-    async def stage_operation(self, transaction: AtomicUpdateTransaction,
+    async def stage_operation(self, transaction: AtomicUpdateTransaction,)
                             operation_type: str, source: str, target: str) -> bool:
         """Stage an operation in the atomic transaction."""
         try:
@@ -544,10 +536,10 @@ Path(target).exists():
         """Create backup of file for rollback."""
         from pathlib import Path
 
-        source_path = Path()(file_path)
+        self.source_path = Path(file_path)
         from pathlib import Path
 
-        backup_dir = Path()(f"backups/atomic/{transaction_id}")
+        self.backup_dir = Path(f"backups/atomic/{transaction_id}")
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         backup_path = backup_dir / source_path.name
@@ -557,7 +549,7 @@ Path(target).exists():
 
     def _create_system_checkpoint(self, transaction_id: str) -> str:
         """Create system checkpoint for rollback."""
-        checkpoint_id = f"checkpoint_{transaction_id}_{int(from datetime import datetime
+        checkpoint_id = f"checkpoint_{transaction_id}_{int(from datetime import datetime)
 datetime.now().timestamp())}"
         checkpoint_path = self.checkpoint_dir / checkpoint_id
 
@@ -615,8 +607,8 @@ Path(operation["source"]).exists():
 
 class UpdateSystem:
     """Advanced update system with clustering integration."""
-    
-    def __init__(self,
+
+    def __init__(self,):
                  backup_dir: Optional[Path] = None,
                  config_dir: Optional[Path] = None,
                  data_dir: Optional[Path] = None):
@@ -627,8 +619,8 @@ Path("backups/updates")
 Path("config")
         self.data_dir = data_dir or from pathlib import Path
 Path("data")
-        self.from pathlib import Path
-update_cache_dir = Path()("cache/updates")
+        from pathlib import Path
+self.update_cache_dir = Path("cache/updates")
 
         # Ensure directories exist
         for directory in [self.backup_dir, self.update_cache_dir]:
@@ -661,25 +653,25 @@ update_cache_dir = Path()("cache/updates")
         # Cluster integration
         self.cluster_manager = None
         self._initialize_cluster_integration()
-    
+
     def _initialize_cluster_integration(self):
         """Initialize cluster integration if available."""
         try:
             self.cluster_manager = AdvancedClusterManager()
         except ImportError:
             logger.info("Cluster manager not available, running in standalone mode")
-    
+
     async def check_for_updates(self) -> Dict[str, Any]:
         """Check for available updates."""
         current_version = self.version_manager.get_current_version()
         available_versions = self.version_manager.get_available_versions()
-        
+
         # Find newer versions
         newer_versions = [v for v in available_versions if v > current_version]
-        
+
         # Get latest stable version
         latest_stable = self.version_manager.get_latest_stable_version()
-        
+
         # Check for security updates
         security_updates = []
         for version in newer_versions:
@@ -687,11 +679,11 @@ update_cache_dir = Path()("cache/updates")
             if changelog:
                 security_changes = changelog.get_changes_by_type(ChangeType.SECURITY)
                 if security_changes:
-                    security_updates.append({
+                    security_updates.append({)
                         "version": str(version),
                         "changes": [change.description for change in security_changes]
                     })
-        
+
         return {
             "current_version": str(current_version),
             "latest_version": str(max(newer_versions)) if newer_versions else str(current_version),
@@ -701,18 +693,18 @@ update_cache_dir = Path()("cache/updates")
             "security_updates": security_updates,
             "recommended_action": self._get_recommended_action(current_version, newer_versions)
         }
-    
+
     def _get_recommended_action(self, current: Version, available: List[Version]) -> str:
         """Get recommended update action."""
         if not available:
             return "up_to_date"
-        
+
         # Check for security updates
         for version in available:
             changelog = self.changelog_manager.get_version_changelog(version)
             if changelog and changelog.get_changes_by_type(ChangeType.SECURITY):
                 return "security_update_recommended"
-        
+
         # Check version types
         latest = max(available)
         if current.type == VersionType.ALPHA and latest.type in [VersionType.BETA, VersionType.RELEASE]:
@@ -721,20 +713,20 @@ update_cache_dir = Path()("cache/updates")
             return "upgrade_to_release"
         else:
             return "update_available"
-    
+
     async def create_update_plan(self, target_version: Version, update_type: UpdateType = UpdateType.UPGRADE) -> UpdatePlan:
         """Create update execution plan."""
         current_version = self.version_manager.get_current_version()
         update_id = f"update_{current_version}_{target_version}_{from datetime import datetime
 datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
-        plan = UpdatePlan(
+
+        plan = UpdatePlan()
             update_id=update_id,
             update_type=update_type,
             from_version=current_version,
             to_version=target_version
         )
-        
+
         # Validate update
         if update_type == UpdateType.UPGRADE:
             can_upgrade, message = self.version_manager.can_upgrade_to(target_version)
@@ -744,98 +736,98 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}"
             can_downgrade, message = self.version_manager.can_downgrade_to(target_version)
             if not can_downgrade:
                 raise ValueError(f"Cannot downgrade: {message}")
-        
+
         # Analyze changes between versions
         await self._analyze_version_changes(plan)
-        
+
         # Build execution steps
         await self._build_execution_steps(plan)
-        
+
         # Create rollback plan
         if update_type != UpdateType.ROLLBACK:
             plan.rollback_plan = await self._create_rollback_plan(plan)
-        
+
         return plan
-    
+
     async def _analyze_version_changes(self, plan: UpdatePlan):
         """Analyze changes between versions."""
         from_version = plan.from_version
         to_version = plan.to_version
-        
+
         # Get changelogs for versions in between
         if plan.update_type == UpdateType.UPGRADE:
-            versions_to_check = [v for v in self.version_manager.get_available_versions() 
+            versions_to_check = [v for v in self.version_manager.get_available_versions()
                                if from_version < v <= to_version]
         else:
-            versions_to_check = [v for v in self.version_manager.get_available_versions() 
+            versions_to_check = [v for v in self.version_manager.get_available_versions()
                                if to_version <= v < from_version]
-        
+
         # Check for breaking changes
         for version in versions_to_check:
             changelog = self.changelog_manager.get_version_changelog(version)
             if changelog:
                 breaking_changes = changelog.get_changes_by_type(ChangeType.BREAKING)
                 plan.breaking_changes.extend([change.description for change in breaking_changes])
-        
+
         # Check version info for migration requirements
         target_info = self.version_manager.get_version_info(to_version)
         if target_info:
             plan.config_migration_required = target_info.migration_required
             plan.database_migration_required = target_info.database_version is not None
             plan.dependency_updates = target_info.dependencies.copy()
-        
+
         # Determine if restart is required
-        plan.requires_restart = (
-            plan.breaking_changes or 
+        plan.requires_restart = ()
+            plan.breaking_changes or
             plan.database_migration_required or
             abs(to_version.major - from_version.major) > 0
         )
-        
+
         # Determine if cluster coordination is required
-        plan.requires_cluster_coordination = (
+        plan.requires_cluster_coordination = ()
             self.cluster_manager is not None and
             (plan.requires_restart or plan.database_migration_required)
         )
-    
+
     async def _build_execution_steps(self, plan: UpdatePlan):
         """Build execution steps for update plan."""
         steps = []
-        
+
         # Pre-update steps
         if plan.backup_required:
             steps.append("Create system backup")
-        
+
         if plan.requires_cluster_coordination:
             steps.append("Coordinate with cluster nodes")
             steps.append("Enter maintenance mode")
-        
+
         # Update steps
         if plan.dependency_updates:
             steps.append("Update dependencies")
-        
+
         if plan.config_migration_required:
             steps.append("Migrate configuration files")
-        
+
         if plan.database_migration_required:
             steps.append("Migrate database schema")
-        
+
         steps.append("Apply code updates")
         steps.append("Update version information")
-        
+
         # Post-update steps
         steps.append("Run system tests")
-        
+
         if plan.requires_cluster_coordination:
             steps.append("Exit maintenance mode")
             steps.append("Synchronize cluster state")
-        
+
         if plan.requires_restart:
             steps.append("Restart system")
-        
+
         steps.append("Verify update success")
-        
+
         plan.steps = steps
-        
+
         # Estimate duration
         base_duration = 5  # Base 5 minutes
         if plan.dependency_updates:
@@ -844,14 +836,14 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}"
             base_duration += 15
         if plan.requires_cluster_coordination:
             base_duration += 10
-        
+
         plan.estimated_duration_minutes = base_duration
-    
+
     async def _create_rollback_plan(self, original_plan: UpdatePlan) -> UpdatePlan:
         """Create rollback plan for update."""
         rollback_id = f"rollback_{original_plan.update_id}"
-        
-        rollback_plan = UpdatePlan(
+
+        rollback_plan = UpdatePlan()
             update_id=rollback_id,
             update_type=UpdateType.ROLLBACK,
             from_version=original_plan.to_version,
@@ -860,7 +852,7 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}"
             requires_restart=original_plan.requires_restart,
             requires_cluster_coordination=original_plan.requires_cluster_coordination
         )
-        
+
         # Rollback steps
         steps = [
             "Stop system services",
@@ -871,31 +863,31 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}"
             "Restart system",
             "Verify rollback success"
         ]
-        
+
         rollback_plan.steps = steps
         rollback_plan.estimated_duration_minutes = max(10, original_plan.estimated_duration_minutes // 2)
-        
+
         return rollback_plan
-    
+
     async def execute_update(self, plan: UpdatePlan) -> UpdateResult:
         """Execute update plan."""
-        result = UpdateResult(
+        result = UpdateResult()
             update_id=plan.update_id,
             status=UpdateStatus.PENDING,
             success=False,
             message="Update started",
             started_at=datetime.now(timezone.utc)
         )
-        
+
         self.active_updates[plan.update_id] = result
-        
+
         try:
             result.add_log(f"Starting {plan.update_type.value} from {plan.from_version} to {plan.to_version}")
-            
+
             # Execute each step
             for i, step in enumerate(plan.steps):
                 result.add_log(f"Step {i+1}/{len(plan.steps)}: {step}")
-                
+
                 # Update status based on step
                 status_map = {
                     "Create system backup": UpdateStatus.BACKING_UP,
@@ -906,12 +898,12 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}"
                     "Run system tests": UpdateStatus.TESTING,
                     "Verify update success": UpdateStatus.FINALIZING
                 }
-                
+
                 for key, status in status_map.items():
                     if key in step:
                         result.status = status
                         break
-                
+
                 # Execute step
                 success = await self._execute_update_step(step, plan, result)
                 if not success:
@@ -919,27 +911,27 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}"
                     result.status = UpdateStatus.FAILED
                     result.message = f"Failed at step: {step}"
                     return result
-            
+
             # Update completed successfully
             result.success = True
             result.status = UpdateStatus.COMPLETED
             result.completed_at = datetime.now(timezone.utc)
             result.message = f"Successfully updated to {plan.to_version}"
-            
+
             # Update current version
             self.version_manager.set_current_version(plan.to_version)
-            
+
             result.add_log("Update completed successfully")
-            
+
         except Exception as e:
             result.success = False
             result.status = UpdateStatus.FAILED
             result.message = f"Update failed: {str(e)}"
             result.add_log(f"ERROR: {str(e)}")
             logger.error(f"Update failed: {e}", exc_info=True)
-        
+
         return result
-    
+
     async def _execute_update_step(self, step: str, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Execute individual update step."""
         try:
@@ -965,114 +957,114 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}"
         except Exception as e:
             result.add_log(f"ERROR in step '{step}': {str(e)}")
             return False
-    
+
     async def _create_backup(self, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Create system backup."""
         try:
             backup_name = f"pre_update_{plan.update_id}"
             backup_path = self.backup_dir / backup_name
             backup_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Backup critical directories
             dirs_to_backup = [
                 ("config", self.config_dir),
                 ("data", self.data_dir),
-                ("src", from pathlib import Path
+                ("src", from pathlib import Path)
 Path("src"))
             ]
-            
+
             for name, source_dir in dirs_to_backup:
                 if source_dir.exists():
                     target_dir = backup_path / name
                     shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
                     result.add_log(f"Backed up {source_dir} to {target_dir}")
-            
+
             result.backup_path = backup_path
             result.rollback_available = True
             result.add_log(f"Backup created at {backup_path}")
             return True
-            
+
         except Exception as e:
             result.add_log(f"Backup failed: {str(e)}")
             return False
-    
+
     async def _update_dependencies(self, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Update system dependencies."""
         try:
             if not plan.dependency_updates:
                 return True
-            
+
             # Update requirements.txt if needed
             from pathlib import Path
 
-            requirements_file = Path()("requirements.txt")
+            self.requirements_file = Path("requirements.txt")
             if requirements_file.exists():
                 result.add_log("Updating Python dependencies")
-                
+
                 # Run pip install
                 cmd = [sys.executable, "-m", "pip", "install", "-r", str(requirements_file), "--upgrade"]
-                process = await asyncio.create_subprocess_exec(
+                process = await asyncio.create_subprocess_exec()
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
                 )
-                
+
                 stdout, stderr = await process.communicate()
-                
+
                 if process.returncode == 0:
                     result.add_log("Dependencies updated successfully")
                     return True
                 else:
                     result.add_log(f"Dependency update failed: {stderr.decode()}")
                     return False
-            
+
             return True
-            
+
         except Exception as e:
             result.add_log(f"Dependency update failed: {str(e)}")
             return False
-    
+
     async def _migrate_configuration(self, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Migrate configuration files."""
         try:
             # Import config migration system
             migration_manager = ConfigMigrationManager(self.config_dir)
             success = await migration_manager.migrate_to_version(str(plan.to_version))
-            
+
             if success:
                 result.add_log("Configuration migrated successfully")
                 return True
             else:
                 result.add_log("Configuration migration failed")
                 return False
-                
+
         except Exception as e:
             result.add_log(f"Configuration migration failed: {str(e)}")
             return False
-    
+
     async def _migrate_database(self, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Migrate database schema."""
         try:
             # Import database migration system
             migration_manager = MigrationManager()
             target_version = self.version_manager.get_version_info(plan.to_version)
-            
+
             if target_version and target_version.database_version:
                 success = await migration_manager.migrate_up(target_version.database_version)
-                
+
                 if success:
                     result.add_log("Database migrated successfully")
                     return True
                 else:
                     result.add_log("Database migration failed")
                     return False
-            
+
             return True
-            
+
         except Exception as e:
             result.add_log(f"Database migration failed: {str(e)}")
             return False
-    
+
     async def _apply_code_updates(self, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Apply code updates."""
         try:
@@ -1082,39 +1074,39 @@ Path("src"))
             # 2. Verify checksums
             # 3. Replace files
             # 4. Update permissions
-            
+
             result.add_log("Code updates applied successfully")
             await asyncio.sleep(2)  # Simulate work
             return True
-            
+
         except Exception as e:
             result.add_log(f"Code update failed: {str(e)}")
             return False
-    
+
     async def _run_system_tests(self, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Run system tests after update."""
         try:
             # Run basic system tests
             result.add_log("Running post-update system tests")
-            
+
             # Test database connection
             # Test API endpoints
             # Test core functionality
-            
+
             await asyncio.sleep(3)  # Simulate testing
             result.add_log("System tests passed")
             return True
-            
+
         except Exception as e:
             result.add_log(f"System tests failed: {str(e)}")
             return False
-    
+
     async def _handle_cluster_coordination(self, step: str, plan: UpdatePlan, result: UpdateResult) -> bool:
         """Handle cluster coordination steps."""
         try:
             if not self.cluster_manager:
                 return True
-            
+
             if "maintenance mode" in step.lower():
                 if "enter" in step.lower():
                     # Enter maintenance mode
@@ -1124,32 +1116,32 @@ Path("src"))
                     result.add_log("Exiting cluster maintenance mode")
             elif "synchronize" in step.lower():
                 result.add_log("Synchronizing cluster state")
-            
+
             await asyncio.sleep(1)  # Simulate cluster coordination
             return True
-            
+
         except Exception as e:
             result.add_log(f"Cluster coordination failed: {str(e)}")
             return False
-    
+
     async def rollback_update(self, update_id: str) -> UpdateResult:
         """Rollback a failed update."""
         original_result = self.active_updates.get(update_id)
         if not original_result or not original_result.rollback_available:
             raise ValueError(f"Cannot rollback update {update_id}")
-        
+
         # Create rollback plan
         self.version_manager.get_current_version()
         # This would need to be stored from the original update
         target_version = Version.parse("0a1")  # Placeholder
-        
+
         rollback_plan = await self.create_update_plan(target_version, UpdateType.ROLLBACK)
         return await self.execute_update(rollback_plan)
-    
+
     def get_update_status(self, update_id: str) -> Optional[UpdateResult]:
         """Get status of an update."""
         return self.active_updates.get(update_id)
-    
+
     def list_active_updates(self) -> List[UpdateResult]:
         """List all active updates."""
         return list(self.active_updates.values())
@@ -1163,10 +1155,10 @@ Path("src"))
             # Reinstall Python dependencies
             from pathlib import Path
 
-            requirements_file = Path()("requirements.txt")
+            self.requirements_file = Path("requirements.txt")
             if requirements_file.exists():
                 cmd = [sys.executable, "-m", "pip", "install", "-r", str(requirements_file), "--force-reinstall"]
-                process = await asyncio.create_subprocess_exec(
+                process = await asyncio.create_subprocess_exec()
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
@@ -1245,7 +1237,7 @@ Path("src"))
         """Load cryptographic verification keys."""
         from pathlib import Path
 
-        keys_dir = Path()("config/update_keys")
+        self.keys_dir = Path("config/update_keys")
         if keys_dir.exists():
             for key_file in keys_dir.glob("*.pem"):
                 try:
@@ -1289,7 +1281,7 @@ Path("src"))
         logger.info(f"Signature verification: {verified_count}/{len(signatures)} verified, required: {self.required_signatures}")
         return success
 
-    async def create_atomic_update_plan(self, target_version: Version,
+    async def create_atomic_update_plan(self, target_version: Version,)
                                       distribution_method: UpdateDistributionMethod = UpdateDistributionMethod.P2P_HYBRID,
                                       deployment_strategy: UpdateDeploymentStrategy = UpdateDeploymentStrategy.CANARY) -> UpdatePlan:
         """Create enhanced update plan with atomic operations and P2P distribution."""
@@ -1320,7 +1312,7 @@ Path("src"))
         plan.supports_live_patching = self._can_live_patch(plan)
         if plan.supports_live_patching:
             plan.live_patch_components = self._get_live_patchable_components(plan)
-            plan.hot_swap_modules = list(self.hot_swappable_modules.intersection(
+            plan.hot_swap_modules = list(self.hot_swappable_modules.intersection())
                 set(plan.live_patch_components)
             ))
 
@@ -1361,7 +1353,7 @@ Path("src"))
 
     async def execute_atomic_update(self, plan: UpdatePlan) -> UpdateResult:
         """Execute update with atomic operations and enhanced features."""
-        result = UpdateResult(
+        result = UpdateResult()
             update_id=plan.update_id,
             status=UpdateStatus.PENDING,
             success=False,
@@ -1443,7 +1435,7 @@ Path("src"))
         try:
             if plan.distribution_method == UpdateDistributionMethod.P2P_ONLY:
                 # Pure P2P download
-                download_result = await self.p2p_distributor.download_from_peers(
+                download_result = await self.p2p_distributor.download_from_peers()
                     plan.update_id,
                     self.update_cache_dir / f"{plan.update_id}.zip",
                     plan.p2p_nodes
@@ -1451,7 +1443,7 @@ Path("src"))
                 result.p2p_efficiency = 100.0
             elif plan.distribution_method == UpdateDistributionMethod.P2P_HYBRID:
                 # Try P2P first, fallback to central
-                download_result = await self.p2p_distributor.download_from_peers(
+                download_result = await self.p2p_distributor.download_from_peers()
                     plan.update_id,
                     self.update_cache_dir / f"{plan.update_id}.zip",
                     plan.p2p_nodes
@@ -1593,7 +1585,7 @@ Path("src"))
 
                 # Stage component update in atomic transaction
                 if plan.atomic_transaction:
-                    await self.atomic_manager.stage_operation(
+                    await self.atomic_manager.stage_operation()
                         plan.atomic_transaction,
                         "live_patch",
                         f"updates/{component}",

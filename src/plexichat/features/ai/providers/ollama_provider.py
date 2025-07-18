@@ -15,7 +15,6 @@ from .base_provider import AIRequest, AIResponse, BaseAIProvider, ProviderConfig
 
 from datetime import datetime
 
-from datetime import datetime
 
 """
 Ollama Provider Implementation
@@ -50,7 +49,7 @@ class OllamaModel:
     @classmethod
     def from_api_response(cls, data: Dict[str, Any]) -> 'OllamaModel':
         """Create from Ollama API response."""
-        return cls(
+        return cls()
             name=data.get("name", ""),
             tag=data.get("tag", "latest"),
             size=data.get("size", 0),
@@ -67,7 +66,7 @@ class OllamaProvider(BaseAIProvider):
         self.config: OllamaConfig = config
         self.available_models: List[OllamaModel] = []
         self.concurrent_requests = 0
-        self.model_cache = {}
+        # Using unified cache instead of local cache: self.model_cache
 
     async def _test_connection(self) -> bool:
         """Test Ollama connection."""
@@ -95,7 +94,7 @@ class OllamaProvider(BaseAIProvider):
         start_time = time.time()
 
         if not await self.check_rate_limit(request.model_id):
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id or "",
                 model_id=request.model_id,
                 content="",
@@ -109,7 +108,7 @@ class OllamaProvider(BaseAIProvider):
             )
 
         if self.concurrent_requests >= self.config.max_concurrent_requests:
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id or "",
                 model_id=request.model_id,
                 content="",
@@ -147,7 +146,7 @@ class OllamaProvider(BaseAIProvider):
             # Make request
             if not self.session:
                 raise Exception("Session not available")
-            async with self.session.post(
+            async with self.session.post()
                 f"{self.config.base_url}/api/generate",
                 json=payload
             ) as response:
@@ -156,7 +155,7 @@ class OllamaProvider(BaseAIProvider):
 
                     latency_ms = int((time.time() - start_time) * 1000)
 
-                    return AIResponse(
+                    return AIResponse()
                         request_id=request.request_id or "",
                         model_id=request.model_id,
                         content=data.get("response", ""),
@@ -184,7 +183,7 @@ class OllamaProvider(BaseAIProvider):
 
         except Exception as e:
             logger.error(f"Ollama generation failed: {e}")
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id or "",
                 model_id=request.model_id,
                 content="",
@@ -235,7 +234,7 @@ class OllamaProvider(BaseAIProvider):
             # Make streaming request
             if not self.session:
                 raise Exception("Session not available")
-            async with self.session.post(
+            async with self.session.post()
                 f"{self.config.base_url}/api/generate",
                 json=payload
             ) as response:
@@ -287,7 +286,7 @@ class OllamaProvider(BaseAIProvider):
                     data = await response.json()
                     models = []
                     for model_data in data.get("models", []):
-                        models.append({
+                        models.append({)
                             "id": model_data.get("name", ""),
                             "name": model_data.get("name", ""),
                             "size": model_data.get("size", 0),
@@ -328,7 +327,7 @@ class OllamaProvider(BaseAIProvider):
 
             if not self.session:
                 return False
-            async with self.session.post(
+            async with self.session.post()
                 f"{self.config.base_url}/api/pull",
                 json=payload
             ) as response:
@@ -364,7 +363,7 @@ class OllamaProvider(BaseAIProvider):
 
             if not self.session:
                 return False
-            async with self.session.delete(
+            async with self.session.delete()
                 f"{self.config.base_url}/api/delete",
                 json=payload
             ) as response:
@@ -387,7 +386,7 @@ class OllamaProvider(BaseAIProvider):
 
             if not self.session:
                 return {}
-            async with self.session.post(
+            async with self.session.post()
                 f"{self.config.base_url}/api/show",
                 json=payload
             ) as response:

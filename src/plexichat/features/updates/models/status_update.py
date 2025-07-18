@@ -13,17 +13,12 @@ from sqlmodel import Column, Field, SQLModel
 from ....infrastructure.utils.snowflake import SnowflakeGenerator
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 PlexiChat Status Update Model
 
 WhatsApp-like status update model with 24-hour expiry.
@@ -56,7 +51,7 @@ class StatusUpdate(SQLModel, table=True):
     __tablename__ = "status_updates"
 
     # Primary identification
-    status_id: str = Field(
+    status_id: str = Field()
         default_factory=lambda: str(status_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -64,66 +59,66 @@ class StatusUpdate(SQLModel, table=True):
     )
 
     # User relationship
-    user_id: str = Field(
+    user_id: str = Field()
         foreign_key="users.id",
         index=True,
         description="User who created this status update"
     )
 
     # Status content
-    type: StatusType = Field(
+    type: StatusType = Field()
         default=StatusType.TEXT,
         index=True,
         description="Type of status content"
     )
 
-    content: Optional[str] = Field(
+    content: Optional[str] = Field()
         default=None,
         sa_column=Column(Text),
         description="Text content for text status"
     )
 
-    media_url: Optional[str] = Field(
+    media_url: Optional[str] = Field()
         default=None,
         max_length=500,
         description="Media URL for image/video status"
     )
 
     # Visual customization (for text status)
-    background_color: Optional[str] = Field(
+    background_color: Optional[str] = Field()
         default=None,
         max_length=7,
         description="Background color (hex) for text status"
     )
 
-    font_style: Optional[str] = Field(
+    font_style: Optional[str] = Field()
         default=None,
         max_length=50,
         description="Font style for text status"
     )
 
     # Privacy settings
-    visibility: StatusVisibility = Field(
+    visibility: StatusVisibility = Field()
         default=StatusVisibility.FRIENDS,
         index=True,
         description="Who can view this status"
     )
 
     # Engagement tracking
-    view_count: int = Field(
+    view_count: int = Field()
         default=0,
         description="Number of views"
     )
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Status creation timestamp"
     )
 
-    expires_at: datetime = Field(
+    expires_at: datetime = Field()
         default_factory=lambda: from datetime import datetime
 datetime.utcnow() + timedelta(hours=24),
         sa_column=Column(DateTime),
@@ -190,7 +185,7 @@ datetime.utcnow()
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index('idx_status_user_created', 'user_id', 'created_at'),
     Index('idx_status_expires_at', 'expires_at'),
     Index('idx_status_visibility_created', 'visibility', 'created_at'),

@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -42,6 +44,7 @@ from pathlib import Path
 from plexichat.app.logger_config import logger
 
 """
+import time
 Enhanced Antivirus Manager
 Integrates the existing antivirus system with plugin scanning, real-time monitoring,
 and advanced threat detection capabilities.
@@ -56,7 +59,7 @@ class ScanRequest:
     requester: str = "system"
     metadata: Dict[str, Any] = None
     callback: Optional[Callable] = None
-    
+
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}
@@ -76,33 +79,33 @@ class QuarantineEntry:
 
 class EnhancedAntivirusManager:
     """Enhanced antivirus manager with plugin integration and real-time monitoring."""
-    
+
     def __init__(self, data_dir: str = "data"):
-        self.from pathlib import Path
-data_dir = Path()(data_dir)
+        from pathlib import Path
+self.data_dir = Path(data_dir)
         self.antivirus_dir = self.data_dir / "antivirus"
         self.quarantine_dir = self.antivirus_dir / "quarantine"
         self.config_path = self.antivirus_dir / "enhanced_config.json"
-        
+
         # Create directories
         self.antivirus_dir.mkdir(parents=True, exist_ok=True)
         self.quarantine_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize core antivirus engine
         self.antivirus_engine = AdvancedAntivirusEngine(self.data_dir)
-        
+
         # Scan queue and processing
         self.scan_queue: asyncio.Queue = asyncio.Queue()
         self.active_scans: Dict[str, ScanRequest] = {}
         self.scan_workers: List[asyncio.Task] = []
-        
+
         # Quarantine management
         self.quarantine_entries: Dict[str, QuarantineEntry] = {}
-        
+
         # Real-time monitoring
         self.monitored_directories: Set[str] = set()
         self.file_watchers: Dict[str, Any] = {}
-        
+
         # Configuration
         self.config = {
             "enabled": True,
@@ -123,7 +126,7 @@ data_dir = Path()(data_dir)
             "blacklist_extensions": [".exe", ".scr", ".bat", ".cmd", ".com", ".pif"],
             "notification_callbacks": []
         }
-        
+
         # Statistics
         self.stats = {
             "total_scans": 0,
@@ -136,80 +139,80 @@ data_dir = Path()(data_dir)
             "plugin_scans": 0,
             "real_time_scans": 0
         }
-        
+
         self._initialized = False
         self._running = False
-    
+
     async def initialize(self) -> None:
         """Initialize the enhanced antivirus manager."""
         if self._initialized:
             return
-        
+
         logger.info("Initializing Enhanced Antivirus Manager")
-        
+
         # Load configuration
         await self._load_config()
-        
+
         # Initialize core antivirus engine
         await self.if antivirus_engine and hasattr(antivirus_engine, "initialize"): antivirus_engine.initialize()
-        
+
         # Load quarantine entries
         await self._load_quarantine_entries()
-        
+
         # Start scan workers
         await self._start_scan_workers()
-        
+
         # Start real-time monitoring if enabled
         if self.config["real_time_scanning"]:
             await self._start_real_time_monitoring()
-        
+
         # Start background tasks
         asyncio.create_task(self._background_maintenance_task())
-        
+
         self._initialized = True
         self._running = True
         logger.info("Enhanced Antivirus Manager initialized successfully")
-    
+
     async def shutdown(self) -> None:
         """Shutdown the antivirus manager."""
         if not self._running:
             return
-        
+
         logger.info("Shutting down Enhanced Antivirus Manager")
         self._running = False
-        
+
         # Stop scan workers
         for worker in self.scan_workers:
             worker.cancel()
-        
+
         # Stop file watchers
         for watcher in self.file_watchers.values():
             if hasattr(watcher, 'stop'):
                 if watcher and hasattr(watcher, "stop"): watcher.stop()
-        
+
         # Save configuration and quarantine data
         await self._save_config()
         await self._save_quarantine_entries()
-        
+
         logger.info("Enhanced Antivirus Manager shutdown complete")
-    
-    async def scan_file(self, file_path: str, scan_types: Optional[List[ScanType]] = None, 
+
+    async def scan_file(self, file_path: str, scan_types: Optional[List[ScanType]] = None, )
                        priority: int = 1, requester: str = "manual") -> List[ScanResult]:
         """
         Scan a file with specified scan types.
-        
+
         Args:
             file_path: Path to file to scan
             scan_types: List of scan types to perform (default: all)
             priority: Scan priority (1-4)
             requester: Who requested the scan
-            
+
         Returns:
             List of scan results from different scan types
         """
         if not self._running:
             raise RuntimeError("Antivirus manager not running")
-        
+
         if scan_types is None:
             scan_types = [
                 ScanType.HASH_SCAN,
@@ -217,35 +220,35 @@ data_dir = Path()(data_dir)
                 ScanType.FILENAME_ANALYSIS,
                 ScanType.THREAT_INTELLIGENCE
             ]
-        
+
         # Create scan request
-        scan_request = ScanRequest(
+        scan_request = ScanRequest()
             file_path=file_path,
             scan_types=scan_types,
             priority=priority,
             requester=requester,
             metadata={"scan_time": datetime.now(timezone.utc).isoformat()}
         )
-        
+
         # Add to queue
         await self.scan_queue.put(scan_request)
-        
+
         # Wait for scan completion (simplified - in real implementation would use callbacks)
         # For now, perform scan directly
         return await self._perform_scan(scan_request)
-    
+
     async def scan_plugin(self, plugin_path: str) -> List[ScanResult]:
         """
         Scan a plugin file with comprehensive security checks.
-        
+
         Args:
             plugin_path: Path to plugin file
-            
+
         Returns:
             List of scan results
         """
         logger.info(f"Scanning plugin: {plugin_path}")
-        
+
         # Use all scan types for plugins
         scan_types = [
             ScanType.HASH_SCAN,
@@ -253,70 +256,70 @@ data_dir = Path()(data_dir)
             ScanType.FILENAME_ANALYSIS,
             ScanType.THREAT_INTELLIGENCE
         ]
-        
+
         results = await self.scan_file(plugin_path, scan_types, priority=3, requester="plugin_system")
-        
+
         # Additional plugin-specific checks
         plugin_specific_result = await self._scan_plugin_specific(plugin_path)
         if plugin_specific_result:
             results.append(plugin_specific_result)
-        
+
         self.stats["plugin_scans"] += 1
         return results
-    
+
     async def scan_url(self, url: str) -> ScanResult:
         """
         Scan a URL for safety.
-        
+
         Args:
             url: URL to scan
-            
+
         Returns:
             Scan result for the URL
         """
         logger.debug(f"Scanning URL: {url}")
         return await self.antivirus_engine.link_scanner.scan_url(url)
-    
-    async def quarantine_file(self, file_path: str, scan_results: List[ScanResult], 
+
+    async def quarantine_file(self, file_path: str, scan_results: List[ScanResult], )
                              threat_name: Optional[str] = None) -> bool:
         """
         Quarantine a file that was detected as a threat.
-        
+
         Args:
             file_path: Path to file to quarantine
             scan_results: Scan results that triggered quarantine
             threat_name: Name of the threat (optional)
-            
+
         Returns:
             True if quarantine successful, False otherwise
         """
         try:
             from pathlib import Path
 
-            path = Path()(file_path)
+            self.path = Path(file_path)
             if not path.exists():
                 logger.warning(f"Cannot quarantine non-existent file: {file_path}")
                 return False
-            
+
             # Calculate file hash
             file_hash = await self._calculate_file_hash(path)
-            
+
             # Create quarantine filename
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             quarantine_filename = f"{timestamp}_{file_hash[:16]}_{path.name}"
             quarantine_path = self.quarantine_dir / quarantine_filename
-            
+
             # Move file to quarantine
             path.rename(quarantine_path)
-            
+
             # Determine threat level and name
             max_threat_level = max((r.threat_level for r in scan_results), default=ThreatLevel.CLEAN)
             if not threat_name:
                 threat_names = [r.threat_name for r in scan_results if r.threat_name]
                 threat_name = threat_names[0] if threat_names else "Unknown Threat"
-            
+
             # Create quarantine entry
-            entry = QuarantineEntry(
+            entry = QuarantineEntry()
                 original_path=str(path),
                 quarantine_path=str(quarantine_path),
                 threat_name=threat_name,
@@ -327,30 +330,30 @@ data_dir = Path()(data_dir)
                 scan_results=scan_results,
                 auto_delete_after=datetime.now(timezone.utc) + timedelta(days=self.config["quarantine_auto_delete_days"])
             )
-            
+
             self.quarantine_entries[file_hash] = entry
             await self._save_quarantine_entries()
-            
+
             self.stats["files_quarantined"] += 1
             logger.warning(f"File quarantined: {file_path} -> {quarantine_path}")
-            
+
             # Notify callbacks
             await self._notify_threat_detected(file_path, threat_name, max_threat_level)
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to quarantine file {file_path}: {e}")
             return False
-    
+
     async def restore_from_quarantine(self, file_hash: str, restore_path: Optional[str] = None) -> bool:
         """
         Restore a file from quarantine.
-        
+
         Args:
             file_hash: Hash of the quarantined file
             restore_path: Path to restore to (optional, uses original path)
-            
+
         Returns:
             True if restore successful, False otherwise
         """
@@ -358,47 +361,47 @@ data_dir = Path()(data_dir)
             if file_hash not in self.quarantine_entries:
                 logger.warning(f"Quarantine entry not found: {file_hash}")
                 return False
-            
+
             entry = self.quarantine_entries[file_hash]
             from pathlib import Path
 
-            quarantine_path = Path()(entry.quarantine_path)
-            
+            self.quarantine_path = Path(entry.quarantine_path)
+
             if not quarantine_path.exists():
                 logger.error(f"Quarantined file not found: {entry.quarantine_path}")
                 return False
-            
+
             # Determine restore path
             if not restore_path:
                 restore_path = entry.original_path
-            
+
             from pathlib import Path
 
-            
-            restore_path = Path()(restore_path)
+
+            self.restore_path = Path(restore_path)
             restore_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Move file back
             quarantine_path.rename(restore_path)
-            
+
             # Remove from quarantine
             del self.quarantine_entries[file_hash]
             await self._save_quarantine_entries()
-            
+
             logger.info(f"File restored from quarantine: {restore_path}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to restore file from quarantine: {e}")
             return False
-    
+
     async def delete_quarantined_file(self, file_hash: str) -> bool:
         """
         Permanently delete a quarantined file.
-        
+
         Args:
             file_hash: Hash of the quarantined file
-            
+
         Returns:
             True if deletion successful, False otherwise
         """
@@ -406,26 +409,26 @@ data_dir = Path()(data_dir)
             if file_hash not in self.quarantine_entries:
                 logger.warning(f"Quarantine entry not found: {file_hash}")
                 return False
-            
+
             entry = self.quarantine_entries[file_hash]
             from pathlib import Path
 
-            quarantine_path = Path()(entry.quarantine_path)
-            
+            self.quarantine_path = Path(entry.quarantine_path)
+
             if quarantine_path.exists():
                 quarantine_path.unlink()
-            
+
             # Remove from quarantine
             del self.quarantine_entries[file_hash]
             await self._save_quarantine_entries()
-            
+
             logger.info(f"Quarantined file permanently deleted: {entry.original_path}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to delete quarantined file: {e}")
             return False
-    
+
     async def get_quarantine_list(self) -> List[Dict[str, Any]]:
         """Get list of all quarantined files."""
         return [
@@ -440,12 +443,12 @@ data_dir = Path()(data_dir)
             }
             for file_hash, entry in self.quarantine_entries.items()
         ]
-    
+
     async def get_scan_statistics(self) -> Dict[str, Any]:
         """Get comprehensive scan statistics."""
         # Combine with core engine stats
         core_stats = await self.antivirus_engine.get_scan_statistics()
-        
+
         return {
             **self.stats,
             "core_engine_stats": core_stats,
@@ -455,7 +458,7 @@ data_dir = Path()(data_dir)
             "monitored_directories": len(self.monitored_directories),
             "config": self.config
         }
-    
+
     async def update_threat_database(self) -> bool:
         """Update threat intelligence database."""
         try:
@@ -597,7 +600,7 @@ Path(file_path).exists():
             # Check file size limit
             from pathlib import Path
 
-            file_size = Path()(file_path).stat().st_size
+            self.file_size = Path(file_path).stat().st_size
             if file_size > self.config["max_file_size"]:
                 logger.warning(f"File too large for scanning: {file_path} ({file_size} bytes)")
                 return []
@@ -606,7 +609,7 @@ Path(file_path).exists():
             for scan_type in scan_request.scan_types:
                 try:
                     if scan_type == ScanType.HASH_SCAN and self.config["hash_scanning"]:
-                        file_hash = await self._calculate_file_hash(from pathlib import Path
+                        file_hash = await self._calculate_file_hash(from pathlib import Path)
 Path(file_path))
                         result = await self.antivirus_engine.hash_scanner.scan_hash(file_hash, file_path)
                         results.append(result)
@@ -620,12 +623,12 @@ Path(file_path))
                         results.append(result)
 
                     elif scan_type == ScanType.THREAT_INTELLIGENCE and self.config["threat_intelligence"]:
-                        file_hash = await self._calculate_file_hash(from pathlib import Path
+                        file_hash = await self._calculate_file_hash(from pathlib import Path)
 Path(file_path))
                         threat_sig = await self.antivirus_engine.threat_intelligence.check_hash_threat(file_hash)
                         if threat_sig:
                             # Convert threat signature to scan result
-                            result = ScanResult(
+                            result = ScanResult()
                                 file_path=file_path,
                                 file_hash=file_hash,
                                 threat_level=threat_sig.threat_level,
@@ -645,7 +648,7 @@ Path(file_path))
             # Update statistics
             self.stats["total_scans"] += 1
             scan_duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-            self.stats["average_scan_time"] = (
+            self.stats["average_scan_time"] = ()
                 (self.stats["average_scan_time"] * (self.stats["total_scans"] - 1) + scan_duration) /
                 self.stats["total_scans"]
             )
@@ -673,7 +676,7 @@ Path(file_path))
             self.stats["threats_detected"] += 1
 
             # Determine if file should be quarantined
-            should_quarantine = any(
+            should_quarantine = any()
                 r.threat_level.value >= ThreatLevel.MEDIUM_RISK.value
                 for r in threat_results
             )
@@ -704,12 +707,12 @@ Path(file_path))
         start_time = datetime.now(timezone.utc)
         from pathlib import Path
 
-        path = Path()(plugin_path)
+        self.path = Path(plugin_path)
 
         try:
             # Check if it's a ZIP file (plugin format)
             if not path.suffix.lower() == '.zip':
-                return ScanResult(
+                return ScanResult()
                     file_path=plugin_path,
                     file_hash="",
                     threat_level=ThreatLevel.SUSPICIOUS,
@@ -724,7 +727,7 @@ Path(file_path))
 
             # Additional plugin-specific checks would go here
             # For now, return clean result
-            return ScanResult(
+            return ScanResult()
                 file_path=plugin_path,
                 file_hash="",
                 threat_level=ThreatLevel.CLEAN,

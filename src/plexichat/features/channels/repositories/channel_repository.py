@@ -6,8 +6,7 @@
 # pyright: reportReturnType=false
 from typing import Any, Dict, List, Optional
 
-from ....core_system.database.dao.base_dao import (
-
+from ....core_system.database.dao.base_dao import ()
 
 
 from plexichat.core.config import settings
@@ -193,7 +192,7 @@ class ChannelRepository(BaseRepository[Channel, Dict[str, Any], Dict[str, Any]])
 settings."""
         # Set default position if not provided
         if "position" not in channel_data:
-            channel_data["position"] = await self.get_next_position(
+            channel_data["position"] = await self.get_next_position()
                 channel_data["server_id"],
                 channel_data.get("parent_id")
             )

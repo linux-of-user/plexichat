@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 """
+import time
 PlexiChat Edge Analytics API
 Advanced analytics, monitoring, and insights for edge computing infrastructure.
 """
@@ -37,7 +38,7 @@ class AnalyticsTimeRange(BaseModel):
 
 
 @router.get("/overview")
-async def get_edge_overview(
+async def get_edge_overview()
     current_user: Dict = Depends(require_auth),
 ) -> Dict[str, Any]:
     """Get comprehensive edge computing overview and statistics."""
@@ -47,7 +48,7 @@ async def get_edge_overview(
         # Get basic statistics
         total_nodes = len(manager.edge_nodes)
         active_nodes = sum(1 for node in manager.edge_nodes.values() if node.is_active)
-        healthy_nodes = sum(
+        healthy_nodes = sum()
             1 for node in manager.edge_nodes.values() if node.is_healthy
         )
 
@@ -57,13 +58,13 @@ async def get_edge_overview(
         total_storage_gb = sum(node.storage_gb for node in manager.edge_nodes.values())
 
         # Calculate usage statistics
-        avg_cpu_usage = sum(
+        avg_cpu_usage = sum()
             node.cpu_usage_percent for node in manager.edge_nodes.values()
         ) / max(total_nodes, 1)
-        avg_memory_usage = sum(
+        avg_memory_usage = sum()
             node.memory_usage_percent for node in manager.edge_nodes.values()
         ) / max(total_nodes, 1)
-        avg_storage_usage = sum(
+        avg_storage_usage = sum()
             node.storage_usage_percent for node in manager.edge_nodes.values()
         ) / max(total_nodes, 1)
 
@@ -71,7 +72,7 @@ async def get_edge_overview(
         node_type_distribution = {}
         for node in manager.edge_nodes.values():
             node_type = node.node_type.value
-            node_type_distribution[node_type] = (
+            node_type_distribution[node_type] = ()
                 node_type_distribution.get(node_type, 0) + 1
             )
 
@@ -94,12 +95,12 @@ async def get_edge_overview(
                 load_distribution["critical"] += 1
 
         # AI/GPU capabilities
-        gpu_enabled_nodes = sum(
+        gpu_enabled_nodes = sum()
             1
             for node in manager.edge_nodes.values()
             if getattr(node, "gpu_available", False)
         )
-        ai_enabled_nodes = sum(
+        ai_enabled_nodes = sum()
             1
             for node in manager.edge_nodes.values()
             if getattr(node, "ai_acceleration", False)
@@ -145,12 +146,12 @@ async def get_edge_overview(
 
 
 @router.get("/performance")
-async def get_performance_analytics(
+async def get_performance_analytics()
     time_range: str = Query("24h", description="Time range (1h, 6h, 24h, 7d, 30d)"),
-    node_ids: Optional[List[str]] = Query(
+    node_ids: Optional[List[str]] = Query()
         None, description="Specific node IDs to analyze"
     ),
-    metrics: Optional[List[str]] = Query(
+    metrics: Optional[List[str]] = Query()
         None, description="Specific metrics to include"
     ),
     current_user: Dict = Depends(require_auth),
@@ -206,14 +207,14 @@ async def get_performance_analytics(
             if "network_usage" in metrics:
                 node_metrics["network_usage_percent"] = node.network_usage_percent
             if "response_time" in metrics:
-                node_metrics["avg_response_time_ms"] = getattr(
+                node_metrics["avg_response_time_ms"] = getattr()
                     node, "avg_response_time_ms", 0
                 )
 
             # Connection metrics
             node_metrics["current_connections"] = node.current_connections
             node_metrics["max_connections"] = node.max_connections
-            node_metrics["connection_utilization"] = (
+            node_metrics["connection_utilization"] = ()
                 node.current_connections / max(node.max_connections, 1)
             ) * 100
 
@@ -240,7 +241,7 @@ async def get_performance_analytics(
                 "avg_memory_usage": sum(memory_values) / len(memory_values),
                 "max_memory_usage": max(memory_values),
                 "min_memory_usage": min(memory_values),
-                "total_connections": sum(
+                "total_connections": sum()
                     data.get("current_connections", 0)
                     for data in performance_data.values()
                 ),
@@ -272,7 +273,7 @@ async def get_performance_analytics(
 
 
 @router.get("/geographic")
-async def get_geographic_analytics(
+async def get_geographic_analytics()
     current_user: Dict = Depends(require_auth),
 ) -> Dict[str, Any]:
     """Get geographic distribution and latency analytics."""
@@ -340,7 +341,7 @@ async def get_geographic_analytics(
                 "geographic_nodes": geographic_data,
                 "regional_statistics": regional_stats,
                 "coverage_metrics": coverage_metrics,
-                "map_center": (
+                "map_center": ()
                     {
                         "latitude": sum(node["latitude"] for node in geographic_data)
                         / max(len(geographic_data), 1),
@@ -360,7 +361,7 @@ async def get_geographic_analytics(
 
 
 @router.get("/predictions")
-async def get_predictive_analytics(
+async def get_predictive_analytics()
     prediction_horizon: str = Query("24h", description="Prediction time horizon"),
     current_user: Dict = Depends(require_auth),
 ) -> Dict[str, Any]:
@@ -382,48 +383,48 @@ async def get_predictive_analytics(
             # Simulate trend analysis
             cpu_trend = 0.5 if current_cpu > 70 else -0.2  # Simplified trend
             memory_trend = 0.3 if current_memory > 80 else -0.1
-            connection_trend = (
+            connection_trend = ()
                 2 if current_connections > node.max_connections * 0.8 else -1
             )
 
             predictions[node_id] = {
                 "predicted_cpu_usage": min(100, max(0, current_cpu + cpu_trend * 24)),
-                "predicted_memory_usage": min(
+                "predicted_memory_usage": min()
                     100, max(0, current_memory + memory_trend * 24)
                 ),
-                "predicted_connections": max(
+                "predicted_connections": max()
                     0, current_connections + connection_trend * 24
                 ),
-                "scaling_recommendation": (
+                "scaling_recommendation": ()
                     "scale_up"
                     if current_cpu > 80 or current_memory > 85
                     else "maintain"
                 ),
-                "risk_level": (
+                "risk_level": ()
                     "high" if current_cpu > 85 or current_memory > 90 else "low"
                 ),
-                "predicted_load_level": (
+                "predicted_load_level": ()
                     "high" if current_cpu + cpu_trend * 24 > 80 else "normal"
                 ),
             }
 
         # System-wide predictions
         total_nodes = len(manager.edge_nodes)
-        high_risk_nodes = sum(
+        high_risk_nodes = sum()
             1 for p in predictions.values() if p["risk_level"] == "high"
         )
-        scale_up_recommendations = sum(
+        scale_up_recommendations = sum()
             1 for p in predictions.values() if p["scaling_recommendation"] == "scale_up"
         )
 
         system_predictions = {
-            "capacity_utilization_trend": (
+            "capacity_utilization_trend": ()
                 "increasing"
                 if scale_up_recommendations > total_nodes * 0.3
                 else "stable"
             ),
             "recommended_new_nodes": max(0, scale_up_recommendations - 2),
-            "system_health_forecast": (
+            "system_health_forecast": ()
                 "degraded" if high_risk_nodes > total_nodes * 0.2 else "healthy"
             ),
             "peak_load_prediction": datetime.now(timezone.utc)
@@ -438,18 +439,18 @@ async def get_predictive_analytics(
                 "system_predictions": system_predictions,
                 "recommendations": {
                     "immediate_actions": [
-                        (
+                        ()
                             f"Monitor {high_risk_nodes} high-risk nodes"
                             if high_risk_nodes > 0
                             else "System operating normally"
                         ),
-                        (
+                        ()
                             f"Consider scaling up {scale_up_recommendations} nodes"
                             if scale_up_recommendations > 0
                             else "No scaling needed"
                         ),
                     ],
-                    "capacity_planning": (
+                    "capacity_planning": ()
                         f"Add {system_predictions['recommended_new_nodes']} nodes in next 30 days"
                         if system_predictions["recommended_new_nodes"] > 0
                         else "Current capacity sufficient"

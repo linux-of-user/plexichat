@@ -1,4 +1,5 @@
 """
+import time
 PlexiChat Core Authentication System
 
 Enhanced authentication core with comprehensive security and performance optimization.
@@ -53,7 +54,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthenticationCore:
     """Core authentication system using EXISTING database abstraction."""
-    
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
@@ -61,15 +62,15 @@ class AuthenticationCore:
         self.jwt_algorithm = getattr(settings, 'JWT_ALGORITHM', 'HS256')
         self.access_token_expire = getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 30)
         self.refresh_token_expire = getattr(settings, 'REFRESH_TOKEN_EXPIRE_DAYS', 7)
-    
+
     def hash_password(self, password: str) -> str:
         """Hash password using bcrypt."""
         return pwd_context.hash(password)
-    
+
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify password against hash."""
         return pwd_context.verify(plain_password, hashed_password)
-    
+
     def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
         """Create JWT access token."""
         to_encode = data.copy()
@@ -77,11 +78,11 @@ class AuthenticationCore:
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire)
-        
+
         to_encode.update({"exp": expire, "type": "access"})
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
         return encoded_jwt
-    
+
     def create_refresh_token(self, data: Dict[str, Any]) -> str:
         """Create JWT refresh token."""
         to_encode = data.copy()
@@ -89,7 +90,7 @@ class AuthenticationCore:
         to_encode.update({"exp": expire, "type": "refresh"})
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret, algorithm=self.jwt_algorithm)
         return encoded_jwt
-    
+
     def verify_token(self, token: str, token_type: str = "access") -> Optional[Dict[str, Any]]:
         """Verify JWT token."""
         try:
@@ -99,7 +100,7 @@ class AuthenticationCore:
             return payload
         except JWTError:
             return None
-    
+
     @async_track_performance("user_authentication") if async_track_performance else lambda f: f
     async def authenticate_user(self, username: str, password: str) -> Optional[Dict[str, Any]]:
         """Authenticate user using EXISTING database abstraction."""
@@ -107,17 +108,17 @@ class AuthenticationCore:
             try:
                 query = """
                     SELECT id, username, email, hashed_password, is_active, is_admin, created_at
-                    FROM users 
+                    FROM users
                     WHERE username = ? AND is_active = 1
                 """
                 params = {"username": username}
-                
+
                 if self.performance_logger and timer:
                     with timer("user_lookup"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 if result and len(result) > 0:
                     row = result[0]
                     user_data = {
@@ -129,18 +130,18 @@ class AuthenticationCore:
                         "is_admin": bool(row[5]),
                         "created_at": row[6]
                     }
-                    
+
                     if self.verify_password(password, user_data["hashed_password"]):
                         # Update last login
                         await self._update_last_login(user_data["id"])
                         return user_data
-                
+
                 return None
-                
+
             except Exception as e:
                 logger.error(f"Error authenticating user: {e}")
                 return None
-        
+
         # Fallback for testing
         if username == "admin" and password == "password":
             return {
@@ -151,9 +152,9 @@ class AuthenticationCore:
                 "is_admin": True,
                 "created_at": datetime.now()
             }
-        
+
         return None
-    
+
     @async_track_performance("user_creation") if async_track_performance else lambda f: f
     async def create_user(self, username: str, email: str, password: str, is_admin: bool = False) -> Optional[Dict[str, Any]]:
         """Create new user using EXISTING database abstraction."""
@@ -162,11 +163,11 @@ class AuthenticationCore:
                 # Check if user exists
                 check_query = "SELECT COUNT(*) FROM users WHERE username = ? OR email = ?"
                 check_params = {"username": username, "email": email}
-                
+
                 result = await self.db_manager.execute_query(check_query, check_params)
                 if result and result[0][0] > 0:
                     return None  # User already exists
-                
+
                 # Create user
                 hashed_password = self.hash_password(password)
                 create_query = """
@@ -182,13 +183,13 @@ class AuthenticationCore:
                     "is_admin": is_admin,
                     "created_at": datetime.now()
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("user_creation"):
                         result = await self.db_manager.execute_query(create_query, create_params)
                 else:
                     result = await self.db_manager.execute_query(create_query, create_params)
-                
+
                 if result:
                     row = result[0]
                     return {
@@ -199,13 +200,13 @@ class AuthenticationCore:
                         "is_admin": bool(row[4]),
                         "created_at": row[5]
                     }
-                
+
             except Exception as e:
                 logger.error(f"Error creating user: {e}")
                 return None
-        
+
         return None
-    
+
     async def _update_last_login(self, user_id: int):
         """Update user's last login timestamp."""
         if self.db_manager:
@@ -215,33 +216,33 @@ class AuthenticationCore:
                 await self.db_manager.execute_query(query, params)
             except Exception as e:
                 logger.error(f"Error updating last login: {e}")
-    
+
     @async_track_performance("token_validation") if async_track_performance else lambda f: f
     async def get_current_user(self, token: str) -> Optional[Dict[str, Any]]:
         """Get current user from token using EXISTING database abstraction."""
         payload = self.verify_token(token)
         if not payload:
             return None
-        
+
         user_id = payload.get("sub")
         if not user_id:
             return None
-        
+
         if self.db_manager:
             try:
                 query = """
                     SELECT id, username, email, is_active, is_admin, created_at, last_login
-                    FROM users 
+                    FROM users
                     WHERE id = ? AND is_active = 1
                 """
                 params = {"id": int(user_id)}
-                
+
                 if self.performance_logger and timer:
                     with timer("token_user_lookup"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 if result:
                     row = result[0]
                     return {
@@ -253,11 +254,11 @@ class AuthenticationCore:
                         "created_at": row[5],
                         "last_login": row[6]
                     }
-                
+
             except Exception as e:
                 logger.error(f"Error getting current user: {e}")
                 return None
-        
+
         # Fallback for testing
         if user_id == "1":
             return {
@@ -269,14 +270,14 @@ class AuthenticationCore:
                 "created_at": datetime.now(),
                 "last_login": datetime.now()
             }
-        
+
         return None
-    
+
     def generate_api_key(self, user_id: int) -> str:
         """Generate API key for user."""
         data = f"{user_id}:{datetime.now().timestamp()}:{secrets.token_hex(16)}"
         return hashlib.sha256(data.encode()).hexdigest()
-    
+
     async def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
         """Validate API key and return user data."""
         if self.db_manager:
@@ -289,7 +290,7 @@ class AuthenticationCore:
                 """
                 key_hash = hashlib.sha256(api_key.encode()).hexdigest()
                 params = {"key_hash": key_hash}
-                
+
                 result = await self.db_manager.execute_query(query, params)
                 if result:
                     row = result[0]
@@ -300,10 +301,10 @@ class AuthenticationCore:
                         "is_active": bool(row[3]),
                         "is_admin": bool(row[4])
                     }
-                
+
             except Exception as e:
                 logger.error(f"Error validating API key: {e}")
-        
+
         return None
 
 # Global authentication instance

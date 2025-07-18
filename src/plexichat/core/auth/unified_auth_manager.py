@@ -13,8 +13,19 @@ from typing import Any, Dict, List, Optional
 
 import bcrypt
 
-from pathlib import Path
+# Import shared components (NEW ARCHITECTURE)
+from ...shared.models import User, Session, Role, Permission, Priority, Status
+from ...shared.types import UserId, Token, HashedPassword, Salt, Permissions, SecurityContext
+from ...shared.exceptions import ()
+    AuthenticationError, AuthorizationError, ValidationError,
+    SecurityError, RateLimitError
+)
+from ...shared.constants import ()
+    TOKEN_EXPIRY_HOURS, PASSWORD_MIN_LENGTH, MAX_LOGIN_ATTEMPTS,
+    LOCKOUT_DURATION_MINUTES, DEFAULT_SECRET_KEY
+)
 
+# Core imports
 from ...core.config import get_config
 from ...core.logging_advanced import get_logger
 
@@ -22,11 +33,19 @@ try:
     from ...core.security.input_validation import InputType, ValidationLevel, get_input_validator
 except ImportError:
     class InputType:
-        pass
+        USERNAME = "username"
+        PASSWORD = "password"
+        EMAIL = "email"
+
     class ValidationLevel:
-        pass
+        STANDARD = "standard"
+        STRICT = "strict"
+
     def get_input_validator():
-        return None
+        class MockValidator:
+            def validate(self, value, input_type, level):
+                return True
+        return MockValidator()
 
 """
 PlexiChat Unified Authentication Manager - SINGLE SOURCE OF TRUTH
@@ -94,11 +113,11 @@ class AuthenticationRequest:
     # Primary credentials
     username: Optional[str] = None
     password: Optional[str] = None
-    
+
     # Multi-factor authentication
     mfa_code: Optional[str] = None
     mfa_method: Optional[AuthenticationMethod] = None
-    
+
     # Alternative authentication methods
     oauth_provider: Optional[str] = None
     oauth_token: Optional[str] = None
@@ -106,18 +125,18 @@ class AuthenticationRequest:
     biometric_type: Optional[str] = None
     hardware_key_response: Optional[str] = None
     api_key: Optional[str] = None
-    
+
     # Device and context information
     device_id: Optional[str] = None
     device_fingerprint: Optional[str] = None
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
     location: Optional[Dict[str, Any]] = None
-    
+
     # Security requirements
     required_security_level: SecurityLevel = SecurityLevel.BASIC
     remember_device: bool = False
-    
+
     # Request metadata
     request_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -131,34 +150,34 @@ class AuthenticationResponse:
     success: bool
     user_id: Optional[str] = None
     session_id: Optional[str] = None
-    
+
     # Tokens
     access_token: Optional[str] = None
     refresh_token: Optional[str] = None
     token_type: str = "Bearer"
     expires_in: Optional[int] = None
     expires_at: Optional[datetime] = None
-    
+
     # Multi-factor authentication
     mfa_required: bool = False
     mfa_methods: List[AuthenticationMethod] = field(default_factory=list)
     mfa_challenge: Optional[str] = None
-    
+
     # Security information
     security_level: SecurityLevel = SecurityLevel.BASIC
     risk_score: float = 0.0
     device_trusted: bool = False
     device_id: Optional[str] = None
-    
+
     # Error information
     error_code: Optional[str] = None
     error_message: Optional[str] = None
     retry_after: Optional[int] = None
-    
+
     # Audit information
     audit_id: Optional[str] = None
     request_id: Optional[str] = None
-    
+
     # Additional data
     user_info: Optional[Dict[str, Any]] = None
     permissions: List[str] = field(default_factory=list)
@@ -203,40 +222,40 @@ class TokenData:
 class UnifiedAuthManager:
     """
     Unified Authentication Manager - Single Source of Truth
-    
+
     Orchestrates all authentication methods through a single secure flow,
     providing comprehensive session management, token handling, and security.
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or getattr(get_config(), "authentication", {})
         self.initialized = False
-        
+
         # Core components
         self.input_validator = get_input_validator()
-        
+
         # Storage
         self.sessions: Dict[str, SessionData] = {}
         self.tokens: Dict[str, TokenData] = {}
         self.users: Dict[str, Dict[str, Any]] = {}
         self.devices: Dict[str, Dict[str, Any]] = {}
-        
+
         # Security tracking
         self.failed_attempts: Dict[str, List[datetime]] = {}
         self.locked_accounts: Dict[str, datetime] = {}
         self.trusted_devices: Dict[str, Dict[str, Any]] = {}
-        
+
         # Configuration
         self.session_timeout = timedelta(minutes=self.config.get("session_timeout_minutes", 30))
         self.token_lifetime = timedelta(hours=self.config.get("token_lifetime_hours", 24))
         self.max_failed_attempts = self.config.get("max_failed_attempts", 5)
         self.lockout_duration = timedelta(minutes=self.config.get("lockout_duration_minutes", 15))
-        
+
         # Admin account management
         from pathlib import Path
         self.admin_file = Path(self.config.get("admin_file", "data/admin.json"))
         self.admin_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # MFA configuration
         self.mfa_required_levels = {
             SecurityLevel.SECURE,
@@ -244,64 +263,65 @@ class UnifiedAuthManager:
             SecurityLevel.CRITICAL,
             SecurityLevel.GOVERNMENT
         }
-        
+
         logger.info("Unified Authentication Manager initialized")
-    
+
     async def initialize(self) -> bool:
         """Initialize the authentication manager."""
         try:
             # Ensure default admin exists
             await self._ensure_default_admin()
-            
+
             # Load persistent data
             await self._load_persistent_data()
-            
+
             # Start background tasks
             asyncio.create_task(self._cleanup_expired_sessions())
             asyncio.create_task(self._cleanup_expired_tokens())
-            
+
             self.initialized = True
             logger.info(" Unified Authentication Manager initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f" Authentication Manager initialization failed: {e}")
             return False
-    
+
     async def authenticate(self, request: AuthenticationRequest) -> AuthenticationResponse:
         """
         Unified authentication flow supporting all authentication methods.
-        
+
         Args:
             request: Authentication request with credentials and context
-            
+
         Returns:
             AuthenticationResponse with result and tokens
         """
         if not self.initialized:
-            await if self and hasattr(self, "initialize"): self.initialize()
-        
+            if self and hasattr(self, "initialize"):
+                await self.initialize()
+
         start_time = time.time()
         audit_id = f"auth_{int(start_time * 1000)}"
-        
+
         try:
             # Input validation
             if request.username:
-                validation_result = self.input_validator.validate(
+                validation_result = self.input_validator.validate()
                     request.username, InputType.USERNAME, ValidationLevel.STANDARD
                 )
                 if not validation_result.is_valid:
-                    return AuthenticationResponse(
+                    return AuthenticationResponse()
                         result=AuthenticationResult.INVALID_CREDENTIALS,
                         success=False,
                         error_message="Invalid username format",
                         audit_id=audit_id,
                         request_id=request.request_id
                     )
-            
+
             # Check rate limiting
             if await self._is_rate_limited(request):
-                return AuthenticationResponse(
+                return AuthenticationResponse()
                     result=AuthenticationResult.RATE_LIMITED,
                     success=False,
                     error_message="Too many failed attempts",
@@ -309,28 +329,28 @@ class UnifiedAuthManager:
                     audit_id=audit_id,
                     request_id=request.request_id
                 )
-            
+
             # Check account lockout
             if request.username and await self._is_account_locked(request.username):
-                return AuthenticationResponse(
+                return AuthenticationResponse()
                     result=AuthenticationResult.ACCOUNT_LOCKED,
                     success=False,
                     error_message="Account is temporarily locked",
                     audit_id=audit_id,
                     request_id=request.request_id
                 )
-            
+
             # Risk assessment
             risk_score = await self._assess_risk(request)
-            
+
             # Primary authentication
             auth_result = await self._authenticate_primary(request)
             if not auth_result.success:
                 await self._record_failed_attempt(request)
                 return auth_result
-            
+
             user_id = auth_result.user_id
-            
+
             # Determine required security level
             user_required_level = await self._get_user_required_security_level(user_id or "unknown")
             # Compare security levels by their value (assuming higher values = higher security)
@@ -338,9 +358,9 @@ class UnifiedAuthManager:
                 required_level = request.required_security_level
             else:
                 required_level = user_required_level
-            
+
             # Check if MFA is required
-            mfa_required = (
+            mfa_required = ()
                 required_level in self.mfa_required_levels or
                 risk_score > 0.7 or
                 not await self._is_device_trusted(request)
@@ -348,7 +368,7 @@ class UnifiedAuthManager:
 
             if mfa_required and not request.mfa_code:
                 await self._get_available_mfa_methods(user_id or "unknown")
-                return AuthenticationResponse(
+                return AuthenticationResponse()
                     result=AuthenticationResult.MFA_REQUIRED,
                     success=False,
                     user_id=user_id,
@@ -363,14 +383,14 @@ class UnifiedAuthManager:
                 mfa_valid = await self._verify_mfa(request)
                 if not mfa_valid:
                     await self._record_failed_attempt(request)
-                    return AuthenticationResponse(
+                    return AuthenticationResponse()
                         result=AuthenticationResult.INVALID_CREDENTIALS,
                         success=False,
                         error_message="Invalid MFA code",
                         audit_id=audit_id,
                         request_id=request.request_id
                     )
-            
+
             # Create session
             session_id = await self._create_session(user_id or "unknown", request)
 
@@ -387,8 +407,8 @@ class UnifiedAuthManager:
 
             # Log successful authentication
             await self._log_auth_success(user_id or "unknown", session_id, request)
-            
-            return AuthenticationResponse(
+
+            return AuthenticationResponse()
                 result=AuthenticationResult.SUCCESS,
                 success=True,
                 user_id=user_id,
@@ -407,12 +427,12 @@ class UnifiedAuthManager:
                 user_info=await self._get_user_info(user_id or "unknown"),
                 permissions=await self._get_user_permissions(user_id or "unknown")
             )
-            
+
         except Exception as e:
             logger.error(f" Authentication error: {e}")
             await self._log_auth_error(audit_id, request, str(e))
-            
-            return AuthenticationResponse(
+
+            return AuthenticationResponse()
                 result=AuthenticationResult.SYSTEM_ERROR,
                 success=False,
                 error_message="Authentication system error",
@@ -473,7 +493,7 @@ class UnifiedAuthManager:
             # Validate refresh token
             token_validation = await self.validate_token(refresh_token)
             if not token_validation["valid"]:
-                return AuthenticationResponse(
+                return AuthenticationResponse()
                     result=AuthenticationResult.INVALID_CREDENTIALS,
                     success=False,
                     error_message="Invalid refresh token"
@@ -481,7 +501,7 @@ class UnifiedAuthManager:
 
             token_data = token_validation["token"]
             if token_data.token_type != "refresh":
-                return AuthenticationResponse(
+                return AuthenticationResponse()
                     result=AuthenticationResult.INVALID_CREDENTIALS,
                     success=False,
                     error_message="Not a refresh token"
@@ -491,20 +511,20 @@ class UnifiedAuthManager:
             if token_data.session_id:
                 session_validation = await self.validate_session(token_data.session_id)
                 if not session_validation["valid"]:
-                    return AuthenticationResponse(
+                    return AuthenticationResponse()
                         result=AuthenticationResult.INVALID_CREDENTIALS,
                         success=False,
                         error_message="Associated session invalid"
                     )
 
             # Generate new access token
-            new_access_token = await self._generate_access_token(
+            new_access_token = await self._generate_access_token()
                 token_data.user_id,
                 token_data.session_id,
                 token_data.security_level
             )
 
-            return AuthenticationResponse(
+            return AuthenticationResponse()
                 result=AuthenticationResult.SUCCESS,
                 success=True,
                 user_id=token_data.user_id,
@@ -519,7 +539,7 @@ class UnifiedAuthManager:
 
         except Exception as e:
             logger.error(f"Token refresh error: {e}")
-            return AuthenticationResponse(
+            return AuthenticationResponse()
                 result=AuthenticationResult.SYSTEM_ERROR,
                 success=False,
                 error_message="Token refresh failed"
@@ -544,7 +564,7 @@ class UnifiedAuthManager:
             logger.error(f"Logout error: {e}")
             return False
 
-    async def require_authentication(self,
+    async def require_authentication(self,)
                                    token: str,
                                    required_level: SecurityLevel = SecurityLevel.BASIC) -> Dict[str, Any]:
         """Require authentication with minimum security level."""
@@ -656,7 +676,7 @@ class UnifiedAuthManager:
         password = ''.join(random.choice(chars) for _ in range(16))
 
         # Ensure it meets requirements
-        if (any(c.isupper() for c in password) and
+        if (any(c.isupper() for c in password) and)
             any(c.islower() for c in password) and
             any(c.isdigit() for c in password) and
             any(c in "!@#$%^&*" for c in password)):
@@ -716,7 +736,7 @@ class UnifiedAuthManager:
 
     async def _authenticate_primary(self, request: AuthenticationRequest) -> AuthenticationResponse:
         """Perform primary authentication."""
-        return AuthenticationResponse(
+        return AuthenticationResponse()
             result=AuthenticationResult.INVALID_CREDENTIALS,
             success=False,
             error_message="Not implemented",

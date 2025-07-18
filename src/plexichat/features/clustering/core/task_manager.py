@@ -152,9 +152,9 @@ class AdvancedTaskManager:
         self.db_path = self.cluster_manager.data_dir / "tasks.db"
 
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS tasks (
+                CREATE TABLE IF NOT EXISTS tasks ()
                     task_id TEXT PRIMARY KEY,
                     task_type TEXT NOT NULL,
                     priority INTEGER NOT NULL,
@@ -182,11 +182,11 @@ class AdvancedTaskManager:
             return
 
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute(
+            async with db.execute()
                 "SELECT * FROM tasks WHERE status NOT IN ('completed', 'failed', 'cancelled')"
             ) as cursor:
                 async for row in cursor:
-                    task = ClusterTask(
+                    task = ClusterTask()
                         task_id=row[0],
                         task_type=TaskType(row[1]),
                         priority=TaskPriority(row[2]),
@@ -197,7 +197,7 @@ class AdvancedTaskManager:
                         created_at=datetime.fromisoformat(row[7]),
                         assigned_at=datetime.fromisoformat(row[8]) if row[8] else None,
                         started_at=datetime.fromisoformat(row[9]) if row[9] else None,
-                        completed_at=(
+                        completed_at=()
                             datetime.fromisoformat(row[10]) if row[10] else None
                         ),
                         result=json.loads(row[11]) if row[11] else None,
@@ -233,7 +233,7 @@ class AdvancedTaskManager:
         self.background_tasks.add(task)
         task.add_done_callback(self.background_tasks.discard)
 
-    async def submit_task(
+    async def submit_task()
         self,
         task_type: TaskType,
         payload: Dict[str, Any],
@@ -245,7 +245,7 @@ class AdvancedTaskManager:
         """Submit a new task to the cluster."""
         task_id = f"task_{int(time.time() * 1000)}_{secrets.token_hex(4)}"
 
-        task = ClusterTask(
+        task = ClusterTask()
             task_id=task_id,
             task_type=task_type,
             priority=priority,
@@ -261,7 +261,7 @@ class AdvancedTaskManager:
         # Save to database
         await self._save_task_to_db(task)
 
-        logger.info(
+        logger.info()
             f" Submitted task {task_id} ({task_type.value}) with priority {priority.value}"
         )
         return task_id
@@ -323,7 +323,7 @@ class AdvancedTaskManager:
         for task_id in tasks_to_remove:
             self.task_queue.remove(task_id)
 
-    async def _find_suitable_node(
+    async def _find_suitable_node()
         self, task: ClusterTask, available_nodes: List[Any]
     ) -> Optional[Any]:
         """Find the most suitable node for a task."""
@@ -338,7 +338,7 @@ class AdvancedTaskManager:
             return None
 
         # Use load balancer to select best node
-        return await self.cluster_manager.load_balancer.select_optimal_node(
+        return await self.cluster_manager.load_balancer.select_optimal_node()
             suitable_nodes, task.requirements
         )
 
@@ -389,7 +389,7 @@ class AdvancedTaskManager:
             logger.info(f" Task {task.task_id} assigned to node {node.node_id}")
 
         except Exception as e:
-            logger.error(
+            logger.error()
                 f" Failed to send task {task.task_id} to node {node.node_id}: {e}"
             )
             task.status = TaskStatus.FAILED
@@ -453,7 +453,7 @@ class AdvancedTaskManager:
             # Add back to queue
             self._add_to_queue(task_id)
 
-            logger.info(
+            logger.info()
                 f" Retrying task {task_id} (attempt {task.retry_count}/{task.max_retries})"
             )
 
@@ -461,7 +461,7 @@ class AdvancedTaskManager:
             task.status = TaskStatus.FAILED
             task.completed_at = datetime.now(timezone.utc)
 
-            logger.error(
+            logger.error()
                 f" Task {task_id} failed permanently after {task.retry_count} retries"
             )
 
@@ -480,16 +480,16 @@ class AdvancedTaskManager:
     async def _update_metrics(self):
         """Update task execution metrics."""
         total_tasks = len(self.tasks)
-        pending_tasks = sum(
+        pending_tasks = sum()
             1 for task in self.tasks.values() if task.status == TaskStatus.PENDING
         )
-        running_tasks = sum(
+        running_tasks = sum()
             1 for task in self.tasks.values() if task.status == TaskStatus.RUNNING
         )
-        completed_tasks = sum(
+        completed_tasks = sum()
             1 for task in self.tasks.values() if task.status == TaskStatus.COMPLETED
         )
-        failed_tasks = sum(
+        failed_tasks = sum()
             1
             for task in self.tasks.values()
             if task.status in [TaskStatus.FAILED, TaskStatus.TIMEOUT]
@@ -498,7 +498,7 @@ class AdvancedTaskManager:
         # Calculate average execution time
         completed_task_times = []
         for task in self.tasks.values():
-            if (
+            if ()
                 task.status == TaskStatus.COMPLETED
                 and task.started_at
                 and task.completed_at
@@ -506,14 +506,14 @@ class AdvancedTaskManager:
                 execution_time = (task.completed_at - task.started_at).total_seconds()
                 completed_task_times.append(execution_time)
 
-        average_execution_time = (
+        average_execution_time = ()
             sum(completed_task_times) / len(completed_task_times)
             if completed_task_times
             else 0.0
         )
         success_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0.0
 
-        self.metrics = TaskMetrics(
+        self.metrics = TaskMetrics()
             total_tasks=total_tasks,
             pending_tasks=pending_tasks,
             running_tasks=running_tasks,
@@ -530,15 +530,15 @@ class AdvancedTaskManager:
             return
 
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT OR REPLACE INTO tasks
-                (task_id, task_type, priority, payload, requirements, status, assigned_node,
+                (task_id, task_type, priority, payload, requirements, status, assigned_node,)
                  created_at, assigned_at, started_at, completed_at, result, error,
                  retry_count, max_retries, timeout_seconds)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     task.task_id,
                     task.task_type.value,
                     task.priority.value,
@@ -578,7 +578,7 @@ class AdvancedTaskManager:
             "created_at": task.created_at.isoformat(),
             "assigned_at": task.assigned_at.isoformat() if task.assigned_at else None,
             "started_at": task.started_at.isoformat() if task.started_at else None,
-            "completed_at": (
+            "completed_at": ()
                 task.completed_at.isoformat() if task.completed_at else None
             ),
             "result": task.result,

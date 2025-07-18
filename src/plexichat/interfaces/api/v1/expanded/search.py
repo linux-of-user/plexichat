@@ -13,6 +13,7 @@ from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 
 """
+import time
 PlexiChat Advanced Search API
 Comprehensive search functionality with semantic search, filters, and AI-powered features
 """
@@ -25,7 +26,7 @@ class SearchFilter(BaseModel):
     """Search filter model."""
 
     field: str = Field(..., description="Field to filter on")
-    operator: str = Field(
+    operator: str = Field()
         ..., description="Filter operator (eq, ne, gt, lt, contains, etc.)"
     )
     value: Any = Field(..., description="Filter value")
@@ -42,16 +43,16 @@ class SearchRequest(BaseModel):
     """Advanced search request model."""
 
     query: str = Field(..., min_length=1, description="Search query")
-    content_types: List[str] = Field(
+    content_types: List[str] = Field()
         default_factory=list, description="Content types to search"
     )
-    filters: List[SearchFilter] = Field(
+    filters: List[SearchFilter] = Field()
         default_factory=list, description="Search filters"
     )
     sorts: List[SearchSort] = Field(default_factory=list, description="Sort criteria")
     limit: int = Field(default=20, le=100, description="Maximum results")
     offset: int = Field(default=0, ge=0, description="Result offset")
-    include_highlights: bool = Field(
+    include_highlights: bool = Field()
         default=True, description="Include search highlights"
     )
     include_facets: bool = Field(default=False, description="Include search facets")
@@ -61,11 +62,11 @@ class SemanticSearchRequest(BaseModel):
     """Semantic search request model."""
 
     query: str = Field(..., min_length=1, description="Semantic search query")
-    similarity_threshold: float = Field(
+    similarity_threshold: float = Field()
         default=0.7, ge=0.0, le=1.0, description="Similarity threshold"
     )
     max_results: int = Field(default=20, le=100, description="Maximum results")
-    content_types: List[str] = Field(
+    content_types: List[str] = Field()
         default_factory=list, description="Content types to search"
     )
     context_window: int = Field(default=3, description="Context window for results")
@@ -81,7 +82,7 @@ class SearchResult(BaseModel):
     url: Optional[str] = Field(None, description="Result URL")
     score: float = Field(..., description="Search relevance score")
     highlights: List[str] = Field(default_factory=list, description="Search highlights")
-    metadata: Dict[str, Any] = Field(
+    metadata: Dict[str, Any] = Field()
         default_factory=dict, description="Additional metadata"
     )
     created_at: datetime = Field(..., description="Creation timestamp")
@@ -95,7 +96,7 @@ class SearchResponse(BaseModel):
     total_results: int = Field(..., description="Total number of results")
     results: List[SearchResult] = Field(..., description="Search results")
     facets: Dict[str, Any] = Field(default_factory=dict, description="Search facets")
-    suggestions: List[str] = Field(
+    suggestions: List[str] = Field()
         default_factory=list, description="Search suggestions"
     )
     execution_time_ms: float = Field(..., description="Search execution time")
@@ -108,7 +109,7 @@ class SavedSearch(BaseModel):
     search_id: str = Field(..., description="Saved search ID")
     name: str = Field(..., description="Search name")
     query: str = Field(..., description="Search query")
-    filters: List[SearchFilter] = Field(
+    filters: List[SearchFilter] = Field()
         default_factory=list, description="Search filters"
     )
     created_at: datetime = Field(..., description="Creation timestamp")
@@ -122,7 +123,7 @@ class SearchSuggestion(BaseModel):
     suggestion: str = Field(..., description="Suggested search term")
     type: str = Field(..., description="Suggestion type")
     score: float = Field(..., description="Suggestion relevance score")
-    metadata: Dict[str, Any] = Field(
+    metadata: Dict[str, Any] = Field()
         default_factory=dict, description="Additional metadata"
     )
 
@@ -133,9 +134,9 @@ async def setup_search_endpoints(router: APIRouter):
     security = HTTPBearer()
 
     @router.get("/global", response_model=SearchResponse, summary="Global Search")
-    async def global_search(
+    async def global_search()
         q: str = Query(..., min_length=1, description="Search query"),
-        content_types: Optional[str] = Query(
+        content_types: Optional[str] = Query()
             default=None, description="Comma-separated content types"
         ),
         limit: int = Query(default=20, le=100),
@@ -150,7 +151,7 @@ async def setup_search_endpoints(router: APIRouter):
             types = content_types.split(",") if content_types else []
 
             # Perform search
-            results = await _perform_global_search(
+            results = await _perform_global_search()
                 q, types, limit, offset, include_highlights, include_facets
             )
 
@@ -161,13 +162,13 @@ async def setup_search_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Search failed")
 
     @router.get("/messages", response_model=SearchResponse, summary="Search Messages")
-    async def search_messages(
+    async def search_messages()
         q: str = Query(..., min_length=1, description="Search query"),
-        channel_id: Optional[str] = Query(
+        channel_id: Optional[str] = Query()
             default=None, description="Channel ID filter"
         ),
         user_id: Optional[str] = Query(default=None, description="User ID filter"),
-        date_from: Optional[datetime] = Query(
+        date_from: Optional[datetime] = Query()
             default=None, description="Date range start"
         ),
         date_to: Optional[datetime] = Query(default=None, description="Date range end"),
@@ -177,7 +178,7 @@ async def setup_search_endpoints(router: APIRouter):
     ):
         """Search messages with filters."""
         try:
-            results = await _search_messages(
+            results = await _search_messages()
                 q, channel_id, user_id, date_from, date_to, limit, offset
             )
             return results
@@ -187,7 +188,7 @@ async def setup_search_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Message search failed")
 
     @router.get("/users", response_model=SearchResponse, summary="Search Users")
-    async def search_users(
+    async def search_users()
         q: str = Query(..., min_length=1, description="Search query"),
         verified_only: bool = Query(default=False, description="Verified users only"),
         online_only: bool = Query(default=False, description="Online users only"),
@@ -205,9 +206,9 @@ async def setup_search_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="User search failed")
 
     @router.get("/channels", response_model=SearchResponse, summary="Search Channels")
-    async def search_channels(
+    async def search_channels()
         q: str = Query(..., min_length=1, description="Search query"),
-        channel_type: Optional[str] = Query(
+        channel_type: Optional[str] = Query()
             default=None, description="Channel type filter"
         ),
         public_only: bool = Query(default=False, description="Public channels only"),
@@ -217,7 +218,7 @@ async def setup_search_endpoints(router: APIRouter):
     ):
         """Search channels with filters."""
         try:
-            results = await _search_channels(
+            results = await _search_channels()
                 q, channel_type, public_only, limit, offset
             )
             return results
@@ -227,12 +228,12 @@ async def setup_search_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Channel search failed")
 
     @router.get("/files", response_model=SearchResponse, summary="Search Files")
-    async def search_files(
+    async def search_files()
         q: str = Query(..., min_length=1, description="Search query"),
         file_type: Optional[str] = Query(default=None, description="File type filter"),
         size_min: Optional[int] = Query(default=None, description="Minimum file size"),
         size_max: Optional[int] = Query(default=None, description="Maximum file size"),
-        date_from: Optional[datetime] = Query(
+        date_from: Optional[datetime] = Query()
             default=None, description="Date range start"
         ),
         date_to: Optional[datetime] = Query(default=None, description="Date range end"),
@@ -242,7 +243,7 @@ async def setup_search_endpoints(router: APIRouter):
     ):
         """Search files with filters."""
         try:
-            results = await _search_files(
+            results = await _search_files()
                 q, file_type, size_min, size_max, date_from, date_to, limit, offset
             )
             return results
@@ -252,7 +253,7 @@ async def setup_search_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="File search failed")
 
     @router.post("/semantic", response_model=SearchResponse, summary="Semantic Search")
-    async def semantic_search(
+    async def semantic_search()
         request: SemanticSearchRequest, token: str = Depends(security)
     ):
         """Perform AI-powered semantic search."""
@@ -275,12 +276,12 @@ async def setup_search_endpoints(router: APIRouter):
             logger.error(f"Advanced search failed: {e}")
             raise HTTPException(status_code=500, detail="Advanced search failed")
 
-    @router.get(
+    @router.get()
         "/suggestions",
         response_model=List[SearchSuggestion],
         summary="Get Search Suggestions",
     )
-    async def get_search_suggestions(
+    async def get_search_suggestions()
         q: str = Query(..., min_length=1, description="Partial search query"),
         limit: int = Query(default=10, le=20),
         token: str = Depends(security),
@@ -294,10 +295,10 @@ async def setup_search_endpoints(router: APIRouter):
             logger.error(f"Search suggestions failed: {e}")
             raise HTTPException(status_code=500, detail="Failed to get suggestions")
 
-    @router.get(
+    @router.get()
         "/history", response_model=List[Dict[str, Any]], summary="Get Search History"
     )
-    async def get_search_history(
+    async def get_search_history()
         limit: int = Query(default=50, le=100),
         offset: int = Query(default=0, ge=0),
         token: str = Depends(security),
@@ -312,10 +313,10 @@ async def setup_search_endpoints(router: APIRouter):
             logger.error(f"Failed to get search history: {e}")
             raise HTTPException(status_code=500, detail="Failed to get search history")
 
-    @router.get(
+    @router.get()
         "/saved", response_model=List[SavedSearch], summary="Get Saved Searches"
     )
-    async def get_saved_searches(
+    async def get_saved_searches()
         limit: int = Query(default=50, le=100),
         offset: int = Query(default=0, ge=0),
         token: str = Depends(security),
@@ -331,7 +332,7 @@ async def setup_search_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to get saved searches")
 
     @router.post("/saved", response_model=SavedSearch, summary="Save Search")
-    async def save_search(
+    async def save_search()
         name: str,
         query: str,
         filters: List[SearchFilter] = [],
@@ -367,7 +368,7 @@ async def setup_search_endpoints(router: APIRouter):
 # Helper functions (would be implemented with actual search engine integration)
 
 
-async def _perform_global_search(
+async def _perform_global_search()
     query: str,
     content_types: List[str],
     limit: int,
@@ -377,7 +378,7 @@ async def _perform_global_search(
 ) -> SearchResponse:
     """Perform global search across all content."""
     # Placeholder implementation
-    return SearchResponse(
+    return SearchResponse()
         query=query,
         total_results=0,
         results=[],
@@ -386,7 +387,7 @@ async def _perform_global_search(
     )
 
 
-async def _search_messages(
+async def _search_messages()
     query: str,
     channel_id: Optional[str],
     user_id: Optional[str],
@@ -397,7 +398,7 @@ async def _search_messages(
 ) -> SearchResponse:
     """Search messages with filters."""
     # Placeholder implementation
-    return SearchResponse(
+    return SearchResponse()
         query=query,
         total_results=0,
         results=[],
@@ -406,12 +407,12 @@ async def _search_messages(
     )
 
 
-async def _search_users(
+async def _search_users()
     query: str, verified_only: bool, online_only: bool, limit: int, offset: int
 ) -> SearchResponse:
     """Search users with filters."""
     # Placeholder implementation
-    return SearchResponse(
+    return SearchResponse()
         query=query,
         total_results=0,
         results=[],
@@ -420,12 +421,12 @@ async def _search_users(
     )
 
 
-async def _search_channels(
+async def _search_channels()
     query: str, channel_type: Optional[str], public_only: bool, limit: int, offset: int
 ) -> SearchResponse:
     """Search channels with filters."""
     # Placeholder implementation
-    return SearchResponse(
+    return SearchResponse()
         query=query,
         total_results=0,
         results=[],
@@ -434,7 +435,7 @@ async def _search_channels(
     )
 
 
-async def _search_files(
+async def _search_files()
     query: str,
     file_type: Optional[str],
     size_min: Optional[int],
@@ -446,7 +447,7 @@ async def _search_files(
 ) -> SearchResponse:
     """Search files with filters."""
     # Placeholder implementation
-    return SearchResponse(
+    return SearchResponse()
         query=query,
         total_results=0,
         results=[],
@@ -458,7 +459,7 @@ async def _search_files(
 async def _perform_semantic_search(request: SemanticSearchRequest) -> SearchResponse:
     """Perform AI-powered semantic search."""
     # Placeholder implementation - would integrate with AI search engine
-    return SearchResponse(
+    return SearchResponse()
         query=request.query,
         total_results=0,
         results=[],
@@ -470,7 +471,7 @@ async def _perform_semantic_search(request: SemanticSearchRequest) -> SearchResp
 async def _perform_advanced_search(request: SearchRequest) -> SearchResponse:
     """Perform advanced search with complex filters."""
     # Placeholder implementation
-    return SearchResponse(
+    return SearchResponse()
         query=request.query,
         total_results=0,
         results=[],
@@ -485,7 +486,7 @@ async def _get_search_suggestions(query: str, limit: int) -> List[SearchSuggesti
     return []
 
 
-async def _get_search_history(
+async def _get_search_history()
     user_id: str, limit: int, offset: int
 ) -> List[Dict[str, Any]]:
     """Get user's search history."""
@@ -493,7 +494,7 @@ async def _get_search_history(
     return []
 
 
-async def _get_saved_searches(
+async def _get_saved_searches()
     user_id: str, limit: int, offset: int
 ) -> List[SavedSearch]:
     """Get user's saved searches."""
@@ -501,12 +502,12 @@ async def _get_saved_searches(
     return []
 
 
-async def _save_search(
+async def _save_search()
     user_id: str, name: str, query: str, filters: List[SearchFilter]
 ) -> SavedSearch:
     """Save a search for later use."""
     # Placeholder implementation
-    return SavedSearch(
+    return SavedSearch()
         search_id="saved_123",
         name=name,
         query=query,

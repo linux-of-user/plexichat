@@ -9,18 +9,17 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 
-from ....core.auth.dependencies import (
+from ....core.auth.dependencies import ()
 from ....core.logging import get_logger
 from ....core.security.rate_limiting import rate_limiter
-
-
-
 
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field
 
     from plexichat.infrastructure.utils.auth import get_current_user,
+import socket
+import time
 
     from,
     import,
@@ -84,30 +83,30 @@ typing_indicators: Dict[str, Dict[int, datetime]] = {}
 websocket_connections: Dict[int, List[WebSocket]] = {}
 
 
-@router.post(
+@router.post()
     "/status",
     summary="Update presence status",
     description="Update user's presence status and activity"
 )
-async def update_presence(
+async def update_presence()
     presence_data: PresenceUpdate,
     current_user=Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Update user presence status."""
     try:
         # Rate limiting
-        if not await rate_limiter.check_rate_limit(
+        if not await rate_limiter.check_rate_limit()
             f"presence:{current_user.id}",
             max_requests=30,
             window_seconds=60
         ):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Too many presence updates"
             )
 
         # Update presence
-        presence = UserPresence(
+        presence = UserPresence()
             user_id=current_user.id,
             username=current_user.username,
             status=presence_data.status,
@@ -134,19 +133,19 @@ async def update_presence(
         raise
     except Exception as e:
         logger.error(f"Presence update error: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update presence"
         )
 
 
-@router.get(
+@router.get()
     "/status",
     response_model=List[UserPresence],
     summary="Get user presence",
     description="Get presence information for users"
 )
-async def get_presence(
+async def get_presence()
     user_ids: Optional[str] = None,
     current_user=Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
@@ -167,30 +166,30 @@ async def get_presence(
 
     except Exception as e:
         logger.error(f"Get presence error: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get presence information"
         )
 
 
-@router.post(
+@router.post()
     "/typing",
     summary="Update typing indicator",
     description="Update typing indicator for a channel or conversation"
 )
-async def update_typing_indicator(
+async def update_typing_indicator()
     typing_data: TypingIndicator,
     current_user=Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Update typing indicator."""
     try:
         # Rate limiting for typing indicators
-        if not await rate_limiter.check_rate_limit(
+        if not await rate_limiter.check_rate_limit()
             f"typing:{current_user.id}",
             max_requests=60,
             window_seconds=60
         ):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Too many typing updates"
             )
@@ -222,18 +221,18 @@ async def update_typing_indicator(
         raise
     except Exception as e:
         logger.error(f"Typing indicator error: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update typing indicator"
         )
 
 
-@router.get(
+@router.get()
     "/typing/{context}",
     summary="Get typing indicators",
     description="Get current typing indicators for a context"
 )
-async def get_typing_indicators(
+async def get_typing_indicators()
     context: str,
     current_user=Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
@@ -263,7 +262,7 @@ async def get_typing_indicators(
 
     except Exception as e:
         logger.error(f"Get typing indicators error: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get typing indicators"
         )

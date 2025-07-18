@@ -15,39 +15,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from plexichat.app.logger_config import logger
 
@@ -272,13 +240,12 @@ class SecurityService:
         try:
             # Check file size (basic protection)
             if len(file_content) > 100 * 1024 * 1024:  # 100MB limit
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.SUSPICIOUS_FILE,
                     threat_level=ThreatLevel.MEDIUM,
                     source=filename,
                     description=f"File too large: {len(file_content)} bytes",
-                    from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                     witty_response="File rejected! That's bigger than my attention span! "
@@ -288,13 +255,12 @@ datetime = datetime.now(),
             # Check against known signatures
             for signature in self.file_signatures.values():
                 if re.search(signature.pattern, file_content, re.IGNORECASE | re.DOTALL):
-                    threat = SecurityThreat(
+                    threat = SecurityThreat()
                         threat_id=self._generate_threat_id(),
                         threat_type=signature.threat_type,
                         threat_level=signature.threat_level,
                         source=filename,
                         description=f"Matched signature: {signature.name}",
-                        from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                         metadata={"signature_id": signature.signature_id},
@@ -310,13 +276,12 @@ datetime = datetime.now(),
             file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
 
             if f'.{file_ext}' in dangerous_extensions:
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.SUSPICIOUS_FILE,
                     threat_level=ThreatLevel.MEDIUM,
                     source=filename,
                     description=f"Potentially dangerous file extension: .{file_ext}",
-                    from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                     witty_response="Executable file blocked! We don't run random programs here! "
@@ -332,13 +297,12 @@ datetime = datetime.now(),
 
         except Exception as e:
             logger.error(f"Error scanning file {filename}: {e}")
-            threat = SecurityThreat(
+            threat = SecurityThreat()
                 threat_id=self._generate_threat_id(),
                 threat_type=ThreatType.SUSPICIOUS_FILE,
                 threat_level=ThreatLevel.MEDIUM,
                 source=filename,
                 description=f"Scan error: {str(e)}",
-                from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                 witty_response="File scan failed! When in doubt, block it out! "
@@ -357,13 +321,12 @@ datetime = datetime.now(),
 
             # Check against blocked domains
             if domain in self.blocked_domains:
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.MALICIOUS_LINK,
                     threat_level=ThreatLevel.HIGH,
                     source=url,
                     description=f"Known malicious domain: {domain}",
-                    from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                     witty_response=self._get_witty_response(ThreatType.PHISHING)
@@ -383,13 +346,12 @@ datetime = datetime.now(),
 
             for pattern in suspicious_patterns:
                 if re.search(pattern, url, re.IGNORECASE):
-                    threat = SecurityThreat(
+                    threat = SecurityThreat()
                         threat_id=self._generate_threat_id(),
                         threat_type=ThreatType.MALICIOUS_LINK,
                         threat_level=ThreatLevel.MEDIUM,
                         source=url,
                         description="Suspicious URL pattern detected",
-                        from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                         witty_response="Suspicious link detected! We don't click on sketchy links here! "
@@ -405,13 +367,12 @@ datetime = datetime.now(),
 
         except Exception as e:
             logger.error(f"Error checking link safety for {url}: {e}")
-            threat = SecurityThreat(
+            threat = SecurityThreat()
                 threat_id=self._generate_threat_id(),
                 threat_type=ThreatType.MALICIOUS_LINK,
                 threat_level=ThreatLevel.MEDIUM,
                 source=url,
                 description=f"Link check error: {str(e)}",
-                from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                 witty_response="Link check failed! Better safe than sorry! "
@@ -432,18 +393,15 @@ datetime = datetime.now(),
             # Check if IP is currently blocked
             if source in self.sql_injection_blocks:
                 block_time = self.sql_injection_blocks[source]
-                if from datetime import datetime
-datetime = datetime.now() < block_time:
+                if datetime.now() < block_time:
                     # Still blocked
-                    remaining_time = (block_time - from datetime import datetime
-datetime = datetime.now()).total_seconds()
-                    threat = SecurityThreat(
+                    remaining_time = (block_time - datetime.now()).total_seconds()
+                    threat = SecurityThreat()
                         threat_id=self._generate_threat_id(),
                         threat_type=ThreatType.SQL_INJECTION,
                         threat_level=ThreatLevel.CRITICAL,
                         source=source,
                         description=f"Blocked IP attempting SQL injection. Block expires in {int(remaining_time)}s",
-                        from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                         metadata={"blocked_until": block_time.isoformat(), "remaining_seconds": int(remaining_time)},
@@ -478,25 +436,25 @@ datetime = datetime.now(),
                 # Union-based injection
                 r"(\bUNION\s+(ALL\s+)?SELECT\b)",
                 # Stored procedure execution
-                r"(\b(EXEC|EXECUTE)\s*\()",
+                r"(\b(EXEC|EXECUTE)\s*\()",)
                 # SQL comments
                 r"(--|\#|\/\*|\*\/)",
                 # SQL functions commonly used in injection
-                r"(\b(CHAR|ASCII|SUBSTRING|LENGTH|USER|DATABASE|VERSION)\s*\()",
+                r"(\b(CHAR|ASCII|SUBSTRING|LENGTH|USER|DATABASE|VERSION)\s*\()",)
                 # Time-based injection
                 r"(\b(WAITFOR|DELAY)\s+)",
                 # Type conversion functions
-                r"(\b(CAST|CONVERT)\s*\()",
+                r"(\b(CAST|CONVERT)\s*\()",)
                 # Information schema access
                 r"(\b(INFORMATION_SCHEMA|SYSOBJECTS|SYSCOLUMNS)\b)",
                 # Additional dangerous patterns
                 r"(\b(LOAD_FILE|INTO\s+OUTFILE|INTO\s+DUMPFILE)\b)",
-                r"(\b(BENCHMARK|SLEEP)\s*\()",
-                r"(\b(HEX|UNHEX|MD5|SHA1)\s*\()",
+                r"(\b(BENCHMARK|SLEEP)\s*\()",)
+                r"(\b(HEX|UNHEX|MD5|SHA1)\s*\()",)
                 # Blind injection patterns
                 r"(\b(IF|CASE|WHEN)\s*\(.*?=.*?\))",
                 # Error-based injection
-                r"(\b(EXTRACTVALUE|UPDATEXML)\s*\()",
+                r"(\b(EXTRACTVALUE|UPDATEXML)\s*\()",)
             ]
 
             detected_patterns = []
@@ -507,7 +465,6 @@ datetime = datetime.now(),
 
             if detected_patterns:
                 # Track attempt
-                from datetime import datetime
 current_time = datetime.now()
 datetime = datetime.now()
                 if source not in self.sql_injection_attempts:
@@ -542,7 +499,7 @@ datetime = datetime.now()
                     logger.critical(f" IP {source} blocked for SQL injection attempts until {block_until}")
 
                 # Create threat with escalation-aware response
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.SQL_INJECTION,
                     threat_level=ThreatLevel.HIGH if escalation_level < 2 else ThreatLevel.CRITICAL,
@@ -578,8 +535,7 @@ datetime = datetime.now()
         """
         if source in self.sql_injection_blocks:
             block_time = self.sql_injection_blocks[source]
-            if from datetime import datetime
-datetime = datetime.now() < block_time:
+            if datetime.now() < block_time:
                 escalation_level = self.sql_injection_escalation.get(source, 0)
                 return True, block_time, escalation_level
             else:
@@ -591,7 +547,6 @@ datetime = datetime.now() < block_time:
 
     def get_sql_injection_stats(self, source: str) -> Dict[str, Any]:
         """Get SQL injection attempt statistics for a source."""
-        from datetime import datetime
 current_time = datetime.now()
 datetime = datetime.now()
         attempts = self.sql_injection_attempts.get(source, [])
@@ -607,8 +562,8 @@ datetime = datetime.now()
             "escalation_level": escalation_level,
             "is_blocked": is_blocked,
             "block_expiry": block_expiry.isoformat() if block_expiry else None,
-            "next_escalation_threshold": next(
-                (threshold for threshold in self.sql_injection_escalation_thresholds
+            "next_escalation_threshold": next()
+                (threshold for threshold in self.sql_injection_escalation_thresholds)
                  if threshold > len(recent_attempts)),
                 None
             )
@@ -687,13 +642,12 @@ datetime = datetime.now()
 
             # Check if limit exceeded
             if len(self.rate_limits[identifier]) >= max_requests:
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.RATE_LIMIT_EXCEEDED,
                     threat_level=ThreatLevel.MEDIUM,
                     source=identifier,
                     description=f"Rate limit exceeded: {len(self.rate_limits[identifier])} requests in last minute",
-                    from datetime import datetime
 detected_at = datetime.now()
 datetime = datetime.now(),
                     witty_response="Slow down there, Speed Racer!  Rate limit exceeded."
@@ -747,8 +701,7 @@ datetime = datetime.now(),
             # Recent threats (last 24 hours)
             recent_threats = [
                 threat for threat in self.detected_threats.values()
-                if from datetime import datetime
-datetime = datetime.now() - threat.detected_at < timedelta(hours=24)
+                if datetime.now() - threat.detected_at < timedelta(hours=24)
             ]
 
             return {
@@ -760,8 +713,7 @@ datetime = datetime.now() - threat.detected_at < timedelta(hours=24)
                 "threat_counts_by_level": level_counts,
                 "file_signatures_loaded": len(self.file_signatures),
                 "rate_limited_identifiers": len(self.rate_limits),
-                "last_updated": from datetime import datetime
-datetime = datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat()
             }
 
         except Exception as e:
@@ -772,7 +724,7 @@ datetime = datetime.now().isoformat()
         """Get recent security threats."""
         try:
             # Sort threats by detection time (newest first)
-            sorted_threats = sorted(
+            sorted_threats = sorted()
                 self.detected_threats.values(),
                 key=lambda t: t.detected_at,
                 reverse=True
@@ -780,7 +732,7 @@ datetime = datetime.now().isoformat()
 
             recent_threats = []
             for threat in sorted_threats[:limit]:
-                recent_threats.append({
+                recent_threats.append({)
                     "threat_id": threat.threat_id,
                     "type": threat.threat_type.value,
                     "level": threat.threat_level.value,

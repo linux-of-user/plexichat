@@ -80,11 +80,11 @@ class TestSuite:
             "total_tests": total_tests,
             "passed_tests": passed_tests,
             "failed_tests": total_tests - passed_tests,
-            "success_rate": (
+            "success_rate": ()
                 (passed_tests / total_tests * 100) if total_tests > 0 else 0
             ),
             "total_duration_ms": total_duration,
-            "average_duration_ms": (
+            "average_duration_ms": ()
                 total_duration / total_tests if total_tests > 0 else 0
             ),
         }
@@ -110,7 +110,7 @@ class MockPlexiChatAPI:
 
     async def send_message(self, user_id: str, message: str, **kwargs) -> bool:
         """Mock send message."""
-        self.sent_messages.append(
+        self.sent_messages.append()
             {
                 "user_id": user_id,
                 "message": message,
@@ -241,7 +241,7 @@ class PluginTestFramework:
 
             duration_ms = (time.time() - start_time) * 1000
 
-            return TestResult(
+            return TestResult()
                 test_name=test_name,
                 success=True,
                 duration_ms=duration_ms,
@@ -250,7 +250,7 @@ class PluginTestFramework:
 
         except AssertionError as e:
             duration_ms = (time.time() - start_time) * 1000
-            return TestResult(
+            return TestResult()
                 test_name=test_name,
                 success=False,
                 duration_ms=duration_ms,
@@ -260,7 +260,7 @@ class PluginTestFramework:
 
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000
-            return TestResult(
+            return TestResult()
                 test_name=test_name,
                 success=False,
                 duration_ms=duration_ms,
@@ -268,7 +268,7 @@ class PluginTestFramework:
                 output=traceback.format_exc(),
             )
 
-    async def run_performance_test(
+    async def run_performance_test()
         self, plugin_id: str, test_func: Callable, iterations: int = 100
     ) -> Dict[str, Any]:
         """Run performance test."""
@@ -379,7 +379,7 @@ class PluginTestFramework:
         # Calculate overall success rate
         total_tests = report["summary"]["total_tests"]
         if total_tests > 0:
-            report["summary"]["success_rate"] = (
+            report["summary"]["success_rate"] = ()
                 report["summary"]["total_passed"] / total_tests
             ) * 100
         else:

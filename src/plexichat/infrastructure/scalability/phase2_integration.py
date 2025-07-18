@@ -18,6 +18,7 @@ from ..performance.distributed_cache import CacheNode, distributed_cache
 
 
 """
+import time
 PlexiChat Phase II Scalability Integration
 Coordinates all Phase II scalability and modularity enhancements
 """
@@ -148,12 +149,12 @@ class Phase2ScalabilityCoordinator:
             # Start monitoring
             asyncio.create_task(self._monitoring_loop())
 
-            initialization_time = (
+            initialization_time = ()
                 datetime.now(timezone.utc) - start_time
             ).total_seconds()
             self.stats["initialization_time"] = initialization_time
 
-            logger.info(
+            logger.info()
                 f" Phase II Scalability System initialized in {initialization_time:.2f}s"
             )
 
@@ -170,10 +171,10 @@ class Phase2ScalabilityCoordinator:
         """Initialize distributed caching system."""
         # Add default cache nodes
         cache_nodes = [
-            CacheNode(
+            CacheNode()
                 node_id="cache-node-1", host="localhost", port=6379, region="primary"
             ),
-            CacheNode(
+            CacheNode()
                 node_id="cache-node-2", host="localhost", port=6380, region="primary"
             ),
         ]
@@ -200,7 +201,7 @@ class Phase2ScalabilityCoordinator:
 
         async def email_notification_handler(payload: Dict[str, Any]):
             """Handle email notification tasks."""
-            logger.info(
+            logger.info()
                 f"Processing email notification: {payload.get('subject', 'No subject')}"
             )
             # Simulate email sending
@@ -225,13 +226,13 @@ class Phase2ScalabilityCoordinator:
             return {"status": "completed", "result": "AI processing complete"}
 
         # Register handlers
-        self.task_queue_manager.register_task_handler(
+        self.task_queue_manager.register_task_handler()
             "email_notification", email_notification_handler
         )
-        self.task_queue_manager.register_task_handler(
+        self.task_queue_manager.register_task_handler()
             "file_processing", file_processing_handler
         )
-        self.task_queue_manager.register_task_handler(
+        self.task_queue_manager.register_task_handler()
             "ai_processing", ai_processing_handler
         )
 
@@ -306,7 +307,7 @@ class Phase2ScalabilityCoordinator:
             # Get cache stats
             cache_stats = self.distributed_cache.get_cache_statistics()
             self.stats["cache_nodes"] = cache_stats["total_nodes"]
-            self.metrics.cache_hit_rate_percent = cache_stats.get(
+            self.metrics.cache_hit_rate_percent = cache_stats.get()
                 "hit_rate_percent", 0.0
             )
 
@@ -315,7 +316,7 @@ class Phase2ScalabilityCoordinator:
             self.stats["active_workers"] = queue_stats["active_workers"]
 
             # Get orchestrator stats
-            orchestrator_stats = (
+            orchestrator_stats = ()
                 self.microservices_orchestrator.get_orchestrator_status()
             )
             self.stats["containers_running"] = orchestrator_stats["running_services"]
@@ -346,13 +347,13 @@ class Phase2ScalabilityCoordinator:
 
         try:
             # Simple scaling logic based on service health
-            healthy_ratio = self.stats["healthy_services"] / max(
+            healthy_ratio = self.stats["healthy_services"] / max()
                 self.stats["total_services"], 1
             )
 
             if healthy_ratio < 0.8:  # Less than 80% services healthy
                 await self._scale_up()
-            elif (
+            elif ()
                 healthy_ratio > 0.95
                 and self.stats["total_services"] > self.min_replicas
             ):
@@ -381,7 +382,7 @@ class Phase2ScalabilityCoordinator:
         self.stats["scaling_events_count"] += 1
         self.stats["last_scaling_event"] = datetime.now(timezone.utc)
 
-    async def submit_background_task(
+    async def submit_background_task()
         self, task_type: str, payload: Dict[str, Any], priority: str = "normal"
     ) -> str:
         """Submit a background task to the queue system."""
@@ -393,7 +394,7 @@ class Phase2ScalabilityCoordinator:
             "background": TaskPriority.BACKGROUND,
         }
 
-        return await self.task_queue_manager.submit_task(
+        return await self.task_queue_manager.submit_task()
             task_type=task_type,
             payload=payload,
             priority=priority_map.get(priority, TaskPriority.NORMAL),
@@ -403,7 +404,7 @@ class Phase2ScalabilityCoordinator:
         """Get value from distributed cache."""
         return await self.distributed_cache.get(key, default)
 
-    async def set_cache_value(
+    async def set_cache_value()
         self, key: str, value: Any, ttl: Optional[int] = None
     ) -> bool:
         """Set value in distributed cache."""

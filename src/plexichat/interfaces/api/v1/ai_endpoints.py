@@ -14,22 +14,13 @@ from ....features.ai.monitoring.metrics_collector import MetricsCollector
 from ....features.ai.monitoring.request_logger import RequestLogger
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
 
 """
+import time
 PlexiChat AI API Endpoints
 
 Consolidated AI management API endpoints including:
@@ -128,7 +119,7 @@ class MonitoringMetrics(BaseModel):
 
 # AI Request Processing Endpoints
 @router.post("/request", response_model=AIResponseModel)
-async def process_ai_request(
+async def process_ai_request()
     request: AIRequestModel,
     background_tasks: BackgroundTasks
 ):
@@ -159,7 +150,7 @@ async def process_ai_request(
         # Log request for monitoring
         background_tasks.add_task(log_ai_request, request, response)
 
-        return AIResponseModel(
+        return AIResponseModel()
             request_id=response.get("request_id", ""),
             model_id=response.get("model_id", request.model_id),
             content=response.get("content", ""),
@@ -167,8 +158,7 @@ async def process_ai_request(
             cost=response.get("cost", 0.0),
             latency_ms=response.get("latency_ms", 0),
             provider=response.get("provider", ""),
-            timestamp=response.get("timestamp", from datetime import datetime
-datetime = datetime.now()),
+            timestamp=response.get("timestamp", datetime.now()),
             success=response.get("success", False),
             error=response.get("error")
         )
@@ -185,7 +175,7 @@ async def list_available_models():
         models = await ai_layer.get_available_models()
 
         return [
-            ModelInfo(
+            ModelInfo()
                 id=model.get("id", ""),
                 name=model.get("name", ""),
                 provider=model.get("provider", ""),
@@ -216,7 +206,7 @@ async def list_providers():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/providers/{provider_name}/configure")
-async def configure_provider(
+async def configure_provider()
     provider_name: str,
     config: ProviderConfig
 ):
@@ -237,14 +227,14 @@ async def moderate_content(request: ModerationRequest):
     """Moderate content using AI."""
     try:
         moderator = ContentModerator()
-        result = await moderator.moderate(
+        result = await moderator.moderate()
             content=request.content,
             user_id=request.user_id,
             context=request.context,
             threshold=request.severity_threshold
         )
 
-        return ModerationResult(
+        return ModerationResult()
             flagged=result.get("flagged", False),
             categories=result.get("categories", {}),
             severity=result.get("severity", 0.0),
@@ -258,7 +248,7 @@ async def moderate_content(request: ModerationRequest):
 
 # Monitoring Endpoints
 @router.get("/metrics", response_model=MonitoringMetrics)
-async def get_ai_metrics(
+async def get_ai_metrics()
     start_time: Optional[datetime] = Query(None),
     end_time: Optional[datetime] = Query(None)
 ):
@@ -267,17 +257,15 @@ async def get_ai_metrics(
         collector = MetricsCollector()
 
         if not start_time:
-            from datetime import datetime
 start_time = datetime.now()
 datetime = datetime.now() - timedelta(hours=24)
         if not end_time:
-            from datetime import datetime
 end_time = datetime.now()
 datetime = datetime.now()
 
         metrics = await collector.get_metrics(start_time, end_time)
 
-        return MonitoringMetrics(
+        return MonitoringMetrics()
             total_requests=metrics.get("total_requests", 0),
             successful_requests=metrics.get("successful_requests", 0),
             failed_requests=metrics.get("failed_requests", 0),
@@ -302,8 +290,7 @@ async def ai_health_check():
             "status": "healthy" if health.get("healthy", False) else "unhealthy",
             "providers": health.get("providers", {}),
             "models": health.get("models", {}),
-            "timestamp": from datetime import datetime
-datetime = datetime.now()
+            "timestamp": datetime.now()
         }
 
     except Exception as e:
@@ -311,8 +298,7 @@ datetime = datetime.now()
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": from datetime import datetime
-datetime = datetime.now()
+            "timestamp": datetime.now()
         }
 
 # Helper functions

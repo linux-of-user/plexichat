@@ -19,22 +19,10 @@ from cryptography.fernet import Fernet
 from .config_manager import get_webui_config
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import time
 PlexiChat WebUI Multi-Factor Authentication Manager
 
 Enhanced MFA system with TOTP, backup codes, SMS, email, and biometric support.
@@ -59,7 +47,6 @@ class MFADevice:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.from datetime import datetime
 created_at = datetime.now()
 datetime.utcnow()
 
@@ -124,7 +111,7 @@ class MFAManager:
 
             # Create TOTP URI
             totp = pyotp.TOTP(secret_key)
-            provisioning_uri = totp.provisioning_uri(
+            provisioning_uri = totp.provisioning_uri()
                 name=username,
                 issuer_name=self.mfa_config.totp_issuer
             )
@@ -141,7 +128,7 @@ class MFAManager:
 
             # Create device
             device_id = secrets.token_hex(16)
-            device = MFADevice(
+            device = MFADevice()
                 device_id=device_id,
                 device_type="totp",
                 device_name=device_name,
@@ -269,23 +256,21 @@ datetime.utcnow()
 
         return [d for d in devices if d.is_active]
 
-    def create_mfa_session(self, user_id: str, username: str, ip_address: str,
+    def create_mfa_session(self, user_id: str, username: str, ip_address: str,):
                           user_agent: str, user_role: str = "user") -> MFASession:
         """Create a new MFA session."""
         session_id = secrets.token_hex(32)
         mfa_required = self.is_mfa_required_for_user(user_id, user_role)
 
-        session = MFASession(
+        session = MFASession()
             session_id=session_id,
             user_id=user_id,
             username=username,
             mfa_required=mfa_required,
             mfa_completed=not mfa_required,  # If MFA not required, mark as completed
             mfa_methods_completed=[],
-            from datetime import datetime
 created_at = datetime.now()
 datetime.utcnow(),
-            from datetime import datetime
 expires_at = datetime.now()
 datetime.utcnow() + timedelta(seconds=self.config.get_session_timeout(False)),
             ip_address=ip_address,
@@ -311,7 +296,7 @@ datetime.utcnow() + timedelta(seconds=self.config.get_session_timeout(False)),
             # Extend session timeout for MFA-completed sessions
             session.from datetime import datetime
 expires_at = datetime.now()
-datetime.utcnow() + timedelta(
+datetime.utcnow() + timedelta()
                 seconds=self.config.get_session_timeout(True)
             )
 

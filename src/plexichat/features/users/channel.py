@@ -14,6 +14,7 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 Channel models for Discord-like functionality.
 Includes text channels, voice channels, categories, threads, and permissions.
 """
@@ -70,7 +71,7 @@ class Channel(SQLModel, table=True):
     # Voice channel specific
     bitrate: Optional[int] = Field(default=64000)  # Voice bitrate
     user_limit: Optional[int] = Field(default=0)  # 0 = unlimited
-    video_quality_mode: Optional[VideoQualityMode] = Field(
+    video_quality_mode: Optional[VideoQualityMode] = Field()
         default=VideoQualityMode.AUTO
     )
     rtc_region: Optional[str] = Field(max_length=50)
@@ -87,19 +88,19 @@ class Channel(SQLModel, table=True):
     applied_tags: List[int] = Field(default=[], sa_column=Column(JSON))
     default_reaction_emoji: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
     default_thread_rate_limit_per_user: int = Field(default=0)
-    default_sort_order: Optional[SortOrderType] = Field(
+    default_sort_order: Optional[SortOrderType] = Field()
         default=SortOrderType.LATEST_ACTIVITY
     )
 
     # Permissions
-    permission_overwrites: List[Dict[str, Any]] = Field(
+    permission_overwrites: List[Dict[str, Any]] = Field()
         default=[], sa_column=Column(JSON)
     )
 
     # Timestamps
     last_message_id: Optional[int] = Field(foreign_key="messages.id")
     last_pin_timestamp: Optional[datetime] = Field(sa_column=Column(DateTime))
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -109,17 +110,17 @@ class Channel(SQLModel, table=True):
 
     # Relationships
     guild: Optional["Guild"] = Relationship(back_populates="channels")
-    parent: Optional["Channel"] = Relationship(
+    parent: Optional["Channel"] = Relationship()
         sa_relationship_kwargs={"remote_side": "Channel.id"}
     )
-    children: List["Channel"] = Relationship(
+    children: List["Channel"] = Relationship()
         sa_relationship_kwargs={"remote_side": "Channel.parent_id"}
     )
     messages: List["Message"] = Relationship(back_populates="channel")
     webhooks: List["Webhook"] = Relationship(back_populates="channel")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_channel_guild_type", "guild_id", "type"),
         Index("idx_channel_parent", "parent_id"),
         Index("idx_channel_position", "position"),
@@ -139,14 +140,14 @@ class ChannelPermissionOverwrite(SQLModel, table=True):
     deny: str = Field(max_length=20)  # Denied permissions bitfield
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
 
     # Indexes
-    __table_args__ = (
-        Index(
+    __table_args__ = ()
+        Index()
             "idx_permission_channel_target",
             "channel_id",
             "target_id",
@@ -166,7 +167,7 @@ class ThreadMember(SQLModel, table=True):
     user_id: int = Field(foreign_key="users.id", index=True)
 
     # Thread-specific data
-    join_timestamp: datetime = Field(
+    join_timestamp: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     flags: int = Field(default=0)  # Thread member flags
@@ -176,7 +177,7 @@ class ThreadMember(SQLModel, table=True):
     user: Optional["User"] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_thread_member_unique", "thread_id", "user_id", unique=True),
     )
 
@@ -191,7 +192,7 @@ class ChannelFollower(SQLModel, table=True):
     webhook_id: int = Field(foreign_key="webhooks.id", index=True)  # Target webhook
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
 
@@ -220,7 +221,7 @@ class VoiceState(SQLModel, table=True):
     request_to_speak_timestamp: Optional[datetime] = Field(sa_column=Column(DateTime))
 
     # Timestamps
-    joined_at: datetime = Field(
+    joined_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -231,7 +232,7 @@ class VoiceState(SQLModel, table=True):
     user: Optional["User"] = Relationship()
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_voice_state_user", "user_id", unique=True),
         Index("idx_voice_state_channel", "channel_id"),
     )
@@ -250,7 +251,7 @@ class StageInstance(SQLModel, table=True):
     discoverable_disabled: bool = Field(default=False)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -273,7 +274,7 @@ class ForumTag(SQLModel, table=True):
     emoji_name: Optional[str] = Field(max_length=32)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
 
@@ -305,7 +306,7 @@ class ChannelSettings(SQLModel, table=True):
     custom_settings: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -324,11 +325,11 @@ class ChannelInvite(SQLModel, table=True):
     uses_from_this_channel: int = Field(default=0)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_channel_invite_unique", "channel_id", "invite_id", unique=True),
     )

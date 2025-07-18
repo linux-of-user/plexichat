@@ -15,6 +15,7 @@ from ...core.logging import get_logger
 
 
 """
+import time
 PlexiChat Module Interfaces and Contracts - SINGLE SOURCE OF TRUTH
 
 Defines strict interfaces and contracts for all modules/plugins to ensure:
@@ -373,7 +374,9 @@ class BaseModule(ABC):
 
     async def shutdown(self) -> bool:
         """Shutdown the module."""
-        return await if self and hasattr(self, "stop"): self.stop()
+        if self and hasattr(self, "stop"):
+            return await self.stop()
+        return False
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check."""
@@ -420,9 +423,7 @@ class BaseModule(ABC):
             if "enabled" in config and not isinstance(config["enabled"], bool):
                 return False
 
-            if "timeout_seconds" in config and not isinstance(
-                config["timeout_seconds"], int
-            ):
+            if "timeout_seconds" in config and not isinstance(config["timeout_seconds"], int):
                 return False
 
             return True

@@ -6,7 +6,7 @@
 # pyright: reportReturnType=false
 from typing import Any, Dict, List, Optional
 
-from ....core_system.database.dao.base_dao import (
+from ....core_system.database.dao.base_dao import ()
 
 
     BaseDAO,

@@ -23,6 +23,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 NetLink Distributed Key Management System
 
 Implements multiple independent key hierarchies where breaking one key
@@ -94,7 +95,7 @@ class KeyVault:
 class DistributedKeyManager:
     """
     Distributed Key Management System
-    
+
     Features:
     - Multiple independent key domains
     - Threshold cryptography (k-of-n schemes)
@@ -103,28 +104,28 @@ class DistributedKeyManager:
     - Automatic key recovery
     - Zero-knowledge proofs for key operations
     """
-    
+
     def __init__(self, config_dir: str = "config/security/distributed"):
-        self.from pathlib import Path
-config_dir = Path()(config_dir)
+        from pathlib import Path
+self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Database for distributed keys
         self.db_path = self.config_dir / "distributed_keys.db"
-        
+
         # Key storage
         self.distributed_keys: Dict[str, DistributedKey] = {}
         self.key_vaults: Dict[str, KeyVault] = {}
         self.domain_isolation: Dict[KeyDomain, Set[str]] = {}
-        
+
         # Security configuration
         self.default_threshold = 3  # Require 3 out of 5 shards
         self.default_total_shards = 5
         self.max_compromised_vaults = 2  # System remains secure with up to 2 compromised vaults
-        
+
         # Initialize system (will be called manually during app startup)
         self._initialization_task = None
-    
+
     async def _initialize_system(self):
         """Initialize the distributed key management system."""
         await self._init_database()
@@ -132,12 +133,12 @@ config_dir = Path()(config_dir)
         await self._initialize_vaults()
         await self._ensure_domain_keys()
         logger.info(" Distributed key management system initialized")
-    
+
     async def _init_database(self):
         """Initialize the distributed keys database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS distributed_keys (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS distributed_keys ()
                     key_id TEXT PRIMARY KEY,
                     domain TEXT NOT NULL,
                     security_tier INTEGER NOT NULL,
@@ -149,9 +150,9 @@ config_dir = Path()(config_dir)
                     expires_at TEXT
                 )
             """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS key_shards (
+
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS key_shards ()
                     shard_id TEXT PRIMARY KEY,
                     key_id TEXT NOT NULL,
                     domain TEXT NOT NULL,
@@ -163,9 +164,9 @@ config_dir = Path()(config_dir)
                     FOREIGN KEY (key_id) REFERENCES distributed_keys (key_id)
                 )
             """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS key_vaults (
+
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS key_vaults ()
                     vault_id TEXT PRIMARY KEY,
                     domain TEXT NOT NULL,
                     location TEXT NOT NULL,
@@ -174,9 +175,9 @@ config_dir = Path()(config_dir)
                     last_accessed TEXT
                 )
             """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS vault_access_log (
+
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS vault_access_log ()
                     log_id TEXT PRIMARY KEY,
                     vault_id TEXT NOT NULL,
                     operation TEXT NOT NULL,
@@ -187,16 +188,16 @@ config_dir = Path()(config_dir)
                     FOREIGN KEY (vault_id) REFERENCES key_vaults (vault_id)
                 )
             """)
-            
+
             await db.commit()
-    
+
     async def _load_distributed_keys(self):
         """Load distributed keys from database."""
         async with aiosqlite.connect(self.db_path) as db:
             # Load distributed keys
             async with db.execute("SELECT * FROM distributed_keys") as cursor:
                 async for row in cursor:
-                    key = DistributedKey(
+                    key = DistributedKey()
                         key_id=row[0],
                         domain=KeyDomain(row[1]),
                         security_tier=SecurityTier(row[2]),
@@ -208,11 +209,11 @@ config_dir = Path()(config_dir)
                         expires_at=datetime.fromisoformat(row[8]) if row[8] else None
                     )
                     self.distributed_keys[key.key_id] = key
-            
+
             # Load key shards
             async with db.execute("SELECT * FROM key_shards") as cursor:
                 async for row in cursor:
-                    shard = KeyShard(
+                    shard = KeyShard()
                         shard_id=row[0],
                         domain=KeyDomain(row[2]),
                         shard_index=row[3],
@@ -222,7 +223,7 @@ config_dir = Path()(config_dir)
                         metadata=json.loads(row[6]) if row[6] else {},
                         created_at=datetime.fromisoformat(row[7])
                     )
-                    
+
                     # Add shard to its distributed key
                     key_id = row[1]
                     if key_id in self.distributed_keys:
@@ -230,7 +231,7 @@ config_dir = Path()(config_dir)
                         shard.total_shards = distributed_key.total_shards
                         shard.threshold = distributed_key.threshold
                         distributed_key.shards[shard.shard_index] = shard
-    
+
     async def _initialize_vaults(self):
         """Initialize key vaults for each domain."""
         for domain in KeyDomain:
@@ -238,14 +239,14 @@ config_dir = Path()(config_dir)
             for i in range(self.default_total_shards):
                 vault_id = f"{domain.value}_vault_{i}"
                 if vault_id not in self.key_vaults:
-                    vault = KeyVault(
+                    vault = KeyVault()
                         vault_id=vault_id,
                         domain=domain,
                         location=f"vault_{i}_{secrets.token_hex(4)}"
                     )
                     self.key_vaults[vault_id] = vault
                     await self._save_vault(vault)
-    
+
     async def _ensure_domain_keys(self):
         """Ensure each domain has its master keys."""
         for domain in KeyDomain:
@@ -253,11 +254,11 @@ config_dir = Path()(config_dir)
                 key_id = f"{domain.value}_master_{tier.name.lower()}"
                 if not any(k.key_id.startswith(key_id) for k in self.distributed_keys.values()):
                     await self.create_distributed_key(domain, tier, f"master_{domain.value}")
-    
-    async def create_distributed_key(
-        self, 
-        domain: KeyDomain, 
-        security_tier: SecurityTier, 
+
+    async def create_distributed_key()
+        self,
+        domain: KeyDomain,
+        security_tier: SecurityTier,
         purpose: str,
         threshold: Optional[int] = None,
         total_shards: Optional[int] = None
@@ -265,17 +266,17 @@ config_dir = Path()(config_dir)
         """Create a new distributed key."""
         threshold = threshold or self.default_threshold
         total_shards = total_shards or self.default_total_shards
-        
+
         if threshold > total_shards:
             raise ValueError("Threshold cannot be greater than total shards")
-        
+
         key_id = f"{domain.value}_{purpose}_{secrets.token_hex(8)}"
-        
+
         # Generate master secret
         master_secret = secrets.token_bytes(64)  # 512-bit master secret
-        
+
         # Create distributed key
-        distributed_key = DistributedKey(
+        distributed_key = DistributedKey()
             key_id=key_id,
             domain=domain,
             security_tier=security_tier,
@@ -288,13 +289,13 @@ config_dir = Path()(config_dir)
                 "master_secret_hash": hashlib.sha256(master_secret).hexdigest()
             }
         )
-        
+
         # Generate shards using Shamir's Secret Sharing
         shards_data = self._generate_shamir_shares(master_secret, threshold, total_shards)
-        
+
         # Create and distribute shards
         for i, shard_data in enumerate(shards_data):
-            shard = KeyShard(
+            shard = KeyShard()
                 shard_id=f"{key_id}_shard_{i}",
                 domain=domain,
                 shard_index=i,
@@ -305,39 +306,39 @@ config_dir = Path()(config_dir)
                     "vault_assignment": f"{domain.value}_vault_{i % self.default_total_shards}"
                 }
             )
-            
+
             distributed_key.shards[i] = shard
-            
+
             # Store shard in appropriate vault
             vault_id = f"{domain.value}_vault_{i % self.default_total_shards}"
             if vault_id in self.key_vaults:
                 self.key_vaults[vault_id].shards[shard.shard_id] = shard
-        
+
         # Save to database
         self.distributed_keys[key_id] = distributed_key
         await self._save_distributed_key(distributed_key)
-        
+
         logger.info(f" Created distributed key: {key_id} ({threshold}/{total_shards} scheme)")
         return distributed_key
-    
+
     def _generate_shamir_shares(self, secret: bytes, threshold: int, total_shares: int) -> List[bytes]:
         """Generate Shamir's Secret Sharing shares."""
         # Convert secret to integer
         secret_int = int.from_bytes(secret, 'big')
-        
+
         # Generate random coefficients for polynomial
         coefficients = [secret_int] + [secrets.randbelow(2**256) for _ in range(threshold - 1)]
-        
+
         # Generate shares
         shares = []
         for x in range(1, total_shares + 1):
             # Evaluate polynomial at x
             y = sum(coeff * (x ** i) for i, coeff in enumerate(coefficients)) % (2**256)
-            
+
             # Convert back to bytes and store as (x, y) pair
             share_data = x.to_bytes(4, 'big') + y.to_bytes(32, 'big')
             shares.append(share_data)
-        
+
         return shares
 
     def _reconstruct_secret_from_shares(self, shares: List[bytes], threshold: int) -> bytes:
@@ -421,7 +422,7 @@ config_dir = Path()(config_dir)
         vault.is_compromised = True
 
         # Log the compromise
-        await self._log_vault_access(vault_id, "COMPROMISED", None, False, {
+        await self._log_vault_access(vault_id, "COMPROMISED", None, False, {)
             "reason": reason,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "action": "vault_marked_compromised"
@@ -448,7 +449,7 @@ config_dir = Path()(config_dir)
                 current_secret = await self.reconstruct_key(key_id)
                 if current_secret:
                     # Create new distributed key
-                    new_key = await self.create_distributed_key(
+                    new_key = await self.create_distributed_key()
                         distributed_key.domain,
                         distributed_key.security_tier,
                         f"emergency_rotation_{distributed_key.metadata.get('purpose', 'unknown')}",
@@ -470,7 +471,7 @@ config_dir = Path()(config_dir)
         """Get a reconstructed key for a specific domain."""
         # Find the appropriate key
         for key_id, distributed_key in self.distributed_keys.items():
-            if (distributed_key.domain == domain and
+            if (distributed_key.domain == domain and)
                 distributed_key.metadata.get("purpose", "").startswith(purpose)):
                 return await self.reconstruct_key(key_id)
 
@@ -482,11 +483,11 @@ config_dir = Path()(config_dir)
     async def _save_distributed_key(self, key: DistributedKey):
         """Save distributed key to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT OR REPLACE INTO distributed_keys
                 (key_id, domain, security_tier, total_shards, threshold, scheme, metadata, created_at, expires_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 key.key_id,
                 key.domain.value,
                 key.security_tier.value,
@@ -500,11 +501,11 @@ config_dir = Path()(config_dir)
 
             # Save shards
             for shard in key.shards.values():
-                await db.execute("""
+                await db.execute(""")
                     INSERT OR REPLACE INTO key_shards
                     (shard_id, key_id, domain, shard_index, shard_data, vault_id, metadata, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     shard.shard_id,
                     key.key_id,
                     shard.domain.value,
@@ -520,11 +521,11 @@ config_dir = Path()(config_dir)
     async def _save_vault(self, vault: KeyVault):
         """Save vault to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT OR REPLACE INTO key_vaults
                 (vault_id, domain, location, is_compromised, created_at, last_accessed)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 vault.vault_id,
                 vault.domain.value,
                 vault.location,
@@ -534,17 +535,17 @@ config_dir = Path()(config_dir)
             ))
             await db.commit()
 
-    async def _log_vault_access(self, vault_id: str, operation: str, shard_id: Optional[str],
+    async def _log_vault_access(self, vault_id: str, operation: str, shard_id: Optional[str],)
                                success: bool, metadata: Dict[str, Any]):
         """Log vault access for audit purposes."""
         log_id = f"log_{secrets.token_hex(8)}"
 
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT INTO vault_access_log
                 (log_id, vault_id, operation, shard_id, success, timestamp, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 log_id,
                 vault_id,
                 operation,

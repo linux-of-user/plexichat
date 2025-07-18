@@ -103,9 +103,9 @@ class AIAnalyticsEngine:
         """Initialize analytics database."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute(
+                conn.execute()
                     """
-                    CREATE TABLE IF NOT EXISTS usage_metrics (
+                    CREATE TABLE IF NOT EXISTS usage_metrics ()
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         timestamp TEXT NOT NULL,
                         user_id TEXT NOT NULL,
@@ -122,9 +122,9 @@ class AIAnalyticsEngine:
                 """
                 )
 
-                conn.execute(
+                conn.execute()
                     """
-                    CREATE TABLE IF NOT EXISTS performance_metrics (
+                    CREATE TABLE IF NOT EXISTS performance_metrics ()
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         timestamp TEXT NOT NULL,
                         model_id TEXT NOT NULL,
@@ -137,9 +137,9 @@ class AIAnalyticsEngine:
                 """
                 )
 
-                conn.execute(
+                conn.execute()
                     """
-                    CREATE TABLE IF NOT EXISTS cost_metrics (
+                    CREATE TABLE IF NOT EXISTS cost_metrics ()
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         timestamp TEXT NOT NULL,
                         user_id TEXT NOT NULL,
@@ -152,9 +152,9 @@ class AIAnalyticsEngine:
                 """
                 )
 
-                conn.execute(
+                conn.execute()
                     """
-                    CREATE TABLE IF NOT EXISTS alert_rules (
+                    CREATE TABLE IF NOT EXISTS alert_rules ()
                         id TEXT PRIMARY KEY,
                         name TEXT NOT NULL,
                         condition TEXT NOT NULL,
@@ -167,9 +167,9 @@ class AIAnalyticsEngine:
                 """
                 )
 
-                conn.execute(
+                conn.execute()
                     """
-                    CREATE TABLE IF NOT EXISTS alert_history (
+                    CREATE TABLE IF NOT EXISTS alert_history ()
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         timestamp TEXT NOT NULL,
                         rule_id TEXT NOT NULL,
@@ -183,19 +183,19 @@ class AIAnalyticsEngine:
                 )
 
                 # Create indexes for better query performance
-                conn.execute(
+                conn.execute()
                     "CREATE INDEX IF NOT EXISTS idx_usage_timestamp ON usage_metrics(timestamp)"
                 )
-                conn.execute(
+                conn.execute()
                     "CREATE INDEX IF NOT EXISTS idx_usage_user ON usage_metrics(user_id)"
                 )
-                conn.execute(
+                conn.execute()
                     "CREATE INDEX IF NOT EXISTS idx_usage_model ON usage_metrics(model_id)"
                 )
-                conn.execute(
+                conn.execute()
                     "CREATE INDEX IF NOT EXISTS idx_performance_timestamp ON performance_metrics(timestamp)"
                 )
-                conn.execute(
+                conn.execute()
                     "CREATE INDEX IF NOT EXISTS idx_cost_timestamp ON cost_metrics(timestamp)"
                 )
 
@@ -210,7 +210,7 @@ class AIAnalyticsEngine:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.execute("SELECT * FROM alert_rules WHERE enabled = 1")
                 for row in cursor.fetchall():
-                    rule = AlertRule(
+                    rule = AlertRule()
                         id=row[0],
                         name=row[1],
                         condition=row[2],
@@ -218,7 +218,7 @@ class AIAnalyticsEngine:
                         window_minutes=row[4],
                         enabled=bool(row[5]),
                         notification_channels=json.loads(row[6]),
-                        last_triggered=(
+                        last_triggered=()
                             datetime.fromisoformat(row[7]) if row[7] else None
                         ),
                     )
@@ -231,8 +231,8 @@ class AIAnalyticsEngine:
         """Record usage metric."""
         with self._lock:
             self.usage_buffer.append(metric)
-            self.cost_buffer.append(
-                CostMetric(
+            self.cost_buffer.append()
+                CostMetric()
                     timestamp=metric.timestamp,
                     user_id=metric.user_id,
                     model_id=metric.model_id,
@@ -267,7 +267,7 @@ class AIAnalyticsEngine:
                 # Insert usage metrics
                 if usage_metrics:
                     usage_data = [
-                        (
+                        ()
                             m.timestamp.isoformat(),
                             m.user_id,
                             m.model_id,
@@ -283,10 +283,10 @@ class AIAnalyticsEngine:
                         for m in usage_metrics
                     ]
 
-                    conn.executemany(
+                    conn.executemany()
                         """
                         INSERT INTO usage_metrics
-                        (timestamp, user_id, model_id, provider, tokens_used, cost,
+                        (timestamp, user_id, model_id, provider, tokens_used, cost,)
                          latency_ms, success, capability, request_size, response_size)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
@@ -296,7 +296,7 @@ class AIAnalyticsEngine:
                 # Insert performance metrics
                 if performance_metrics:
                     perf_data = [
-                        (
+                        ()
                             m.timestamp.isoformat(),
                             m.model_id,
                             m.provider,
@@ -308,7 +308,7 @@ class AIAnalyticsEngine:
                         for m in performance_metrics
                     ]
 
-                    conn.executemany(
+                    conn.executemany()
                         """
                         INSERT INTO performance_metrics
                         (timestamp, model_id, provider, latency_ms, success, error_type, tokens_per_second)
@@ -320,7 +320,7 @@ class AIAnalyticsEngine:
                 # Insert cost metrics
                 if cost_metrics:
                     cost_data = [
-                        (
+                        ()
                             m.timestamp.isoformat(),
                             m.user_id,
                             m.model_id,
@@ -332,7 +332,7 @@ class AIAnalyticsEngine:
                         for m in cost_metrics
                     ]
 
-                    conn.executemany(
+                    conn.executemany()
                         """
                         INSERT INTO cost_metrics
                         (timestamp, user_id, model_id, provider, tokens_used, cost, capability)
@@ -346,7 +346,7 @@ class AIAnalyticsEngine:
         except Exception as e:
             logger.error(f"Failed to flush metrics to database: {e}")
 
-    def get_usage_analytics(
+    def get_usage_analytics():
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
@@ -402,7 +402,7 @@ class AIAnalyticsEngine:
                         "avg_latency": 0.0,
                         "success_rate": 0.0,
                     },
-                    "by_user": defaultdict(
+                    "by_user": defaultdict()
                         lambda: {
                             "request_count": 0,
                             "total_tokens": 0,
@@ -410,7 +410,7 @@ class AIAnalyticsEngine:
                             "models": set(),
                         }
                     ),
-                    "by_model": defaultdict(
+                    "by_model": defaultdict()
                         lambda: {
                             "request_count": 0,
                             "total_tokens": 0,
@@ -418,7 +418,7 @@ class AIAnalyticsEngine:
                             "users": set(),
                         }
                     ),
-                    "by_provider": defaultdict(
+                    "by_provider": defaultdict()
                         lambda: {
                             "request_count": 0,
                             "total_tokens": 0,
@@ -432,7 +432,7 @@ class AIAnalyticsEngine:
                 total_latency = 0
 
                 for row in results:
-                    (
+                    ()
                         user_id,
                         model_id,
                         provider,
@@ -467,17 +467,17 @@ class AIAnalyticsEngine:
 
                     # By provider
                     analytics["by_provider"][provider]["request_count"] += request_count
-                    analytics["by_provider"][provider]["total_tokens"] += (
+                    analytics["by_provider"][provider]["total_tokens"] += ()
                         total_tokens or 0
                     )
-                    analytics["by_provider"][provider]["total_cost"] += (
+                    analytics["by_provider"][provider]["total_cost"] += ()
                         total_cost or 0.0
                     )
 
                 # Calculate averages
                 if total_requests > 0:
                     analytics["summary"]["avg_latency"] = total_latency / total_requests
-                    analytics["summary"]["success_rate"] = (
+                    analytics["summary"]["success_rate"] = ()
                         total_successful / total_requests
                     )
 
@@ -499,7 +499,7 @@ class AIAnalyticsEngine:
             return
 
         self.monitoring_active = True
-        self.monitoring_thread = threading.Thread(
+        self.monitoring_thread = threading.Thread()
             target=self._monitoring_loop, daemon=True
         )
         self.if monitoring_thread and hasattr(monitoring_thread, "start"): monitoring_thread.start()
@@ -538,7 +538,7 @@ class AIAnalyticsEngine:
                     continue
 
                 # Skip if recently triggered (within window)
-                if (
+                if ()
                     rule.last_triggered
                     and current_time - rule.last_triggered
                     < timedelta(minutes=rule.window_minutes)
@@ -557,7 +557,7 @@ class AIAnalyticsEngine:
         """Evaluate alert rule condition."""
         try:
             # Get recent metrics for evaluation
-            window_start = datetime.now(timezone.utc) - timedelta(
+            window_start = datetime.now(timezone.utc) - timedelta()
                 minutes=rule.window_minutes
             )
 
@@ -574,15 +574,15 @@ class AIAnalyticsEngine:
             ]
 
             if recent_usage:
-                context.update(
+                context.update()
                     {
                         "total_requests": len(recent_usage),
                         "total_cost": sum(m.cost for m in recent_usage),
-                        "avg_latency": statistics.mean(
+                        "avg_latency": statistics.mean()
                             m.latency_ms for m in recent_usage
                         ),
                         "error_rate": 1
-                        - (
+                        - ()
                             sum(1 for m in recent_usage if m.success)
                             / len(recent_usage)
                         ),
@@ -590,11 +590,11 @@ class AIAnalyticsEngine:
                 )
 
             if recent_performance:
-                context.update(
+                context.update()
                     {
                         "performance_requests": len(recent_performance),
                         "performance_error_rate": 1
-                        - (
+                        - ()
                             sum(1 for m in recent_performance if m.success)
                             / len(recent_performance)
                         ),
@@ -615,12 +615,12 @@ class AIAnalyticsEngine:
 
             # Record alert in history
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute(
+                conn.execute()
                     """
                     INSERT INTO alert_history (timestamp, rule_id, rule_name, message, severity)
                     VALUES (?, ?, ?, ?, ?)
                 """,
-                    (
+                    ()
                         datetime.now(timezone.utc).isoformat(),
                         rule.id,
                         rule.name,
@@ -631,7 +631,7 @@ class AIAnalyticsEngine:
                 conn.commit()
 
             # Add to in-memory history
-            self.alert_history.append(
+            self.alert_history.append()
                 {
                     "timestamp": datetime.now(timezone.utc),
                     "rule_id": rule.id,
@@ -650,13 +650,13 @@ class AIAnalyticsEngine:
         """Add alert rule."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute(
+                conn.execute()
                     """
                     INSERT OR REPLACE INTO alert_rules
                     (id, name, condition, threshold, window_minutes, enabled, notification_channels, last_triggered)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                    (
+                    ()
                         rule.id,
                         rule.name,
                         rule.condition,
@@ -664,7 +664,7 @@ class AIAnalyticsEngine:
                         rule.window_minutes,
                         rule.enabled,
                         json.dumps(rule.notification_channels),
-                        (
+                        ()
                             rule.last_triggered.isoformat()
                             if rule.last_triggered
                             else None
@@ -684,7 +684,7 @@ class AIAnalyticsEngine:
         """Get alert history."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute(
+                cursor = conn.execute()
                     """
                     SELECT timestamp, rule_id, rule_name, message, severity, resolved, resolved_at
                     FROM alert_history
@@ -696,7 +696,7 @@ class AIAnalyticsEngine:
 
                 alerts = []
                 for row in cursor.fetchall():
-                    alerts.append(
+                    alerts.append()
                         {
                             "timestamp": row[0],
                             "rule_id": row[1],

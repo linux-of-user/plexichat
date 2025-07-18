@@ -19,16 +19,14 @@ from .performance_logger import get_performance_logger
 from .security_logger import SecurityEventType, SecuritySeverity, get_security_logger
 
 
-
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ...services.auth import from, import, plexichat.infrastructure.utils.auth, from plexichat.infrastructure.utils.auth import require_admin
+from plexichat.infrastructure.utils.auth import require_admin
 
 """
+import socket
 PlexiChat Centralized Log Management API
 
 REST API endpoints for log management, monitoring, and analysis.
@@ -57,7 +55,7 @@ class LogFilterRequest(BaseModel):
 
 class LogExportRequest(BaseModel):
     """Log export request model."""
-    format: str = Field(default="json", regex="^(json|csv|txt)$")
+    format: str = Field(default="json", pattern="^(json|csv|txt)$")
     level: Optional[str] = None
     category: Optional[str] = None
     start_time: Optional[datetime] = None
@@ -77,8 +75,8 @@ class PerformanceMetricsRequest(BaseModel):
     metric_names: Optional[List[str]] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    aggregation: str = Field(default="avg", regex="^(avg|min|max|sum|count)$")
-    interval: str = Field(default="1h", regex="^(1m|5m|15m|1h|6h|24h)$")
+    aggregation: str = Field(default="avg", pattern="^(avg|min|max|sum|count)$")
+    interval: str = Field(default="1h", pattern="^(1m|5m|15m|1h|6h|24h)$")
 
 # WebSocket connection manager
 class LogWebSocketManager:
@@ -172,7 +170,7 @@ websocket_manager = LogWebSocketManager()
 def setup_log_streaming():
     """Setup log streaming to WebSocket clients."""
     logging_manager = get_logging_manager()
-    logging_manager.subscribe_to_logs(
+    logging_manager.subscribe_to_logs()
         lambda entry: asyncio.create_task(websocket_manager.broadcast_log_entry(entry))
     )
 
@@ -180,14 +178,14 @@ def setup_log_streaming():
 router = APIRouter(prefix="/api/v2/logs", tags=["logging"])
 
 @router.get("/entries")
-async def get_log_entries(
+async def get_log_entries()
     level: Optional[str] = Query(None, description="Minimum log level"),
     category: Optional[str] = Query(None, description="Log category"),
     start_time: Optional[datetime] = Query(None, description="Start time filter"),
     end_time: Optional[datetime] = Query(None, description="End time filter"),
     search_query: Optional[str] = Query(None, description="Search in log messages"),
     limit: int = Query(100, le=1000, description="Maximum number of entries"),
-    current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user = Depends(require_admin)
 ):
     """Get log entries with filtering."""
     logging_manager = get_logging_manager()
@@ -208,7 +206,7 @@ async def get_log_entries(
             raise HTTPException(status_code=400, detail=f"Invalid log category: {category}")
 
     # Get entries
-    entries = logging_manager.get_log_entries(
+    entries = logging_manager.get_log_entries()
         count=limit,
         level_filter=level_filter,
         category_filter=category_filter
@@ -243,7 +241,7 @@ async def get_log_entries(
     }
 
 @router.websocket("/stream")
-async def log_stream_websocket(
+async def log_stream_websocket()
     websocket: WebSocket,
     level: Optional[str] = Query(None),
     category: Optional[str] = Query(None)
@@ -272,21 +270,21 @@ async def log_stream_websocket(
         websocket_manager.disconnect(websocket)
 
 @router.get("/performance/summary")
-async def get_performance_summary(
+async def get_performance_summary()
     hours: int = Query(1, ge=1, le=168, description="Hours to include in summary"),
-    current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user = Depends(require_admin)
 ):
     """Get performance summary."""
     performance_logger = get_performance_logger()
     return performance_logger.get_performance_summary(hours=hours)
 
 @router.get("/performance/metrics")
-async def get_performance_metrics(
+async def get_performance_metrics()
     metric_names: Optional[List[str]] = Query(None, description="Specific metric names"),
     start_time: Optional[datetime] = Query(None, description="Start time filter"),
     end_time: Optional[datetime] = Query(None, description="End time filter"),
     limit: int = Query(1000, le=10000, description="Maximum number of data points"),
-    current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user = Depends(require_admin)
 ):
     """Get performance metrics."""
     performance_logger = get_performance_logger()
@@ -296,7 +294,7 @@ async def get_performance_metrics(
 
     metrics_data = {}
     for metric_name in metric_names:
-        metrics = performance_logger.metric_buffer.get_metrics(
+        metrics = performance_logger.metric_buffer.get_metrics()
             metric_name, start_time, end_time, limit
         )
         metrics_data[metric_name] = [m.to_dict() for m in metrics]
@@ -312,13 +310,13 @@ async def get_performance_metrics(
     }
 
 @router.get("/security/events")
-async def get_security_events(
+async def get_security_events()
     event_types: Optional[List[str]] = Query(None, description="Security event types"),
     severity: Optional[str] = Query(None, description="Minimum severity level"),
     start_time: Optional[datetime] = Query(None, description="Start time filter"),
     end_time: Optional[datetime] = Query(None, description="End time filter"),
     limit: int = Query(100, le=1000, description="Maximum number of events"),
-    current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user = Depends(require_admin)
 ):
     """Get security events."""
     security_logger = get_security_logger()
@@ -338,7 +336,7 @@ async def get_security_events(
         except KeyError:
             raise HTTPException(status_code=400, detail=f"Invalid severity: {severity}")
 
-    events = security_logger.get_security_events(
+    events = security_logger.get_security_events()
         start_time=start_time,
         end_time=end_time,
         event_types=event_type_filters,
@@ -362,15 +360,15 @@ async def get_security_events(
     }
 
 @router.get("/security/integrity")
-async def verify_log_integrity(current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)):
+async def verify_log_integrity(current_user = Depends(require_admin)):
     """Verify security log integrity."""
     security_logger = get_security_logger()
     return security_logger.verify_log_integrity()
 
 @router.post("/export")
-async def export_logs(
+async def export_logs()
     export_request: LogExportRequest,
-    current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user = Depends(require_admin)
 ):
     """Export logs in various formats."""
     logging_manager = get_logging_manager()
@@ -391,7 +389,7 @@ async def export_logs(
             raise HTTPException(status_code=400, detail=f"Invalid log category: {export_request.category}")
 
     # Get entries
-    entries = logging_manager.get_log_entries(
+    entries = logging_manager.get_log_entries()
         level_filter=level_filter,
         category_filter=category_filter
     )
@@ -415,7 +413,7 @@ async def export_logs(
                 yield json.dumps(entry.to_dict(), default=str, indent=2)
             yield "\n]"
 
-        return StreamingResponse(
+        return StreamingResponse()
             generate_json(),
             media_type="application/json",
             headers={"Content-Disposition": "attachment; filename=logs.json"}
@@ -427,12 +425,12 @@ async def export_logs(
             writer = csv.writer(output)
 
             # Write header
-            writer.writerow([
+            writer.writerow([)
                 "timestamp", "level", "category", "message", "module", "function", "line"
             ])
 
             for entry in filtered_entries:
-                writer.writerow([
+                writer.writerow([)
                     entry.timestamp.isoformat(),
                     entry.level.name,
                     entry.category.value,
@@ -445,7 +443,7 @@ async def export_logs(
             output.seek(0)
             return output.getvalue()
 
-        return StreamingResponse(
+        return StreamingResponse()
             iter([generate_csv()]),
             media_type="text/csv",
             headers={"Content-Disposition": "attachment; filename=logs.csv"}
@@ -456,14 +454,14 @@ async def export_logs(
             for entry in filtered_entries:
                 yield f"[{entry.timestamp.isoformat()}] [{entry.level.name}] [{entry.category.value}] {entry.module}: {entry.message}\n"
 
-        return StreamingResponse(
+        return StreamingResponse()
             generate_txt(),
             media_type="text/plain",
             headers={"Content-Disposition": "attachment; filename=logs.txt"}
         )
 
 @router.get("/stats")
-async def get_log_stats(current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)):
+async def get_log_stats(current_user = Depends(require_admin)):
     """Get logging system statistics."""
     logging_manager = get_logging_manager()
 

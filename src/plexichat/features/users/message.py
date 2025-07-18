@@ -5,6 +5,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat Message Model
 
 Enhanced message model with comprehensive functionality and performance optimization.
@@ -73,41 +74,41 @@ class MessageStatus(str, Enum):
 
 class Message(SQLModel, table=True):
     """Enhanced message model with comprehensive functionality."""
-    
+
     # Primary fields
     id: Optional[int] = Field(default=None, primary_key=True, description="Message ID")
     content: str = Field(..., max_length=2000, description="Message content")
     message_type: MessageType = Field(default=MessageType.TEXT, description="Message type")
-    
+
     # User relationships
     sender_id: int = Field(..., foreign_key="user.id", description="Sender user ID")
     recipient_id: Optional[int] = Field(None, foreign_key="user.id", description="Recipient user ID")
     channel_id: Optional[int] = Field(None, description="Channel ID for group messages")
-    
+
     # Threading
     parent_id: Optional[int] = Field(None, foreign_key="message.id", description="Parent message ID for threading")
     thread_count: int = Field(default=0, description="Number of replies in thread")
-    
+
     # Status and metadata
     status: MessageStatus = Field(default=MessageStatus.SENT, description="Message status")
     is_edited: bool = Field(default=False, description="Whether message was edited")
     is_pinned: bool = Field(default=False, description="Whether message is pinned")
     is_system: bool = Field(default=False, description="Whether this is a system message")
-    
+
     # Timestamps
     timestamp: datetime = Field(default_factory=datetime.now, description="Message timestamp")
     edited_at: Optional[datetime] = Field(None, description="Last edit timestamp")
     read_at: Optional[datetime] = Field(None, description="Read timestamp")
-    
+
     # Rich content
     attachments: Optional[str] = Field(None, description="JSON string of attachments")
     mentions: Optional[str] = Field(None, description="JSON string of user mentions")
     reactions: Optional[str] = Field(None, description="JSON string of reactions")
     metadata: Optional[str] = Field(None, description="Additional metadata as JSON")
-    
+
     # Search and indexing
     search_vector: Optional[str] = Field(None, description="Search vector for full-text search")
-    
+
     # Relationships (would be defined with actual relationships in full implementation)
     # sender: Optional["User"] = Relationship(back_populates="sent_messages")
     # recipient: Optional["User"] = Relationship(back_populates="received_messages")
@@ -123,7 +124,7 @@ class MessageCreate(BaseModel):
     parent_id: Optional[int] = Field(None, description="Parent message ID")
     attachments: Optional[List[Dict[str, Any]]] = Field(None, description="Message attachments")
     mentions: Optional[List[int]] = Field(None, description="User mentions")
-    
+
     @validator('content')
     def validate_content(cls, v):
         if not v.strip():
@@ -134,7 +135,7 @@ class MessageUpdate(BaseModel):
     """Message update model."""
     content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
     is_pinned: Optional[bool] = Field(None, description="Pin status")
-    
+
     @validator('content')
     def validate_content(cls, v):
         if v is not None and not v.strip():
@@ -159,27 +160,27 @@ class MessageResponse(BaseModel):
     attachments: Optional[List[Dict[str, Any]]] = Field(None, description="Attachments")
     mentions: Optional[List[int]] = Field(None, description="User mentions")
     reactions: Optional[Dict[str, int]] = Field(None, description="Reaction counts")
-    
+
     class Config:
         from_attributes = True
 
 class MessageService:
     """Enhanced message service using EXISTING database abstraction."""
-    
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("message_creation") if async_track_performance else lambda f: f
     async def create_message(self, sender_id: int, message_data: MessageCreate) -> Optional[Message]:
         """Create new message using EXISTING database abstraction."""
         if self.db_manager:
             try:
                 import json
-                
+
                 # Prepare data
                 create_query = """
-                    INSERT INTO messages (
+                    INSERT INTO messages ()
                         content, message_type, sender_id, recipient_id, channel_id,
                         parent_id, timestamp, attachments, mentions, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -197,24 +198,24 @@ class MessageService:
                     "mentions": json.dumps(message_data.mentions) if message_data.mentions else None,
                     "metadata": json.dumps({"created_by": "api"})
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("message_creation_query"):
                         result = await self.db_manager.execute_query(create_query, create_params)
                 else:
                     result = await self.db_manager.execute_query(create_query, create_params)
-                
+
                 if result:
                     # Update thread count if this is a reply
                     if message_data.parent_id:
                         await self._update_thread_count(message_data.parent_id)
-                    
+
                     # Update user message count
                     await self._update_user_message_count(sender_id)
-                    
+
                     # Convert result to Message object
                     row = result[0]
-                    message = Message(
+                    message = Message()
                         id=row[0],
                         content=row[1],
                         message_type=MessageType(row[2]),
@@ -223,19 +224,19 @@ class MessageService:
                         # ... map other fields
                         timestamp=row[7]
                     )
-                    
+
                     # Performance tracking
                     if self.performance_logger:
                         self.performance_logger.record_metric("messages_created", 1, "count")
-                    
+
                     return message
-                
+
             except Exception as e:
                 logger.error(f"Error creating message: {e}")
                 return None
-        
+
         return None
-    
+
     @async_track_performance("message_update") if async_track_performance else lambda f: f
     async def update_message(self, message_id: int, sender_id: int, message_data: MessageUpdate) -> Optional[Message]:
         """Update message using EXISTING database abstraction."""
@@ -244,66 +245,66 @@ class MessageService:
                 # Check if user owns the message
                 check_query = "SELECT sender_id FROM messages WHERE id = ?"
                 check_params = {"id": message_id}
-                
+
                 result = await self.db_manager.execute_query(check_query, check_params)
                 if not result or result[0][0] != sender_id:
                     return None  # Not authorized
-                
+
                 # Build update query
                 update_fields = []
                 params = {"id": message_id, "edited_at": datetime.now()}
-                
+
                 for field, value in message_data.dict(exclude_unset=True).items():
                     if value is not None:
                         update_fields.append(f"{field} = ?")
                         params[field] = value
-                
+
                 if not update_fields:
                     return None
-                
+
                 # Mark as edited
                 update_fields.append("is_edited = ?")
                 params["is_edited"] = True
-                
+
                 update_query = f"""
-                    UPDATE messages 
+                    UPDATE messages
                     SET {', '.join(update_fields)}, edited_at = ?
                     WHERE id = ?
                     RETURNING *
                 """
-                
+
                 if self.performance_logger and timer:
                     with timer("message_update_query"):
                         result = await self.db_manager.execute_query(update_query, params)
                 else:
                     result = await self.db_manager.execute_query(update_query, params)
-                
+
                 if result:
                     # Performance tracking
                     if self.performance_logger:
                         self.performance_logger.record_metric("messages_updated", 1, "count")
-                    
+
                     # Convert result to Message object
                     row = result[0]
-                    return Message(
+                    return Message()
                         id=row[0],
                         content=row[1],
                         # ... map other fields
                     )
-                
+
             except Exception as e:
                 logger.error(f"Error updating message: {e}")
                 return None
-        
+
         return None
-    
+
     async def _update_thread_count(self, parent_id: int):
         """Update thread count for parent message."""
         if self.db_manager:
             try:
                 query = """
-                    UPDATE messages 
-                    SET thread_count = (
+                    UPDATE messages
+                    SET thread_count = ()
                         SELECT COUNT(*) FROM messages WHERE parent_id = ?
                     )
                     WHERE id = ?
@@ -312,7 +313,7 @@ class MessageService:
                 await self.db_manager.execute_query(query, params)
             except Exception as e:
                 logger.error(f"Error updating thread count: {e}")
-    
+
     async def _update_user_message_count(self, user_id: int):
         """Update user's message count."""
         if self.db_manager:
@@ -322,14 +323,14 @@ class MessageService:
                 await self.db_manager.execute_query(query, params)
             except Exception as e:
                 logger.error(f"Error updating user message count: {e}")
-    
+
     @async_track_performance("message_search") if async_track_performance else lambda f: f
     async def search_messages(self, query: str, user_id: int, limit: int = 50) -> List[Message]:
         """Search messages using EXISTING database abstraction."""
         if self.db_manager:
             try:
                 search_query = """
-                    SELECT * FROM messages 
+                    SELECT * FROM messages
                     WHERE (sender_id = ? OR recipient_id = ?)
                     AND content LIKE ?
                     ORDER BY timestamp DESC
@@ -341,32 +342,32 @@ class MessageService:
                     "query": f"%{query}%",
                     "limit": limit
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("message_search_query"):
                         result = await self.db_manager.execute_query(search_query, search_params)
                 else:
                     result = await self.db_manager.execute_query(search_query, search_params)
-                
+
                 messages = []
                 if result:
                     for row in result:
-                        messages.append(Message(
+                        messages.append(Message())
                             id=row[0],
                             content=row[1],
                             # ... map other fields
                         ))
-                
+
                 # Performance tracking
                 if self.performance_logger:
                     self.performance_logger.record_metric("message_searches", 1, "count")
-                
+
                 return messages
-                
+
             except Exception as e:
                 logger.error(f"Error searching messages: {e}")
                 return []
-        
+
         return []
 
 # Global message service instance

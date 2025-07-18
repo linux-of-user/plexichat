@@ -85,7 +85,7 @@ class DDoSProtection:
         self.user_agents: Dict[str, Set[str]] = defaultdict(set)
         self.request_patterns: Dict[str, List[str]] = defaultdict(list)
 
-    async def check_request(
+    async def check_request()
         self, ip_address: str, user_agent: str, endpoint: str
     ) -> Tuple[bool, Optional[SecurityThreat]]:
         """
@@ -99,7 +99,7 @@ class DDoSProtection:
         # Check if IP is currently blocked
         if ip_address in self.blocked_ips:
             if current_time < self.blocked_ips[ip_address]:
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=f"ddos_{ip_address}_{int(time.time())}",
                     threat_type=AttackType.DDOS,
                     threat_level=ThreatLevel.HIGH,
@@ -128,11 +128,11 @@ class DDoSProtection:
 
         if len(recent_requests) > self.max_requests_per_minute:
             # Block IP for DDoS
-            self.blocked_ips[ip_address] = current_time + timedelta(
+            self.blocked_ips[ip_address] = current_time + timedelta()
                 minutes=self.block_duration_minutes
             )
 
-            threat = SecurityThreat(
+            threat = SecurityThreat()
                 threat_id=f"ddos_{ip_address}_{int(time.time())}",
                 threat_type=AttackType.DDOS,
                 threat_level=ThreatLevel.CRITICAL,
@@ -143,7 +143,7 @@ class DDoSProtection:
                 mitigation_action="IP_BLOCKED_DDOS",
             )
 
-            logger.warning(
+            logger.warning()
                 f" DDoS attack blocked: {ip_address} - {len(recent_requests)} requests/minute"
             )
             return False, threat
@@ -154,11 +154,11 @@ class DDoSProtection:
 
             if self.suspicious_patterns[ip_address] >= self.suspicious_threshold:
                 # Block suspicious IP
-                self.blocked_ips[ip_address] = current_time + timedelta(
+                self.blocked_ips[ip_address] = current_time + timedelta()
                     minutes=self.block_duration_minutes
                 )
 
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=f"suspicious_{ip_address}_{int(time.time())}",
                     threat_type=AttackType.DDOS,
                     threat_level=ThreatLevel.HIGH,
@@ -174,7 +174,7 @@ class DDoSProtection:
 
         return True, None
 
-    async def _analyze_suspicious_behavior(
+    async def _analyze_suspicious_behavior()
         self, ip_address: str, user_agent: str, endpoint: str
     ) -> bool:
         """Analyze request for suspicious patterns."""
@@ -204,7 +204,7 @@ class RateLimiter:
     """
 
     def __init__(self):
-        self.request_counts: Dict[str, Dict[str, deque]] = defaultdict(
+        self.request_counts: Dict[str, Dict[str, deque]] = defaultdict()
             lambda: defaultdict(lambda: deque(maxlen=1000))
         )
         self.rate_limits = {
@@ -214,7 +214,7 @@ class RateLimiter:
             "default": {"requests": 60, "window_minutes": 1},
         }
 
-    async def is_allowed(
+    async def is_allowed()
         self, identifier: str, action: str = "default"
     ) -> Tuple[bool, Optional[str]]:
         """Check if action is allowed for identifier."""
@@ -231,7 +231,7 @@ class RateLimiter:
 
         # Check if limit exceeded
         if len(requests) >= limit_config["requests"]:
-            return (
+            return ()
                 False,
                 f"Rate limit exceeded for {action}: {len(requests)}/{limit_config['requests']} requests in {limit_config['window_minutes']} minutes",
             )
@@ -255,7 +255,7 @@ class InputSanitizer:
             r"(--|#|/\*|\*/)",
             r"(\b(OR|AND)\s+\d+\s*=\s*\d+)",
             r"(\bUNION\s+SELECT\b)",
-            r"(\b(EXEC|EXECUTE)\s*\()",
+            r"(\b(EXEC|EXECUTE)\s*\()",)
         ]
 
         # XSS patterns
@@ -276,7 +276,7 @@ class InputSanitizer:
             r"%2e%2e%5c",
         ]
 
-    async def sanitize_input(
+    async def sanitize_input()
         self, input_data: str, input_type: str = "general"
     ) -> Tuple[str, List[SecurityThreat]]:
         """
@@ -291,7 +291,7 @@ class InputSanitizer:
         # Check for SQL injection
         for pattern in self.sql_patterns:
             if re.search(pattern, input_data, re.IGNORECASE):
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=f"sql_injection_{int(time.time())}",
                     threat_type=AttackType.SQL_INJECTION,
                     threat_level=ThreatLevel.CRITICAL,
@@ -308,7 +308,7 @@ class InputSanitizer:
         # Check for XSS
         for pattern in self.xss_patterns:
             if re.search(pattern, input_data, re.IGNORECASE):
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=f"xss_{int(time.time())}",
                     threat_type=AttackType.XSS,
                     threat_level=ThreatLevel.HIGH,
@@ -325,7 +325,7 @@ class InputSanitizer:
         # Check for path traversal
         for pattern in self.path_traversal_patterns:
             if re.search(pattern, input_data, re.IGNORECASE):
-                threat = SecurityThreat(
+                threat = SecurityThreat()
                     threat_id=f"path_traversal_{int(time.time())}",
                     threat_type=AttackType.MALICIOUS_INPUT,
                     threat_level=ThreatLevel.HIGH,

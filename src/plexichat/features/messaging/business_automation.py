@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Set
 
 
 """
+import time
 PlexiChat Business Automation System
 
 WhatsApp Business-like features for automated messaging and business operations:
@@ -307,7 +308,7 @@ class BusinessProfile:
             "email": self.email,
             "logo_url": self.logo_url,
             "verified": self.verified,
-            "verification_date": (
+            "verification_date": ()
                 self.verification_date.isoformat() if self.verification_date else None
             ),
             "business_hours": {
@@ -342,19 +343,19 @@ class BusinessAutomationManager:
 
     def __init__(self):
         self.business_profiles: Dict[str, BusinessProfile] = {}
-        self.active_conversations: Dict[str, Dict[str, Any]] = (
+        self.active_conversations: Dict[str, Dict[str, Any]] = ()
             {}
         )  # user_id -> conversation_state
         self.message_queue: List[Dict[str, Any]] = []
 
-    async def create_business_profile(
+    async def create_business_profile()
         self, profile_data: Dict[str, Any]
     ) -> BusinessProfile:
         """Create business profile."""
-        profile = BusinessProfile(
+        profile = BusinessProfile()
             business_id=profile_data["business_id"],
             business_name=profile_data["business_name"],
-            business_type=BusinessType(
+            business_type=BusinessType()
                 profile_data.get("business_type", "small_business")
             ),
             industry=profile_data.get("industry", ""),
@@ -365,7 +366,7 @@ class BusinessAutomationManager:
         logger.info(f"Created business profile: {profile.business_name}")
         return profile
 
-    async def send_broadcast_message(
+    async def send_broadcast_message()
         self,
         business_id: str,
         list_id: str,
@@ -405,7 +406,7 @@ class BusinessAutomationManager:
             "list_name": broadcast_list.name,
         }
 
-    async def process_incoming_message(
+    async def process_incoming_message()
         self, user_id: str, message: str, business_id: str
     ) -> Optional[str]:
         """Process incoming message and generate automated response."""
@@ -426,7 +427,7 @@ class BusinessAutomationManager:
             if auto_msg.trigger_type == TriggerType.KEYWORD:
                 for keyword in auto_msg.keywords:
                     if keyword.lower() in message.lower():
-                        return await self._send_automated_message(
+                        return await self._send_automated_message()
                             user_id, auto_msg, profile
                         )
 
@@ -436,7 +437,7 @@ class BusinessAutomationManager:
 
         return None
 
-    async def _handle_chatbot_flow(
+    async def _handle_chatbot_flow()
         self, user_id: str, flow: ChatbotFlow, message: str
     ) -> str:
         """Handle chatbot conversation flow."""
@@ -465,12 +466,12 @@ class BusinessAutomationManager:
 
         return flow.fallback_message
 
-    async def _send_automated_message(
+    async def _send_automated_message()
         self, user_id: str, message: AutomatedMessage, profile: BusinessProfile
     ) -> str:
         """Send automated message."""
         # Check if should respect business hours
-        if (
+        if ()
             message.respect_business_hours
             and not profile.business_hours.is_business_hours()
         ):

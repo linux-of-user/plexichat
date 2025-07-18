@@ -10,22 +10,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
-from datetime import datetime
-from datetime import datetime
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
 
 
-from datetime import datetime
-from datetime import datetime
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
 
 from plexichat.app.logger_config import logger
 
 """
+import time
 Advanced theming service for PlexiChat.
 Provides comprehensive theming capabilities across all interfaces.
 """
@@ -86,36 +79,34 @@ class Theme:
     is_dark: bool = False
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-    
+
     def __post_init__(self):
         if not self.created_at:
-            self.from datetime import datetime
 created_at = datetime().now().isoformat()
-        self.from datetime import datetime
 updated_at = datetime().now().isoformat()
 
 
 class ThemingService:
     """Advanced theming service."""
-    
+
     def __init__(self):
-        self.from pathlib import Path
-themes_directory = Path()("data/themes")
+        from pathlib import Path
+self.themes_directory = Path("data/themes")
         self.themes_directory.mkdir(parents=True, exist_ok=True)
-        
+
         self.user_preferences_file = self.themes_directory / "user_preferences.json"
         self.custom_themes_file = self.themes_directory / "custom_themes.json"
-        
+
         self.built_in_themes = self._create_built_in_themes()
         self.custom_themes = self._load_custom_themes()
         self.user_preferences = self._load_user_preferences()
-    
+
     def _create_built_in_themes(self) -> Dict[str, Theme]:
         """Create built-in themes."""
         themes = {}
-        
+
         # Default Light Theme
-        themes["default_light"] = Theme(
+        themes["default_light"] = Theme()
             id="default_light",
             name="Default Light",
             description="Clean and modern light theme",
@@ -124,13 +115,13 @@ themes_directory = Path()("data/themes")
             effects=ThemeEffects(),
             is_dark=False
         )
-        
+
         # Dark Theme
-        themes["dark"] = Theme(
+        themes["dark"] = Theme()
             id="dark",
             name="Dark Professional",
             description="Professional dark theme for extended use",
-            colors=ThemeColors(
+            colors=ThemeColors()
                 primary="#2c3e50",
                 secondary="#3498db",
                 success="#27ae60",
@@ -150,13 +141,13 @@ themes_directory = Path()("data/themes")
             effects=ThemeEffects(),
             is_dark=True
         )
-        
+
         # Blue Theme
-        themes["blue"] = Theme(
+        themes["blue"] = Theme()
             id="blue",
             name="Ocean Blue",
             description="Calming blue-themed interface",
-            colors=ThemeColors(
+            colors=ThemeColors()
                 primary="#1e3a8a",
                 secondary="#3b82f6",
                 success="#10b981",
@@ -172,13 +163,13 @@ themes_directory = Path()("data/themes")
             effects=ThemeEffects(),
             is_dark=False
         )
-        
+
         # Purple Theme
-        themes["purple"] = Theme(
+        themes["purple"] = Theme()
             id="purple",
             name="Royal Purple",
             description="Elegant purple theme with modern aesthetics",
-            colors=ThemeColors(
+            colors=ThemeColors()
                 primary="#7c3aed",
                 secondary="#a855f7",
                 success="#10b981",
@@ -194,13 +185,13 @@ themes_directory = Path()("data/themes")
             effects=ThemeEffects(),
             is_dark=False
         )
-        
+
         # Green Theme
-        themes["green"] = Theme(
+        themes["green"] = Theme()
             id="green",
             name="Nature Green",
             description="Fresh green theme inspired by nature",
-            colors=ThemeColors(
+            colors=ThemeColors()
                 primary="#166534",
                 secondary="#22c55e",
                 success="#10b981",
@@ -216,13 +207,13 @@ themes_directory = Path()("data/themes")
             effects=ThemeEffects(),
             is_dark=False
         )
-        
+
         # High Contrast Theme
-        themes["high_contrast"] = Theme(
+        themes["high_contrast"] = Theme()
             id="high_contrast",
             name="High Contrast",
             description="High contrast theme for accessibility",
-            colors=ThemeColors(
+            colors=ThemeColors()
                 primary="#000000",
                 secondary="#0066cc",
                 success="#008000",
@@ -235,11 +226,11 @@ themes_directory = Path()("data/themes")
                 text_secondary="#333333",
                 border="#000000"
             ),
-            layout=ThemeLayout(
+            layout=ThemeLayout()
                 border_radius="4px",
                 font_size_base="16px"
             ),
-            effects=ThemeEffects(
+            effects=ThemeEffects()
                 animations_enabled=False,
                 box_shadow_enabled=False,
                 gradient_enabled=False,
@@ -247,13 +238,13 @@ themes_directory = Path()("data/themes")
             ),
             is_dark=False
         )
-        
+
         # Cyberpunk Theme
-        themes["cyberpunk"] = Theme(
+        themes["cyberpunk"] = Theme()
             id="cyberpunk",
             name="Cyberpunk",
             description="Futuristic cyberpunk-inspired theme",
-            colors=ThemeColors(
+            colors=ThemeColors()
                 primary="#ff00ff",
                 secondary="#00ffff",
                 success="#00ff00",
@@ -268,19 +259,19 @@ themes_directory = Path()("data/themes")
                 border="#30363d",
                 shadow="rgba(255,0,255,0.3)"
             ),
-            layout=ThemeLayout(
+            layout=ThemeLayout()
                 font_family="'Courier New', monospace",
                 border_radius="2px"
             ),
-            effects=ThemeEffects(
+            effects=ThemeEffects()
                 gradient_enabled=True,
                 blur_enabled=True
             ),
             is_dark=True
         )
-        
+
         return themes
-    
+
     def _load_custom_themes(self) -> Dict[str, Theme]:
         """Load custom themes from file."""
         try:
@@ -293,9 +284,9 @@ themes_directory = Path()("data/themes")
                     }
         except Exception as e:
             logger.error(f"Failed to load custom themes: {e}")
-        
+
         return {}
-    
+
     def _save_custom_themes(self):
         """Save custom themes to file."""
         try:
@@ -303,13 +294,13 @@ themes_directory = Path()("data/themes")
                 theme_id: asdict(theme)
                 for theme_id, theme in self.custom_themes.items()
             }
-            
+
             with open(self.custom_themes_file, 'w') as f:
                 json.dump(data, f, indent=2)
-                
+
         except Exception as e:
             logger.error(f"Failed to save custom themes: {e}")
-    
+
     def _load_user_preferences(self) -> Dict[str, Any]:
         """Load user theme preferences."""
         try:
@@ -318,7 +309,7 @@ themes_directory = Path()("data/themes")
                     return json.load(f)
         except Exception as e:
             logger.error(f"Failed to load user preferences: {e}")
-        
+
         return {
             "default_theme": "default_light",
             "user_themes": {},
@@ -329,7 +320,7 @@ themes_directory = Path()("data/themes")
                 "end_time": "06:00"
             }
         }
-    
+
     def _save_user_preferences(self):
         """Save user theme preferences."""
         try:
@@ -337,25 +328,25 @@ themes_directory = Path()("data/themes")
                 json.dump(self.user_preferences, f, indent=2)
         except Exception as e:
             logger.error(f"Failed to save user preferences: {e}")
-    
+
     def get_all_themes(self) -> Dict[str, Theme]:
         """Get all available themes."""
         all_themes = {}
         all_themes.update(self.built_in_themes)
         all_themes.update(self.custom_themes)
         return all_themes
-    
+
     def get_theme(self, theme_id: str) -> Optional[Theme]:
         """Get a specific theme by ID."""
         all_themes = self.get_all_themes()
         return all_themes.get(theme_id)
-    
+
     def get_theme_list(self) -> List[Dict[str, Any]]:
         """Get list of themes with metadata."""
         themes = []
-        
+
         for theme_id, theme in self.get_all_themes().items():
-            themes.append({
+            themes.append({)
                 "id": theme.id,
                 "name": theme.name,
                 "description": theme.description,
@@ -364,10 +355,10 @@ themes_directory = Path()("data/themes")
                 "created_at": theme.created_at,
                 "updated_at": theme.updated_at
             })
-        
+
         return sorted(themes, key=lambda x: (x["is_custom"], x["name"]))
-    
-    def create_custom_theme(
+
+    def create_custom_theme():
         self,
         name: str,
         description: str,
@@ -377,39 +368,39 @@ themes_directory = Path()("data/themes")
         effects: Optional[Dict[str, Any]] = None
     ) -> Theme:
         """Create a new custom theme."""
-        
+
         # Get base theme
         base_theme = self.get_theme(base_theme_id)
         if not base_theme:
             base_theme = self.built_in_themes["default_light"]
-        
+
         # Generate unique ID
-        theme_id = f"custom_{name.lower().replace(' ', '_')}_{int(from datetime import datetime
+        theme_id = f"custom_{name.lower().replace(' ', '_')}_{int(from datetime import datetime)
 datetime.now().timestamp())}"
-        
+
         # Create theme colors
         theme_colors = ThemeColors(**asdict(base_theme.colors))
         if colors:
             for key, value in colors.items():
                 if hasattr(theme_colors, key):
                     setattr(theme_colors, key, value)
-        
+
         # Create theme layout
         theme_layout = ThemeLayout(**asdict(base_theme.layout))
         if layout:
             for key, value in layout.items():
                 if hasattr(theme_layout, key):
                     setattr(theme_layout, key, value)
-        
+
         # Create theme effects
         theme_effects = ThemeEffects(**asdict(base_theme.effects))
         if effects:
             for key, value in effects.items():
                 if hasattr(theme_effects, key):
                     setattr(theme_effects, key, value)
-        
+
         # Create new theme
-        new_theme = Theme(
+        new_theme = Theme()
             id=theme_id,
             name=name,
             description=description,
@@ -418,69 +409,69 @@ datetime.now().timestamp())}"
             effects=theme_effects,
             is_dark=base_theme.is_dark
         )
-        
+
         # Save to custom themes
         self.custom_themes[theme_id] = new_theme
         self._save_custom_themes()
-        
+
         logger.info(f"Created custom theme: {name} ({theme_id})")
         return new_theme
-    
+
     def update_custom_theme(self, theme_id: str, updates: Dict[str, Any]) -> bool:
         """Update a custom theme."""
         if theme_id not in self.custom_themes:
             return False
-        
+
         theme = self.custom_themes[theme_id]
-        
+
         # Update theme properties
         for key, value in updates.items():
             if hasattr(theme, key):
                 setattr(theme, key, value)
-        
+
         theme.from datetime import datetime
 updated_at = datetime().now().isoformat()
-        
+
         self._save_custom_themes()
         logger.info(f"Updated custom theme: {theme_id}")
         return True
-    
+
     def delete_custom_theme(self, theme_id: str) -> bool:
         """Delete a custom theme."""
         if theme_id not in self.custom_themes:
             return False
-        
+
         del self.custom_themes[theme_id]
         self._save_custom_themes()
-        
+
         logger.info(f"Deleted custom theme: {theme_id}")
         return True
-    
+
     def set_user_theme(self, user_id: int, theme_id: str) -> bool:
         """Set theme for a specific user."""
         if not self.get_theme(theme_id):
             return False
-        
+
         self.user_preferences["user_themes"][str(user_id)] = theme_id
         self._save_user_preferences()
-        
+
         logger.info(f"Set theme {theme_id} for user {user_id}")
         return True
-    
+
     def get_user_theme(self, user_id: int) -> str:
         """Get theme for a specific user."""
         user_theme = self.user_preferences["user_themes"].get(str(user_id))
         if user_theme and self.get_theme(user_theme):
             return user_theme
-        
+
         return self.user_preferences["default_theme"]
-    
+
     def generate_css(self, theme_id: str) -> str:
         """Generate CSS for a theme."""
         theme = self.get_theme(theme_id)
         if not theme:
             theme = self.built_in_themes["default_light"]
-        
+
         css = f"""
 /* PlexiChat Theme: {theme.name} */
 :root {{
@@ -499,7 +490,7 @@ updated_at = datetime().now().isoformat()
     --text-secondary: {theme.colors.text_secondary};
     --border-color: {theme.colors.border};
     --shadow-color: {theme.colors.shadow};
-    
+
     /* Layout */
     --sidebar-width: {theme.layout.sidebar_width};
     --header-height: {theme.layout.header_height};
@@ -509,7 +500,7 @@ updated_at = datetime().now().isoformat()
     --font-size-base: {theme.layout.font_size_base};
     --line-height: {theme.layout.line_height};
     --container-max-width: {theme.layout.container_max_width};
-    
+
     /* Effects */
     --transition-duration: {theme.effects.transitions_duration};
 }}
@@ -569,17 +560,17 @@ body {{
 }
 """}
         """
-        
+
         return css.strip()
-    
+
     def export_theme(self, theme_id: str) -> Optional[Dict[str, Any]]:
         """Export a theme as JSON."""
         theme = self.get_theme(theme_id)
         if not theme:
             return None
-        
+
         return asdict(theme)
-    
+
     def import_theme(self, theme_data: Dict[str, Any]) -> Optional[Theme]:
         """Import a theme from JSON data."""
         try:
@@ -587,9 +578,9 @@ body {{
             required_fields = ["id", "name", "description", "colors", "layout", "effects"]
             if not all(field in theme_data for field in required_fields):
                 return None
-            
+
             # Create theme object
-            theme = Theme(
+            theme = Theme()
                 id=theme_data["id"],
                 name=theme_data["name"],
                 description=theme_data["description"],
@@ -598,14 +589,14 @@ body {{
                 effects=ThemeEffects(**theme_data["effects"]),
                 is_dark=theme_data.get("is_dark", False)
             )
-            
+
             # Add to custom themes
             self.custom_themes[theme.id] = theme
             self._save_custom_themes()
-            
+
             logger.info(f"Imported theme: {theme.name} ({theme.id})")
             return theme
-            
+
         except Exception as e:
             logger.error(f"Failed to import theme: {e}")
             return None

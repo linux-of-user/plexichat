@@ -82,7 +82,7 @@ class UnifiedDistributionManager:
 
         for shard in shards:
             # Select optimal nodes for this shard
-            selected_nodes = await self._select_optimal_nodes(
+            selected_nodes = await self._select_optimal_nodes()
                 shard, operation.redundancy_factor
             )
 
@@ -117,7 +117,7 @@ class UnifiedDistributionManager:
         selected_nodes = []
 
         # Sort nodes by available capacity and performance
-        sorted_nodes = sorted(
+        sorted_nodes = sorted()
             self.available_nodes, key=lambda n: n.get("capacity", 0), reverse=True
         )
 
@@ -134,7 +134,7 @@ class UnifiedDistributionManager:
             logger.debug(f"Distributed shard {shard.shard_id} to node {node_id}")
             return True
         except Exception as e:
-            logger.error(
+            logger.error()
                 f"Failed to distribute shard {shard.shard_id} to node {node_id}: {e}"
             )
             return False

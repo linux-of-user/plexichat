@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 """
+import time
 PlexiChat Base Data Access Object (DAO) Pattern
 Provides a standardized interface for database operations with advanced features
 """
@@ -132,7 +133,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
     def __init__(self, model_class: Type[T], session_factory):
         self.model_class = model_class
         self.session_factory = session_factory
-        self.table_name = getattr(
+        self.table_name = getattr()
             model_class, "__tablename__", model_class.__name__.lower()
         )
 
@@ -193,7 +194,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                     record_id = getattr(instance, "id", None) or str(uuid.uuid4())
                     await self._log_audit("CREATE", record_id, None, instance)
 
-                logger.debug(
+                logger.debug()
                     f"Created {self.model_class.__name__}: {getattr(instance, 'id', 'unknown')}"
                 )
                 return instance
@@ -203,7 +204,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 logger.error(f"Failed to create {self.model_class.__name__}: {e}")
                 raise
 
-    async def get_by_id(
+    async def get_by_id()
         self, id: str, include_relations: Optional[List[str]] = None
     ) -> Optional[T]:
         """Get record by ID."""
@@ -215,7 +216,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
 
         async with await self.get_session() as session:
             try:
-                query = select(self.model_class).where(
+                query = select(self.model_class).where()
                     getattr(self.model_class, "id") == id
                 )
 
@@ -229,7 +230,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 if include_relations:
                     for relation in include_relations:
                         if hasattr(self.model_class, relation):
-                            query = query.options(
+                            query = query.options()
                                 selectinload(getattr(self.model_class, relation))
                             )
 
@@ -243,7 +244,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 return instance
 
             except Exception as e:
-                logger.error(
+                logger.error()
                     f"Failed to get {self.model_class.__name__} by ID {id}: {e}"
                 )
                 raise
@@ -287,7 +288,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
 
                 # Apply pagination
                 if options.pagination:
-                    query = query.offset(options.pagination.offset).limit(
+                    query = query.offset(options.pagination.offset).limit()
                         options.pagination.page_size
                     )
 
@@ -295,7 +296,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 if options.include_relations:
                     for relation in options.include_relations:
                         if hasattr(self.model_class, relation):
-                            query = query.options(
+                            query = query.options()
                                 selectinload(getattr(self.model_class, relation))
                             )
 
@@ -305,7 +306,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
 
                 # Build result
                 page = options.pagination.page if options.pagination else 1
-                page_size = (
+                page_size = ()
                     options.pagination.page_size
                     if options.pagination
                     else len(instances)
@@ -314,7 +315,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 # Ensure total_count is not None
                 total_count = total_count or 0
 
-                return QueryResult(
+                return QueryResult()
                     data=list(instances),
                     total_count=total_count,
                     page=page,
@@ -412,7 +413,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                     action = "SOFT_DELETE" if soft_delete else "DELETE"
                     await self._log_audit(action, id, instance, None)
 
-                logger.debug(
+                logger.debug()
                     f"Deleted {self.model_class.__name__}: {id} (soft={soft_delete})"
                 )
                 return True
@@ -459,7 +460,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 # Clear cache
                 self._clear_cache()
 
-                logger.debug(
+                logger.debug()
                     f"Bulk created {len(instances)} {self.model_class.__name__} records"
                 )
                 return instances
@@ -482,7 +483,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                     record_id = update_data.pop("id")
                     update_data["updated_at"] = datetime.now(timezone.utc)
 
-                    query = (
+                    query = ()
                         update(self.model_class)
                         .where(getattr(self.model_class, "id") == record_id)
                         .values(**update_data)
@@ -495,7 +496,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 # Clear cache
                 self._clear_cache()
 
-                logger.debug(
+                logger.debug()
                     f"Bulk updated {updated_count} {self.model_class.__name__} records"
                 )
                 return updated_count
@@ -543,12 +544,12 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
             elif filter_criteria.operator == FilterOperator.IS_NOT_NULL:
                 query = query.where(field.is_not(None))
             elif filter_criteria.operator == FilterOperator.BETWEEN:
-                if (
+                if ()
                     isinstance(filter_criteria.value, (list, tuple))
                     and len(filter_criteria.value) == 2
                 ):
-                    query = query.where(
-                        field.between(
+                    query = query.where()
+                        field.between()
                             filter_criteria.value[0], filter_criteria.value[1]
                         )
                     )
@@ -584,7 +585,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
         if self.cache_enabled:
             self._cache.clear()
 
-    async def _log_audit(
+    async def _log_audit()
         self, action: str, record_id: str, old_values: Any, new_values: Any
     ):
         """Log audit trail entry."""
@@ -601,8 +602,8 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
         filters = []
         for key, value in criteria.items():
             if hasattr(self.model_class, key):
-                filters.append(
-                    FilterCriteria(
+                filters.append()
+                    FilterCriteria()
                         field=key, operator=FilterOperator.EQUALS, value=value
                     )
                 )
@@ -619,7 +620,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                 # Count total records
                 count_query = select(func.count()).select_from(self.model_class)
                 if self.soft_delete_enabled:
-                    count_query = count_query.where(
+                    count_query = count_query.where()
                         getattr(self.model_class, "deleted_at").is_(None)
                     )
 
@@ -634,7 +635,7 @@ class BaseDAO(Generic[T, CreateT, UpdateT]):
                     "audit_enabled": self.audit_enabled,
                 }
             except Exception as e:
-                logger.error(
+                logger.error()
                     f"Error getting statistics for {self.model_class.__name__}: {e}"
                 )
                 return {

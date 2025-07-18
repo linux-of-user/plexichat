@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..core.ai_abstraction_layer import (
+from ..core.ai_abstraction_layer import ()
 
 
     AI,
@@ -126,7 +126,7 @@ router = APIRouter(prefix="/api/v1/ai", tags=["AI Management"])
 async def chat_completion(request: AIRequestModel):
     """Process AI chat completion request."""
     try:
-        ai_request = AIRequest(
+        ai_request = AIRequest()
             user_id=request.user_id,
             model_id=request.model_id,
             prompt=request.prompt,
@@ -143,7 +143,7 @@ async def chat_completion(request: AIRequestModel):
 
         response = await ai_layer.process_request(ai_request)
 
-        return AIResponseModel(
+        return AIResponseModel()
             request_id=response.request_id,
             model_id=response.model_id,
             content=response.content,
@@ -173,7 +173,7 @@ async def get_models(user_id: Optional[str] = None, capability: Optional[ModelCa
             models = list(ai_layer.models.values())
 
         return [
-            ModelConfigModel(
+            ModelConfigModel()
                 id=model.id,
                 name=model.name,
                 provider=model.provider,
@@ -200,7 +200,7 @@ async def get_models(user_id: Optional[str] = None, capability: Optional[ModelCa
 async def add_model(model: ModelConfigModel):
     """Add new AI model."""
     try:
-        ai_model = AIModel(
+        ai_model = AIModel()
             id=model.id,
             name=model.name,
             provider=model.provider,
@@ -305,7 +305,7 @@ async def get_providers():
 async def add_user_permission(permission: UserPermissionModel):
     """Add user permission for AI model."""
     try:
-        ai_layer.access_control.add_user_permission(
+        ai_layer.access_control.add_user_permission()
             permission.user_id,
             permission.model_id,
             permission.capabilities

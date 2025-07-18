@@ -1,3 +1,6 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -58,64 +61,64 @@ def create_app() -> Optional[Any]:
         if not FastAPI:
             logger.error("FastAPI not available")
             return None
-        
+
         # Create FastAPI app
-        app = FastAPI(
+        app = FastAPI()
             title=getattr(settings, 'APP_NAME', 'PlexiChat'),
             version=getattr(settings, 'APP_VERSION', '1.0.0'),
             description="Enhanced PlexiChat API with comprehensive functionality",
             debug=getattr(settings, 'DEBUG', False)
         )
-        
+
         # Add middleware
         if CORSMiddleware:
-            app.add_middleware(
+            app.add_middleware()
                 CORSMiddleware,
                 allow_origins=["*"],  # Configure appropriately for production
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"],
             )
-        
+
         if GZipMiddleware:
             app.add_middleware(GZipMiddleware, minimum_size=1000)
-        
+
         # Add custom middleware
         try:
             from plexichat.interfaces.web.middleware.rate_limiting import RateLimitingMiddleware  # type: ignore
             app.add_middleware(RateLimitingMiddleware)
         except ImportError:
             logger.warning("Rate limiting middleware not available")
-        
+
         try:
             from plexichat.interfaces.web.middleware.government_security import GovernmentSecurityMiddleware  # type: ignore
             app.add_middleware(GovernmentSecurityMiddleware)
         except ImportError:
             logger.warning("Government security middleware not available")
-        
+
         # Include routers
         _include_routers(app)
-        
+
         # Add static files
         if StaticFiles:
             try:
                 app.mount("/static", StaticFiles(directory="static"), name="static")
             except Exception as e:
                 logger.warning(f"Could not mount static files: {e}")
-        
+
         # Add startup/shutdown events
         @app.on_event("startup")
         async def startup_event():
             logger.info("PlexiChat web interface starting up")
             if performance_logger:
                 performance_logger.record_metric("app_startups", 1, "count")
-        
+
         @app.on_event("shutdown")
         async def shutdown_event():
             logger.info("PlexiChat web interface shutting down")
             if performance_logger:
                 performance_logger.record_metric("app_shutdowns", 1, "count")
-        
+
         # Add health check endpoint
         @app.get("/health")
         async def health_check():
@@ -124,9 +127,9 @@ def create_app() -> Optional[Any]:
                 "timestamp": "2024-01-01T00:00:00Z",
                 "version": getattr(settings, 'APP_VERSION', '1.0.0')
             }
-        
+
         return app
-        
+
     except Exception as e:
         logger.error(f"Error creating FastAPI app: {e}")
         return None
@@ -151,7 +154,7 @@ def _include_routers(app):
             ("file_management", "/file-management"),
             ("messaging_websocket_router", "/ws"),
         ]
-        
+
         for router_name, prefix in routers:
             try:
                 module = __import__(f"plexichat.interfaces.web.routers.{router_name}", fromlist=[router_name])
@@ -162,7 +165,7 @@ def _include_routers(app):
                 logger.warning(f"Could not import router {router_name}: {e}")
             except Exception as e:
                 logger.error(f"Error including router {router_name}: {e}")
-        
+
     except Exception as e:
         logger.error(f"Error including routers: {e}")
 

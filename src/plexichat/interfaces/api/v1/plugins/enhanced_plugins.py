@@ -11,14 +11,13 @@ from typing import Optional
 from pathlib import Path
 
 
-
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
-from plexichat.app.plugins.enhanced_plugin_manager import (
+from plexichat.app.plugins.enhanced_plugin_manager import ()
 
     API,
     Enhanced,
@@ -86,7 +85,7 @@ async def get_plugin_dashboard():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/install")
-async def install_plugin_from_zip(
+async def install_plugin_from_zip()
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     source: str = Form(default="local"),
@@ -192,7 +191,7 @@ async def update_plugin(request: PluginUpdateRequest, background_tasks: Backgrou
         plugin_manager = get_enhanced_plugin_manager()
 
         # Run update in background for large plugins
-        background_tasks.add_task(
+        background_tasks.add_task()
             plugin_manager.update_plugin,
             request.plugin_name,
             request.auto_update
@@ -286,21 +285,21 @@ async def get_security_overview():
             security = plugin.get("security", {})
 
             if security.get("risk_level") in ["high", "critical"]:
-                security_data["high_risk_plugins"].append({
+                security_data["high_risk_plugins"].append({)
                     "name": plugin["name"],
                     "risk_level": security["risk_level"],
                     "reason": security.get("quarantine_reason")
                 })
 
             if plugin["status"] == "quarantined":
-                security_data["quarantined_plugins"].append({
+                security_data["quarantined_plugins"].append({)
                     "name": plugin["name"],
                     "reason": security.get("quarantine_reason"),
                     "scan_date": security.get("scan_date")
                 })
 
             if not security.get("signature_valid", True):
-                security_data["unsigned_plugins"].append({
+                security_data["unsigned_plugins"].append({)
                     "name": plugin["name"],
                     "source": plugin["source"]
                 })

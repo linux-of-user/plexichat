@@ -16,6 +16,7 @@ from enum import Enum
 from functools import wraps
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import http.client
 
 try:
 
@@ -27,30 +28,9 @@ except ImportError:
 
 from pathlib import Path
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from fastapi import HTTPException, Request
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, create_engine
@@ -167,32 +147,32 @@ class EnhancedRateLimit(RateLimit):
 
 class AdvancedRateLimiter:
     """Advanced rate limiting system with per-user granular controls."""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        
+
         # Storage backends
         self.redis_client = None
         self.db_session = None
         self.memory_store = defaultdict(lambda: defaultdict(deque))
-        
+
         # Configuration
-        self.from pathlib import Path
-config_file = Path()("config/rate_limits.json")
+        from pathlib import Path
+self.config_file = Path("config/rate_limits.json")
         self.default_limits = self._load_default_limits()
         self.user_limits = {}
-        
+
         # Performance tracking
         self.request_times = defaultdict(deque)
         self.blocked_requests = defaultdict(int)
-        
+
         # Initialize storage
         self._init_storage()
         self._load_user_limits()
-        
+
         # Start cleanup task
         self._start_cleanup_task()
-    
+
     def _load_default_limits(self) -> Dict[str, Dict[LimitType, RateLimit]]:
         """Load default rate limits for different user tiers."""
         return {
@@ -224,7 +204,7 @@ config_file = Path()("config/rate_limits.json")
                 LimitType.LOGIN_ATTEMPTS: RateLimit(LimitType.LOGIN_ATTEMPTS, LimitPeriod.HOUR, 50)
             }
         }
-    
+
     def _init_storage(self):
         """Initialize storage backends."""
         try:
@@ -235,7 +215,7 @@ config_file = Path()("config/rate_limits.json")
         except Exception as e:
             self.logger.warning(f"Redis not available for rate limiting: {e}")
             self.redis_client = None
-        
+
         # Initialize SQLite for persistent storage
         try:
             self.engine = create_engine('sqlite:///rate_limits.db')
@@ -245,14 +225,14 @@ config_file = Path()("config/rate_limits.json")
             self.logger.info("SQLite initialized for rate limiting")
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
-    
+
     def _create_tables(self):
         """Create database tables for rate limiting."""
         Base = declarative_base()
-        
+
         class UserRateLimit(Base):
             __tablename__ = 'user_rate_limits'
-            
+
             id = Column(String, primary_key=True)
             user_id = Column(String, nullable=False)
             limit_type = Column(String, nullable=False)
@@ -260,10 +240,10 @@ config_file = Path()("config/rate_limits.json")
             reset_time = Column(DateTime, nullable=False)
             max_allowed = Column(Integer, nullable=False)
             created_at = Column(DateTime, default=datetime.utcnow)
-        
+
         class UserLimitConfig(Base):
             __tablename__ = 'user_limit_configs'
-            
+
             user_id = Column(String, primary_key=True)
             username = Column(String, nullable=False)
             user_tier = Column(String, default='standard')
@@ -271,12 +251,12 @@ config_file = Path()("config/rate_limits.json")
             is_active = Column(Boolean, default=True)
             created_at = Column(DateTime, default=datetime.utcnow)
             updated_at = Column(DateTime, default=datetime.utcnow)
-        
+
         Base.metadata.create_all(self.engine)
         self.UserRateLimit = UserRateLimit
         self.UserLimitConfig = UserLimitConfig
-    
-    async def check_rate_limit(self, user_id: str, limit_type: LimitType, 
+
+    async def check_rate_limit(self, user_id: str, limit_type: LimitType, )
                               request_size: int = 1, ip_address: Optional[str] = None) -> RateLimitStatus:
         """Check if user has exceeded rate limit."""
         try:
@@ -284,33 +264,33 @@ config_file = Path()("config/rate_limits.json")
             user_limits = self._get_user_limits(user_id)
             if not user_limits or not user_limits.is_active:
                 raise HTTPException(status_code=403, detail="User rate limiting not configured")
-            
+
             # Get specific limit
             limit_config = self._get_limit_config(user_limits, limit_type)
             if not limit_config:
                 raise HTTPException(status_code=400, detail=f"Rate limit not configured for {limit_type.value}")
-            
+
             # Check current usage
             current_usage = await self._get_current_usage(user_id, limit_type)
             reset_time = self._get_reset_time(limit_config.period)
-            
+
             # Calculate remaining allowance
             max_allowed = limit_config.max_requests
             if limit_config.burst_allowance > 0:
                 max_allowed += self._calculate_burst_allowance(user_id, limit_type, limit_config)
-            
+
             # Check size limits for file uploads and storage
             if limit_config.max_size_bytes and request_size > limit_config.max_size_bytes:
-                raise HTTPException(
-                    status_code=413, 
+                raise HTTPException()
+                    status_code=413,
                     detail=f"Request size {request_size} exceeds limit {limit_config.max_size_bytes}"
                 )
-            
+
             # Check if limit exceeded
             new_count = current_usage + request_size
             is_exceeded = new_count > max_allowed
-            
-            status = RateLimitStatus(
+
+            status = RateLimitStatus()
                 user_id=user_id,
                 limit_type=limit_type,
                 current_count=current_usage,
@@ -319,78 +299,76 @@ config_file = Path()("config/rate_limits.json")
                 is_exceeded=is_exceeded,
                 remaining=max(0, max_allowed - current_usage)
             )
-            
+
             if is_exceeded:
                 self.blocked_requests[user_id] += 1
                 self.logger.warning(f"Rate limit exceeded for user {user_id}: {limit_type.value}")
-                raise HTTPException(
+                raise HTTPException()
                     status_code=429,
                     detail=f"Rate limit exceeded for {limit_type.value}. Try again at {reset_time}",
                     headers={
                         "X-RateLimit-Limit": str(max_allowed),
                         "X-RateLimit-Remaining": str(status.remaining),
                         "X-RateLimit-Reset": str(int(reset_time.timestamp())),
-                        "Retry-After": str(int((reset_time - from datetime import datetime
+                        "Retry-After": str(int((reset_time - from datetime import datetime)))
 datetime.now()).total_seconds()))
                     }
                 )
-            
+
             # Update usage
             await self._update_usage(user_id, limit_type, request_size)
-            
+
             return status
-            
+
         except HTTPException:
             raise
         except Exception as e:
             self.logger.error(f"Rate limit check failed: {e}")
             # Fail open for availability
-            return RateLimitStatus(
+            return RateLimitStatus()
                 user_id=user_id,
                 limit_type=limit_type,
                 current_count=0,
                 max_allowed=999999,
-                from datetime import datetime
 
                 reset_time = datetime().now() + timedelta(hours=1),
                 is_exceeded=False,
                 remaining=999999
             )
-    
+
     async def _get_current_usage(self, user_id: str, limit_type: LimitType) -> int:
         """Get current usage for user and limit type."""
         key = f"rate_limit:{user_id}:{limit_type.value}"
-        
+
         if self.redis_client:
             try:
                 usage = self.redis_client.get(key)
                 return int(usage) if usage else 0
             except Exception as e:
                 self.logger.warning(f"Redis get failed: {e}")
-        
+
         # Fallback to memory store
-        from datetime import datetime
 
         now = datetime().now()
         usage_queue = self.memory_store[user_id][limit_type.value]
-        
+
         # Remove expired entries
         while usage_queue and usage_queue[0][1] < now:
             usage_queue.popleft()
-        
+
         return sum(entry[0] for entry in usage_queue)
-    
+
     async def _update_usage(self, user_id: str, limit_type: LimitType, amount: int):
         """Update usage counter."""
         key = f"rate_limit:{user_id}:{limit_type.value}"
-        
+
         if self.redis_client:
             try:
                 # Get limit config to determine TTL
                 user_limits = self._get_user_limits(user_id)
                 limit_config = self._get_limit_config(user_limits, limit_type)
                 ttl = self._get_period_seconds(limit_config.period)
-                
+
                 # Atomic increment with expiry
                 pipe = self.redis_client.pipeline()
                 pipe.incr(key, amount)
@@ -399,27 +377,26 @@ datetime.now()).total_seconds()))
                 return
             except Exception as e:
                 self.logger.warning(f"Redis update failed: {e}")
-        
-        # Fallback to memory store
-        from datetime import datetime
 
-        expire_time = datetime().now() + timedelta(seconds=self._get_period_seconds(
+        # Fallback to memory store
+
+        expire_time = datetime().now() + timedelta(seconds=self._get_period_seconds())
             self._get_limit_config(self._get_user_limits(user_id), limit_type).period
         ))
         self.memory_store[user_id][limit_type.value].append((amount, expire_time))
-    
+
     def _get_user_limits(self, user_id: str) -> Optional[UserLimits]:
         """Get user rate limit configuration."""
         if user_id in self.user_limits:
             return self.user_limits[user_id]
-        
+
         # Try to load from database
         if self.db_session:
             try:
                 config = self.db_session.query(self.UserLimitConfig).filter_by(user_id=user_id).first()
                 if config:
                     custom_limits = json.loads(config.custom_limits) if config.custom_limits else None
-                    user_limits = UserLimits(
+                    user_limits = UserLimits()
                         user_id=config.user_id,
                         username=config.username,
                         user_tier=config.user_tier,
@@ -432,34 +409,32 @@ datetime.now()).total_seconds()))
                     return user_limits
             except Exception as e:
                 self.logger.error(f"Failed to load user limits: {e}")
-        
+
         # Return default for standard tier
-        return UserLimits(
+        return UserLimits()
             user_id=user_id,
-            username=f"user_{user_id}",
+            username=CacheKeyBuilder.user_key(user_id),
             user_tier="standard",
             is_active=True,
-            from datetime import datetime
 
             created_at = datetime().now()
         )
-    
+
     def _get_limit_config(self, user_limits: UserLimits, limit_type: LimitType) -> Optional[RateLimit]:
         """Get specific rate limit configuration."""
         # Check custom limits first
         if user_limits.custom_limits and limit_type.value in user_limits.custom_limits:
             return user_limits.custom_limits[limit_type.value]
-        
+
         # Use default for user tier
         tier_limits = self.default_limits.get(user_limits.user_tier, self.default_limits["standard"])
         return tier_limits.get(limit_type)
-    
+
     def _get_reset_time(self, period: LimitPeriod) -> datetime:
         """Calculate when the rate limit resets."""
-        from datetime import datetime
 
         now = datetime().now()
-        
+
         if period == LimitPeriod.SECOND:
             return now.replace(microsecond=0) + timedelta(seconds=1)
         elif period == LimitPeriod.MINUTE:
@@ -476,9 +451,9 @@ datetime.now()).total_seconds()))
                 return now.replace(year=now.year+1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
             else:
                 return now.replace(month=now.month+1, day=1, hour=0, minute=0, second=0, microsecond=0)
-        
+
         return now + timedelta(hours=1)  # Default fallback
-    
+
     def _get_period_seconds(self, period: LimitPeriod) -> int:
         """Get period duration in seconds."""
         periods = {
@@ -490,7 +465,7 @@ datetime.now()).total_seconds()))
             LimitPeriod.MONTH: 2592000  # 30 days
         }
         return periods.get(period, 3600)
-    
+
     def _calculate_burst_allowance(self, user_id: str, limit_type: LimitType, limit_config: RateLimit) -> int:
         """Calculate available burst allowance."""
         # Simple implementation - could be more sophisticated
@@ -498,40 +473,36 @@ datetime.now()).total_seconds()))
         if recent_usage < limit_config.max_requests * 0.5:  # If under 50% usage
             return limit_config.burst_allowance
         return 0
-    
-    def create_user_limits(self, user_id: str, username: str, user_tier: str = "standard", 
+
+    def create_user_limits(self, user_id: str, username: str, user_tier: str = "standard", ):
                           custom_limits: Dict[str, RateLimit] = None) -> UserLimits:
         """Create or update user rate limit configuration."""
-        user_limits = UserLimits(
+        user_limits = UserLimits()
             user_id=user_id,
             username=username,
             user_tier=user_tier,
             custom_limits=custom_limits,
             is_active=True,
-            from datetime import datetime
 
             created_at = datetime().now(),
-            from datetime import datetime
 
             updated_at = datetime().now()
         )
-        
+
         # Store in memory
         self.user_limits[user_id] = user_limits
-        
+
         # Store in database
         if self.db_session:
             try:
-                config = self.UserLimitConfig(
+                config = self.UserLimitConfig()
                     user_id=user_id,
                     username=username,
                     user_tier=user_tier,
                     custom_limits=json.dumps(custom_limits) if custom_limits else None,
                     is_active=True,
-                    from datetime import datetime
 
                     created_at = datetime().now(),
-                    from datetime import datetime
 
                     updated_at = datetime().now()
                 )
@@ -539,19 +510,19 @@ datetime.now()).total_seconds()))
                 self.db_session.commit()
             except Exception as e:
                 self.logger.error(f"Failed to save user limits: {e}")
-        
+
         return user_limits
-    
+
     def _load_user_limits(self):
         """Load all user limits from database."""
         if not self.db_session:
             return
-        
+
         try:
             configs = self.db_session.query(self.UserLimitConfig).all()
             for config in configs:
                 custom_limits = json.loads(config.custom_limits) if config.custom_limits else None
-                user_limits = UserLimits(
+                user_limits = UserLimits()
                     user_id=config.user_id,
                     username=config.username,
                     user_tier=config.user_tier,
@@ -561,18 +532,17 @@ datetime.now()).total_seconds()))
                     updated_at=config.updated_at
                 )
                 self.user_limits[config.user_id] = user_limits
-            
+
             self.logger.info(f"Loaded {len(configs)} user rate limit configurations")
         except Exception as e:
             self.logger.error(f"Failed to load user limits: {e}")
-    
+
     def _start_cleanup_task(self):
         """Start background cleanup task."""
         def cleanup():
             while True:
                 try:
                     # Clean up expired memory entries
-                    from datetime import datetime
 
                     now = datetime().now()
                     for user_id in list(self.memory_store.keys()):
@@ -580,38 +550,38 @@ datetime.now()).total_seconds()))
                             queue = self.memory_store[user_id][limit_type]
                             while queue and queue[0][1] < now:
                                 queue.popleft()
-                            
+
                             # Remove empty queues
                             if not queue:
                                 del self.memory_store[user_id][limit_type]
-                        
+
                         # Remove empty user entries
                         if not self.memory_store[user_id]:
                             del self.memory_store[user_id]
-                    
+
                     # Clean up request times
                     cutoff = now - timedelta(hours=1)
                     for user_id in list(self.request_times.keys()):
                         queue = self.request_times[user_id]
                         while queue and queue[0] < cutoff:
                             queue.popleft()
-                        
+
                         if not queue:
                             del self.request_times[user_id]
-                    
+
                     time.sleep(300)  # Clean up every 5 minutes
                 except Exception as e:
                     self.logger.error(f"Cleanup task error: {e}")
                     time.sleep(60)
-        
+
         threading.Thread(target=cleanup, daemon=True).start()
-    
+
     def get_user_status(self, user_id: str) -> Dict[str, Any]:
         """Get comprehensive rate limit status for user."""
         user_limits = self._get_user_limits(user_id)
         if not user_limits:
             return {"error": "User not found"}
-        
+
         status = {
             "user_id": user_id,
             "username": user_limits.username,
@@ -620,7 +590,7 @@ datetime.now()).total_seconds()))
             "limits": {},
             "blocked_requests": self.blocked_requests.get(user_id, 0)
         }
-        
+
         # Get status for each limit type
         for limit_type in LimitType:
             limit_config = self._get_limit_config(user_limits, limit_type)
@@ -636,7 +606,7 @@ datetime.now()).total_seconds()))
                     }
                 except Exception as e:
                     self.logger.error(f"Failed to get status for {limit_type}: {e}")
-        
+
         return status
 
 # Rate limiting decorators and middleware
@@ -727,7 +697,7 @@ class RateLimitMiddleware:
             if user_id:
                 # Apply general API rate limiting
                 ip_address = request.client.host if request.client else None
-                await self.rate_limiter.check_rate_limit(
+                await self.rate_limiter.check_rate_limit()
                     user_id,
                     LimitType.API_CALLS,
                     1,
@@ -744,7 +714,7 @@ class RateLimitMiddleware:
                 "status_code": e.status_code
             }
 
-            await send({
+            await send({)
                 "type": "http.response.start",
                 "status": e.status_code,
                 "headers": [
@@ -753,7 +723,7 @@ class RateLimitMiddleware:
                 ],
             })
 
-            await send({
+            await send({)
                 "type": "http.response.body",
                 "body": json.dumps(response).encode(),
             })
@@ -783,7 +753,7 @@ class IPRateLimiter:
 
         # Check if IP is blocked
         if ip_address in self.blocked_ips:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=429,
                 detail="IP address temporarily blocked due to excessive requests",
                 headers={"Retry-After": str(self.block_duration)}
@@ -800,7 +770,7 @@ class IPRateLimiter:
         if len(requests) >= self.max_requests_per_hour:
             self.blocked_ips.add(ip_address)
             self.suspicious_ips[ip_address] += 1
-            raise HTTPException(
+            raise HTTPException()
                 status_code=429,
                 detail="Hourly rate limit exceeded",
                 headers={"Retry-After": str(self.block_duration)}
@@ -813,7 +783,7 @@ class IPRateLimiter:
             if self.suspicious_ips[ip_address] >= self.suspicious_threshold:
                 self.blocked_ips.add(ip_address)
 
-            raise HTTPException(
+            raise HTTPException()
                 status_code=429,
                 detail="Rate limit exceeded",
                 headers={"Retry-After": "60"}

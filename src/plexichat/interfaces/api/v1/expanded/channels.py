@@ -14,6 +14,7 @@ from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 
 """
+import time
 PlexiChat Advanced Channel Management API
 Comprehensive channel management with advanced features, permissions, and automation
 """
@@ -83,10 +84,10 @@ class ChannelPermissionOverride(BaseModel):
 
     target_id: str = Field(..., description="User or role ID")
     target_type: str = Field(..., description="Type: user or role")
-    allow: List[ChannelPermission] = Field(
+    allow: List[ChannelPermission] = Field()
         default_factory=list, description="Allowed permissions"
     )
-    deny: List[ChannelPermission] = Field(
+    deny: List[ChannelPermission] = Field()
         default_factory=list, description="Denied permissions"
     )
 
@@ -94,31 +95,31 @@ class ChannelPermissionOverride(BaseModel):
 class ChannelSettings(BaseModel):
     """Channel settings model."""
 
-    slow_mode_delay: int = Field(
+    slow_mode_delay: int = Field()
         default=0, ge=0, le=21600, description="Slow mode delay in seconds"
     )
-    user_limit: Optional[int] = Field(
+    user_limit: Optional[int] = Field()
         None, ge=0, le=99, description="User limit for voice channels"
     )
-    bitrate: Optional[int] = Field(
+    bitrate: Optional[int] = Field()
         None, ge=8000, le=384000, description="Voice channel bitrate"
     )
     video_quality_mode: str = Field(default="auto", description="Video quality mode")
     rtc_region: Optional[str] = Field(None, description="RTC region")
-    auto_archive_duration: int = Field(
+    auto_archive_duration: int = Field()
         default=1440, description="Auto archive duration in minutes"
     )
-    default_reaction_emoji: Optional[str] = Field(
+    default_reaction_emoji: Optional[str] = Field()
         None, description="Default reaction emoji"
     )
-    require_approval: bool = Field(
+    require_approval: bool = Field()
         default=False, description="Require approval for messages"
     )
     enable_ai_moderation: bool = Field(default=True, description="Enable AI moderation")
-    enable_translation: bool = Field(
+    enable_translation: bool = Field()
         default=False, description="Enable auto-translation"
     )
-    welcome_message: Optional[str] = Field(
+    welcome_message: Optional[str] = Field()
         None, description="Welcome message for new members"
     )
 
@@ -128,11 +129,11 @@ class Channel(BaseModel):
 
     channel_id: str = Field(..., description="Unique channel identifier")
     name: str = Field(..., min_length=1, max_length=100, description="Channel name")
-    description: Optional[str] = Field(
+    description: Optional[str] = Field()
         None, max_length=1024, description="Channel description"
     )
     channel_type: ChannelType = Field(..., description="Channel type")
-    status: ChannelStatus = Field(
+    status: ChannelStatus = Field()
         default=ChannelStatus.ACTIVE, description="Channel status"
     )
 
@@ -146,17 +147,17 @@ class Channel(BaseModel):
     banner_url: Optional[str] = Field(None, description="Channel banner URL")
 
     # Permissions and settings
-    permissions: List[ChannelPermissionOverride] = Field(
+    permissions: List[ChannelPermissionOverride] = Field()
         default_factory=list, description="Permission overrides"
     )
-    settings: ChannelSettings = Field(
+    settings: ChannelSettings = Field()
         default_factory=ChannelSettings, description="Channel settings"
     )
 
     # Statistics
     member_count: int = Field(default=0, description="Number of members")
     message_count: int = Field(default=0, description="Number of messages")
-    last_message_at: Optional[datetime] = Field(
+    last_message_at: Optional[datetime] = Field()
         None, description="Last message timestamp"
     )
 
@@ -198,12 +199,12 @@ class ChannelMember(BaseModel):
     channel_id: str = Field(..., description="Channel ID")
     joined_at: datetime = Field(..., description="Join timestamp")
     roles: List[str] = Field(default_factory=list, description="Channel-specific roles")
-    permissions: List[ChannelPermission] = Field(
+    permissions: List[ChannelPermission] = Field()
         default_factory=list, description="Effective permissions"
     )
     muted: bool = Field(default=False, description="Muted status")
     deafened: bool = Field(default=False, description="Deafened status")
-    last_read_message_id: Optional[str] = Field(
+    last_read_message_id: Optional[str] = Field()
         None, description="Last read message ID"
     )
 
@@ -228,7 +229,7 @@ async def setup_channel_endpoints(router: APIRouter):
     security = HTTPBearer()
 
     @router.get("/", response_model=List[Channel], summary="List Channels")
-    async def list_channels(
+    async def list_channels()
         channel_type: Optional[ChannelType] = Query(default=None),
         status: Optional[ChannelStatus] = Query(default=None),
         parent_id: Optional[str] = Query(default=None),
@@ -240,7 +241,7 @@ async def setup_channel_endpoints(router: APIRouter):
         """List channels with filtering options."""
         try:
             user_id = "current_user_id"  # Would be extracted from token
-            channels = await _list_channels(
+            channels = await _list_channels()
                 user_id, channel_type, status, parent_id, include_private, limit, offset
             )
             return channels
@@ -289,7 +290,7 @@ async def setup_channel_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to get channel")
 
     @router.put("/{channel_id}", response_model=Channel, summary="Update Channel")
-    async def update_channel(
+    async def update_channel()
         channel_id: str, channel_updates: Dict[str, Any], token: str = Depends(security)
     ):
         """Update channel."""
@@ -330,12 +331,12 @@ async def setup_channel_endpoints(router: APIRouter):
             logger.error(f"Failed to delete channel {channel_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to delete channel")
 
-    @router.get(
+    @router.get()
         "/{channel_id}/members",
         response_model=List[ChannelMember],
         summary="Get Channel Members",
     )
-    async def get_channel_members(
+    async def get_channel_members()
         channel_id: str,
         limit: int = Query(default=50, le=100),
         offset: int = Query(default=0, ge=0),
@@ -357,7 +358,7 @@ async def setup_channel_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to get members")
 
     @router.post("/{channel_id}/members/{user_id}", summary="Add Channel Member")
-    async def add_channel_member(
+    async def add_channel_member()
         channel_id: str,
         user_id: str,
         roles: List[str] = [],
@@ -379,7 +380,7 @@ async def setup_channel_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to add member")
 
     @router.delete("/{channel_id}/members/{user_id}", summary="Remove Channel Member")
-    async def remove_channel_member(
+    async def remove_channel_member()
         channel_id: str,
         user_id: str,
         reason: Optional[str] = None,
@@ -400,12 +401,12 @@ async def setup_channel_endpoints(router: APIRouter):
             return {"success": True, "message": "Member removed"}
 
         except Exception as e:
-            logger.error(
+            logger.error()
                 f"Failed to remove member {user_id} from channel {channel_id}: {e}"
             )
             raise HTTPException(status_code=500, detail="Failed to remove member")
 
-    @router.get(
+    @router.get()
         "/{channel_id}/invites",
         response_model=List[ChannelInvite],
         summary="Get Channel Invites",
@@ -426,12 +427,12 @@ async def setup_channel_endpoints(router: APIRouter):
             logger.error(f"Failed to get invites for channel {channel_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to get invites")
 
-    @router.post(
+    @router.post()
         "/{channel_id}/invites",
         response_model=ChannelInvite,
         summary="Create Channel Invite",
     )
-    async def create_channel_invite(
+    async def create_channel_invite()
         channel_id: str,
         max_uses: Optional[int] = None,
         max_age: Optional[int] = None,
@@ -446,7 +447,7 @@ async def setup_channel_endpoints(router: APIRouter):
             if not await _can_create_invite(user_id, channel_id):
                 raise HTTPException(status_code=403, detail="Permission denied")
 
-            invite = await _create_channel_invite(
+            invite = await _create_channel_invite()
                 channel_id, user_id, max_uses, max_age, temporary
             )
             return invite
@@ -456,7 +457,7 @@ async def setup_channel_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to create invite")
 
     @router.delete("/{channel_id}/invites/{invite_id}", summary="Delete Channel Invite")
-    async def delete_channel_invite(
+    async def delete_channel_invite()
         channel_id: str, invite_id: str, token: str = Depends(security)
     ):
         """Delete channel invite."""
@@ -477,7 +478,7 @@ async def setup_channel_endpoints(router: APIRouter):
             logger.error(f"Failed to delete invite {invite_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to delete invite")
 
-    @router.get(
+    @router.get()
         "/{channel_id}/webhooks",
         response_model=List[ChannelWebhook],
         summary="Get Channel Webhooks",
@@ -498,12 +499,12 @@ async def setup_channel_endpoints(router: APIRouter):
             logger.error(f"Failed to get webhooks for channel {channel_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to get webhooks")
 
-    @router.post(
+    @router.post()
         "/{channel_id}/webhooks",
         response_model=ChannelWebhook,
         summary="Create Channel Webhook",
     )
-    async def create_channel_webhook(
+    async def create_channel_webhook()
         channel_id: str,
         name: str,
         avatar: Optional[UploadFile] = File(None),
@@ -522,7 +523,7 @@ async def setup_channel_endpoints(router: APIRouter):
             if avatar:
                 avatar_url = await _process_webhook_avatar(avatar)
 
-            webhook = await _create_channel_webhook(
+            webhook = await _create_channel_webhook()
                 channel_id, user_id, name, avatar_url
             )
             return webhook
@@ -535,7 +536,7 @@ async def setup_channel_endpoints(router: APIRouter):
 # Helper functions (would be implemented with actual database operations)
 
 
-async def _list_channels(
+async def _list_channels()
     user_id: str,
     channel_type: Optional[ChannelType],
     status: Optional[ChannelStatus],
@@ -593,7 +594,7 @@ async def _get_channel(channel_id: str) -> Optional[Channel]:
     return None
 
 
-async def _update_channel(
+async def _update_channel()
     channel_id: str, updates: Dict[str, Any]
 ) -> Optional[Channel]:
     """Update channel."""
@@ -607,7 +608,7 @@ async def _delete_channel(channel_id: str) -> bool:
     return True
 
 
-async def _get_channel_members(
+async def _get_channel_members()
     channel_id: str, limit: int, offset: int
 ) -> List[ChannelMember]:
     """Get channel members."""
@@ -615,12 +616,12 @@ async def _get_channel_members(
     return []
 
 
-async def _add_channel_member(
+async def _add_channel_member()
     channel_id: str, user_id: str, roles: List[str]
 ) -> ChannelMember:
     """Add member to channel."""
     # Placeholder implementation
-    return ChannelMember(
+    return ChannelMember()
         user_id=user_id,
         channel_id=channel_id,
         joined_at=datetime.now(timezone.utc),
@@ -628,7 +629,7 @@ async def _add_channel_member(
     )
 
 
-async def _remove_channel_member(
+async def _remove_channel_member()
     channel_id: str, user_id: str, reason: Optional[str]
 ) -> bool:
     """Remove member from channel."""
@@ -642,7 +643,7 @@ async def _get_channel_invites(channel_id: str) -> List[ChannelInvite]:
     return []
 
 
-async def _create_channel_invite(
+async def _create_channel_invite()
     channel_id: str,
     inviter_id: str,
     max_uses: Optional[int],
@@ -651,7 +652,7 @@ async def _create_channel_invite(
 ) -> ChannelInvite:
     """Create channel invite."""
     # Placeholder implementation
-    return ChannelInvite(
+    return ChannelInvite()
         invite_id="invite_123",
         channel_id=channel_id,
         inviter_id=inviter_id,
@@ -675,12 +676,12 @@ async def _get_channel_webhooks(channel_id: str) -> List[ChannelWebhook]:
     return []
 
 
-async def _create_channel_webhook(
+async def _create_channel_webhook()
     channel_id: str, creator_id: str, name: str, avatar_url: Optional[str]
 ) -> ChannelWebhook:
     """Create channel webhook."""
     # Placeholder implementation
-    return ChannelWebhook(
+    return ChannelWebhook()
         webhook_id="webhook_123",
         channel_id=channel_id,
         name=name,

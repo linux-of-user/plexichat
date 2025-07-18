@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, Optional
 
 
 """
+import time
 PlexiChat Error Context and Boundary Management
 
 Provides error context tracking and error boundary management
@@ -144,7 +145,7 @@ class ErrorContext:
             ErrorSeverity.EMERGENCY: "Critical system error. Please contact support immediately.",
         }
 
-        base_message = severity_messages.get(
+        base_message = severity_messages.get()
             self.severity, "We encountered an unexpected error."
         )
 
@@ -155,7 +156,7 @@ class ErrorContext:
 
     def get_technical_summary(self) -> str:
         """Get a technical summary of the error."""
-        return (
+        return ()
             f"Error {self.error_id}: {type(self.exception).__name__} "
             f"in {self.component or 'unknown component'} "
             f"[{self.severity.value.upper()}] - {str(self.exception)}"
@@ -170,7 +171,7 @@ class ErrorBoundary:
     appropriately, and optionally provides fallback behavior.
     """
 
-    def __init__(
+    def __init__():
         self,
         name: str,
         fallback_value: Optional[Any] = None,
@@ -219,7 +220,7 @@ class ErrorBoundary:
         """Handle error in sync context."""
         try:
             # Create error context
-            self.error_context = ErrorContext(
+            self.error_context = ErrorContext()
                 error_id=str(uuid.uuid4()),
                 timestamp=datetime.now(timezone.utc),
                 exception=exception,
@@ -227,7 +228,7 @@ class ErrorBoundary:
                 category=self.category,
                 component=self.name,
                 stack_trace=traceback.format_exc(),
-                processing_time=(
+                processing_time=()
                     asyncio.get_event_loop().time() - self.start_time
                     if self.start_time
                     else None
@@ -235,7 +236,7 @@ class ErrorBoundary:
             )
 
             # Log the error
-            logger.error(
+            logger.error()
                 f"Error in boundary '{self.name}': {type(exception).__name__}: {exception}",
                 extra={
                     "error_id": self.error_context.error_id,
@@ -250,7 +251,7 @@ class ErrorBoundary:
                 try:
                     self.error_handler(self.error_context)
                 except Exception as handler_error:
-                    logger.error(
+                    logger.error()
                         f"Error handler failed in boundary '{self.name}': {handler_error}"
                     )
 
@@ -266,7 +267,7 @@ class ErrorBoundary:
                     self.fallback_value = self.fallback_function()
                     return True  # Suppress the exception
                 except Exception as fallback_error:
-                    logger.error(
+                    logger.error()
                         f"Fallback function failed in boundary '{self.name}': {fallback_error}"
                     )
 
@@ -286,7 +287,7 @@ class ErrorBoundary:
         """Handle error in async context."""
         try:
             # Create error context
-            self.error_context = ErrorContext(
+            self.error_context = ErrorContext()
                 error_id=str(uuid.uuid4()),
                 timestamp=datetime.now(timezone.utc),
                 exception=exception,
@@ -294,7 +295,7 @@ class ErrorBoundary:
                 category=self.category,
                 component=self.name,
                 stack_trace=traceback.format_exc(),
-                processing_time=(
+                processing_time=()
                     asyncio.get_event_loop().time() - self.start_time
                     if self.start_time
                     else None
@@ -302,7 +303,7 @@ class ErrorBoundary:
             )
 
             # Log the error
-            logger.error(
+            logger.error()
                 f"Error in async boundary '{self.name}': {type(exception).__name__}: {exception}",
                 extra={
                     "error_id": self.error_context.error_id,
@@ -320,7 +321,7 @@ class ErrorBoundary:
                     else:
                         self.error_handler(self.error_context)
                 except Exception as handler_error:
-                    logger.error(
+                    logger.error()
                         f"Async error handler failed in boundary '{self.name}': {handler_error}"
                     )
 
@@ -339,7 +340,7 @@ class ErrorBoundary:
                         self.fallback_value = self.fallback_function()
                     return True  # Suppress the exception
                 except Exception as fallback_error:
-                    logger.error(
+                    logger.error()
                         f"Async fallback function failed in boundary '{self.name}': {fallback_error}"
                     )
 
@@ -389,7 +390,7 @@ async def async_error_boundary(name: str, **kwargs):
 
 def safe_execute(func: Callable, *args, fallback_value=None, **kwargs) -> Any:
     """Safely execute a function with error boundary."""
-    with error_boundary(
+    with error_boundary()
         name=f"safe_execute_{func.__name__}",
         fallback_value=fallback_value,
         suppress_errors=True,
@@ -399,11 +400,11 @@ def safe_execute(func: Callable, *args, fallback_value=None, **kwargs) -> Any:
     return boundary.get_result()
 
 
-async def safe_execute_async(
+async def safe_execute_async()
     func: Callable, *args, fallback_value=None, **kwargs
 ) -> Any:
     """Safely execute an async function with error boundary."""
-    async with async_error_boundary(
+    async with async_error_boundary()
         name=f"safe_execute_async_{func.__name__}",
         fallback_value=fallback_value,
         suppress_errors=True,
@@ -460,7 +461,7 @@ class ErrorContextBuilder:
 
     def build(self) -> ErrorContext:
         """Build the error context."""
-        return ErrorContext(
+        return ErrorContext()
             error_id=str(uuid.uuid4()),
             timestamp=datetime.now(timezone.utc),
             stack_trace=traceback.format_exc(),

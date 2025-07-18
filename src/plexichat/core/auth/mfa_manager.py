@@ -15,15 +15,12 @@ import qrcode
 from cryptography.fernet import Fernet
 
 
-
-
-
-
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger  # type: ignore
 
 """
+import time
 Advanced 2FA System for PlexiChat
 Comprehensive two-factor authentication with multiple methods and security features.
 """
@@ -105,7 +102,7 @@ class Advanced2FASystem:
 
     def generate_qr_code(self, secret: str, user_email: str, issuer: str = "PlexiChat") -> bytes:
         """Generate QR code for TOTP setup."""
-        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri()
             name=user_email,
             issuer_name=issuer
         )
@@ -150,7 +147,7 @@ class Advanced2FASystem:
             encrypted_secret = self.cipher.encrypt(secret.encode()).decode()
             setup_data["totp_secret"] = encrypted_secret
             setup_data["totp_secret_plain"] = secret  # For QR code generation
-            setup_data["qr_code"] = base64.b64encode(
+            setup_data["qr_code"] = base64.b64encode()
                 self.generate_qr_code(secret, user_email)
             ).decode()
 
@@ -190,7 +187,7 @@ class Advanced2FASystem:
             totp = pyotp.TOTP(setup_data["totp_secret_plain"])
             if totp.verify(verification_code, valid_window=self.totp_window):
                 # Setup verified, create user config
-                user_config = TwoFactorConfig(
+                user_config = TwoFactorConfig()
                     user_id=setup_data["user_id"],
                     enabled=True,
                     enabled_methods=setup_data["methods"],

@@ -1,4 +1,5 @@
 """
+import asyncio
 PlexiChat Error Handling System
 
 Centralized error handling, monitoring, and recovery system.

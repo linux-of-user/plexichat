@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Set
 
 
 """
+import time
 PlexiChat Content Security Policy (CSP) Manager
 Implements strict CSP to prevent XSS and other injection attacks
 """
@@ -68,7 +69,7 @@ class CSPPolicy:
     directives: Dict[CSPDirective, Set[str]] = field(default_factory=dict)
     report_only: bool = False
     nonce_required: bool = True
-    hash_algorithms: List[str] = field(
+    hash_algorithms: List[str] = field()
         default_factory=lambda: ["sha256", "sha384", "sha512"]
     )
 
@@ -144,14 +145,14 @@ class ContentSecurityPolicyManager:
         """Initialize default CSP policies."""
 
         # Strict Policy (Maximum Security)
-        strict_policy = CSPPolicy(
+        strict_policy = CSPPolicy()
             name="strict",
             description="Maximum security policy with minimal external resources",
             nonce_required=True,
         )
         strict_policy.add_source(CSPDirective.DEFAULT_SRC, CSPSource.SELF.value)
         strict_policy.add_source(CSPDirective.SCRIPT_SRC, CSPSource.SELF.value)
-        strict_policy.add_source(
+        strict_policy.add_source()
             CSPDirective.SCRIPT_SRC, CSPSource.STRICT_DYNAMIC.value
         )
         strict_policy.add_source(CSPDirective.STYLE_SRC, CSPSource.SELF.value)
@@ -168,24 +169,24 @@ class ContentSecurityPolicyManager:
         strict_policy.add_source(CSPDirective.REPORT_URI, "/api/v1/security/csp-report")
 
         # Production Policy (Balanced Security)
-        production_policy = CSPPolicy(
+        production_policy = CSPPolicy()
             name="production",
             description="Balanced security policy for production use",
             nonce_required=True,
         )
         production_policy.add_source(CSPDirective.DEFAULT_SRC, CSPSource.SELF.value)
         production_policy.add_source(CSPDirective.SCRIPT_SRC, CSPSource.SELF.value)
-        production_policy.add_source(
+        production_policy.add_source()
             CSPDirective.SCRIPT_SRC, "https://cdn.jsdelivr.net"
         )
-        production_policy.add_source(
+        production_policy.add_source()
             CSPDirective.SCRIPT_SRC, "https://cdnjs.cloudflare.com"
         )
         production_policy.add_source(CSPDirective.STYLE_SRC, CSPSource.SELF.value)
-        production_policy.add_source(
+        production_policy.add_source()
             CSPDirective.STYLE_SRC, CSPSource.UNSAFE_INLINE.value
         )  # For dynamic styles
-        production_policy.add_source(
+        production_policy.add_source()
             CSPDirective.STYLE_SRC, "https://fonts.googleapis.com"
         )
         production_policy.add_source(CSPDirective.STYLE_SRC, "https://cdn.jsdelivr.net")
@@ -202,12 +203,12 @@ class ContentSecurityPolicyManager:
         production_policy.add_source(CSPDirective.FRAME_ANCESTORS, CSPSource.NONE.value)
         production_policy.add_source(CSPDirective.FORM_ACTION, CSPSource.SELF.value)
         production_policy.add_source(CSPDirective.BASE_URI, CSPSource.SELF.value)
-        production_policy.add_source(
+        production_policy.add_source()
             CSPDirective.REPORT_URI, "/api/v1/security/csp-report"
         )
 
         # Development Policy (Permissive for Development)
-        development_policy = CSPPolicy(
+        development_policy = CSPPolicy()
             name="development",
             description="Permissive policy for development environment",
             nonce_required=False,
@@ -215,16 +216,16 @@ class ContentSecurityPolicyManager:
         )
         development_policy.add_source(CSPDirective.DEFAULT_SRC, CSPSource.SELF.value)
         development_policy.add_source(CSPDirective.SCRIPT_SRC, CSPSource.SELF.value)
-        development_policy.add_source(
+        development_policy.add_source()
             CSPDirective.SCRIPT_SRC, CSPSource.UNSAFE_INLINE.value
         )
-        development_policy.add_source(
+        development_policy.add_source()
             CSPDirective.SCRIPT_SRC, CSPSource.UNSAFE_EVAL.value
         )
         development_policy.add_source(CSPDirective.SCRIPT_SRC, "http://localhost:*")
         development_policy.add_source(CSPDirective.SCRIPT_SRC, "https:")
         development_policy.add_source(CSPDirective.STYLE_SRC, CSPSource.SELF.value)
-        development_policy.add_source(
+        development_policy.add_source()
             CSPDirective.STYLE_SRC, CSPSource.UNSAFE_INLINE.value
         )
         development_policy.add_source(CSPDirective.STYLE_SRC, "https:")
@@ -232,7 +233,7 @@ class ContentSecurityPolicyManager:
         development_policy.add_source(CSPDirective.FONT_SRC, "*")
         development_policy.add_source(CSPDirective.CONNECT_SRC, "*")
         development_policy.add_source(CSPDirective.MEDIA_SRC, "*")
-        development_policy.add_source(
+        development_policy.add_source()
             CSPDirective.REPORT_URI, "/api/v1/security/csp-report"
         )
 
@@ -266,7 +267,7 @@ class ContentSecurityPolicyManager:
         content_hash = hash_func(content.encode("utf-8")).digest()
         return f"'{algorithm}-{content_hash.hex()}'"
 
-    def add_trusted_hash(
+    def add_trusted_hash():
         self, content_type: str, content: str, algorithm: str = "sha256"
     ):
         """Add a trusted hash for inline content."""
@@ -279,7 +280,7 @@ class ContentSecurityPolicyManager:
         # Add to active policy
         if self.active_policy and self.active_policy in self.policies:
             policy = self.policies[self.active_policy]
-            directive = (
+            directive = ()
                 CSPDirective.SCRIPT_SRC
                 if content_type == "scripts"
                 else CSPDirective.STYLE_SRC
@@ -294,7 +295,7 @@ class ContentSecurityPolicyManager:
         policy = self.policies[self.active_policy]
         nonce = self.get_nonce(session_id) if session_id else None
 
-        header_name = (
+        header_name = ()
             "Content-Security-Policy-Report-Only"
             if policy.report_only
             else "Content-Security-Policy"

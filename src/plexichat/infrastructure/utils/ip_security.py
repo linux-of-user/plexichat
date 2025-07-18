@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Set
+import time
 
 try:
     import geoip2.database
@@ -227,7 +228,7 @@ class IPSecurityManager:
             if self.config.get('enable_whitelist', False):
                 if ip in self.whitelist:
                     return True
-                
+
                 # Check whitelist networks
                 for network in self.whitelist_networks:
                     if ip_obj in network:
@@ -238,7 +239,7 @@ class IPSecurityManager:
                 if ip in self.blacklist:
                     logger.warning("Blocked IP %s (blacklisted)", ip)
                     return False
-                
+
                 # Check blacklist networks
                 for network in self.blacklist_networks:
                     if ip_obj in network:
@@ -262,7 +263,7 @@ class IPSecurityManager:
                     if self.allowed_countries and country not in self.allowed_countries:
                         logger.warning("Blocked IP %s (country %s not allowed)", ip, country)
                         return False
-                    
+
                     if country in self.blocked_countries:
                         logger.warning("Blocked IP %s (country %s blocked)", ip, country)
                         return False
@@ -291,24 +292,24 @@ class IPSecurityManager:
     def record_failed_attempt(self, ip: str):
         """Record a failed authentication attempt for an IP."""
         now = datetime.now()
-        
+
         if ip not in self.failed_attempts:
             self.failed_attempts[ip] = []
-        
+
         self.failed_attempts[ip].append(now)
-        
+
         # Clean old attempts (keep last hour)
         cutoff = now - timedelta(hours=1)
         self.failed_attempts[ip] = [
             attempt for attempt in self.failed_attempts[ip]
             if attempt > cutoff
         ]
-        
+
         # Check if IP should be auto-blocked
         max_attempts = self.config.get('max_failed_attempts', 5)
         if len(self.failed_attempts[ip]) >= max_attempts:
             self._auto_block_ip(ip)
-        
+
         # Log suspicious activity
         if len(self.failed_attempts[ip]) >= self.config.get('suspicious_threshold', 10):
             self._mark_suspicious(ip)
@@ -317,14 +318,14 @@ class IPSecurityManager:
         """Automatically block an IP due to failed attempts."""
         if not self.config.get('enable_auto_blocking', True):
             return
-        
+
         duration_minutes = self.config.get('auto_block_duration_minutes', 60)
         block_until = datetime.now() + timedelta(minutes=duration_minutes)
-        
+
         self.temp_blacklist[ip] = block_until
-        
+
         logger.warning("Auto-blocked IP %s until %s (failed attempts)", ip, block_until)
-        
+
         # Save configuration
         self._save_config()
 
@@ -336,11 +337,11 @@ class IPSecurityManager:
                 'failed_attempts': 0,
                 'last_attempt': datetime.now()
             }
-        
+
         self.suspicious_ips[ip]['failed_attempts'] += 1
         self.suspicious_ips[ip]['last_attempt'] = datetime.now()
-        
-        logger.warning("Marked IP %s as suspicious (%d failed attempts)", 
+
+        logger.warning("Marked IP %s as suspicious (%d failed attempts)", )
                       ip, self.suspicious_ips[ip]['failed_attempts'])
 
     def add_to_whitelist(self, ip: str):

@@ -25,6 +25,7 @@ from ..providers.base_provider import AIRequest as ProviderAIRequest
 # datetime and pathlib are already imported at the top
 
 """
+import http.client
 PlexiChat AI Abstraction Layer
 Comprehensive AI management system with multiple providers, fallbacks, and access control.
 """
@@ -150,50 +151,50 @@ class AIResponse:
 
 class AIAccessControl:
     """AI access control and rate limiting."""
-    
+
     def __init__(self):
         self.user_permissions: Dict[str, Dict[str, List[ModelCapability]]] = {}
         self.rate_limits: Dict[str, Dict[str, List[float]]] = {}
         self.usage_tracking: Dict[str, Dict[str, Dict[str, Any]]] = {}
         self.admin_users: List[str] = []
-        
+
     def add_user_permission(self, user_id: str, model_id: str, capabilities: List[ModelCapability]):
         """Add user permission for specific model and capabilities."""
         if user_id not in self.user_permissions:
             self.user_permissions[user_id] = {}
         self.user_permissions[user_id][model_id] = capabilities
-        
+
     def check_user_permission(self, user_id: str, model_id: str, capability: ModelCapability) -> bool:
         """Check if user has permission for model and capability."""
         if user_id in self.admin_users:
             return True
-            
+
         user_perms = self.user_permissions.get(user_id, {})
         model_perms = user_perms.get(model_id, [])
         return capability in model_perms
-        
+
     def check_rate_limit(self, user_id: str, model_id: str, tokens: int = 1) -> bool:
         """Check if user is within rate limits."""
         current_time = time.time()
-        
+
         if user_id not in self.rate_limits:
             self.rate_limits[user_id] = {}
         if model_id not in self.rate_limits[user_id]:
             self.rate_limits[user_id][model_id] = []
-            
+
         # Clean old requests (older than 1 minute)
         requests = self.rate_limits[user_id][model_id]
         requests = [req_time for req_time in requests if current_time - req_time < 60]
-        
+
         # Check limits (simplified - 60 requests per minute)
         if len(requests) >= 60:
             return False
-            
+
         # Add current request
         requests.append(current_time)
         self.rate_limits[user_id][model_id] = requests
         return True
-        
+
     def record_usage(self, user_id: str, model_id: str, tokens: int, cost: float):
         """Record usage for billing/tracking."""
         if user_id not in self.usage_tracking:
@@ -205,7 +206,7 @@ class AIAccessControl:
                 "request_count": 0,
                 "last_request": None
             }
-            
+
         usage = self.usage_tracking[user_id][model_id]
         usage["total_tokens"] += tokens
         usage["total_cost"] += cost
@@ -279,7 +280,7 @@ class AIAbstractionLayer:
         from pathlib import Path
         key_path = Path("config/ai_encryption.key")
         key_path.parent.mkdir(exist_ok=True)
-        
+
         if key_path.exists():
             with open(key_path, 'rb') as f:
                 key = f.read()
@@ -287,7 +288,7 @@ class AIAbstractionLayer:
             key = Fernet.generate_key()
             with open(key_path, 'wb') as f:
                 f.write(key)
-                
+
         return Fernet(key)
 
     def _initialize_providers(self):
@@ -298,7 +299,7 @@ class AIAbstractionLayer:
 
             try:
                 if provider_type == AIProvider.OLLAMA:
-                    ollama_config = OllamaConfig(
+                    ollama_config = OllamaConfig()
                         base_url=config.get("base_url", "http://localhost:11434"),
                         timeout=config.get("timeout", 60),
                         max_retries=config.get("max_retries", 2),
@@ -324,7 +325,7 @@ class AIAbstractionLayer:
                 return
 
             # Create BitNet configuration
-            config = BitNetConfig(
+            config = BitNetConfig()
                 base_url=bitnet_config.get("base_url", "http://localhost:11434"),
                 model_path=bitnet_config.get("model_path", "data/bitnet_models"),
                 quantization_bits=1,  # Always 1-bit for BitNet
@@ -374,26 +375,26 @@ class AIAbstractionLayer:
         if not self.config_path.exists() if self.config_path else False:
             self._create_default_config()
             return
-            
+
         try:
             with open(self.config_path, 'r') as f:
                 config = json.load(f)
-                
+
             # Load models
             for model_data in config.get("models", []):
                 model = AIModel(**model_data)
                 self.models[model.id] = model
-                
+
             # Load providers
             self.providers = config.get("providers", {})
-            
+
             # Load access control
             access_data = config.get("access_control", {})
             self.access_control.user_permissions = access_data.get("user_permissions", {})
             self.access_control.admin_users = access_data.get("admin_users", [])
-            
+
             logger.info(f"Loaded {len(self.models)} AI models and {len(self.providers)} providers")
-            
+
         except Exception as e:
             logger.error(f"Failed to load AI config: {e}")
             self._create_default_config()
@@ -402,7 +403,7 @@ class AIAbstractionLayer:
         """Create default AI configuration."""
         # Default models
         default_models = [
-            AIModel(
+            AIModel()
                 id="gpt-4",
                 name="GPT-4",
                 provider=AIProvider.OPENAI,
@@ -415,7 +416,7 @@ class AIAbstractionLayer:
                 priority=1,
                 fallback_models=["gpt-3.5-turbo", "claude-3-sonnet"]
             ),
-            AIModel(
+            AIModel()
                 id="gpt-3.5-turbo",
                 name="GPT-3.5 Turbo",
                 provider=AIProvider.OPENAI,
@@ -428,7 +429,7 @@ class AIAbstractionLayer:
                 priority=2,
                 fallback_models=["claude-3-haiku"]
             ),
-            AIModel(
+            AIModel()
                 id="claude-3-opus",
                 name="Claude 3 Opus",
                 provider=AIProvider.ANTHROPIC,
@@ -440,7 +441,7 @@ class AIAbstractionLayer:
                 priority=1,
                 fallback_models=["claude-3-sonnet", "gpt-4"]
             ),
-            AIModel(
+            AIModel()
                 id="claude-3-sonnet",
                 name="Claude 3 Sonnet",
                 provider=AIProvider.ANTHROPIC,
@@ -452,7 +453,7 @@ class AIAbstractionLayer:
                 priority=2,
                 fallback_models=["claude-3-haiku", "gpt-3.5-turbo"]
             ),
-            AIModel(
+            AIModel()
                 id="claude-3-haiku",
                 name="Claude 3 Haiku",
                 provider=AIProvider.ANTHROPIC,
@@ -464,7 +465,7 @@ class AIAbstractionLayer:
                 fallback_models=["gpt-3.5-turbo"]
             ),
             # BitNet 1-bit LLM models
-            AIModel(
+            AIModel()
                 id="bitnet-1b",
                 name="BitNet 1B (1-bit)",
                 provider="bitnet",
@@ -481,7 +482,7 @@ class AIAbstractionLayer:
                     "speedup_factor": 3.2
                 }
             ),
-            AIModel(
+            AIModel()
                 id="bitnet-3b",
                 name="BitNet 3B (1-bit)",
                 provider="bitnet",
@@ -655,7 +656,7 @@ class AIAbstractionLayer:
         # Validate model
         model = self.models.get(request.model_id)
         if not model:
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id,
                 model_id=request.model_id,
                 content="",
@@ -671,7 +672,7 @@ class AIAbstractionLayer:
         # Check permissions
         capability = self._determine_capability(request)
         if not self.access_control.check_user_permission(request.user_id, request.model_id, capability):
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id,
                 model_id=request.model_id,
                 content="",
@@ -686,7 +687,7 @@ class AIAbstractionLayer:
 
         # Check rate limits
         if not self.access_control.check_rate_limit(request.user_id, request.model_id):
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id,
                 model_id=request.model_id,
                 content="",
@@ -716,7 +717,7 @@ timestamp = datetime().now()
             # Cache successful response
             if response.success:
                 self.request_cache[cache_key] = response
-                self.access_control.record_usage(
+                self.access_control.record_usage()
                     request.user_id,
                     request.model_id,
                     response.usage.get('total_tokens', 0),
@@ -736,7 +737,7 @@ timestamp = datetime().now()
 
                 try:
                     # Create fallback request
-                    fallback_request = AIRequest(
+                    fallback_request = AIRequest()
                         user_id=request.user_id,
                         model_id=fallback_model_id,
                         prompt=request.prompt,
@@ -759,7 +760,7 @@ timestamp = datetime().now()
 
                         # Cache and record usage
                         self.request_cache[cache_key] = response
-                        self.access_control.record_usage(
+                        self.access_control.record_usage()
                             request.user_id,
                             fallback_model_id,
                             response.usage.get('total_tokens', 0),
@@ -774,7 +775,7 @@ timestamp = datetime().now()
                     continue
 
             # All models failed
-            return AIResponse(
+            return AIResponse()
                 request_id=request.request_id,
                 model_id=request.model_id,
                 content="",
@@ -782,7 +783,6 @@ timestamp = datetime().now()
                 cost=0.0,
                 latency_ms=int((time.time() - start_time) * 1000),
                 provider=model.provider,
-                from datetime import datetime
 
                 timestamp = datetime().now(),
                 success=False,
@@ -822,7 +822,7 @@ timestamp = datetime().now()
                 provider_instance = self.provider_instances[model.provider]
 
                 # Convert to provider request format
-                provider_request = ProviderAIRequest(
+                provider_request = ProviderAIRequest()
                     model_id=model.id,
                     prompt=request.prompt,
                     max_tokens=request.max_tokens,
@@ -836,7 +836,7 @@ timestamp = datetime().now()
                 provider_response = await provider_instance.generate(provider_request)
 
                 # Convert back to abstraction layer response format
-                response = AIResponse(
+                response = AIResponse()
                     request_id=request.request_id,
                     model_id=model.id,
                     content=provider_response.content,
@@ -863,7 +863,7 @@ timestamp = datetime().now()
 
                 latency_ms = int((time.time() - start_time) * 1000)
 
-                response = AIResponse(
+                response = AIResponse()
                     request_id=request.request_id,
                     model_id=model.id,
                     content=response_data['content'],
@@ -871,7 +871,6 @@ timestamp = datetime().now()
                     cost=self._calculate_cost(model, response_data.get('usage', {})),
                     latency_ms=latency_ms,
                     provider=model.provider,
-                    from datetime import datetime
 
                     timestamp = datetime().now(),
                     success=True,
@@ -888,7 +887,7 @@ timestamp = datetime().now()
             # Record metrics for monitoring
             try:
                 # Usage metric
-                usage_metric = UsageMetric(
+                usage_metric = UsageMetric()
                     timestamp=datetime.now(timezone.utc),
                     user_id=request.user_id or "anonymous",
                     model_id=model.id,
@@ -904,7 +903,7 @@ timestamp = datetime().now()
                 analytics_engine.record_usage(usage_metric)
 
                 # Performance metric
-                performance_metric = PerformanceMetric(
+                performance_metric = PerformanceMetric()
                     timestamp=datetime.now(timezone.utc),
                     model_id=model.id,
                     provider=model.provider.value,
@@ -923,7 +922,7 @@ timestamp = datetime().now()
             latency_ms = int((time.time() - start_time) * 1000)
             self._update_model_health(model.id, False, latency_ms)
 
-            error_response = AIResponse(
+            error_response = AIResponse()
                 request_id=request.request_id,
                 model_id=model.id,
                 content="",
@@ -931,7 +930,6 @@ timestamp = datetime().now()
                 cost=0.0,
                 latency_ms=latency_ms,
                 provider=model.provider,
-                from datetime import datetime
 
                 timestamp = datetime().now(),
                 success=False,
@@ -941,7 +939,7 @@ timestamp = datetime().now()
             # Record failed metrics for monitoring
             try:
                 # Performance metric for failed request
-                performance_metric = PerformanceMetric(
+                performance_metric = PerformanceMetric()
                     timestamp=datetime.now(timezone.utc),
                     model_id=model.id,
                     provider=model.provider.value,
@@ -1129,7 +1127,6 @@ timestamp = datetime().now()
 
         if success:
             health["successful_requests"] += 1
-            from datetime import datetime
 
             health["last_success"] = datetime.now().now()
 
@@ -1140,7 +1137,6 @@ timestamp = datetime().now()
 
         else:
             health["failed_requests"] += 1
-            from datetime import datetime
 
             health["last_failure"] = datetime.now().now()
 
@@ -1171,7 +1167,7 @@ timestamp = datetime().now()
             available.append(model)
 
         # Sort by priority and health
-        available.sort(key=lambda m: (
+        available.sort(key=lambda m: ())
             m.priority,
             -self.model_health.get(m.id, {}).get("successful_requests", 0)
         ))
@@ -1326,7 +1322,7 @@ timestamp = datetime().now()
             config = self.providers.get(provider, {})
             if config.get("enabled", False):
                 if provider == AIProvider.OLLAMA:
-                    ollama_config = OllamaConfig(
+                    ollama_config = OllamaConfig()
                         base_url=config.get("base_url", "http://localhost:11434"),
                         timeout=config.get("timeout", 60),
                         max_retries=config.get("max_retries", 2),

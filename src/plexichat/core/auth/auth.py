@@ -13,6 +13,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 PlexiChat Unified Authentication System
 
 Consolidates authentication functionality from:
@@ -87,8 +88,8 @@ class AuthManager:
     """
 
     def __init__(self, config_dir: str = "data/auth"):
-        self.from pathlib import Path
-config_dir = Path()(config_dir)
+        from pathlib import Path
+self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Data storage
@@ -126,19 +127,19 @@ config_dir = Path()(config_dir)
         # Create default admin if none exist
         if not self.accounts:
             self._create_default_admin()
-    
+
     def _load_data(self):
         """Load authentication data from files."""
         try:
             if self.accounts_file.exists() if self.accounts_file else False:
                 with open(self.accounts_file, 'r') as f:
                     self.accounts = json.load(f)
-            
+
             if self.attempts_file.exists() if self.attempts_file else False:
                 with open(self.attempts_file, 'r') as f:
                     attempts_data = json.load(f)
                     self.auth_attempts = [
-                        AuthAttempt(
+                        AuthAttempt()
                             timestamp=datetime.fromisoformat(attempt['timestamp']),
                             username=attempt['username'],
                             ip_address=attempt['ip_address'],
@@ -152,12 +153,12 @@ config_dir = Path()(config_dir)
                         )
                         for attempt in attempts_data
                     ]
-            
+
             if self.sessions_file.exists() if self.sessions_file else False:
                 with open(self.sessions_file, 'r') as f:
                     sessions_data = json.load(f)
                     self.active_sessions = {
-                        session_id: AuthSession(
+                        session_id: AuthSession()
                             session_id=session_data['session_id'],
                             username=session_data['username'],
                             security_level=SecurityLevel(session_data['security_level']),
@@ -171,17 +172,17 @@ config_dir = Path()(config_dir)
                         )
                         for session_id, session_data in sessions_data.items()
                     }
-                    
+
         except Exception as e:
             logger.error(f"Error loading authentication data: {e}")
-    
+
     def _save_data(self):
         """Save authentication data to files."""
         try:
             # Save accounts
             with open(self.accounts_file, 'w') as f:
                 json.dump(self.accounts, f, indent=2)
-            
+
             # Save attempts
             attempts_data = [
                 {
@@ -200,7 +201,7 @@ config_dir = Path()(config_dir)
             ]
             with open(self.attempts_file, 'w') as f:
                 json.dump(attempts_data, f, indent=2)
-            
+
             # Save sessions
             sessions_data = {
                 session_id: {
@@ -219,15 +220,15 @@ config_dir = Path()(config_dir)
             }
             with open(self.sessions_file, 'w') as f:
                 json.dump(sessions_data, f, indent=2)
-                
+
         except Exception as e:
             logger.error(f"Error saving authentication data: {e}")
-    
+
     def _create_default_admin(self):
         """Create default admin account if none exist."""
         default_password = secrets.token_urlsafe(16)
         password_hash = hashlib.pbkdf2_hmac('sha256', default_password.encode(), b'salt', 100000)
-        
+
         self.accounts['admin'] = {
             'username': 'admin',
             'password_hash': password_hash.hex(),
@@ -241,12 +242,12 @@ config_dir = Path()(config_dir)
             'mfa_enabled': False,
             'biometric_enabled': False
         }
-        
+
         self._save_data()
         logger.info(f" Default admin account created with password: {default_password}")
         logger.warning(" Please change the default admin password immediately!")
 
-    async def authenticate(self, username: str, password: str, ip_address: str,
+    async def authenticate(self, username: str, password: str, ip_address: str,)
                           user_agent: str, security_level: SecurityLevel = SecurityLevel.BASIC) -> Tuple[bool, Optional[str], Optional[AuthSession]]:
         """
         Authenticate user with comprehensive security checks.
@@ -298,7 +299,7 @@ config_dir = Path()(config_dir)
             account['failed_attempts'] = 0
 
             # Create session
-            session = AuthSession(
+            session = AuthSession()
                 session_id=secrets.token_urlsafe(32),
                 username=username,
                 security_level=security_level,
@@ -318,11 +319,11 @@ config_dir = Path()(config_dir)
             logger.error(f"Authentication error: {e}")
             return False, "Authentication system error", None
 
-    def _log_attempt(self, username: str, ip_address: str, user_agent: str,
+    def _log_attempt(self, username: str, ip_address: str, user_agent: str,):
                     action: AuthAction, success: bool, security_level: SecurityLevel,
                     failure_reason: Optional[str] = None, session_id: Optional[str] = None):
         """Log authentication attempt."""
-        attempt = AuthAttempt(
+        attempt = AuthAttempt()
             timestamp=datetime.now(timezone.utc),
             username=username,
             ip_address=ip_address,

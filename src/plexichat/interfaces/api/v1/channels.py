@@ -6,11 +6,8 @@
 from typing import Optional
 
 
-from ....core_system.auth.auth_manager import (
+from ....core_system.auth.auth_manager import ()
 from ....features.channels.models.channel import ChannelType
-
-
-
 
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -75,7 +72,7 @@ class ChannelResponse(BaseModel):
 
 
 @router.post("/", response_model=ChannelResponse, status_code=status.HTTP_201_CREATED)
-async def create_channel(
+async def create_channel()
     server_id: str,
     request: ChannelCreateRequest,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
@@ -89,20 +86,20 @@ async def create_channel(
         # TODO: Check permissions
         # TODO: Create channel using service
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Channel creation not yet implemented"
         )
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create channel: {str(e)}"
         )
 
 
 @router.get("/{channel_id}", response_model=ChannelResponse)
-async def get_channel(
+async def get_channel()
     channel_id: str,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
@@ -115,20 +112,20 @@ async def get_channel(
         # TODO: Get channel using service
         # TODO: Check permissions
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Channel retrieval not yet implemented"
         )
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get channel: {str(e)}"
         )
 
 
 @router.patch("/{channel_id}", response_model=ChannelResponse)
-async def update_channel(
+async def update_channel()
     channel_id: str,
     request: ChannelUpdateRequest,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
@@ -143,20 +140,20 @@ settings.
         # TODO: Check permissions
         # TODO: Update channel using service
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Channel update not yet implemented"
         )
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update channel: {str(e)}"
         )
 
 
 @router.delete("/{channel_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_channel(
+async def delete_channel()
     channel_id: str,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
@@ -169,13 +166,13 @@ async def delete_channel(
         # TODO: Check permissions
         # TODO: Delete channel using service
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Channel deletion not yet implemented"
         )
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete channel: {str(e)}"
         )
@@ -183,7 +180,7 @@ async def delete_channel(
 
 # Message endpoints for channels
 @router.get("/{channel_id}/messages")
-async def get_channel_messages(
+async def get_channel_messages()
     channel_id: str,
     limit: int = 50,
     before: Optional[str] = None,
@@ -199,20 +196,20 @@ async def get_channel_messages(
         # TODO: Check permissions
         # TODO: Get messages using service
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Message retrieval not yet implemented"
         )
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get messages: {str(e)}"
         )
 
 
 @router.post("/{channel_id}/messages")
-async def send_message(
+async def send_message()
     channel_id: str,
     content: str,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
@@ -226,13 +223,13 @@ async def send_message(
         # TODO: Check permissions
         # TODO: Send message using service
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Message sending not yet implemented"
         )
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to send message: {str(e)}"
         )

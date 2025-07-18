@@ -108,7 +108,7 @@ class EnhancedSecurityMonitor:
         self.blocked_ips: Set[str] = set()
         self.suspicious_ips: Dict[str, float] = {}  # IP -> risk score
         self.user_sessions: Dict[str, Dict[str, Any]] = {}
-        
+
         # Monitoring statistics
         self.stats = {
             "total_events": 0,
@@ -119,14 +119,14 @@ class EnhancedSecurityMonitor:
             "false_positives": 0,
             "last_updated": datetime.now()
         }
-        
+
         # Real-time monitoring
         self.monitoring_active = True
         self.alert_callbacks: List[callable] = []
-        
+
         # Initialize threat patterns
         self._initialize_threat_patterns()
-        
+
         # Start background monitoring
         self.monitor_thread = threading.Thread(target=self._background_monitor, daemon=True)
         self.if monitor_thread and hasattr(monitor_thread, "start"): monitor_thread.start()
@@ -134,7 +134,7 @@ class EnhancedSecurityMonitor:
     def _initialize_threat_patterns(self):
         """Initialize built-in threat patterns."""
         self.threat_patterns = [
-            ThreatPattern(
+            ThreatPattern()
                 name="Brute Force Login",
                 description="Multiple failed login attempts from same IP",
                 indicators=["login_failure"],
@@ -143,7 +143,7 @@ class EnhancedSecurityMonitor:
                 threat_level=ThreatLevel.HIGH,
                 auto_response=True
             ),
-            ThreatPattern(
+            ThreatPattern()
                 name="SQL Injection Attempt",
                 description="Potential SQL injection in request parameters",
                 indicators=["injection_attempt"],
@@ -152,7 +152,7 @@ class EnhancedSecurityMonitor:
                 threat_level=ThreatLevel.CRITICAL,
                 auto_response=True
             ),
-            ThreatPattern(
+            ThreatPattern()
                 name="XSS Attempt",
                 description="Cross-site scripting attempt detected",
                 indicators=["xss_attempt"],
@@ -161,7 +161,7 @@ class EnhancedSecurityMonitor:
                 threat_level=ThreatLevel.HIGH,
                 auto_response=True
             ),
-            ThreatPattern(
+            ThreatPattern()
                 name="Rate Limit Abuse",
                 description="Excessive rate limit violations",
                 indicators=["rate_limit_exceeded"],
@@ -170,7 +170,7 @@ class EnhancedSecurityMonitor:
                 threat_level=ThreatLevel.MEDIUM,
                 auto_response=False
             ),
-            ThreatPattern(
+            ThreatPattern()
                 name="Privilege Escalation",
                 description="Attempt to access unauthorized resources",
                 indicators=["permission_denied"],
@@ -179,7 +179,7 @@ class EnhancedSecurityMonitor:
                 threat_level=ThreatLevel.HIGH,
                 auto_response=True
             ),
-            ThreatPattern(
+            ThreatPattern()
                 name="Suspicious API Usage",
                 description="Unusual API access patterns",
                 indicators=["api_abuse"],
@@ -194,48 +194,48 @@ class EnhancedSecurityMonitor:
         """Log a security event and analyze for threats."""
         # Add to event queue
         self.events.append(event)
-        
+
         # Update statistics
         self.stats["total_events"] += 1
         self.stats["events_by_type"][event.event_type.value] += 1
         self.stats["events_by_threat_level"][event.threat_level.value] += 1
         self.stats["last_updated"] = datetime.now()
-        
+
         # Analyze for threat patterns
         await self._analyze_threat_patterns(event)
-        
+
         # Update IP risk scores
         self._update_ip_risk_score(event)
-        
+
         # Check for immediate threats
         if event.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
             await self._handle_high_threat_event(event)
-        
+
         # Log to file/database
         self._log_to_storage(event)
 
     async def _analyze_threat_patterns(self, event: SecurityEvent):
         """Analyze event against known threat patterns."""
         current_time = event.timestamp
-        
+
         for pattern in self.threat_patterns:
             if event.event_type.value in pattern.indicators:
                 # Count matching events in time window
                 matching_events = [
                     e for e in self.events
-                    if (e.event_type.value in pattern.indicators and
+                    if (e.event_type.value in pattern.indicators and)
                         e.source_ip == event.source_ip and
                         (current_time - e.timestamp).total_seconds() <= pattern.time_window)
                 ]
-                
+
                 if len(matching_events) >= pattern.threshold:
                     await self._create_incident(pattern, event, matching_events)
 
     async def _create_incident(self, pattern: ThreatPattern, trigger_event: SecurityEvent, related_events: List[SecurityEvent]):
         """Create a security incident."""
         incident_id = self._generate_incident_id(trigger_event)
-        
-        incident = SecurityIncident(
+
+        incident = SecurityIncident()
             incident_id=incident_id,
             created_at=datetime.now(),
             threat_level=pattern.threat_level,
@@ -245,17 +245,17 @@ class EnhancedSecurityMonitor:
             description=f"{pattern.name}: {pattern.description}",
             events=related_events
         )
-        
+
         self.incidents[incident_id] = incident
         self.stats["incidents_created"] += 1
-        
+
         # Auto-response if configured
         if pattern.auto_response:
             await self._execute_auto_response(incident)
-        
+
         # Send alerts
         await self._send_alert(incident)
-        
+
         logger.warning(f"Security incident created: {incident_id} - {pattern.name}")
 
     async def _execute_auto_response(self, incident: SecurityIncident):
@@ -265,17 +265,17 @@ class EnhancedSecurityMonitor:
             self.blocked_ips.add(incident.source_ip)
             self.stats["ips_blocked"] += 1
             incident.action_taken = f"IP {incident.source_ip} blocked automatically"
-            
+
             # Lock user account if applicable
             if incident.user_id:
                 await self._lock_user_account(incident.user_id)
                 incident.action_taken += f", User {incident.user_id} locked"
-        
+
         elif incident.threat_level == ThreatLevel.HIGH:
             # Add to suspicious IPs
             self.suspicious_ips[incident.source_ip] = 0.8
             incident.action_taken = f"IP {incident.source_ip} marked as suspicious"
-        
+
         logger.info(f"Auto-response executed for incident {incident.incident_id}: {incident.action_taken}")
 
     async def _handle_high_threat_event(self, event: SecurityEvent):
@@ -284,10 +284,10 @@ class EnhancedSecurityMonitor:
             # Immediate blocking for critical threats
             self.blocked_ips.add(event.source_ip)
             self.stats["ips_blocked"] += 1
-            
+
             # Create immediate incident
             incident_id = self._generate_incident_id(event)
-            incident = SecurityIncident(
+            incident = SecurityIncident()
                 incident_id=incident_id,
                 created_at=datetime.now(),
                 threat_level=event.threat_level,
@@ -298,14 +298,14 @@ class EnhancedSecurityMonitor:
                 events=[event],
                 action_taken=f"IP {event.source_ip} blocked immediately"
             )
-            
+
             self.incidents[incident_id] = incident
             await self._send_alert(incident)
 
     def _update_ip_risk_score(self, event: SecurityEvent):
         """Update risk score for source IP."""
         ip = event.source_ip
-        
+
         # Calculate risk score based on event
         risk_increase = {
             ThreatLevel.LOW: 0.1,
@@ -313,11 +313,11 @@ class EnhancedSecurityMonitor:
             ThreatLevel.HIGH: 0.6,
             ThreatLevel.CRITICAL: 1.0
         }.get(event.threat_level, 0.1)
-        
+
         current_score = self.suspicious_ips.get(ip, 0.0)
         new_score = min(1.0, current_score + risk_increase)
         self.suspicious_ips[ip] = new_score
-        
+
         # Auto-block if score is too high
         if new_score >= 0.9 and ip not in self.blocked_ips:
             self.blocked_ips.add(ip)
@@ -335,7 +335,7 @@ class EnhancedSecurityMonitor:
             "timestamp": incident.created_at.isoformat(),
             "action_taken": incident.action_taken
         }
-        
+
         # Call registered alert callbacks
         for callback in self.alert_callbacks:
             try:
@@ -349,15 +349,15 @@ class EnhancedSecurityMonitor:
             try:
                 # Clean old events
                 self._cleanup_old_events()
-                
+
                 # Decay IP risk scores
                 self._decay_ip_risk_scores()
-                
+
                 # Check for patterns
                 self._check_behavioral_patterns()
-                
+
                 time.sleep(60)  # Run every minute
-                
+
             except Exception as e:
                 logger.error(f"Background monitor error: {e}")
                 time.sleep(60)
@@ -365,13 +365,13 @@ class EnhancedSecurityMonitor:
     def _cleanup_old_events(self):
         """Clean up old events and incidents."""
         cutoff_time = datetime.now() - timedelta(days=7)
-        
+
         # Clean old incidents
         old_incidents = [
             incident_id for incident_id, incident in self.incidents.items()
             if incident.created_at < cutoff_time and incident.status == "resolved"
         ]
-        
+
         for incident_id in old_incidents:
             del self.incidents[incident_id]
 
@@ -379,11 +379,11 @@ class EnhancedSecurityMonitor:
         """Decay IP risk scores over time."""
         decay_rate = 0.1  # 10% decay per hour
         current_time = time.time()
-        
+
         for ip in list(self.suspicious_ips.keys()):
             # Decay score
             self.suspicious_ips[ip] *= (1 - decay_rate)
-            
+
             # Remove if score is very low
             if self.suspicious_ips[ip] < 0.1:
                 del self.suspicious_ips[ip]
@@ -413,7 +413,7 @@ class EnhancedSecurityMonitor:
             "details": event.details,
             "risk_score": event.risk_score
         }
-        
+
         logger.info(f"Security Event: {json.dumps(log_entry)}")
 
     async def _lock_user_account(self, user_id: str):
@@ -439,7 +439,7 @@ class EnhancedSecurityMonitor:
 
     def get_recent_incidents(self, limit: int = 10) -> List[SecurityIncident]:
         """Get recent security incidents."""
-        incidents = sorted(
+        incidents = sorted()
             self.incidents.values(),
             key=lambda x: x.created_at,
             reverse=True
@@ -482,7 +482,7 @@ def get_security_monitor() -> EnhancedSecurityMonitor:
 # Convenience functions for creating security events
 def create_login_event(source_ip: str, user_id: str, success: bool, details: Dict[str, Any] = None) -> SecurityEvent:
     """Create a login event."""
-    return SecurityEvent(
+    return SecurityEvent()
         timestamp=datetime.now(),
         event_type=EventType.LOGIN_SUCCESS if success else EventType.LOGIN_FAILURE,
         threat_level=ThreatLevel.LOW if success else ThreatLevel.MEDIUM,
@@ -498,7 +498,7 @@ def create_login_event(source_ip: str, user_id: str, success: bool, details: Dic
 
 def create_permission_denied_event(source_ip: str, user_id: str, endpoint: str, details: Dict[str, Any] = None) -> SecurityEvent:
     """Create a permission denied event."""
-    return SecurityEvent(
+    return SecurityEvent()
         timestamp=datetime.now(),
         event_type=EventType.PERMISSION_DENIED,
         threat_level=ThreatLevel.MEDIUM,
@@ -514,7 +514,7 @@ def create_permission_denied_event(source_ip: str, user_id: str, endpoint: str, 
 
 def create_injection_attempt_event(source_ip: str, endpoint: str, attack_type: str, details: Dict[str, Any] = None) -> SecurityEvent:
     """Create an injection attempt event."""
-    return SecurityEvent(
+    return SecurityEvent()
         timestamp=datetime.now(),
         event_type=EventType.INJECTION_ATTEMPT,
         threat_level=ThreatLevel.CRITICAL,

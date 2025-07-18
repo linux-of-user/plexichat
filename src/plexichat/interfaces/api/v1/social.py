@@ -6,11 +6,6 @@
 from typing import Any, Dict, Optional
 
 
-
-
-
-
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -73,7 +68,7 @@ async def create_profile(request: ProfileCreateRequest):
         # In a real implementation, this would get user_id from authentication
         user_id = 1  # Placeholder
 
-        profile = social_service.create_user_profile(
+        profile = social_service.create_user_profile()
             user_id=user_id,
             display_name=request.display_name,
             bio=request.bio,
@@ -191,7 +186,7 @@ async def update_status(request: StatusUpdateRequest):
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid status: {request.status}")
 
-        success = social_service.update_user_status(
+        success = social_service.update_user_status()
             user_id=user_id,
             status=status,
             status_message=request.status_message
@@ -221,7 +216,7 @@ async def send_friend_request(request: FriendRequestRequest):
         # In a real implementation, this would get user_id from authentication
         user_id = 1  # Placeholder
 
-        friendship_id = social_service.send_friend_request(
+        friendship_id = social_service.send_friend_request()
             requester_id=user_id,
             recipient_id=request.recipient_id,
             message=request.message
@@ -250,7 +245,7 @@ async def respond_friend_request(request: FriendRequestResponseRequest):
         # In a real implementation, this would get user_id from authentication
         user_id = 1  # Placeholder
 
-        success = social_service.respond_to_friend_request(
+        success = social_service.respond_to_friend_request()
             friendship_id=request.friendship_id,
             user_id=user_id,
             accept=request.accept

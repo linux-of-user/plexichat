@@ -4,6 +4,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat Webhooks Router
 
 Enhanced webhook management with comprehensive validation, security, and performance optimization.
@@ -74,14 +75,14 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 # Pydantic models
 class WebhookCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    url: str = Field(..., regex=r'^https?://.+')
+    url: str = Field(..., pattern=r'^https?://.+')
     secret: Optional[str] = Field(None, max_length=255)
     events: List[str] = Field(..., min_items=1)
     is_active: bool = True
 
 class WebhookUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
-    url: Optional[str] = Field(None, regex=r'^https?://.+')
+    url: Optional[str] = Field(None, pattern=r'^https?://.+')
     secret: Optional[str] = Field(None, max_length=255)
     events: Optional[List[str]] = Field(None, min_items=1)
     is_active: Optional[bool] = None
@@ -111,12 +112,12 @@ class WebhookDelivery(BaseModel):
 
 class WebhookService:
     """Service class for webhook operations using EXISTING database abstraction layer."""
-    
+
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("webhook_creation") if async_track_performance else lambda f: f
     async def create_webhook(self, webhook_data: WebhookCreate, user_id: int) -> WebhookResponse:
         """Create webhook using EXISTING database abstraction layer."""
@@ -137,16 +138,16 @@ class WebhookService:
                     "user_id": user_id,
                     "created_at": datetime.now()
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("webhook_creation_query"):
                         result = await self.db_manager.execute_query(create_query, create_params)
                 else:
                     result = await self.db_manager.execute_query(create_query, create_params)
-                
+
                 if result:
                     row = result[0]
-                    return WebhookResponse(
+                    return WebhookResponse()
                         id=row[0],
                         name=row[1],
                         url=row[2],
@@ -155,13 +156,13 @@ class WebhookService:
                         created_at=row[5],
                         last_triggered=row[6]
                     )
-                    
+
             except Exception as e:
                 logger.error(f"Error creating webhook: {e}")
                 raise HTTPException(status_code=500, detail="Failed to create webhook")
-        
+
         # Fallback mock webhook
-        return WebhookResponse(
+        return WebhookResponse()
             id=1,
             name=webhook_data.name,
             url=webhook_data.url,
@@ -170,7 +171,7 @@ class WebhookService:
             created_at=datetime.now(),
             last_triggered=None
         )
-    
+
     @async_track_performance("webhook_list") if async_track_performance else lambda f: f
     async def list_webhooks(self, user_id: int, limit: int = 50, offset: int = 0) -> List[WebhookResponse]:
         """List webhooks using EXISTING database abstraction layer."""
@@ -178,23 +179,23 @@ class WebhookService:
             try:
                 query = """
                     SELECT id, name, url, events, is_active, created_at, last_triggered
-                    FROM webhooks 
+                    FROM webhooks
                     WHERE user_id = ?
                     ORDER BY created_at DESC
                     LIMIT ? OFFSET ?
                 """
                 params = {"user_id": user_id, "limit": limit, "offset": offset}
-                
+
                 if self.performance_logger and timer:
                     with timer("webhook_list_query"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 webhooks = []
                 if result:
                     for row in result:
-                        webhooks.append(WebhookResponse(
+                        webhooks.append(WebhookResponse())
                             id=row[0],
                             name=row[1],
                             url=row[2],
@@ -203,15 +204,15 @@ class WebhookService:
                             created_at=row[5],
                             last_triggered=row[6]
                         ))
-                
+
                 return webhooks
-                    
+
             except Exception as e:
                 logger.error(f"Error listing webhooks: {e}")
                 return []
-        
+
         return []
-    
+
     @async_track_performance("webhook_trigger") if async_track_performance else lambda f: f
     async def trigger_webhook(self, webhook_id: int, event: WebhookEvent) -> bool:
         """Trigger webhook delivery using EXISTING database abstraction layer."""
@@ -220,27 +221,27 @@ class WebhookService:
                 # Get webhook details
                 webhook_query = """
                     SELECT id, name, url, secret, events, is_active
-                    FROM webhooks 
+                    FROM webhooks
                     WHERE id = ? AND is_active = 1
                 """
                 webhook_params = {"id": webhook_id}
-                
+
                 if self.performance_logger and timer:
                     with timer("webhook_get_query"):
                         result = await self.db_manager.execute_query(webhook_query, webhook_params)
                 else:
                     result = await self.db_manager.execute_query(webhook_query, webhook_params)
-                
+
                 if not result:
                     return False
-                
+
                 webhook_row = result[0]
                 webhook_events = json.loads(webhook_row[4]) if webhook_row[4] else []
-                
+
                 # Check if event type is subscribed
                 if event.event_type not in webhook_events:
                     return False
-                
+
                 # Prepare payload
                 payload = {
                     "event": event.event_type,
@@ -248,26 +249,26 @@ class WebhookService:
                     "timestamp": event.timestamp.isoformat(),
                     "webhook_id": webhook_id
                 }
-                
+
                 # Create signature if secret is provided
                 headers = {"Content-Type": "application/json"}
                 if webhook_row[3]:  # secret
-                    signature = hmac.new(
+                    signature = hmac.new()
                         webhook_row[3].encode(),
                         json.dumps(payload).encode(),
                         hashlib.sha256
                     ).hexdigest()
                     headers["X-Webhook-Signature"] = f"sha256={signature}"
-                
+
                 # Send webhook (if httpx is available)
                 delivery_status = "pending"
                 response_code = None
                 response_body = None
-                
+
                 if httpx:
                     try:
                         async with httpx.AsyncClient(timeout=30.0) as client:
-                            response = await client.post(
+                            response = await client.post()
                                 webhook_row[2],  # url
                                 json=payload,
                                 headers=headers
@@ -279,7 +280,7 @@ class WebhookService:
                         logger.error(f"Webhook delivery failed: {e}")
                         delivery_status = "failed"
                         response_body = str(e)[:1000]
-                
+
                 # Log delivery
                 delivery_query = """
                     INSERT INTO webhook_deliveries (webhook_id, event_type, status, response_code, response_body, created_at)
@@ -293,43 +294,43 @@ class WebhookService:
                     "response_body": response_body,
                     "created_at": datetime.now()
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("webhook_delivery_log"):
                         await self.db_manager.execute_query(delivery_query, delivery_params)
                 else:
                     await self.db_manager.execute_query(delivery_query, delivery_params)
-                
+
                 # Update last_triggered
                 update_query = """
                     UPDATE webhooks SET last_triggered = ? WHERE id = ?
                 """
                 update_params = {"last_triggered": datetime.now(), "id": webhook_id}
-                
+
                 if self.performance_logger and timer:
                     with timer("webhook_update_triggered"):
                         await self.db_manager.execute_query(update_query, update_params)
                 else:
                     await self.db_manager.execute_query(update_query, update_params)
-                
+
                 return delivery_status == "success"
-                    
+
             except Exception as e:
                 logger.error(f"Error triggering webhook: {e}")
                 return False
-        
+
         return False
 
 # Initialize service
 webhook_service = WebhookService()
 
-@router.post(
+@router.post()
     "/",
     response_model=WebhookResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create webhook"
 )
-async def create_webhook(
+async def create_webhook()
     request: Request,
     webhook_data: WebhookCreate,
     current_user: Dict[str, Any] = Depends(get_current_user)
@@ -337,23 +338,23 @@ async def create_webhook(
     """Create a new webhook with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Webhook creation requested by user {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("webhook_creation_requests", 1, "count")
-    
+
     # Sanitize inputs
     webhook_data.name = InputSanitizer.sanitize_input(webhook_data.name)
     webhook_data.url = InputSanitizer.sanitize_input(webhook_data.url)
-    
+
     return await webhook_service.create_webhook(webhook_data, current_user.get("id", 0))
 
-@router.get(
+@router.get()
     "/",
     response_model=List[WebhookResponse],
     summary="List webhooks"
 )
-async def list_webhooks(
+async def list_webhooks()
     request: Request,
     limit: int = 50,
     offset: int = 0,
@@ -362,18 +363,18 @@ async def list_webhooks(
     """List user's webhooks with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Webhook list requested by user {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("webhook_list_requests", 1, "count")
-    
+
     return await webhook_service.list_webhooks(current_user.get("id", 0), limit, offset)
 
-@router.post(
+@router.post()
     "/{webhook_id}/trigger",
     summary="Trigger webhook"
 )
-async def trigger_webhook(
+async def trigger_webhook()
     request: Request,
     webhook_id: int,
     event: WebhookEvent,
@@ -383,24 +384,24 @@ async def trigger_webhook(
     """Trigger a webhook manually with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Webhook {webhook_id} trigger requested by user {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("webhook_trigger_requests", 1, "count")
-    
+
     # Sanitize event data
     event.event_type = InputSanitizer.sanitize_input(event.event_type)
-    
+
     # Trigger webhook in background
     background_tasks.add_task(webhook_service.trigger_webhook, webhook_id, event)
-    
+
     return {"message": "Webhook triggered", "webhook_id": webhook_id}
 
-@router.post(
+@router.post()
     "/broadcast",
     summary="Broadcast event to all webhooks"
 )
-async def broadcast_event(
+async def broadcast_event()
     request: Request,
     event: WebhookEvent,
     background_tasks: BackgroundTasks,
@@ -409,19 +410,19 @@ async def broadcast_event(
     """Broadcast an event to all active webhooks (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Webhook broadcast requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("webhook_broadcast_requests", 1, "count")
-    
+
     # Get all active webhooks
     webhooks = await webhook_service.list_webhooks(current_user.get("id", 0), limit=1000)
-    
+
     # Trigger all webhooks in background
     for webhook in webhooks:
         if webhook.is_active and event.event_type in webhook.events:
             background_tasks.add_task(webhook_service.trigger_webhook, webhook.id, event)
-    
+
     return {
         "message": "Event broadcasted to all matching webhooks",
         "webhook_count": len([w for w in webhooks if w.is_active and event.event_type in w.events])

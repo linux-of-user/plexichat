@@ -14,6 +14,8 @@ from ..repository.base_repository import BaseRepository, CacheStrategy, Reposito
 
 
 """
+import os
+import time
 PlexiChat Phase IV Database Abstraction Integration
 Coordinates all Phase IV database enhancements into a unified system
 """
@@ -132,12 +134,12 @@ class Phase4DatabaseCoordinator:
             # Start monitoring
             asyncio.create_task(self._database_monitoring_loop())
 
-            initialization_time = (
+            initialization_time = ()
                 datetime.now(timezone.utc) - start_time
             ).total_seconds()
             self.stats["initialization_time"] = initialization_time
 
-            logger.info(
+            logger.info()
                 f" Phase IV Database Abstraction System initialized in {initialization_time:.2f}s"
             )
 
@@ -158,7 +160,7 @@ class Phase4DatabaseCoordinator:
     async def _initialize_advanced_orm(self):
         """Initialize advanced ORM layer."""
         # Create ORM configuration
-        orm_config = ORMConfig(
+        orm_config = ORMConfig()
             database_url="sqlite:///plexichat.db",  # Default, should be configurable
             pool_size=self.connection_pool_size,
             enable_query_cache=True,
@@ -235,7 +237,7 @@ class Phase4DatabaseCoordinator:
 
         return dao
 
-    def create_repository(
+    def create_repository():
         self,
         dao: BaseDAO,
         name: Optional[str] = None,
@@ -246,7 +248,7 @@ class Phase4DatabaseCoordinator:
 
         # Use default config if not provided
         if config is None:
-            config = RepositoryConfig(
+            config = RepositoryConfig()
                 cache_strategy=self.default_cache_strategy,
                 cache_ttl=self.default_cache_ttl,
             )
@@ -268,7 +270,7 @@ class Phase4DatabaseCoordinator:
             # Fallback to database cluster session
             return db_cluster.get_session
 
-    def _create_generic_repository(
+    def _create_generic_repository():
         self, dao: BaseDAO, config: RepositoryConfig
     ) -> BaseRepository:
         """Create a generic repository implementation."""
@@ -288,13 +290,13 @@ class Phase4DatabaseCoordinator:
                 """Transform update data to DAO format."""
                 return update_data
 
-            async def _criteria_to_filters(
+            async def _criteria_to_filters()
                 self, criteria: Dict[str, Any]
             ) -> List[FilterCriteria]:
                 """Convert business criteria to filter criteria."""
                 filters = []
                 for field, value in criteria.items():
-                    filter_criteria = FilterCriteria(
+                    filter_criteria = FilterCriteria()
                         field=field,
                         operator=FilterOperator.EQUALS,  # Default to equals
                         value=value,
@@ -306,7 +308,7 @@ class Phase4DatabaseCoordinator:
 
     # Query Operations
 
-    async def execute_query(
+    async def execute_query()
         self,
         query: str,
         parameters: Optional[Dict[str, Any]] = None,
@@ -321,12 +323,12 @@ class Phase4DatabaseCoordinator:
             if self.advanced_orm:
                 result = await self.advanced_orm.execute_query(query, params)
             else:
-                result = await self.database_manager.execute_query(
+                result = await self.database_manager.execute_query()
                     query, params, database
                 )
 
             # Update metrics
-            execution_time = (
+            execution_time = ()
                 datetime.now(timezone.utc) - start_time
             ).total_seconds() * 1000
             self._update_query_metrics(execution_time, True)
@@ -334,14 +336,14 @@ class Phase4DatabaseCoordinator:
             return result
 
         except Exception as e:
-            execution_time = (
+            execution_time = ()
                 datetime.now(timezone.utc) - start_time
             ).total_seconds() * 1000
             self._update_query_metrics(execution_time, False)
             logger.error(f"Query execution failed: {e}")
             raise
 
-    async def find_by_id(
+    async def find_by_id()
         self,
         model_class: Type[T],
         id: Any,
@@ -351,11 +353,11 @@ class Phase4DatabaseCoordinator:
         if not self.advanced_orm:
             raise RuntimeError("Advanced ORM not initialized")
 
-        return await self.advanced_orm.find_by_id(
+        return await self.advanced_orm.find_by_id()
             model_class, id, include_relations or []
         )
 
-    async def find_all(
+    async def find_all()
         self,
         model_class: Type[T],
         filters: Optional[Dict[str, Any]] = None,
@@ -367,7 +369,7 @@ class Phase4DatabaseCoordinator:
         if not self.advanced_orm:
             raise RuntimeError("Advanced ORM not initialized")
 
-        return await self.advanced_orm.find_all(
+        return await self.advanced_orm.find_all()
             model_class, filters or {}, order_by or [], limit or 100, offset or 0
         )
 
@@ -489,7 +491,7 @@ class Phase4DatabaseCoordinator:
 
             for name, health in repo_health.items():
                 if health.get("status") != "healthy":
-                    logger.warning(
+                    logger.warning()
                         f" Repository {name} health check failed: {health.get('error')}"
                     )
 
@@ -508,7 +510,7 @@ class Phase4DatabaseCoordinator:
         # Update average response time
         current_avg = self.metrics.average_response_time
         total_queries = self.metrics.total_queries
-        new_avg = (
+        new_avg = ()
             (current_avg * (total_queries - 1)) + execution_time_ms
         ) / total_queries
         self.metrics.average_response_time = new_avg
@@ -534,7 +536,7 @@ class Phase4DatabaseCoordinator:
                 "repositories": list(self.registered_repositories.keys()),
             },
             "database_manager_status": self.database_manager.get_status(),
-            "orm_statistics": (
+            "orm_statistics": ()
                 self.advanced_orm.get_statistics() if self.advanced_orm else None
             ),
             "last_updated": datetime.now(timezone.utc).isoformat(),

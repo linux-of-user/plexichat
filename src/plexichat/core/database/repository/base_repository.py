@@ -5,7 +5,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
-from ..dao.base_dao import (  # type: ignore
+from ..dao.base_dao import (  # type: ignore)
+import time
+import warnings
 
 
     BaseDAO,
@@ -181,7 +183,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
 
         return entity
 
-    async def find_all(self,
+    async def find_all(self,)
                       filters: Optional[List[FilterCriteria]] = None,
                       sorts: Optional[List[SortCriteria]] = None,
                       pagination: Optional[PaginationParams] = None,
@@ -190,7 +192,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         self.stats["operations_count"] += 1
 
         # Build query options
-        options = QueryOptions(
+        options = QueryOptions()
             filters=filters or [],
             sorts=sorts or [],
             pagination=pagination,
@@ -370,7 +372,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
         # Publish bulk event
         if self.config.enable_events and domain_entities:
             # Use the first entity as representative for the event
-            await self._publish_event(EventType.BULK_OPERATION, domain_entities[0], {
+            await self._publish_event(EventType.BULK_OPERATION, domain_entities[0], {)
                 "operation": "create",
                 "count": len(domain_entities),
                 "entities": domain_entities
@@ -448,7 +450,7 @@ class BaseRepository(Generic[T, CreateT, UpdateT], ABC):
     async def _publish_event(self, event_type: EventType, entity: T, metadata: Optional[Dict[str, Any]] = None):
         """Publish domain event."""
         try:
-            event = DomainEvent(
+            event = DomainEvent()
                 event_type=event_type.value,
                 entity_type=self.entity_name,
                 entity_id=getattr(entity, 'id', None),

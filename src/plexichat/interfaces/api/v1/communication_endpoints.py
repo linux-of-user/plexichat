@@ -7,8 +7,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from plexichat.core.logging import get_logger
-from ...services.communication_service import (
-
+from ...services.communication_service import ()
 
 
     from plexichat.infrastructure.utils.auth import require_admin_auth,
@@ -169,7 +168,7 @@ class NotificationResponse(BaseModel):
 # Voice Message Endpoints
 
 @router.post("/voice-messages", response_model=VoiceMessageResponse)
-async def create_voice_message(
+async def create_voice_message()
     chat_id: str = Form(...),
     audio_file: UploadFile = File(...),
     current_user: dict = Depends(require_auth)
@@ -189,7 +188,7 @@ async def create_voice_message(
         duration = len(audio_data) / 16000  # Rough estimate
 
         # Create voice message
-        voice_message = await communication_service.create_voice_message(
+        voice_message = await communication_service.create_voice_message()
             user_id=current_user["user_id"],
             chat_id=chat_id,
             audio_data=audio_data,
@@ -203,7 +202,7 @@ async def create_voice_message(
         raise HTTPException(status_code=500, detail=f"Failed to create voice message: {str(e)}")
 
 @router.get("/voice-messages/{message_id}", response_model=VoiceMessageResponse)
-async def get_voice_message(
+async def get_voice_message()
     message_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -224,7 +223,7 @@ async def get_voice_message(
         raise HTTPException(status_code=500, detail=f"Failed to get voice message: {str(e)}")
 
 @router.get("/voice-messages/{message_id}/audio")
-async def get_voice_message_audio(
+async def get_voice_message_audio()
     message_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -236,7 +235,7 @@ async def get_voice_message_audio(
         if not voice_message:
             raise HTTPException(status_code=404, detail="Voice message not found")
 
-        return FileResponse(
+        return FileResponse()
             voice_message.file_path,
             media_type="audio/wav",
             filename=f"voice_message_{message_id}.wav"
@@ -251,7 +250,7 @@ async def get_voice_message_audio(
 # Reaction Endpoints
 
 @router.post("/reactions", response_model=ReactionResponse)
-async def add_reaction(
+async def add_reaction()
     request: CreateReactionRequest,
     current_user: dict = Depends(require_auth)
 ):
@@ -259,7 +258,7 @@ async def add_reaction(
     try:
         communication_service = await get_communication_service()
 
-        reaction = await communication_service.add_reaction(
+        reaction = await communication_service.add_reaction()
             message_id=request.message_id,
             user_id=current_user["user_id"],
             reaction_type=request.reaction_type
@@ -272,7 +271,7 @@ async def add_reaction(
         raise HTTPException(status_code=500, detail=f"Failed to add reaction: {str(e)}")
 
 @router.delete("/reactions/{message_id}/{reaction_type}")
-async def remove_reaction(
+async def remove_reaction()
     message_id: str,
     reaction_type: ReactionType,
     current_user: dict = Depends(require_auth)
@@ -281,7 +280,7 @@ async def remove_reaction(
     try:
         communication_service = await get_communication_service()
 
-        success = await communication_service.remove_reaction(
+        success = await communication_service.remove_reaction()
             message_id=message_id,
             user_id=current_user["user_id"],
             reaction_type=reaction_type
@@ -299,7 +298,7 @@ async def remove_reaction(
         raise HTTPException(status_code=500, detail=f"Failed to remove reaction: {str(e)}")
 
 @router.get("/reactions/{message_id}", response_model=List[ReactionResponse])
-async def get_message_reactions(
+async def get_message_reactions()
     message_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -318,7 +317,7 @@ async def get_message_reactions(
 # Thread Endpoints
 
 @router.post("/threads", response_model=ThreadResponse)
-async def create_thread(
+async def create_thread()
     request: CreateThreadRequest,
     current_user: dict = Depends(require_auth)
 ):
@@ -326,7 +325,7 @@ async def create_thread(
     try:
         communication_service = await get_communication_service()
 
-        thread = await communication_service.create_thread(
+        thread = await communication_service.create_thread()
             parent_message_id=request.parent_message_id,
             chat_id=request.chat_id,
             user_id=current_user["user_id"],
@@ -340,7 +339,7 @@ async def create_thread(
         raise HTTPException(status_code=500, detail=f"Failed to create thread: {str(e)}")
 
 @router.get("/threads/{thread_id}", response_model=ThreadResponse)
-async def get_thread(
+async def get_thread()
     thread_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -361,7 +360,7 @@ async def get_thread(
         raise HTTPException(status_code=500, detail=f"Failed to get thread: {str(e)}")
 
 @router.post("/threads/{thread_id}/participants/{user_id}")
-async def add_thread_participant(
+async def add_thread_participant()
     thread_id: str,
     user_id: str,
     current_user: dict = Depends(require_auth)
@@ -383,7 +382,7 @@ async def add_thread_participant(
         raise HTTPException(status_code=500, detail=f"Failed to add thread participant: {str(e)}")
 
 @router.put("/threads/{thread_id}/status")
-async def update_thread_status(
+async def update_thread_status()
     thread_id: str,
     status: ThreadStatus,
     current_user: dict = Depends(require_auth)
@@ -405,7 +404,7 @@ async def update_thread_status(
         raise HTTPException(status_code=500, detail=f"Failed to update thread status: {str(e)}")
 
 @router.get("/chats/{chat_id}/threads", response_model=List[ThreadResponse])
-async def get_chat_threads(
+async def get_chat_threads()
     chat_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -424,7 +423,7 @@ async def get_chat_threads(
 # Translation Endpoints
 
 @router.post("/translations", response_model=TranslationResponse)
-async def translate_message(
+async def translate_message()
     request: TranslateMessageRequest,
     current_user: dict = Depends(require_auth)
 ):
@@ -432,7 +431,7 @@ async def translate_message(
     try:
         communication_service = await get_communication_service()
 
-        translation = await communication_service.translate_message(
+        translation = await communication_service.translate_message()
             message_id=request.message_id,
             user_id=current_user["user_id"],
             original_text=request.original_text,
@@ -447,7 +446,7 @@ async def translate_message(
         raise HTTPException(status_code=500, detail=f"Failed to translate message: {str(e)}")
 
 @router.get("/translations/{request_id}", response_model=TranslationResponse)
-async def get_translation(
+async def get_translation()
     request_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -470,7 +469,7 @@ async def get_translation(
 # Notification Endpoints
 
 @router.post("/notifications", response_model=NotificationResponse)
-async def create_notification(
+async def create_notification()
     request: CreateNotificationRequest,
     target_user_id: str = Query(..., description="Target user ID for the notification"),
     current_user: dict = Depends(require_auth)
@@ -479,7 +478,7 @@ async def create_notification(
     try:
         communication_service = await get_communication_service()
 
-        notification = await communication_service.create_smart_notification(
+        notification = await communication_service.create_smart_notification()
             user_id=target_user_id,
             message_id=request.message_id,
             chat_id=request.chat_id,
@@ -495,7 +494,7 @@ async def create_notification(
         raise HTTPException(status_code=500, detail=f"Failed to create notification: {str(e)}")
 
 @router.get("/notifications", response_model=List[NotificationResponse])
-async def get_user_notifications(
+async def get_user_notifications()
     unread_only: bool = Query(False, description="Return only unread notifications"),
     current_user: dict = Depends(require_auth)
 ):
@@ -503,7 +502,7 @@ async def get_user_notifications(
     try:
         communication_service = await get_communication_service()
 
-        notifications = await communication_service.get_user_notifications(
+        notifications = await communication_service.get_user_notifications()
             user_id=current_user["user_id"],
             unread_only=unread_only
         )
@@ -515,7 +514,7 @@ async def get_user_notifications(
         raise HTTPException(status_code=500, detail=f"Failed to get user notifications: {str(e)}")
 
 @router.put("/notifications/{notification_id}/read")
-async def mark_notification_read(
+async def mark_notification_read()
     notification_id: str,
     current_user: dict = Depends(require_auth)
 ):
@@ -523,7 +522,7 @@ async def mark_notification_read(
     try:
         communication_service = await get_communication_service()
 
-        success = await communication_service.mark_notification_read(
+        success = await communication_service.mark_notification_read()
             notification_id=notification_id,
             user_id=current_user["user_id"]
         )

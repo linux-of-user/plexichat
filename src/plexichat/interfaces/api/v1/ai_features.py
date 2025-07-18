@@ -102,7 +102,7 @@ async def dashboard(request: Request):
         # Get health status
         health = await service.health_check()
 
-        return templates.TemplateResponse(
+        return templates.TemplateResponse()
             "admin/ai_features_management.html",
             {
                 "request": request,
@@ -114,7 +114,7 @@ async def dashboard(request: Request):
 
     except Exception as e:
         logger.error(f"Failed to load AI features dashboard: {e}")
-        return templates.TemplateResponse(
+        return templates.TemplateResponse()
             "admin/ai_features_management.html",
             {
                 "request": request,
@@ -131,14 +131,14 @@ async def api_summarize(request: SummarizationRequest):
     """API endpoint for text summarization."""
     try:
         service = get_ai_features_service()
-        result = await service.create_summary(
+        result = await service.create_summary()
             text=request.text,
             summary_type=request.summary_type,
             user_id=request.user_id,
             max_length=request.max_length,
         )
 
-        return JSONResponse(
+        return JSONResponse()
             {
                 "success": True,
                 "result": {
@@ -166,14 +166,14 @@ async def api_suggest_content(request: ContentSuggestionsRequest):
     """API endpoint for content suggestions."""
     try:
         service = get_ai_features_service()
-        suggestions = await service.generate_content_suggestions(
+        suggestions = await service.generate_content_suggestions()
             context=request.context,
             suggestion_type=request.suggestion_type,
             user_id=request.user_id,
             max_suggestions=request.max_suggestions,
         )
 
-        return JSONResponse(
+        return JSONResponse()
             {
                 "success": True,
                 "suggestions": [
@@ -200,13 +200,13 @@ async def api_analyze_sentiment(request: SentimentAnalysisRequest):
     """API endpoint for sentiment analysis."""
     try:
         service = get_ai_features_service()
-        result = await service.analyze_sentiment(
+        result = await service.analyze_sentiment()
             text=request.text,
             user_id=request.user_id,
             include_emotions=request.include_emotions,
         )
 
-        return JSONResponse(
+        return JSONResponse()
             {
                 "success": True,
                 "result": {
@@ -231,27 +231,27 @@ async def api_semantic_search(request: SemanticSearchRequest):
     """API endpoint for semantic search."""
     try:
         service = get_ai_features_service()
-        results = await service.semantic_search(
+        results = await service.semantic_search()
             query=request.query,
             max_results=request.max_results,
             similarity_threshold=request.similarity_threshold,
             filters=request.filters,
         )
 
-        return JSONResponse(
+        return JSONResponse()
             {
                 "success": True,
                 "results": [
                     {
                         "result_id": r.result_id,
-                        "content": (
+                        "content": ()
                             r.content[:500] + "..."
                             if len(r.content) > 500
                             else r.content
                         ),
                         "similarity_score": r.similarity_score,
                         "metadata": r.metadata,
-                        "highlighted_text": (
+                        "highlighted_text": ()
                             r.highlighted_text[:500] + "..."
                             if r.highlighted_text and len(r.highlighted_text) > 500
                             else r.highlighted_text
@@ -273,14 +273,14 @@ async def api_moderate_content(request: ContentModerationRequest):
     """API endpoint for content moderation."""
     try:
         service = get_ai_features_service()
-        result = await service.moderate_content(
+        result = await service.moderate_content()
             content=request.content,
             content_id=request.content_id,
             user_id=request.user_id,
             metadata=request.metadata,
         )
 
-        return JSONResponse(
+        return JSONResponse()
             {
                 "success": True,
                 "result": {
@@ -306,16 +306,16 @@ async def api_add_to_index(request: AddToIndexRequest):
     """API endpoint to add content to semantic search index."""
     try:
         service = get_ai_features_service()
-        success = await service.add_to_semantic_index(
+        success = await service.add_to_semantic_index()
             content_id=request.content_id,
             content=request.content,
             metadata=request.metadata,
         )
 
-        return JSONResponse(
+        return JSONResponse()
             {
                 "success": success,
-                "message": (
+                "message": ()
                     "Content added to semantic index"
                     if success
                     else "Failed to add content to index"
@@ -363,7 +363,7 @@ async def api_clear_cache(request: ClearCacheRequest):
         service = get_ai_features_service()
         await service.clear_cache(request.feature_type)
 
-        return JSONResponse(
+        return JSONResponse()
             {
                 "success": True,
                 "message": f"Cache cleared for: {request.feature_type or 'all features'}",
@@ -395,7 +395,7 @@ async def update_config(config: Dict[str, Any]):
         service.config.update(config)
         service.save_configuration()
 
-        return JSONResponse(
+        return JSONResponse()
             {"success": True, "message": "Configuration updated successfully"}
         )
 

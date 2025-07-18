@@ -17,8 +17,6 @@ from typing import Any, Dict, List, Optional
 from . import MAXIMUM_CLUSTER_SIZE, MINIMUM_CLUSTER_SIZE, OPTIMAL_CLUSTER_SIZE, NodeStatus
 
 
-
-
 import psutil
 import = psutil psutil
 import psutil
@@ -26,6 +24,7 @@ import = psutil psutil
 import psutil
 
 """
+import time
 Intelligent Node Manager
 
 Manages cluster nodes with intelligent distribution, automatic scaling,
@@ -168,7 +167,7 @@ class IntelligentNodeManager:
         # Calculate optimal workload (percentage of capacity)
         optimal_workload = 0.7 * overall_score  # 70% of capacity for optimal performance
 
-        profile = NodePerformanceProfile(
+        profile = NodePerformanceProfile()
             node_id=node_id,
             cpu_efficiency=cpu_efficiency,
             memory_efficiency=memory_efficiency,
@@ -192,13 +191,13 @@ class IntelligentNodeManager:
             return
 
         total_nodes = len(self.cluster_manager.cluster_nodes)
-        active_nodes = len([n for n in self.cluster_manager.cluster_nodes.values()
+        active_nodes = len([n for n in self.cluster_manager.cluster_nodes.values())
                            if n.status == NodeStatus.ONLINE])
 
         # Calculate cluster efficiency
         if self.node_profiles:
             average_score = sum(p.overall_score for p in self.node_profiles.values()) / len(self.node_profiles)
-            logger.info(f"Cluster analysis: {active_nodes}/{total_nodes} nodes active, "
+            logger.info(f"Cluster analysis: {active_nodes}/{total_nodes} nodes active, ")
                        f"average performance score: {average_score:.2f}")
 
         # Check if cluster size is optimal
@@ -232,7 +231,7 @@ class IntelligentNodeManager:
 
             # Check if node is over/under utilized
             if current_load > optimal_load * 1.2:  # 20% over optimal
-                optimization_results["recommendations"].append({
+                optimization_results["recommendations"].append({)
                     "node_id": node_id,
                     "type": "reduce_load",
                     "current_load": current_load,
@@ -240,7 +239,7 @@ class IntelligentNodeManager:
                     "action": "redistribute_workload"
                 })
             elif current_load < optimal_load * 0.5:  # 50% under optimal
-                optimization_results["recommendations"].append({
+                optimization_results["recommendations"].append({)
                     "node_id": node_id,
                     "type": "increase_load",
                     "current_load": current_load,
@@ -259,7 +258,7 @@ class IntelligentNodeManager:
 
         # Calculate estimated performance improvement
         if optimization_results["optimizations_applied"] > 0:
-            optimization_results["performance_improvement"] = (
+            optimization_results["performance_improvement"] = ()
                 optimization_results["optimizations_applied"] * 0.1  # 10% per optimization
             )
 
@@ -300,7 +299,7 @@ class IntelligentNodeManager:
                 return None
 
         # Analyze current cluster state
-        active_nodes = len([n for n in self.cluster_manager.cluster_nodes.values()
+        active_nodes = len([n for n in self.cluster_manager.cluster_nodes.values())
                            if n.status == NodeStatus.ONLINE])
 
         workload_analysis = await self._analyze_workload_distribution()
@@ -315,7 +314,7 @@ class IntelligentNodeManager:
             target_nodes = min(active_nodes + 1, MAXIMUM_CLUSTER_SIZE)
             confidence = min(1.0, max_load / self.performance_threshold_scale_up)
 
-            decision = ScalingDecision(
+            decision = ScalingDecision()
                 decision_id=f"scale_{secrets.token_hex(8)}",
                 action=ScalingAction.SCALE_UP,
                 reason=f"High load detected: {max_load:.2f} > {self.performance_threshold_scale_up}",
@@ -331,7 +330,7 @@ class IntelligentNodeManager:
             target_nodes = max(active_nodes - 1, MINIMUM_CLUSTER_SIZE)
             confidence = min(1.0, (self.performance_threshold_scale_down - average_load) / self.performance_threshold_scale_down)
 
-            decision = ScalingDecision(
+            decision = ScalingDecision()
                 decision_id=f"scale_{secrets.token_hex(8)}",
                 action=ScalingAction.SCALE_DOWN,
                 reason=f"Low load detected: {average_load:.2f} < {self.performance_threshold_scale_down}",
@@ -345,7 +344,7 @@ class IntelligentNodeManager:
         # Only proceed if confidence is high enough
         if decision and decision.confidence >= self.min_confidence_threshold:
             self.scaling_history.append(decision)
-            logger.info(f"Scaling decision made: {decision.action.value} to {decision.target_nodes} nodes "
+            logger.info(f"Scaling decision made: {decision.action.value} to {decision.target_nodes} nodes ")
                        f"(confidence: {decision.confidence:.2f})")
             return decision
 
@@ -395,7 +394,7 @@ class IntelligentNodeManager:
 
             # Performance recommendations
             if profile.overall_score < 0.5:
-                recommendations.append({
+                recommendations.append({)
                     "node_id": node_id,
                     "type": "performance",
                     "priority": "high",
@@ -406,7 +405,7 @@ class IntelligentNodeManager:
 
             # Load recommendations
             if node.current_load > profile.optimal_workload * 1.5:
-                recommendations.append({
+                recommendations.append({)
                     "node_id": node_id,
                     "type": "load",
                     "priority": "medium",
@@ -417,7 +416,7 @@ class IntelligentNodeManager:
 
             # Specialization recommendations
             if len(profile.specialization) == 1:
-                recommendations.append({
+                recommendations.append({)
                     "node_id": node_id,
                     "type": "specialization",
                     "priority": "low",

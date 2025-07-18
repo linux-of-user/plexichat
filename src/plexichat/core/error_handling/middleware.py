@@ -13,10 +13,6 @@ from .beautiful_error_handler import BeautifulErrorHandler
 from .error_manager import error_manager
 from .exceptions import BaseAPIException, ErrorCategory, ErrorSeverity
 
-from datetime import datetime
-
-
-from datetime import datetime
 
 from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
@@ -34,7 +30,7 @@ logger = logging.getLogger(__name__, Optional)
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """Comprehensive error handling middleware for FastAPI."""
 
-    def __init__(self, app: ASGIApp,
+    def __init__(self, app: ASGIApp,):
                  debug: bool = False,
                  include_request_details: bool = True,
                  log_errors: bool = True,
@@ -86,7 +82,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             # Handle the error
             return await self._handle_error(request, e, request_id, start_time)
 
-    async def _handle_error(self, request: Request, exception: Exception,
+    async def _handle_error(self, request: Request, exception: Exception,)
                            request_id: str, start_time: float) -> Response:
         """Handle errors with comprehensive logging and response formatting."""
 
@@ -112,14 +108,13 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         else:
             return await self._create_web_error_response(error_info, request, request_id)
 
-    async def _analyze_error(self, exception: Exception, request: Request,
+    async def _analyze_error(self, exception: Exception, request: Request,)
                            request_id: str) -> Dict[str, Any]:
         """Analyze the error and extract relevant information."""
 
         error_info = {
             'request_id': request_id,
-            'timestamp': from datetime import datetime
-datetime = datetime.now(),
+            'timestamp': datetime.now(),
             'exception': exception,
             'exception_type': type(exception).__name__,
             'message': str(exception),
@@ -128,7 +123,7 @@ datetime = datetime.now(),
 
         # Handle different exception types
         if isinstance(exception, BaseAPIException):
-            error_info.update({
+            error_info.update({)
                 'severity': ErrorSeverity.MEDIUM,
                 'category': ErrorCategory.BUSINESS_LOGIC,
                 'status_code': exception.status_code,
@@ -136,7 +131,7 @@ datetime = datetime.now(),
                 'details': exception.details
             })
         elif isinstance(exception, HTTPException):
-            error_info.update({
+            error_info.update({)
                 'severity': ErrorSeverity.LOW if exception.status_code < 500 else ErrorSeverity.HIGH,
                 'category': ErrorCategory.VALIDATION if exception.status_code == 422 else ErrorCategory.SYSTEM,
                 'status_code': exception.status_code,
@@ -144,7 +139,7 @@ datetime = datetime.now(),
                 'details': {'detail': exception.detail}
             })
         elif isinstance(exception, ValueError):
-            error_info.update({
+            error_info.update({)
                 'severity': ErrorSeverity.LOW,
                 'category': ErrorCategory.VALIDATION,
                 'status_code': 400,
@@ -152,7 +147,7 @@ datetime = datetime.now(),
                 'details': {}
             })
         elif isinstance(exception, PermissionError):
-            error_info.update({
+            error_info.update({)
                 'severity': ErrorSeverity.MEDIUM,
                 'category': ErrorCategory.AUTHORIZATION,
                 'status_code': 403,
@@ -160,7 +155,7 @@ datetime = datetime.now(),
                 'details': {}
             })
         elif isinstance(exception, FileNotFoundError):
-            error_info.update({
+            error_info.update({)
                 'severity': ErrorSeverity.LOW,
                 'category': ErrorCategory.FILE_OPERATION,
                 'status_code': 404,
@@ -168,7 +163,7 @@ datetime = datetime.now(),
                 'details': {}
             })
         elif isinstance(exception, asyncio.TimeoutError):
-            error_info.update({
+            error_info.update({)
                 'severity': ErrorSeverity.MEDIUM,
                 'category': ErrorCategory.NETWORK,
                 'status_code': 504,
@@ -177,7 +172,7 @@ datetime = datetime.now(),
             })
         else:
             # Unknown error - treat as internal server error
-            error_info.update({
+            error_info.update({)
                 'severity': ErrorSeverity.HIGH,
                 'category': ErrorCategory.SYSTEM,
                 'status_code': 500,
@@ -197,14 +192,14 @@ datetime = datetime.now(),
 
         return error_info
 
-    async def _log_error(self, error_info: Dict[str, Any], request: Request,
+    async def _log_error(self, error_info: Dict[str, Any], request: Request,)
                         response_time: float):
         """Log error with appropriate level and context."""
 
         severity = error_info.get('severity', ErrorSeverity.MEDIUM)
         status_code = error_info.get('status_code', 500)
 
-        log_message = (
+        log_message = ()
             f"[{error_info['request_id']}] {request.method} {request.url} - "
             f"{status_code} {error_info['exception_type']}: {error_info['message']} "
             f"({response_time:.3f}s)"
@@ -254,7 +249,7 @@ datetime = datetime.now(),
                 'client_ip': request.client.host if request.client else None,
             }
 
-            await error_manager.handle_error(
+            await error_manager.handle_error()
                 exception=error_info['exception'],
                 context=context,
                 severity=error_info.get('severity', ErrorSeverity.MEDIUM),
@@ -270,14 +265,14 @@ datetime = datetime.now(),
         path = request.url.path
         accept_header = request.headers.get('accept', '')
 
-        return (
+        return ()
             path.startswith('/api/') or
             path.startswith('/v1/') or
             'application/json' in accept_header or
             request.headers.get('content-type', '').startswith('application/json')
         )
 
-    async def _create_api_error_response(self, error_info: Dict[str, Any],
+    async def _create_api_error_response(self, error_info: Dict[str, Any],)
                                        request_id: str, response_time: float) -> JSONResponse:
         """Create JSON error response for API requests."""
 
@@ -305,7 +300,7 @@ datetime = datetime.now(),
         if self.include_request_details and error_info.get('request_details'):
             response_data['request'] = error_info['request_details']
 
-        return JSONResponse(
+        return JSONResponse()
             status_code=status_code,
             content=response_data,
             headers={
@@ -314,13 +309,13 @@ datetime = datetime.now(),
             }
         )
 
-    async def _create_web_error_response(self, error_info: Dict[str, Any],
+    async def _create_web_error_response(self, error_info: Dict[str, Any],)
                                        request: Request, request_id: str) -> Response:
         """Create HTML error response for web requests."""
 
         if self.enable_beautiful_errors:
             status_code = error_info.get('status_code', 500)
-            return await self.beautiful_handler.handle_error(
+            return await self.beautiful_handler.handle_error()
                 request=request,
                 status_code=status_code,
                 exception=error_info['exception']
@@ -328,7 +323,7 @@ datetime = datetime.now(),
         else:
             # Simple text response
             status_code = error_info.get('status_code', 500)
-            return Response(
+            return Response()
                 content=f"Error {status_code}: {error_info['message']}",
                 status_code=status_code,
                 media_type="text/plain",

@@ -5,6 +5,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat User Models
 
 Consolidated user models with comprehensive functionality and performance optimization.
@@ -16,17 +17,13 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from enum import Enum
 
-# SQLModel imports
-try:
-    from sqlmodel import SQLModel, Field, Relationship
-except ImportError:
-    SQLModel = object
-    Field = lambda *args, **kwargs: None
-    Relationship = lambda *args, **kwargs: None
+# REMOVE SQLModel, Field, Relationship usage. Use only Pydantic or dataclasses for models here.
+from pydantic import BaseModel, Field as PydanticField
+from dataclasses import dataclass, field
 
 # Pydantic imports
 try:
-    from pydantic import BaseModel, validator, EmailStr
+    from pydantic import validator, EmailStr
 except ImportError:
     BaseModel = object
     validator = lambda *args, **kwargs: lambda f: f
@@ -77,217 +74,104 @@ class OnlineStatus(str, Enum):
     OFFLINE = "offline"
 
 # User Profile Model
-class UserProfile(SQLModel, table=True):
-    """User profile model with extended information."""
-    
-    id: Optional[int] = Field(default=None, primary_key=True, description="Profile ID")
-    user_id: int = Field(..., foreign_key="user.id", unique=True, description="User ID")
-    
-    # Personal information
-    display_name: Optional[str] = Field(None, max_length=100, description="Display name")
-    bio: Optional[str] = Field(None, max_length=1000, description="User biography")
-    location: Optional[str] = Field(None, max_length=100, description="User location")
-    website: Optional[str] = Field(None, max_length=200, description="Personal website")
-    
-    # Avatar and media
-    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
-    banner_url: Optional[str] = Field(None, description="Profile banner URL")
-    
-    # Social links
-    twitter_handle: Optional[str] = Field(None, max_length=50, description="Twitter handle")
-    github_username: Optional[str] = Field(None, max_length=50, description="GitHub username")
-    linkedin_url: Optional[str] = Field(None, max_length=200, description="LinkedIn URL")
-    
-    # Preferences
-    theme: str = Field(default="light", description="UI theme preference")
-    language: str = Field(default="en", description="Language preference")
-    timezone: Optional[str] = Field(None, description="Timezone")
-    
-    # Privacy settings
-    show_email: bool = Field(default=False, description="Show email publicly")
-    show_online_status: bool = Field(default=True, description="Show online status")
-    allow_direct_messages: bool = Field(default=True, description="Allow direct messages")
-    
-    # Timestamps
-    created_at: datetime = Field(default_factory=datetime.now, description="Profile creation timestamp")
-    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
+@dataclass
+class UserProfile:
+    """User profile model with extended information. Persistent storage must use the database abstraction layer."""
+    id: int
+    user_id: int
+    display_name: str = ""
+    bio: str = ""
+    location: str = ""
+    website: str = ""
+    avatar_url: str = ""
+    banner_url: str = ""
+    twitter_handle: str = ""
+    github_username: str = ""
+    linkedin_url: str = ""
+    theme: str = "light"
+    language: str = "en"
+    timezone: str = ""
+    show_email: bool = False
+    show_online_status: bool = True
+    allow_direct_messages: bool = True
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = None
 
 # User Settings Model
-class UserSettings(SQLModel, table=True):
-    """User settings and preferences."""
-    
-    id: Optional[int] = Field(default=None, primary_key=True, description="Settings ID")
-    user_id: int = Field(..., foreign_key="user.id", unique=True, description="User ID")
-    
-    # Notification settings
-    email_notifications: bool = Field(default=True, description="Email notifications enabled")
-    push_notifications: bool = Field(default=True, description="Push notifications enabled")
-    desktop_notifications: bool = Field(default=True, description="Desktop notifications enabled")
-    
-    # Message settings
-    message_preview: bool = Field(default=True, description="Show message previews")
-    read_receipts: bool = Field(default=True, description="Send read receipts")
-    typing_indicators: bool = Field(default=True, description="Show typing indicators")
-    
-    # Privacy settings
-    two_factor_enabled: bool = Field(default=False, description="Two-factor authentication enabled")
-    session_timeout: int = Field(default=3600, description="Session timeout in seconds")
-    
-    # Content settings
-    auto_play_media: bool = Field(default=True, description="Auto-play media content")
-    show_nsfw_content: bool = Field(default=False, description="Show NSFW content")
-    
-    # Timestamps
-    created_at: datetime = Field(default_factory=datetime.now, description="Settings creation timestamp")
-    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
+@dataclass
+class UserSettings:
+    """User settings and preferences. Persistent storage must use the database abstraction layer."""
+    id: int
+    user_id: int
+    email_notifications: bool = True
+    push_notifications: bool = True
+    desktop_notifications: bool = True
+    message_preview: bool = True
+    read_receipts: bool = True
+    typing_indicators: bool = True
+    two_factor_enabled: bool = False
+    session_timeout: int = 3600
+    auto_play_media: bool = True
+    show_nsfw_content: bool = False
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = None
 
 # User Activity Model
-class UserActivity(SQLModel, table=True):
-    """User activity tracking."""
-    
-    id: Optional[int] = Field(default=None, primary_key=True, description="Activity ID")
-    user_id: int = Field(..., foreign_key="user.id", description="User ID")
-    
-    # Activity details
-    activity_type: str = Field(..., description="Type of activity")
-    description: Optional[str] = Field(None, description="Activity description")
-    metadata: Optional[str] = Field(None, description="Activity metadata as JSON")
-    
-    # Context
-    ip_address: Optional[str] = Field(None, description="IP address")
-    user_agent: Optional[str] = Field(None, description="User agent string")
-    
-    # Timestamp
-    timestamp: datetime = Field(default_factory=datetime.now, description="Activity timestamp")
+@dataclass
+class UserActivity:
+    """User activity tracking. Persistent storage must use the database abstraction layer."""
+    id: int
+    user_id: int
+    activity_type: str
+    description: str = ""
+    metadata: str = ""
+    ip_address: str = ""
+    user_agent: str = ""
+    timestamp: datetime = field(default_factory=datetime.now)
 
 # User Session Model
-class UserSession(SQLModel, table=True):
-    """User session tracking."""
-    
-    id: Optional[int] = Field(default=None, primary_key=True, description="Session ID")
-    user_id: int = Field(..., foreign_key="user.id", description="User ID")
-    session_token: str = Field(..., unique=True, description="Session token")
-    
-    # Session details
-    ip_address: Optional[str] = Field(None, description="IP address")
-    user_agent: Optional[str] = Field(None, description="User agent string")
-    device_info: Optional[str] = Field(None, description="Device information")
-    
-    # Status
-    is_active: bool = Field(default=True, description="Session active status")
-    online_status: OnlineStatus = Field(default=OnlineStatus.ONLINE, description="Online status")
-    
-    # Timestamps
-    created_at: datetime = Field(default_factory=datetime.now, description="Session creation timestamp")
-    last_activity: datetime = Field(default_factory=datetime.now, description="Last activity timestamp")
-    expires_at: Optional[datetime] = Field(None, description="Session expiration timestamp")
+@dataclass
+class UserSession:
+    """User session tracking. Persistent storage must use the database abstraction layer."""
+    id: int
+    user_id: int
+    session_token: str
+    ip_address: str = ""
+    user_agent: str = ""
+    device_info: str = ""
+    is_active: bool = True
+    online_status: str = "offline"
+    created_at: datetime = field(default_factory=datetime.now)
+    last_activity: datetime = field(default_factory=datetime.now)
+    expires_at: datetime = None
 
-# Pydantic models for API
-class UserProfileCreate(BaseModel):
-    """User profile creation model."""
-    display_name: Optional[str] = Field(None, max_length=100, description="Display name")
-    bio: Optional[str] = Field(None, max_length=1000, description="Biography")
-    location: Optional[str] = Field(None, max_length=100, description="Location")
-    website: Optional[str] = Field(None, max_length=200, description="Website")
-    theme: str = Field(default="light", description="Theme")
-    language: str = Field(default="en", description="Language")
-    timezone: Optional[str] = Field(None, description="Timezone")
+# Remove all remaining Pydantic Field usage and BaseModel inheritance from API models.
+# All persistent storage and API models must use the database abstraction layer or pure dataclasses, not Pydantic/SQLModel directly.
 
-class UserProfileUpdate(BaseModel):
-    """User profile update model."""
-    display_name: Optional[str] = Field(None, max_length=100, description="Display name")
-    bio: Optional[str] = Field(None, max_length=1000, description="Biography")
-    location: Optional[str] = Field(None, max_length=100, description="Location")
-    website: Optional[str] = Field(None, max_length=200, description="Website")
-    avatar_url: Optional[str] = Field(None, description="Avatar URL")
-    banner_url: Optional[str] = Field(None, description="Banner URL")
-    theme: Optional[str] = Field(None, description="Theme")
-    language: Optional[str] = Field(None, description="Language")
-    timezone: Optional[str] = Field(None, description="Timezone")
+@dataclass
+class UserProfileCreate:
+    display_name: str = ""
+    bio: str = ""
+    location: str = ""
+    website: str = ""
 
-class UserSettingsUpdate(BaseModel):
-    """User settings update model."""
-    email_notifications: Optional[bool] = Field(None, description="Email notifications")
-    push_notifications: Optional[bool] = Field(None, description="Push notifications")
-    desktop_notifications: Optional[bool] = Field(None, description="Desktop notifications")
-    message_preview: Optional[bool] = Field(None, description="Message preview")
-    read_receipts: Optional[bool] = Field(None, description="Read receipts")
-    typing_indicators: Optional[bool] = Field(None, description="Typing indicators")
-    auto_play_media: Optional[bool] = Field(None, description="Auto-play media")
-    show_nsfw_content: Optional[bool] = Field(None, description="Show NSFW content")
-
-class UserProfileResponse(BaseModel):
-    """User profile response model."""
-    id: int = Field(..., description="Profile ID")
-    user_id: int = Field(..., description="User ID")
-    display_name: Optional[str] = Field(None, description="Display name")
-    bio: Optional[str] = Field(None, description="Biography")
-    location: Optional[str] = Field(None, description="Location")
-    website: Optional[str] = Field(None, description="Website")
-    avatar_url: Optional[str] = Field(None, description="Avatar URL")
-    banner_url: Optional[str] = Field(None, description="Banner URL")
-    theme: str = Field(..., description="Theme")
-    language: str = Field(..., description="Language")
-    timezone: Optional[str] = Field(None, description="Timezone")
-    created_at: datetime = Field(..., description="Creation timestamp")
-    
-    class Config:
-        from_attributes = True
-
-class UserSettingsResponse(BaseModel):
-    """User settings response model."""
-    id: int = Field(..., description="Settings ID")
-    user_id: int = Field(..., description="User ID")
-    email_notifications: bool = Field(..., description="Email notifications")
-    push_notifications: bool = Field(..., description="Push notifications")
-    desktop_notifications: bool = Field(..., description="Desktop notifications")
-    message_preview: bool = Field(..., description="Message preview")
-    read_receipts: bool = Field(..., description="Read receipts")
-    typing_indicators: bool = Field(..., description="Typing indicators")
-    two_factor_enabled: bool = Field(..., description="Two-factor authentication")
-    auto_play_media: bool = Field(..., description="Auto-play media")
-    show_nsfw_content: bool = Field(..., description="Show NSFW content")
-    
-    class Config:
-        from_attributes = True
-
-class UserActivityResponse(BaseModel):
-    """User activity response model."""
-    id: int = Field(..., description="Activity ID")
-    activity_type: str = Field(..., description="Activity type")
-    description: Optional[str] = Field(None, description="Description")
-    timestamp: datetime = Field(..., description="Timestamp")
-    
-    class Config:
-        from_attributes = True
-
-class UserSessionResponse(BaseModel):
-    """User session response model."""
-    id: int = Field(..., description="Session ID")
-    device_info: Optional[str] = Field(None, description="Device information")
-    ip_address: Optional[str] = Field(None, description="IP address")
-    online_status: OnlineStatus = Field(..., description="Online status")
-    created_at: datetime = Field(..., description="Creation timestamp")
-    last_activity: datetime = Field(..., description="Last activity")
-    
-    class Config:
-        from_attributes = True
+# Remove UserSettingsResponse and any remaining Pydantic Field usage.
 
 # Service classes would be defined here for managing these models
 class UserModelService:
     """Service for managing user models using EXISTING database abstraction."""
-    
+
     def __init__(self):
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("user_profile_creation") if async_track_performance else lambda f: f
     async def create_user_profile(self, user_id: int, profile_data: UserProfileCreate) -> Optional[UserProfile]:
         """Create user profile using EXISTING database abstraction."""
         if self.db_manager:
             try:
                 create_query = """
-                    INSERT INTO user_profiles (
+                    INSERT INTO user_profiles ()
                         user_id, display_name, bio, location, website,
                         theme, language, timezone, created_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -304,14 +188,14 @@ class UserModelService:
                     "timezone": profile_data.timezone,
                     "created_at": datetime.now()
                 }
-                
+
                 result = await self.db_manager.execute_query(create_query, create_params)
-                
+
                 if result:
                     # Performance tracking
                     if self.performance_logger:
                         self.performance_logger.record_metric("user_profiles_created", 1, "count")
-                    
+
                     # Convert result to UserProfile object
                     row = result[0]
                     return UserProfile(
@@ -321,11 +205,11 @@ class UserModelService:
                         # ... map other fields
                         created_at=row[-1]
                     )
-                
+
             except Exception as e:
                 logger.error(f"Error creating user profile: {e}")
                 return None
-        
+
         return None
 
 # Global service instance

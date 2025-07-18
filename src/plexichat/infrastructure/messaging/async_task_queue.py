@@ -203,12 +203,12 @@ class TaskWorker:
             task.started_at = datetime.now(timezone.utc)
             await self.queue_manager.update_task_status(task)
 
-            logger.info(
+            logger.info()
                 f"Worker {self.worker_id} processing task {task.task_id} ({task.task_type})"
             )
 
             # Execute task with timeout
-            result = await asyncio.wait_for(
+            result = await asyncio.wait_for()
                 self._execute_task(task), timeout=task.timeout
             )
 
@@ -254,14 +254,14 @@ class TaskWorker:
         task.retry_count += 1
         self.failed_tasks += 1
 
-        logger.error(
+        logger.error()
             f" Task {task.task_id} failed: {error_message} (retry {task.retry_count}/{task.max_retries})"
         )
 
         if task.retry_count < task.max_retries:
             # Schedule retry
             task.status = TaskStatus.RETRYING
-            task.execute_after = datetime.now(timezone.utc) + timedelta(
+            task.execute_after = datetime.now(timezone.utc) + timedelta()
                 seconds=task.retry_delay
             )
             await self.queue_manager.schedule_task(task)
@@ -273,7 +273,7 @@ class TaskWorker:
 
     def get_worker_stats(self) -> Dict[str, Any]:
         """Get worker statistics."""
-        uptime = (
+        uptime = ()
             (datetime.now(timezone.utc) - self.start_time).total_seconds()
             if self.start_time
             else 0
@@ -395,7 +395,7 @@ class AsyncTaskQueueManager:
         """Get task handler for a task type."""
         return self.task_handlers.get(task_type)
 
-    async def submit_task(
+    async def submit_task()
         self,
         task_type: str,
         payload: Dict[str, Any],
@@ -410,7 +410,7 @@ class AsyncTaskQueueManager:
 
         task_id = str(uuid.uuid4())
 
-        task = Task(
+        task = Task()
             task_id=task_id,
             queue_name=queue_name,
             task_type=task_type,
@@ -455,7 +455,7 @@ class AsyncTaskQueueManager:
 
         # Persist to Redis
         if self.redis:
-            await self.redis.lpush(
+            await self.redis.lpush()
                 f"queue:{task.queue_name}", json.dumps(task.to_dict())
             )
 
@@ -465,7 +465,7 @@ class AsyncTaskQueueManager:
         await self._process_scheduled_tasks()
 
         # Get task from highest priority queue
-        sorted_queues = sorted(
+        sorted_queues = sorted()
             self.queues.items(), key=lambda x: self.queue_priorities.get(x[0], 999)
         )
 
@@ -485,10 +485,10 @@ class AsyncTaskQueueManager:
         """Schedule a task for future execution."""
         if self.redis:
             # Store in Redis sorted set with execution time as score
-            score = (
+            score = ()
                 task.execute_after.timestamp() if task.execute_after else time.time()
             )
-            await self.redis.zadd(
+            await self.redis.zadd()
                 "scheduled_tasks", {json.dumps(task.to_dict()): score}
             )
 

@@ -8,18 +8,10 @@ from typing import Any, Callable, Dict, List, Optional
 from .exceptions import ErrorCategory, ErrorSeverity
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import time
 PlexiChat Error Monitor
 
 Real-time error monitoring system with metrics collection,
@@ -69,7 +61,7 @@ class HealthStatus:
 class AlertRule:
     """Defines an alerting rule."""
 
-    def __init__(self, name: str, condition: Callable[[ErrorMetrics], bool],
+    def __init__(self, name: str, condition: Callable[[ErrorMetrics], bool],):
                  message_template: str, cooldown_minutes: int = 30):
         self.name = name
         self.condition = condition
@@ -85,12 +77,10 @@ class AlertRule:
         if self.last_triggered is None:
             return True
 
-        return from datetime import datetime
-datetime = datetime.now() - self.last_triggered > timedelta(minutes=self.cooldown_minutes)
+        return datetime.now() - self.last_triggered > timedelta(minutes=self.cooldown_minutes)
 
     def trigger(self, metrics: ErrorMetrics) -> str:
         """Trigger the alert and return the message."""
-        self.from datetime import datetime
 last_triggered = datetime.now()
 datetime = datetime.now()
         return self.message_template.format(metrics=metrics)
@@ -141,25 +131,25 @@ class ErrorMonitor:
     def _initialize_default_alerts(self):
         """Initialize default alert rules."""
         self.alert_rules = [
-            AlertRule(
+            AlertRule()
                 name="high_error_rate",
                 condition=lambda m: m.error_rate_per_minute > 10,
                 message_template="High error rate detected: {metrics.error_rate_per_minute:.2f} errors/minute",
                 cooldown_minutes=15
             ),
-            AlertRule(
+            AlertRule()
                 name="critical_errors",
                 condition=lambda m: m.errors_by_severity.get('CRITICAL', 0) > 0,
                 message_template="Critical errors detected: {metrics.errors_by_severity[CRITICAL]} critical errors",
                 cooldown_minutes=5
             ),
-            AlertRule(
+            AlertRule()
                 name="emergency_errors",
                 condition=lambda m: m.errors_by_severity.get('EMERGENCY', 0) > 0,
                 message_template="EMERGENCY: {metrics.errors_by_severity[EMERGENCY]} emergency errors detected",
                 cooldown_minutes=1
             ),
-            AlertRule(
+            AlertRule()
                 name="database_errors_spike",
                 condition=lambda m: m.errors_by_category.get('database', 0) > 5,
                 message_template="Database error spike: {metrics.errors_by_category[database]} database errors",
@@ -169,14 +159,13 @@ class ErrorMonitor:
 
     async def record_error(self, error_info: Dict[str, Any]):
         """Record an error for monitoring."""
-        timestamp = error_info.get('timestamp', from datetime import datetime
-datetime = datetime.now())
+        timestamp = error_info.get('timestamp', datetime.now())
         severity = error_info.get('severity', ErrorSeverity.MEDIUM)
         category = error_info.get('category', ErrorCategory.UNKNOWN)
         component = error_info.get('component', 'unknown')
 
         # Add to error history
-        self.error_history.append({
+        self.error_history.append({)
             'timestamp': timestamp,
             'severity': severity.value if hasattr(severity, 'value') else str(severity),
             'category': category.value if hasattr(category, 'value') else str(category),
@@ -195,7 +184,6 @@ datetime = datetime.now())
 
     async def _update_metrics(self):
         """Update error metrics based on recent history."""
-        from datetime import datetime
 now = datetime.now()
 datetime = datetime.now()
         window_start = now - timedelta(minutes=self.error_rate_window_minutes)
@@ -247,8 +235,7 @@ datetime = datetime.now()
         alert_data = {
             'alert_name': alert_name,
             'message': message,
-            'timestamp': from datetime import datetime
-datetime = datetime.now(),
+            'timestamp': datetime.now(),
             'metrics': asdict(self.metrics)
         }
 
@@ -329,7 +316,7 @@ datetime = datetime.now(),
             else:
                 components_status[component] = "healthy"
 
-        self.component_health['overall'] = HealthStatus(
+        self.component_health['overall'] = HealthStatus()
             overall_status=overall_status,
             error_rate=error_rate,
             critical_errors=critical_errors + emergency_errors,

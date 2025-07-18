@@ -1,4 +1,5 @@
 """
+import threading
 PlexiChat Users API Router
 
 User management API endpoints with threading and performance optimization.
@@ -43,7 +44,7 @@ except ImportError:
     get_task_result = None
 
 try:
-    from plexichat.core.caching.cache_manager import cache_get, cache_set
+    from plexichat.core.caching.unified_cache_integration import cache_get, cache_set, cache_delete, CacheKeyBuilder
 except ImportError:
     cache_get = None
     cache_set = None
@@ -134,7 +135,7 @@ async def get_db():
 # API endpoints
 if router:
     @router.post("/register", response_model=UserResponse)
-    async def register_user(
+    async def register_user()
         user: UserCreate,
         background_tasks: BackgroundTasks,
         db = Depends(get_db)
@@ -145,22 +146,22 @@ if router:
             if hash_password:
                 # This would use security manager validation
                 pass
-            
+
             # Check if user exists
             if submit_task:
                 task_id = f"check_user_{user.username}_{int(time.time())}"
                 submit_task(task_id, _check_user_exists_sync, user.username, user.email)
                 exists = get_task_result(task_id, timeout=5.0)
-                
+
                 if exists:
                     raise HTTPException(status_code=400, detail="Username or email already exists")
-            
+
             # Hash password
             password_hash = hash_password(user.password) if hash_password else user.password
-            
+
             # Create user
             user_id = await _create_user(user, password_hash)
-            
+
             # Generate tokens
             if generate_token:
                 access_token = generate_token(user_id, "access")
@@ -168,31 +169,31 @@ if router:
             else:
                 access_token = f"access_token_{user_id}"
                 refresh_token = f"refresh_token_{user_id}"
-            
+
             # Send welcome notification
             if send_notification:
-                background_tasks.add_task(
+                background_tasks.add_task()
                     send_notification,
                     user_id,
                     "system",
                     "Welcome to PlexiChat!",
                     "Your account has been created successfully."
                 )
-            
+
             # Track analytics
             if track_event:
-                background_tasks.add_task(
+                background_tasks.add_task()
                     track_event,
                     "user_registered",
                     user_id=user_id,
                     properties={"username": user.username}
                 )
-            
+
             # Performance tracking
             if performance_logger:
                 performance_logger.record_metric("users_registered", 1, "count")
-            
-            return UserResponse(
+
+            return UserResponse()
                 id=user_id,
                 username=user.username,
                 email=user.email,
@@ -201,7 +202,7 @@ if router:
                 is_active=True,
                 profile_data=user.profile_data
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
@@ -209,9 +210,9 @@ if router:
             if performance_logger:
                 performance_logger.record_metric("user_registration_errors", 1, "count")
             raise HTTPException(status_code=500, detail="Registration failed")
-    
+
     @router.post("/login", response_model=TokenResponse)
-    async def login_user(
+    async def login_user()
         user_login: UserLogin,
         background_tasks: BackgroundTasks,
         db = Depends(get_db)
@@ -225,15 +226,15 @@ if router:
                 user_data = get_task_result(task_id, timeout=5.0)
             else:
                 user_data = await _get_user_for_login(user_login.username)
-            
+
             if not user_data:
                 raise HTTPException(status_code=401, detail="Invalid credentials")
-            
+
             # Verify password
             if verify_password:
                 if not verify_password(user_login.password, user_data["password_hash"]):
                     raise HTTPException(status_code=401, detail="Invalid credentials")
-            
+
             # Generate tokens
             if generate_token:
                 access_token = generate_token(user_data["id"], "access")
@@ -241,27 +242,27 @@ if router:
             else:
                 access_token = f"access_token_{user_data['id']}"
                 refresh_token = f"refresh_token_{user_data['id']}"
-            
+
             # Track analytics
             if track_event:
-                background_tasks.add_task(
+                background_tasks.add_task()
                     track_event,
                     "user_login",
                     user_id=user_data["id"],
                     properties={"username": user_data["username"]}
                 )
-            
+
             # Performance tracking
             if performance_logger:
                 performance_logger.record_metric("user_logins", 1, "count")
-            
-            return TokenResponse(
+
+            return TokenResponse()
                 access_token=access_token,
                 refresh_token=refresh_token,
                 token_type="bearer",
                 expires_in=86400  # 24 hours
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
@@ -269,36 +270,34 @@ if router:
             if performance_logger:
                 performance_logger.record_metric("user_login_errors", 1, "count")
             raise HTTPException(status_code=500, detail="Login failed")
-    
+
     @router.get("/me", response_model=UserResponse)
-    async def get_current_user_info(
+    async def get_current_user_info()
         current_user: dict = Depends(get_current_user)
     ):
         """Get current user information."""
         try:
             user_id = current_user["id"]
-            
+
             # Check cache first
             cache_key = f"user_profile_{user_id}"
-            if cache_get:
-                cached_user = cache_get(cache_key)
-                if cached_user:
-                    return UserResponse(**cached_user)
-            
+            cached_user = await cache_get(cache_key)
+            if cached_user:
+                return UserResponse(**cached_user)
+
             # Get from database
             if database_manager:
                 user_data = await database_manager.get_user_by_id(user_id)
                 if not user_data:
                     raise HTTPException(status_code=404, detail="User not found")
-                
+
                 # Cache user data
-                if cache_set:
-                    cache_set(cache_key, user_data, ttl=3600)
-                
+                await cache_set(cache_key, user_data, ttl=3600)
+
                 return UserResponse(**user_data)
-            
+
             # Fallback
-            return UserResponse(
+            return UserResponse()
                 id=user_id,
                 username=current_user["username"],
                 email=current_user["email"],
@@ -307,15 +306,15 @@ if router:
                 is_active=True,
                 profile_data={}
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error getting user info: {e}")
             raise HTTPException(status_code=500, detail="Failed to get user information")
-    
+
     @router.put("/me", response_model=UserResponse)
-    async def update_current_user(
+    async def update_current_user()
         user_update: UserUpdate,
         background_tasks: BackgroundTasks,
         current_user: dict = Depends(get_current_user)
@@ -323,38 +322,37 @@ if router:
         """Update current user information."""
         try:
             user_id = current_user["id"]
-            
+
             # Update user (threaded)
             if submit_task:
                 task_id = f"update_user_{user_id}_{int(time.time())}"
                 submit_task(task_id, _update_user_sync, user_id, user_update.dict(exclude_unset=True))
                 success = get_task_result(task_id, timeout=5.0)
-                
+
                 if not success:
                     raise HTTPException(status_code=500, detail="Update failed")
-            
+
             # Clear cache
-            if cache_get:
-                cache_key = f"user_profile_{user_id}"
-                # Would need cache_delete function
-            
+            cache_key = f"user_profile_{user_id}"
+            await cache_delete(cache_key)
+
             # Track analytics
             if track_event:
-                background_tasks.add_task(
+                background_tasks.add_task()
                     track_event,
                     "user_updated",
                     user_id=user_id,
                     properties={"fields_updated": list(user_update.dict(exclude_unset=True).keys())}
                 )
-            
+
             # Get updated user data
             if database_manager:
                 user_data = await database_manager.get_user_by_id(user_id)
                 if user_data:
                     return UserResponse(**user_data)
-            
+
             # Fallback
-            return UserResponse(
+            return UserResponse()
                 id=user_id,
                 username=current_user["username"],
                 email=user_update.email or current_user["email"],
@@ -363,15 +361,15 @@ if router:
                 is_active=True,
                 profile_data=user_update.profile_data or {}
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error updating user: {e}")
             raise HTTPException(status_code=500, detail="Update failed")
-    
+
     @router.post("/me/avatar")
-    async def upload_avatar(
+    async def upload_avatar()
         file: UploadFile = File(...),
         background_tasks: BackgroundTasks,
         current_user: dict = Depends(get_current_user)
@@ -379,17 +377,17 @@ if router:
         """Upload user avatar."""
         try:
             user_id = current_user["id"]
-            
+
             # Validate file
             if not file.content_type.startswith("image/"):
                 raise HTTPException(status_code=400, detail="File must be an image")
-            
+
             # Read file data
             file_data = await file.read()
-            
+
             # Upload file
             if upload_file:
-                file_metadata = await upload_file(
+                file_metadata = await upload_file()
                     file_data,
                     file.filename,
                     user_id,
@@ -397,34 +395,34 @@ if router:
                     is_public=True,
                     tags=["avatar"]
                 )
-                
+
                 if file_metadata:
                     # Update user profile with avatar
                     if submit_task:
                         task_id = f"update_avatar_{user_id}_{int(time.time())}"
                         submit_task(task_id, _update_user_avatar_sync, user_id, file_metadata.file_id)
-                    
+
                     # Track analytics
                     if track_event:
-                        background_tasks.add_task(
+                        background_tasks.add_task()
                             track_event,
                             "avatar_uploaded",
                             user_id=user_id,
                             properties={"file_size": len(file_data)}
                         )
-                    
+
                     return {"message": "Avatar uploaded successfully", "file_id": file_metadata.file_id}
-            
+
             raise HTTPException(status_code=500, detail="Upload failed")
-            
+
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error uploading avatar: {e}")
             raise HTTPException(status_code=500, detail="Upload failed")
-    
+
     @router.get("/search")
-    async def search_users(
+    async def search_users()
         q: str = Query(..., min_length=2, description="Search query"),
         limit: int = Query(10, ge=1, le=50, description="Number of results"),
         current_user: dict = Depends(get_current_user)
@@ -438,17 +436,17 @@ if router:
                 results = get_task_result(task_id, timeout=5.0)
             else:
                 results = await _search_users(q, limit)
-            
+
             # Track analytics
             if track_event:
-                await track_event(
+                await track_event()
                     "user_search",
                     user_id=current_user["id"],
                     properties={"query": q, "results_count": len(results)}
                 )
-            
+
             return {"users": results, "query": q, "count": len(results)}
-            
+
         except Exception as e:
             logger.error(f"Error searching users: {e}")
             raise HTTPException(status_code=500, detail="Search failed")
@@ -478,10 +476,10 @@ async def _create_user(user: UserCreate, password_hash: str) -> int:
                 "profile_data": str(user.profile_data)
             }
             await database_manager.execute_query(query, params)
-            
+
             # Get user ID (simplified)
             return 1  # Would return actual ID from database
-        
+
         return 1  # Fallback
     except Exception as e:
         logger.error(f"Error creating user: {e}")

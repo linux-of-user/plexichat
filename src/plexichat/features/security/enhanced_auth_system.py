@@ -86,7 +86,7 @@ class EnhancedAuthenticationSystem:
         self.active_sessions: Dict[str, Dict[str, Any]] = {}
         self.failed_attempts: Dict[str, List[datetime]] = {}
         self.blocked_ips: Dict[str, datetime] = {}
-        
+
         # Security configuration
         self.config = {
             "max_failed_attempts": 5,
@@ -127,7 +127,7 @@ class EnhancedAuthenticationSystem:
             backup_codes = [secrets.token_hex(8) for _ in range(10)]
 
             # Create user profile
-            user_profile = UserSecurityProfile(
+            user_profile = UserSecurityProfile()
                 user_id=username,
                 password_hash=password_hash,
                 salt=salt,
@@ -148,7 +148,7 @@ class EnhancedAuthenticationSystem:
 
             # Generate QR code for MFA setup
             totp = pyotp.TOTP(mfa_secret)
-            provisioning_uri = totp.provisioning_uri(
+            provisioning_uri = totp.provisioning_uri()
                 name=username,
                 issuer_name="PlexiChat"
             )
@@ -175,13 +175,13 @@ class EnhancedAuthenticationSystem:
             logger.error(f"User registration error: {e}")
             return {"success": False, "error": "Registration failed"}
 
-    def authenticate(self, username: str, password: str, mfa_code: Optional[str] = None, 
+    def authenticate(self, username: str, password: str, mfa_code: Optional[str] = None, ):
                     ip_address: str = "", user_agent: str = "") -> AuthenticationResult:
         """Authenticate user with comprehensive security checks."""
         try:
             # Check if IP is blocked
             if self._is_ip_blocked(ip_address):
-                return AuthenticationResult(
+                return AuthenticationResult()
                     success=False,
                     user_id=None,
                     session_token=None,
@@ -196,7 +196,7 @@ class EnhancedAuthenticationSystem:
             # Check if user exists
             if username not in self.users:
                 self._record_failed_attempt(ip_address)
-                return AuthenticationResult(
+                return AuthenticationResult()
                     success=False,
                     user_id=None,
                     session_token=None,
@@ -218,7 +218,7 @@ class EnhancedAuthenticationSystem:
                     user_profile.lock_expires = None
                     user_profile.failed_attempts = 0
                 else:
-                    return AuthenticationResult(
+                    return AuthenticationResult()
                         success=False,
                         user_id=username,
                         session_token=None,
@@ -233,7 +233,7 @@ class EnhancedAuthenticationSystem:
             # Verify password
             if not self._verify_password(password, user_profile.password_hash, user_profile.salt):
                 self._record_failed_login(user_profile, ip_address)
-                return AuthenticationResult(
+                return AuthenticationResult()
                     success=False,
                     user_id=username,
                     session_token=None,
@@ -254,13 +254,13 @@ class EnhancedAuthenticationSystem:
             risk_score = self._calculate_risk_score(user_profile, ip_address, user_agent)
 
             # Determine if MFA is required
-            mfa_required = (
-                user_profile.mfa_enabled and 
+            mfa_required = ()
+                user_profile.mfa_enabled and
                 (mfa_code is None or not self._verify_mfa_code(user_profile, mfa_code))
             )
 
             if mfa_required and mfa_code is None:
-                return AuthenticationResult(
+                return AuthenticationResult()
                     success=False,
                     user_id=username,
                     session_token=None,
@@ -274,7 +274,7 @@ class EnhancedAuthenticationSystem:
 
             if mfa_required and not self._verify_mfa_code(user_profile, mfa_code):
                 self._record_failed_login(user_profile, ip_address)
-                return AuthenticationResult(
+                return AuthenticationResult()
                     success=False,
                     user_id=username,
                     session_token=None,
@@ -288,11 +288,11 @@ class EnhancedAuthenticationSystem:
 
             # Authentication successful - create session
             session_token = self._create_session(user_profile, ip_address, user_agent, risk_score)
-            
+
             # Update user profile
             user_profile.last_login = datetime.now()
             user_profile.failed_attempts = 0
-            user_profile.login_history.append({
+            user_profile.login_history.append({)
                 "timestamp": datetime.now().isoformat(),
                 "ip_address": ip_address,
                 "user_agent": user_agent,
@@ -306,7 +306,7 @@ class EnhancedAuthenticationSystem:
             # Determine security level
             security_level = self._determine_security_level(risk_score, user_profile.mfa_enabled)
 
-            return AuthenticationResult(
+            return AuthenticationResult()
                 success=True,
                 user_id=username,
                 session_token=session_token,
@@ -320,7 +320,7 @@ class EnhancedAuthenticationSystem:
 
         except Exception as e:
             logger.error(f"Authentication error: {e}")
-            return AuthenticationResult(
+            return AuthenticationResult()
                 success=False,
                 user_id=None,
                 session_token=None,
@@ -335,22 +335,22 @@ class EnhancedAuthenticationSystem:
     def _validate_password_strength(self, password: str) -> Dict[str, Any]:
         """Validate password strength against security requirements."""
         errors = []
-        
+
         if len(password) < self.config["password_min_length"]:
             errors.append(f"Password must be at least {self.config['password_min_length']} characters long")
-        
+
         if self.config["password_require_uppercase"] and not any(c.isupper() for c in password):
             errors.append("Password must contain at least one uppercase letter")
-        
+
         if self.config["password_require_lowercase"] and not any(c.islower() for c in password):
             errors.append("Password must contain at least one lowercase letter")
-        
+
         if self.config["password_require_numbers"] and not any(c.isdigit() for c in password):
             errors.append("Password must contain at least one number")
-        
+
         if self.config["password_require_special"] and not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
             errors.append("Password must contain at least one special character")
-        
+
         return {"valid": len(errors) == 0, "errors": errors}
 
     def _hash_password(self, password: str, salt: str) -> str:
@@ -368,7 +368,7 @@ class EnhancedAuthenticationSystem:
         """Verify MFA code."""
         if not user_profile.mfa_secret:
             return False
-        
+
         try:
             totp = pyotp.TOTP(user_profile.mfa_secret)
             return totp.verify(mfa_code, valid_window=1)
@@ -378,17 +378,17 @@ class EnhancedAuthenticationSystem:
     def _calculate_risk_score(self, user_profile: UserSecurityProfile, ip_address: str, user_agent: str) -> float:
         """Calculate risk score for authentication attempt."""
         risk_score = 0.0
-        
+
         # Check for unusual IP
         recent_ips = [entry.get("ip_address") for entry in user_profile.login_history[-10:]]
         if ip_address not in recent_ips:
             risk_score += 0.3
-        
+
         # Check for unusual user agent
         recent_agents = [entry.get("user_agent") for entry in user_profile.login_history[-10:]]
         if user_agent not in recent_agents:
             risk_score += 0.2
-        
+
         # Check time since last login
         if user_profile.last_login:
             time_diff = datetime.now() - user_profile.last_login
@@ -396,18 +396,18 @@ class EnhancedAuthenticationSystem:
                 risk_score += 0.4
             elif time_diff.days > 7:
                 risk_score += 0.2
-        
+
         # Check failed attempts
         if user_profile.failed_attempts > 0:
             risk_score += min(0.3, user_profile.failed_attempts * 0.1)
-        
+
         return min(1.0, risk_score)
 
-    def _create_session(self, user_profile: UserSecurityProfile, ip_address: str, 
+    def _create_session(self, user_profile: UserSecurityProfile, ip_address: str, ):
                        user_agent: str, risk_score: float) -> str:
         """Create secure session."""
         session_token = secrets.token_urlsafe(32)
-        
+
         session_data = {
             "user_id": user_profile.user_id,
             "created_at": datetime.now(),
@@ -417,22 +417,22 @@ class EnhancedAuthenticationSystem:
             "risk_score": risk_score,
             "csrf_token": secrets.token_urlsafe(32)
         }
-        
+
         self.active_sessions[session_token] = session_data
-        
+
         # Clean up old sessions for this user
         self._cleanup_user_sessions(user_profile.user_id)
-        
+
         return session_token
 
     def _cleanup_user_sessions(self, user_id: str):
         """Clean up old sessions for user."""
-        user_sessions = [(token, data) for token, data in self.active_sessions.items() 
+        user_sessions = [(token, data) for token, data in self.active_sessions.items()
                         if data["user_id"] == user_id]
-        
+
         # Sort by creation time and keep only the most recent sessions
         user_sessions.sort(key=lambda x: x[1]["created_at"], reverse=True)
-        
+
         if len(user_sessions) > self.config["max_sessions_per_user"]:
             for token, _ in user_sessions[self.config["max_sessions_per_user"]:]:
                 del self.active_sessions[token]
@@ -441,28 +441,28 @@ class EnhancedAuthenticationSystem:
         """Record failed login attempt."""
         user_profile.failed_attempts += 1
         user_profile.last_failed_attempt = datetime.now()
-        
+
         # Lock account if too many failed attempts
         if user_profile.failed_attempts >= self.config["max_failed_attempts"]:
             user_profile.account_locked = True
             user_profile.lock_expires = datetime.now() + timedelta(seconds=self.config["lockout_duration"])
-        
+
         self._record_failed_attempt(ip_address)
 
     def _record_failed_attempt(self, ip_address: str):
         """Record failed attempt from IP."""
         if ip_address not in self.failed_attempts:
             self.failed_attempts[ip_address] = []
-        
+
         self.failed_attempts[ip_address].append(datetime.now())
-        
+
         # Clean old attempts
         cutoff = datetime.now() - timedelta(hours=1)
         self.failed_attempts[ip_address] = [
-            attempt for attempt in self.failed_attempts[ip_address] 
+            attempt for attempt in self.failed_attempts[ip_address]
             if attempt > cutoff
         ]
-        
+
         # Block IP if too many attempts
         if len(self.failed_attempts[ip_address]) >= 10:
             self.blocked_ips[ip_address] = datetime.now() + timedelta(hours=1)

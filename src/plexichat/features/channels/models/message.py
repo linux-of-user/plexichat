@@ -16,6 +16,7 @@ from ....infrastructure.utils.snowflake import SnowflakeGenerator
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 PlexiChat Message Model
 
 Enhanced message model with Discord-like features including embeds, attachments, and replies.
@@ -79,7 +80,7 @@ class Message(SQLModel, table=True):
     __tablename__ = "messages"
 
     # Primary identification
-    message_id: str = Field(
+    message_id: str = Field()
         default_factory=lambda: str(message_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -87,54 +88,54 @@ class Message(SQLModel, table=True):
     )
 
     # Channel and author relationships
-    channel_id: str = Field(
+    channel_id: str = Field()
         foreign_key="channels.channel_id",
         index=True,
         description="Channel this message was sent in",
     )
 
-    author_id: str = Field(
+    author_id: str = Field()
         foreign_key="users.id", index=True, description="User who sent this message"
     )
 
     # Message content
-    content: str = Field(
+    content: str = Field()
         sa_column=Column(Text), description="Message content (up to 2000 characters)"
     )
 
     # Rich content
-    embeds: Optional[List[Dict[str, Any]]] = Field(
+    embeds: Optional[List[Dict[str, Any]]] = Field()
         default=None,
         sa_column=Column(JSON),
         description="Rich embeds attached to the message",
     )
 
-    attachments: Optional[List[str]] = Field(
+    attachments: Optional[List[str]] = Field()
         default=None, sa_column=Column(JSON), description="File attachment IDs"
     )
 
-    sticker_ids: Optional[List[str]] = Field(
+    sticker_ids: Optional[List[str]] = Field()
         default=None,
         sa_column=Column(JSON),
         description="Sticker IDs used in the message",
     )
 
     # Message threading and replies
-    reply_to_message_id: Optional[str] = Field(
+    reply_to_message_id: Optional[str] = Field()
         default=None,
         foreign_key="messages.message_id",
         index=True,
         description="Message this is replying to",
     )
 
-    thread_id: Optional[str] = Field(
+    thread_id: Optional[str] = Field()
         default=None,
         foreign_key="channels.channel_id",
         description="Thread channel created from this message",
     )
 
     # Message metadata
-    type: int = Field(
+    type: int = Field()
         default=MessageType.DEFAULT, index=True, description="Type of message"
     )
 
@@ -142,48 +143,48 @@ class Message(SQLModel, table=True):
 
     tts: bool = Field(default=False, description="Whether message is text-to-speech")
 
-    pinned: bool = Field(
+    pinned: bool = Field()
         default=False, index=True, description="Whether message is pinned in channel"
     )
 
     # Timestamps
-    timestamp: datetime = Field(
+    timestamp: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Message creation timestamp",
     )
 
-    edited_timestamp: Optional[datetime] = Field(
+    edited_timestamp: Optional[datetime] = Field()
         default=None, sa_column=Column(DateTime), description="Last edit timestamp"
     )
 
     # Webhook and bot messages
-    webhook_id: Optional[str] = Field(
+    webhook_id: Optional[str] = Field()
         default=None, description="Webhook ID if sent by webhook"
     )
 
-    application_id: Optional[str] = Field(
+    application_id: Optional[str] = Field()
         default=None, description="Application ID if sent by bot"
     )
 
     # Message interaction data
-    interaction_id: Optional[str] = Field(
+    interaction_id: Optional[str] = Field()
         default=None, description="Interaction ID for slash commands"
     )
 
     # Nonce for message deduplication
-    nonce: Optional[str] = Field(
+    nonce: Optional[str] = Field()
         default=None, max_length=100, description="Nonce for message deduplication"
     )
 
     # Message activity (for rich presence)
-    activity: Optional[Dict[str, Any]] = Field(
+    activity: Optional[Dict[str, Any]] = Field()
         default=None, sa_column=Column(JSON), description="Message activity data"
     )
 
     # Message components (buttons, select menus)
-    components: Optional[List[Dict[str, Any]]] = Field(
+    components: Optional[List[Dict[str, Any]]] = Field()
         default=None,
         sa_column=Column(JSON),
         description="Interactive message components",
@@ -202,7 +203,7 @@ class Message(SQLModel, table=True):
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     def __repr__(self) -> str:
-        content_preview = (
+        content_preview = ()
             self.content[:50] + "..." if len(self.content) > 50 else self.content
         )
         return f"<Message(message_id='{self.message_id}', author_id='{self.author_id}', content='{content_preview}')>"
@@ -247,14 +248,14 @@ class Message(SQLModel, table=True):
             "tts": self.tts,
             "pinned": self.pinned,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
-            "edited_timestamp": (
+            "edited_timestamp": ()
                 self.edited_timestamp.isoformat() if self.edited_timestamp else None
             ),
         }
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index("idx_message_channel_timestamp", "channel_id", "timestamp"),
     Index("idx_message_author_timestamp", "author_id", "timestamp"),
     Index("idx_message_reply_chain", "reply_to_message_id"),

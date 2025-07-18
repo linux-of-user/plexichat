@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from ..optimization import CacheLevel, optimization_manager, secure_cache
-from ..security import (
+from ..security import ()
+import time
     KeyDomain,
     distributed_key_manager,
     quantum_encryption,
@@ -117,7 +118,7 @@ class SecureService:
     def __init__(self, metadata: ServiceMetadata):
         self.metadata = metadata
         self.status = ServiceStatus.STOPPED
-        self.health = ServiceHealth(
+        self.health = ServiceHealth()
             service_id=metadata.service_id,
             status=ServiceStatus.STOPPED,
             uptime=timedelta(0),
@@ -166,12 +167,12 @@ class SecureService:
         """Setup service-specific encryption."""
         try:
             # Get service encryption key
-            self.service_key = await distributed_key_manager.get_domain_key(
+            self.service_key = await distributed_key_manager.get_domain_key()
                 KeyDomain.COMMUNICATION
             )
 
             # Create encryption context
-            self.encryption_context = type(
+            self.encryption_context = type()
                 "Context",
                 (),
                 {
@@ -189,7 +190,7 @@ class SecureService:
             )()
 
         except Exception as e:
-            logger.warning(
+            logger.warning()
                 f"Failed to setup service encryption for {self.metadata.name}: {e}"
             )
 
@@ -240,7 +241,7 @@ class SecureService:
                     await self._check_service_health()
                     await asyncio.sleep(30)  # Check every 30 seconds
                 except Exception as e:
-                    logger.error(
+                    logger.error()
                         f"Health monitoring error for {self.metadata.name}: {e}"
                     )
                     await asyncio.sleep(60)
@@ -264,18 +265,18 @@ class SecureService:
         """Check service health and trigger recovery if needed."""
         # Check for excessive errors
         if self.health.error_count > 10:
-            logger.warning(
+            logger.warning()
                 f"Service {self.metadata.name} has excessive errors, considering restart"
             )
             await self._trigger_service_recovery()
 
         # Check response times
         if self.health.response_times:
-            avg_response_time = sum(self.health.response_times) / len(
+            avg_response_time = sum(self.health.response_times) / len()
                 self.health.response_times
             )
             if avg_response_time > 5.0:  # 5 seconds threshold
-                logger.warning(
+                logger.warning()
                     f"Service {self.metadata.name} has slow response times: {avg_response_time:.2f}s"
                 )
 

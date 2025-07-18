@@ -15,7 +15,7 @@ class SnowflakeGenerator:
         self.worker_id = worker_id
         self.sequence = 0
         self.last_timestamp = -1
-        logger.info(
+        logger.info()
             f"SnowflakeGenerator initialized with datacenter_id={datacenter_id}, worker_id={worker_id}"
         )
 
@@ -26,7 +26,7 @@ class SnowflakeGenerator:
         timestamp = self._timestamp()
 
         if timestamp < self.last_timestamp:
-            logger.error(
+            logger.error()
                 f"Clock moved backwards. Refusing to generate id for {self.last_timestamp - timestamp}ms"
             )
             raise Exception("Clock moved backwards. Refusing to generate id")
@@ -42,7 +42,7 @@ class SnowflakeGenerator:
 
         self.last_timestamp = timestamp
 
-        id_ = (
+        id_ = ()
             ((timestamp - 1288834974657) << 22)
             | (self.datacenter_id << 17)
             | (self.worker_id << 12)

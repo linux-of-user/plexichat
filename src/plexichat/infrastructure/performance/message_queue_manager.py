@@ -21,7 +21,6 @@ except ImportError:
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 
-
 """
 PlexiChat Message Queue System
 
@@ -124,7 +123,7 @@ class Message:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Message':
         """Create message from dictionary."""
-        return cls(
+        return cls()
             id=data["id"],
             topic=data["topic"],
             payload=data["payload"],
@@ -230,7 +229,7 @@ class MessageQueueManager:
         try:
             rabbitmq_config = self.config.get("rabbitmq", {})
 
-            connection_url = (
+            connection_url = ()
                 f"amqp://{rabbitmq_config.get('username', 'guest')}:"
                 f"{rabbitmq_config.get('password', 'guest')}@"
                 f"{rabbitmq_config.get('host', 'localhost')}:"
@@ -238,7 +237,7 @@ class MessageQueueManager:
                 f"{rabbitmq_config.get('vhost', '/')}"
             )
 
-            self.rabbitmq_connection = await aio_pika.connect_robust(
+            self.rabbitmq_connection = await aio_pika.connect_robust()
                 connection_url,
                 heartbeat=rabbitmq_config.get("heartbeat", 600),
                 blocked_connection_timeout=rabbitmq_config.get("blocked_timeout", 300)
@@ -264,7 +263,7 @@ class MessageQueueManager:
             kafka_config = self.config.get("kafka", {})
             bootstrap_servers = kafka_config.get("bootstrap_servers", ["localhost:9092"])
 
-            self.kafka_producer = AIOKafkaProducer(
+            self.kafka_producer = AIOKafkaProducer()
                 bootstrap_servers=bootstrap_servers,
                 value_serializer=lambda v: json.dumps(v).encode(),
                 compression_type=kafka_config.get("compression", "gzip"),
@@ -291,7 +290,7 @@ class MessageQueueManager:
         try:
             redis_config = self.config.get("redis", {})
 
-            self.redis_client = redis.Redis(
+            self.redis_client = redis.Redis()
                 host=redis_config.get("host", "localhost"),
                 port=redis_config.get("port", 6379),
                 db=redis_config.get("db", 1),  # Use different DB than cache
@@ -312,7 +311,7 @@ class MessageQueueManager:
             logger.warning(f" Redis Streams initialization failed: {e}")
             return False
 
-    async def publish(self, topic: str, payload: Any, headers: Optional[Dict[str, Any]] = None,
+    async def publish(self, topic: str, payload: Any, headers: Optional[Dict[str, Any]] = None,)
                      priority: MessagePriority = MessagePriority.NORMAL,
                      ttl_seconds: Optional[int] = None) -> bool:
         """Publish message to topic."""
@@ -324,7 +323,7 @@ class MessageQueueManager:
                 ttl_seconds = self.default_ttl_seconds
 
             # Create message
-            message = Message(
+            message = Message()
                 id=str(uuid.uuid4()),
                 topic=topic,
                 payload=payload,
@@ -383,13 +382,13 @@ class MessageQueueManager:
         """Publish message to RabbitMQ."""
         try:
             # Declare exchange and queue
-            exchange = await self.rabbitmq_channel.declare_exchange(
+            exchange = await self.rabbitmq_channel.declare_exchange()
                 f"plexichat.{message.topic}",
                 aio_pika.ExchangeType.TOPIC,
                 durable=True
             )
 
-            queue = await self.rabbitmq_channel.declare_queue(
+            queue = await self.rabbitmq_channel.declare_queue()
                 f"plexichat.{message.topic}.queue",
                 durable=True
             )
@@ -397,7 +396,7 @@ class MessageQueueManager:
             await queue.bind(exchange, routing_key=message.topic)
 
             # Create message
-            rabbitmq_message = aio_pika.Message(
+            rabbitmq_message = aio_pika.Message()
                 json.dumps(message.to_dict()).encode(),
                 priority=message.priority.value,
                 expiration=int((message.expires_at - datetime.now(timezone.utc)).total_seconds() * 1000) if message.expires_at else None,
@@ -426,7 +425,7 @@ class MessageQueueManager:
             headers.append(("priority", str(message.priority.value).encode()))
 
             # Send message
-            await self.kafka_producer.send(
+            await self.kafka_producer.send()
                 message.topic,
                 value=message_data,
                 headers=headers,
@@ -471,7 +470,7 @@ class MessageQueueManager:
             logger.error(f" Redis Streams publish error: {e}")
             return False
 
-    async def subscribe(self, topic: str, handler: Callable[[Message], Any],
+    async def subscribe(self, topic: str, handler: Callable[[Message], Any],)
                        consumer_group: Optional[str] = None) -> bool:
         """Subscribe to topic with message handler."""
         try:
@@ -482,7 +481,7 @@ class MessageQueueManager:
             self.message_handlers[topic] = handler
 
             # Start consumer for primary broker
-            consumer_task = asyncio.create_task(
+            consumer_task = asyncio.create_task()
                 self._start_consumer(self.primary_broker, topic, consumer_group)
             )
             self.consumer_tasks.append(consumer_task)
@@ -512,7 +511,7 @@ class MessageQueueManager:
     async def _consume_rabbitmq(self, topic: str):
         """Consume messages from RabbitMQ."""
         try:
-            queue = await self.rabbitmq_channel.declare_queue(
+            queue = await self.rabbitmq_channel.declare_queue()
                 f"plexichat.{topic}.queue",
                 durable=True
             )
@@ -544,7 +543,7 @@ class MessageQueueManager:
         try:
             kafka_config = self.config.get("kafka", {})
 
-            consumer = AIOKafkaConsumer(
+            consumer = AIOKafkaConsumer()
                 topic,
                 bootstrap_servers=kafka_config.get("bootstrap_servers", ["localhost:9092"]),
                 group_id=consumer_group or f"plexichat-{topic}",
@@ -603,7 +602,7 @@ class MessageQueueManager:
             while True:
                 try:
                     # Read messages from stream
-                    messages = await self.redis_client.xreadgroup(
+                    messages = await self.redis_client.xreadgroup()
                         group_name,
                         consumer_name,
                         {stream_key: ">"},
@@ -701,7 +700,7 @@ class MessageQueueManager:
 
             # Update average processing time
             if topic_stats.messages_processed > 1:
-                topic_stats.average_processing_time_ms = (
+                topic_stats.average_processing_time_ms = ()
                     (topic_stats.average_processing_time_ms * (topic_stats.messages_processed - 1) + processing_time) /
                     topic_stats.messages_processed
                 )
@@ -901,7 +900,7 @@ class MessageQueueManager:
             # Purge RabbitMQ queue
             if self.rabbitmq_channel:
                 try:
-                    queue = await self.rabbitmq_channel.declare_queue(
+                    queue = await self.rabbitmq_channel.declare_queue()
                         f"plexichat.{topic}.queue",
                         durable=True
                     )

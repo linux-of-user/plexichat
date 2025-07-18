@@ -31,6 +31,7 @@ from .unified_encryption_manager import UnifiedEncryptionManager
 from .unified_node_manager import UnifiedNodeManager
 from .unified_recovery_manager import UnifiedRecoveryManager
 from .unified_shard_manager import UnifiedShardManager
+from plexichat.infrastructure.modules.interfaces import ModulePriority
 
 from pathlib import Path
 from pathlib import Path
@@ -38,9 +39,9 @@ from datetime import datetime
 
 from pathlib import Path
 from pathlib import Path
-from datetime import datetime
 
 """
+import time
 Unified Backup Manager
 
 Consolidated backup system that merges all backup functionality into a single,
@@ -49,7 +50,7 @@ and distributed shard management.
 
 This unified system replaces:
 - GovernmentBackupManager
-- QuantumBackupManager  
+- QuantumBackupManager
 - UniversalBackupService
 - Enhanced backup services
 
@@ -127,22 +128,22 @@ class BackupOperation:
     security_level: SecurityLevel
     distribution_strategy: DistributionStrategy
     status: BackupStatus
-    
+
     # Timing
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    
+
     # Size and performance metrics
     total_size: int = 0
     compressed_size: int = 0
     shard_count: int = 0
     redundancy_factor: int = 5
-    
+
     # Security
     encryption_key_id: Optional[str] = None
     verification_hash: Optional[str] = None
-    
+
     # Metadata and tracking
     source_path: Optional[str] = None
     source_type: Optional[str] = None
@@ -158,25 +159,25 @@ class UnifiedShard:
     backup_id: str
     shard_index: int
     total_shards: int
-    
+
     # Data and integrity
     data_hash: str
     encrypted_data: bytes
     size: int
     compression_ratio: float = 1.0
-    
+
     # Security
     encryption_metadata: Dict[str, Any] = field(default_factory=dict)
     verification_hash: Optional[str] = None
-    
+
     # Distribution
     node_assignments: List[str] = field(default_factory=list)
     location: Optional[str] = None
-    
+
     # Timestamps
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_verified: Optional[datetime] = None
-    
+
     # Metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -189,33 +190,33 @@ class SystemHealth:
     active_operations: int
     completed_backups: int
     failed_backups: int
-    
+
     # Shard statistics
     total_shards: int
     healthy_shards: int
     corrupted_shards: int
     missing_shards: int
-    
+
     # Node statistics
     total_nodes: int
     healthy_nodes: int
     degraded_nodes: int
     offline_nodes: int
-    
+
     # Storage statistics
     total_storage: int
     used_storage: int
     available_storage: int
-    
+
     # Performance metrics
     backup_success_rate: float
     average_backup_time: float
     average_recovery_time: float
-    
+
     # Security metrics
     encryption_compliance: float
     security_incidents: int
-    
+
     # Timestamps
     last_health_check: datetime
     uptime: timedelta
@@ -224,30 +225,30 @@ class SystemHealth:
 class UnifiedBackupManager:
     """
     Unified Backup Manager
-    
+
     The single source of truth for all backup operations in PlexiChat.
     Consolidates all backup functionality with enterprise-grade security,
     performance, and reliability.
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or get_config().get("backup", {})
         self.initialized = False
-        
+
         # Core directories
-        self.from pathlib import Path
-backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
+        from pathlib import Path
+        self.backup_dir = Path(self.config.get("backup_dir", "data/backups"))
         self.shard_dir = self.backup_dir / "shards"
         self.metadata_dir = self.backup_dir / "metadata"
         self.temp_dir = self.backup_dir / "temp"
-        
+
         # Database paths
         self.db_path = self.backup_dir / "unified_backup.db"
-        
+
         # Operation tracking
         self.active_operations: Dict[str, BackupOperation] = {}
         self.operation_history: List[BackupOperation] = []
-        
+
         # Component managers (initialized during startup)
         self.shard_manager = None
         self.encryption_manager = None
@@ -255,7 +256,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         self.recovery_manager = None
         self.node_manager = None
         self.analytics_manager = None
-        
+
         # Performance tracking
         self.performance_metrics = {
             "operations_completed": 0,
@@ -263,7 +264,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
             "average_operation_time": 0.0,
             "success_rate": 1.0
         }
-        
+
         logger.info("Unified Backup Manager initialized")
 
     async def initialize(self) -> None:
@@ -313,8 +314,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         """Initialize the backup metadata database."""
         async with aiosqlite.connect(self.db_path) as db:
             # Backup operations table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS backup_operations (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS backup_operations ()
                     backup_id TEXT PRIMARY KEY,
                     backup_type TEXT NOT NULL,
                     priority INTEGER NOT NULL,
@@ -339,8 +340,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
             """)
 
             # Unified shards table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS unified_shards (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS unified_shards ()
                     shard_id TEXT PRIMARY KEY,
                     backup_id TEXT NOT NULL,
                     shard_index INTEGER NOT NULL,
@@ -360,8 +361,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
             """)
 
             # System health metrics table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS system_health (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS system_health ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
                     total_backups INTEGER,
@@ -389,8 +390,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
             """)
 
             # Performance metrics table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS performance_metrics (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS performance_metrics ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
                     operation_type TEXT NOT NULL,
@@ -427,19 +428,25 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         self.analytics_manager = UnifiedAnalyticsManager(self)
 
         # Initialize all components
-        await self.if shard_manager and hasattr(shard_manager, "initialize"): shard_manager.initialize()
-        await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()
-        await self.if distribution_manager and hasattr(distribution_manager, "initialize"): distribution_manager.initialize()
-        await self.if recovery_manager and hasattr(recovery_manager, "initialize"): recovery_manager.initialize()
-        await self.if node_manager and hasattr(node_manager, "initialize"): node_manager.initialize()
-        await self.if analytics_manager and hasattr(analytics_manager, "initialize"): analytics_manager.initialize()
+        if self.shard_manager and hasattr(self.shard_manager, "initialize"):
+            await self.shard_manager.initialize()
+        if self.encryption_manager and hasattr(self.encryption_manager, "initialize"):
+            await self.encryption_manager.initialize()
+        if self.distribution_manager and hasattr(self.distribution_manager, "initialize"):
+            await self.distribution_manager.initialize()
+        if self.recovery_manager and hasattr(self.recovery_manager, "initialize"):
+            await self.recovery_manager.initialize()
+        if self.node_manager and hasattr(self.node_manager, "initialize"):
+            await self.node_manager.initialize()
+        if self.analytics_manager and hasattr(self.analytics_manager, "initialize"):
+            await self.analytics_manager.initialize()
 
         logger.info("All component managers initialized")
 
     async def _load_existing_operations(self) -> None:
         """Load existing backup operations from database."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("""
+            async with db.execute(""")
                 SELECT * FROM backup_operations
                 WHERE status IN ('pending', 'in_progress')
                 ORDER BY created_at DESC
@@ -487,7 +494,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         backup_id = f"backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(8)}"
 
         # Create backup operation
-        operation = BackupOperation(
+        operation = BackupOperation()
             backup_id=backup_id,
             backup_type=backup_type,
             priority=priority,
@@ -530,17 +537,23 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
             operation.compressed_size = len(compressed_data)
 
             # Stage 3: Encrypt data with quantum-resistant encryption
+            if self.encryption_manager is None:
+                raise RuntimeError("Encryption manager is not initialized")
             encrypted_data = await self.encryption_manager.encrypt_backup_data(
                 compressed_data, operation
             )
 
             # Stage 4: Create shards
+            if self.shard_manager is None:
+                raise RuntimeError("Shard manager is not initialized")
             shards = await self.shard_manager.create_shards(
                 encrypted_data, operation
             )
             operation.shard_count = len(shards)
 
             # Stage 5: Distribute shards across nodes
+            if self.distribution_manager is None:
+                raise RuntimeError("Distribution manager is not initialized")
             await self.distribution_manager.distribute_shards(shards, operation)
 
             # Stage 6: Verify backup integrity
@@ -650,6 +663,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         if not self.initialized:
             await if self and hasattr(self, "initialize"): self.initialize()
 
+        if self.recovery_manager is None:
+            raise RuntimeError("Recovery manager is not initialized")
         return await self.recovery_manager.start_recovery(
             backup_id, target_path, recovery_type
         )
@@ -659,6 +674,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         if not self.initialized:
             await if self and hasattr(self, "initialize"): self.initialize()
 
+        if self.recovery_manager is None:
+            raise RuntimeError("Recovery manager is not initialized")
         return await self.recovery_manager.get_recovery_status(recovery_id)
 
     # System Health and Monitoring
@@ -676,7 +693,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         performance_stats = await self._get_performance_statistics()
         security_stats = await self._get_security_statistics()
 
-        return SystemHealth(
+        return SystemHealth()
             # Backup statistics
             total_backups=backup_stats["total"],
             active_operations=backup_stats["active"],
@@ -720,7 +737,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         """Read data from the source path."""
         from pathlib import Path
 
-        source_path = Path()(operation.source_path)
+        self.source_path = Path(operation.source_path)
 
         if source_path.is_file():
             async with aiofiles.open(source_path, 'rb') as f:
@@ -758,7 +775,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
             operation.metadata["compression_used"] = False
             return data
 
-    async def _verify_backup_integrity(
+    async def _verify_backup_integrity()
         self,
         shards: List[UnifiedShard],
         operation: BackupOperation
@@ -781,15 +798,15 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
     async def _save_operation_to_database(self, operation: BackupOperation) -> None:
         """Save backup operation to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
-                INSERT OR REPLACE INTO backup_operations (
+            await db.execute(""")
+                INSERT OR REPLACE INTO backup_operations ()
                     backup_id, backup_type, priority, security_level,
                     distribution_strategy, status, created_at, started_at,
                     completed_at, total_size, compressed_size, shard_count,
                     redundancy_factor, encryption_key_id, verification_hash,
                     source_path, source_type, created_by, metadata, error_message
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 operation.backup_id,
                 operation.backup_type.value,
                 operation.priority.value,
@@ -913,8 +930,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
     async def _save_health_metrics(self, health: SystemHealth) -> None:
         """Save health metrics to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
-                INSERT INTO system_health (
+            await db.execute(""")
+                INSERT INTO system_health ()
                     timestamp, total_backups, active_operations, completed_backups,
                     failed_backups, total_shards, healthy_shards, corrupted_shards,
                     missing_shards, total_nodes, healthy_nodes, degraded_nodes,
@@ -922,7 +939,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
                     backup_success_rate, average_backup_time, average_recovery_time,
                     encryption_compliance, security_incidents, uptime_seconds
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 health.last_health_check.isoformat(),
                 health.total_backups,
                 health.active_operations,
@@ -989,7 +1006,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         # Get recent completed operations
         async with aiosqlite.connect(self.db_path) as db:
             # Success rate
-            async with db.execute("""
+            async with db.execute(""")
                 SELECT
                     COUNT(CASE WHEN status = 'completed' THEN 1 END) * 1.0 / COUNT(*) as success_rate
                 FROM backup_operations
@@ -1000,8 +1017,8 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
                     stats["success_rate"] = row[0]
 
             # Average backup time
-            async with db.execute("""
-                SELECT AVG(
+            async with db.execute(""")
+                SELECT AVG()
                     (julianday(completed_at) - julianday(started_at)) * 24 * 3600
                 ) as avg_time
                 FROM backup_operations
@@ -1030,12 +1047,12 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
             throughput = (operation.total_size / (1024 * 1024)) / duration if duration > 0 else 0
 
             async with aiosqlite.connect(self.db_path) as db:
-                await db.execute("""
-                    INSERT INTO performance_metrics (
+                await db.execute(""")
+                    INSERT INTO performance_metrics ()
                         timestamp, operation_type, duration_seconds, data_size,
                         throughput_mbps, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     operation.completed_at.isoformat(),
                     operation.backup_type.value,
                     duration,
@@ -1051,8 +1068,7 @@ backup_dir = Path()(self.config.get("backup_dir", "data/backups"))
         for temp_file in glob.glob(temp_pattern):
             try:
                 # Remove files older than 1 hour
-                if os.path.getmtime(temp_file) < (from datetime import datetime
-datetime.now().timestamp() - 3600):
+                if os.path.getmtime(temp_file) < (datetime.now().timestamp() - 3600):
                     os.remove(temp_file)
             except Exception as e:
                 logger.warning(f"Failed to remove temp file {temp_file}: {e}")
@@ -1061,12 +1077,12 @@ datetime.now().timestamp() - 3600):
         """Clean up old performance metrics."""
         async with aiosqlite.connect(self.db_path) as db:
             # Keep only last 30 days of metrics
-            await db.execute("""
+            await db.execute(""")
                 DELETE FROM performance_metrics
                 WHERE timestamp < datetime('now', '-30 days')
             """)
 
-            await db.execute("""
+            await db.execute(""")
                 DELETE FROM system_health
                 WHERE timestamp < datetime('now', '-30 days')
             """)
@@ -1077,13 +1093,13 @@ datetime.now().timestamp() - 3600):
         """Clean up old completed operations."""
         async with aiosqlite.connect(self.db_path) as db:
             # Keep completed operations for 30 days, failed for 7 days
-            await db.execute("""
+            await db.execute(""")
                 DELETE FROM backup_operations
                 WHERE status = 'completed'
                 AND completed_at < datetime('now', '-30 days')
             """)
 
-            await db.execute("""
+            await db.execute(""")
                 DELETE FROM backup_operations
                 WHERE status = 'failed'
                 AND completed_at < datetime('now', '-7 days')

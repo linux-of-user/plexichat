@@ -63,12 +63,12 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 
 class WebService:
     """Service class for web operations using EXISTING database abstraction layer."""
-    
+
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("web_dashboard") if async_track_performance else lambda f: f
     async def get_dashboard_data(self, user_id: int) -> Dict[str, Any]:
         """Get dashboard data using EXISTING database abstraction layer."""
@@ -80,80 +80,80 @@ class WebService:
                 "recent_activity": [],
                 "system_status": "healthy"
             }
-            
+
             if self.db_manager:
                 # Use EXISTING database manager for dashboard data
                 try:
                     # Get user's message count
                     if self.performance_logger and timer:
                         with timer("user_message_count"):
-                            result = await self.db_manager.execute_query(
-                                "SELECT COUNT(*) FROM messages WHERE sender_id = ?", 
+                            result = await self.db_manager.execute_query()
+                                "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
                                 {"sender_id": user_id}
                             )
                             dashboard_data["total_messages"] = result[0][0] if result else 0
                     else:
-                        result = await self.db_manager.execute_query(
-                            "SELECT COUNT(*) FROM messages WHERE sender_id = ?", 
+                        result = await self.db_manager.execute_query()
+                            "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
                             {"sender_id": user_id}
                         )
                         dashboard_data["total_messages"] = result[0][0] if result else 0
-                    
+
                     # Get user's file count
                     if self.performance_logger and timer:
                         with timer("user_file_count"):
-                            result = await self.db_manager.execute_query(
-                                "SELECT COUNT(*) FROM files WHERE user_id = ?", 
+                            result = await self.db_manager.execute_query()
+                                "SELECT COUNT(*) FROM files WHERE user_id = ?",
                                 {"user_id": user_id}
                             )
                             dashboard_data["total_files"] = result[0][0] if result else 0
                     else:
-                        result = await self.db_manager.execute_query(
-                            "SELECT COUNT(*) FROM files WHERE user_id = ?", 
+                        result = await self.db_manager.execute_query()
+                            "SELECT COUNT(*) FROM files WHERE user_id = ?",
                             {"user_id": user_id}
                         )
                         dashboard_data["total_files"] = result[0][0] if result else 0
-                    
+
                     # Get recent activity
                     if self.performance_logger and timer:
                         with timer("recent_activity"):
-                            result = await self.db_manager.execute_query(
+                            result = await self.db_manager.execute_query()
                                 """
-                                SELECT content, timestamp FROM messages 
-                                WHERE sender_id = ? 
-                                ORDER BY timestamp DESC 
+                                SELECT content, timestamp FROM messages
+                                WHERE sender_id = ?
+                                ORDER BY timestamp DESC
                                 LIMIT 5
-                                """, 
+                                """,
                                 {"sender_id": user_id}
                             )
                             if result:
                                 dashboard_data["recent_activity"] = [
-                                    {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0], 
+                                    {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0],
                                      "timestamp": row[1]}
                                     for row in result
                                 ]
                     else:
-                        result = await self.db_manager.execute_query(
+                        result = await self.db_manager.execute_query()
                             """
-                            SELECT content, timestamp FROM messages 
-                            WHERE sender_id = ? 
-                            ORDER BY timestamp DESC 
+                            SELECT content, timestamp FROM messages
+                            WHERE sender_id = ?
+                            ORDER BY timestamp DESC
                             LIMIT 5
-                            """, 
+                            """,
                             {"sender_id": user_id}
                         )
                         if result:
                             dashboard_data["recent_activity"] = [
-                                {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0], 
+                                {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0],
                                  "timestamp": row[1]}
                                 for row in result
                             ]
-                    
+
                 except Exception as e:
                     logger.error(f"Error getting dashboard data: {e}")
-            
+
             return dashboard_data
-            
+
         except Exception as e:
             logger.error(f"Error generating dashboard data: {e}")
             return {
@@ -167,7 +167,7 @@ class WebService:
 # Initialize service
 web_service = WebService()
 
-@router.get(
+@router.get()
     "/",
     response_class=HTMLResponse,
     summary="Main web interface"
@@ -176,11 +176,11 @@ async def main_page(request: Request):
     """Main web interface with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Main page accessed from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("web_main_page_requests", 1, "count")
-    
+
     # Simple HTML response for now
     html_content = """
     <!DOCTYPE html>
@@ -224,29 +224,29 @@ async def main_page(request: Request):
     </body>
     </html>
     """
-    
+
     return HTMLResponse(content=html_content)
 
-@router.get(
+@router.get()
     "/dashboard",
     response_class=HTMLResponse,
     summary="User dashboard"
 )
-async def dashboard(
+async def dashboard()
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """User dashboard with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Dashboard accessed by user {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("web_dashboard_requests", 1, "count")
-    
+
     # Get dashboard data
     dashboard_data = await web_service.get_dashboard_data(current_user.get("id", 0))
-    
+
     # Generate dashboard HTML
     html_content = f"""
     <!DOCTYPE html>
@@ -300,26 +300,26 @@ async def dashboard(
     </body>
     </html>
     """
-    
+
     return HTMLResponse(content=html_content)
 
-@router.get(
+@router.get()
     "/admin",
     response_class=HTMLResponse,
     summary="Admin panel"
 )
-async def admin_panel(
+async def admin_panel()
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
     """Admin panel with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Admin panel accessed by {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("web_admin_requests", 1, "count")
-    
+
     # Simple admin panel HTML
     html_content = f"""
     <!DOCTYPE html>
@@ -369,5 +369,5 @@ async def admin_panel(
     </body>
     </html>
     """
-    
+
     return HTMLResponse(content=html_content)

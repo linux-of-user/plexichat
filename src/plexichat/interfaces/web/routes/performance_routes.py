@@ -16,6 +16,7 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional
 
 """
+import time
 PlexiChat Performance Dashboard Web Routes
 
 Web routes for the performance monitoring dashboard and related pages.
@@ -28,7 +29,7 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templa
 logger = get_logger(__name__)
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def performance_dashboard(
+async def performance_dashboard()
     request: Request,
     current_user: dict = Depends(require_auth)
 ):
@@ -39,13 +40,13 @@ async def performance_dashboard(
         dashboard_data = {
             "current_metrics": performance_service.get_current_metrics(),
             "summary": performance_service.get_performance_summary(),
-            "health_score": performance_service._calculate_health_score(
+            "health_score": performance_service._calculate_health_score()
                 performance_service.get_current_metrics()
             ),
             "active_alerts": performance_service._get_active_alerts()
         }
 
-        return templates.TemplateResponse("performance_dashboard.html", {
+        return templates.TemplateResponse("performance_dashboard.html", {)
             "request": request,
             "user": current_user,
             "dashboard_data": dashboard_data,
@@ -58,7 +59,7 @@ async def performance_dashboard(
         raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")
 
 @router.get("/metrics", response_class=HTMLResponse)
-async def metrics_page(
+async def metrics_page()
     request: Request,
     current_user: dict = Depends(require_auth)
 ):
@@ -70,7 +71,7 @@ async def metrics_page(
         current_metrics = performance_service.get_current_metrics()
         historical_metrics = performance_service.get_historical_metrics(24)  # Last 24 hours
 
-        return templates.TemplateResponse("performance_metrics.html", {
+        return templates.TemplateResponse("performance_metrics.html", {)
             "request": request,
             "user": current_user,
             "current_metrics": current_metrics,
@@ -84,7 +85,7 @@ async def metrics_page(
         raise HTTPException(status_code=500, detail=f"Metrics error: {str(e)}")
 
 @router.get("/alerts", response_class=HTMLResponse)
-async def alerts_page(
+async def alerts_page()
     request: Request,
     current_user: dict = Depends(require_admin_auth)
 ):
@@ -95,7 +96,7 @@ async def alerts_page(
         # Get alerts data
         active_alerts = performance_service._get_active_alerts()
 
-        return templates.TemplateResponse("performance_alerts.html", {
+        return templates.TemplateResponse("performance_alerts.html", {)
             "request": request,
             "user": current_user,
             "active_alerts": active_alerts,
@@ -108,7 +109,7 @@ async def alerts_page(
         raise HTTPException(status_code=500, detail=f"Alerts error: {str(e)}")
 
 @router.get("/health", response_class=HTMLResponse)
-async def health_page(
+async def health_page()
     request: Request,
     current_user: dict = Depends(require_auth)
 ):
@@ -129,7 +130,7 @@ async def health_page(
             "ai": _calculate_component_health(current_metrics.get("ai"))
         }
 
-        return templates.TemplateResponse("performance_health.html", {
+        return templates.TemplateResponse("performance_health.html", {)
             "request": request,
             "user": current_user,
             "health_score": health_score,
@@ -144,7 +145,7 @@ async def health_page(
         raise HTTPException(status_code=500, detail=f"Health error: {str(e)}")
 
 @router.get("/analytics", response_class=HTMLResponse)
-async def analytics_page(
+async def analytics_page()
     request: Request,
     current_user: dict = Depends(require_auth)
 ):
@@ -156,7 +157,7 @@ async def analytics_page(
         historical_data = performance_service.get_historical_metrics(7 * 24)  # Last 7 days
         trends = performance_service._calculate_trends(historical_data)
 
-        return templates.TemplateResponse("performance_analytics.html", {
+        return templates.TemplateResponse("performance_analytics.html", {)
             "request": request,
             "user": current_user,
             "trends": trends,

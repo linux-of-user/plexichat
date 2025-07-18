@@ -7,15 +7,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 
-
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
@@ -24,6 +15,8 @@ from plexichat.app.models.calling import CallType
 from plexichat.app.services.calling_service import calling_service
 
 """
+import socket
+import time
 Encrypted voice and video calling API endpoints.
 Provides WebRTC signaling, call management, and encryption.
 """
@@ -69,7 +62,7 @@ async def initiate_call(request: CallInitiateRequest):
         # In production, get user_id from authentication
         initiator_id = 1  # Placeholder
 
-        call_session = await calling_service.initiate_call(
+        call_session = await calling_service.initiate_call()
             initiator_id=initiator_id,
             target_user_ids=request.target_user_ids,
             call_type=request.call_type,
@@ -101,7 +94,7 @@ async def join_call(request: CallJoinRequest):
         # In production, get user_id from authentication
         user_id = 2  # Placeholder
 
-        call_offer = await calling_service.join_call(
+        call_offer = await calling_service.join_call()
             call_id=request.call_id,
             user_id=user_id,
             offer_sdp=request.offer_sdp
@@ -131,7 +124,7 @@ async def answer_call(request: CallAnswerRequest):
         # In production, get user_id from authentication
         user_id = 2  # Placeholder
 
-        call_answer = await calling_service.answer_call(
+        call_answer = await calling_service.answer_call()
             call_id=request.call_id,
             user_id=user_id,
             answer_sdp=request.answer_sdp
@@ -196,8 +189,7 @@ async def get_call_quality(call_id: str):
                 "video_quality": quality.video_quality,
                 "connection_stability": quality.connection_stability
             },
-            "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
 
     except Exception as e:
@@ -241,7 +233,7 @@ async def get_active_calls():
         active_calls = []
         for call_id, call_session in calling_service.active_calls.items():
             if user_id in call_session.participants:
-                active_calls.append({
+                active_calls.append({)
                     "call_id": call_id,
                     "call_type": call_session.call_type.value,
                     "status": call_session.status.value,
@@ -320,7 +312,7 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
                 logger.info(f" Received ICE candidate for call {call_id}")
 
                 # Broadcast to other participants (simplified)
-                await websocket.send_json({
+                await websocket.send_json({)
                     "type": "ice-candidate",
                     "candidate": candidate,
                     "call_id": call_id
@@ -331,7 +323,7 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
                 offer = data.get("offer")
                 logger.info(f" Received WebRTC offer for call {call_id}")
 
-                await websocket.send_json({
+                await websocket.send_json({)
                     "type": "offer",
                     "offer": offer,
                     "call_id": call_id
@@ -342,7 +334,7 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
                 answer = data.get("answer")
                 logger.info(f" Received WebRTC answer for call {call_id}")
 
-                await websocket.send_json({
+                await websocket.send_json({)
                     "type": "answer",
                     "answer": answer,
                     "call_id": call_id
@@ -350,10 +342,9 @@ async def websocket_signaling(websocket: WebSocket, call_id: str):
 
             elif message_type == "ping":
                 # Handle ping for connection keepalive
-                await websocket.send_json({
+                await websocket.send_json({)
                     "type": "pong",
-                    "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat()
                 })
 
             else:

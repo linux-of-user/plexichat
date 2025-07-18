@@ -1,34 +1,47 @@
 #!/usr/bin/env python3
 """
-PlexiChat Main Entry Point
-==========================
+PlexiChat Run Script
 
-Government-level secure communication platform with enterprise-grade features.
-This is the main entry point for the PlexiChat application.
+Starts PlexiChat server and provides CLI access for testing and management.
+This script handles:
+- Server startup with proper initialization
+- CLI interface for running tests
+- Interactive mode for development
+- Graceful shutdown handling
 """
 
-import sys
-import os
-import logging
 import argparse
-from pathlib import Path
-from typing import Optional, Dict, Any
+import asyncio
+import logging
+import os
+import signal
+import subprocess
+import sys
 import threading
+import time
+from pathlib import Path
+from typing import List, Optional
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-# Configure logging
-Path("logs").mkdir(exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/plexichat.log'),
-        logging.StreamHandler()
-    ]
-)
+# Set up basic logging first
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+try:
+    from plexichat.interfaces.cli.test_commands import handle_test_command
+    from plexichat.core.logging.unified_logging_manager import get_logger
+    # Use unified logger if available
+    logger = get_logger(__name__)
+except ImportError as e:
+    logger.warning(f"Could not import some PlexiChat modules: {e}")
+    logger.info("Using basic logging and continuing...")
+
+    # Define fallback function
+    def handle_test_command(*args, **kwargs):
+        logger.error("Test commands not available - CLI module not imported")
+        return False
 
 def setup_environment():
     directories = ['logs', 'data', 'config', 'temp', 'backups', 'uploads']
@@ -46,8 +59,37 @@ def load_configuration():
         return None
 
 def run_enhanced_tests():
-    logger.info("Running basic tests... (not implemented)")
-    return True
+    """Run the comprehensive test suite."""
+    try:
+        import asyncio
+        from src.plexichat.tests.test_runner import run_tests
+
+        logger.info("🚀 Running PlexiChat comprehensive test suite...")
+
+        # Run all tests
+        report = asyncio.run(run_tests(
+            categories=None,  # Run all categories
+            verbose=True,
+            save_report=True
+        ))
+
+        # Check results
+        if report.get('summary', {}).get('failed', 0) == 0:
+            logger.info("✅ All tests passed!")
+            return True
+        else:
+            failed_count = report['summary']['failed']
+            total_count = report['summary']['total_tests']
+            logger.error(f"❌ {failed_count}/{total_count} tests failed")
+            return False
+
+    except ImportError as e:
+        logger.error(f"Test system not available: {e}")
+        logger.info("Make sure all test dependencies are installed")
+        return False
+    except Exception as e:
+        logger.error(f"Error running tests: {e}")
+        return False
 
 def run_splitscreen_cli():
     try:
@@ -115,10 +157,27 @@ def run_cli():
 def run_admin_cli():
     """Run admin CLI commands."""
     try:
-        from plexichat.interfaces.cli.commands.admin import admin
-        admin()
+        # Import the main CLI
+        from plexichat.interfaces.cli.main_cli import main as cli_main
+
+        # Modify sys.argv to route to admin commands
+        original_argv = sys.argv.copy()
+
+        # If no additional args, show admin help
+        if len(sys.argv) <= 2:
+            sys.argv = ['plexichat', 'admin', '--help']
+        else:
+            # Pass through additional arguments
+            sys.argv = ['plexichat', 'admin'] + sys.argv[2:]
+
+        try:
+            cli_main()
+        finally:
+            sys.argv = original_argv
+
     except Exception as e:
         logger.error(f"Could not start admin CLI: {e}")
+        print("Admin CLI not available. Please check your installation.")
 
 def run_backup_node():
     """Run backup node."""
@@ -132,10 +191,27 @@ def run_backup_node():
 def run_plugin_manager():
     """Run plugin management CLI."""
     try:
-        from plexichat.interfaces.cli.commands.plugins import plugins
-        plugins()
+        # Import the main CLI
+        from plexichat.interfaces.cli.main_cli import main as cli_main
+
+        # Modify sys.argv to route to plugin commands
+        original_argv = sys.argv.copy()
+
+        # If no additional args, show plugin help
+        if len(sys.argv) <= 2:
+            sys.argv = ['run.py', 'plugins', '--help']
+        else:
+            # Pass through additional arguments
+            sys.argv = ['run.py', 'plugins'] + sys.argv[2:]
+
+        try:
+            cli_main()
+        finally:
+            sys.argv = original_argv
+
     except Exception as e:
         logger.error(f"Could not start plugin manager: {e}")
+        print("Plugin manager CLI not available. Please check your installation.")
 
 def show_help():
     help_text = """
@@ -197,6 +273,24 @@ API Version: v1
 
 def main():
     setup_environment()
+
+    # Check if this is a CLI command that should be routed to the unified CLI
+    if len(sys.argv) > 1 and sys.argv[1] in ['admin', 'test', 'system', 'database', 'users', 'analytics', 'backup', 'server']:
+        try:
+            from plexichat.interfaces.cli.main_cli import main as cli_main
+            # Modify sys.argv to work with Click
+            original_argv = sys.argv.copy()
+            sys.argv = ['plexichat'] + sys.argv[1:]  # Replace 'run.py' with 'plexichat'
+
+            try:
+                cli_main()
+                return
+            finally:
+                sys.argv = original_argv
+        except Exception as e:
+            logger.error(f"Could not start unified CLI: {e}")
+            print("Falling back to basic CLI...")
+
     parser = argparse.ArgumentParser(
         description="PlexiChat - Government-Level Secure Communication Platform",
         add_help=False

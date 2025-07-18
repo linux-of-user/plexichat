@@ -39,7 +39,7 @@ class ClusterCLI:
 
     def create_parser(self) -> argparse.ArgumentParser:
         """Create argument parser for cluster commands."""
-        parser = argparse.ArgumentParser(
+        parser = argparse.ArgumentParser()
             prog="plexichat cluster",
             description="PlexiChat Advanced Cluster Management",
         )
@@ -48,38 +48,38 @@ class ClusterCLI:
 
         # Status command
         status_parser = subparsers.add_parser("status", help="Show cluster status")
-        status_parser.add_argument(
+        status_parser.add_argument()
             "--detailed", action="store_true", help="Show detailed status"
         )
-        status_parser.add_argument(
+        status_parser.add_argument()
             "--enhanced", action="store_true", help="Show enhanced clustering status"
         )
 
         # Enhanced clustering commands
-        enhanced_parser = subparsers.add_parser(
+        enhanced_parser = subparsers.add_parser()
             "enhanced", help="Enhanced clustering features"
         )
-        enhanced_subparsers = enhanced_parser.add_subparsers(
+        enhanced_subparsers = enhanced_parser.add_subparsers()
             dest="enhanced_command", help="Enhanced commands"
         )
 
         # Service mesh commands
-        mesh_parser = enhanced_subparsers.add_parser(
+        mesh_parser = enhanced_subparsers.add_parser()
             "mesh", help="Service mesh management"
         )
-        mesh_parser.add_argument(
+        mesh_parser.add_argument()
             "--topology", action="store_true", help="Show service mesh topology"
         )
-        mesh_parser.add_argument(
+        mesh_parser.add_argument()
             "--metrics", type=str, help="Show metrics for specific service"
         )
-        mesh_parser.add_argument(
+        mesh_parser.add_argument()
             "--circuit-breaker", type=str, help="Configure circuit breaker for service"
         )
-        mesh_parser.add_argument(
+        mesh_parser.add_argument()
             "--canary", type=str, help="Enable canary deployment for service"
         )
-        mesh_parser.add_argument(
+        mesh_parser.add_argument()
             "--traffic-percentage",
             type=float,
             default=10.0,
@@ -87,50 +87,50 @@ class ClusterCLI:
         )
 
         # Hybrid cloud commands
-        cloud_parser = enhanced_subparsers.add_parser(
+        cloud_parser = enhanced_subparsers.add_parser()
             "cloud", help="Hybrid cloud management"
         )
-        cloud_parser.add_argument(
+        cloud_parser.add_argument()
             "--status", action="store_true", help="Show hybrid cloud status"
         )
-        cloud_parser.add_argument(
+        cloud_parser.add_argument()
             "--optimize", action="store_true", help="Optimize workload placement"
         )
-        cloud_parser.add_argument(
+        cloud_parser.add_argument()
             "--migrate", type=str, help="Migrate workload to different region"
         )
-        cloud_parser.add_argument(
+        cloud_parser.add_argument()
             "--target-region", type=str, help="Target region for migration"
         )
 
         # Serverless commands
-        faas_parser = enhanced_subparsers.add_parser(
+        faas_parser = enhanced_subparsers.add_parser()
             "faas", help="Serverless functions management"
         )
-        faas_parser.add_argument(
+        faas_parser.add_argument()
             "--list", action="store_true", help="List all functions"
         )
-        faas_parser.add_argument(
+        faas_parser.add_argument()
             "--metrics", action="store_true", help="Show function metrics"
         )
         faas_parser.add_argument("--invoke", type=str, help="Invoke specific function")
-        faas_parser.add_argument(
+        faas_parser.add_argument()
             "--payload", type=str, help="JSON payload for function invocation"
         )
 
         # Predictive scaling commands
-        scaling_parser = enhanced_subparsers.add_parser(
+        scaling_parser = enhanced_subparsers.add_parser()
             "scaling", help="Predictive scaling management"
         )
-        scaling_parser.add_argument(
+        scaling_parser.add_argument()
             "--recommendations",
             action="store_true",
             help="Show scaling recommendations",
         )
-        scaling_parser.add_argument(
+        scaling_parser.add_argument()
             "--metrics", action="store_true", help="Show scaling metrics"
         )
-        scaling_parser.add_argument(
+        scaling_parser.add_argument()
             "--execute", action="store_true", help="Execute scaling recommendations"
         )
 
@@ -139,18 +139,18 @@ class ClusterCLI:
         node_parser.add_argument("--list", action="store_true", help="List all nodes")
         node_parser.add_argument("--add", type=str, help="Add node by address")
         node_parser.add_argument("--remove", type=str, help="Remove node by ID")
-        node_parser.add_argument(
+        node_parser.add_argument()
             "--health", type=str, help="Check health of specific node"
         )
 
         # Performance commands
-        perf_parser = subparsers.add_parser(
+        perf_parser = subparsers.add_parser()
             "performance", help="Performance monitoring"
         )
-        perf_parser.add_argument(
+        perf_parser.add_argument()
             "--metrics", action="store_true", help="Show performance metrics"
         )
-        perf_parser.add_argument(
+        perf_parser.add_argument()
             "--optimize", action="store_true", help="Optimize cluster performance"
         )
 
@@ -184,7 +184,7 @@ class ClusterCLI:
                     # Service Mesh
                     if "service_mesh" in enhanced:
                         mesh = enhanced["service_mesh"]
-                        logger.info(
+                        logger.info()
                             f"   Service Mesh: {' Enabled' if mesh['enabled'] else ' Disabled'}"
                         )
                         if mesh["enabled"]:
@@ -194,7 +194,7 @@ class ClusterCLI:
                     # Serverless
                     if "serverless" in enhanced:
                         faas = enhanced["serverless"]
-                        logger.info(
+                        logger.info()
                             f"   Serverless: {' Enabled' if faas['enabled'] else ' Disabled'}"
                         )
                         if faas["enabled"]:
@@ -203,14 +203,14 @@ class ClusterCLI:
                     # Predictive Scaling
                     if "predictive_scaling" in enhanced:
                         scaling = enhanced["predictive_scaling"]
-                        logger.info(
+                        logger.info()
                             f"   Predictive Scaling: {' Enabled' if scaling['enabled'] else ' Disabled'}"
                         )
                         if scaling["enabled"]:
-                            logger.info(
+                            logger.info()
                                 f"    Active Services: {scaling['active_services']}"
                             )
-                            logger.info(
+                            logger.info()
                                 f"    Trained Models: {scaling['trained_models']}"
                             )
 
@@ -231,7 +231,7 @@ class ClusterCLI:
 
                     logger.info("\nNode Details:")
                     for node_id, node_info in status.get("nodes", {}).items():
-                        logger.info(
+                        logger.info()
                             f"   {node_id}: {node_info['status']} ({node_info['role']})"
                         )
 
@@ -272,7 +272,7 @@ class ClusterCLI:
                 if topology["services"]:
                     logger.info("\nRegistered Services:")
                     for service in topology["services"]:
-                        logger.info(
+                        logger.info()
                             f"   {service['name']} ({service['protocol']}:{service['port']})"
                         )
 
@@ -283,7 +283,7 @@ class ClusterCLI:
                     logger.info(f"Service: {metrics['service_name']}")
                     logger.info(f"Total Requests: {metrics['total_requests']}")
                     logger.info(f"Success Rate: {metrics['success_rate_percent']:.1f}%")
-                    logger.info(
+                    logger.info()
                         f"Average Latency: {metrics['average_latency_ms']:.1f}ms"
                     )
                     logger.info(f"Circuit Breaker: {metrics['circuit_breaker_state']}")
@@ -291,33 +291,33 @@ class ClusterCLI:
                     logger.info(f" No metrics found for service: {args.metrics}")
 
             elif args.circuit_breaker:
-                success = await service_mesh_manager.configure_circuit_breaker(
+                success = await service_mesh_manager.configure_circuit_breaker()
                     args.circuit_breaker
                 )
                 if success:
-                    logger.info(
+                    logger.info()
                         f" Circuit breaker configured for {args.circuit_breaker}"
                     )
                 else:
-                    logger.info(
+                    logger.info()
                         f" Failed to configure circuit breaker for {args.circuit_breaker}"
                     )
 
             elif args.canary:
-                success = await service_mesh_manager.enable_canary_deployment(
+                success = await service_mesh_manager.enable_canary_deployment()
                     args.canary, "v2", args.traffic_percentage
                 )
                 if success:
-                    logger.info(
+                    logger.info()
                         f" Canary deployment enabled for {args.canary}: {args.traffic_percentage}% traffic"
                     )
                 else:
-                    logger.info(
+                    logger.info()
                         f" Failed to enable canary deployment for {args.canary}"
                     )
 
             else:
-                logger.info(
+                logger.info()
                     "Use --topology, --metrics <service>, --circuit-breaker <service>, or --canary <service>"
                 )
 
@@ -336,26 +336,26 @@ class ClusterCLI:
             if args.status:
                 # Show available regions and workload placements
                 logger.info("Available Cloud Regions:")
-                for (
+                for ()
                     region_id,
                     region,
                 ) in hybrid_cloud_orchestrator.cloud_regions.items():
-                    logger.info(
+                    logger.info()
                         f"   {region_id}: {region.region_name} ({region.provider.value})"
                     )
-                    logger.info(
+                    logger.info()
                         f"    Cost Tier: {region.cost_tier}, Latency: {region.latency_ms}ms"
                     )
 
-                logger.info(
+                logger.info()
                     f"\nActive Workloads: {len(hybrid_cloud_orchestrator.active_placements)}"
                 )
 
-                for (
+                for ()
                     placement_id,
                     placement,
                 ) in hybrid_cloud_orchestrator.active_placements.items():
-                    logger.info(
+                    logger.info()
                         f"   {placement.workload_id}: {placement.target_region.region_name}"
                     )
                     logger.info(f"    Cost: ${placement.cost_estimate:.2f}/hour")
@@ -364,34 +364,34 @@ class ClusterCLI:
                 optimization = await hybrid_cloud_orchestrator.optimize_placements()
 
                 logger.info("Optimization Results:")
-                logger.info(
+                logger.info()
                     f"  Optimized Workloads: {optimization['optimized_workloads']}"
                 )
-                logger.info(
+                logger.info()
                     f"  Potential Cost Savings: ${optimization['cost_savings']:.2f}/hour"
                 )
 
                 if optimization["recommendations"]:
                     logger.info("\nRecommendations:")
                     for rec in optimization["recommendations"]:
-                        logger.info(
+                        logger.info()
                             f"   {rec['workload_id']}: {rec['current_region']}  {rec['recommended_region']}"
                         )
                         logger.info(f"    Savings: ${rec['cost_savings']:.2f}/hour")
 
             elif args.migrate and args.target_region:
-                success = await hybrid_cloud_orchestrator.migrate_workload(
+                success = await hybrid_cloud_orchestrator.migrate_workload()
                     args.migrate, args.target_region
                 )
                 if success:
-                    logger.info(
+                    logger.info()
                         f" Workload {args.migrate} migrated to {args.target_region}"
                     )
                 else:
                     logger.info(f" Failed to migrate workload {args.migrate}")
 
             else:
-                logger.info(
+                logger.info()
                     "Use --status, --optimize, or --migrate <workload> --target-region <region>"
                 )
 

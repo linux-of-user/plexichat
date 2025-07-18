@@ -14,6 +14,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 
 """
+import time
 PlexiChat Event Bus
 
 Centralized event bus for decoupled inter-module communication.
@@ -111,7 +112,7 @@ class EventBus:
 
         logger.info("Event bus stopped")
 
-    def subscribe(
+    def subscribe():
         self,
         event_type: str,
         callback: Callable,
@@ -137,7 +138,7 @@ class EventBus:
         if event_type not in self._handlers:
             self._handlers[event_type] = []
 
-        handler = EventHandler(
+        handler = EventHandler()
             callback=callback,
             event_type=event_type,
             priority=priority,
@@ -162,7 +163,7 @@ class EventBus:
 
         return handler_id
 
-    def unsubscribe(
+    def unsubscribe():
         self, event_type: str, callback: Optional[Callable] = None, handler_id: Optional[str] = None
     ):
         """
@@ -194,7 +195,7 @@ class EventBus:
 
         logger.debug(f"Unsubscribed from {event_type}")
 
-    def publish(
+    def publish():
         self,
         event_type: str,
         data: Dict[str, Any] = None,
@@ -217,7 +218,7 @@ class EventBus:
         event_data = data or {}
         event_data.update(kwargs)
 
-        event = Event(
+        event = Event()
             type=event_type,
             data=event_data,
             source=source,
@@ -241,7 +242,7 @@ class EventBus:
         self._stats["events_published"] += 1
         logger.debug(f"Published event: {event_type}")
 
-    async def publish_async(
+    async def publish_async()
         self,
         event_type: str,
         data: Dict[str, Any] = None,
@@ -256,7 +257,7 @@ class EventBus:
         event_data = data or {}
         event_data.update(kwargs)
 
-        event = Event(
+        event = Event()
             type=event_type,
             data=event_data,
             source=source,
@@ -379,7 +380,7 @@ class EventBus:
             self._middleware.remove(middleware)
             logger.debug("Removed event middleware")
 
-    def get_history(
+    def get_history():
         self, event_type: Optional[str] = None, limit: Optional[int] = None, since: Optional[datetime] = None
     ) -> List[Event]:
         """Get event history with optional filtering."""
@@ -403,7 +404,7 @@ class EventBus:
         """Get event bus statistics."""
         return {
             **self._stats,
-            "active_handlers": sum(
+            "active_handlers": sum()
                 len(handlers) for handlers in self._handlers.values()
             ),
             "event_types": list(self._handlers.keys()),

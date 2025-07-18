@@ -19,11 +19,12 @@ from datetime import datetime
 
 
 from pathlib import Path
-from datetime import datetime
 
 from plexichat.clustering.core.base_node import BaseClusterNode
+from plexichat.infrastructure.modules.interfaces import ModulePriority
 
 """
+import time
 Specialized Main Cluster Node
 
 Dedicated cluster node for core application operations with:
@@ -36,7 +37,7 @@ Dedicated cluster node for core application operations with:
 """
 
 # Import PlexiChat components
-sys.path.append(str(from pathlib import Path
+sys.path.append(str(from pathlib import Path))
 Path(__file__, Optional).parent.parent.parent))
 
 logger = logging.getLogger(__name__)
@@ -138,8 +139,7 @@ class MainClusterNode(BaseClusterNode):
 
     async def process_api_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Process API request on main node."""
-        request_id = request_data.get('request_id', f"req_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}")
+        request_id = request_data.get('request_id', f"req_{int(datetime.now().timestamp())}")
         start_time = datetime.now(timezone.utc)
 
         try:
@@ -227,7 +227,7 @@ datetime = datetime.now().timestamp())}")
     async def _initialize_database_connections(self):
         """Initialize database connection pools."""
         # Primary database connection
-        primary_db = DatabaseConnection(
+        primary_db = DatabaseConnection()
             connection_id="primary",
             database_type="sqlite",
             connection_string="plexichat.db",
@@ -285,7 +285,7 @@ datetime = datetime.now().timestamp())}")
         if total_requests == 1:
             self.performance_metrics['average_request_time'] = processing_time
         else:
-            self.performance_metrics['average_request_time'] = (
+            self.performance_metrics['average_request_time'] = ()
                 (current_avg * (total_requests - 1) + processing_time) / total_requests
             )
 
@@ -378,7 +378,7 @@ datetime = datetime.now().timestamp())}")
                 self.performance_metrics['websocket_connections'] = len(self.websocket_connections)
 
                 # Log performance summary
-                logger.info(f"Main Node {self.node_id} - API Requests: {self.performance_metrics['api_requests_processed']}, "
+                logger.info(f"Main Node {self.node_id} - API Requests: {self.performance_metrics['api_requests_processed']}, ")
                           f"Active Sessions: {self.performance_metrics['active_user_sessions']}, "
                           f"Messages: {self.performance_metrics['messages_processed']}, "
                           f"Avg Request Time: {self.performance_metrics['average_request_time']:.3f}s")

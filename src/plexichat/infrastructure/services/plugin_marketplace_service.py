@@ -57,6 +57,8 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import http.client
+import time
 PlexiChat Plugin Marketplace Service
 
 Comprehensive plugin marketplace with discovery, ratings, reviews, categories,
@@ -147,7 +149,7 @@ class PluginMarketplaceInfo:
     license: str = "Unknown"
     price: float = 0.0  # 0.0 for free plugins
     currency: str = "USD"
-    
+
     # Marketplace specific
     download_count: int = 0
     rating_average: float = 0.0
@@ -155,23 +157,23 @@ class PluginMarketplaceInfo:
     reviews_count: int = 0
     featured: bool = False
     verified: bool = False
-    
+
     # Compatibility
     min_plexichat_version: str = "3.0.0"
     max_plexichat_version: Optional[str] = None
     supported_platforms: List[str] = field(default_factory=lambda: ["windows", "linux", "macos"])
-    
+
     # Metadata
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_download: Optional[datetime] = None
-    
+
     # Files
     download_url: str = ""
     icon_url: Optional[str] = None
     screenshots: List[str] = field(default_factory=list)
     changelog: str = ""
-    
+
     # Security
     checksum: str = ""
     signature: Optional[str] = None
@@ -214,18 +216,18 @@ class PluginDeveloper:
 
 class PluginMarketplaceService:
     """Comprehensive plugin marketplace service."""
-    
+
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or self._load_default_config()
-        self.from pathlib import Path
-data_dir = Path()(self.config.get("data_dir", "data/plugin_marketplace"))
-        self.from pathlib import Path
-cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
-        
+        from pathlib import Path
+self.data_dir = Path(self.config.get("data_dir", "data/plugin_marketplace"))
+        from pathlib import Path
+self.cache_dir = Path(self.config.get("cache_dir", "data/plugin_marketplace/cache"))
+
         # Ensure directories exist
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Data storage
         self.plugins: Dict[str, PluginMarketplaceInfo] = {}
         self.reviews: Dict[str, List[PluginReview]] = {}
@@ -241,7 +243,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
 
         # External services
         self.external_repositories = self.config.get("external_repositories", [])
-        
+
         # Statistics
         self.stats = {
             "total_plugins": 0,
@@ -250,9 +252,9 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
             "active_developers": 0,
             "featured_plugins": 0
         }
-        
+
         logger.info(" Plugin Marketplace Service initialized")
-    
+
     def _load_default_config(self) -> Dict[str, Any]:
         """Load default marketplace configuration."""
         return {
@@ -285,57 +287,57 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                 "scopes": ["plugin:publish", "plugin:manage", "reviews:write"]
             }
         }
-    
+
     async def initialize(self) -> bool:
         """Initialize the marketplace service."""
         try:
             logger.info(" Initializing Plugin Marketplace...")
-            
+
             # Load existing data
             await self._load_marketplace_data()
-            
+
             # Sync with external repositories
             await self._sync_external_repositories()
-            
+
             # Update statistics
             await self._update_statistics()
-            
+
             logger.info(" Plugin Marketplace initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f" Failed to initialize Plugin Marketplace: {e}")
             return False
-    
-    async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,
+
+    async def search_plugins(self, query: str = "", category: Optional[PluginCategory] = None,)
                            tags: Optional[List[str]] = None, sort_by: str = "relevance",
                            limit: int = 20, offset: int = 0) -> Dict[str, Any]:
         """Search plugins in the marketplace."""
         try:
             # Create cache key
-            cache_key = hashlib.md5(
+            cache_key = hashlib.md5()
                 f"{query}_{category}_{tags}_{sort_by}_{limit}_{offset}".encode()
             ).hexdigest()
-            
+
             # Check cache
             if cache_key in self.search_cache:
                 cached_result = self.search_cache[cache_key]
                 if datetime.now(timezone.utc) - cached_result["timestamp"] < timedelta(seconds=self.config["cache_ttl"]):
                     return cached_result["data"]
-            
+
             # Perform search
             results = []
             for plugin in self.plugins.values():
                 if self._matches_search_criteria(plugin, query, category, tags):
                     results.append(plugin)
-            
+
             # Sort results
             results = self._sort_search_results(results, sort_by)
-            
+
             # Apply pagination
             total_count = len(results)
             results = results[offset:offset + limit]
-            
+
             # Prepare response
             response = {
                 "plugins": [self._plugin_to_dict(plugin) for plugin in results],
@@ -348,15 +350,15 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                 "tags": tags or [],
                 "sort_by": sort_by
             }
-            
+
             # Cache result
             self.search_cache[cache_key] = {
                 "data": response,
                 "timestamp": datetime.now(timezone.utc)
             }
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"Plugin search failed: {e}")
             return {
@@ -364,67 +366,67 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                 "total_count": 0,
                 "error": str(e)
             }
-    
+
     async def get_plugin_details(self, plugin_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed information about a specific plugin."""
         try:
             if plugin_id not in self.plugins:
                 return None
-            
+
             plugin = self.plugins[plugin_id]
             plugin_dict = self._plugin_to_dict(plugin)
-            
+
             # Add reviews
             plugin_dict["reviews"] = [
-                self._review_to_dict(review) 
+                self._review_to_dict(review)
                 for review in self.reviews.get(plugin_id, [])
             ]
-            
+
             # Add developer info
             developer = self._find_developer_by_plugin(plugin_id)
             if developer:
                 plugin_dict["developer"] = self._developer_to_dict(developer)
-            
+
             # Add related plugins
             plugin_dict["related_plugins"] = await self._get_related_plugins(plugin_id)
-            
+
             return plugin_dict
-            
+
         except Exception as e:
             logger.error(f"Failed to get plugin details for {plugin_id}: {e}")
             return None
-    
+
     async def get_featured_plugins(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get featured plugins for the marketplace homepage."""
         try:
             featured = [
-                plugin for plugin in self.plugins.values() 
+                plugin for plugin in self.plugins.values()
                 if plugin.featured
             ]
-            
+
             # Sort by rating and download count
-            featured.sort(
+            featured.sort()
                 key=lambda p: (p.rating_average, p.download_count),
                 reverse=True
             )
-            
+
             return [
-                self._plugin_to_dict(plugin) 
+                self._plugin_to_dict(plugin)
                 for plugin in featured[:limit]
             ]
-            
+
         except Exception as e:
             logger.error(f"Failed to get featured plugins: {e}")
             return []
-    
+
     async def get_categories(self) -> Dict[str, Any]:
         """Get plugin categories with counts."""
         try:
             categories = {}
-            
+
             for category in PluginCategory:
-                count = sum(
-                    1 for plugin in self.plugins.values() 
+                count = sum()
+                    1 for plugin in self.plugins.values()
                     if plugin.category == category
                 )
                 categories[category.value] = {
@@ -432,24 +434,24 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                     "count": count,
                     "icon": self._get_category_icon(category)
                 }
-            
+
             return categories
-            
+
         except Exception as e:
             logger.error(f"Failed to get categories: {e}")
             return {}
-    
+
     # Remote plugin installation removed - plugins managed locally through WebUI
-    
-    async def add_review(self, plugin_id: str, user_id: str, username: str,
+
+    async def add_review(self, plugin_id: str, user_id: str, username: str,)
                         rating: PluginRating, title: str, content: str) -> Dict[str, Any]:
         """Add a review for a plugin."""
         try:
             if plugin_id not in self.plugins:
                 return {"success": False, "error": "Plugin not found"}
-            
+
             # Create review
-            review = PluginReview(
+            review = PluginReview()
                 review_id=str(uuid.uuid4()),
                 plugin_id=plugin_id,
                 user_id=user_id,
@@ -458,21 +460,21 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                 title=title,
                 content=content
             )
-            
+
             # Add to reviews
             if plugin_id not in self.reviews:
                 self.reviews[plugin_id] = []
-            
+
             self.reviews[plugin_id].append(review)
-            
+
             # Update plugin rating
             await self._update_plugin_rating(plugin_id)
-            
+
             # Save data
             await self._save_marketplace_data()
 
             # Send webhook notification
-            await self.trigger_webhook(WebhookEvent.REVIEW_ADDED, {
+            await self.trigger_webhook(WebhookEvent.REVIEW_ADDED, {)
                 "review_id": review.review_id,
                 "plugin_id": plugin_id,
                 "plugin_name": self.plugins[plugin_id].name,
@@ -488,11 +490,11 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                 "review_id": review.review_id,
                 "message": "Review added successfully"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to add review: {e}")
             return {"success": False, "error": str(e)}
-    
+
     async def get_marketplace_statistics(self) -> Dict[str, Any]:
         """Get marketplace statistics."""
         await self._update_statistics()
@@ -503,28 +505,28 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
             "top_rated": await self._get_top_rated_plugins(5),
             "most_downloaded": await self._get_most_downloaded_plugins(5)
         }
-    
-    def _matches_search_criteria(self, plugin: PluginMarketplaceInfo, query: str,
+
+    def _matches_search_criteria(self, plugin: PluginMarketplaceInfo, query: str,):
                                 category: Optional[PluginCategory], tags: List[str]) -> bool:
         """Check if plugin matches search criteria."""
         # Category filter
         if category and plugin.category != category:
             return False
-        
+
         # Tags filter
         if tags and not any(tag in plugin.tags for tag in tags):
             return False
-        
+
         # Query filter
         if query:
             query_lower = query.lower()
-            if not any(query_lower in field.lower() for field in [
+            if not any(query_lower in field.lower() for field in [)
                 plugin.name, plugin.description, plugin.author
             ] + plugin.tags):
                 return False
-        
+
         return True
-    
+
     def _sort_search_results(self, results: List[PluginMarketplaceInfo], sort_by: str) -> List[PluginMarketplaceInfo]:
         """Sort search results by specified criteria."""
         if sort_by == "name":
@@ -539,7 +541,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
             return sorted(results, key=lambda p: p.updated_at, reverse=True)
         else:  # relevance (default)
             return sorted(results, key=lambda p: (p.featured, p.rating_average, p.download_count), reverse=True)
-    
+
     def _plugin_to_dict(self, plugin: PluginMarketplaceInfo) -> Dict[str, Any]:
         """Convert plugin info to dictionary."""
         return {
@@ -792,7 +794,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
     async def _get_recent_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
         """Get recently added plugins."""
         try:
-            recent = sorted(
+            recent = sorted()
                 self.plugins.values(),
                 key=lambda p: p.created_at,
                 reverse=True
@@ -805,7 +807,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
     async def _get_top_rated_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
         """Get top-rated plugins."""
         try:
-            top_rated = sorted(
+            top_rated = sorted()
                 [p for p in self.plugins.values() if p.rating_count >= 3],
                 key=lambda p: p.rating_average,
                 reverse=True
@@ -818,7 +820,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
     async def _get_most_downloaded_plugins(self, limit: int = 5) -> List[Dict[str, Any]]:
         """Get most downloaded plugins."""
         try:
-            most_downloaded = sorted(
+            most_downloaded = sorted()
                 self.plugins.values(),
                 key=lambda p: p.download_count,
                 reverse=True
@@ -902,7 +904,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
 
     def _dict_to_plugin(self, data: Dict[str, Any]) -> PluginMarketplaceInfo:
         """Convert dictionary to plugin info."""
-        return PluginMarketplaceInfo(
+        return PluginMarketplaceInfo()
             plugin_id=data["plugin_id"],
             name=data["name"],
             version=data["version"],
@@ -940,7 +942,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
 
     def _dict_to_review(self, data: Dict[str, Any]) -> PluginReview:
         """Convert dictionary to review."""
-        return PluginReview(
+        return PluginReview()
             review_id=data["review_id"],
             plugin_id=data["plugin_id"],
             user_id=data["user_id"],
@@ -956,7 +958,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
 
     def _dict_to_developer(self, data: Dict[str, Any]) -> PluginDeveloper:
         """Convert dictionary to developer."""
-        return PluginDeveloper(
+        return PluginDeveloper()
             developer_id=data["developer_id"],
             username=data["username"],
             email=data["email"],
@@ -1017,7 +1019,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                 return  # Already up to date
 
             # Convert external plugin data to our format
-            plugin = PluginMarketplaceInfo(
+            plugin = PluginMarketplaceInfo()
                 plugin_id=plugin_id,
                 name=plugin_data.get("name", "Unknown Plugin"),
                 version=remote_version,
@@ -1066,7 +1068,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
             webhook_secret = secret or secrets.token_urlsafe(32)
 
             # Create webhook endpoint
-            endpoint = WebhookEndpoint(
+            endpoint = WebhookEndpoint()
                 endpoint_id=endpoint_id,
                 url=url,
                 secret=webhook_secret,
@@ -1126,7 +1128,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
             }
 
             # Generate signature
-            signature = self._generate_webhook_signature(
+            signature = self._generate_webhook_signature()
                 json.dumps(webhook_payload, sort_keys=True),
                 endpoint.secret
             )
@@ -1141,7 +1143,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
             }
 
             async with aiohttp.ClientSession() as session:
-                async with session.post(
+                async with session.post()
                     endpoint.url,
                     json=webhook_payload,
                     headers=headers,
@@ -1150,7 +1152,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
                     response_body = await response.text()
 
                     # Record delivery
-                    delivery = WebhookDelivery(
+                    delivery = WebhookDelivery()
                         delivery_id=delivery_id,
                         endpoint_id=endpoint.endpoint_id,
                         event=event,
@@ -1173,7 +1175,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
 
         except Exception as e:
             # Record failed delivery
-            delivery = WebhookDelivery(
+            delivery = WebhookDelivery()
                 delivery_id=delivery_id,
                 endpoint_id=endpoint.endpoint_id,
                 event=event,
@@ -1188,7 +1190,7 @@ cache_dir = Path()(self.config.get("cache_dir", "data/plugin_marketplace/cache")
 
     def _generate_webhook_signature(self, payload: str, secret: str) -> str:
         """Generate HMAC signature for webhook payload."""
-        signature = hmac.new(
+        signature = hmac.new()
             secret.encode('utf-8'),
             payload.encode('utf-8'),
             hashlib.sha256
@@ -1250,4 +1252,5 @@ def get_plugin_marketplace_service() -> PluginMarketplaceService:
 async def initialize_plugin_marketplace() -> bool:
     """Initialize the plugin marketplace service."""
     service = get_plugin_marketplace_service()
-    return await if service and hasattr(service, "initialize"): service.initialize()
+    if service and hasattr(service, "initialize"):
+        return await service.initialize()

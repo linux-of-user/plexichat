@@ -15,6 +15,7 @@ from ...core.logging import get_logger
 
 
 """
+import time
 Unified Node Manager
 
 Consolidates all backup node management with:
@@ -80,7 +81,7 @@ class UnifiedNodeManager:
         self.initialized = True
         logger.info("Unified Node Manager initialized successfully")
 
-    async def register_node(
+    async def register_node()
         self,
         node_id: str,
         node_type: NodeType,
@@ -129,7 +130,7 @@ class UnifiedNodeManager:
             return True
         return False
 
-    async def get_available_nodes(
+    async def get_available_nodes()
         self, node_type: Optional[NodeType] = None, min_capacity: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """Get list of available nodes matching criteria."""
@@ -183,7 +184,7 @@ class UnifiedNodeManager:
         """Discover existing backup nodes."""
         # Placeholder - in production, this would discover nodes from network
         # For now, register some default nodes
-        await self.register_node(
+        await self.register_node()
             "local_node_1",
             NodeType.HYBRID,
             "http://localhost:8001",

@@ -38,51 +38,51 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class PlexiChatManager:
     """Enhanced PlexiChat manager using EXISTING systems."""
-    
+
     def __init__(self):
         self.performance_logger = performance_logger
         self.modules: Dict[str, bool] = {}
         self.initialized = False
-    
+
     def register_module(self, name: str, status: bool = True):
         """Register module."""
         try:
             self.modules[name] = status
             logger.info(f"Registered module: {name} (status: {status})")
-            
+
             if self.performance_logger:
                 self.performance_logger.record_metric("modules_registered", 1, "count")
-                
+
         except Exception as e:
             logger.error(f"Error registering module {name}: {e}")
-    
+
     def is_available(self, name: str) -> bool:
         """Check if module is available."""
         return self.modules.get(name, False)
-    
+
     def initialize(self):
         """Initialize PlexiChat system."""
         try:
             if self.initialized:
                 return
-            
+
             logger.info("Initializing PlexiChat system...")
-            
+
             # Register core modules
             self._register_core_modules()
-            
+
             # Initialize core systems
             self._initialize_core_systems()
-            
+
             self.initialized = True
             logger.info("PlexiChat system initialized successfully")
-            
+
             if self.performance_logger:
                 self.performance_logger.record_metric("system_initializations", 1, "count")
-                
+
         except Exception as e:
             logger.error(f"Error initializing PlexiChat system: {e}")
-    
+
     def _register_core_modules(self):
         """Register core modules."""
         try:
@@ -92,31 +92,31 @@ class PlexiChatManager:
                 self.register_module("core", True)
             except ImportError:
                 self.register_module("core", False)
-            
+
             # Infrastructure module
             try:
                 from plexichat.infrastructure import infrastructure_manager
                 self.register_module("infrastructure", True)
             except ImportError:
                 self.register_module("infrastructure", False)
-            
+
             # Features module
             try:
                 from plexichat.features import feature_manager
                 self.register_module("features", True)
             except ImportError:
                 self.register_module("features", False)
-            
+
             # Interfaces module
             try:
                 from plexichat.interfaces import interface_manager
                 self.register_module("interfaces", True)
             except ImportError:
                 self.register_module("interfaces", False)
-            
+
         except Exception as e:
             logger.error(f"Error registering core modules: {e}")
-    
+
     def _initialize_core_systems(self):
         """Initialize core systems."""
         try:
@@ -130,7 +130,7 @@ class PlexiChatManager:
                     logger.warning("Database system not available")
                 except Exception as e:
                     logger.error(f"Error initializing database: {e}")
-            
+
             # Initialize performance monitoring if available
             if self.is_available("infrastructure"):
                 try:
@@ -138,10 +138,10 @@ class PlexiChatManager:
                         logger.info("Performance monitoring initialized")
                 except Exception as e:
                     logger.error(f"Error initializing performance monitoring: {e}")
-            
+
         except Exception as e:
             logger.error(f"Error initializing core systems: {e}")
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get system status."""
         return {
@@ -184,7 +184,7 @@ def import_plexichat_modules():
                 logger.info("Core module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import core module: {e}")
-        
+
         # Infrastructure
         if infrastructure_available():
             try:
@@ -192,7 +192,7 @@ def import_plexichat_modules():
                 logger.info("Infrastructure module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import infrastructure module: {e}")
-        
+
         # Features
         if features_available():
             try:
@@ -200,7 +200,7 @@ def import_plexichat_modules():
                 logger.info("Features module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import features module: {e}")
-        
+
         # Interfaces
         if interfaces_available():
             try:
@@ -208,7 +208,7 @@ def import_plexichat_modules():
                 logger.info("Interfaces module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import interfaces module: {e}")
-        
+
     except Exception as e:
         logger.error(f"Error importing PlexiChat modules: {e}")
 

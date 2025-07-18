@@ -28,6 +28,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 PlexiChat Advanced Communication Service
 
 Enhanced communication features including voice messages, reactions,
@@ -141,7 +142,7 @@ class SmartNotification:
 
 class CommunicationService(BaseService):
     """Advanced communication service with enhanced features."""
-    
+
     def __init__(self, config_path: Optional[Path] = None):
         super().__init__("communication")
 
@@ -158,7 +159,7 @@ Path("config/communication.yaml")
 
         # AI manager for smart features
         self.ai_manager = None
-        
+
         # Configuration (will be loaded from config service)
         self.config = {
             # Voice Message Settings
@@ -293,8 +294,8 @@ Path("config/communication.yaml")
         self.config = self._load_configuration()
 
         # Configuration-derived properties
-        self.from pathlib import Path
-voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
+        from pathlib import Path
+self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
         self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
         self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -485,29 +486,29 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
         except Exception as e:
             logger.error(f"Failed to save configuration to {self.config_path}: {e}")
             return False
-        
+
     async def start(self):
         """Start the communication service."""
         try:
             await super().start()
-            
+
             # Initialize AI manager
             self.ai_manager = await get_ai_manager()
-            
+
             # Create voice storage directory
             self.voice_storage_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Start background tasks
             self._cleanup_task = asyncio.create_task(self._cleanup_loop())
             self._notification_task = asyncio.create_task(self._notification_loop())
-            
+
             logger.info(" Communication service started successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to start communication service: {e}")
             self.state = ServiceState.ERROR
             raise
-    
+
     async def stop(self):
         """Stop the communication service."""
         try:
@@ -516,16 +517,16 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
                 self._cleanup_task.cancel()
             if self._notification_task:
                 self._notification_task.cancel()
-            
+
             await super().stop()
             logger.info(" Communication service stopped")
-            
+
         except Exception as e:
             logger.error(f"Error stopping communication service: {e}")
-    
+
     # Voice Message Methods
-    
-    async def create_voice_message(
+
+    async def create_voice_message()
         self,
         user_id: str,
         chat_id: str,
@@ -536,61 +537,61 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
         try:
             if duration > self.max_voice_duration:
                 raise ValueError(f"Voice message too long: {duration}s > {self.max_voice_duration}s")
-            
+
             message_id = str(uuid.uuid4())
             file_path = self.voice_storage_path / f"{message_id}.wav"
-            
+
             # Save audio file
             with open(file_path, 'wb') as f:
                 f.write(audio_data)
-            
+
             # Create voice message
-            voice_message = VoiceMessage(
+            voice_message = VoiceMessage()
                 message_id=message_id,
                 user_id=user_id,
                 chat_id=chat_id,
                 file_path=str(file_path),
                 duration=duration
             )
-            
+
             self.voice_messages[message_id] = voice_message
-            
+
             # Start transcription in background
             asyncio.create_task(self._transcribe_voice_message(message_id))
-            
+
             logger.info(f"Voice message created: {message_id}")
             return voice_message
-            
+
         except Exception as e:
             logger.error(f"Failed to create voice message: {e}")
             raise
-    
+
     async def _transcribe_voice_message(self, message_id: str):
         """Transcribe voice message using AI."""
         try:
             voice_message = self.voice_messages.get(message_id)
             if not voice_message or not self.ai_manager:
                 return
-            
+
             # Use AI to transcribe audio
             transcript = await self.ai_manager.transcribe_audio(voice_message.file_path)
-            
+
             # Update voice message
             voice_message.transcript = transcript
             voice_message.is_transcribed = True
-            
+
             logger.info(f"Voice message transcribed: {message_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to transcribe voice message {message_id}: {e}")
-    
+
     async def get_voice_message(self, message_id: str) -> Optional[VoiceMessage]:
         """Get voice message by ID."""
         return self.voice_messages.get(message_id)
-    
+
     # Message Reaction Methods
-    
-    async def add_reaction(
+
+    async def add_reaction()
         self,
         message_id: str,
         user_id: str,
@@ -603,51 +604,51 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
             for reaction in existing_reactions:
                 if reaction.user_id == user_id and reaction.reaction_type == reaction_type:
                     raise ValueError("User already reacted with this type")
-            
+
             # Create reaction
-            reaction = MessageReaction(
+            reaction = MessageReaction()
                 reaction_id=str(uuid.uuid4()),
                 message_id=message_id,
                 user_id=user_id,
                 reaction_type=reaction_type
             )
-            
+
             if message_id not in self.message_reactions:
                 self.message_reactions[message_id] = []
-            
+
             self.message_reactions[message_id].append(reaction)
-            
+
             logger.info(f"Reaction added: {reaction.reaction_id}")
             return reaction
-            
+
         except Exception as e:
             logger.error(f"Failed to add reaction: {e}")
             raise
-    
+
     async def remove_reaction(self, message_id: str, user_id: str, reaction_type: ReactionType) -> bool:
         """Remove reaction from a message."""
         try:
             reactions = self.message_reactions.get(message_id, [])
-            
+
             for i, reaction in enumerate(reactions):
                 if reaction.user_id == user_id and reaction.reaction_type == reaction_type:
                     reactions.pop(i)
                     logger.info(f"Reaction removed: {reaction.reaction_id}")
                     return True
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"Failed to remove reaction: {e}")
             return False
-    
+
     async def get_message_reactions(self, message_id: str) -> List[MessageReaction]:
         """Get all reactions for a message."""
         return self.message_reactions.get(message_id, [])
-    
+
     # Thread Management Methods
-    
-    async def create_thread(
+
+    async def create_thread()
         self,
         parent_message_id: str,
         chat_id: str,
@@ -657,73 +658,73 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
         """Create a new message thread."""
         try:
             thread_id = str(uuid.uuid4())
-            
-            thread = MessageThread(
+
+            thread = MessageThread()
                 thread_id=thread_id,
                 parent_message_id=parent_message_id,
                 chat_id=chat_id,
                 title=title,
                 created_by=user_id
             )
-            
+
             thread.participants.add(user_id)
             self.message_threads[thread_id] = thread
-            
+
             logger.info(f"Thread created: {thread_id}")
             return thread
-            
+
         except Exception as e:
             logger.error(f"Failed to create thread: {e}")
             raise
-    
+
     async def add_thread_participant(self, thread_id: str, user_id: str) -> bool:
         """Add participant to thread."""
         try:
             thread = self.message_threads.get(thread_id)
             if not thread:
                 return False
-            
+
             thread.participants.add(user_id)
             thread.last_activity = datetime.now(timezone.utc)
-            
+
             logger.info(f"Participant added to thread {thread_id}: {user_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to add thread participant: {e}")
             return False
-    
+
     async def update_thread_status(self, thread_id: str, status: ThreadStatus) -> bool:
         """Update thread status."""
         try:
             thread = self.message_threads.get(thread_id)
             if not thread:
                 return False
-            
+
             thread.status = status
             thread.last_activity = datetime.now(timezone.utc)
-            
+
             logger.info(f"Thread status updated: {thread_id} -> {status.value}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to update thread status: {e}")
             return False
-    
+
     async def get_thread(self, thread_id: str) -> Optional[MessageThread]:
         """Get thread by ID."""
         return self.message_threads.get(thread_id)
-    
+
     async def get_chat_threads(self, chat_id: str) -> List[MessageThread]:
         """Get all threads for a chat."""
         return [
             thread for thread in self.message_threads.values()
             if thread.chat_id == chat_id
         ]
-    
+
     # Translation Methods
-    
-    async def translate_message(
+
+    async def translate_message()
         self,
         message_id: str,
         user_id: str,
@@ -735,10 +736,10 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
         try:
             if target_language not in self.supported_languages:
                 raise ValueError(f"Unsupported target language: {target_language}")
-            
+
             request_id = str(uuid.uuid4())
-            
-            translation_request = TranslationRequest(
+
+            translation_request = TranslationRequest()
                 request_id=request_id,
                 message_id=message_id,
                 user_id=user_id,
@@ -746,50 +747,50 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
                 target_language=target_language,
                 original_text=original_text
             )
-            
+
             self.translations[request_id] = translation_request
-            
+
             # Start translation in background
             asyncio.create_task(self._perform_translation(request_id))
-            
+
             logger.info(f"Translation request created: {request_id}")
             return translation_request
-            
+
         except Exception as e:
             logger.error(f"Failed to create translation request: {e}")
             raise
-    
+
     async def _perform_translation(self, request_id: str):
         """Perform translation using AI."""
         try:
             translation_request = self.translations.get(request_id)
             if not translation_request or not self.ai_manager:
                 return
-            
+
             # Use AI to translate text
-            translated_text, confidence = await self.ai_manager.translate_text(
+            translated_text, confidence = await self.ai_manager.translate_text()
                 translation_request.original_text,
                 translation_request.target_language,
                 translation_request.source_language
             )
-            
+
             # Update translation request
             translation_request.translated_text = translated_text
             translation_request.confidence_score = confidence
             translation_request.completed_at = datetime.now(timezone.utc)
-            
+
             logger.info(f"Translation completed: {request_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to perform translation {request_id}: {e}")
-    
+
     async def get_translation(self, request_id: str) -> Optional[TranslationRequest]:
         """Get translation by request ID."""
         return self.translations.get(request_id)
-    
+
     # Smart Notification Methods
-    
-    async def create_smart_notification(
+
+    async def create_smart_notification()
         self,
         user_id: str,
         message_id: str,
@@ -801,8 +802,8 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
         """Create a smart notification with AI analysis."""
         try:
             notification_id = str(uuid.uuid4())
-            
-            notification = SmartNotification(
+
+            notification = SmartNotification()
                 notification_id=notification_id,
                 user_id=user_id,
                 message_id=message_id,
@@ -811,22 +812,22 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
                 title=title,
                 content=content
             )
-            
+
             if user_id not in self.notifications:
                 self.notifications[user_id] = []
-            
+
             self.notifications[user_id].append(notification)
-            
+
             # Analyze notification with AI
             asyncio.create_task(self._analyze_notification(notification_id))
-            
+
             logger.info(f"Smart notification created: {notification_id}")
             return notification
-            
+
         except Exception as e:
             logger.error(f"Failed to create smart notification: {e}")
             raise
-    
+
     async def _analyze_notification(self, notification_id: str):
         """Analyze notification with AI for smart prioritization."""
         try:
@@ -839,43 +840,43 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
                         break
                 if notification:
                     break
-            
+
             if not notification or not self.ai_manager:
                 return
-            
+
             # Use AI to analyze and summarize
-            analysis = await self.ai_manager.analyze_message_importance(
+            analysis = await self.ai_manager.analyze_message_importance()
                 notification.content,
                 notification.chat_id
             )
-            
+
             # Update notification
             notification.ai_summary = analysis.get("summary")
             notification.action_required = analysis.get("action_required", False)
-            
+
             # Adjust priority based on AI analysis
             importance_score = analysis.get("importance_score", 0.5)
             if importance_score > 0.8:
                 notification.priority = NotificationPriority.URGENT
             elif importance_score > 0.6:
                 notification.priority = NotificationPriority.HIGH
-            
+
             logger.info(f"Notification analyzed: {notification_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to analyze notification {notification_id}: {e}")
-    
-    async def get_user_notifications(
+
+    async def get_user_notifications()
         self,
         user_id: str,
         unread_only: bool = False
     ) -> List[SmartNotification]:
         """Get notifications for a user."""
         notifications = self.notifications.get(user_id, [])
-        
+
         if unread_only:
             notifications = [n for n in notifications if not n.read]
-        
+
         # Sort by priority and creation time
         priority_order = {
             NotificationPriority.URGENT: 0,
@@ -883,106 +884,106 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
             NotificationPriority.NORMAL: 2,
             NotificationPriority.LOW: 3
         }
-        
-        return sorted(
+
+        return sorted()
             notifications,
             key=lambda n: (priority_order[n.priority], n.created_at),
             reverse=True
         )
-    
+
     async def mark_notification_read(self, notification_id: str, user_id: str) -> bool:
         """Mark notification as read."""
         try:
             user_notifications = self.notifications.get(user_id, [])
-            
+
             for notification in user_notifications:
                 if notification.notification_id == notification_id:
                     notification.read = True
                     logger.info(f"Notification marked as read: {notification_id}")
                     return True
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"Failed to mark notification as read: {e}")
             return False
-    
+
     # Background Tasks
-    
+
     async def _cleanup_loop(self):
         """Background cleanup task."""
         while self.state == ServiceState.RUNNING:
             try:
                 await self._cleanup_old_data()
                 await asyncio.sleep(3600)  # Run every hour
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Cleanup loop error: {e}")
                 await asyncio.sleep(300)  # Wait 5 minutes on error
-    
+
     async def _cleanup_old_data(self):
         """Clean up old data."""
         try:
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=30)
-            
+
             # Clean up old translations
             old_translations = [
                 req_id for req_id, req in self.translations.items()
                 if req.created_at < cutoff_date
             ]
-            
+
             for req_id in old_translations:
                 del self.translations[req_id]
-            
+
             # Clean up old notifications
             for user_id, notifications in self.notifications.items():
                 self.notifications[user_id] = [
                     n for n in notifications
                     if n.created_at >= cutoff_date or not n.read
                 ]
-            
+
             if old_translations:
                 logger.info(f"Cleaned up {len(old_translations)} old translations")
-                
+
         except Exception as e:
             logger.error(f"Data cleanup error: {e}")
-    
+
     async def _notification_loop(self):
         """Background notification processing task."""
         while self.state == ServiceState.RUNNING:
             try:
                 await self._process_scheduled_notifications()
                 await asyncio.sleep(60)  # Check every minute
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Notification loop error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _process_scheduled_notifications(self):
         """Process scheduled notifications."""
         try:
             now = datetime.now(timezone.utc)
-            
+
             for user_notifications in self.notifications.values():
                 for notification in user_notifications:
-                    if (notification.scheduled_for and 
-                        notification.scheduled_for <= now and 
+                    if (notification.scheduled_for and )
+                        notification.scheduled_for <= now and
                         not notification.delivered):
-                        
+
                         # Mark as delivered
                         notification.delivered = True
-                        
+
                         # Here you would send the actual notification
                         # (push notification, email, etc.)
                         logger.info(f"Delivered scheduled notification: {notification.notification_id}")
-                        
+
         except Exception as e:
             logger.error(f"Scheduled notification processing error: {e}")
-    
+
     # Configuration Management Methods
 
     async def get_configuration(self) -> Dict[str, Any]:
@@ -996,8 +997,8 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
             self.config = self._deep_merge_config(self.config, config_updates)
 
             # Update derived properties
-            self.from pathlib import Path
-voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
+            from pathlib import Path
+self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
             self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
             self.supported_languages = self.config["translation"]["supported_languages"]
 
@@ -1026,8 +1027,8 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
 
                 # Update derived properties if needed
                 if section == "voice_messages":
-                    self.from pathlib import Path
-voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
+                    from pathlib import Path
+self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                     self.max_voice_duration = self.config["voice_messages"]["max_duration_seconds"]
                     self.voice_storage_path.mkdir(parents=True, exist_ok=True)
                 elif section == "translation":
@@ -1185,15 +1186,15 @@ voice_storage_path = Path()(self.config["voice_messages"]["storage_path"])
 
         communication_health = {
             "voice_messages_count": len(self.voice_messages),
-            "active_threads_count": len([
+            "active_threads_count": len([)
                 t for t in self.message_threads.values()
                 if t.status == ThreadStatus.ACTIVE
             ]),
-            "pending_translations": len([
+            "pending_translations": len([)
                 t for t in self.translations.values()
                 if t.translated_text is None
             ]),
-            "unread_notifications": sum(
+            "unread_notifications": sum()
                 len([n for n in notifications if not n.read])
                 for notifications in self.notifications.values()
             ),
@@ -1220,17 +1221,17 @@ _communication_service = None
 async def get_communication_service() -> CommunicationService:
     """Get the global communication service instance."""
     global _communication_service
-    
+
     if _communication_service is None:
         _communication_service = CommunicationService()
         await if _communication_service and hasattr(_communication_service, "start"): _communication_service.start()
-    
+
     return _communication_service
 
 __all__ = [
     "CommunicationService",
     "MessageType",
-    "ReactionType", 
+    "ReactionType",
     "NotificationPriority",
     "ThreadStatus",
     "VoiceMessage",

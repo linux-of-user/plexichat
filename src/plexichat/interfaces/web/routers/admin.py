@@ -1,4 +1,5 @@
 """
+import time
 PlexiChat Web Admin Router
 
 Web interface for administrative operations.
@@ -20,16 +21,16 @@ except ImportError:
         def __init__(self, *args, **kwargs): pass
         def get(self, *args, **kwargs): return lambda f: f
         def post(self, *args, **kwargs): return lambda f: f
-    
-    class Request: pass
-    class Depends: pass
-    class HTTPException: pass
-    class Form: pass
-    class HTMLResponse: pass
-    class JSONResponse: pass
-    class RedirectResponse: pass
-    class Jinja2Templates: pass
-    class BaseModel: pass
+
+    class Request: pass:
+    class Depends: pass:
+    class HTTPException: pass:
+    class Form: pass:
+    class HTMLResponse: pass:
+    class JSONResponse: pass:
+    class RedirectResponse: pass:
+    class Jinja2Templates: pass:
+    class BaseModel: pass:
     status = type('status', (), {'HTTP_401_UNAUTHORIZED': 401})()
 
 try:
@@ -68,7 +69,7 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
     """Get current authenticated admin from session."""
     if not admin_manager:
         return None
-    
+
     try:
         # Get session token from cookie or header
         token = request.cookies.get("admin_session")
@@ -76,10 +77,10 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
             auth_header = request.headers.get("Authorization")
             if auth_header and auth_header.startswith("Bearer "):
                 token = auth_header[7:]
-        
+
         if not token:
             return None
-        
+
         admin = admin_manager.validate_session(token)
         if admin:
             return {
@@ -89,9 +90,9 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
                 "permissions": admin.permissions,
                 "token": token
             }
-        
+
         return None
-        
+
     except Exception as e:
         logger.error(f"Error getting current admin: {e}")
         return None
@@ -100,7 +101,7 @@ async def require_admin(request: Request) -> Dict[str, Any]:
     """Require admin authentication."""
     admin = await get_current_admin(request)
     if not admin:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Admin authentication required"
         )
@@ -111,9 +112,9 @@ async def admin_dashboard(request: Request, admin: dict = Depends(get_current_ad
     """Admin dashboard page."""
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=302)
-    
+
     if not templates:
-        return HTMLResponse("""
+        return HTMLResponse(""")
         <html>
             <head><title>PlexiChat Admin</title></head>
             <body>
@@ -128,7 +129,7 @@ async def admin_dashboard(request: Request, admin: dict = Depends(get_current_ad
             </body>
         </html>
         """.format(username=admin["username"]))
-    
+
     try:
         context = {
             "request": request,
@@ -147,7 +148,7 @@ async def admin_dashboard(request: Request, admin: dict = Depends(get_current_ad
 async def admin_login_page(request: Request):
     """Admin login page."""
     if not templates:
-        return HTMLResponse("""
+        return HTMLResponse(""")
         <html>
             <head><title>Admin Login</title></head>
             <body>
@@ -168,14 +169,14 @@ async def admin_login_page(request: Request):
             </body>
         </html>
         """)
-    
+
     try:
         return templates.TemplateResponse("admin/login.html", {"request": request})
     except:
         return HTMLResponse("<h1>Admin Login</h1><form method='post'><input name='username' placeholder='Username'><input name='password' type='password' placeholder='Password'><button>Login</button></form>")
 
 @router.post("/login")
-async def admin_login(
+async def admin_login()
     request: Request,
     username: str = Form(...),
     password: str = Form(...)
@@ -183,21 +184,21 @@ async def admin_login(
     """Admin login endpoint."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-    
+
     try:
         # Get client info
         ip_address = request.client.host if hasattr(request, 'client') else None
         user_agent = request.headers.get("User-Agent")
-        
+
         # Authenticate
         token = await admin_manager.authenticate(username, password, ip_address, user_agent)
-        
+
         if not token:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
         # Create response with session cookie
         response = RedirectResponse(url="/admin/", status_code=302)
-        response.set_cookie(
+        response.set_cookie()
             key="admin_session",
             value=token,
             httponly=True,
@@ -205,9 +206,9 @@ async def admin_login(
             samesite="strict",
             max_age=28800  # 8 hours
         )
-        
+
         return response
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -219,16 +220,16 @@ async def admin_logout(request: Request, admin: dict = Depends(require_admin)):
     """Admin logout endpoint."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-    
+
     try:
         token = admin["token"]
         admin_manager.logout(token)
-        
+
         response = RedirectResponse(url="/admin/login", status_code=302)
         response.delete_cookie("admin_session")
-        
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Error during admin logout: {e}")
         raise HTTPException(status_code=500, detail="Logout failed")
@@ -238,16 +239,16 @@ async def admin_users(request: Request, admin: dict = Depends(require_admin)):
     """Admin user management page."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-    
+
     try:
         admins = admin_manager.list_admins()
-        
+
         context = {
             "request": request,
             "admin": admin,
             "admins": admins
         }
-        
+
         if templates:
             return templates.TemplateResponse("admin/users.html", context)
         else:
@@ -257,37 +258,37 @@ async def admin_users(request: Request, admin: dict = Depends(require_admin)):
                 html += f"<li>{a.username} ({a.role}) - {a.email}</li>"
             html += "</ul>"
             return HTMLResponse(html)
-            
+
     except Exception as e:
         logger.error(f"Error loading admin users: {e}")
         raise HTTPException(status_code=500, detail="Failed to load users")
 
 @router.post("/users")
-async def create_admin_user(
+async def create_admin_user()
     request: AdminCreateRequest,
     admin: dict = Depends(require_admin)
 ):
     """Create new admin user."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-    
+
     # Check permissions
     if not admin_manager.has_permission(admin["username"], "user_management"):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
-    
+
     try:
-        success = admin_manager.create_admin(
+        success = admin_manager.create_admin()
             request.username,
             request.email,
             request.password,
             request.role
         )
-        
+
         if success:
             return JSONResponse({"success": True, "message": "Admin user created"})
         else:
             raise HTTPException(status_code=400, detail="Failed to create admin user")
-            
+
     except Exception as e:
         logger.error(f"Error creating admin user: {e}")
         raise HTTPException(status_code=500, detail="Failed to create user")
@@ -302,18 +303,18 @@ async def admin_system(request: Request, admin: dict = Depends(require_admin)):
             "active_sessions": len(admin_manager.sessions) if admin_manager else 0,
             "settings": settings
         }
-        
+
         context = {
             "request": request,
             "admin": admin,
             "system_info": system_info
         }
-        
+
         if templates:
             return templates.TemplateResponse("admin/system.html", context)
         else:
             return JSONResponse(system_info)
-            
+
     except Exception as e:
         logger.error(f"Error loading system info: {e}")
         raise HTTPException(status_code=500, detail="Failed to load system info")
@@ -322,7 +323,7 @@ async def admin_system(request: Request, admin: dict = Depends(require_admin)):
 @router.get("/api/status")
 async def api_status(admin: dict = Depends(require_admin)):
     """Get system status via API."""
-    return JSONResponse({
+    return JSONResponse({)
         "status": "ok",
         "timestamp": datetime.now().isoformat(),
         "admin_count": len(admin_manager.admins) if admin_manager else 0,
@@ -334,9 +335,9 @@ async def api_list_admins(admin: dict = Depends(require_admin)):
     """List admin users via API."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-    
+
     admins = admin_manager.list_admins()
-    return JSONResponse([
+    return JSONResponse([)
         {
             "username": a.username,
             "email": a.email,

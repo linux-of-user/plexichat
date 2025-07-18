@@ -19,13 +19,14 @@ from datetime import datetime
 
 
 from pathlib import Path
-from datetime import datetime
 
 from plexichat.antivirus.core import ScanResult, ScanType
 from plexichat.antivirus.core.antivirus_engine import AdvancedAntivirusEngine
 from plexichat.clustering.core.cluster_node import ClusterNode
+from plexichat.infrastructure.modules.interfaces import ModulePriority
 
 """
+import time
 Specialized Antivirus Cluster Node
 
 Dedicated cluster node for antivirus scanning operations with:
@@ -37,7 +38,7 @@ Dedicated cluster node for antivirus scanning operations with:
 """
 
 # Import PlexiChat components
-sys.path.append(str(from pathlib import Path
+sys.path.append(str(from pathlib import Path))
 Path(__file__).parent.parent.parent))
 
 logger = logging.getLogger(__name__)
@@ -135,7 +136,7 @@ class AntivirusClusterNode(ClusterNode):
 
         logger.info(f"Antivirus Cluster Node {self.node_id} initialized successfully")
 
-    async def submit_scan_request(self, file_path: str, scan_type: ScanType = ScanType.FULL_SCAN,
+    async def submit_scan_request(self, file_path: str, scan_type: ScanType = ScanType.FULL_SCAN,)
                                 priority: ScanPriority = ScanPriority.NORMAL) -> str:
         """
         Submit a scan request to the antivirus cluster.
@@ -148,10 +149,9 @@ class AntivirusClusterNode(ClusterNode):
         Returns:
             Request ID for tracking
         """
-        request_id = f"scan_{self.node_id}_{from datetime import datetime
-datetime = datetime.now().timestamp()}"
+        request_id = f"scan_{self.node_id}_{datetime.now().timestamp()}"
 
-        scan_request = ScanRequest(
+        scan_request = ScanRequest()
             request_id=request_id,
             file_path=file_path,
             scan_type=scan_type,
@@ -232,7 +232,7 @@ datetime = datetime.now().timestamp()}"
     async def get_node_performance(self) -> Dict[str, Any]:
         """Get antivirus node performance metrics."""
         # Update current metrics
-        self.performance_metrics.update({
+        self.performance_metrics.update({)
             'queue_length': len(self.scan_queue),
             'active_scans': len(self.active_scans),
             'last_update': datetime.now(timezone.utc).isoformat()
@@ -267,7 +267,7 @@ datetime = datetime.now().timestamp()}"
         while True:
             try:
                 # Process scan queue
-                while (len(self.active_scans) < self.max_concurrent_scans and
+                while (len(self.active_scans) < self.max_concurrent_scans and)
                        len(self.scan_queue) > 0):
 
                     scan_request = self.scan_queue.pop(0)
@@ -301,7 +301,7 @@ datetime = datetime.now().timestamp()}"
         """Perform the actual antivirus scan."""
         try:
             # Perform scan using antivirus engine
-            scan_result = await self.antivirus_engine.scan_file(
+            scan_result = await self.antivirus_engine.scan_file()
                 scan_request.file_path, scan_request.scan_type
             )
 
@@ -321,7 +321,7 @@ datetime = datetime.now().timestamp()}"
 
             # Share threat intelligence if threat detected
             if scan_result.threat_level.value >= 2:  # Medium risk or higher
-                await self.share_threat_intelligence({
+                await self.share_threat_intelligence({)
                     'threat_id': f"{scan_result.file_hash}_{scan_result.threat_name}",
                     'threat_name': scan_result.threat_name,
                     'threat_type': scan_result.threat_type.value if scan_result.threat_type else None,

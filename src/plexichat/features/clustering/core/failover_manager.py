@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from . import (
+from . import ()
 
 
     FAILOVER_TIMEOUT_SECONDS,
@@ -225,7 +225,7 @@ class AutomaticFailoverManager:
             metrics["performance_score"] = node.performance_score
 
         if failure_type:
-            failure_event = FailureEvent(
+            failure_event = FailureEvent()
                 event_id=f"failure_{secrets.token_hex(8)}",
                 node_id=node_id,
                 failure_type=failure_type,
@@ -264,7 +264,7 @@ class AutomaticFailoverManager:
         # Create rollback plan
         rollback_plan = self._create_rollback_plan(failed_node_id, target_node_id, strategy)
 
-        plan = FailoverPlan(
+        plan = FailoverPlan()
             plan_id=f"plan_{secrets.token_hex(8)}",
             failed_node_id=failed_node_id,
             target_node_id=target_node_id,
@@ -276,7 +276,7 @@ class AutomaticFailoverManager:
             priority=self._calculate_failover_priority(failure_event)
         )
 
-        logger.info(f"Created failover plan {plan.plan_id}: {failed_node_id} -> {target_node_id} "
+        logger.info(f"Created failover plan {plan.plan_id}: {failed_node_id} -> {target_node_id} ")
                    f"using {strategy.value} strategy")
 
         return plan
@@ -286,7 +286,7 @@ class AutomaticFailoverManager:
         available_nodes = []
 
         for node_id, node in self.cluster_manager.cluster_nodes.items():
-            if (node_id != failed_node_id and
+            if (node_id != failed_node_id and)
                 node.status == NodeStatus.ONLINE and
                 node.current_load < 0.8):  # Not overloaded
                 available_nodes.append(node_id)
@@ -340,13 +340,13 @@ class AutomaticFailoverManager:
 
         return base_time.get(strategy, 15.0) * multiplier
 
-    def _create_failover_steps(self, failed_node_id: str, target_node_id: str,
+    def _create_failover_steps(self, failed_node_id: str, target_node_id: str,):
                              strategy: FailoverStrategy) -> List[Dict[str, Any]]:
         """Create detailed failover execution steps."""
         steps = []
 
         # Common steps for all strategies
-        steps.append({
+        steps.append({)
             "step": 1,
             "action": "mark_node_failed",
             "description": f"Mark node {failed_node_id} as failed",
@@ -354,7 +354,7 @@ class AutomaticFailoverManager:
             "timeout_seconds": 5
         })
 
-        steps.append({
+        steps.append({)
             "step": 2,
             "action": "prepare_target_node",
             "description": f"Prepare target node {target_node_id}",
@@ -363,7 +363,7 @@ class AutomaticFailoverManager:
         })
 
         if strategy == FailoverStrategy.GRACEFUL:
-            steps.append({
+            steps.append({)
                 "step": 3,
                 "action": "drain_connections",
                 "description": f"Gracefully drain connections from {failed_node_id}",
@@ -371,7 +371,7 @@ class AutomaticFailoverManager:
                 "timeout_seconds": 30
             })
 
-        steps.append({
+        steps.append({)
             "step": len(steps) + 1,
             "action": "redirect_traffic",
             "description": f"Redirect traffic to {target_node_id}",
@@ -379,7 +379,7 @@ class AutomaticFailoverManager:
             "timeout_seconds": 5
         })
 
-        steps.append({
+        steps.append({)
             "step": len(steps) + 1,
             "action": "verify_failover",
             "description": "Verify failover success",
@@ -389,12 +389,12 @@ class AutomaticFailoverManager:
 
         return steps
 
-    def _create_rollback_plan(self, failed_node_id: str, target_node_id: str,
+    def _create_rollback_plan(self, failed_node_id: str, target_node_id: str,):
                             strategy: FailoverStrategy) -> List[Dict[str, Any]]:
         """Create rollback plan in case failover fails."""
         rollback_steps = []
 
-        rollback_steps.append({
+        rollback_steps.append({)
             "step": 1,
             "action": "restore_original_routing",
             "description": f"Restore traffic routing to {failed_node_id}",
@@ -402,7 +402,7 @@ class AutomaticFailoverManager:
             "timeout_seconds": 10
         })
 
-        rollback_steps.append({
+        rollback_steps.append({)
             "step": 2,
             "action": "mark_node_online",
             "description": f"Mark node {failed_node_id} as online",
@@ -436,7 +436,7 @@ class AutomaticFailoverManager:
 
     async def execute_failover(self, plan: FailoverPlan) -> FailoverExecution:
         """Execute a failover plan."""
-        execution = FailoverExecution(
+        execution = FailoverExecution()
             execution_id=f"exec_{secrets.token_hex(8)}",
             plan_id=plan.plan_id,
             failed_node_id=plan.failed_node_id,
@@ -499,7 +499,7 @@ class AutomaticFailoverManager:
             # Update statistics
             self.total_failovers += 1
             if execution.actual_downtime_seconds:
-                self.average_failover_time = (
+                self.average_failover_time = ()
                     (self.average_failover_time * (self.total_failovers - 1) + execution.actual_downtime_seconds)
                     / self.total_failovers
                 )
@@ -593,7 +593,7 @@ class AutomaticFailoverManager:
         logger.info(f"Manual failover triggered for node {node_id}")
 
         # Create manual failure event
-        failure_event = FailureEvent(
+        failure_event = FailureEvent()
             event_id=f"manual_{secrets.token_hex(8)}",
             node_id=node_id,
             failure_type=FailureType.MANUAL_FAILOVER,
@@ -714,7 +714,7 @@ class AutomaticFailoverManager:
                     if failover.target_node_id in self.cluster_manager.cluster_nodes:
                         node = self.cluster_manager.cluster_nodes[failover.target_node_id]
                         if node.status != NodeStatus.ONLINE or node.current_load > 0.9:
-                            logger.warning(f"Target node {failover.target_node_id} from failover "
+                            logger.warning(f"Target node {failover.target_node_id} from failover ")
                                          f"{failover.execution_id} may need attention")
 
             except Exception as e:

@@ -11,6 +11,7 @@ from .exceptions_auth import AuthenticationError, AuthorizationError
 from fastapi import HTTPException
 
 """
+import http.client
 PlexiChat Authentication Middleware
 
 Middleware for web frameworks to handle authentication automatically.
@@ -61,7 +62,7 @@ class AuthenticationMiddleware:
         auth_context = None
         if token:
             try:
-                auth_context = await auth_manager.require_authentication(
+                auth_context = await auth_manager.require_authentication()
                     token, self.default_security_level
                 )
             except (AuthenticationError, AuthorizationError) as e:
@@ -82,7 +83,7 @@ class AuthenticationMiddleware:
         """Send authentication error response."""
         response_body = f'{{"error": "{message}"}}'.encode()
 
-        await send(
+        await send()
             {
                 "type": "http.response.start",
                 "status": 401,
@@ -93,7 +94,7 @@ class AuthenticationMiddleware:
             }
         )
 
-        await send(
+        await send()
             {
                 "type": "http.response.body",
                 "body": response_body,
@@ -131,7 +132,7 @@ class FlaskAuthMiddleware:
         if token:
             try:
                 loop = asyncio.get_event_loop()
-                g.auth_context = loop.run_until_complete(
+                g.auth_context = loop.run_until_complete()
                     auth_manager.require_authentication(token, "BASIC")
                 )
                 g.authenticated = True

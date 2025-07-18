@@ -15,16 +15,10 @@ from app.core.config.settings import settings
 from app.logger_config import logger
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import time
 Advanced Analytics Engine
 Comprehensive analytics, reporting, and monitoring system.
 """
@@ -148,7 +142,7 @@ class AnalyticsCollector:
         self.metrics = RealTimeMetrics()
         self.session_data: Dict[str, Dict[str, Any]] = {}
         self.user_sessions: Dict[int, List[str]] = defaultdict(list)
-        self.endpoint_stats: Dict[str, Dict[str, Any]] = defaultdict(lambda: {
+        self.endpoint_stats: Dict[str, Dict[str, Any]] = defaultdict(lambda: {)
             "count": 0,
             "total_duration": 0,
             "error_count": 0,
@@ -180,14 +174,14 @@ class AnalyticsCollector:
     def _update_metrics(self, event: AnalyticsEvent):
         """Update real-time metrics."""
         # Increment event counter
-        self.metrics.increment_counter(
+        self.metrics.increment_counter()
             "events.total",
             tags={"type": event.event_type.value}
         )
 
         # Track user activity
         if event.user_id:
-            self.metrics.increment_counter(
+            self.metrics.increment_counter()
                 "users.active",
                 tags={"user_id": str(event.user_id)}
             )
@@ -242,18 +236,17 @@ class AnalyticsCollector:
 
     def get_real_time_stats(self) -> Dict[str, Any]:
         """Get real-time statistics."""
-        from datetime import datetime
 now = datetime.now()
 datetime.utcnow()
 
         # Active sessions (last 30 minutes)
-        active_sessions = sum(
+        active_sessions = sum()
             1 for session in self.session_data.values()
             if (now - session["last_activity"]).total_seconds() < 1800
         )
 
         # Recent events (last 10 minutes)
-        recent_events = sum(
+        recent_events = sum()
             1 for event in self.events
             if (now - event.timestamp).total_seconds() < 600
         )
@@ -274,17 +267,17 @@ datetime.utcnow()
         endpoint_list = []
 
         for endpoint, stats in self.endpoint_stats.items():
-            avg_duration = (
+            avg_duration = ()
                 stats["total_duration"] / stats["count"]
                 if stats["count"] > 0 else 0
             )
 
-            error_rate = (
+            error_rate = ()
                 stats["error_count"] / stats["count"] * 100
                 if stats["count"] > 0 else 0
             )
 
-            endpoint_list.append({
+            endpoint_list.append({)
                 "endpoint": endpoint,
                 "request_count": stats["count"],
                 "error_count": stats["error_count"],
@@ -330,7 +323,6 @@ class AnalyticsDashboard:
 
     async def get_dashboard_data(self) -> Dict[str, Any]:
         """Get comprehensive dashboard data."""
-        from datetime import datetime
 now = datetime.now()
 datetime.utcnow()
 
@@ -394,20 +386,19 @@ datetime.utcnow()
 
     def _calculate_throughput(self) -> Dict[str, float]:
         """Calculate request throughput."""
-        from datetime import datetime
 now = datetime.now()
 datetime.utcnow()
 
         # Requests in last minute
         last_minute = now - timedelta(minutes=1)
-        requests_last_minute = sum(
+        requests_last_minute = sum()
             1 for event in self.collector.events
             if event.event_type == EventType.API_REQUEST and event.timestamp >= last_minute
         )
 
         # Requests in last hour
         last_hour = now - timedelta(hours=1)
-        requests_last_hour = sum(
+        requests_last_hour = sum()
             1 for event in self.collector.events
             if event.event_type == EventType.API_REQUEST and event.timestamp >= last_hour
         )
@@ -441,9 +432,8 @@ class AnalyticsEngine:
         if not self.enabled:
             return
 
-        event = AnalyticsEvent(
+        event = AnalyticsEvent()
             event_type=event_type,
-            from datetime import datetime
 timestamp = datetime.now()
 datetime.utcnow(),
             **kwargs
@@ -451,11 +441,11 @@ datetime.utcnow(),
 
         await self.collector.track_event(event)
 
-    async def track_api_request(self, endpoint: str, method: str, status_code: int,
+    async def track_api_request(self, endpoint: str, method: str, status_code: int,)
                               duration_ms: float, user_id: Optional[int] = None,
                               session_id: Optional[str] = None, ip_address: Optional[str] = None):
         """Track API request."""
-        await self.track_event(
+        await self.track_event()
             EventType.API_REQUEST,
             endpoint=f"{method} {endpoint}",
             duration_ms=duration_ms,
@@ -465,7 +455,7 @@ datetime.utcnow(),
             data={"status_code": status_code, "method": method}
         )
 
-    async def track_user_action(self, action: str, user_id: int,
+    async def track_user_action(self, action: str, user_id: int,)
                               session_id: Optional[str] = None, **data):
         """Track user action."""
         event_type_map = {
@@ -479,7 +469,7 @@ datetime.utcnow(),
 
         event_type = event_type_map.get(action, EventType.API_REQUEST)
 
-        await self.track_event(
+        await self.track_event()
             event_type,
             user_id=user_id,
             session_id=session_id,

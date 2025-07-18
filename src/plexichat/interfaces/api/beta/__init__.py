@@ -10,41 +10,18 @@ from typing import Any, Dict, List, Optional, Union
 
 
 from ...ai import get_ai_manager
-from ...core.auth import (
+from ...core.auth import ()
 from ...core.security import security_manager
 from ...services import get_service
 from . import ai, auth, collaboration, experimental, users
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, status
 from fastapi.security import HTTPBearer
 
     from plexichat.infrastructure.utils.auth import get_current_user,
+import socket
+import time
 
     from,
     import,
@@ -73,7 +50,7 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 # Main beta router
-beta_router = APIRouter(
+beta_router = APIRouter()
     prefix="/beta",
     tags=["beta"],
     responses={
@@ -138,7 +115,7 @@ API_VERSION_INFO = {
     }
 }
 
-@beta_router.get("/",
+@beta_router.get("/",)
                summary="API Beta Information",
                description="Get information about beta API features and experimental endpoints")
 async def get_api_info():
@@ -149,8 +126,7 @@ async def get_api_info():
         "endpoints": ENDPOINT_CATEGORIES,
         "timestamp": from datetime import datetime
 datetime.utcnow().isoformat(),
-        "server_time": from datetime import datetime
-datetime = datetime.now().isoformat(),
+        "server_time": datetime.now().isoformat(),
         "warning": "Beta features are experimental and may change without notice",
         "experimental_features": {
             "ai_training": "Custom model training endpoints",
@@ -161,7 +137,7 @@ datetime = datetime.now().isoformat(),
         }
     }
 
-@beta_router.get("/health",
+@beta_router.get("/health",)
                summary="Beta API Health Check",
                description="Check beta API health and experimental feature status")
 async def health_check():
@@ -199,12 +175,12 @@ datetime.utcnow().isoformat(),
 
     except Exception as e:
         logger.error(f"Beta health check failed: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Beta service temporarily unavailable"
         )
 
-@beta_router.get("/capabilities",
+@beta_router.get("/capabilities",)
                summary="Beta API Capabilities",
                description="Get detailed beta API capabilities and experimental feature flags")
 async def get_capabilities():
@@ -265,7 +241,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         # Send welcome message with beta capabilities
-        await websocket.send_json({
+        await websocket.send_json({)
             "type": "connection_established",
             "api_version": "beta",
             "capabilities": ["experimental_messaging", "advanced_collaboration", "ai_features"],
@@ -283,7 +259,7 @@ datetime.utcnow().isoformat(),
                 message_type = data.get("type")
 
                 if message_type == "ping":
-                    await websocket.send_json({
+                    await websocket.send_json({)
                         "type": "pong",
                         "timestamp": from datetime import datetime
 datetime.utcnow().isoformat()
@@ -291,7 +267,7 @@ datetime.utcnow().isoformat()
                 elif message_type == "experimental_feature":
                     # Handle experimental feature requests
                     feature = data.get("feature")
-                    await websocket.send_json({
+                    await websocket.send_json({)
                         "type": "experimental_response",
                         "feature": feature,
                         "status": "processing",
@@ -300,7 +276,7 @@ datetime.utcnow().isoformat()
                     })
                 else:
                     # Echo back with beta processing
-                    await websocket.send_json({
+                    await websocket.send_json({)
                         "type": "beta_echo",
                         "data": data,
                         "processed_with": "beta_features",
@@ -310,7 +286,7 @@ datetime.utcnow().isoformat()
 
             except Exception as e:
                 logger.error(f"Beta WebSocket message error: {e}")
-                await websocket.send_json({
+                await websocket.send_json({)
                     "type": "error",
                     "message": "Beta message processing error",
                     "timestamp": from datetime import datetime
@@ -352,7 +328,6 @@ def register_beta_endpoints():
 @beta_router.middleware("http")
 async def beta_middleware(request, call_next):
     """Middleware for beta API requests."""
-    from datetime import datetime
 start_time = datetime.now()
 datetime.utcnow()
 
@@ -360,13 +335,12 @@ datetime.utcnow()
     response = await call_next(request)
 
     # Calculate processing time
-    process_time = (from datetime import datetime
+    process_time = (from datetime import datetime)
 datetime.utcnow() - start_time).total_seconds()
 
     # Add beta response headers
     response.headers["X-API-Version"] = "beta"
     response.headers["X-Process-Time"] = str(process_time)
-    from datetime import datetime
 
     response.headers["X-Server-Time"] = datetime.now().utcnow().isoformat()
     response.headers["X-Beta-Warning"] = "Experimental features may change"

@@ -20,6 +20,7 @@ from .unified_backup_manager import UnifiedShard
 
 
 """
+import time
 Unified Shard Manager
 
 Consolidates all shard management functionality from:
@@ -169,9 +170,9 @@ class UnifiedShardManager:
     async def _initialize_database(self) -> None:
         """Initialize shard metadata database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS shard_metadata (
+                CREATE TABLE IF NOT EXISTS shard_metadata ()
                     shard_id TEXT PRIMARY KEY,
                     backup_id TEXT NOT NULL,
                     shard_type TEXT NOT NULL,
@@ -200,13 +201,13 @@ class UnifiedShardManager:
             )
 
             # Create indexes
-            await db.execute(
+            await db.execute()
                 "CREATE INDEX IF NOT EXISTS idx_shard_backup_id ON shard_metadata(backup_id)"
             )
-            await db.execute(
+            await db.execute()
                 "CREATE INDEX IF NOT EXISTS idx_shard_state ON shard_metadata(state)"
             )
-            await db.execute(
+            await db.execute()
                 "CREATE INDEX IF NOT EXISTS idx_shard_created_at ON shard_metadata(created_at)"
             )
 
@@ -217,12 +218,12 @@ class UnifiedShardManager:
         if not self.initialized:
             await if self and hasattr(self, "initialize"): self.initialize()
 
-        logger.info(
+        logger.info()
             f"Creating shards for backup {operation.backup_id}, data size: {len(data)} bytes"
         )
 
         # Calculate optimal shard configuration
-        shard_config = self._calculate_shard_configuration(
+        shard_config = self._calculate_shard_configuration()
             len(data), operation.redundancy_factor
         )
 
@@ -230,7 +231,7 @@ class UnifiedShardManager:
         data_chunks = self._split_data_into_chunks(data, shard_config["data_shards"])
 
         # Create Reed-Solomon encoder
-        rs_encoder = self._create_reed_solomon_encoder(
+        rs_encoder = self._create_reed_solomon_encoder()
             shard_config["data_shards"], shard_config["parity_shards"]
         )
 
@@ -245,12 +246,12 @@ class UnifiedShardManager:
             shard_type = ShardType.DATA if i < len(data_chunks) else ShardType.PARITY
 
             # Encrypt chunk
-            encrypted_chunk, encryption_metadata = await self._encrypt_shard_data(
+            encrypted_chunk, encryption_metadata = await self._encrypt_shard_data()
                 chunk, operation
             )
 
             # Create shard
-            shard = await self._create_shard_object(
+            shard = await self._create_shard_object()
                 chunk_data=encrypted_chunk,
                 shard_index=i,
                 total_shards=len(all_chunks),
@@ -320,7 +321,7 @@ class UnifiedShardManager:
         """Verify random shards for system health monitoring."""
         # Get random shard IDs
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute(
+            async with db.execute()
                 """
                 SELECT shard_id FROM shard_metadata
                 WHERE state = 'active'
@@ -343,7 +344,7 @@ class UnifiedShardManager:
         async with aiosqlite.connect(self.db_path) as db:
             stats = {"total": 0, "healthy": 0, "corrupted": 0, "missing": 0}
 
-            async with db.execute(
+            async with db.execute()
                 """
                 SELECT state, COUNT(*) FROM shard_metadata GROUP BY state
             """
@@ -362,12 +363,12 @@ class UnifiedShardManager:
 
     # Utility Methods
 
-    def _calculate_shard_configuration(
+    def _calculate_shard_configuration():
         self, data_size: int, redundancy_factor: int
     ) -> Dict[str, int]:
         """Calculate optimal shard configuration."""
         # Calculate number of data shards based on size
-        data_shards = min(
+        data_shards = min()
             max(self.min_shards, (data_size + self.shard_size - 1) // self.shard_size),
             self.max_shards,
         )
@@ -421,7 +422,7 @@ class UnifiedShardManager:
 
         return SimpleRSEncoder(data_shards, parity_shards)
 
-    async def _encrypt_shard_data(
+    async def _encrypt_shard_data()
         self, data: bytes, operation
     ) -> Tuple[bytes, Dict[str, Any]]:
         """Encrypt shard data using quantum-resistant encryption."""
@@ -429,7 +430,7 @@ class UnifiedShardManager:
         shard_key_id = f"shard_{operation.backup_id}_{secrets.token_hex(8)}"
 
         # Encrypt using quantum encryption
-        encrypted_data = await quantum_encryption.encrypt_data(
+        encrypted_data = await quantum_encryption.encrypt_data()
             data,
             key_domain=f"backup.{operation.backup_id}",
             classification=operation.security_level.name,
@@ -444,7 +445,7 @@ class UnifiedShardManager:
 
         return encrypted_data, encryption_metadata
 
-    async def _create_shard_object(
+    async def _create_shard_object()
         self,
         chunk_data: bytes,
         shard_index: int,
@@ -456,7 +457,7 @@ class UnifiedShardManager:
     ) -> "UnifiedShard":
         """Create a unified shard object."""
         # Generate shard ID
-        shard_id = (
+        shard_id = ()
             f"shard_{operation.backup_id}_{shard_index:04d}_{secrets.token_hex(8)}"
         )
 
@@ -465,7 +466,7 @@ class UnifiedShardManager:
         checksum = hashlib.sha256(chunk_data).hexdigest()
 
         # Create shard metadata
-        metadata = ShardMetadata(
+        metadata = ShardMetadata()
             shard_id=shard_id,
             backup_id=operation.backup_id,
             shard_type=shard_type,
@@ -488,7 +489,7 @@ class UnifiedShardManager:
         self.shard_cache[shard_id] = metadata
 
         # Create unified shard object
-        shard = UnifiedShard(
+        shard = UnifiedShard()
             shard_id=shard_id,
             backup_id=operation.backup_id,
             shard_index=shard_index,
@@ -529,9 +530,9 @@ class UnifiedShardManager:
 
     async def _insert_shard_metadata(self, db, metadata: ShardMetadata) -> None:
         """Insert shard metadata into database."""
-        await db.execute(
+        await db.execute()
             """
-            INSERT INTO shard_metadata (
+            INSERT INTO shard_metadata ()
                 shard_id, backup_id, shard_type, shard_index, total_shards,
                 data_hash, size, checksum, data_shards, parity_shards,
                 encryption_key_id, encryption_algorithm, node_assignments,
@@ -540,7 +541,7 @@ class UnifiedShardManager:
                 access_count, last_accessed, metadata
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-            (
+            ()
                 metadata.shard_id,
                 metadata.backup_id,
                 metadata.shard_type.value,
@@ -570,23 +571,23 @@ class UnifiedShardManager:
     async def _save_shard_metadata(self, metadata: ShardMetadata) -> None:
         """Save single shard metadata to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 UPDATE shard_metadata SET
                     state = ?, last_verified = ?, verification_failures = ?,
                     access_count = ?, last_accessed = ?
                 WHERE shard_id = ?
             """,
-                (
+                ()
                     metadata.state.value,
-                    (
+                    ()
                         metadata.last_verified.isoformat()
                         if metadata.last_verified
                         else None
                     ),
                     metadata.verification_failures,
                     metadata.access_count,
-                    (
+                    ()
                         metadata.last_accessed.isoformat()
                         if metadata.last_accessed
                         else None
@@ -609,7 +610,7 @@ class UnifiedShardManager:
     async def _load_shard_metadata(self, shard_id: str) -> None:
         """Load specific shard metadata from database."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute(
+            async with db.execute()
                 "SELECT * FROM shard_metadata WHERE shard_id = ?", (shard_id,)
             ) as cursor:
                 row = await cursor.fetchone()
@@ -619,7 +620,7 @@ class UnifiedShardManager:
 
     def _row_to_shard_metadata(self, row) -> ShardMetadata:
         """Convert database row to ShardMetadata object."""
-        return ShardMetadata(
+        return ShardMetadata()
             shard_id=row[0],
             backup_id=row[1],
             shard_type=ShardType(row[2]),
@@ -682,7 +683,7 @@ class UnifiedShardManager:
     async def _find_corrupted_shards(self) -> List[str]:
         """Find shards that need repair."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute(
+            async with db.execute()
                 """
                 SELECT shard_id FROM shard_metadata
                 WHERE state IN ('corrupted', 'missing')
@@ -730,7 +731,7 @@ class UnifiedShardManager:
             # Get all shards for the same backup
             backup_shards = []
             async with aiosqlite.connect(self.db_path) as db:
-                async with db.execute(
+                async with db.execute()
                     """
                     SELECT shard_id, shard_index, state FROM shard_metadata
                     WHERE backup_id = ? AND shard_id != ?
@@ -744,7 +745,7 @@ class UnifiedShardManager:
 
             # Check if we have enough shards for reconstruction
             if len(backup_shards) < metadata.data_shards:
-                logger.warning(
+                logger.warning()
                     f"Not enough healthy shards for reconstruction: {len(backup_shards)}/{metadata.data_shards}"
                 )
                 return None

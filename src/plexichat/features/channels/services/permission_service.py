@@ -48,14 +48,14 @@ class PermissionService:
 
         # Administrator permission grants all permissions
         if permissions & Permissions.ADMINISTRATOR:
-            return (
+            return ()
                 int(Permissions.ADMINISTRATOR) | 0x7FFFFFFFFFFFFFFF
             )  # All permissions
 
         return permissions
 
     @staticmethod
-    def calculate_overwrites(
+    def calculate_overwrites():
         base_permissions: int,
         member: ServerMember,
         roles: List[Role],
@@ -84,8 +84,8 @@ class PermissionService:
         member_roles.sort(key=lambda r: r.position)  # Sort by hierarchy
 
         for role in member_roles:
-            role_overwrite = next(
-                (
+            role_overwrite = next()
+                ()
                     ow
                     for ow in overwrites
                     if ow.target_id == role.role_id
@@ -98,8 +98,8 @@ class PermissionService:
                 permissions |= role_overwrite.allow  # Add allowed permissions
 
         # Apply member-specific overwrites last (highest priority)
-        member_overwrite = next(
-            (
+        member_overwrite = next()
+            ()
                 ow
                 for ow in overwrites
                 if ow.target_id == member.user_id
@@ -114,7 +114,7 @@ class PermissionService:
         return permissions
 
     @staticmethod
-    def calculate_permissions(
+    def calculate_permissions():
         member: ServerMember,
         roles: List[Role],
         overwrites: Optional[List[PermissionOverwrite]] = None,
@@ -135,14 +135,14 @@ class PermissionService:
 
         # Apply channel overwrites if provided
         if overwrites:
-            return PermissionService.calculate_overwrites(
+            return PermissionService.calculate_overwrites()
                 base_permissions, member, roles, overwrites
             )
 
         return base_permissions
 
     @staticmethod
-    def has_permission(
+    def has_permission():
         member: ServerMember,
         roles: List[Role],
         permission: Permissions,
@@ -160,13 +160,13 @@ class PermissionService:
         Returns:
             True if member has the permission
         """
-        final_permissions = PermissionService.calculate_permissions(
+        final_permissions = PermissionService.calculate_permissions()
             member, roles, overwrites
         )
         return bool(final_permissions & permission)
 
     @staticmethod
-    def has_any_permission(
+    def has_any_permission():
         member: ServerMember,
         roles: List[Role],
         permissions: List[Permissions],
@@ -184,13 +184,13 @@ class PermissionService:
         Returns:
             True if member has any of the permissions
         """
-        final_permissions = PermissionService.calculate_permissions(
+        final_permissions = PermissionService.calculate_permissions()
             member, roles, overwrites
         )
         return any(bool(final_permissions & perm) for perm in permissions)
 
     @staticmethod
-    def has_all_permissions(
+    def has_all_permissions():
         member: ServerMember,
         roles: List[Role],
         permissions: List[Permissions],
@@ -208,7 +208,7 @@ class PermissionService:
         Returns:
             True if member has all of the permissions
         """
-        final_permissions = PermissionService.calculate_permissions(
+        final_permissions = PermissionService.calculate_permissions()
             member, roles, overwrites
         )
         return all(bool(final_permissions & perm) for perm in permissions)
@@ -225,12 +225,12 @@ class PermissionService:
         Returns:
             True if member is administrator
         """
-        return PermissionService.has_permission(
+        return PermissionService.has_permission()
             member, roles, Permissions.ADMINISTRATOR
         )
 
     @staticmethod
-    def can_manage_channel(
+    def can_manage_channel():
         member: ServerMember,
         roles: List[Role],
         overwrites: Optional[List[PermissionOverwrite]] = None,
@@ -246,7 +246,7 @@ class PermissionService:
         Returns:
             True if member can manage channels
         """
-        return PermissionService.has_any_permission(
+        return PermissionService.has_any_permission()
             member,
             roles,
             [Permissions.ADMINISTRATOR, Permissions.MANAGE_CHANNELS],
@@ -254,7 +254,7 @@ class PermissionService:
         )
 
     @staticmethod
-    def can_send_messages(
+    def can_send_messages():
         member: ServerMember,
         roles: List[Role],
         overwrites: Optional[List[PermissionOverwrite]] = None,
@@ -270,7 +270,7 @@ class PermissionService:
         Returns:
             True if member can send messages
         """
-        return PermissionService.has_all_permissions(
+        return PermissionService.has_all_permissions()
             member,
             roles,
             [Permissions.VIEW_CHANNEL, Permissions.SEND_MESSAGES],

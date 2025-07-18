@@ -92,13 +92,13 @@ class EnhancedDatabaseWizard:
         self.progress = WizardProgress()
         self.templates = self._load_database_templates()
         self.current_template = None
-        
+
     def _load_database_templates(self) -> Dict[DatabaseType, DatabaseTemplate]:
         """Load database configuration templates."""
         templates = {}
-        
+
         # PostgreSQL
-        templates[DatabaseType.POSTGRESQL] = DatabaseTemplate(
+        templates[DatabaseType.POSTGRESQL] = DatabaseTemplate()
             name="PostgreSQL",
             db_type=DatabaseType.POSTGRESQL,
             category=DatabaseCategory.RELATIONAL,
@@ -128,9 +128,9 @@ class EnhancedDatabaseWizard:
                 "Regular security updates"
             ]
         )
-        
+
         # MongoDB
-        templates[DatabaseType.MONGODB] = DatabaseTemplate(
+        templates[DatabaseType.MONGODB] = DatabaseTemplate()
             name="MongoDB",
             db_type=DatabaseType.MONGODB,
             category=DatabaseCategory.DOCUMENT,
@@ -159,9 +159,9 @@ class EnhancedDatabaseWizard:
                 "Regular backups"
             ]
         )
-        
+
         # Redis
-        templates[DatabaseType.REDIS] = DatabaseTemplate(
+        templates[DatabaseType.REDIS] = DatabaseTemplate()
             name="Redis",
             db_type=DatabaseType.REDIS,
             category=DatabaseCategory.KEY_VALUE,
@@ -190,9 +190,9 @@ class EnhancedDatabaseWizard:
                 "Regular security updates"
             ]
         )
-        
+
         # Elasticsearch
-        templates[DatabaseType.ELASTICSEARCH] = DatabaseTemplate(
+        templates[DatabaseType.ELASTICSEARCH] = DatabaseTemplate()
             name="Elasticsearch",
             db_type=DatabaseType.ELASTICSEARCH,
             category=DatabaseCategory.SEARCH,
@@ -220,16 +220,16 @@ class EnhancedDatabaseWizard:
                 "Set up role-based access"
             ]
         )
-        
+
         # Add more templates for other database types...
-        
+
         return templates
 
     async def start_wizard(self) -> Dict[str, Any]:
         """Start the database setup wizard."""
         self.progress = WizardProgress()
         self.progress.current_step = WizardStep.WELCOME
-        
+
         return {
             "success": True,
             "step": self.progress.current_step,
@@ -252,19 +252,19 @@ class EnhancedDatabaseWizard:
         """Select database type and load template."""
         try:
             db_type = DatabaseType(database_type)
-            
+
             if db_type not in self.templates:
                 return {
                     "success": False,
                     "error": f"Database type {database_type} not supported"
                 }
-            
+
             self.progress.database_type = db_type
             self.current_template = self.templates[db_type]
             self.progress.database_category = self.current_template.category
             self.progress.completed_steps.append(WizardStep.DATABASE_SELECTION)
             self.progress.current_step = WizardStep.CONNECTION_CONFIG
-            
+
             return {
                 "success": True,
                 "step": self.progress.current_step,
@@ -285,7 +285,7 @@ class EnhancedDatabaseWizard:
                     "security_recommendations": self.current_template.security_recommendations
                 }
             }
-            
+
         except ValueError:
             return {
                 "success": False,
@@ -300,28 +300,28 @@ class EnhancedDatabaseWizard:
                     "success": False,
                     "error": "No database type selected"
                 }
-            
+
             # Validate required fields
             missing_fields = []
             for field in self.current_template.required_fields:
                 if field not in config or not config[field]:
                     missing_fields.append(field)
-            
+
             if missing_fields:
                 return {
                     "success": False,
                     "error": f"Missing required fields: {', '.join(missing_fields)}"
                 }
-            
+
             # Merge with default config
             self.progress.connection_config = {
                 **self.current_template.default_config,
                 **config
             }
-            
+
             self.progress.completed_steps.append(WizardStep.CONNECTION_CONFIG)
             self.progress.current_step = WizardStep.AUTHENTICATION
-            
+
             return {
                 "success": True,
                 "step": self.progress.current_step,
@@ -332,7 +332,7 @@ class EnhancedDatabaseWizard:
                     "description": "Configure database authentication and security"
                 }
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
@@ -347,7 +347,7 @@ class EnhancedDatabaseWizard:
                     "success": False,
                     "error": "No connection configuration found"
                 }
-            
+
             # Import appropriate adapter
             adapter_class = self._get_adapter_class(self.progress.database_type)
             if not adapter_class:
@@ -355,22 +355,22 @@ class EnhancedDatabaseWizard:
                     "success": False,
                     "error": f"No adapter available for {self.progress.database_type}"
                 }
-            
+
             # Create adapter and test connection
             adapter = adapter_class(self.progress.connection_config)
             connection_success = await adapter.connect()
-            
+
             if connection_success:
                 # Perform health check
                 health_info = await adapter.health_check()
                 await adapter.disconnect()
-                
+
                 self.progress.test_results = {
                     "connection_success": True,
                     "health_check": health_info,
                     "tested_at": asyncio.get_event_loop().time()
                 }
-                
+
                 return {
                     "success": True,
                     "message": "Database connection successful",
@@ -384,7 +384,7 @@ class EnhancedDatabaseWizard:
                     "error": "Failed to connect to database",
                     "troubleshooting": self._get_troubleshooting_tips()
                 }
-                
+
         except Exception as e:
             logger.error(f"Connection test failed: {e}")
             return {
@@ -395,32 +395,32 @@ class EnhancedDatabaseWizard:
 
     def _get_adapter_class(self, db_type: DatabaseType):
         """Get appropriate adapter class for database type."""
-        from plexichat.core.database.adapters.enhanced_adapters import (
+        from plexichat.core.database.adapters.enhanced_adapters import ()
             RedisAdapter, CassandraAdapter, ElasticsearchAdapter
         )
-        
+
         adapter_map = {
             DatabaseType.REDIS: RedisAdapter,
             DatabaseType.CASSANDRA: CassandraAdapter,
             DatabaseType.ELASTICSEARCH: ElasticsearchAdapter,
             # Add more adapters as they're implemented
         }
-        
+
         return adapter_map.get(db_type)
 
     def _get_connection_recommendations(self, health_info: Dict[str, Any]) -> List[str]:
         """Get recommendations based on connection test results."""
         recommendations = []
-        
+
         if health_info.get("status") == "healthy":
             recommendations.append("✅ Database connection is healthy")
-        
+
         # Add database-specific recommendations
         if self.progress.database_type == DatabaseType.REDIS:
             memory_used = health_info.get("memory_used", "")
             if "MB" in memory_used and int(memory_used.split("MB")[0]) > 1000:
                 recommendations.append("⚠️ Consider monitoring Redis memory usage")
-        
+
         return recommendations
 
     def _get_troubleshooting_tips(self) -> List[str]:
@@ -432,17 +432,17 @@ class EnhancedDatabaseWizard:
             "Ensure firewall allows connections",
             "Check database-specific configuration"
         ]
-        
+
         # Add database-specific tips
         if self.progress.database_type == DatabaseType.POSTGRESQL:
-            tips.extend([
+            tips.extend([)
                 "Check pg_hba.conf for authentication settings",
                 "Verify postgresql.conf allows connections"
             ])
         elif self.progress.database_type == DatabaseType.MONGODB:
-            tips.extend([
+            tips.extend([)
                 "Check MongoDB authentication is enabled",
                 "Verify replica set configuration if using"
             ])
-        
+
         return tips

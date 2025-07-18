@@ -28,6 +28,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 PlexiChat Quantum-Proof Encryption System
 
 Implements post-quantum cryptography with multiple key hierarchies,
@@ -38,9 +39,18 @@ Breaking one key doesn't compromise the entire system.
 # Post-quantum cryptography (using pycryptodome for now, will add real PQC libraries)
 # Standard cryptography
 try:
+    from Crypto.Hash import SHA3_256, SHA3_512
+    from Crypto.Cipher import AES, ChaCha20_Poly1305
+    from Crypto.Random import get_random_bytes
+    from Crypto.Protocol.KDF import Argon2d
 except ImportError:
     # Fallback to argon2-cffi if Argon2d not available in pycryptodome
     Argon2d = None
+    SHA3_256 = None
+    SHA3_512 = None
+    AES = None
+    ChaCha20_Poly1305 = None
+    get_random_bytes = None
 logger = logging.getLogger(__name__)
 
 
@@ -105,7 +115,7 @@ class EncryptionContext:
 class QuantumEncryptionSystem:
     """
     Quantum-Proof Encryption System
-    
+
     Features:
     - Multiple independent key hierarchies
     - Post-quantum cryptographic algorithms
@@ -114,12 +124,12 @@ class QuantumEncryptionSystem:
     - Breaking one key doesn't compromise others
     - End-to-end encryption for all data
     """
-    
+
     def __init__(self, config_dir: str = "config/security"):
-        self.from pathlib import Path
-config_dir = Path()(config_dir)
+        from pathlib import Path
+        self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Key storage
         self.keys_db = self.config_dir / "quantum_keys.db"
         self.master_keys: Dict[str, QuantumKey] = {}
@@ -127,27 +137,27 @@ config_dir = Path()(config_dir)
         self.service_keys: Dict[str, QuantumKey] = {}
         self.session_keys: Dict[str, QuantumKey] = {}
         self.shard_keys: Dict[str, QuantumKey] = {}
-        
+
         # Security configuration
         self.default_security_tier = SecurityTier.QUANTUM_PROOF
         self.key_rotation_interval = timedelta(hours=24)
         self.max_key_age = timedelta(days=30)
-        
+
         # Initialize system (will be called manually during app startup)
         self._initialization_task = None
-    
+
     async def _initialize_system(self):
         """Initialize the quantum encryption system."""
         await self._init_database()
         await self._load_keys()
         await self._ensure_master_keys()
         logger.info(" Quantum encryption system initialized")
-    
+
     async def _init_database(self):
         """Initialize the keys database."""
         async with aiosqlite.connect(self.keys_db) as db:
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS quantum_keys (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS quantum_keys ()
                     key_id TEXT PRIMARY KEY,
                     hierarchy TEXT NOT NULL,
                     algorithm TEXT NOT NULL,
@@ -163,9 +173,9 @@ config_dir = Path()(config_dir)
                     FOREIGN KEY (parent_key_id) REFERENCES quantum_keys (key_id)
                 )
             """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS key_relationships (
+
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS key_relationships ()
                     parent_id TEXT NOT NULL,
                     child_id TEXT NOT NULL,
                     relationship_type TEXT NOT NULL,
@@ -175,9 +185,9 @@ config_dir = Path()(config_dir)
                     FOREIGN KEY (child_id) REFERENCES quantum_keys (key_id)
                 )
             """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS encryption_operations (
+
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS encryption_operations ()
                     operation_id TEXT PRIMARY KEY,
                     data_type TEXT NOT NULL,
                     security_tier INTEGER NOT NULL,
@@ -190,15 +200,15 @@ config_dir = Path()(config_dir)
                     metadata TEXT
                 )
             """)
-            
+
             await db.commit()
-    
+
     async def _load_keys(self):
         """Load keys from database."""
         async with aiosqlite.connect(self.keys_db) as db:
             async with db.execute("SELECT * FROM quantum_keys") as cursor:
                 async for row in cursor:
-                    key = QuantumKey(
+                    key = QuantumKey()
                         key_id=row[0],
                         hierarchy=KeyHierarchy(row[1]),
                         algorithm=QuantumAlgorithm(row[2]),
@@ -212,7 +222,7 @@ config_dir = Path()(config_dir)
                         parent_key_id=row[10],
                         metadata=json.loads(row[11]) if row[11] else {}
                     )
-                    
+
                     # Store in appropriate hierarchy
                     if key.hierarchy == KeyHierarchy.MASTER_KEY:
                         self.master_keys[key.key_id] = key
@@ -224,25 +234,25 @@ config_dir = Path()(config_dir)
                         self.session_keys[key.key_id] = key
                     elif key.hierarchy == KeyHierarchy.SHARD_KEY:
                         self.shard_keys[key.key_id] = key
-    
+
     async def _ensure_master_keys(self):
         """Ensure master keys exist for each security tier."""
         for tier in SecurityTier:
             master_key_id = f"master_{tier.name.lower()}"
             if master_key_id not in self.master_keys:
                 await self._generate_master_key(tier)
-    
+
     async def _generate_master_key(self, security_tier: SecurityTier) -> QuantumKey:
         """Generate a new master key."""
         key_id = f"master_{security_tier.name.lower()}_{secrets.token_hex(8)}"
-        
+
         # Use strongest algorithm for master keys
         algorithm = QuantumAlgorithm.HYBRID_RSA_KYBER
-        
+
         # Generate key material
         key_data = self._generate_key_material(algorithm, security_tier)
-        
-        master_key = QuantumKey(
+
+        master_key = QuantumKey()
             key_id=key_id,
             hierarchy=KeyHierarchy.MASTER_KEY,
             algorithm=algorithm,
@@ -255,13 +265,13 @@ config_dir = Path()(config_dir)
                 "auto_generated": True
             }
         )
-        
+
         self.master_keys[key_id] = master_key
         await self._save_key(master_key)
-        
+
         logger.info(f" Generated master key for {security_tier.name} tier")
         return master_key
-    
+
     def _generate_key_material(self, algorithm: QuantumAlgorithm, security_tier: SecurityTier) -> bytes:
         """Generate key material for the specified algorithm."""
         # Key sizes based on security tier
@@ -272,27 +282,27 @@ config_dir = Path()(config_dir)
             SecurityTier.MILITARY: 768,
             SecurityTier.QUANTUM_PROOF: 1024
         }
-        
+
         key_size = key_sizes[security_tier]
-        
+
         if algorithm == QuantumAlgorithm.HYBRID_RSA_KYBER:
             # Generate hybrid key (RSA + simulated Kyber)
-            rsa_key = rsa.generate_private_key(
+            rsa_key = rsa.generate_private_key()
                 public_exponent=65537,
                 key_size=4096,
                 backend=default_backend()
             )
-            rsa_bytes = rsa_key.private_bytes(
+            rsa_bytes = rsa_key.private_bytes()
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
             )
-            
+
             # Simulate Kyber key (in real implementation, use actual Kyber)
             kyber_key = get_random_bytes(key_size)
-            
+
             return rsa_bytes + b"||KYBER||" + kyber_key
-        
+
         else:
             # Generate random key material
             return get_random_bytes(key_size)
@@ -300,12 +310,12 @@ config_dir = Path()(config_dir)
     async def _save_key(self, key: QuantumKey):
         """Save key to database."""
         async with aiosqlite.connect(self.keys_db) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT OR REPLACE INTO quantum_keys
-                (key_id, hierarchy, algorithm, security_tier, key_data, public_key,
+                (key_id, hierarchy, algorithm, security_tier, key_data, public_key,)
                  salt, created_at, expires_at, rotation_count, parent_key_id, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 key.key_id,
                 key.hierarchy.value,
                 key.algorithm.value,
@@ -347,7 +357,7 @@ config_dir = Path()(config_dir)
         # Layer 1: Service-level encryption
         if encryption_keys.get("service"):
             service_key = encryption_keys["service"]
-            encrypted_data, layer_meta = await self._encrypt_layer(
+            encrypted_data, layer_meta = await self._encrypt_layer()
                 encrypted_data, service_key, "service_layer"
             )
             encryption_metadata["layers"].append(layer_meta)
@@ -357,7 +367,7 @@ config_dir = Path()(config_dir)
         # Layer 2: Domain-level encryption
         if encryption_keys.get("domain"):
             domain_key = encryption_keys["domain"]
-            encrypted_data, layer_meta = await self._encrypt_layer(
+            encrypted_data, layer_meta = await self._encrypt_layer()
                 encrypted_data, domain_key, "domain_layer"
             )
             encryption_metadata["layers"].append(layer_meta)
@@ -367,7 +377,7 @@ config_dir = Path()(config_dir)
         # Layer 3: Session-level encryption (if applicable)
         if encryption_keys.get("session"):
             session_key = encryption_keys["session"]
-            encrypted_data, layer_meta = await self._encrypt_layer(
+            encrypted_data, layer_meta = await self._encrypt_layer()
                 encrypted_data, session_key, "session_layer"
             )
             encryption_metadata["layers"].append(layer_meta)
@@ -382,7 +392,7 @@ config_dir = Path()(config_dir)
         # Combine encrypted data with integrity hash
         final_encrypted = integrity_hash + encrypted_data
 
-        encryption_metadata.update({
+        encryption_metadata.update({)
             "encrypted_size": len(final_encrypted),
             "integrity_hash": base64.b64encode(integrity_hash).decode(),
             "encryption_time": (datetime.now(timezone.utc) - operation_start).total_seconds(),
@@ -435,14 +445,14 @@ config_dir = Path()(config_dir)
         selected_keys = {}
 
         # Always use a service key
-        service_key = await self._get_or_create_service_key(
+        service_key = await self._get_or_create_service_key()
             context.data_type, context.security_tier
         )
         selected_keys["service"] = service_key
 
         # Use domain key for higher security tiers
         if context.security_tier.value >= SecurityTier.GOVERNMENT.value:
-            domain_key = await self._get_or_create_domain_key(
+            domain_key = await self._get_or_create_domain_key()
                 "default", context.security_tier
             )
             selected_keys["domain"] = domain_key
@@ -495,9 +505,9 @@ config_dir = Path()(config_dir)
         # Encrypt session key with RSA (classical part)
         rsa_key = serialization.load_pem_private_key(rsa_key_data, password=None, backend=default_backend())
         rsa_public_key = rsa_key.public_key()
-        rsa_encrypted_key = rsa_public_key.encrypt(
+        rsa_encrypted_key = rsa_public_key.encrypt()
             session_key,
-            padding.OAEP(
+            padding.OAEP()
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                 algorithm=hashes.SHA256(),
                 label=None
@@ -508,7 +518,7 @@ config_dir = Path()(config_dir)
         kyber_encrypted_key = self._simulate_kyber_encrypt(session_key, kyber_key_data)
 
         # Combine all components
-        final_data = (
+        final_data = ()
             len(rsa_encrypted_key).to_bytes(4, 'big') +
             rsa_encrypted_key +
             len(kyber_encrypted_key).to_bytes(4, 'big') +
@@ -565,9 +575,9 @@ config_dir = Path()(config_dir)
 
         # Decrypt session key with RSA
         rsa_key = serialization.load_pem_private_key(rsa_key_data, password=None, backend=default_backend())
-        session_key_rsa = rsa_key.decrypt(
+        session_key_rsa = rsa_key.decrypt()
             rsa_encrypted_key,
-            padding.OAEP(
+            padding.OAEP()
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                 algorithm=hashes.SHA256(),
                 label=None
@@ -655,7 +665,7 @@ config_dir = Path()(config_dir)
         # Create new service key
         master_key = await self._get_master_key(security_tier)
 
-        service_key = QuantumKey(
+        service_key = QuantumKey()
             key_id=f"{key_id}_{secrets.token_hex(4)}",
             hierarchy=KeyHierarchy.SERVICE_KEY,
             algorithm=QuantumAlgorithm.HYBRID_RSA_KYBER,
@@ -686,7 +696,7 @@ config_dir = Path()(config_dir)
         # Create new domain key
         master_key = await self._get_master_key(security_tier)
 
-        domain_key = QuantumKey(
+        domain_key = QuantumKey()
             key_id=f"{key_id}_{secrets.token_hex(4)}",
             hierarchy=KeyHierarchy.DOMAIN_KEY,
             algorithm=QuantumAlgorithm.HYBRID_RSA_KYBER,
@@ -708,7 +718,7 @@ config_dir = Path()(config_dir)
     async def _get_or_create_session_key(self, security_tier: SecurityTier) -> QuantumKey:
         """Get or create a session-level key."""
         # Session keys are always ephemeral
-        session_key = QuantumKey(
+        session_key = QuantumKey()
             key_id=f"session_{secrets.token_hex(8)}",
             hierarchy=KeyHierarchy.SESSION_KEY,
             algorithm=QuantumAlgorithm.HYBRID_RSA_KYBER,
@@ -761,12 +771,12 @@ config_dir = Path()(config_dir)
     async def _log_encryption_operation(self, context: EncryptionContext, metadata: Dict[str, Any]):
         """Log encryption operation for audit purposes."""
         async with aiosqlite.connect(self.keys_db) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT INTO encryption_operations
-                (operation_id, data_type, security_tier, algorithms, key_ids,
+                (operation_id, data_type, security_tier, algorithms, key_ids,)
                  data_size, encrypted_size, operation_time, created_at, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 context.operation_id,
                 context.data_type,
                 context.security_tier.value,
@@ -797,7 +807,7 @@ config_dir = Path()(config_dir)
     async def _rotate_key(self, old_key: QuantumKey):
         """Rotate a single key."""
         # Generate new key with same properties
-        new_key = QuantumKey(
+        new_key = QuantumKey()
             key_id=f"{old_key.key_id.rsplit('_', 1)[0]}_{secrets.token_hex(4)}",
             hierarchy=old_key.hierarchy,
             algorithm=old_key.algorithm,

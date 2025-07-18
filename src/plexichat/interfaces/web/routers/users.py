@@ -4,6 +4,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import time
 PlexiChat Users Router
 
 Enhanced user management with comprehensive CRUD operations and performance optimization.
@@ -64,13 +65,13 @@ optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimization
 # Pydantic models
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
     password: str = Field(..., min_length=6, max_length=100)
     is_admin: bool = False
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
-    email: Optional[str] = Field(None, regex=r'^[^@]+@[^@]+\.[^@]+$')
+    email: Optional[str] = Field(None, pattern=r'^[^@]+@[^@]+\.[^@]+$')
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
 
@@ -91,12 +92,12 @@ class UserListResponse(BaseModel):
 
 class UserService:
     """Service class for user operations using EXISTING database abstraction layer."""
-    
+
     def __init__(self):
         # Use EXISTING database manager
         self.db_manager = database_manager
         self.performance_logger = performance_logger
-    
+
     @async_track_performance("user_creation") if async_track_performance else lambda f: f
     async def create_user(self, user_data: UserCreate) -> UserResponse:
         """Create user using EXISTING database abstraction layer."""
@@ -104,11 +105,11 @@ class UserService:
             try:
                 # Check if username or email already exists
                 check_query = """
-                    SELECT COUNT(*) FROM users 
+                    SELECT COUNT(*) FROM users
                     WHERE username = ? OR email = ?
                 """
                 check_params = {"username": user_data.username, "email": user_data.email}
-                
+
                 if self.performance_logger and timer:
                     with timer("user_existence_check"):
                         result = await self.db_manager.execute_query(check_query, check_params)
@@ -116,13 +117,13 @@ class UserService:
                 else:
                     result = await self.db_manager.execute_query(check_query, check_params)
                     exists = result[0][0] > 0 if result else False
-                
+
                 if exists:
-                    raise HTTPException(
+                    raise HTTPException()
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Username or email already exists"
                     )
-                
+
                 # Create user
                 hashed_password = hash_password(user_data.password)
                 create_query = """
@@ -138,16 +139,16 @@ class UserService:
                     "is_admin": user_data.is_admin,
                     "created_at": datetime.now()
                 }
-                
+
                 if self.performance_logger and timer:
                     with timer("user_creation_query"):
                         result = await self.db_manager.execute_query(create_query, create_params)
                 else:
                     result = await self.db_manager.execute_query(create_query, create_params)
-                
+
                 if result:
                     row = result[0]
-                    return UserResponse(
+                    return UserResponse()
                         id=row[0],
                         username=row[1],
                         email=row[2],
@@ -156,15 +157,15 @@ class UserService:
                         created_at=row[5],
                         last_login=row[6]
                     )
-                    
+
             except HTTPException:
                 raise
             except Exception as e:
                 logger.error(f"Error creating user: {e}")
                 raise HTTPException(status_code=500, detail="Failed to create user")
-        
+
         # Fallback mock user
-        return UserResponse(
+        return UserResponse()
             id=1,
             username=user_data.username,
             email=user_data.email,
@@ -173,7 +174,7 @@ class UserService:
             created_at=datetime.now(),
             last_login=None
         )
-    
+
     @async_track_performance("user_list") if async_track_performance else lambda f: f
     async def list_users(self, limit: int = 50, offset: int = 0, search: Optional[str] = None) -> UserListResponse:
         """List users using EXISTING database abstraction layer."""
@@ -183,7 +184,7 @@ class UserService:
                 if search:
                     query = """
                         SELECT id, username, email, is_active, is_admin, created_at, last_login
-                        FROM users 
+                        FROM users
                         WHERE username LIKE ? OR email LIKE ?
                         ORDER BY created_at DESC
                         LIMIT ? OFFSET ?
@@ -195,21 +196,21 @@ class UserService:
                         "offset": offset
                     }
                     count_query = """
-                        SELECT COUNT(*) FROM users 
+                        SELECT COUNT(*) FROM users
                         WHERE username LIKE ? OR email LIKE ?
                     """
                     count_params = {"search1": f"%{search}%", "search2": f"%{search}%"}
                 else:
                     query = """
                         SELECT id, username, email, is_active, is_admin, created_at, last_login
-                        FROM users 
+                        FROM users
                         ORDER BY created_at DESC
                         LIMIT ? OFFSET ?
                     """
                     params = {"limit": limit, "offset": offset}
                     count_query = "SELECT COUNT(*) FROM users"
                     count_params = {}
-                
+
                 # Get users
                 if self.performance_logger and timer:
                     with timer("user_list_query"):
@@ -218,11 +219,11 @@ class UserService:
                 else:
                     result = await self.db_manager.execute_query(query, params)
                     count_result = await self.db_manager.execute_query(count_query, count_params)
-                
+
                 users = []
                 if result:
                     for row in result:
-                        users.append(UserResponse(
+                        users.append(UserResponse())
                             id=row[0],
                             username=row[1],
                             email=row[2],
@@ -231,22 +232,22 @@ class UserService:
                             created_at=row[5],
                             last_login=row[6]
                         ))
-                
+
                 total_count = count_result[0][0] if count_result else 0
-                
-                return UserListResponse(
+
+                return UserListResponse()
                     users=users,
                     total_count=total_count,
                     page=(offset // limit) + 1,
                     per_page=limit
                 )
-                    
+
             except Exception as e:
                 logger.error(f"Error listing users: {e}")
                 return UserListResponse(users=[], total_count=0, page=1, per_page=limit)
-        
+
         return UserListResponse(users=[], total_count=0, page=1, per_page=limit)
-    
+
     @async_track_performance("user_get") if async_track_performance else lambda f: f
     async def get_user(self, user_id: int) -> UserResponse:
         """Get user by ID using EXISTING database abstraction layer."""
@@ -254,20 +255,20 @@ class UserService:
             try:
                 query = """
                     SELECT id, username, email, is_active, is_admin, created_at, last_login
-                    FROM users 
+                    FROM users
                     WHERE id = ?
                 """
                 params = {"id": user_id}
-                
+
                 if self.performance_logger and timer:
                     with timer("user_get_query"):
                         result = await self.db_manager.execute_query(query, params)
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                
+
                 if result:
                     row = result[0]
-                    return UserResponse(
+                    return UserResponse()
                         id=row[0],
                         username=row[1],
                         email=row[2],
@@ -277,20 +278,20 @@ class UserService:
                         last_login=row[6]
                     )
                 else:
-                    raise HTTPException(
+                    raise HTTPException()
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail="User not found"
                     )
-                    
+
             except HTTPException:
                 raise
             except Exception as e:
                 logger.error(f"Error getting user: {e}")
                 raise HTTPException(status_code=500, detail="Failed to get user")
-        
+
         # Fallback mock user
         if user_id == 1:
-            return UserResponse(
+            return UserResponse()
                 id=1,
                 username="admin",
                 email="admin@example.com",
@@ -300,7 +301,7 @@ class UserService:
                 last_login=None
             )
         else:
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
@@ -308,13 +309,13 @@ class UserService:
 # Initialize service
 user_service = UserService()
 
-@router.post(
+@router.post()
     "/",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create user"
 )
-async def create_user(
+async def create_user()
     request: Request,
     user_data: UserCreate,
     current_user: Dict[str, Any] = Depends(require_admin)
@@ -322,19 +323,19 @@ async def create_user(
     """Create a new user (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"User creation requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("user_creation_requests", 1, "count")
-    
+
     return await user_service.create_user(user_data)
 
-@router.get(
+@router.get()
     "/",
     response_model=UserListResponse,
     summary="List users"
 )
-async def list_users(
+async def list_users()
     request: Request,
     limit: int = Query(50, ge=1, le=100, description="Number of users to retrieve"),
     offset: int = Query(0, ge=0, description="Number of users to skip"),
@@ -344,37 +345,37 @@ async def list_users(
     """List users with pagination and search (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"User list requested by admin {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("user_list_requests", 1, "count")
-    
+
     return await user_service.list_users(limit, offset, search)
 
-@router.get(
+@router.get()
     "/{user_id}",
     response_model=UserResponse,
     summary="Get user"
 )
-async def get_user(
+async def get_user()
     request: Request,
     user_id: int,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Get user by ID (users can view their own profile, admins can view any)."""
     client_ip = request.client.host if request.client else "unknown"
-    
+
     # Check permissions
     if user_id != current_user.get("id") and not current_user.get("is_admin", False):
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this user"
         )
-    
+
     logger.info(f"User {user_id} requested by {current_user.get('username')} from {client_ip}")
-    
+
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("user_get_requests", 1, "count")
-    
+
     return await user_service.get_user(user_id)

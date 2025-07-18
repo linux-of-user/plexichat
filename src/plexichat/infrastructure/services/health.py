@@ -15,20 +15,6 @@ import aiohttp
 
 from ...core.database import database_manager
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 import psutil
 import = psutil psutil
@@ -43,6 +29,7 @@ import = psutil psutil
 import psutil
 
 """
+import http.client
 PlexiChat Health Check Service
 
 Comprehensive health monitoring service for application health and dependencies
@@ -98,7 +85,6 @@ class HealthCheckService:
         self.running = False
         self.check_task = None
         self.failure_threshold = 3
-        self.from datetime import datetime
 startup_time = datetime.now()
 datetime = datetime.now()
 
@@ -121,7 +107,7 @@ datetime = datetime.now()
 
         try:
             # Run the check with timeout
-            result = await asyncio.wait_for(
+            result = await asyncio.wait_for()
                 check.check_function(),
                 timeout=check.timeout
             )
@@ -171,7 +157,7 @@ last_check = datetime.now()
 datetime = datetime.now()
         check.last_status = status
 
-        return HealthResult(
+        return HealthResult()
             name=check.name,
             status=status,
             message=message,
@@ -198,12 +184,11 @@ datetime = datetime.now()
                 self.results[name] = result
             except Exception as e:
                 logger.error(f"Health check {name} failed unexpectedly: {e}")
-                results[name] = HealthResult(
+                results[name] = HealthResult()
                     name=name,
                     status=HealthStatus.UNHEALTHY,
                     message=f"Unexpected error: {e}",
                     duration_ms=0,
-                    from datetime import datetime
 timestamp = datetime.now()
 datetime = datetime.now()
                 )
@@ -237,10 +222,8 @@ datetime = datetime.now()
 
         return {
             "status": overall_status.value,
-            "timestamp": from datetime import datetime
-datetime = datetime.now(),
-            "uptime": (from datetime import datetime
-datetime = datetime.now() - self.startup_time).total_seconds(),
+            "timestamp": datetime.now(),
+            "uptime": (datetime.now() - self.startup_time).total_seconds(),
             "checks": {name: {
                 "status": result.status.value,
                 "message": result.message,
@@ -346,12 +329,11 @@ psutil = psutil.Process()
         while self.running:
             try:
                 # Run checks that are due
-                from datetime import datetime
 current_time = datetime.now()
 datetime = datetime.now()
 
                 for check in self.checks.values():
-                    if (check.last_check is None or
+                    if (check.last_check is None or)
                         (current_time - check.last_check).total_seconds() >= check.interval):
 
                         # Run check in background
@@ -422,14 +404,14 @@ async def api_health_check() -> Dict[str, Any]:
 health_service = HealthCheckService()
 
 # Register default health checks
-health_service.register_check(HealthCheck(
+health_service.register_check(HealthCheck())
     name="database",
     check_function=database_health_check,
     critical=True,
     description="Database connectivity check"
 ))
 
-health_service.register_check(HealthCheck(
+health_service.register_check(HealthCheck())
     name="api",
     check_function=api_health_check,
     critical=True,

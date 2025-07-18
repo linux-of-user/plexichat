@@ -27,6 +27,7 @@ from ..security.quantum_encryption import QuantumEncryptionEngine
 
 
 """
+import time
 PlexiChat Zero-Knowledge Backup Protocol
 
 Client-side encryption where backup nodes never see unencrypted data,
@@ -170,7 +171,7 @@ class ZeroKnowledgeBackupProtocol:
         self.config = config or self._load_default_config()
 
         # Encryption settings
-        self.encryption_algorithm = self.config.get(
+        self.encryption_algorithm = self.config.get()
             "encryption_algorithm", "AES-256-GCM"
         )
         self.key_derivation_method = self.config.get("key_derivation", "scrypt")
@@ -182,17 +183,17 @@ class ZeroKnowledgeBackupProtocol:
         self.proof_validity_hours = self.config.get("proof_validity_hours", 24)
 
         # Deduplication settings
-        self.dedup_method = DeduplicationMethod(
+        self.dedup_method = DeduplicationMethod()
             self.config.get("dedup_method", "convergent_encryption")
         )
         self.enable_deduplication = self.config.get("enable_deduplication", True)
         self.dedup_threshold = self.config.get("dedup_threshold", 0.8)  # 80% similarity
 
         # Privacy settings
-        self.enable_plausible_deniability = self.config.get(
+        self.enable_plausible_deniability = self.config.get()
             "enable_plausible_deniability", True
         )
-        self.dummy_data_ratio = self.config.get(
+        self.dummy_data_ratio = self.config.get()
             "dummy_data_ratio", 0.1
         )  # 10% dummy data
 
@@ -361,7 +362,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to initialize proof system: {e}")
             raise
 
-    async def encrypt_data_for_backup(
+    async def encrypt_data_for_backup()
         self, data: bytes, user_password: Optional[str] = None
     ) -> List[BackupChunk]:
         """Encrypt data using client-side encryption for zero-knowledge backup."""
@@ -393,7 +394,7 @@ class ZeroKnowledgeBackupProtocol:
                         continue
 
                 # Encrypt chunk with client-side encryption
-                encrypted_chunk = await self._encrypt_chunk(
+                encrypted_chunk = await self._encrypt_chunk()
                     chunk_data, encryption_key, i
                 )
 
@@ -409,7 +410,7 @@ class ZeroKnowledgeBackupProtocol:
                 dummy_chunks = await self._generate_dummy_chunks(len(encrypted_chunks))
                 encrypted_chunks.extend(dummy_chunks)
 
-            logger.info(
+            logger.info()
                 f" Encrypted {len(chunks)} chunks ({len(encrypted_chunks)} total with dummies)"
             )
 
@@ -436,7 +437,7 @@ class ZeroKnowledgeBackupProtocol:
                 encrypted_chunks[0]
 
                 # Combine all chunk data (simplified for legacy compatibility)
-                combined_encrypted_data = b"".join(
+                combined_encrypted_data = b"".join()
                     chunk.encrypted_data for chunk in encrypted_chunks
                 )
 
@@ -444,7 +445,7 @@ class ZeroKnowledgeBackupProtocol:
                 dedup_hash = await self._calculate_deduplication_hash(data)
                 if dedup_hash in self.deduplication_cache:
                     logger.info(f" Data deduplicated: {request.backup_id}")
-                    return await self._create_deduplicated_reference(
+                    return await self._create_deduplicated_reference()
                         dedup_hash, request
                     )
 
@@ -452,12 +453,12 @@ class ZeroKnowledgeBackupProtocol:
                 encryption_metadata = await self._generate_encryption_metadata(request)
 
                 # Generate zero-knowledge proofs
-                proofs = await self._generate_proofs(
+                proofs = await self._generate_proofs()
                     data, combined_encrypted_data, encryption_metadata
                 )
 
                 # Create encrypted data object
-                encrypted_obj = EncryptedData(
+                encrypted_obj = EncryptedData()
                     data_id=f"zk_{request.backup_id}_{secrets.token_hex(8)}",
                     encrypted_data=combined_encrypted_data,
                     metadata=encryption_metadata,
@@ -470,7 +471,7 @@ class ZeroKnowledgeBackupProtocol:
                 # Store deduplication reference
                 self.deduplication_cache[dedup_hash] = encrypted_obj.data_id
 
-                logger.info(
+                logger.info()
                     f" Data encrypted with zero-knowledge protocol: {request.backup_id}"
                 )
                 return encrypted_obj
@@ -481,7 +482,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to encrypt data for {request.backup_id}: {e}")
             raise
 
-    async def decrypt_data(
+    async def decrypt_data()
         self, encrypted_obj: EncryptedData, decryption_key: bytes
     ) -> bytes:
         """Decrypt data using zero-knowledge protocol."""
@@ -491,7 +492,7 @@ class ZeroKnowledgeBackupProtocol:
                 raise ValueError("Zero-knowledge proof verification failed")
 
             # Decrypt data
-            decrypted_data = await self._decrypt_with_metadata(
+            decrypted_data = await self._decrypt_with_metadata()
                 encrypted_obj.encrypted_data, encrypted_obj.metadata, decryption_key
             )
 
@@ -506,7 +507,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to decrypt data {encrypted_obj.data_id}: {e}")
             raise
 
-    async def generate_proof_of_storage(
+    async def generate_proof_of_storage()
         self, encrypted_obj: EncryptedData
     ) -> ZeroKnowledgeProof:
         """Generate proof of storage for backup verification."""
@@ -515,17 +516,17 @@ class ZeroKnowledgeBackupProtocol:
             challenge = secrets.token_bytes(self.proof_challenge_size)
 
             # Create response based on encrypted data
-            response = await self._create_storage_proof_response(
+            response = await self._create_storage_proof_response()
                 encrypted_obj.encrypted_data, challenge
             )
 
             # Create verification hash
-            verification_data = (
+            verification_data = ()
                 challenge + response + encrypted_obj.metadata.proof_hash.encode()
             )
             verification_hash = hashlib.sha512(verification_data).hexdigest()
 
-            proof = ZeroKnowledgeProof(
+            proof = ZeroKnowledgeProof()
                 proof_id=f"pos_{secrets.token_hex(16)}",
                 proof_type=ProofType.PROOF_OF_STORAGE,
                 challenge=challenge,
@@ -544,13 +545,13 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to generate proof of storage: {e}")
             raise
 
-    async def verify_proof_of_storage(
+    async def verify_proof_of_storage()
         self, proof: ZeroKnowledgeProof, encrypted_data: bytes
     ) -> bool:
         """Verify proof of storage without accessing original data."""
         try:
             # Recreate response from encrypted data and challenge
-            expected_response = await self._create_storage_proof_response(
+            expected_response = await self._create_storage_proof_response()
                 encrypted_data, proof.challenge
             )
 
@@ -585,16 +586,16 @@ class ZeroKnowledgeBackupProtocol:
         secret_key = b"plexichat_dedup_secret"  # TODO: Use proper key management
         return hmac.new(secret_key, data, hashlib.sha256).hexdigest()
 
-    async def _create_deduplicated_reference(
+    async def _create_deduplicated_reference()
         self, dedup_hash: str, request
     ) -> EncryptedData:
         """Create reference to existing deduplicated data."""
         # TODO: Implement proper deduplication reference
         # For now, create a minimal encrypted data object
-        return EncryptedData(
+        return EncryptedData()
             data_id=f"dedup_{dedup_hash[:16]}",
             encrypted_data=b"deduplicated_reference",
-            metadata=EncryptionMetadata(
+            metadata=EncryptionMetadata()
                 encryption_id="dedup",
                 algorithm="reference",
                 key_derivation="none",
@@ -626,7 +627,7 @@ class ZeroKnowledgeBackupProtocol:
         proof_data = encryption_id + key_id + request.backup_id
         proof_hash = hashlib.sha512(proof_data.encode()).hexdigest()
 
-        return EncryptionMetadata(
+        return EncryptionMetadata()
             encryption_id=encryption_id,
             algorithm="AES-256-GCM",
             key_derivation="PBKDF2-SHA512",
@@ -637,13 +638,13 @@ class ZeroKnowledgeBackupProtocol:
             proof_hash=proof_hash,
         )
 
-    async def _encrypt_with_metadata(
+    async def _encrypt_with_metadata()
         self, data: bytes, metadata: EncryptionMetadata
     ) -> bytes:
         """Encrypt data using metadata parameters."""
         # Derive key from password and salt
         password = b"plexichat_backup_key"  # TODO: Use proper key derivation
-        kdf = PBKDF2HMAC(
+        kdf = PBKDF2HMAC()
             algorithm=hashes.SHA512(),
             length=32,
             salt=metadata.salt,
@@ -656,7 +657,7 @@ class ZeroKnowledgeBackupProtocol:
         self.encryption_keys[metadata.key_id] = key
 
         # Encrypt with AES-GCM
-        cipher = Cipher(
+        cipher = Cipher()
             algorithms.AES(key), modes.GCM(metadata.iv), backend=self.backend
         )
         encryptor = cipher.encryptor()
@@ -668,12 +669,12 @@ class ZeroKnowledgeBackupProtocol:
 
         return ciphertext
 
-    async def _decrypt_with_metadata(
+    async def _decrypt_with_metadata()
         self, encrypted_data: bytes, metadata: EncryptionMetadata, decryption_key: bytes
     ) -> bytes:
         """Decrypt data using metadata parameters."""
         # Create cipher
-        cipher = Cipher(
+        cipher = Cipher()
             algorithms.AES(decryption_key),
             modes.GCM(metadata.iv, metadata.tag),
             backend=self.backend,
@@ -685,7 +686,7 @@ class ZeroKnowledgeBackupProtocol:
 
         return plaintext
 
-    async def _generate_proofs(
+    async def _generate_proofs()
         self, original_data: bytes, encrypted_data: bytes, metadata: EncryptionMetadata
     ) -> List[ZeroKnowledgeProof]:
         """Generate zero-knowledge proofs for the encrypted data."""
@@ -696,14 +697,14 @@ class ZeroKnowledgeBackupProtocol:
         proofs.append(storage_proof)
 
         # Generate proof of integrity
-        integrity_proof = await self._generate_integrity_proof(
+        integrity_proof = await self._generate_integrity_proof()
             original_data, encrypted_data, metadata
         )
         proofs.append(integrity_proof)
 
         return proofs
 
-    async def _generate_storage_proof(
+    async def _generate_storage_proof()
         self, encrypted_data: bytes, metadata: EncryptionMetadata
     ) -> ZeroKnowledgeProof:
         """Generate proof of storage."""
@@ -713,7 +714,7 @@ class ZeroKnowledgeBackupProtocol:
         verification_data = challenge + response
         verification_hash = hashlib.sha512(verification_data).hexdigest()
 
-        return ZeroKnowledgeProof(
+        return ZeroKnowledgeProof()
             proof_id=f"storage_{secrets.token_hex(16)}",
             proof_type=ProofType.PROOF_OF_STORAGE,
             challenge=challenge,
@@ -725,7 +726,7 @@ class ZeroKnowledgeBackupProtocol:
             },
         )
 
-    async def _generate_integrity_proof(
+    async def _generate_integrity_proof()
         self, original_data: bytes, encrypted_data: bytes, metadata: EncryptionMetadata
     ) -> ZeroKnowledgeProof:
         """Generate proof of integrity."""
@@ -740,7 +741,7 @@ class ZeroKnowledgeBackupProtocol:
         verification_data = challenge + response + metadata.proof_hash.encode()
         verification_hash = hashlib.sha512(verification_data).hexdigest()
 
-        return ZeroKnowledgeProof(
+        return ZeroKnowledgeProof()
             proof_id=f"integrity_{secrets.token_hex(16)}",
             proof_type=ProofType.PROOF_OF_INTEGRITY,
             challenge=challenge,
@@ -752,7 +753,7 @@ class ZeroKnowledgeBackupProtocol:
             },
         )
 
-    async def _create_storage_proof_response(
+    async def _create_storage_proof_response()
         self, encrypted_data: bytes, challenge: bytes
     ) -> bytes:
         """Create response for storage proof."""
@@ -768,7 +769,7 @@ class ZeroKnowledgeBackupProtocol:
         """Verify all zero-knowledge proofs."""
         for proof in encrypted_obj.proofs:
             if proof.proof_type == ProofType.PROOF_OF_STORAGE:
-                if not await self.verify_proof_of_storage(
+                if not await self.verify_proof_of_storage()
                     proof, encrypted_obj.encrypted_data
                 ):
                     return False
@@ -778,7 +779,7 @@ class ZeroKnowledgeBackupProtocol:
 
         return True
 
-    async def _verify_integrity_proof(
+    async def _verify_integrity_proof()
         self, proof: ZeroKnowledgeProof, encrypted_obj: EncryptedData
     ) -> bool:
         """Verify integrity proof."""
@@ -788,7 +789,7 @@ class ZeroKnowledgeBackupProtocol:
 
         return hmac.compare_digest(proof.response, expected_response)
 
-    async def _verify_data_integrity(
+    async def _verify_data_integrity()
         self, decrypted_data: bytes, encrypted_obj: EncryptedData
     ) -> bool:
         """Verify data integrity after decryption."""
@@ -823,7 +824,7 @@ class ZeroKnowledgeBackupProtocol:
             salt = secrets.token_bytes(32)
 
             # Use Scrypt for key derivation (memory-hard function)
-            kdf = Scrypt(
+            kdf = Scrypt()
                 algorithm=hashes.SHA256(),
                 length=32,
                 salt=salt,
@@ -851,7 +852,7 @@ class ZeroKnowledgeBackupProtocol:
 
         return chunks
 
-    async def _create_privacy_preserving_hash(
+    async def _create_privacy_preserving_hash()
         self, data: bytes
     ) -> PrivacyPreservingHash:
         """Create privacy-preserving hash for deduplication."""
@@ -867,20 +868,20 @@ class ZeroKnowledgeBackupProtocol:
                 convergent_key = hashlib.sha256(data + salt).digest()
 
                 # Encrypt the hash for privacy
-                cipher = Cipher(
+                cipher = Cipher()
                     algorithms.AES(convergent_key),
                     modes.GCM(secrets.token_bytes(12)),
                     backend=default_backend(),
                 )
                 encryptor = cipher.encryptor()
-                encrypted_hash = (
+                encrypted_hash = ()
                     encryptor.update(content_hash.encode()) + encryptor.finalize()
                 )
 
             elif self.dedup_method == DeduplicationMethod.MESSAGE_LOCKED_ENCRYPTION:
                 # Use message-locked encryption
                 convergent_key = hashlib.sha256(data).digest()
-                encrypted_hash = hmac.new(
+                encrypted_hash = hmac.new()
                     convergent_key, content_hash.encode(), hashlib.sha256
                 ).digest()
 
@@ -889,7 +890,7 @@ class ZeroKnowledgeBackupProtocol:
                 convergent_key = secrets.token_bytes(32)
                 encrypted_hash = hashlib.sha256(content_hash.encode() + salt).digest()
 
-            return PrivacyPreservingHash(
+            return PrivacyPreservingHash()
                 content_hash=content_hash,
                 convergent_key=convergent_key,
                 encrypted_hash=encrypted_hash,
@@ -901,7 +902,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to create privacy-preserving hash: {e}")
             raise
 
-    async def _check_deduplication(
+    async def _check_deduplication()
         self, privacy_hash: PrivacyPreservingHash
     ) -> Optional[BackupChunk]:
         """Check if chunk can be deduplicated."""
@@ -913,7 +914,7 @@ class ZeroKnowledgeBackupProtocol:
                 existing_chunk = self.dedup_database[hash_key]
 
                 # Verify similarity threshold
-                similarity = await self._calculate_similarity(
+                similarity = await self._calculate_similarity()
                     privacy_hash, existing_chunk.privacy_hash
                 )
 
@@ -927,7 +928,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to check deduplication: {e}")
             return None
 
-    async def _calculate_similarity(
+    async def _calculate_similarity()
         self, hash1: PrivacyPreservingHash, hash2: PrivacyPreservingHash
     ) -> float:
         """Calculate similarity between two privacy-preserving hashes."""
@@ -954,7 +955,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to calculate similarity: {e}")
             return 0.0
 
-    async def _encrypt_chunk(
+    async def _encrypt_chunk()
         self, chunk_data: bytes, encryption_key: bytes, chunk_index: int
     ) -> BackupChunk:
         """Encrypt a single chunk with client-side encryption."""
@@ -963,7 +964,7 @@ class ZeroKnowledgeBackupProtocol:
             iv = secrets.token_bytes(12)  # 96-bit IV for GCM
 
             # Create cipher
-            cipher = Cipher(
+            cipher = Cipher()
                 algorithms.AES(encryption_key), modes.GCM(iv), backend=default_backend()
             )
 
@@ -983,7 +984,7 @@ class ZeroKnowledgeBackupProtocol:
             content_hash = hashlib.sha256(chunk_data).hexdigest()
 
             # Create encryption metadata
-            encryption_metadata = ClientSideEncryption(
+            encryption_metadata = ClientSideEncryption()
                 encryption_key=encryption_key,
                 initialization_vector=iv,
                 algorithm=self.encryption_algorithm,
@@ -1006,7 +1007,7 @@ class ZeroKnowledgeBackupProtocol:
             # Create backup chunk
             chunk_id = f"chunk_{secrets.token_hex(16)}"
 
-            backup_chunk = BackupChunk(
+            backup_chunk = BackupChunk()
                 chunk_id=chunk_id,
                 encrypted_data=final_encrypted_data,
                 chunk_hash=chunk_hash,
@@ -1022,7 +1023,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to encrypt chunk {chunk_index}: {e}")
             raise
 
-    async def _store_for_deduplication(
+    async def _store_for_deduplication()
         self, privacy_hash: PrivacyPreservingHash, chunk: BackupChunk
     ):
         """Store chunk in deduplication database."""
@@ -1041,13 +1042,13 @@ class ZeroKnowledgeBackupProtocol:
 
             for i in range(dummy_count):
                 # Generate random dummy data
-                dummy_data = secrets.token_bytes(
+                dummy_data = secrets.token_bytes()
                     self.chunk_size // 2
                 )  # Smaller dummy chunks
 
                 # Encrypt dummy data
                 dummy_key = secrets.token_bytes(32)
-                dummy_chunk = await self._encrypt_chunk(
+                dummy_chunk = await self._encrypt_chunk()
                     dummy_data, dummy_key, -i - 1
                 )  # Negative index for dummies
 
@@ -1056,7 +1057,7 @@ class ZeroKnowledgeBackupProtocol:
 
                 dummy_chunks.append(dummy_chunk)
 
-            logger.debug(
+            logger.debug()
                 f" Generated {dummy_count} dummy chunks for plausible deniability"
             )
 
@@ -1066,7 +1067,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to generate dummy chunks: {e}")
             return []
 
-    async def decrypt_backup_chunks(
+    async def decrypt_backup_chunks()
         self, encrypted_chunks: List[BackupChunk], user_password: Optional[str] = None
     ) -> bytes:
         """Decrypt backup chunks to restore original data."""
@@ -1090,10 +1091,10 @@ class ZeroKnowledgeBackupProtocol:
                 try:
                     # Verify proof of storage if available
                     if chunk.proof_of_storage:
-                        if not await self.verify_proof_of_storage(
+                        if not await self.verify_proof_of_storage()
                             chunk.proof_of_storage, chunk.encrypted_data
                         ):
-                            logger.warning(
+                            logger.warning()
                                 f" Proof of storage verification failed for chunk {chunk.chunk_id}"
                             )
 
@@ -1111,7 +1112,7 @@ class ZeroKnowledgeBackupProtocol:
             # Combine decrypted chunks
             combined_data = b"".join(decrypted_chunks)
 
-            logger.info(
+            logger.info()
                 f" Successfully decrypted {len(decrypted_chunks)} chunks ({len(combined_data)} bytes)"
             )
 
@@ -1121,7 +1122,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to decrypt backup chunks: {e}")
             raise
 
-    async def _decrypt_chunk(
+    async def _decrypt_chunk()
         self, chunk: BackupChunk, user_password: Optional[str] = None
     ) -> bytes:
         """Decrypt a single backup chunk."""
@@ -1140,7 +1141,7 @@ class ZeroKnowledgeBackupProtocol:
             auth_tag = chunk.encrypted_data[-16:]  # Last 16 bytes are auth tag
 
             # Create cipher for decryption
-            cipher = Cipher(
+            cipher = Cipher()
                 algorithms.AES(decryption_key),
                 modes.GCM(metadata.initialization_vector, auth_tag),
                 backend=default_backend(),
@@ -1162,7 +1163,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to decrypt chunk {chunk.chunk_id}: {e}")
             raise
 
-    async def generate_proof_of_storage_for_chunk(
+    async def generate_proof_of_storage_for_chunk()
         self, chunk: BackupChunk
     ) -> ZeroKnowledgeProof:
         """Generate proof of storage for a backup chunk."""
@@ -1171,7 +1172,7 @@ class ZeroKnowledgeBackupProtocol:
             challenge = secrets.token_bytes(self.challenge_size)
 
             # Create response based on encrypted data
-            response = await self._create_storage_proof_response(
+            response = await self._create_storage_proof_response()
                 chunk.encrypted_data, challenge
             )
 
@@ -1184,7 +1185,7 @@ class ZeroKnowledgeBackupProtocol:
             }
 
             # Create verification hash
-            verification_input = (
+            verification_input = ()
                 challenge
                 + response
                 + json.dumps(verification_data, sort_keys=True).encode()
@@ -1192,11 +1193,11 @@ class ZeroKnowledgeBackupProtocol:
             verification_hash = hashlib.sha512(verification_input).hexdigest()
 
             # Set expiration time
-            expires_at = datetime.now(timezone.utc) + timedelta(
+            expires_at = datetime.now(timezone.utc) + timedelta()
                 hours=self.proof_validity_hours
             )
 
-            proof = ZeroKnowledgeProof(
+            proof = ZeroKnowledgeProof()
                 proof_id=f"pos_{secrets.token_hex(16)}",
                 proof_type=ProofType.PROOF_OF_STORAGE,
                 challenge=challenge,
@@ -1225,12 +1226,12 @@ class ZeroKnowledgeBackupProtocol:
             return proof
 
         except Exception as e:
-            logger.error(
+            logger.error()
                 f" Failed to generate proof of storage for chunk {chunk.chunk_id}: {e}"
             )
             raise
 
-    async def verify_proof_of_storage_for_chunk(
+    async def verify_proof_of_storage_for_chunk()
         self, proof: ZeroKnowledgeProof, chunk: BackupChunk
     ) -> bool:
         """Verify proof of storage for a backup chunk."""
@@ -1241,19 +1242,19 @@ class ZeroKnowledgeBackupProtocol:
                 return False
 
             # Recreate response from encrypted data and challenge
-            expected_response = await self._create_storage_proof_response(
+            expected_response = await self._create_storage_proof_response()
                 chunk.encrypted_data, proof.challenge
             )
 
             # Verify response matches
             if not hmac.compare_digest(proof.response, expected_response):
-                logger.warning(
+                logger.warning()
                     f" Proof response verification failed for {proof.proof_id}"
                 )
                 return False
 
             # Verify verification hash
-            verification_input = (
+            verification_input = ()
                 proof.challenge
                 + proof.response
                 + json.dumps(proof.verification_data, sort_keys=True).encode()
@@ -1265,7 +1266,7 @@ class ZeroKnowledgeBackupProtocol:
                 return False
 
             # Verify chunk metadata matches proof
-            if (
+            if ()
                 proof.verification_data.get("chunk_id") != chunk.chunk_id
                 or proof.verification_data.get("chunk_hash") != chunk.chunk_hash
             ):
@@ -1279,7 +1280,7 @@ class ZeroKnowledgeBackupProtocol:
             return True
 
         except Exception as e:
-            logger.error(
+            logger.error()
                 f" Failed to verify proof of storage for chunk {chunk.chunk_id}: {e}"
             )
             return False

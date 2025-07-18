@@ -7,7 +7,7 @@
 # Import from simplified version
 from typing import Optional
 from .ai_abstraction_layer_simple import (
-    AIAbstractionLayer,
+AIAbstractionLayer,
     AIAccessControl,
     AIModel,
     AIProvider,

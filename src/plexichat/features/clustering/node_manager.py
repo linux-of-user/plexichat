@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
+import http.client
 try:
     import redis
 except ImportError:
@@ -25,18 +26,9 @@ except ImportError:
 
 from pathlib import Path
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 import psutil
 from = psutil fastapi import APIRouter, Depends, HTTPException, Request
@@ -215,7 +207,7 @@ Path("config/cluster.json")
                 with open(config_file, 'r') as f:
                     data = json.load(f)
 
-                return ClusterConfig(
+                return ClusterConfig()
                     cluster_id=data.get("cluster_id", "plexichat_cluster"),
                     cluster_name=data.get("cluster_name", "PlexiChat Cluster"),
                     master_nodes=data.get("master_nodes", []),
@@ -232,7 +224,7 @@ Path("config/cluster.json")
                 self.logger.error(f"Failed to load cluster config: {e}")
 
         # Default configuration
-        return ClusterConfig(
+        return ClusterConfig()
             cluster_id="plexichat_cluster",
             cluster_name="PlexiChat Cluster",
             master_nodes=[self.node_id] if self.is_master else [],
@@ -312,7 +304,7 @@ Path("config/cluster.json")
             self.status = NodeStatus.JOINING
 
             # Create node info
-            node_info = NodeInfo(
+            node_info = NodeInfo()
                 node_id=self.node_id,
                 hostname=self.server_info["hostname"],
                 ip_address=self.server_info["ip_address"],
@@ -327,10 +319,8 @@ Path("config/cluster.json")
                 disk_usage=0.0,
                 network_latency=0.0,
                 active_connections=0,
-                from datetime import datetime
 last_heartbeat = datetime.now()
 datetime = datetime.now(),
-                from datetime import datetime
 joined_at = datetime.now()
 datetime = datetime.now(),
                 metadata={}
@@ -378,7 +368,7 @@ datetime = datetime.now(),
         for endpoint in master_endpoints:
             try:
                 async with aiohttp.ClientSession() as session:
-                    async with session.post(
+                    async with session.post()
                         f"http://{endpoint}/api/v1/cluster/join",
                         json=asdict(node_info)
                     ) as response:
@@ -401,7 +391,7 @@ datetime = datetime.now(),
         for node_id, node_data in nodes_data.items():
             self.cluster_nodes[node_id] = NodeInfo(**node_data)
 
-    async def select_target_node(self, request: Optional[Request] = None,
+    async def select_target_node(self, request: Optional[Request] = None,)
                                service_type: str = "api") -> Optional[NodeInfo]:
         """Select the best target node for a request."""
         available_nodes = [
@@ -451,7 +441,7 @@ datetime = datetime.now(),
             connection_score = min(node.active_connections / 1000.0, 1.0)
             latency_score = min(node.network_latency / 1000.0, 1.0)
 
-            return (cpu_score * cpu_weight +
+            return (cpu_score * cpu_weight +)
                    memory_score * memory_weight +
                    connection_score * connections_weight +
                    latency_score * latency_weight)
@@ -483,7 +473,7 @@ datetime = datetime.now(),
         self._weighted_counters[best_index] += 1
         return nodes[best_index]
 
-    async def forward_request(self, target_node: NodeInfo, request: Request,
+    async def forward_request(self, target_node: NodeInfo, request: Request,)
                             path: str, method: str = "GET") -> Dict[str, Any]:
         """Forward request to target node."""
         try:
@@ -504,7 +494,7 @@ datetime = datetime.now(),
             async with aiohttp.ClientSession() as session:
                 start_time = time.time()
 
-                async with session.request(
+                async with session.request()
                     method=method,
                     url=url,
                     headers=headers,
@@ -574,8 +564,7 @@ datetime = datetime.now()
             if self.redis_client:
                 heartbeat_data = {
                     "node_id": self.node_id,
-                    "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat(),
+                    "timestamp": datetime.now().isoformat(),
                     "status": self.status.value,
                     "metrics": {
                         "cpu_usage": import psutil
@@ -588,7 +577,7 @@ psutil = psutil.disk_usage('/').percent,
                     }
                 }
 
-                self.redis_client.setex(
+                self.redis_client.setex()
                     f"heartbeat:{self.node_id}",
                     self.config.heartbeat_interval * 2,
                     json.dumps(heartbeat_data)
@@ -616,7 +605,6 @@ psutil = psutil.disk_usage('/').percent,
         if not self.redis_client:
             return
 
-        from datetime import datetime
 current_time = datetime.now()
 datetime = datetime.now()
         timeout_threshold = timedelta(seconds=self.config.failure_timeout)
@@ -712,7 +700,7 @@ async def join_cluster_endpoint(node_data: dict, node_mgr: NodeManager = Depends
 
         node_mgr.logger.info(f"Node {node_info.node_id} joined cluster")
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": "Node joined cluster successfully",
             "cluster_data": {
@@ -730,7 +718,7 @@ async def get_cluster_status(node_mgr: NodeManager = Depends(get_node_manager)):
     """Get cluster status."""
     try:
         status = node_mgr.get_cluster_status()
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "cluster_status": status
         })
@@ -743,7 +731,7 @@ async def list_cluster_nodes(node_mgr: NodeManager = Depends(get_node_manager)):
     try:
         nodes = []
         for node_id, node in node_mgr.cluster_nodes.items():
-            nodes.append({
+            nodes.append({)
                 "node_id": node_id,
                 "hostname": node.hostname,
                 "ip_address": node.ip_address,
@@ -761,7 +749,7 @@ async def list_cluster_nodes(node_mgr: NodeManager = Depends(get_node_manager)):
                 "joined_at": node.joined_at.isoformat()
             })
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "nodes": nodes,
             "total_nodes": len(nodes)
@@ -789,7 +777,7 @@ async def remove_node(node_id: str, node_mgr: NodeManager = Depends(get_node_man
 
         asyncio.create_task(remove_after_grace_period())
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": f"Node {node_id} marked for removal"
         })
@@ -806,7 +794,7 @@ async def set_load_balance_strategy(strategy: str, node_mgr: NodeManager = Depen
         strategy_enum = LoadBalanceStrategy(strategy)
         node_mgr.load_balance_strategy = strategy_enum
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "message": f"Load balance strategy set to {strategy}",
             "current_strategy": strategy
@@ -814,7 +802,7 @@ async def set_load_balance_strategy(strategy: str, node_mgr: NodeManager = Depen
 
     except ValueError:
         valid_strategies = [s.value for s in LoadBalanceStrategy]
-        raise HTTPException(
+        raise HTTPException()
             status_code=400,
             detail=f"Invalid strategy. Valid options: {valid_strategies}"
         )
@@ -849,7 +837,7 @@ async def get_cluster_metrics(node_mgr: NodeManager = Depends(get_node_manager))
                 "average_response_time": metrics["average_response_times"].get(node_id, 0)
             }
 
-        return JSONResponse({
+        return JSONResponse({)
             "success": True,
             "metrics": metrics
         })
@@ -873,7 +861,7 @@ async def proxy_request(path: str, request: Request, node_mgr: NodeManager = Dep
         # Forward request
         result = await node_mgr.forward_request(target_node, request, f"/{path}", request.method)
 
-        return JSONResponse(
+        return JSONResponse()
             content=json.loads(result["body"]) if result["body"] else {},
             status_code=result["status_code"],
             headers=dict(result["headers"])
@@ -915,18 +903,18 @@ class LoadBalancingMiddleware:
                 target_node = await self.node_manager.select_target_node(request, "api")
                 if target_node and target_node.node_id != self.node_manager.node_id:
                     # Proxy the request
-                    result = await self.node_manager.forward_request(
+                    result = await self.node_manager.forward_request()
                         target_node, request, request.url.path, request.method
                     )
 
                     # Send proxied response
-                    await send({
+                    await send({)
                         "type": "http.response.start",
                         "status": result["status_code"],
                         "headers": [[k.encode(), v.encode()] for k, v in result["headers"].items()],
                     })
 
-                    await send({
+                    await send({)
                         "type": "http.response.body",
                         "body": result["body"].encode() if isinstance(result["body"], str) else result["body"],
                     })

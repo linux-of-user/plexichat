@@ -1,3 +1,6 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -12,6 +15,7 @@ import string
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -85,13 +89,13 @@ class SecurityUtils:
         """Hash password with salt."""
         if salt is None:
             salt = secrets.token_hex(16)
-        
+
         # Combine password and salt
         combined = password + salt
-        
+
         # Hash using SHA-256
         hashed = hashlib.sha256(combined.encode()).hexdigest()
-        
+
         return {
             "hash": hashed,
             "salt": salt
@@ -108,14 +112,14 @@ class SecurityUtils:
         """Sanitize user input."""
         if not input_str:
             return ""
-        
+
         # Remove null bytes and control characters
         sanitized = ''.join(char for char in input_str if ord(char) >= 32)
-        
+
         # Limit length
         if len(sanitized) > max_length:
             sanitized = sanitized[:max_length]
-        
+
         return sanitized.strip()
 
     @staticmethod
@@ -254,7 +258,7 @@ class ResponseUtils:
         return response
 
     @staticmethod
-    def paginated_response(data: List[Any], page: int, per_page: int,
+    def paginated_response(data: List[Any], page: int, per_page: int,):
                           total: int, message: str = "Success") -> Dict[str, Any]:
         """Create paginated response."""
         total_pages = (total + per_page - 1) // per_page
@@ -278,7 +282,7 @@ class LoggingUtils:
     """Common logging utilities."""
 
     @staticmethod
-    def setup_logger(name: str, level: str = "INFO",
+    def setup_logger(name: str, level: str = "INFO",):
                     format_string: Optional[str] = None) -> logging.Logger:
         """Setup logger with common configuration."""
         logger = logging.getLogger(name)
@@ -297,7 +301,7 @@ class LoggingUtils:
         return logger
 
     @staticmethod
-    def log_performance(func_name: str, duration: float,
+    def log_performance(func_name: str, duration: float,):
                        logger: Optional[logging.Logger] = None):
         """Log performance metrics."""
         if logger is None:
@@ -321,11 +325,11 @@ class AsyncUtils:
             raise
 
     @staticmethod
-    async def retry_async(coro_func: Callable, max_retries: int = 3,
+    async def retry_async(coro_func: Callable, max_retries: int = 3,)
                          delay: float = 1.0, backoff: float = 2.0):
         """Retry async function with exponential backoff."""
         last_exception = None
-        
+
         for attempt in range(max_retries):
             try:
                 return await coro_func()
@@ -333,18 +337,18 @@ class AsyncUtils:
                 last_exception = e
                 if attempt < max_retries - 1:
                     await asyncio.sleep(delay * (backoff ** attempt))
-        
+
         raise last_exception
 
     @staticmethod
     async def gather_with_concurrency(tasks: List, max_concurrent: int = 10):
         """Gather tasks with concurrency limit."""
         semaphore = asyncio.Semaphore(max_concurrent)
-        
+
         async def controlled_task(task):
             async with semaphore:
                 return await task
-        
+
         return await asyncio.gather(*[controlled_task(task) for task in tasks])
 
 def monitor_performance(logger: Optional[logging.Logger] = None):

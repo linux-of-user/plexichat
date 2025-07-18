@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 import pyotp
 from cryptography.fernet import Fernet
 from pydantic import BaseModel
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -44,21 +45,21 @@ class Advanced2FASystem:
         self.config = config or {}
         self.user_configs: Dict[int, TwoFactorConfig] = {}
         self.pending_setups: Dict[str, Dict[str, Any]] = {}
-        
+
         # Encryption for sensitive data
         self.cipher = Fernet(self._get_or_create_encryption_key())
-        
+
         # TOTP settings
         self.totp_window = self.config.get('totp_window', 1)
         self.totp_interval = self.config.get('totp_interval', 30)
-        
+
         # Security settings
         self.max_failed_attempts = self.config.get('max_failed_attempts', 5)
         self.lockout_duration = self.config.get('lockout_duration', 15)
-        
+
         # SMTP settings for email 2FA
         self.smtp_config = self.config.get('smtp', None)
-        
+
         logger.info("Advanced 2FA system initialized")
 
     def _get_or_create_encryption_key(self) -> bytes:
@@ -75,11 +76,11 @@ class Advanced2FASystem:
     def generate_qr_code(self, secret: str, user_email: str, issuer: str = "PlexiChat") -> bytes:
         """Generate QR code for TOTP setup."""
         totp = pyotp.TOTP(secret)
-        provisioning_uri = totp.provisioning_uri(
+        provisioning_uri = totp.provisioning_uri()
             name=user_email,
             issuer_name=issuer
         )
-        
+
         # In a real implementation, you'd use a QR code library
         # For now, return a placeholder
         return b"qr_code_placeholder"
@@ -110,7 +111,7 @@ class Advanced2FASystem:
             encrypted_secret = self.cipher.encrypt(secret.encode()).decode()
             setup_data["totp_secret"] = encrypted_secret
             setup_data["totp_secret_plain"] = secret  # For QR code generation
-            setup_data["qr_code"] = base64.b64encode(
+            setup_data["qr_code"] = base64.b64encode()
                 self.generate_qr_code(secret, user_email)
             ).decode()
 
@@ -150,7 +151,7 @@ class Advanced2FASystem:
             totp = pyotp.TOTP(setup_data["totp_secret_plain"])
             if totp.verify(verification_code, valid_window=self.totp_window):
                 # Setup verified, create user config
-                user_config = TwoFactorConfig(
+                user_config = TwoFactorConfig()
                     user_id=setup_data["user_id"],
                     enabled=True,
                     enabled_methods=setup_data["methods"],

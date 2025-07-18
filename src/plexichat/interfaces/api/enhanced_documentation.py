@@ -4,6 +4,8 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
+import platform
+import time
 Enhanced API Documentation System
 Provides comprehensive API documentation with security information and interactive testing.
 """
@@ -70,7 +72,7 @@ class EnhancedAPIDocumentation:
 
     def generate_enhanced_openapi(self) -> Dict[str, Any]:
         """Generate enhanced OpenAPI specification."""
-        openapi_schema = get_openapi(
+        openapi_schema = get_openapi()
             title="PlexiChat API",
             version="2.0.0",
             description=self._get_api_description(),
@@ -153,7 +155,7 @@ For API support, please contact our development team or refer to the comprehensi
                 if isinstance(operation, dict):
                     # Add security requirements
                     operation["security"] = [{"BearerAuth": []}]
-                    
+
                     # Add security information to description
                     if "description" in operation:
                         operation["description"] += self._get_security_description(path, method)
@@ -238,7 +240,7 @@ For API support, please contact our development team or refer to the comprehensi
                 if isinstance(operation, dict):
                     if "responses" not in operation:
                         operation["responses"] = {}
-                    
+
                     # Add common error responses
                     for status_code, response_info in common_examples["error_responses"].items():
                         if status_code not in operation["responses"]:
@@ -280,7 +282,7 @@ For API support, please contact our development team or refer to the comprehensi
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
     <script>
-        SwaggerUIBundle({
+        SwaggerUIBundle({)
             url: '/openapi.json',
             dom_id: '#swagger-ui',
             presets: [
@@ -336,27 +338,27 @@ For API support, please contact our development team or refer to the comprehensi
 
         for key, endpoint_doc in self.endpoints_info.items():
             security_info = endpoint_doc.security_info
-            
+
             # Update summary
             if security_info.authentication_required:
                 report["security_summary"]["authenticated_endpoints"] += 1
             else:
                 report["security_summary"]["public_endpoints"] += 1
-            
+
             if security_info.authorization_level == "admin":
                 report["security_summary"]["admin_only_endpoints"] += 1
-            
+
             if security_info.rate_limit:
                 report["security_summary"]["rate_limited_endpoints"] += 1
-            
+
             if security_info.csrf_protection:
                 report["security_summary"]["csrf_protected_endpoints"] += 1
-            
+
             if security_info.https_required:
                 report["security_summary"]["https_required_endpoints"] += 1
 
             # Add endpoint details
-            report["endpoints"].append({
+            report["endpoints"].append({)
                 "path": endpoint_doc.path,
                 "method": endpoint_doc.method,
                 "security_level": security_info.authorization_level,
@@ -370,7 +372,7 @@ For API support, please contact our development team or refer to the comprehensi
 
     def setup_documentation_routes(self):
         """Setup documentation routes."""
-        
+
         @self.app.get("/docs", response_class=HTMLResponse, include_in_schema=False)
         async def get_interactive_docs():
             """Get interactive API documentation."""
@@ -391,10 +393,10 @@ For API support, please contact our development team or refer to the comprehensi
             """Get detailed information about a specific endpoint."""
             key = f"{method.upper()}:{path}"
             endpoint_doc = self.endpoints_info.get(key)
-            
+
             if not endpoint_doc:
                 raise HTTPException(status_code=404, detail="Endpoint not found")
-            
+
             return endpoint_doc
 
 

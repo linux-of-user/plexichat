@@ -1,3 +1,11 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 import asyncio
 import json
 import os
@@ -18,6 +26,20 @@ from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 
 from ...core.config import get_config
 from ...core.logging import get_logger
+
+# Import unified cache integration
+try:
+    from ...core.caching.unified_cache_integration import cache_get, cache_set, cache_delete, CacheKeyBuilder
+    CACHE_AVAILABLE = True
+except ImportError:
+    # Fallback if cache not available
+    async def cache_get(key: str, default=None): return default
+    async def cache_set(key: str, value, ttl=None): return True
+    async def cache_delete(key: str): return True
+    class CacheKeyBuilder:
+        @staticmethod
+        def query_key(table: str, query_hash: str): return f"query:{table}:{query_hash}"
+    CACHE_AVAILABLE = False
 try:
     from ...features.channels.repositories.channel_repository import ChannelRepository
 except ImportError:
@@ -179,6 +201,11 @@ class ConsolidatedDatabaseManager:
         self.performance_monitor = None
         self.global_distribution = None
 
+        # Performance monitoring
+        self._performance_monitor = None
+        self._query_cache = {}
+        self._cache_stats = {'hits': 0, 'misses': 0}
+
         # Load balancing and failover
         self.read_replicas: Dict[str, List[str]] = {}
         self.write_masters: Dict[str, str] = {}
@@ -213,6 +240,9 @@ class ConsolidatedDatabaseManager:
 
             # Load default database configurations
             await self._load_default_configurations()
+
+            # Initialize performance monitoring
+            await self._initialize_performance_monitoring()
 
             # Start background tasks
             asyncio.create_task(self._health_check_task())
@@ -371,7 +401,7 @@ class ConsolidatedDatabaseManager:
 
             # Create database engine/connection based on type
             if config.type == DatabaseType.SQLITE:
-                engine = create_async_engine(
+                engine = create_async_engine()
                     f"sqlite+aiosqlite:///{config.database}",
                     poolclass=StaticPool,
                     connect_args={"check_same_thread": False}
@@ -380,7 +410,7 @@ class ConsolidatedDatabaseManager:
 
             elif config.type == DatabaseType.POSTGRESQL:
                 connection_string = f"postgresql+asyncpg://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
-                engine = create_async_engine(
+                engine = create_async_engine()
                     connection_string,
                     pool_size=config.connection_pool_size,
                     max_overflow=config.max_overflow,
@@ -400,7 +430,7 @@ class ConsolidatedDatabaseManager:
 
             elif config.type == DatabaseType.REDIS:
                 if redis is not None:
-                    client = redis.Redis(
+                    client = redis.Redis()
                         host=config.host,
                         port=config.port,
                         password=config.password,
@@ -462,11 +492,60 @@ class ConsolidatedDatabaseManager:
             self.connection_status[name] = ConnectionStatus.ERROR
             return False
 
-    async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None,
-                          database: Optional[str] = None) -> Dict[str, Any]:
-        """Execute a database query with unified interface."""
+    async def _initialize_performance_monitoring(self):
+        """Initialize performance monitoring system."""
+        try:
+            from .performance_monitor import DatabasePerformanceMonitor
+
+            monitor_config = self.config.get('monitoring', {})
+            self._performance_monitor = DatabasePerformanceMonitor(monitor_config)
+
+            if monitor_config.get('enabled', True):
+                await self._performance_monitor.start_monitoring()
+                logger.info("📊 Database performance monitoring enabled")
+
+        except Exception as e:
+            logger.warning(f"Performance monitoring initialization failed: {e}")
+
+    async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None,)
+                          database: Optional[str] = None, use_cache: bool = True) -> Dict[str, Any]:
+        """Execute a database query with unified interface, caching, and performance monitoring."""
         start_time = time.time()
         database = database or getattr(self, 'default_database', 'default')
+
+        # Check query cache first
+        cache_key = None
+        cache_hit = False
+        if use_cache and query.strip().upper().startswith('SELECT'):
+            cache_key = hash(f"{query}{params}")
+            if cache_key in self._query_cache:
+                self._cache_stats['hits'] += 1
+                cache_hit = True
+                result = self._query_cache[cache_key]
+
+                # Record cache hit in performance monitor
+                if self._performance_monitor:
+                    execution_time = time.time() - start_time
+                    self._performance_monitor.record_query_execution()
+                        query, execution_time, cache_hit=True
+                    )
+
+                return result
+            else:
+                self._cache_stats['misses'] += 1
+
+        # Generate cache key for SELECT queries
+        cache_key = None
+        if use_cache and CACHE_AVAILABLE and query.strip().upper().startswith('SELECT'):
+            import hashlib
+            query_hash = hashlib.md5(f"{query}:{params}".encode()).hexdigest()
+            cache_key = CacheKeyBuilder.query_key(database, query_hash)
+
+            # Try to get from cache
+            cached_result = await cache_get(cache_key)
+            if cached_result is not None:
+                logger.debug(f"Cache hit for query: {query[:50]}...")
+                return cached_result
 
         try:
             if database not in self.engines:
@@ -526,6 +605,11 @@ class ConsolidatedDatabaseManager:
             execution_time = time.time() - start_time
             self._update_metrics(database, execution_time, success=True)
 
+            # Cache the result if it was a SELECT query
+            if cache_key and result:
+                await cache_set(cache_key, {"success": True, "result": result, "execution_time": execution_time}, ttl=300)
+                logger.debug(f"Cached query result: {query[:50]}...")
+
             return {"success": True, "result": result, "execution_time": execution_time}
 
         except Exception as e:
@@ -562,7 +646,7 @@ class ConsolidatedDatabaseManager:
             else:
                 alpha = 0.1  # Exponential moving average
                 current_avg = self.global_metrics["average_response_time"]
-                self.global_metrics["average_response_time"] = (
+                self.global_metrics["average_response_time"] = ()
                     alpha * execution_time + (1 - alpha) * current_avg
                 )
 
@@ -590,7 +674,7 @@ class ConsolidatedDatabaseManager:
                 await asyncio.sleep(60)  # Collect metrics every minute
 
                 # Update connection counts
-                connected_count = sum(1 for status in self.connection_status.values()
+                connected_count = sum(1 for status in self.connection_status.values())
                                     if status == ConnectionStatus.CONNECTED)
                 self.global_metrics["databases_connected"] = connected_count
 

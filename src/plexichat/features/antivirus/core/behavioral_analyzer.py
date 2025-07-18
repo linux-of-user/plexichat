@@ -25,6 +25,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 Behavioral Analyzer
 
 Analyzes file behavior and characteristics to detect suspicious patterns
@@ -37,7 +38,7 @@ logger = logging.getLogger(__name__)
 class BehavioralAnalyzer:
     """
     Behavioral analysis engine for detecting suspicious file characteristics.
-    
+
     Features:
     - PE file analysis for Windows executables
     - Archive content analysis
@@ -46,12 +47,12 @@ class BehavioralAnalyzer:
     - Suspicious API imports detection
     - File structure anomalies
     """
-    
+
     def __init__(self, data_dir: Path):
-        self.from pathlib import Path
-data_dir = Path()(data_dir)
+        from pathlib import Path
+        self.data_dir = Path(data_dir)
         self.behavioral_db_path = self.data_dir / "behavioral_analysis.db"
-        
+
         # Suspicious API imports that malware commonly uses
         self.suspicious_apis = {
             'high_risk': [
@@ -67,7 +68,7 @@ data_dir = Path()(data_dir)
                 'GetTempPath', 'CreateMutex', 'OpenProcess'
             ]
         }
-        
+
         # Suspicious section names in PE files
         self.suspicious_sections = [
             '.upx0', '.upx1', '.upx2',  # UPX packer
@@ -77,7 +78,7 @@ data_dir = Path()(data_dir)
             '.vmp0', '.vmp1',           # VMProtect
             '.enigma1', '.enigma2'      # Enigma Protector
         ]
-        
+
         # File entropy thresholds
         self.entropy_thresholds = {
             'low': 3.0,      # Likely text/data
@@ -85,7 +86,7 @@ data_dir = Path()(data_dir)
             'high': 7.5,     # Highly compressed/encrypted
             'suspicious': 7.8 # Potentially packed/encrypted malware
         }
-        
+
         self.analysis_stats = {
             'total_analyzed': 0,
             'pe_files_analyzed': 0,
@@ -95,22 +96,22 @@ data_dir = Path()(data_dir)
             'packed_files_detected': 0,
             'suspicious_apis_found': 0
         }
-        
+
         self._initialized = False
 
     async def initialize(self):
         """Initialize the behavioral analyzer."""
         if self._initialized:
             return
-        
+
         logger.info("Initializing Behavioral Analyzer")
-        
+
         # Initialize database
         await self._initialize_database()
-        
+
         # Load analysis statistics
         await self._load_analysis_statistics()
-        
+
         self._initialized = True
         logger.info("Behavioral Analyzer initialized")
 
@@ -118,8 +119,8 @@ data_dir = Path()(data_dir)
         """Initialize the behavioral analysis database."""
         async with aiosqlite.connect(self.behavioral_db_path) as db:
             # Behavioral analysis results table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS behavioral_analysis (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS behavioral_analysis ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT NOT NULL,
                     file_hash TEXT NOT NULL,
@@ -135,10 +136,10 @@ data_dir = Path()(data_dir)
                     analyzed_at TEXT NOT NULL
                 )
             """)
-            
+
             # PE file analysis table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS pe_analysis (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS pe_analysis ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_hash TEXT NOT NULL,
                     pe_type TEXT,
@@ -153,26 +154,26 @@ data_dir = Path()(data_dir)
                     analyzed_at TEXT NOT NULL
                 )
             """)
-            
+
             await db.commit()
 
     async def analyze_file(self, file_path: str) -> ScanResult:
         """
         Perform behavioral analysis on a file.
-        
+
         Args:
             file_path: Path to the file to analyze
-            
+
         Returns:
             ScanResult with behavioral analysis results
         """
         start_time = datetime.now(timezone.utc)
         from pathlib import Path
 
-        path = Path()(file_path)
-        
+        self.path = Path(file_path)
+
         if not path.exists():
-            return ScanResult(
+            return ScanResult()
                 file_path=file_path,
                 file_hash="",
                 threat_level=ThreatLevel.CLEAN,
@@ -184,47 +185,47 @@ data_dir = Path()(data_dir)
                 confidence_score=0.0,
                 details={"error": "File not found"}
             )
-        
+
         logger.debug(f"Performing behavioral analysis on: {file_path}")
-        
+
         # Calculate file hash
         file_hash = await self._calculate_file_hash(path)
-        
+
         # Get file information
         file_info = await self._get_file_info(path)
-        
+
         # Perform different analyses based on file type
         analysis_results = []
-        
+
         # Entropy analysis
         entropy_result = await self._analyze_entropy(path)
         analysis_results.append(entropy_result)
-        
+
         # File type specific analysis
         if file_info['mime_type'].startswith('application/x-executable') or path.suffix.lower() in ['.exe', '.dll', '.sys']:
             pe_result = await self._analyze_pe_file(path)
             if pe_result:
                 analysis_results.append(pe_result)
-        
+
         elif file_info['mime_type'].startswith('application/zip') or path.suffix.lower() in ['.zip', '.rar', '.7z']:
             archive_result = await self._analyze_archive(path)
             if archive_result:
                 analysis_results.append(archive_result)
-        
+
         # Combine analysis results
         final_result = self._combine_behavioral_results(analysis_results, file_path, file_hash, file_info, start_time)
-        
+
         # Store analysis results
         await self._store_analysis_result(final_result, file_info)
-        
+
         # Update statistics
         self.analysis_stats['total_analyzed'] += 1
         if final_result.threat_level.value > ThreatLevel.CLEAN.value:
             self.analysis_stats['suspicious_found'] += 1
-        
+
         scan_duration = (datetime.now(timezone.utc) - start_time).total_seconds()
         final_result.scan_duration = scan_duration
-        
+
         logger.debug(f"Behavioral analysis completed: {file_path} - {final_result.threat_level.name}")
         return final_result
 
@@ -244,7 +245,7 @@ data_dir = Path()(data_dir)
         """Get basic file information."""
         try:
             stat_info = file_path.stat()
-            
+
             # Try to get MIME type
             mime_type = "unknown"
             try:
@@ -258,7 +259,7 @@ data_dir = Path()(data_dir)
                     mime_type = 'application/zip'
                 elif ext in ['.txt']:
                     mime_type = 'text/plain'
-            
+
             return {
                 'size': stat_info.st_size,
                 'mime_type': mime_type,
@@ -275,13 +276,13 @@ data_dir = Path()(data_dir)
         try:
             with open(file_path, 'rb') as f:
                 data = f.read(min(1024 * 1024, file_path.stat().st_size))  # Read up to 1MB
-            
+
             if not data:
                 return {'entropy': 0.0, 'risk_level': 'clean'}
-            
+
             # Calculate Shannon entropy
             entropy = self._calculate_shannon_entropy(data)
-            
+
             # Determine risk level based on entropy
             if entropy >= self.entropy_thresholds['suspicious']:
                 risk_level = 'high'
@@ -292,13 +293,13 @@ data_dir = Path()(data_dir)
                 risk_level = 'low'
             else:
                 risk_level = 'clean'
-            
+
             return {
                 'entropy': entropy,
                 'risk_level': risk_level,
                 'analysis_type': 'entropy'
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to analyze entropy for {file_path}: {e}")
             return {'entropy': 0.0, 'risk_level': 'clean', 'error': str(e)}
@@ -307,28 +308,28 @@ data_dir = Path()(data_dir)
         """Calculate Shannon entropy of data."""
         if not data:
             return 0.0
-        
+
         # Count byte frequencies
         byte_counts = [0] * 256
         for byte in data:
             byte_counts[byte] += 1
-        
+
         # Calculate entropy
         entropy = 0.0
         data_len = len(data)
-        
+
         for count in byte_counts:
             if count > 0:
                 probability = count / data_len
                 entropy -= probability * (probability.bit_length() - 1)
-        
+
         return entropy
 
     async def _analyze_pe_file(self, file_path: Path) -> Optional[Dict[str, Any]]:
         """Analyze PE (Portable Executable) files."""
         try:
             pe = pefile.PE(str(file_path))
-            
+
             analysis = {
                 'analysis_type': 'pe_analysis',
                 'pe_type': 'unknown',
@@ -337,7 +338,7 @@ data_dir = Path()(data_dir)
                 'is_packed': False,
                 'risk_level': 'clean'
             }
-            
+
             # Determine PE type
             if pe.is_exe():
                 analysis['pe_type'] = 'executable'
@@ -345,7 +346,7 @@ data_dir = Path()(data_dir)
                 analysis['pe_type'] = 'dll'
             elif pe.is_driver():
                 analysis['pe_type'] = 'driver'
-            
+
             # Check for suspicious imports
             if hasattr(pe, 'DIRECTORY_ENTRY_IMPORT'):
                 for entry in pe.DIRECTORY_ENTRY_IMPORT:
@@ -353,7 +354,7 @@ data_dir = Path()(data_dir)
                     for imp in entry.imports:
                         if imp.name:
                             import_name = imp.name.decode('utf-8', errors='ignore')
-                            
+
                             if import_name in self.suspicious_apis['high_risk']:
                                 analysis['suspicious_imports'].append(f"{dll_name}:{import_name}")
                                 analysis['risk_level'] = 'high'
@@ -361,7 +362,7 @@ data_dir = Path()(data_dir)
                                 analysis['suspicious_imports'].append(f"{dll_name}:{import_name}")
                                 if analysis['risk_level'] == 'clean':
                                     analysis['risk_level'] = 'medium'
-            
+
             # Check for suspicious sections
             for section in pe.sections:
                 section_name = section.Name.decode('utf-8', errors='ignore').rstrip('\x00')
@@ -369,22 +370,22 @@ data_dir = Path()(data_dir)
                     analysis['suspicious_sections'].append(section_name)
                     analysis['is_packed'] = True
                     analysis['risk_level'] = 'high'
-            
+
             # Check for packing indicators
             if self._detect_packing(pe):
                 analysis['is_packed'] = True
                 if analysis['risk_level'] == 'clean':
                     analysis['risk_level'] = 'medium'
                 self.analysis_stats['packed_files_detected'] += 1
-            
+
             if analysis['suspicious_imports']:
                 self.analysis_stats['suspicious_apis_found'] += 1
-            
+
             self.analysis_stats['pe_files_analyzed'] += 1
-            
+
             pe.close()
             return analysis
-            
+
         except Exception as e:
             logger.debug(f"PE analysis failed for {file_path}: {e}")
             return None
@@ -394,32 +395,32 @@ data_dir = Path()(data_dir)
         try:
             # Check entry point in last section (common packing indicator)
             entry_point = pe.OPTIONAL_HEADER.AddressOfEntryPoint
-            
+
             for section in pe.sections:
-                if (section.VirtualAddress <= entry_point < 
+                if (section.VirtualAddress <= entry_point < )
                     section.VirtualAddress + section.Misc_VirtualSize):
                     # Entry point is in this section
                     if section == pe.sections[-1]:  # Last section
                         return True
                     break
-            
+
             # Check for low number of imports (packed files often have few imports)
             if hasattr(pe, 'DIRECTORY_ENTRY_IMPORT'):
                 import_count = sum(len(entry.imports) for entry in pe.DIRECTORY_ENTRY_IMPORT)
                 if import_count < 10:  # Very few imports
                     return True
-            
+
             # Check section characteristics
             executable_sections = 0
             for section in pe.sections:
                 if section.Characteristics & 0x20000000:  # IMAGE_SCN_MEM_EXECUTE
                     executable_sections += 1
-            
+
             if executable_sections == 1:  # Only one executable section
                 return True
-            
+
             return False
-            
+
         except Exception:
             return False
 
@@ -432,20 +433,20 @@ data_dir = Path()(data_dir)
                 'suspicious_files': [],
                 'risk_level': 'clean'
             }
-            
+
             if file_path.suffix.lower() == '.zip':
                 with zipfile.ZipFile(file_path, 'r') as zf:
                     file_list = zf.namelist()
                     analysis['file_count'] = len(file_list)
-                    
+
                     for filename in file_list:
                         if self._is_suspicious_archive_file(filename):
                             analysis['suspicious_files'].append(filename)
                             analysis['risk_level'] = 'medium'
-            
+
             self.analysis_stats['archives_analyzed'] += 1
             return analysis
-            
+
         except Exception as e:
             logger.debug(f"Archive analysis failed for {file_path}: {e}")
             return None
@@ -453,20 +454,20 @@ data_dir = Path()(data_dir)
     def _is_suspicious_archive_file(self, filename: str) -> bool:
         """Check if archived file is suspicious."""
         lower_name = filename.lower()
-        
+
         # Check for executable files in archives
         suspicious_extensions = ['.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js']
         for ext in suspicious_extensions:
             if lower_name.endswith(ext):
                 return True
-        
+
         # Check for double extensions
         if lower_name.count('.') >= 2:
             return True
-        
+
         return False
 
-    def _combine_behavioral_results(self, analysis_results: List[Dict[str, Any]],
+    def _combine_behavioral_results(self, analysis_results: List[Dict[str, Any]],):
                                   file_path: str, file_hash: str, file_info: Dict[str, Any],
                                   start_time: datetime) -> ScanResult:
         """Combine multiple behavioral analysis results."""
@@ -523,7 +524,7 @@ data_dir = Path()(data_dir)
         # Ensure confidence doesn't exceed 1.0
         confidence = min(1.0, confidence)
 
-        return ScanResult(
+        return ScanResult()
             file_path=file_path,
             file_hash=file_hash,
             threat_level=threat_level,
@@ -540,13 +541,13 @@ data_dir = Path()(data_dir)
         """Store behavioral analysis result in database."""
         try:
             async with aiosqlite.connect(self.behavioral_db_path) as db:
-                await db.execute("""
+                await db.execute(""")
                     INSERT INTO behavioral_analysis
-                    (file_path, file_hash, file_type, file_size, entropy_score,
+                    (file_path, file_hash, file_type, file_size, entropy_score,)
                      is_packed, suspicious_apis, suspicious_sections, threat_level,
                      confidence_score, analysis_details, analyzed_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     result.file_path,
                     result.file_hash,
                     file_info.get('mime_type', 'unknown'),
@@ -574,7 +575,7 @@ data_dir = Path()(data_dir)
                     self.analysis_stats['total_analyzed'] = row[0] if row else 0
 
                 # PE files analyzed
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT COUNT(*) FROM behavioral_analysis
                     WHERE file_type LIKE '%executable%'
                 """) as cursor:
@@ -626,7 +627,7 @@ data_dir = Path()(data_dir)
             'high_entropy_files': self.analysis_stats['high_entropy_files'],
             'packed_files_detected': self.analysis_stats['packed_files_detected'],
             'suspicious_apis_found': self.analysis_stats['suspicious_apis_found'],
-            'detection_rate': (
+            'detection_rate': ()
                 self.analysis_stats['suspicious_found'] / max(1, self.analysis_stats['total_analyzed'])
             ) * 100
         }

@@ -79,14 +79,14 @@ class AdvancedSecurityHeaders:
         """Initialize default security headers for different security levels."""
 
         # HTTP Strict Transport Security (HSTS)
-        self.headers["hsts_standard"] = SecurityHeaderConfig(
+        self.headers["hsts_standard"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.HSTS,
             value="max-age=31536000; includeSubDomains",
             security_level="standard",
             description="Enforce HTTPS for 1 year including subdomains",
         )
 
-        self.headers["hsts_strict"] = SecurityHeaderConfig(
+        self.headers["hsts_strict"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.HSTS,
             value="max-age=63072000; includeSubDomains; preload",
             security_level="strict",
@@ -94,35 +94,35 @@ class AdvancedSecurityHeaders:
         )
 
         # X-Frame-Options
-        self.headers["x_frame_options"] = SecurityHeaderConfig(
+        self.headers["x_frame_options"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.X_FRAME_OPTIONS,
             value="DENY",
             description="Prevent clickjacking attacks",
         )
 
         # X-Content-Type-Options
-        self.headers["x_content_type_options"] = SecurityHeaderConfig(
+        self.headers["x_content_type_options"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.X_CONTENT_TYPE_OPTIONS,
             value="nosniff",
             description="Prevent MIME type sniffing",
         )
 
         # X-XSS-Protection (legacy but still useful)
-        self.headers["x_xss_protection"] = SecurityHeaderConfig(
+        self.headers["x_xss_protection"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.X_XSS_PROTECTION,
             value="1; mode=block",
             description="Enable XSS filtering",
         )
 
         # Referrer Policy
-        self.headers["referrer_policy_standard"] = SecurityHeaderConfig(
+        self.headers["referrer_policy_standard"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.REFERRER_POLICY,
             value="strict-origin-when-cross-origin",
             security_level="standard",
             description="Control referrer information",
         )
 
-        self.headers["referrer_policy_strict"] = SecurityHeaderConfig(
+        self.headers["referrer_policy_strict"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.REFERRER_POLICY,
             value="no-referrer",
             security_level="strict",
@@ -130,9 +130,9 @@ class AdvancedSecurityHeaders:
         )
 
         # Permissions Policy (modern replacement for Feature Policy)
-        self.headers["permissions_policy_standard"] = SecurityHeaderConfig(
+        self.headers["permissions_policy_standard"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.PERMISSIONS_POLICY,
-            value=(
+            value=()
                 "geolocation=(), microphone=(), camera=(), "
                 "payment=(), usb=(), magnetometer=(), gyroscope=(), "
                 "accelerometer=(), ambient-light-sensor=(), autoplay=(), "
@@ -142,9 +142,9 @@ class AdvancedSecurityHeaders:
             description="Control browser features",
         )
 
-        self.headers["permissions_policy_strict"] = SecurityHeaderConfig(
+        self.headers["permissions_policy_strict"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.PERMISSIONS_POLICY,
-            value=(
+            value=()
                 "geolocation=(), microphone=(), camera=(), "
                 "payment=(), usb=(), magnetometer=(), gyroscope=(), "
                 "accelerometer=(), ambient-light-sensor=(), autoplay=(), "
@@ -157,59 +157,59 @@ class AdvancedSecurityHeaders:
         )
 
         # Cross-Origin Policies
-        self.headers["cross_origin_embedder_policy"] = SecurityHeaderConfig(
+        self.headers["cross_origin_embedder_policy"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.CROSS_ORIGIN_EMBEDDER_POLICY,
             value="require-corp",
             description="Require CORP for cross-origin resources",
         )
 
-        self.headers["cross_origin_opener_policy"] = SecurityHeaderConfig(
+        self.headers["cross_origin_opener_policy"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.CROSS_ORIGIN_OPENER_POLICY,
             value="same-origin",
             description="Isolate browsing context",
         )
 
-        self.headers["cross_origin_resource_policy"] = SecurityHeaderConfig(
+        self.headers["cross_origin_resource_policy"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.CROSS_ORIGIN_RESOURCE_POLICY,
             value="same-origin",
             description="Control cross-origin resource access",
         )
 
         # Cache Control for sensitive pages
-        self.headers["cache_control_secure"] = SecurityHeaderConfig(
+        self.headers["cache_control_secure"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.CACHE_CONTROL,
             value="no-store, no-cache, must-revalidate, private",
             description="Prevent caching of sensitive content",
         )
 
-        self.headers["pragma"] = SecurityHeaderConfig(
+        self.headers["pragma"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.PRAGMA,
             value="no-cache",
             description="Legacy cache control",
         )
 
-        self.headers["expires"] = SecurityHeaderConfig(
+        self.headers["expires"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.EXPIRES,
             value="0",
             description="Immediate expiration",
         )
 
         # Server identification
-        self.headers["server"] = SecurityHeaderConfig(
+        self.headers["server"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.SERVER,
             value="PlexiChat/1.0",
             description="Minimal server identification",
         )
 
         # Custom PlexiChat security level indicator
-        self.headers["x_security_level"] = SecurityHeaderConfig(
+        self.headers["x_security_level"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.X_SECURITY_LEVEL,
             value="Government-Grade",
             description="PlexiChat security level indicator",
         )
 
         # Expect-CT for Certificate Transparency
-        self.headers["expect_ct"] = SecurityHeaderConfig(
+        self.headers["expect_ct"] = SecurityHeaderConfig()
             header_type=SecurityHeaderType.EXPECT_CT,
             value='max-age=86400, enforce, report-uri="/api/v1/security/ct-report"',
             security_level="strict",
@@ -226,7 +226,7 @@ class AdvancedSecurityHeaders:
         self.security_level = level
         logger.info(f" Security level set to: {level}")
 
-    def get_headers_for_response(
+    def get_headers_for_response():
         self,
         path: str = "/",
         is_secure_page: bool = False,
@@ -252,7 +252,7 @@ class AdvancedSecurityHeaders:
 
         # HSTS based on security level
         if self.security_level in ["standard", "strict", "paranoid"]:
-            hsts_key = (
+            hsts_key = ()
                 "hsts_strict"
                 if self.security_level in ["strict", "paranoid"]
                 else "hsts_standard"
@@ -281,13 +281,13 @@ class AdvancedSecurityHeaders:
 
         # Cross-Origin policies for strict security
         if self.security_level in ["strict", "paranoid"]:
-            headers[SecurityHeaderType.CROSS_ORIGIN_EMBEDDER_POLICY.value] = (
+            headers[SecurityHeaderType.CROSS_ORIGIN_EMBEDDER_POLICY.value] = ()
                 self.headers["cross_origin_embedder_policy"].value
             )
             headers[SecurityHeaderType.CROSS_ORIGIN_OPENER_POLICY.value] = self.headers[
                 "cross_origin_opener_policy"
             ].value
-            headers[SecurityHeaderType.CROSS_ORIGIN_RESOURCE_POLICY.value] = (
+            headers[SecurityHeaderType.CROSS_ORIGIN_RESOURCE_POLICY.value] = ()
                 self.headers["cross_origin_resource_policy"].value
             )
 
@@ -298,7 +298,7 @@ class AdvancedSecurityHeaders:
             ].value
 
         # Cache control for secure pages
-        if (
+        if ()
             is_secure_page
             or path.startswith("/admin")
             or path.startswith("/api/v1/auth")
@@ -354,12 +354,12 @@ class AdvancedSecurityHeaders:
             if "max-age" not in hsts_value:
                 issues["weak"].append("HSTS missing max-age directive")
             elif "max-age=31536000" not in hsts_value:
-                issues["recommendations"].append(
+                issues["recommendations"].append()
                     "Consider increasing HSTS max-age to 1 year"
                 )
 
             if "includeSubDomains" not in hsts_value:
-                issues["recommendations"].append(
+                issues["recommendations"].append()
                     "Consider adding includeSubDomains to HSTS"
                 )
 
@@ -367,7 +367,7 @@ class AdvancedSecurityHeaders:
                 "strict",
                 "paranoid",
             ]:
-                issues["recommendations"].append(
+                issues["recommendations"].append()
                     "Consider adding preload to HSTS for maximum security"
                 )
 

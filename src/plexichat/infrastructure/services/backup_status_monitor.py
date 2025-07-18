@@ -11,10 +11,10 @@ from typing import Any, Dict, List, Optional
 from sqlmodel import Session, func, select
 
 
-
-
 from plexichat.app.logger_config import logger
-from plexichat.app.models.device_management import (
+from plexichat.app.models.device_management import ()
+import time
+import warnings
 
     DeviceShardAssignment,
     DeviceStatus,
@@ -109,7 +109,7 @@ class BackupStatusMonitor:
         """Get comprehensive real-time backup status."""
         try:
             # Check cache
-            if (not force_refresh and
+            if (not force_refresh and)
                 self.cached_status and
                 self.last_update and
                 (datetime.now(timezone.utc) - self.last_update).total_seconds() < self.cache_duration_seconds):
@@ -151,15 +151,15 @@ class BackupStatusMonitor:
                 last_seen_minutes = int(time_diff.total_seconds() / 60)
 
             # Determine if device is considered online
-            is_online = (
+            is_online = ()
                 device.status == DeviceStatus.ONLINE and
                 last_seen_minutes is not None and
                 last_seen_minutes <= 5  # Consider online if seen within 5 minutes
             )
 
             # Get shard counts
-            shard_counts = self.session.exec(
-                select(
+            shard_counts = self.session.exec()
+                select()
                     func.count(DeviceShardAssignment.id).label("total"),
                     func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified).label("verified")
                 ).where(
@@ -176,7 +176,7 @@ class BackupStatusMonitor:
             if device.total_storage_bytes > 0:
                 storage_utilization = (device.used_storage_bytes / device.total_storage_bytes) * 100
 
-            device_status = DeviceAvailabilityStatus(
+            device_status = DeviceAvailabilityStatus()
                 device_id=device.id,
                 device_name=device.device_name,
                 device_type=device.device_type.value,
@@ -197,7 +197,7 @@ class BackupStatusMonitor:
     async def _get_shard_availability_statuses(self) -> List[ShardAvailabilityStatus]:
         """Get availability status for all shards."""
         # Get all shards with their assignments
-        shards_query = self.session.exec(
+        shards_query = self.session.exec()
             select(EnhancedBackupShard).order_by(EnhancedBackupShard.id)
         ).all()
 
@@ -205,10 +205,10 @@ class BackupStatusMonitor:
 
         for shard in shards_query:
             # Get assignments for this shard
-            assignments = self.session.exec(
+            assignments = self.session.exec()
                 select(DeviceShardAssignment, StorageDevice)
                 .join(StorageDevice, DeviceShardAssignment.device_id == StorageDevice.id)
-                .where(
+                .where()
                     (DeviceShardAssignment.shard_id == shard.id) &
                     (DeviceShardAssignment.is_active)
                 )
@@ -243,7 +243,7 @@ class BackupStatusMonitor:
             # Check geographic distribution (simplified)
             geographic_distribution = total_assignments >= 3
 
-            shard_status = ShardAvailabilityStatus(
+            shard_status = ShardAvailabilityStatus()
                 shard_id=shard.id,
                 backup_id=shard.backup_id,
                 total_assignments=total_assignments,
@@ -258,7 +258,7 @@ class BackupStatusMonitor:
 
         return shard_statuses
 
-    async def _calculate_backup_coverage(
+    async def _calculate_backup_coverage()
         self,
         device_statuses: List[DeviceAvailabilityStatus],
         shard_statuses: List[ShardAvailabilityStatus]
@@ -293,11 +293,11 @@ class BackupStatusMonitor:
         # Calculate backup availability
         total_backups = len(backup_coverage)
         fully_available_backups = len([b for b in backup_coverage.values() if b["fully_available"]])
-        partially_available_backups = len([
+        partially_available_backups = len([)
             b for b in backup_coverage.values()
             if not b["fully_available"] and b["available_shards"] > 0
         ])
-        unavailable_backups = len([
+        unavailable_backups = len([)
             b for b in backup_coverage.values()
             if b["available_shards"] == 0
         ])
@@ -339,7 +339,7 @@ class BackupStatusMonitor:
         if unverified_shards:
             warnings.append(f"{len(unverified_shards)} shards have unverified copies")
 
-        return BackupCoverageReport(
+        return BackupCoverageReport()
             total_backups=total_backups,
             fully_available_backups=fully_available_backups,
             partially_available_backups=partially_available_backups,
@@ -368,7 +368,7 @@ class BackupStatusMonitor:
 
             for device in device_statuses:
                 if device.is_online:
-                    status_groups["online"].append({
+                    status_groups["online"].append({)
                         "device_id": device.device_id,
                         "device_name": device.device_name,
                         "device_type": device.device_type,
@@ -380,7 +380,7 @@ class BackupStatusMonitor:
                     })
                 else:
                     status_key = "offline" if device.status == "offline" else "unreachable"
-                    status_groups[status_key].append({
+                    status_groups[status_key].append({)
                         "device_id": device.device_id,
                         "device_name": device.device_name,
                         "device_type": device.device_type,
@@ -431,7 +431,7 @@ class BackupStatusMonitor:
 
             # Add device nodes
             for device in device_statuses:
-                distribution_data["nodes"].append({
+                distribution_data["nodes"].append({)
                     "id": f"device_{device.device_id}",
                     "type": "device",
                     "name": device.device_name,
@@ -448,7 +448,7 @@ class BackupStatusMonitor:
                 distribution_data["statistics"]["redundancy_levels"][shard.redundancy_level] += 1
 
                 # Add shard node
-                distribution_data["nodes"].append({
+                distribution_data["nodes"].append({)
                     "id": f"shard_{shard.shard_id}",
                     "type": "shard",
                     "backup_id": shard.backup_id,
@@ -459,9 +459,9 @@ class BackupStatusMonitor:
                 })
 
                 # Add links to devices storing this shard
-                assignments = self.session.exec(
+                assignments = self.session.exec()
                     select(DeviceShardAssignment)
-                    .where(
+                    .where()
                         (DeviceShardAssignment.shard_id == shard.shard_id) &
                         (DeviceShardAssignment.is_active)
                     )
@@ -470,7 +470,7 @@ class BackupStatusMonitor:
                 for assignment in assignments:
                     device = device_map.get(assignment.device_id)
                     if device:
-                        distribution_data["links"].append({
+                        distribution_data["links"].append({)
                             "source": f"shard_{shard.shard_id}",
                             "target": f"device_{assignment.device_id}",
                             "is_verified": assignment.is_verified,

@@ -6,7 +6,6 @@ from .auth_manager import auth_manager
 from .exceptions import AuthenticationError, AuthorizationError
 
 
-
 """
 PlexiChat Authentication Decorators
 
@@ -55,7 +54,7 @@ def require_auth(security_level: str = "BASIC", scopes: Optional[List[str]] = No
                 raise AuthenticationError("Authentication token required")
 
             # Validate authentication
-            auth_result = loop.run_until_complete(
+            auth_result = loop.run_until_complete()
                 auth_manager.require_authentication(token, security_level)
             )
 
@@ -120,7 +119,7 @@ def optional_auth(func: Callable) -> Callable:
 
         if token:
             try:
-                auth_result = loop.run_until_complete(
+                auth_result = loop.run_until_complete()
                     auth_manager.require_authentication(token, "BASIC")
                 )
                 kwargs['auth_context'] = auth_result

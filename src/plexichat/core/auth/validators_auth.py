@@ -2,6 +2,7 @@ import logging
 import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ class PasswordValidator:
             password_result = self.input_validator.validate_password(password, username)
 
             # Convert to legacy ValidationResult format for compatibility
-            return ValidationResult(
+            return ValidationResult()
                 valid=password_result.is_valid,
                 errors=password_result.errors,
                 warnings=password_result.warnings,
@@ -79,7 +80,7 @@ class PasswordValidator:
 
         except Exception as e:
             logger.error(f"Password validation error: {e}")
-            return ValidationResult(
+            return ValidationResult()
                 valid=False,
                 errors=[f"Password validation failed: {e}"],
                 warnings=[],
@@ -158,7 +159,7 @@ class PasswordValidator:
         # Normalize score
         score = max(0, min(100, score))
 
-        return ValidationResult(
+        return ValidationResult()
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
@@ -229,15 +230,15 @@ class TokenValidator:
             # Decode header and payload
             header = base64.urlsafe_b64decode(parts[0] + '==').decode('utf-8')
             payload = base64.urlsafe_b64decode(parts[1] + '==').decode('utf-8')
-            
+
             # Basic validation
             if not header or not payload:
                 errors.append("Invalid token structure")
-                
+
         except Exception as e:
             errors.append(f"Token encoding error: {e}")
 
-        return ValidationResult(
+        return ValidationResult()
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings
@@ -268,7 +269,7 @@ class TokenValidator:
             if claims['iat'] > current_time:
                 warnings.append("Token issued in the future")
 
-        return ValidationResult(
+        return ValidationResult()
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings
@@ -292,7 +293,7 @@ class BiometricValidator:
         # Check data size
         min_size = self.config.get(f"{biometric_type}_min_size", 100)
         max_size = self.config.get(f"{biometric_type}_max_size", 10000)
-        
+
         if len(biometric_data) < min_size:
             errors.append(f"Biometric data too small (min {min_size} bytes)")
         elif len(biometric_data) > max_size:

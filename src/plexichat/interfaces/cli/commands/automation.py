@@ -9,11 +9,10 @@ from typing import List
 
 import yaml
 
-from .enhanced_logic_engine import (
-from datetime import datetime
+from .enhanced_logic_engine import ()
 
-from datetime import datetime
 import logging
+import time
 
 
     CLI,
@@ -213,7 +212,7 @@ class AutomationCLI:
             schedule = input("Schedule (cron format, or press Enter for manual): ").strip()
 
             # Create rule
-            rule = AutomationRule(
+            rule = AutomationRule()
                 id=rule_id,
                 name=name,
                 description=description,
@@ -239,7 +238,7 @@ class AutomationCLI:
                 field = input("Field/Variable: ").strip()
                 value = input("Value: ").strip()
 
-                condition = Condition(
+                condition = Condition()
                     type=condition_type_enum,
                     field=field,
                     value=value
@@ -443,8 +442,7 @@ class AutomationCLI:
 
     async def cmd_automation_export(self, args: List[str]):
         """Export automation configuration."""
-        filename = args[0] if args else f"automation_export_{from datetime import datetime
-datetime = datetime.now().strftime('%Y%m%d_%H%M%S')}.yaml"
+        filename = args[0] if args else f"automation_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.yaml"
 
         try:
             config = self.logic_engine.export_config()

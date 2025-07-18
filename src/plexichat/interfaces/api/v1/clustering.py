@@ -6,25 +6,16 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
-from plexichat.app.main import cluster_manager
-from plexichat.clustering import ClusterTask, TaskStatus
-from plexichat.clustering.core.node_manager import NodeStatus
+from plexichat.features.clustering.core.cluster_manager import AdvancedClusterManager
+from plexichat.features.clustering.core.task_manager import ClusterTask, TaskStatus
+from plexichat.features.clustering.core.node_manager import NodeStatus
+import time
+
+clustering_service = AdvancedClusterManager()
 
 """
 Clustering API endpoints for PlexiChat.
@@ -78,14 +69,14 @@ router = APIRouter(prefix="/api/v1/cluster", tags=["Clustering"])
 @router.get("/status")
 async def get_cluster_status():
     """Get current cluster status."""
-    if not cluster_manager:
+    if not clustering_service:
         raise HTTPException(status_code=503, detail="Clustering service not initialized")
 
     try:
-        if not cluster_manager.initialized:
-            await if cluster_manager and hasattr(cluster_manager, "initialize"): cluster_manager.initialize()
+        if clustering_service and hasattr(clustering_service, "initialize"):
+            await clustering_service.initialize()
 
-        status = await cluster_manager.get_cluster_status()
+        status = await clustering_service.get_cluster_status()
         return {
             "success": True,
             "cluster_status": status
@@ -202,25 +193,28 @@ async def join_cluster(request: NodeJoinRequest):
     try:
         # Validate role
         try:
-            role = NodeRole(request.role)
+            role = NodeStatus(request.role) # Assuming NodeStatus is the correct type for role
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid role: {request.role}")
 
         # Create new node
-        new_node = ClusterNode(
-            node_id=request.node_id,
-            address=request.address,
-            port=request.port,
-            role=role,
-            status=NodeStatus.ONLINE,
-            capabilities=request.capabilities,
-            from datetime import datetime
-last_heartbeat = datetime.now()
-datetime = datetime.now()
-        )
-
-        # Add to cluster
-        clustering_service.nodes[request.node_id] = new_node
+        new_node = clustering_service.nodes.get(request.node_id) # Assuming clustering_service.nodes is a dict
+        if not new_node:
+            new_node = clustering_service.add_node(
+                node_id=request.node_id,
+                address=request.address,
+                port=request.port,
+                role=role,
+                status=NodeStatus.ONLINE,
+                capabilities=request.capabilities,
+                last_heartbeat=datetime.now()
+            )
+        else:
+            new_node.address = request.address
+            new_node.port = request.port
+            new_node.role = role
+            new_node.capabilities = request.capabilities
+            new_node.last_heartbeat = datetime.now()
 
         # Return cluster information to new node
         cluster_nodes = {}
@@ -276,7 +270,7 @@ async def leave_cluster(node_id: str):
             await clustering_service._schedule_task(task)
 
         # Remove node from cluster
-        del clustering_service.nodes[node_id]
+        clustering_service.remove_node(node_id)
 
         logger.info(f" Node {node_id} left cluster")
 
@@ -447,9 +441,7 @@ async def receive_heartbeat(request: HeartbeatRequest):
         node.memory_usage = request.memory_usage
         node.tasks_completed = request.tasks_completed
         node.tasks_failed = request.tasks_failed
-        node.from datetime import datetime
-last_heartbeat = datetime.now()
-datetime = datetime.now()
+        node.last_heartbeat = datetime.now()
 
         return {
             "success": True,
@@ -571,8 +563,7 @@ async def get_cluster_metrics():
                     "pending_tasks": total_tasks - completed_tasks - failed_tasks - running_tasks,
                     "success_rate_percentage": success_rate
                 },
-                "timestamp": from datetime import datetime
-datetime = datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat()
             }
         }
 

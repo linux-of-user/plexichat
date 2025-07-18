@@ -4,7 +4,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .status_monitor import (
+from .status_monitor import ()
 from typing import Optional
 
 

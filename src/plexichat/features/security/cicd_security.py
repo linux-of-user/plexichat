@@ -13,14 +13,11 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import subprocess
+import time
 PlexiChat CI/CD Security Integration
 Integrates vulnerability scanning into CI/CD pipeline
 """
@@ -201,7 +198,7 @@ class CICDSecurityScanner:
 
         try:
             config = self.scanners[scanner]
-            result = await asyncio.create_subprocess_exec(
+            result = await asyncio.create_subprocess_exec()
                 *config["install_check"],
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
@@ -214,9 +211,8 @@ class CICDSecurityScanner:
 
     async def run_dependency_scan(self, project_path: str, scanner: ScannerType = ScannerType.SNYK) -> ScanResult:
         """Run dependency vulnerability scan."""
-        scan_id = f"dep_scan_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
-        scan_result = ScanResult(
+        scan_id = f"dep_scan_{int(datetime.now().timestamp())}"
+        scan_result = ScanResult()
             scan_id=scan_id,
             scanner=scanner,
             scan_type=ScanType.DEPENDENCY_SCAN,
@@ -254,9 +250,8 @@ datetime = datetime.now().timestamp())}"
 
     async def run_static_code_analysis(self, project_path: str, scanner: ScannerType = ScannerType.BANDIT) -> ScanResult:
         """Run static code analysis scan."""
-        scan_id = f"sca_scan_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
-        scan_result = ScanResult(
+        scan_id = f"sca_scan_{int(datetime.now().timestamp())}"
+        scan_result = ScanResult()
             scan_id=scan_id,
             scanner=scanner,
             scan_type=ScanType.STATIC_CODE_ANALYSIS,
@@ -290,9 +285,8 @@ datetime = datetime.now().timestamp())}"
 
     async def run_container_scan(self, image_name: str, scanner: ScannerType = ScannerType.TRIVY) -> ScanResult:
         """Run container image vulnerability scan."""
-        scan_id = f"container_scan_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
-        scan_result = ScanResult(
+        scan_id = f"container_scan_{int(datetime.now().timestamp())}"
+        scan_result = ScanResult()
             scan_id=scan_id,
             scanner=scanner,
             scan_type=ScanType.CONTAINER_SCAN,
@@ -336,7 +330,7 @@ datetime = datetime.now().timestamp())}"
                 data = json.loads(result["stdout"])
                 if "vulnerabilities" in data:
                     for vuln_data in data["vulnerabilities"]:
-                        vulnerability = Vulnerability(
+                        vulnerability = Vulnerability()
                             id=vuln_data.get("id", ""),
                             title=vuln_data.get("title", ""),
                             description=vuln_data.get("description", ""),
@@ -359,7 +353,7 @@ datetime = datetime.now().timestamp())}"
     async def _execute_scanner_command(self, cmd: List[str], cwd: Optional[str] = None) -> Dict[str, Any]:
         """Execute scanner command and return result."""
         try:
-            process = await asyncio.create_subprocess_exec(
+            process = await asyncio.create_subprocess_exec()
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,

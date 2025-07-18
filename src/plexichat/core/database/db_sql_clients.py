@@ -6,7 +6,8 @@ import aiomysql  # type: ignore
 import aiosqlite  # type: ignore
 import asyncpg  # type: ignore
 
-from .enhanced_abstraction import (  # type: ignore
+from .enhanced_abstraction import (  # type: ignore)
+import time
 
 
     SQL,
@@ -74,7 +75,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
+class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore:
     """PostgreSQL-specific database client with advanced features."""
 
     def __init__(self, config: DatabaseConfig):
@@ -154,7 +155,7 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
 
                 execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
-                return QueryResult(
+                return QueryResult()
                     success=True,
                     data=data,
                     row_count=len(data),
@@ -166,7 +167,7 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
             execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             logger.error(f"PostgreSQL query failed: {e}")
 
-            return QueryResult(
+            return QueryResult()
                 success=False,
                 data=[],
                 row_count=0,
@@ -196,7 +197,7 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
                             result = await connection.fetch(query)
 
                         data = [dict(record) for record in result]
-                        results.append(QueryResult(
+                        results.append(QueryResult())
                             success=True,
                             data=data,
                             row_count=len(data),
@@ -204,7 +205,7 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
                         ))
 
                     except Exception as e:
-                        results.append(QueryResult(
+                        results.append(QueryResult())
                             success=False,
                             data=[],
                             row_count=0,
@@ -237,7 +238,7 @@ class PostgreSQLClient(AbstractDatabaseClient):  # type: ignore
         }
 
 
-class MySQLClient(AbstractDatabaseClient):  # type: ignore
+class MySQLClient(AbstractDatabaseClient):  # type: ignore:
     """MySQL-specific database client with optimizations."""
 
     def __init__(self, config: DatabaseConfig):
@@ -251,7 +252,7 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
             return False
 
         try:
-            self.pool = await aiomysql.create_pool(
+            self.pool = await aiomysql.create_pool()
                 host=self.config.host,
                 port=self.config.port,
                 user=self.config.username,
@@ -307,7 +308,7 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
 
                     execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
-                    return QueryResult(
+                    return QueryResult()
                         success=True,
                         data=result or [],
                         row_count=len(result) if result else 0,
@@ -319,7 +320,7 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
             execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             logger.error(f"MySQL query failed: {e}")
 
-            return QueryResult(
+            return QueryResult()
                 success=False,
                 data=[],
                 row_count=0,
@@ -355,7 +356,7 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
                             await cursor.execute(query)
 
                         result = await cursor.fetchall()
-                        results.append(QueryResult(
+                        results.append(QueryResult())
                             success=True,
                             data=result or [],
                             row_count=len(result) if result else 0,
@@ -366,7 +367,7 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
 
             except Exception as e:
                 await connection.rollback()
-                results.append(QueryResult(
+                results.append(QueryResult())
                     success=False,
                     data=[],
                     row_count=0,
@@ -377,7 +378,7 @@ class MySQLClient(AbstractDatabaseClient):  # type: ignore
         return results
 
 
-class SQLiteClient(AbstractDatabaseClient):  # type: ignore
+class SQLiteClient(AbstractDatabaseClient):  # type: ignore:
     """SQLite-specific database client with optimizations."""
 
     def __init__(self, config: DatabaseConfig):
@@ -443,7 +444,7 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore
 
             execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
-            return QueryResult(
+            return QueryResult()
                 success=True,
                 data=data,
                 row_count=len(data),
@@ -455,7 +456,7 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore
             execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             logger.error(f"SQLite query failed: {e}")
 
-            return QueryResult(
+            return QueryResult()
                 success=False,
                 data=[],
                 row_count=0,
@@ -485,7 +486,7 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore
                 rows = await cursor.fetchall()
                 data = [dict(row) for row in rows]
 
-                results.append(QueryResult(
+                results.append(QueryResult())
                     success=True,
                     data=data,
                     row_count=len(data),
@@ -496,7 +497,7 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore
 
         except Exception as e:
             await self.connection.execute("ROLLBACK")
-            results.append(QueryResult(
+            results.append(QueryResult())
                 success=False,
                 data=[],
                 row_count=0,

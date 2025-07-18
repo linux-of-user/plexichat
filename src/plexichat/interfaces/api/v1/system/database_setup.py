@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 from app.db import get_session
 from app.logger_config import logger
 from app.security.database_encryption import EncryptedDatabaseManager, get_encryption_manager
-from core.external_database import (
+from core.external_database import ()
 
 
     API,
@@ -92,7 +92,7 @@ router = APIRouter(prefix="/api/v1/database", tags=["Database Setup"])
 
 
 @router.post("/setup-encryption")
-async def setup_database_encryption(
+async def setup_database_encryption()
     request: DatabaseEncryptionSetupRequest,
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
@@ -130,21 +130,21 @@ async def setup_database_encryption(
 
     except Exception as e:
         logger.error(f"Database encryption setup failed: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to setup database encryption: {str(e)}"
         )
 
 
 @router.post("/setup-external")
-async def setup_external_database(
+async def setup_external_database()
     request: ExternalDatabaseSetupRequest,
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Setup external database hosting."""
     try:
         # Create external database configuration
-        config = ExternalDatabaseConfig(
+        config = ExternalDatabaseConfig()
             provider=request.provider,
             engine=request.engine,
             host=request.host,
@@ -162,7 +162,7 @@ async def setup_external_database(
         )
 
         # Initialize external database manager with encryption
-        external_manager = ExternalDatabaseManager(
+        external_manager = ExternalDatabaseManager()
             encryption_key=os.getenv("DATABASE_ENCRYPTION_KEY")
         )
 
@@ -199,7 +199,7 @@ async def setup_external_database(
 
     except Exception as e:
         logger.error(f"External database setup failed: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to setup external database: {str(e)}"
         )
@@ -213,7 +213,7 @@ async def get_encryption_status() -> Dict[str, Any]:
         status_info = encryption_manager.get_encryption_status()
 
         # Add environment information
-        status_info.update({
+        status_info.update({)
             "encryption_key_set": bool(os.getenv("DATABASE_ENCRYPTION_KEY")),
             "database_url_encrypted": "***" in os.getenv("DATABASE_URL", ""),
             "external_databases": []
@@ -231,14 +231,14 @@ async def get_encryption_status() -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(f"Failed to get encryption status: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve encryption status"
         )
 
 
 @router.post("/migrate")
-async def migrate_database(
+async def migrate_database()
     request: DatabaseMigrationRequest,
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
@@ -269,14 +269,14 @@ async def migrate_database(
 
     except Exception as e:
         logger.error(f"Database migration failed: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to migrate database: {str(e)}"
         )
 
 
 @router.post("/backup")
-async def create_encrypted_backup(
+async def create_encrypted_backup()
     request: DatabaseBackupRequest,
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
@@ -313,7 +313,7 @@ async def create_encrypted_backup(
 
     except Exception as e:
         logger.error(f"Database backup failed: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create database backup: {str(e)}"
         )
@@ -348,7 +348,7 @@ async def get_database_providers() -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(f"Failed to get database providers: {e}")
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve database providers"
         )

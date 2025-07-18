@@ -1,4 +1,5 @@
 """
+import time
 PlexiChat Core Exceptions
 
 Enhanced exception handling with comprehensive error types and performance optimization.
@@ -34,8 +35,8 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 class PlexiChatException(Exception):
     """Base exception for PlexiChat with enhanced error tracking."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -48,10 +49,10 @@ class PlexiChatException(Exception):
         self.details = details or {}
         self.user_id = user_id
         self.timestamp = datetime.now()
-        
+
         # Log exception with performance tracking
         self._log_exception()
-    
+
     def _log_exception(self):
         """Log exception with performance metrics."""
         try:
@@ -62,17 +63,17 @@ class PlexiChatException(Exception):
                 "user_id": self.user_id,
                 "timestamp": self.timestamp.isoformat()
             }
-            
+
             logger.error(f"PlexiChat Exception: {error_data}")
-            
+
             # Performance tracking
             if performance_logger and hasattr(performance_logger, 'record_metric'):
                 performance_logger.record_metric("exceptions_raised", 1, "count")
                 performance_logger.record_metric(f"exception_{self.error_code}", 1, "count")
-                
+
         except Exception as e:
             logger.error(f"Error logging exception: {e}")
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert exception to dictionary."""
         return {
@@ -93,8 +94,8 @@ class AuthorizationError(PlexiChatException):
 
 class ValidationError(PlexiChatException):
     """Data validation errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         field_errors: Optional[Dict[str, List[str]]] = None,
@@ -105,8 +106,8 @@ class ValidationError(PlexiChatException):
 
 class DatabaseError(PlexiChatException):
     """Database operation errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         operation: Optional[str] = None,
@@ -119,8 +120,8 @@ class DatabaseError(PlexiChatException):
 
 class FileError(PlexiChatException):
     """File operation errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         file_path: Optional[str] = None,
@@ -133,8 +134,8 @@ class FileError(PlexiChatException):
 
 class NetworkError(PlexiChatException):
     """Network operation errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         url: Optional[str] = None,
@@ -147,8 +148,8 @@ class NetworkError(PlexiChatException):
 
 class ConfigurationError(PlexiChatException):
     """Configuration related errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         config_key: Optional[str] = None,
@@ -161,8 +162,8 @@ class ConfigurationError(PlexiChatException):
 
 class RateLimitError(PlexiChatException):
     """Rate limiting errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         limit: Optional[int] = None,
@@ -177,8 +178,8 @@ class RateLimitError(PlexiChatException):
 
 class SecurityError(PlexiChatException):
     """Security related errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         threat_type: Optional[str] = None,
@@ -188,15 +189,15 @@ class SecurityError(PlexiChatException):
         self.threat_type = threat_type
         self.severity = severity
         super().__init__(message, **kwargs)
-        
+
         # Log security events separately
         self._log_security_event()
-    
+
     def _log_security_event(self):
         """Log security event."""
         try:
             from plexichat.core.logging import log_security_event
-            log_security_event(
+            log_security_event()
                 event_type=self.threat_type or "security_exception",
                 severity=self.severity,
                 details=self.to_dict()
@@ -206,8 +207,8 @@ class SecurityError(PlexiChatException):
 
 class PerformanceError(PlexiChatException):
     """Performance related errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         operation: Optional[str] = None,
@@ -222,8 +223,8 @@ class PerformanceError(PlexiChatException):
 
 class ClusterError(PlexiChatException):
     """Cluster operation errors."""
-    
-    def __init__(
+
+    def __init__():
         self,
         message: str,
         node_id: Optional[str] = None,
@@ -236,13 +237,13 @@ class ClusterError(PlexiChatException):
 
 class ExceptionHandler:
     """Enhanced exception handler with performance optimization."""
-    
+
     def __init__(self):
         self.performance_logger = performance_logger
         self.exception_counts: Dict[str, int] = {}
         self.last_reset = datetime.now()
-    
-    def handle_exception(
+
+    def handle_exception():
         self,
         exception: Exception,
         context: Optional[Dict[str, Any]] = None
@@ -252,19 +253,19 @@ class ExceptionHandler:
             # Update exception counts
             exception_type = type(exception).__name__
             self.exception_counts[exception_type] = self.exception_counts.get(exception_type, 0) + 1
-            
+
             # Reset counts hourly
             if (datetime.now() - self.last_reset).total_seconds() > 3600:
                 self.exception_counts.clear()
                 self.last_reset = datetime.now()
-            
+
             # Handle PlexiChat exceptions
             if isinstance(exception, PlexiChatException):
                 return self._handle_plexichat_exception(exception, context)
-            
+
             # Handle standard exceptions
             return self._handle_standard_exception(exception, context)
-            
+
         except Exception as e:
             logger.error(f"Error in exception handler: {e}")
             return {
@@ -272,26 +273,26 @@ class ExceptionHandler:
                 "message": "Internal error handling exception",
                 "timestamp": datetime.now().isoformat()
             }
-    
-    def _handle_plexichat_exception(
+
+    def _handle_plexichat_exception():
         self,
         exception: PlexiChatException,
         context: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Handle PlexiChat specific exceptions."""
         error_response = exception.to_dict()
-        
+
         if context:
             error_response["context"] = context
-        
+
         # Add exception count
-        error_response["occurrence_count"] = self.exception_counts.get(
+        error_response["occurrence_count"] = self.exception_counts.get()
             type(exception).__name__, 1
         )
-        
+
         return error_response
-    
-    def _handle_standard_exception(
+
+    def _handle_standard_exception():
         self,
         exception: Exception,
         context: Optional[Dict[str, Any]]
@@ -303,19 +304,19 @@ class ExceptionHandler:
             "timestamp": datetime.now().isoformat(),
             "occurrence_count": self.exception_counts.get(type(exception).__name__, 1)
         }
-        
+
         if context:
             error_response["context"] = context
-        
+
         # Log standard exception
         logger.error(f"Standard Exception: {error_response}")
-        
+
         # Performance tracking
         if self.performance_logger and hasattr(self.performance_logger, 'record_metric'):
             self.performance_logger.record_metric("standard_exceptions", 1, "count")
-        
+
         return error_response
-    
+
     def get_exception_stats(self) -> Dict[str, Any]:
         """Get exception statistics."""
         return {
@@ -330,7 +331,7 @@ class ExceptionHandler:
 exception_handler = ExceptionHandler()
 
 # Convenience functions
-def handle_exception(
+def handle_exception():
     exception: Exception,
     context: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:

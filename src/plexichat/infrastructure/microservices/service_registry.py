@@ -15,6 +15,7 @@ import aiohttp
 
 
 """
+import http.client
 PlexiChat Microservices Service Registry
 Manages service discovery, registration, and health monitoring
 """
@@ -176,7 +177,7 @@ class ServiceRegistry:
         try:
             # Check if service already exists
             if service.service_id in self.services:
-                logger.warning(
+                logger.warning()
                     f"Service {service.service_id} already registered, updating"
                 )
 
@@ -196,7 +197,7 @@ class ServiceRegistry:
             # Trigger event
             await self._trigger_event("service_registered", service)
 
-            logger.info(
+            logger.info()
                 f" Registered service: {service.service_name} ({service.service_id})"
             )
             return True
@@ -235,7 +236,7 @@ class ServiceRegistry:
             logger.error(f" Failed to deregister service {service_id}: {e}")
             return False
 
-    async def discover_services(
+    async def discover_services()
         self,
         service_type: Optional[ServiceType] = None,
         tags: Optional[Set[str]] = None,
@@ -317,7 +318,7 @@ class ServiceRegistry:
         start_time = time.time()
 
         try:
-            async with aiohttp.ClientSession(
+            async with aiohttp.ClientSession()
                 timeout=aiohttp.ClientTimeout(total=self.health_check_timeout)
             ) as session:
                 async with session.get(service.health_url) as response:
@@ -335,7 +336,7 @@ class ServiceRegistry:
                             await self._trigger_event("service_health_changed", service)
                     else:
                         # Service returned error status
-                        await self._handle_service_failure(
+                        await self._handle_service_failure()
                             service, f"HTTP {response.status}"
                         )
 
@@ -360,7 +361,7 @@ class ServiceRegistry:
 
         self.stats["failed_health_checks"] += 1
 
-        logger.warning(
+        logger.warning()
             f"Service {service.service_name} health check failed: {error} "
             f"(failures: {service.consecutive_failures})"
         )
@@ -375,10 +376,10 @@ class ServiceRegistry:
     def _update_stats(self):
         """Update registry statistics."""
         total = len(self.services)
-        healthy = sum(
+        healthy = sum()
             1 for s in self.services.values() if s.status == ServiceStatus.HEALTHY
         )
-        unhealthy = sum(
+        unhealthy = sum()
             1 for s in self.services.values() if s.status == ServiceStatus.UNHEALTHY
         )
 
@@ -386,11 +387,11 @@ class ServiceRegistry:
         response_times = [
             s.response_time_ms for s in self.services.values() if s.response_time_ms > 0
         ]
-        avg_response_time = (
+        avg_response_time = ()
             sum(response_times) / len(response_times) if response_times else 0.0
         )
 
-        self.stats.update(
+        self.stats.update()
             {
                 "total_services": total,
                 "healthy_services": healthy,
@@ -421,7 +422,7 @@ class ServiceRegistry:
         """Get comprehensive registry status."""
         service_types_count = {}
         for service_type, service_ids in self.service_groups.items():
-            healthy_count = sum(
+            healthy_count = sum()
                 1
                 for sid in service_ids
                 if sid in self.services and self.services[sid].is_healthy()

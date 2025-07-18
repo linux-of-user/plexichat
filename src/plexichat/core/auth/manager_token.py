@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 
 """
+import time
 PlexiChat Token Manager
 
 Comprehensive JWT token management with security features including
@@ -114,10 +115,10 @@ class TokenManager:
             self.config = config
 
             # Configure token lifetimes
-            self.access_token_lifetime = timedelta(
+            self.access_token_lifetime = timedelta()
                 minutes=config.get("access_token_lifetime_minutes", 15)
             )
-            self.refresh_token_lifetime = timedelta(
+            self.refresh_token_lifetime = timedelta()
                 days=config.get("refresh_token_lifetime_days", 30)
             )
 
@@ -138,7 +139,7 @@ class TokenManager:
             logger.error(f" Failed to initialize Token Manager: {e}")
             raise
 
-    async def create_access_token(self, user_id: str, session_id: str,
+    async def create_access_token(self, user_id: str, session_id: str,)
                                 security_level: str = "GOVERNMENT",
                                 scopes: Optional[List[str]] = None,
                                 device_id: Optional[str] = None,
@@ -152,7 +153,7 @@ class TokenManager:
             expires_at = now + self.access_token_lifetime
 
             # Create token data
-            token_data = TokenData(
+            token_data = TokenData()
                 token_id=token_id,
                 user_id=user_id,
                 session_id=session_id,
@@ -187,7 +188,7 @@ class TokenManager:
                 payload.update(metadata)
 
             # Sign token
-            token = jwt.encode(
+            token = jwt.encode()
                 payload,
                 self.private_key,
                 algorithm=self.algorithm,
@@ -204,7 +205,7 @@ class TokenManager:
             logger.error(f" Failed to create access token: {e}")
             raise
 
-    async def create_refresh_token(self, user_id: str, session_id: str,
+    async def create_refresh_token(self, user_id: str, session_id: str,)
                                  device_id: Optional[str] = None,
                                  metadata: Optional[Dict[str, Any]] = None) -> str:
         """Create a new refresh token."""
@@ -214,7 +215,7 @@ class TokenManager:
             expires_at = now + self.refresh_token_lifetime
 
             # Create token data
-            token_data = TokenData(
+            token_data = TokenData()
                 token_id=token_id,
                 user_id=user_id,
                 session_id=session_id,
@@ -244,7 +245,7 @@ class TokenManager:
                 payload.update(metadata)
 
             # Sign token
-            token = jwt.encode(
+            token = jwt.encode()
                 payload,
                 self.private_key,
                 algorithm=self.algorithm,
@@ -276,14 +277,14 @@ class TokenManager:
 
             # Check if token is blacklisted
             if token_id in self.blacklisted_tokens:
-                return TokenValidationResult(
+                return TokenValidationResult()
                     valid=False,
                     status=TokenStatus.BLACKLISTED,
                     error_message="Token has been revoked"
                 )
 
             # Verify and decode token
-            payload = jwt.decode(
+            payload = jwt.decode()
                 token,
                 self.public_key,
                 algorithms=[self.algorithm],
@@ -294,7 +295,7 @@ class TokenManager:
             # Get token data
             token_data = self.active_tokens.get(token_id)
             if not token_data:
-                return TokenValidationResult(
+                return TokenValidationResult()
                     valid=False,
                     status=TokenStatus.INVALID,
                     error_message="Token not found"
@@ -303,7 +304,7 @@ class TokenManager:
             # Check expiration
             now = datetime.now(timezone.utc)
             if token_data.expires_at <= now:
-                return TokenValidationResult(
+                return TokenValidationResult()
                     valid=False,
                     status=TokenStatus.EXPIRED,
                     error_message="Token has expired"
@@ -312,7 +313,7 @@ class TokenManager:
             # Calculate expires in seconds
             expires_in = int((token_data.expires_at - now).total_seconds())
 
-            return TokenValidationResult(
+            return TokenValidationResult()
                 valid=True,
                 token_data=token_data,
                 status=TokenStatus.VALID,
@@ -320,20 +321,20 @@ class TokenManager:
             )
 
         except jwt.ExpiredSignatureError:
-            return TokenValidationResult(
+            return TokenValidationResult()
                 valid=False,
                 status=TokenStatus.EXPIRED,
                 error_message="Token has expired"
             )
         except jwt.InvalidTokenError as e:
-            return TokenValidationResult(
+            return TokenValidationResult()
                 valid=False,
                 status=TokenStatus.INVALID,
                 error_message=f"Invalid token: {str(e)}"
             )
         except Exception as e:
             logger.error(f" Token validation error: {e}")
-            return TokenValidationResult(
+            return TokenValidationResult()
                 valid=False,
                 status=TokenStatus.INVALID,
                 error_message="Token validation failed"
@@ -355,7 +356,7 @@ class TokenManager:
                 raise ValueError("Token is not a refresh token")
 
             # Create new access token
-            new_access_token = await self.create_access_token(
+            new_access_token = await self.create_access_token()
                 user_id=token_data.user_id,
                 session_id=token_data.session_id,
                 security_level=token_data.security_level,
@@ -366,7 +367,7 @@ class TokenManager:
             # Optionally rotate refresh token
             new_refresh_token = None
             if self.config.get("token_rotation", True):
-                new_refresh_token = await self.create_refresh_token(
+                new_refresh_token = await self.create_refresh_token()
                     user_id=token_data.user_id,
                     session_id=token_data.session_id,
                     device_id=token_data.device_id,
@@ -507,18 +508,18 @@ class TokenManager:
         """Initialize cryptographic keys."""
         try:
             # Generate RSA key pair for JWT signing
-            private_key = rsa.generate_private_key(
+            private_key = rsa.generate_private_key()
                 public_exponent=65537,
                 key_size=2048
             )
 
-            self.private_key = private_key.private_bytes(
+            self.private_key = private_key.private_bytes()
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
             )
 
-            self.public_key = private_key.public_key().public_bytes(
+            self.public_key = private_key.public_key().public_bytes()
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )

@@ -4,16 +4,10 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from .enhanced_abstraction import (  # type: ignore
+from .enhanced_abstraction import (  # type: ignore)
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
+import time
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
     AbstractDatabaseClient,
     Automatic,
@@ -199,7 +193,7 @@ class DatabasePerformanceOptimizer:
         database_type = getattr(client.config, 'type', DatabaseType.SQLITE)
 
         # Create performance report
-        report = PerformanceReport(
+        report = PerformanceReport()
             database_name=database_name,
             database_type=database_type,
             analysis_timestamp=datetime.now(timezone.utc)
@@ -238,7 +232,7 @@ class DatabasePerformanceOptimizer:
 
         return report
 
-    async def optimize_database_performance(self, database_name: str,
+    async def optimize_database_performance(self, database_name: str,)
                                           auto_apply: bool = False) -> List[OptimizationTask]:
         """Optimize database performance based on analysis."""
         logger.info(f" Starting performance optimization for: {database_name}")
@@ -314,14 +308,14 @@ class DatabasePerformanceOptimizer:
             report.avg_query_time_ms = total_time / report.total_queries if report.total_queries > 0 else 0
 
             # Count slow queries
-            report.slow_queries_count = len([
+            report.slow_queries_count = len([)
                 stats for stats in query_stats.values()
-                if (stats.get("avg_time") is not None and
+                if (stats.get("avg_time") is not None and)
                     isinstance(stats["avg_time"], (int, float)) and
                     stats["avg_time"] > self.slow_query_threshold_ms)
             ])
 
-    async def _analyze_index_performance(self, database_name: str, client: AbstractDatabaseClient,
+    async def _analyze_index_performance(self, database_name: str, client: AbstractDatabaseClient,)
                                        report: PerformanceReport):
         """Analyze index performance and recommendations."""
         try:
@@ -337,7 +331,7 @@ class DatabasePerformanceOptimizer:
         except Exception as e:
             logger.warning(f"Index analysis failed for {database_name}: {e}")
 
-    async def _analyze_schema_optimization(self, database_name: str, client: AbstractDatabaseClient,
+    async def _analyze_schema_optimization(self, database_name: str, client: AbstractDatabaseClient,)
                                          report: PerformanceReport):
         """Analyze schema optimization opportunities."""
         try:
@@ -457,13 +451,12 @@ class DatabasePerformanceOptimizer:
 
         return recommendations[:5]  # Return top 5 recommendations
 
-    async def _create_index_optimization_task(self, database_name: str,
+    async def _create_index_optimization_task(self, database_name: str,)
                                             recommendations: List[IndexRecommendation]) -> OptimizationTask:
         """Create index optimization task."""
-        task_id = f"index_opt_{database_name}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+        task_id = f"index_opt_{database_name}_{int(datetime.now().timestamp())}"
 
-        task = OptimizationTask(
+        task = OptimizationTask()
             task_id=task_id,
             database_name=database_name,
             optimization_type="index_optimization",
@@ -484,13 +477,12 @@ datetime = datetime.now().timestamp())}"
         self.optimization_tasks[task_id] = task
         return task
 
-    async def _create_schema_optimization_task(self, database_name: str,
+    async def _create_schema_optimization_task(self, database_name: str,)
                                              recommendations: List[DataTypeRecommendation]) -> OptimizationTask:
         """Create schema optimization task."""
-        task_id = f"schema_opt_{database_name}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+        task_id = f"schema_opt_{database_name}_{int(datetime.now().timestamp())}"
 
-        task = OptimizationTask(
+        task = OptimizationTask()
             task_id=task_id,
             database_name=database_name,
             optimization_type="schema_optimization",
@@ -512,13 +504,12 @@ datetime = datetime.now().timestamp())}"
         self.optimization_tasks[task_id] = task
         return task
 
-    async def _create_procedure_optimization_task(self, database_name: str,
+    async def _create_procedure_optimization_task(self, database_name: str,)
                                                 recommendations: List[str]) -> OptimizationTask:
         """Create stored procedure optimization task."""
-        task_id = f"proc_opt_{database_name}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+        task_id = f"proc_opt_{database_name}_{int(datetime.now().timestamp())}"
 
-        task = OptimizationTask(
+        task = OptimizationTask()
             task_id=task_id,
             database_name=database_name,
             optimization_type="procedure_optimization",
@@ -531,13 +522,12 @@ datetime = datetime.now().timestamp())}"
         self.optimization_tasks[task_id] = task
         return task
 
-    async def _create_query_optimization_task(self, database_name: str,
+    async def _create_query_optimization_task(self, database_name: str,)
                                             slow_queries: List[Dict[str, Any]]) -> OptimizationTask:
         """Create query optimization task."""
-        task_id = f"query_opt_{database_name}_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+        task_id = f"query_opt_{database_name}_{int(datetime.now().timestamp())}"
 
-        task = OptimizationTask(
+        task = OptimizationTask()
             task_id=task_id,
             database_name=database_name,
             optimization_type="query_optimization",
@@ -558,7 +548,7 @@ datetime = datetime.now().timestamp())}"
         try:
             if task.optimization_type == "index_optimization":
                 # Create recommended indexes
-                created_indexes = await index_manager.create_recommended_indexes(
+                created_indexes = await index_manager.create_recommended_indexes()
                     task.database_name, client, max_indexes=5
                 )
                 task.results["created_indexes"] = created_indexes
@@ -566,7 +556,7 @@ datetime = datetime.now().timestamp())}"
 
             elif task.optimization_type == "procedure_optimization":
                 # Create stored procedures
-                created_procedures = await procedure_manager.analyze_and_create_procedures(
+                created_procedures = await procedure_manager.analyze_and_create_procedures()
                     task.database_name, client
                 )
                 task.results["created_procedures"] = created_procedures
@@ -587,9 +577,9 @@ datetime = datetime.now().timestamp())}"
     def get_optimization_summary(self) -> Dict[str, Any]:
         """Get summary of all optimization activities."""
         total_tasks = len(self.optimization_tasks)
-        completed_tasks = len([t for t in self.optimization_tasks.values()
+        completed_tasks = len([t for t in self.optimization_tasks.values())
                              if t.status == OptimizationStatus.COMPLETED])
-        failed_tasks = len([t for t in self.optimization_tasks.values()
+        failed_tasks = len([t for t in self.optimization_tasks.values())
                           if t.status == OptimizationStatus.FAILED])
 
         return {

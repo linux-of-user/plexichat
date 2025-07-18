@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 
 """
+import time
 PlexiChat Advanced User System
 
 Comprehensive user management with Discord/Telegram/WhatsApp Business feature parity:
@@ -172,7 +173,7 @@ class RichUserProfile:
     business_profile: Optional[BusinessProfile] = None
 
     # Activity and analytics
-    activity: UserActivity = field(
+    activity: UserActivity = field()
         default_factory=lambda: UserActivity(last_seen=datetime.now(timezone.utc))
     )
 
@@ -180,7 +181,7 @@ class RichUserProfile:
     custom_fields: Dict[str, Any] = field(default_factory=dict)
 
     # Privacy settings
-    privacy_settings: Dict[str, bool] = field(
+    privacy_settings: Dict[str, bool] = field()
         default_factory=lambda: {
             "show_online_status": True,
             "show_last_seen": True,
@@ -287,7 +288,7 @@ class RichUserProfile:
             ],
             "is_premium": self.is_premium(),
             "is_business": self.is_business(),
-            "business_profile": (
+            "business_profile": ()
                 {
                     "name": self.business_profile.business_name,
                     "type": self.business_profile.business_type,
@@ -316,21 +317,21 @@ class AdvancedUserManager:
     def _initialize_default_badges(self):
         """Initialize default badge types."""
         self.default_badges = {
-            BadgeType.VERIFIED: UserBadge(
+            BadgeType.VERIFIED: UserBadge()
                 badge_id="verified",
                 badge_type=BadgeType.VERIFIED,
                 name="Verified",
                 description="Verified user account",
                 color="#1da1f2",
             ),
-            BadgeType.PREMIUM: UserBadge(
+            BadgeType.PREMIUM: UserBadge()
                 badge_id="premium",
                 badge_type=BadgeType.PREMIUM,
                 name="Premium",
                 description="Premium subscriber",
                 color="#ffd700",
             ),
-            BadgeType.DEVELOPER: UserBadge(
+            BadgeType.DEVELOPER: UserBadge()
                 badge_id="developer",
                 badge_type=BadgeType.DEVELOPER,
                 name="Developer",
@@ -342,18 +343,18 @@ class AdvancedUserManager:
     def _initialize_default_tags(self):
         """Initialize default user tags."""
         default_tags = [
-            UserTag(
+            UserTag()
                 "new_user",
                 "New User",
                 "#28a745",
                 "Recently joined user",
                 is_system=True,
             ),
-            UserTag(
+            UserTag()
                 "active", "Active", "#17a2b8", "Highly active user", is_system=True
             ),
             UserTag("vip", "VIP", "#dc3545", "VIP member", is_system=True),
-            UserTag(
+            UserTag()
                 "beta_tester",
                 "Beta Tester",
                 "#6f42c1",
@@ -367,7 +368,7 @@ class AdvancedUserManager:
 
     async def create_user_profile(self, user_data: Dict[str, Any]) -> RichUserProfile:
         """Create rich user profile."""
-        profile = RichUserProfile(
+        profile = RichUserProfile()
             user_id=user_data["user_id"],
             username=user_data["username"],
             display_name=user_data.get("display_name", user_data["username"]),
@@ -383,7 +384,7 @@ class AdvancedUserManager:
         logger.info(f"Created user profile: {profile.username}")
         return profile
 
-    async def update_user_status(
+    async def update_user_status()
         self, user_id: str, status: UserStatus, custom_status: Optional[str] = None
     ):
         """Update user status."""
@@ -425,7 +426,7 @@ class AdvancedUserManager:
         """Get user profile."""
         return self.users.get(user_id)
 
-    def search_users(
+    def search_users():
         self, query: str, filters: Dict[str, Any] = None
     ) -> List[RichUserProfile]:
         """Search users with filters."""
@@ -434,14 +435,14 @@ class AdvancedUserManager:
 
         for user in self.users.values():
             # Text search
-            if (
+            if ()
                 query.lower() in user.username.lower()
                 or query.lower() in user.display_name.lower()
             ):
                 # Apply filters
                 if filters.get("tier") and user.tier != UserTier(filters["tier"]):
                     continue
-                if filters.get("verified_only") and not any(
+                if filters.get("verified_only") and not any()
                     b.badge_type == BadgeType.VERIFIED for b in user.badges
                 ):
                     continue
@@ -476,7 +477,7 @@ class AdvancedUserManager:
             "total_users": total_users,
             "online_users": online_users,
             "tier_breakdown": tier_breakdown,
-            "verified_users": sum(
+            "verified_users": sum()
                 1
                 for u in self.users.values()
                 if any(b.badge_type == BadgeType.VERIFIED for b in u.badges)

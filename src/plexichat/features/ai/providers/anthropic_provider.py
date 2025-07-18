@@ -22,7 +22,7 @@ except ImportError:
         async def models_list(self):
             return {"data": []}
 
-from .base_provider import (
+from .base_provider import ()
     AIRequest,
     AIResponse,
     BaseAIProvider,
@@ -82,14 +82,14 @@ class AnthropicProvider(BaseAIProvider):
     def _initialize_client(self):
         """Initialize the Anthropic client."""
         if not ANTHROPIC_AVAILABLE:
-            logger.error(
+            logger.error()
                 "Anthropic package not available - install with: pip install anthropic"
             )
             self.status = ProviderStatus.ERROR
             return
 
         try:
-            self.client = AsyncAnthropic(
+            self.client = AsyncAnthropic()
                 api_key=self.config.api_key, base_url=self.config.base_url
             )
             logger.info("Anthropic client initialized successfully")
@@ -104,7 +104,7 @@ class AnthropicProvider(BaseAIProvider):
                 return False
 
             # Simple test request
-            await self.client.messages.create(
+            await self.client.messages.create()
                 model=self.config.default_model,
                 max_tokens=1,
                 messages=[{"role": "user", "content": "Hello"}],
@@ -130,7 +130,7 @@ class AnthropicProvider(BaseAIProvider):
             # Add conversation history if provided
             if request.conversation_history:
                 for msg in request.conversation_history:
-                    messages.append(
+                    messages.append()
                         {
                             "role": msg.get("role", "user"),
                             "content": msg.get("content", ""),
@@ -162,7 +162,7 @@ class AnthropicProvider(BaseAIProvider):
 
         except Exception as e:
             logger.error(f"Anthropic text generation failed: {e}")
-            return AIResponse(
+            return AIResponse()
                 content="",
                 error=str(e),
                 provider=self.name,
@@ -176,7 +176,7 @@ class AnthropicProvider(BaseAIProvider):
         if response.content and len(response.content) > 0:
             content = response.content[0].text
 
-        return AIResponse(
+        return AIResponse()
             content=content,
             provider=self.name,
             model=response.model,
@@ -193,7 +193,7 @@ class AnthropicProvider(BaseAIProvider):
             },
         )
 
-    async def _handle_streaming_request(
+    async def _handle_streaming_request()
         self, params: Dict, request: AIRequest
     ) -> AIResponse:
         """Handle streaming request."""
@@ -209,7 +209,7 @@ class AnthropicProvider(BaseAIProvider):
 
             full_content = "".join(content_chunks)
 
-            return AIResponse(
+            return AIResponse()
                 content=full_content,
                 provider=self.name,
                 model=request.model or self.config.default_model,
@@ -219,7 +219,7 @@ class AnthropicProvider(BaseAIProvider):
 
         except Exception as e:
             logger.error(f"Anthropic streaming failed: {e}")
-            return AIResponse(
+            return AIResponse()
                 content="",
                 error=str(e),
                 provider=self.name,
@@ -252,7 +252,7 @@ class AnthropicProvider(BaseAIProvider):
             {{"flagged": true/false, "categories": ["category1", "category2"], "confidence": 0.0-1.0}}
             """
 
-            response = await self.client.messages.create(
+            response = await self.client.messages.create()
                 model=self.config.default_model,
                 max_tokens=200,
                 messages=[{"role": "user", "content": moderation_prompt}],

@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from .enhanced_abstraction import (  # type: ignore
+from .enhanced_abstraction import (  # type: ignore)
 
 
     AbstractDatabaseClient,
@@ -161,7 +161,7 @@ class StoredProcedure:
 
     def _to_postgresql_sql(self) -> str:
         """Generate PostgreSQL stored procedure SQL."""
-        params_sql = ", ".join([
+        params_sql = ", ".join([)
             f"{param['name']} {param['type']}" + (f" DEFAULT {param['default']}" if param.get('default') else "")
             for param in self.parameters
         ])
@@ -183,7 +183,7 @@ COMMENT ON FUNCTION {self.name} IS '{self.description}';
 
     def _to_mysql_sql(self) -> str:
         """Generate MySQL stored procedure SQL."""
-        params_sql = ", ".join([
+        params_sql = ", ".join([)
             f"IN {param['name']} {param['type']}"
             for param in self.parameters
         ])
@@ -275,7 +275,7 @@ class ProcedureGenerator:
 
         return None
 
-    def _generate_procedure_from_pattern(self, query: str, pattern_name: str,
+    def _generate_procedure_from_pattern(self, query: str, pattern_name: str,):
                                        pattern_info: Dict[str, Any]) -> StoredProcedure:
         """Generate stored procedure from a recognized pattern."""
         # Extract parameters from query
@@ -285,7 +285,7 @@ class ProcedureGenerator:
         proc_name = f"sp_{pattern_info['template']}"
 
         # Create procedure definition
-        return StoredProcedure(
+        return StoredProcedure()
             name=proc_name,
             procedure_type=pattern_info["type"],
             database_type=DatabaseType.POSTGRESQL,  # Default, will be adjusted
@@ -303,7 +303,7 @@ class ProcedureGenerator:
         table_names = "_".join(analysis.tables_accessed[:2])  # Limit to 2 tables
         proc_name = f"sp_complex_{table_names}"
 
-        return StoredProcedure(
+        return StoredProcedure()
             name=proc_name,
             procedure_type=ProcedureType.QUERY,
             database_type=DatabaseType.POSTGRESQL,
@@ -339,7 +339,7 @@ class ProcedureGenerator:
             if param_name.isdigit():
                 param_name = f"param_{param_name}"
 
-            parameters.append({
+            parameters.append({)
                 "name": param_name,
                 "type": "TEXT",  # Default type, should be refined
                 "default": None
@@ -365,11 +365,11 @@ class PreparedStatementManager:
         self.cache_max_size = 1000
         self.cache_ttl_seconds = 3600
 
-    def prepare_statement(self, name: str, sql_template: str,
+    def prepare_statement(self, name: str, sql_template: str,):
                          parameter_types: Dict[str, str],
                          database_type: DatabaseType) -> PreparedStatement:
         """Prepare a SQL statement for reuse."""
-        stmt = PreparedStatement(
+        stmt = PreparedStatement()
             name=name,
             sql_template=sql_template,
             parameter_types=parameter_types,
@@ -382,7 +382,7 @@ class PreparedStatementManager:
 
         return stmt
 
-    async def execute_prepared(self, client: AbstractDatabaseClient,
+    async def execute_prepared(self, client: AbstractDatabaseClient,)
                              statement_name: str, parameters: Dict[str, Any]) -> Any:
         """Execute a prepared statement with caching."""
         if statement_name not in self.prepared_statements:
@@ -464,7 +464,7 @@ class PreparedStatementManager:
         # Implement LRU eviction if cache is full
         if len(self.query_cache) >= self.cache_max_size:
             # Remove oldest item
-            oldest_key = min(self.query_cache.keys(),
+            oldest_key = min(self.query_cache.keys(),)
                            key=lambda k: self.query_cache[k]["timestamp"])
             del self.query_cache[oldest_key]
 
@@ -499,7 +499,7 @@ class StoredProcedureManager:
         self.generator = ProcedureGenerator()
         self.prepared_manager = PreparedStatementManager()
 
-    async def analyze_and_create_procedures(self, database_name: str,
+    async def analyze_and_create_procedures(self, database_name: str,)
                                           client: AbstractDatabaseClient) -> List[str]:
         """Analyze query patterns and create stored procedures."""
         created_procedures = []
@@ -539,7 +539,7 @@ class StoredProcedureManager:
         procedures = []
 
         # User lookup procedure
-        user_lookup = StoredProcedure(
+        user_lookup = StoredProcedure()
             name="sp_get_user_by_id",
             procedure_type=ProcedureType.QUERY,
             database_type=database_type,
@@ -551,7 +551,7 @@ class StoredProcedureManager:
         procedures.append(user_lookup)
 
         # Message insertion procedure
-        message_insert = StoredProcedure(
+        message_insert = StoredProcedure()
             name="sp_insert_message",
             procedure_type=ProcedureType.MUTATION,
             database_type=database_type,
@@ -571,7 +571,7 @@ class StoredProcedureManager:
         procedures.append(message_insert)
 
         # Channel statistics procedure
-        channel_stats = StoredProcedure(
+        channel_stats = StoredProcedure()
             name="sp_get_channel_stats",
             procedure_type=ProcedureType.AGGREGATE,
             database_type=database_type,
@@ -597,7 +597,7 @@ class StoredProcedureManager:
 
         return procedures
 
-    async def _create_procedure(self, client: AbstractDatabaseClient,
+    async def _create_procedure(self, client: AbstractDatabaseClient,)
                               procedure: StoredProcedure) -> bool:
         """Create a stored procedure in the database."""
         try:
@@ -615,11 +615,11 @@ class StoredProcedureManager:
             logger.error(f" Failed to create stored procedure {procedure.name}: {e}")
             return False
 
-    async def execute_procedure(self, client: AbstractDatabaseClient,
+    async def execute_procedure(self, client: AbstractDatabaseClient,)
                               database_name: str, procedure_name: str,
                               parameters: Dict[str, Any]) -> Any:
         """Execute a stored procedure."""
-        if (database_name not in self.procedures or
+        if (database_name not in self.procedures or)
             procedure_name not in self.procedures[database_name]):
             raise ValueError(f"Stored procedure '{procedure_name}' not found in database '{database_name}'")
 
@@ -657,7 +657,7 @@ class StoredProcedureManager:
 
         procedure_stats = []
         for proc_name, procedure in procedures.items():
-            procedure_stats.append({
+            procedure_stats.append({)
                 "name": proc_name,
                 "type": procedure.procedure_type.value,
                 "execution_count": procedure.execution_count,

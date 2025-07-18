@@ -15,13 +15,11 @@ from PIL import Image
 from sqlmodel import Session, select
 
 
-
-
-
 from fastapi import HTTPException, status
 
 from plexichat.app.logger_config import logger
-from plexichat.app.models.enhanced_models import (
+from plexichat.app.models.enhanced_models import ()
+import time
 
     AccountType,
     BotAccount,
@@ -56,7 +54,7 @@ class UserManagementService:
     def __init__(self, session: Session):
         self.session = session
 
-    async def create_user(
+    async def create_user()
         self,
         username: str,
         email: str,
@@ -70,8 +68,8 @@ class UserManagementService:
         """Create a new user with comprehensive profile information."""
         try:
             # Check if username or email already exists
-            existing_user = self.session.exec(
-                select(EnhancedUser).where(
+            existing_user = self.session.exec()
+                select(EnhancedUser).where()
                     (EnhancedUser.username == username) | (EnhancedUser.email == email)
                 )
             ).first()
@@ -86,7 +84,7 @@ class UserManagementService:
             password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
             # Create user
-            user = EnhancedUser(
+            user = EnhancedUser()
                 username=username,
                 email=email,
                 password_hash=password_hash,
@@ -110,12 +108,12 @@ class UserManagementService:
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error creating user: {e}")
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to create user"
             )
 
-    async def create_bot_account(
+    async def create_bot_account()
         self,
         owner_id: int,
         bot_name: str,
@@ -127,7 +125,7 @@ class UserManagementService:
         """Create a new bot account with regulation and advanced features."""
         try:
             # Verify owner exists and has permission to create bots
-            owner = self.session.exec(
+            owner = self.session.exec()
                 select(EnhancedUser).where(EnhancedUser.id == owner_id)
             ).first()
 
@@ -135,15 +133,15 @@ class UserManagementService:
                 raise HTTPException(status_code=404, detail="Owner not found")
 
             # Check bot creation limits (max 5 bots per user)
-            existing_bots = self.session.exec(
-                select(EnhancedUser).where(
+            existing_bots = self.session.exec()
+                select(EnhancedUser).where()
                     (EnhancedUser.bot_owner_id == owner_id) &
                     (EnhancedUser.account_type == AccountType.BOT)
                 )
             ).all()
 
             if len(existing_bots) >= 5:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=400,
                     detail="Maximum bot limit reached (5 bots per user)"
                 )
@@ -153,7 +151,7 @@ class UserManagementService:
             username = base_username
             counter = 1
 
-            while self.session.exec(
+            while self.session.exec()
                 select(EnhancedUser).where(EnhancedUser.username == username)
             ).first():
                 username = f"{base_username}_{counter}"
@@ -164,7 +162,7 @@ class UserManagementService:
             bot_secret = secrets.token_urlsafe(16)
 
             # Create bot user account
-            bot_user = EnhancedUser(
+            bot_user = EnhancedUser()
                 username=username,
                 email=f"{username}@bot.plexichat.local",
                 password_hash="",  # Bots don't use passwords
@@ -200,7 +198,7 @@ class UserManagementService:
                 "file_uploads_per_hour": 5
             }
 
-            bot_account = BotAccount(
+            bot_account = BotAccount()
                 user_id=bot_user.id,
                 bot_token=bot_token,
                 bot_secret=bot_secret,
@@ -227,12 +225,12 @@ class UserManagementService:
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error creating bot account: {e}")
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to create bot account"
             )
 
-    async def update_bot_permissions(
+    async def update_bot_permissions()
         self,
         bot_id: int,
         owner_id: int,
@@ -240,8 +238,8 @@ class UserManagementService:
     ) -> BotAccount:
         """Update bot permissions with owner verification."""
         try:
-            bot_account = self.session.exec(
-                select(BotAccount).join(EnhancedUser).where(
+            bot_account = self.session.exec()
+                select(BotAccount).join(EnhancedUser).where()
                     (BotAccount.user_id == bot_id) &
                     (EnhancedUser.bot_owner_id == owner_id)
                 )
@@ -259,7 +257,7 @@ class UserManagementService:
 
             for perm in permissions.keys():
                 if perm not in allowed_permissions:
-                    raise HTTPException(
+                    raise HTTPException()
                         status_code=400,
                         detail=f"Invalid permission: {perm}"
                     )
@@ -278,7 +276,7 @@ class UserManagementService:
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error updating bot permissions: {e}")
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update bot permissions"
             )
@@ -286,15 +284,15 @@ class UserManagementService:
     async def get_user_bots(self, owner_id: int) -> List[Dict[str, Any]]:
         """Get all bots owned by a user."""
         try:
-            bots = self.session.exec(
-                select(EnhancedUser, BotAccount).join(BotAccount).where(
+            bots = self.session.exec()
+                select(EnhancedUser, BotAccount).join(BotAccount).where()
                     EnhancedUser.bot_owner_id == owner_id
                 )
             ).all()
 
             bot_list = []
             for bot_user, bot_account in bots:
-                bot_list.append({
+                bot_list.append({)
                     "id": bot_user.id,
                     "username": bot_user.username,
                     "name": bot_account.bot_name,
@@ -314,7 +312,7 @@ class UserManagementService:
 
         except Exception as e:
             logger.error(f"Error getting user bots: {e}")
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to retrieve bots"
             )
@@ -322,8 +320,8 @@ class UserManagementService:
     async def delete_bot_account(self, bot_id: int, owner_id: int) -> bool:
         """Delete a bot account with owner verification."""
         try:
-            bot_user = self.session.exec(
-                select(EnhancedUser).where(
+            bot_user = self.session.exec()
+                select(EnhancedUser).where()
                     (EnhancedUser.id == bot_id) &
                     (EnhancedUser.bot_owner_id == owner_id) &
                     (EnhancedUser.account_type == AccountType.BOT)
@@ -334,7 +332,7 @@ class UserManagementService:
                 raise HTTPException(status_code=404, detail="Bot not found or access denied")
 
             # Delete bot account record
-            bot_account = self.session.exec(
+            bot_account = self.session.exec()
                 select(BotAccount).where(BotAccount.user_id == bot_id)
             ).first()
 
@@ -353,12 +351,12 @@ class UserManagementService:
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error deleting bot account: {e}")
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete bot account"
             )
 
-    async def update_user_profile(
+    async def update_user_profile()
         self,
         user_id: int,
         updates: Dict[str, Any]
@@ -392,12 +390,12 @@ class UserManagementService:
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error updating user profile: {e}")
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update profile"
             )
 
-    async def update_user_email(
+    async def update_user_email()
         self,
         user_id: int,
         new_email: str,
@@ -414,8 +412,8 @@ class UserManagementService:
                 raise HTTPException(status_code=400, detail="Invalid password")
 
             # Check if email is already in use
-            existing_user = self.session.exec(
-                select(EnhancedUser).where(
+            existing_user = self.session.exec()
+                select(EnhancedUser).where()
                     (EnhancedUser.email == new_email) & (EnhancedUser.id != user_id)
                 )
             ).first()
@@ -440,7 +438,7 @@ class UserManagementService:
             logger.error(f"Error updating user email: {e}")
             return False
 
-    async def change_password(
+    async def change_password()
         self,
         user_id: int,
         current_password: str,
@@ -475,7 +473,7 @@ class UserManagementService:
             logger.error(f"Error changing password: {e}")
             return False
 
-    async def upload_profile_picture(
+    async def upload_profile_picture()
         self,
         user_id: int,
         file_data: bytes,
@@ -525,7 +523,7 @@ class UserManagementService:
                 f.write(processed_data)
 
             # Create file record
-            file_record = FileRecord(
+            file_record = FileRecord()
                 filename=processed_filename,
                 original_filename=filename,
                 file_path=file_path,
@@ -559,7 +557,7 @@ class UserManagementService:
             logger.error(f"Error uploading profile picture: {e}")
             return None
 
-    async def delete_user_account(
+    async def delete_user_account()
         self,
         user_id: int,
         password: str,
@@ -597,7 +595,7 @@ class UserManagementService:
             logger.error(f"Error deleting user account: {e}")
             return False
 
-    async def get_user_profile(
+    async def get_user_profile()
         self,
         user_id: int,
         include_private: bool = False
@@ -625,7 +623,7 @@ class UserManagementService:
             }
 
             if include_private:
-                profile.update({
+                profile.update({)
                     "email": user.email,
                     "first_name": user.first_name,
                     "last_name": user.last_name,
@@ -645,7 +643,7 @@ class UserManagementService:
             return None
 
     # Friend Management Methods
-    async def send_friend_request(
+    async def send_friend_request()
         self,
         requester_id: int,
         addressee_id: int,
@@ -664,8 +662,8 @@ class UserManagementService:
                 raise HTTPException(status_code=404, detail="User not found")
 
             # Check if friendship already exists
-            existing_friendship = self.session.exec(
-                select(Friendship).where(
+            existing_friendship = self.session.exec()
+                select(Friendship).where()
                     ((Friendship.requester_id == requester_id) & (Friendship.addressee_id == addressee_id)) |
                     ((Friendship.requester_id == addressee_id) & (Friendship.addressee_id == requester_id))
                 )
@@ -680,7 +678,7 @@ class UserManagementService:
                     raise HTTPException(status_code=400, detail="Cannot send friend request")
 
             # Create friend request
-            friendship = Friendship(
+            friendship = Friendship()
                 requester_id=requester_id,
                 addressee_id=addressee_id,
                 status=FriendshipStatus.PENDING,
@@ -700,7 +698,7 @@ class UserManagementService:
             logger.error(f"Error sending friend request: {e}")
             return False
 
-    async def respond_to_friend_request(
+    async def respond_to_friend_request()
         self,
         friendship_id: int,
         user_id: int,
@@ -737,15 +735,15 @@ class UserManagementService:
             logger.error(f"Error responding to friend request: {e}")
             return False
 
-    async def remove_friend(
+    async def remove_friend()
         self,
         user_id: int,
         friend_id: int
     ) -> bool:
         """Remove a friend (delete friendship)."""
         try:
-            friendship = self.session.exec(
-                select(Friendship).where(
+            friendship = self.session.exec()
+                select(Friendship).where()
                     ((Friendship.requester_id == user_id) & (Friendship.addressee_id == friend_id)) |
                     ((Friendship.requester_id == friend_id) & (Friendship.addressee_id == user_id))
                 ).where(Friendship.status == FriendshipStatus.ACCEPTED)
@@ -767,7 +765,7 @@ class UserManagementService:
             logger.error(f"Error removing friend: {e}")
             return False
 
-    async def block_user(
+    async def block_user()
         self,
         blocker_id: int,
         blocked_id: int
@@ -778,8 +776,8 @@ class UserManagementService:
                 raise HTTPException(status_code=400, detail="Cannot block yourself")
 
             # Check if friendship exists
-            existing_friendship = self.session.exec(
-                select(Friendship).where(
+            existing_friendship = self.session.exec()
+                select(Friendship).where()
                     ((Friendship.requester_id == blocker_id) & (Friendship.addressee_id == blocked_id)) |
                     ((Friendship.requester_id == blocked_id) & (Friendship.addressee_id == blocker_id))
                 )
@@ -790,7 +788,7 @@ class UserManagementService:
                 existing_friendship.responded_at = datetime.now(timezone.utc)
             else:
                 # Create new blocked relationship
-                friendship = Friendship(
+                friendship = Friendship()
                     requester_id=blocker_id,
                     addressee_id=blocked_id,
                     status=FriendshipStatus.BLOCKED
@@ -809,14 +807,14 @@ class UserManagementService:
             logger.error(f"Error blocking user: {e}")
             return False
 
-    async def get_friends_list(
+    async def get_friends_list()
         self,
         user_id: int
     ) -> List[Dict[str, Any]]:
         """Get user's friends list."""
         try:
-            friendships = self.session.exec(
-                select(Friendship).where(
+            friendships = self.session.exec()
+                select(Friendship).where()
                     ((Friendship.requester_id == user_id) | (Friendship.addressee_id == user_id)) &
                     (Friendship.status == FriendshipStatus.ACCEPTED)
                 )
@@ -828,7 +826,7 @@ class UserManagementService:
                 friend = self.session.get(EnhancedUser, friend_id)
 
                 if friend and friend.status != UserStatus.DELETED:
-                    friends.append({
+                    friends.append({)
                         "id": friend.id,
                         "uuid": friend.uuid,
                         "username": friend.username,
@@ -845,7 +843,7 @@ class UserManagementService:
             logger.error(f"Error getting friends list: {e}")
             return []
 
-    async def get_pending_friend_requests(
+    async def get_pending_friend_requests()
         self,
         user_id: int,
         sent: bool = False
@@ -854,8 +852,8 @@ class UserManagementService:
         try:
             if sent:
                 # Requests sent by user
-                friendships = self.session.exec(
-                    select(Friendship).where(
+                friendships = self.session.exec()
+                    select(Friendship).where()
                         (Friendship.requester_id == user_id) &
                         (Friendship.status == FriendshipStatus.PENDING)
                     )
@@ -865,7 +863,7 @@ class UserManagementService:
                 for friendship in friendships:
                     addressee = self.session.get(EnhancedUser, friendship.addressee_id)
                     if addressee and addressee.status != UserStatus.DELETED:
-                        requests.append({
+                        requests.append({)
                             "friendship_id": friendship.id,
                             "user": {
                                 "id": addressee.id,
@@ -879,8 +877,8 @@ class UserManagementService:
                         })
             else:
                 # Requests received by user
-                friendships = self.session.exec(
-                    select(Friendship).where(
+                friendships = self.session.exec()
+                    select(Friendship).where()
                         (Friendship.addressee_id == user_id) &
                         (Friendship.status == FriendshipStatus.PENDING)
                     )
@@ -890,7 +888,7 @@ class UserManagementService:
                 for friendship in friendships:
                     requester = self.session.get(EnhancedUser, friendship.requester_id)
                     if requester and requester.status != UserStatus.DELETED:
-                        requests.append({
+                        requests.append({)
                             "friendship_id": friendship.id,
                             "user": {
                                 "id": requester.id,
@@ -909,7 +907,7 @@ class UserManagementService:
             logger.error(f"Error getting pending friend requests: {e}")
             return []
 
-    async def search_users(
+    async def search_users()
         self,
         query: str,
         limit: int = 20,
@@ -919,9 +917,9 @@ class UserManagementService:
         try:
             # Build search query
             search_pattern = f"%{query.lower()}%"
-            statement = select(EnhancedUser).where(
+            statement = select(EnhancedUser).where()
                 (EnhancedUser.status != UserStatus.DELETED) &
-                (
+                ()
                     EnhancedUser.username.ilike(search_pattern) |
                     EnhancedUser.display_name.ilike(search_pattern)
                 )
@@ -935,7 +933,7 @@ class UserManagementService:
 
             results = []
             for user in users:
-                results.append({
+                results.append({)
                     "id": user.id,
                     "uuid": user.uuid,
                     "username": user.username,
@@ -954,7 +952,7 @@ class UserManagementService:
             logger.error(f"Error searching users: {e}")
             return []
 
-    async def get_user_statistics(
+    async def get_user_statistics()
         self,
         user_id: int
     ) -> Optional[Dict[str, Any]]:
@@ -990,7 +988,7 @@ class UserManagementService:
             logger.error(f"Error getting user statistics: {e}")
             return None
 
-    async def update_user_activity(
+    async def update_user_activity()
         self,
         user_id: int
     ) -> bool:

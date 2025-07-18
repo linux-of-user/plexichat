@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__, Optional)
 class AdvancedAntivirusEngine:
     """
     Advanced antivirus engine with multiple detection methods.
-    
+
     Features:
     - Hash-based detection against public databases
     - Behavioral analysis and heuristics
@@ -52,25 +52,25 @@ class AdvancedAntivirusEngine:
     - Real-time threat intelligence
     - Quarantine and cleanup capabilities
     """
-    
+
     def __init__(self, data_dir: Path):
-        self.from pathlib import Path
-data_dir = Path()(data_dir)
+        from pathlib import Path
+self.data_dir = Path(data_dir)
         self.antivirus_dir = self.data_dir / "antivirus"
         self.quarantine_dir = self.antivirus_dir / "quarantine"
         self.db_path = self.antivirus_dir / "antivirus.db"
-        
+
         # Create directories
         self.antivirus_dir.mkdir(parents=True, exist_ok=True)
         self.quarantine_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize scanning components
         self.hash_scanner = HashBasedScanner(self.antivirus_dir)
         self.behavioral_analyzer = BehavioralAnalyzer(self.antivirus_dir)
         self.link_scanner = LinkSafetyScanner(self.antivirus_dir)
         self.filename_analyzer = FilenameAnalyzer()
         self.threat_intelligence = ThreatIntelligenceEngine(self.antivirus_dir)
-        
+
         # Scan statistics
         self.scan_stats = {
             'total_scans': 0,
@@ -79,117 +79,117 @@ data_dir = Path()(data_dir)
             'false_positives': 0,
             'last_update': None
         }
-        
+
         self._initialized = False
-    
+
     async def initialize(self):
         """Initialize the antivirus engine and all components."""
         if self._initialized:
             return
-        
+
         logger.info("Initializing Advanced Antivirus Engine")
-        
+
         # Initialize database
         await self._initialize_database()
-        
+
         # Initialize all scanning components
         await self.if hash_scanner and hasattr(hash_scanner, "initialize"): hash_scanner.initialize()
         await self.if behavioral_analyzer and hasattr(behavioral_analyzer, "initialize"): behavioral_analyzer.initialize()
         await self.if link_scanner and hasattr(link_scanner, "initialize"): link_scanner.initialize()
         await self.if threat_intelligence and hasattr(threat_intelligence, "initialize"): threat_intelligence.initialize()
-        
+
         # Load scan statistics
         await self._load_scan_statistics()
-        
+
         # Start background tasks
         asyncio.create_task(self._background_update_task())
-        
+
         self._initialized = True
         logger.info("Advanced Antivirus Engine initialized successfully")
-    
+
     async def scan_file(self, file_path: str, scan_type: ScanType = ScanType.FULL_SCAN) -> ScanResult:
         """
         Perform comprehensive scan of a file.
-        
+
         Args:
             file_path: Path to file to scan
             scan_type: Type of scan to perform
-            
+
         Returns:
             ScanResult with detection details
         """
         start_time = time.time()
         from pathlib import Path
 
-        file_path = Path()(file_path)
-        
+        self.file_path = Path(file_path)
+
         logger.debug(f"Scanning file: {file_path} with {scan_type.value} scan")
-        
+
         # Basic file checks
         if not file_path.exists():
             return self._create_error_result(str(file_path), "File not found", start_time)
-        
+
         if file_path.stat().st_size > MAX_FILE_SIZE_SCAN:
-            return self._create_warning_result(
-                str(file_path), 
-                f"File too large for scanning ({file_path.stat().st_size} bytes)", 
+            return self._create_warning_result()
+                str(file_path),
+                f"File too large for scanning ({file_path.stat().st_size} bytes)",
                 start_time
             )
-        
+
         # Calculate file hash
         file_hash = await self._calculate_file_hash(file_path)
-        
+
         # Perform different types of scans based on scan_type
         scan_results = []
-        
+
         if scan_type in [ScanType.FULL_SCAN, ScanType.HASH_SCAN]:
             # Hash-based scanning
             hash_result = await self.hash_scanner.scan_hash(file_hash, str(file_path))
             scan_results.append(hash_result)
-        
+
         if scan_type in [ScanType.FULL_SCAN, ScanType.FILENAME_SCAN]:
             # Filename analysis
             filename_result = await self.filename_analyzer.analyze_filename(str(file_path))
             scan_results.append(filename_result)
-        
+
         if scan_type in [ScanType.FULL_SCAN, ScanType.BEHAVIORAL_SCAN]:
             # Behavioral analysis (for executable files)
             if file_path.suffix.lower() in SUSPICIOUS_EXTENSIONS:
                 behavioral_result = await self.behavioral_analyzer.analyze_file(str(file_path))
                 scan_results.append(behavioral_result)
-        
+
         # Combine results and determine final threat level
         final_result = self._combine_scan_results(scan_results, file_hash, start_time)
-        
+
         # Handle threats
         if final_result.threat_level.value >= ThreatLevel.MEDIUM_RISK.value:
             await self._handle_threat(final_result)
-        
+
         # Update statistics
         await self._update_scan_statistics(final_result)
-        
+
         # Log scan to database
         await self._log_scan_result(final_result)
-        
+
         scan_duration = time.time() - start_time
         final_result.scan_duration = scan_duration
-        
+
         logger.info(f"Scan completed: {file_path} - {final_result.threat_level.name} in {scan_duration:.2f}s")
         return final_result
-    
+
     async def scan_link(self, url: str) -> ScanResult:
         """Scan a URL for safety."""
         start_time = time.time()
         logger.debug(f"Scanning link: {url}")
-        
+
         result = await self.link_scanner.scan_url(url)
         result.scan_duration = time.time() - start_time
-        
+
         await self._update_scan_statistics(result)
         await self._log_scan_result(result)
-        
+
         return result
-    
+
     async def get_scan_statistics(self) -> Dict[str, Any]:
         """Get comprehensive scan statistics."""
         return {
@@ -199,26 +199,26 @@ data_dir = Path()(data_dir)
             'link_scanner_stats': await self.link_scanner.get_statistics(),
             'threat_intel_stats': await self.threat_intelligence.get_statistics()
         }
-    
+
     async def update_threat_databases(self) -> bool:
         """Update all threat databases."""
         logger.info("Updating threat databases")
-        
+
         try:
             # Update hash database
             hash_updated = await self.hash_scanner.update_database()
-            
+
             # Update threat intelligence
             intel_updated = await self.threat_intelligence.update_feeds()
-            
+
             # Update behavioral patterns
             behavioral_updated = await self.behavioral_analyzer.update_patterns()
-            
+
             self.scan_stats['last_update'] = datetime.now(timezone.utc).isoformat()
-            
+
             logger.info(f"Database update completed - Hash: {hash_updated}, Intel: {intel_updated}, Behavioral: {behavioral_updated}")
             return hash_updated or intel_updated or behavioral_updated
-            
+
         except Exception as e:
             logger.error(f"Failed to update threat databases: {e}")
             return False
@@ -227,8 +227,8 @@ data_dir = Path()(data_dir)
         """Initialize antivirus database."""
         async with aiosqlite.connect(self.db_path) as db:
             # Scan results table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS scan_results (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS scan_results ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT NOT NULL,
                     file_hash TEXT NOT NULL,
@@ -246,8 +246,8 @@ data_dir = Path()(data_dir)
             """)
 
             # Quarantine log table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS quarantine_log (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS quarantine_log ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT NOT NULL,
                     original_location TEXT NOT NULL,
@@ -260,8 +260,8 @@ data_dir = Path()(data_dir)
             """)
 
             # Statistics table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS scan_statistics (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS scan_statistics ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     total_scans INTEGER DEFAULT 0,
                     threats_detected INTEGER DEFAULT 0,
@@ -286,7 +286,7 @@ data_dir = Path()(data_dir)
 
     def _create_error_result(self, file_path: str, error_msg: str, start_time: float) -> ScanResult:
         """Create error scan result."""
-        return ScanResult(
+        return ScanResult()
             file_path=file_path,
             file_hash="",
             threat_level=ThreatLevel.CLEAN,
@@ -301,7 +301,7 @@ data_dir = Path()(data_dir)
 
     def _create_warning_result(self, file_path: str, warning_msg: str, start_time: float) -> ScanResult:
         """Create warning scan result."""
-        return ScanResult(
+        return ScanResult()
             file_path=file_path,
             file_hash="",
             threat_level=ThreatLevel.SUSPICIOUS,
@@ -317,7 +317,7 @@ data_dir = Path()(data_dir)
     def _combine_scan_results(self, results: List[ScanResult], file_hash: str, start_time: float) -> ScanResult:
         """Combine multiple scan results into final result."""
         if not results:
-            return ScanResult(
+            return ScanResult()
                 file_path="unknown",
                 file_hash=file_hash,
                 threat_level=ThreatLevel.CLEAN,
@@ -342,7 +342,7 @@ data_dir = Path()(data_dir)
         for result in results:
             combined_details.update(result.details)
 
-        return ScanResult(
+        return ScanResult()
             file_path=highest_threat_result.file_path,
             file_hash=file_hash,
             threat_level=max_threat_level,
@@ -369,7 +369,7 @@ data_dir = Path()(data_dir)
         try:
             from pathlib import Path
 
-            source_path = Path()(scan_result.file_path)
+            self.source_path = Path(scan_result.file_path)
             if not source_path.exists():
                 return
 
@@ -383,11 +383,11 @@ data_dir = Path()(data_dir)
 
             # Log quarantine action
             async with aiosqlite.connect(self.db_path) as db:
-                await db.execute("""
+                await db.execute(""")
                     INSERT INTO quarantine_log
                     (file_path, original_location, quarantine_location, threat_name, quarantined_at)
                     VALUES (?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     source_path.name,
                     str(source_path),
                     str(quarantine_path),
@@ -414,13 +414,13 @@ data_dir = Path()(data_dir)
     async def _log_scan_result(self, scan_result: ScanResult):
         """Log scan result to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT INTO scan_results
-                (file_path, file_hash, threat_level, threat_type, threat_name,
+                (file_path, file_hash, threat_level, threat_type, threat_name,)
                  scan_type, scan_duration, detected_at, confidence_score,
                  quarantined, cleaned, details)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 scan_result.file_path,
                 scan_result.file_hash,
                 scan_result.threat_level.value,
@@ -439,7 +439,7 @@ data_dir = Path()(data_dir)
     async def _load_scan_statistics(self):
         """Load scan statistics from database."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("""
+            async with db.execute(""")
                 SELECT total_scans, threats_detected, files_quarantined,
                        false_positives, last_update
                 FROM scan_statistics
@@ -447,7 +447,7 @@ data_dir = Path()(data_dir)
             """) as cursor:
                 row = await cursor.fetchone()
                 if row:
-                    self.scan_stats.update({
+                    self.scan_stats.update({)
                         'total_scans': row[0],
                         'threats_detected': row[1],
                         'files_quarantined': row[2],

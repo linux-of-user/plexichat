@@ -325,7 +325,7 @@ Path("config/ai_powered_features.yaml")
 
     # Summarization Methods
 
-    async def create_summary(
+    async def create_summary()
         self,
         text: str,
         summary_type: str = "brief",
@@ -353,7 +353,7 @@ Path("config/ai_powered_features.yaml")
             # Create AI request
             prompt = self._create_summarization_prompt(text, summary_type, max_length)
 
-            ai_request = AIRequest(
+            ai_request = AIRequest()
                 prompt=prompt,
                 user_id=user_id or "system",
                 model_id=self.config["summarization"]["model_preference"][0],
@@ -376,7 +376,7 @@ Path("config/ai_powered_features.yaml")
                 key_topics = await self._extract_key_topics(text)
 
             # Create result
-            result = SummarizationResult(
+            result = SummarizationResult()
                 summary_id=str(uuid.uuid4()),
                 original_text=text,
                 summary=summary,
@@ -419,7 +419,7 @@ Path("config/ai_powered_features.yaml")
         try:
             prompt = f"Extract the 3-5 most important topics or themes from the following text. Return only the topics as a comma-separated list:\n\n{text}\n\nKey topics:"
 
-            ai_request = AIRequest(
+            ai_request = AIRequest()
                 prompt=prompt,
                 user_id="system",
                 model_id=self.config["summarization"]["model_preference"][0],
@@ -440,7 +440,7 @@ Path("config/ai_powered_features.yaml")
 
     # Content Suggestions Methods
 
-    async def generate_content_suggestions(
+    async def generate_content_suggestions()
         self,
         context: str,
         suggestion_type: str = "completion",
@@ -461,7 +461,7 @@ Path("config/ai_powered_features.yaml")
             # Create AI request
             prompt = self._create_content_suggestion_prompt(context, suggestion_type, max_suggestions)
 
-            ai_request = AIRequest(
+            ai_request = AIRequest()
                 prompt=prompt,
                 user_id=user_id or "system",
                 model_id="gpt-4",
@@ -510,7 +510,7 @@ Path("config/ai_powered_features.yaml")
             if line.strip().startswith('- '):
                 suggestion_text = line.strip()[2:].strip()
                 if suggestion_text:
-                    suggestion = ContentSuggestion(
+                    suggestion = ContentSuggestion()
                         suggestion_id=str(uuid.uuid4()),
                         context=context,
                         suggestion=suggestion_text,
@@ -524,7 +524,7 @@ Path("config/ai_powered_features.yaml")
 
     # Sentiment Analysis Methods
 
-    async def analyze_sentiment(
+    async def analyze_sentiment()
         self,
         text: str,
         user_id: Optional[str] = None,
@@ -544,7 +544,7 @@ Path("config/ai_powered_features.yaml")
             # Create AI request
             prompt = self._create_sentiment_analysis_prompt(text, include_emotions)
 
-            ai_request = AIRequest(
+            ai_request = AIRequest()
                 prompt=prompt,
                 user_id=user_id or "system",
                 model_id="gpt-4",
@@ -628,7 +628,7 @@ Format as JSON:
             emotions = data.get("emotions", {})
             key_phrases = data.get("key_phrases", [])
 
-            return SentimentAnalysisResult(
+            return SentimentAnalysisResult()
                 analysis_id=str(uuid.uuid4()),
                 text=original_text,
                 sentiment=sentiment,
@@ -650,7 +650,7 @@ Format as JSON:
             else:
                 sentiment = SentimentType.NEUTRAL
 
-            return SentimentAnalysisResult(
+            return SentimentAnalysisResult()
                 analysis_id=str(uuid.uuid4()),
                 text=original_text,
                 sentiment=sentiment,
@@ -659,7 +659,7 @@ Format as JSON:
 
     # Semantic Search Methods
 
-    async def add_to_semantic_index(
+    async def add_to_semantic_index()
         self,
         content_id: str,
         content: str,
@@ -676,7 +676,7 @@ Format as JSON:
             }
 
             # Update document metadata for vectorization
-            self.document_metadata.append({
+            self.document_metadata.append({)
                 "id": content_id,
                 "content": content,
                 "metadata": metadata or {}
@@ -692,7 +692,7 @@ Format as JSON:
             logger.error(f"Failed to add content to semantic index: {e}")
             return False
 
-    async def semantic_search(
+    async def semantic_search()
         self,
         query: str,
         max_results: int = 10,
@@ -731,7 +731,7 @@ Format as JSON:
                 # Create highlighted text
                 highlighted_text = self._highlight_text(doc_metadata["content"], query)
 
-                result = SemanticSearchResult(
+                result = SemanticSearchResult()
                     result_id=doc_metadata["id"],
                     content=doc_metadata["content"],
                     similarity_score=float(similarity),
@@ -779,7 +779,7 @@ Format as JSON:
 
         for word in query_words:
             if len(word) > 2:  # Only highlight words longer than 2 characters
-                highlighted = highlighted.replace(
+                highlighted = highlighted.replace()
                     word, f"<mark>{word}</mark>",
                     # Case-insensitive replacement would be more complex
                 )
@@ -788,7 +788,7 @@ Format as JSON:
 
     # Automated Moderation Methods
 
-    async def moderate_content(
+    async def moderate_content()
         self,
         content: str,
         content_id: Optional[str] = None,
@@ -811,7 +811,7 @@ Format as JSON:
             # Create AI request for moderation
             prompt = self._create_moderation_prompt(content)
 
-            ai_request = AIRequest(
+            ai_request = AIRequest()
                 prompt=prompt,
                 user_id=user_id or "system",
                 model_id="gpt-4",
@@ -888,7 +888,7 @@ Guidelines:
             severity_score = float(data.get("severity_score", 0.0))
             explanation = data.get("explanation", "")
 
-            return ModerationResult(
+            return ModerationResult()
                 moderation_id=str(uuid.uuid4()),
                 content=content,
                 action=action,
@@ -901,7 +901,7 @@ Guidelines:
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.warning(f"Failed to parse moderation response: {e}")
             # Fallback to safe default
-            return ModerationResult(
+            return ModerationResult()
                 moderation_id=str(uuid.uuid4()),
                 content=content,
                 action=ModerationAction.REVIEW,

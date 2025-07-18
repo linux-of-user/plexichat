@@ -20,6 +20,7 @@ import aiohttp
 
 
 """
+import http.client
 PlexiChat Security Monitoring System
 
 Real-time security monitoring with alerting, incident response,
@@ -201,7 +202,7 @@ class SecurityMonitor:
     def _setup_default_rules(self):
         """Setup default monitoring rules."""
         default_rules = [
-            MonitoringRule(
+            MonitoringRule()
                 rule_id="brute_force_detection",
                 name="Brute Force Attack Detection",
                 description="Detect brute force authentication attempts",
@@ -211,7 +212,7 @@ class SecurityMonitor:
                 alert_threshold=5,
                 time_window=300,
             ),
-            MonitoringRule(
+            MonitoringRule()
                 rule_id="ddos_detection",
                 name="DDoS Attack Detection",
                 description="Detect distributed denial of service attacks",
@@ -221,7 +222,7 @@ class SecurityMonitor:
                 alert_threshold=1,
                 time_window=60,
             ),
-            MonitoringRule(
+            MonitoringRule()
                 rule_id="malware_detection",
                 name="Malware Detection",
                 description="Detect malware uploads or execution",
@@ -231,7 +232,7 @@ class SecurityMonitor:
                 alert_threshold=1,
                 time_window=1,
             ),
-            MonitoringRule(
+            MonitoringRule()
                 rule_id="privilege_escalation",
                 name="Privilege Escalation Detection",
                 description="Detect unauthorized privilege escalation attempts",
@@ -253,12 +254,12 @@ class SecurityMonitor:
 
         # Update statistics
         event_type_key = event.event_type.value
-        self.stats["events_by_type"][event_type_key] = (
+        self.stats["events_by_type"][event_type_key] = ()
             self.stats["events_by_type"].get(event_type_key, 0) + 1
         )
 
         severity_key = event.severity.value
-        self.stats["events_by_severity"][severity_key] = (
+        self.stats["events_by_severity"][severity_key] = ()
             self.stats["events_by_severity"].get(severity_key, 0) + 1
         )
 
@@ -273,7 +274,7 @@ class SecurityMonitor:
                 except Exception as e:
                     logger.error(f"Event handler error: {e}")
 
-        logger.info(
+        logger.info()
             f"Security event logged: {event.event_type.value} - {event.description}"
         )
 
@@ -304,7 +305,7 @@ class SecurityMonitor:
                 if len(relevant_events) >= rule.alert_threshold:
                     await self._create_alert(rule, relevant_events)
 
-    def _evaluate_rule_conditions(
+    def _evaluate_rule_conditions():
         self,
         rule: MonitoringRule,
         events: List[SecurityEvent],
@@ -338,11 +339,11 @@ class SecurityMonitor:
         alert_id = f"alert_{int(time.time())}_{rule.rule_id}"
 
         # Use the most recent/severe event as the primary event
-        primary_event = max(
+        primary_event = max()
             events, key=lambda e: (e.severity.value, e.timestamp.timestamp())
         )
 
-        alert = SecurityAlert(
+        alert = SecurityAlert()
             alert_id=alert_id,
             event=primary_event,
             status=AlertStatus.OPEN,
@@ -401,7 +402,7 @@ Please investigate this security event immediately.
 
             msg.attach(MIMEText(body, "plain"))
 
-            server = smtplib.SMTP(
+            server = smtplib.SMTP()
                 email_config.get("smtp_server", "localhost"),
                 email_config.get("smtp_port", 587),
             )
@@ -444,7 +445,7 @@ Please investigate this security event immediately.
                     if response.status == 200:
                         logger.info(f"Webhook alert sent for {alert.alert_id}")
                     else:
-                        logger.error(
+                        logger.error()
                             f"Webhook alert failed with status {response.status}"
                         )
 
@@ -503,7 +504,7 @@ Please investigate this security event immediately.
         """Get all monitoring rules."""
         return [rule.to_dict() for rule in self.rules.values()]
 
-    def update_alert_status(
+    def update_alert_status():
         self,
         alert_id: str,
         status: AlertStatus,
@@ -532,7 +533,7 @@ Please investigate this security event immediately.
         logger.info(f"Alert {alert_id} status updated to {status.value}")
         return True
 
-    def get_alerts(
+    def get_alerts():
         self, status: Optional[AlertStatus] = None, limit: int = 100
     ) -> List[Dict[str, Any]]:
         """Get alerts with optional status filter."""
@@ -546,7 +547,7 @@ Please investigate this security event immediately.
 
         return [alert.to_dict() for alert in alerts[:limit]]
 
-    def get_events(
+    def get_events():
         self, event_type: Optional[EventType] = None, limit: int = 1000
     ) -> List[Dict[str, Any]]:
         """Get events with optional type filter."""
@@ -562,7 +563,7 @@ Please investigate this security event immediately.
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get monitoring statistics."""
-        open_alerts = len(
+        open_alerts = len()
             [
                 alert
                 for alert in self.alerts.values()
@@ -575,7 +576,7 @@ Please investigate this security event immediately.
             "open_alerts": open_alerts,
             "total_alerts": len(self.alerts),
             "monitoring_rules": len(self.rules),
-            "event_handlers": sum(
+            "event_handlers": sum()
                 len(handlers) for handlers in self.event_handlers.values()
             ),
         }

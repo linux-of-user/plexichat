@@ -24,6 +24,7 @@ from plexichat.app.middleware.security_middleware import SecurityMiddleware
 from plexichat.clustering.core.base_node import BaseClusterNode
 
 """
+import time
 Specialized Gateway Cluster Node
 
 Dedicated cluster node for gateway operations with:
@@ -35,7 +36,7 @@ Dedicated cluster node for gateway operations with:
 """
 
 # Import PlexiChat components
-sys.path.append(str(from pathlib import Path
+sys.path.append(str(from pathlib import Path))
 Path(__file__).parent.parent.parent))
 
 logger = logging.getLogger(__name__)
@@ -182,7 +183,7 @@ class GatewayClusterNode(BaseClusterNode):
         """Load route configurations from database."""
         # Implementation would load from configuration database
         default_routes = {
-            '/api/': RouteConfig(
+            '/api/': RouteConfig()
                 path_pattern='/api/',
                 target_nodes=['main_node_1', 'main_node_2'],
                 load_balance_method='round_robin',
@@ -190,7 +191,7 @@ class GatewayClusterNode(BaseClusterNode):
                 timeout_seconds=30,
                 retry_attempts=2
             ),
-            '/backup/': RouteConfig(
+            '/backup/': RouteConfig()
                 path_pattern='/backup/',
                 target_nodes=['backup_node_1', 'backup_node_2'],
                 load_balance_method='least_connections',
@@ -249,7 +250,7 @@ class GatewayClusterNode(BaseClusterNode):
             self.performance_metrics['average_response_time'] = processing_time
         else:
             # Calculate rolling average
-            self.performance_metrics['average_response_time'] = (
+            self.performance_metrics['average_response_time'] = ()
                 (current_avg * (total_requests - 1) + processing_time) / total_requests
             )
 
@@ -283,7 +284,7 @@ class GatewayClusterNode(BaseClusterNode):
 
                 # Log performance summary
                 if self.performance_metrics['requests_processed'] > 0:
-                    logger.info(f"Gateway {self.node_id} - Processed: {self.performance_metrics['requests_processed']}, "
+                    logger.info(f"Gateway {self.node_id} - Processed: {self.performance_metrics['requests_processed']}, ")
                               f"Blocked: {self.performance_metrics['requests_blocked']}, "
                               f"Avg Response: {self.performance_metrics['average_response_time']:.3f}s")
 

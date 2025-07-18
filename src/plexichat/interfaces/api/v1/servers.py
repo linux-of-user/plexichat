@@ -5,8 +5,7 @@
 # pyright: reportReturnType=false
 from typing import List, Optional
 
-from ....features.channels.models.server import (
-
+from ....features.channels.models.server import ()
 
 
     from plexichat.infrastructure.utils.auth import get_current_user,
@@ -49,11 +48,11 @@ class ServerCreateRequest(BaseModel):
     icon_url: Optional[str] = Field(None, description="Server icon URL")
     region: Optional[str] = Field("us-east", description="Server region")
     verification_level: VerificationLevel = Field(VerificationLevel.NONE, description="Verification level")
-    default_message_notifications: DefaultMessageNotifications = Field(
+    default_message_notifications: DefaultMessageNotifications = Field()
         DefaultMessageNotifications.ALL_MESSAGES,
         description="Default notification setting"
     )
-    explicit_content_filter: ExplicitContentFilter = Field(
+    explicit_content_filter: ExplicitContentFilter = Field()
         ExplicitContentFilter.DISABLED,
         description="Explicit content filter level"
     )
@@ -67,10 +66,10 @@ class ServerUpdateRequest(BaseModel):
     banner_url: Optional[str] = Field(None, description="Server banner URL")
     region: Optional[str] = Field(None, description="Server region")
     verification_level: Optional[VerificationLevel] = Field(None, description="Verification level")
-    default_message_notifications: Optional[DefaultMessageNotifications] = Field(
+    default_message_notifications: Optional[DefaultMessageNotifications] = Field()
         None, description="Default notification setting"
     )
-    explicit_content_filter: Optional[ExplicitContentFilter] = Field(
+    explicit_content_filter: Optional[ExplicitContentFilter] = Field()
         None, description="Explicit content filter level"
     )
 
@@ -100,7 +99,7 @@ class ServerResponse(BaseModel):
 
 
 @router.post("/", response_model=ServerResponse, status_code=status.HTTP_201_CREATED)
-async def create_server(
+async def create_server()
     request: ServerCreateRequest,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
@@ -111,7 +110,7 @@ async def create_server(
     """
     try:
         # Create server instance
-        server = Server(
+        server = Server()
             name=request.name,
             owner_id=current_user.id,
             description=request.description,
@@ -125,12 +124,11 @@ async def create_server(
         # TODO: Save to database using repository
 
 
-
         # TODO: Create default @everyone role
         # TODO: Create default channels (general, etc.)
         # TODO: Add owner as first member
 
-        return ServerResponse(
+        return ServerResponse()
             server_id=server.server_id,
             name=server.name,
             owner_id=server.owner_id,
@@ -154,14 +152,14 @@ async def create_server(
         )
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create server: {str(e)}"
         )
 
 
 @router.get("/", response_model=List[ServerResponse])
-async def list_user_servers(
+async def list_user_servers()
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """
@@ -173,20 +171,18 @@ async def list_user_servers(
         # TODO: Implement with repository
 
 
-
-
         # For now, return empty list
         return []
 
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list servers: {str(e)}"
         )
 
 
 @router.get("/{server_id}", response_model=ServerResponse)
-async def get_server(
+async def get_server()
     server_id: str,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
@@ -199,14 +195,13 @@ async def get_server(
         # TODO: Implement with repository
 
 
-
         # TODO: Check if user has permission to view server
 
 
         # if not member:
         #     raise HTTPException(status_code=404, detail="Server not found")
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Server retrieval not yet implemented"
         )
@@ -214,14 +209,14 @@ async def get_server(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get server: {str(e)}"
         )
 
 
 @router.patch("/{server_id}", response_model=ServerResponse)
-async def update_server(
+async def update_server()
     server_id: str,
     request: ServerUpdateRequest,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
@@ -236,12 +231,11 @@ settings.
         # TODO: Implement with repository and permission checking
 
 
-
         # TODO: Check permissions
         # if not PermissionService.can_manage_server(current_user, server):
         #     raise HTTPException(status_code=403, detail="Insufficient permissions")
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Server update not yet implemented"
         )
@@ -249,14 +243,14 @@ settings.
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update server: {str(e)}"
         )
 
 
 @router.delete("/{server_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_server(
+async def delete_server()
     server_id: str,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
@@ -269,7 +263,6 @@ async def delete_server(
         # TODO: Implement with repository
 
 
-
         # TODO: Check if user is owner
         # if server.owner_id != current_user.id:
         #     raise HTTPException(status_code=403, detail="Only server owner can delete server")
@@ -277,7 +270,7 @@ async def delete_server(
         # TODO: Delete server and all associated data
         # await server_repo.delete(server_id)
 
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Server deletion not yet implemented"
         )
@@ -285,7 +278,7 @@ async def delete_server(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
+        raise HTTPException()
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete server: {str(e)}"
         )
@@ -293,26 +286,26 @@ async def delete_server(
 
 # Additional endpoints for server management
 @router.post("/{server_id}/join", status_code=status.HTTP_200_OK)
-async def join_server(
+async def join_server()
     server_id: str,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Join a server via invite or public access."""
     # TODO: Implement server joining logic
-    raise HTTPException(
+    raise HTTPException()
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Server joining not yet implemented"
     )
 
 
 @router.post("/{server_id}/leave", status_code=status.HTTP_200_OK)
-async def leave_server(
+async def leave_server()
     server_id: str,
     current_user = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ):
     """Leave a server."""
     # TODO: Implement server leaving logic
-    raise HTTPException(
+    raise HTTPException()
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Server leaving not yet implemented"
     )

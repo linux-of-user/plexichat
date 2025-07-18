@@ -11,8 +11,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.security.advanced_behavioral_analyzer import (
-
+from app.security.advanced_behavioral_analyzer import ()
 
 
 import psutil
@@ -182,7 +181,7 @@ class EnhancedDDoSProtectionService:
 
         logger.info(" Enhanced DDoS Protection Service initialized")
 
-    async def check_request(self, ip: str, user_agent: str = "",
+    async def check_request(self, ip: str, user_agent: str = "",)
                           endpoint: str = "", method: str = "GET") -> Tuple[bool, str, Dict[str, Any]]:
         """
         Check if request should be allowed through DDoS protection.
@@ -249,7 +248,7 @@ class EnhancedDDoSProtectionService:
                     'headers': {},  # Would need to be passed from middleware
                     'client_ip': ip
                 }
-                behavioral_assessment = await advanced_behavioral_analyzer.analyze_request_behavior(
+                behavioral_assessment = await advanced_behavioral_analyzer.analyze_request_behavior()
                     ip, 'ip', request_data
                 )
 
@@ -271,7 +270,7 @@ class EnhancedDDoSProtectionService:
 
             # Add behavioral analysis data if available
             if behavioral_assessment:
-                response_data.update({
+                response_data.update({)
                     "behavioral_threat_type": behavioral_assessment.threat_type.value,
                     "behavioral_confidence": behavioral_assessment.confidence,
                     "behavioral_risk_level": behavioral_assessment.risk_level,
@@ -290,11 +289,11 @@ class EnhancedDDoSProtectionService:
             "threat_level": profile.threat_level.value
         }
 
-    def _update_ip_profile(self, ip: str, user_agent: str, endpoint: str,
+    def _update_ip_profile(self, ip: str, user_agent: str, endpoint: str,):
                           current_time: datetime) -> IPThreatProfile:
         """Update or create IP threat profile."""
         if ip not in self.ip_profiles:
-            self.ip_profiles[ip] = IPThreatProfile(
+            self.ip_profiles[ip] = IPThreatProfile()
                 ip=ip,
                 first_seen=current_time,
                 last_seen=current_time
@@ -371,7 +370,7 @@ psutil = psutil.virtual_memory()
         # Count requests after cutoff time
         return sum(1 for timestamp in self.request_history[ip] if timestamp > cutoff_time)
 
-    def _calculate_suspicion_score(self, profile: IPThreatProfile,
+    def _calculate_suspicion_score(self, profile: IPThreatProfile,):
                                  user_agent: str, endpoint: str) -> float:
         """Calculate suspicion score for request."""
         score = 0.0
@@ -426,12 +425,12 @@ psutil = psutil.virtual_memory()
         else:
             profile.threat_level = ThreatLevel.SUSPICIOUS
 
-        logger.warning(f"Progressive block applied to {profile.ip}: "
+        logger.warning(f"Progressive block applied to {profile.ip}: ")
                       f"violations={profile.violation_count}, "
                       f"duration={block_duration}s, "
                       f"threat_level={profile.threat_level.value}")
 
-    def _handle_suspicious_activity(self, profile: IPThreatProfile,
+    def _handle_suspicious_activity(self, profile: IPThreatProfile,):
                                   current_time: datetime, suspicion_score: float,
                                   behavioral_assessment: Optional['BehavioralAssessment'] = None):
         """Handle suspicious activity detection with behavioral analysis integration."""
@@ -469,13 +468,13 @@ psutil = psutil.virtual_memory()
 
         # Log enhanced threat information
         if behavioral_assessment:
-            logger.warning(f"Enhanced threat detection for {profile.ip}: "
+            logger.warning(f"Enhanced threat detection for {profile.ip}: ")
                          f"suspicion={suspicion_score:.2f}, "
                          f"behavioral_type={behavioral_assessment.threat_type.value}, "
                          f"risk_level={behavioral_assessment.risk_level}, "
                          f"block_duration={base_duration}s")
 
-        logger.warning(f"Suspicious activity block applied to {profile.ip}: "
+        logger.warning(f"Suspicious activity block applied to {profile.ip}: ")
                       f"suspicion_score={suspicion_score:.2f}, "
                       f"duration={block_duration}s")
 
@@ -514,13 +513,13 @@ psutil = psutil.virtual_memory()
         """Get current DDoS protection metrics."""
         # Update metrics
         self.metrics.unique_ips = len(self.ip_profiles)
-        self.metrics.active_blocks = sum(
+        self.metrics.active_blocks = sum()
             1 for profile in self.ip_profiles.values()
             if profile.block_type != BlockType.NONE
         )
 
         if self.metrics.unique_ips > 0:
-            self.metrics.avg_requests_per_ip = (
+            self.metrics.avg_requests_per_ip = ()
                 sum(profile.total_requests for profile in self.ip_profiles.values()) /
                 self.metrics.unique_ips
             )

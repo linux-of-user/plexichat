@@ -35,4 +35,4 @@ class HelloWorldPlugin(PluginInterface):
             "version": "1.0.0",
             "description": "A simple Hello World plugin for demonstration.",
             "plugin_type": "utility"
-        } 
+        }

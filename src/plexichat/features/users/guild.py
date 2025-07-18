@@ -14,6 +14,7 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 Guild (Server) models for Discord-like functionality.
 Includes servers, channels, roles, and permissions.
 """
@@ -99,7 +100,7 @@ class Guild(SQLModel, table=True):
     widget_channel_id: Optional[int] = Field(foreign_key="channels.id")
     verification_level: VerificationLevel = Field(default=VerificationLevel.NONE)
     default_message_notifications: int = Field(default=0)  # 0=all, 1=mentions
-    explicit_content_filter: ExplicitContentFilter = Field(
+    explicit_content_filter: ExplicitContentFilter = Field()
         default=ExplicitContentFilter.DISABLED
     )
     mfa_level: MFALevel = Field(default=MFALevel.NONE)
@@ -128,7 +129,7 @@ class Guild(SQLModel, table=True):
     premium_progress_bar_enabled: bool = Field(default=False)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -147,7 +148,7 @@ class Guild(SQLModel, table=True):
     webhooks: List["Webhook"] = Relationship(back_populates="guild")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_guild_owner", "owner_id"),
         Index("idx_guild_name", "name"),
         Index("idx_guild_created", "created_at"),
@@ -168,11 +169,11 @@ class GuildMember(SQLModel, table=True):
     avatar: Optional[str] = Field(max_length=255)  # Guild-specific avatar
 
     # Timestamps
-    joined_at: datetime = Field(
+    joined_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     premium_since: Optional[datetime] = Field(sa_column=Column(DateTime))  # Nitro boost
-    communication_disabled_until: Optional[datetime] = Field(
+    communication_disabled_until: Optional[datetime] = Field()
         sa_column=Column(DateTime)
     )  # Timeout
 
@@ -187,7 +188,7 @@ class GuildMember(SQLModel, table=True):
     roles: List["Role"] = Relationship(link_table="member_roles")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_guild_member_unique", "guild_id", "user_id", unique=True),
         Index("idx_guild_member_joined", "joined_at"),
     )
@@ -214,7 +215,7 @@ class Role(SQLModel, table=True):
     premium_subscriber: bool = Field(default=False)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -224,7 +225,7 @@ class Role(SQLModel, table=True):
     members: List[GuildMember] = Relationship(link_table="member_roles")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_role_guild_position", "guild_id", "position"),
         Index("idx_role_name", "name"),
     )
@@ -238,7 +239,7 @@ class MemberRole(SQLModel, table=True):
 
     member_id: int = Field(foreign_key="guild_members.id", primary_key=True)
     role_id: int = Field(foreign_key="roles.id", primary_key=True)
-    assigned_at: datetime = Field(
+    assigned_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     assigned_by: Optional[int] = Field(foreign_key="users.id")
@@ -264,7 +265,7 @@ class Emoji(SQLModel, table=True):
     user_id: Optional[int] = Field(foreign_key="users.id")
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
 
@@ -296,7 +297,7 @@ class Invite(SQLModel, table=True):
     uses: int = Field(default=0)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     expires_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -333,7 +334,7 @@ class GuildSettings(SQLModel, table=True):
     custom_settings: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime)
     )
     updated_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -356,12 +357,12 @@ class GuildAuditLog(SQLModel, table=True):
     reason: Optional[str] = Field(sa_column=Column(Text))
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow, sa_column=Column(DateTime), index=True
     )
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_audit_guild_action", "guild_id", "action_type"),
         Index("idx_audit_user_action", "user_id", "action_type"),
         Index("idx_audit_created", "created_at"),

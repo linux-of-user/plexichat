@@ -14,6 +14,7 @@ from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 
 """
+import time
 PlexiChat Safety and Moderation API
 Comprehensive safety features including reporting, moderation, and automated content filtering
 """
@@ -81,13 +82,13 @@ class SafetyReport(BaseModel):
     report_id: str = Field(..., description="Unique report identifier")
     reporter_id: str = Field(..., description="ID of user making the report")
     reported_user_id: Optional[str] = Field(None, description="ID of reported user")
-    reported_content_id: Optional[str] = Field(
+    reported_content_id: Optional[str] = Field()
         None, description="ID of reported content"
     )
     report_type: ReportType = Field(..., description="Type of report")
     description: str = Field(..., max_length=1000, description="Report description")
     evidence_urls: List[str] = Field(default_factory=list, description="Evidence URLs")
-    status: ReportStatus = Field(
+    status: ReportStatus = Field()
         default=ReportStatus.PENDING, description="Report status"
     )
     priority: int = Field(default=1, ge=1, le=5, description="Report priority (1-5)")
@@ -95,7 +96,7 @@ class SafetyReport(BaseModel):
     updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
     assigned_moderator: Optional[str] = Field(None, description="Assigned moderator ID")
     resolution_notes: Optional[str] = Field(None, description="Resolution notes")
-    metadata: Dict[str, Any] = Field(
+    metadata: Dict[str, Any] = Field()
         default_factory=dict, description="Additional metadata"
     )
 
@@ -109,7 +110,7 @@ class ModerationActionRecord(BaseModel):
     target_content_id: Optional[str] = Field(None, description="Target content ID")
     action_type: ModerationAction = Field(..., description="Type of action taken")
     reason: str = Field(..., description="Reason for action")
-    duration: Optional[int] = Field(
+    duration: Optional[int] = Field()
         None, description="Duration in seconds (for temporary actions)"
     )
     evidence: List[str] = Field(default_factory=list, description="Evidence for action")
@@ -117,7 +118,7 @@ class ModerationActionRecord(BaseModel):
     expires_at: Optional[datetime] = Field(None, description="Expiration timestamp")
     reversed: bool = Field(default=False, description="Whether action was reversed")
     reversed_by: Optional[str] = Field(None, description="Who reversed the action")
-    reversed_at: Optional[datetime] = Field(
+    reversed_at: Optional[datetime] = Field()
         None, description="When action was reversed"
     )
 
@@ -131,7 +132,7 @@ class AutoModRule(BaseModel):
     rule_type: AutoModRuleType = Field(..., description="Type of rule")
     enabled: bool = Field(default=True, description="Whether rule is enabled")
     severity: int = Field(default=1, ge=1, le=5, description="Rule severity (1-5)")
-    action: ModerationAction = Field(
+    action: ModerationAction = Field()
         ..., description="Action to take when rule is triggered"
     )
 
@@ -142,10 +143,10 @@ class AutoModRule(BaseModel):
     threshold: float = Field(default=0.8, description="Confidence threshold")
 
     # Scope
-    channels: List[str] = Field(
+    channels: List[str] = Field()
         default_factory=list, description="Channels to apply rule"
     )
-    user_roles: List[str] = Field(
+    user_roles: List[str] = Field()
         default_factory=list, description="User roles to apply rule"
     )
     exempt_users: List[str] = Field(default_factory=list, description="Exempt user IDs")
@@ -155,7 +156,7 @@ class AutoModRule(BaseModel):
     created_by: str = Field(..., description="Creator user ID")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
-    trigger_count: int = Field(
+    trigger_count: int = Field()
         default=0, description="Number of times rule was triggered"
     )
 
@@ -166,14 +167,14 @@ class ContentFilterResult(BaseModel):
     content_id: str = Field(..., description="Content identifier")
     allowed: bool = Field(..., description="Whether content is allowed")
     confidence: float = Field(..., description="Filter confidence score")
-    violations: List[str] = Field(
+    violations: List[str] = Field()
         default_factory=list, description="Detected violations"
     )
-    suggested_action: ModerationAction = Field(
+    suggested_action: ModerationAction = Field()
         ..., description="Suggested moderation action"
     )
     explanation: str = Field(..., description="Explanation of filter decision")
-    processing_time_ms: float = Field(
+    processing_time_ms: float = Field()
         ..., description="Processing time in milliseconds"
     )
 
@@ -185,7 +186,7 @@ class TrustScore(BaseModel):
     overall_score: float = Field(..., ge=0.0, le=1.0, description="Overall trust score")
     factors: Dict[str, float] = Field(..., description="Trust score factors")
     last_updated: datetime = Field(..., description="Last update timestamp")
-    history: List[Dict[str, Any]] = Field(
+    history: List[Dict[str, Any]] = Field()
         default_factory=list, description="Score history"
     )
 
@@ -204,10 +205,10 @@ async def setup_safety_endpoints(router: APIRouter):
 
     security = HTTPBearer()
 
-    @router.post(
+    @router.post()
         "/report", response_model=SafetyReport, summary="Report Content or User"
     )
-    async def create_safety_report(
+    async def create_safety_report()
         report_type: ReportType,
         description: str = Field(..., max_length=1000),
         reported_user_id: Optional[str] = None,
@@ -221,13 +222,13 @@ async def setup_safety_endpoints(router: APIRouter):
 
             # Validate report
             if not reported_user_id and not reported_content_id:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=400,
                     detail="Must specify either user or content to report",
                 )
 
             # Create report
-            report = await _create_safety_report(
+            report = await _create_safety_report()
                 reporter_id,
                 report_type,
                 description,
@@ -242,10 +243,10 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to create safety report: {e}")
             raise HTTPException(status_code=500, detail="Failed to create report")
 
-    @router.get(
+    @router.get()
         "/reports", response_model=List[SafetyReport], summary="Get Safety Reports"
     )
-    async def get_safety_reports(
+    async def get_safety_reports()
         status: Optional[ReportStatus] = Query(default=None),
         report_type: Optional[ReportType] = Query(default=None),
         assigned_to_me: bool = Query(default=False),
@@ -259,7 +260,7 @@ async def setup_safety_endpoints(router: APIRouter):
             if not await _is_moderator("current_user_id"):
                 raise HTTPException(status_code=403, detail="Moderator access required")
 
-            reports = await _get_safety_reports(
+            reports = await _get_safety_reports()
                 status, report_type, assigned_to_me, limit, offset
             )
             return reports
@@ -268,7 +269,7 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to get safety reports: {e}")
             raise HTTPException(status_code=500, detail="Failed to get reports")
 
-    @router.get(
+    @router.get()
         "/reports/{report_id}",
         response_model=SafetyReport,
         summary="Get Specific Report",
@@ -290,12 +291,12 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to get safety report {report_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to get report")
 
-    @router.post(
+    @router.post()
         "/reports/{report_id}/action",
         response_model=ModerationActionRecord,
         summary="Take Action on Report",
     )
-    async def take_moderation_action(
+    async def take_moderation_action()
         report_id: str,
         action_type: ModerationAction,
         reason: str,
@@ -309,7 +310,7 @@ async def setup_safety_endpoints(router: APIRouter):
                 raise HTTPException(status_code=403, detail="Moderator access required")
 
             moderator_id = "current_user_id"
-            action = await _take_moderation_action(
+            action = await _take_moderation_action()
                 report_id, moderator_id, action_type, reason, duration
             )
 
@@ -319,10 +320,10 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to take action on report {report_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to take action")
 
-    @router.post(
+    @router.post()
         "/moderate", response_model=ModerationActionRecord, summary="Moderate Content"
     )
-    async def moderate_content(
+    async def moderate_content()
         target_user_id: str,
         action_type: ModerationAction,
         reason: str,
@@ -338,7 +339,7 @@ async def setup_safety_endpoints(router: APIRouter):
                 raise HTTPException(status_code=403, detail="Moderator access required")
 
             moderator_id = "current_user_id"
-            action = await _moderate_content(
+            action = await _moderate_content()
                 moderator_id,
                 target_user_id,
                 target_content_id,
@@ -354,10 +355,10 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to moderate content: {e}")
             raise HTTPException(status_code=500, detail="Failed to moderate content")
 
-    @router.get(
+    @router.get()
         "/automod/rules", response_model=List[AutoModRule], summary="Get Auto-Mod Rules"
     )
-    async def get_automod_rules(
+    async def get_automod_rules()
         rule_type: Optional[AutoModRuleType] = Query(default=None),
         enabled_only: bool = Query(default=False),
         token: str = Depends(security),
@@ -375,7 +376,7 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to get automod rules: {e}")
             raise HTTPException(status_code=500, detail="Failed to get rules")
 
-    @router.post(
+    @router.post()
         "/automod/rules", response_model=AutoModRule, summary="Create Auto-Mod Rule"
     )
     async def create_automod_rule(rule: AutoModRule, token: str = Depends(security)):
@@ -394,12 +395,12 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to create automod rule: {e}")
             raise HTTPException(status_code=500, detail="Failed to create rule")
 
-    @router.put(
+    @router.put()
         "/automod/rules/{rule_id}",
         response_model=AutoModRule,
         summary="Update Auto-Mod Rule",
     )
-    async def update_automod_rule(
+    async def update_automod_rule()
         rule_id: str, rule_updates: Dict[str, Any], token: str = Depends(security)
     ):
         """Update auto-moderation rule (admin only)."""
@@ -436,10 +437,10 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to delete automod rule {rule_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to delete rule")
 
-    @router.get(
+    @router.get()
         "/blocked-users", response_model=List[BlockedUser], summary="Get Blocked Users"
     )
-    async def get_blocked_users(
+    async def get_blocked_users()
         limit: int = Query(default=50, le=100),
         offset: int = Query(default=0, ge=0),
         token: str = Depends(security),
@@ -454,10 +455,10 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to get blocked users: {e}")
             raise HTTPException(status_code=500, detail="Failed to get blocked users")
 
-    @router.post(
+    @router.post()
         "/blocked-users/{user_id}", response_model=BlockedUser, summary="Block User"
     )
-    async def block_user(
+    async def block_user()
         user_id: str, reason: Optional[str] = None, token: str = Depends(security)
     ):
         """Block a user."""
@@ -490,10 +491,10 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to unblock user {user_id}: {e}")
             raise HTTPException(status_code=500, detail="Failed to unblock user")
 
-    @router.post(
+    @router.post()
         "/content-filter", response_model=ContentFilterResult, summary="Filter Content"
     )
-    async def filter_content(
+    async def filter_content()
         content: str,
         content_type: str = "text",
         context: Dict[str, Any] = {},
@@ -508,7 +509,7 @@ async def setup_safety_endpoints(router: APIRouter):
             logger.error(f"Failed to filter content: {e}")
             raise HTTPException(status_code=500, detail="Failed to filter content")
 
-    @router.get(
+    @router.get()
         "/trust-score/{user_id}",
         response_model=TrustScore,
         summary="Get User Trust Score",
@@ -534,7 +535,7 @@ async def setup_safety_endpoints(router: APIRouter):
 # Helper functions (would be implemented with actual database and AI integration)
 
 
-async def _create_safety_report(
+async def _create_safety_report()
     reporter_id: str,
     report_type: ReportType,
     description: str,
@@ -544,7 +545,7 @@ async def _create_safety_report(
 ) -> SafetyReport:
     """Create a safety report."""
     # Placeholder implementation
-    return SafetyReport(
+    return SafetyReport()
         report_id="report_123",
         reporter_id=reporter_id,
         reported_user_id=reported_user_id,
@@ -562,7 +563,7 @@ async def _is_moderator(user_id: str) -> bool:
     return True
 
 
-async def _get_safety_reports(
+async def _get_safety_reports()
     status: Optional[ReportStatus],
     report_type: Optional[ReportType],
     assigned_to_me: bool,
@@ -580,7 +581,7 @@ async def _get_safety_report(report_id: str) -> Optional[SafetyReport]:
     return None
 
 
-async def _take_moderation_action(
+async def _take_moderation_action()
     report_id: str,
     moderator_id: str,
     action_type: ModerationAction,
@@ -589,7 +590,7 @@ async def _take_moderation_action(
 ) -> ModerationActionRecord:
     """Take moderation action on a report."""
     # Placeholder implementation
-    return ModerationActionRecord(
+    return ModerationActionRecord()
         action_id="action_123",
         moderator_id=moderator_id,
         target_user_id="target_user",
@@ -600,7 +601,7 @@ async def _take_moderation_action(
     )
 
 
-async def _moderate_content(
+async def _moderate_content()
     moderator_id: str,
     target_user_id: str,
     target_content_id: Optional[str],
@@ -611,7 +612,7 @@ async def _moderate_content(
 ) -> ModerationActionRecord:
     """Directly moderate content or user."""
     # Placeholder implementation
-    return ModerationActionRecord(
+    return ModerationActionRecord()
         action_id="action_456",
         moderator_id=moderator_id,
         target_user_id=target_user_id,
@@ -624,7 +625,7 @@ async def _moderate_content(
     )
 
 
-async def _get_automod_rules(
+async def _get_automod_rules()
     rule_type: Optional[AutoModRuleType], enabled_only: bool
 ) -> List[AutoModRule]:
     """Get auto-moderation rules."""
@@ -640,7 +641,7 @@ async def _create_automod_rule(rule: AutoModRule) -> AutoModRule:
     return rule
 
 
-async def _update_automod_rule(
+async def _update_automod_rule()
     rule_id: str, updates: Dict[str, Any]
 ) -> Optional[AutoModRule]:
     """Update auto-moderation rule."""
@@ -654,7 +655,7 @@ async def _delete_automod_rule(rule_id: str) -> bool:
     return True
 
 
-async def _get_blocked_users(
+async def _get_blocked_users()
     user_id: str, limit: int, offset: int
 ) -> List[BlockedUser]:
     """Get blocked users."""
@@ -662,12 +663,12 @@ async def _get_blocked_users(
     return []
 
 
-async def _block_user(
+async def _block_user()
     blocker_id: str, user_id: str, reason: Optional[str]
 ) -> BlockedUser:
     """Block a user."""
     # Placeholder implementation
-    return BlockedUser(
+    return BlockedUser()
         blocked_user_id=user_id,
         blocked_by=blocker_id,
         reason=reason,
@@ -681,12 +682,12 @@ async def _unblock_user(blocker_id: str, user_id: str) -> bool:
     return True
 
 
-async def _filter_content(
+async def _filter_content()
     content: str, content_type: str, context: Dict[str, Any]
 ) -> ContentFilterResult:
     """Filter content through safety systems."""
     # Placeholder implementation - would integrate with AI moderation
-    return ContentFilterResult(
+    return ContentFilterResult()
         content_id="content_123",
         allowed=True,
         confidence=0.95,
@@ -706,7 +707,7 @@ async def _can_view_trust_score(viewer_id: str, user_id: str) -> bool:
 async def _get_user_trust_score(user_id: str) -> Optional[TrustScore]:
     """Get user trust score."""
     # Placeholder implementation
-    return TrustScore(
+    return TrustScore()
         user_id=user_id,
         overall_score=0.85,
         factors={

@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 """
+import time
 PlexiChat Semantic Knowledge Graphs
 
 Advanced knowledge representation and reasoning system using
@@ -110,12 +111,12 @@ class SemanticGraph:
         self.relations: Dict[str, KnowledgeRelation] = {}
         self.node_relations: Dict[str, Set[str]] = {}  # node_id -> relation_ids
 
-    def add_node(
+    def add_node():
         self, label: str, node_type: NodeType, properties: Dict[str, Any] = None
     ) -> KnowledgeNode:
         """Add a node to the graph."""
         node_id = str(uuid.uuid4())
-        node = KnowledgeNode(
+        node = KnowledgeNode()
             id=node_id, label=label, node_type=node_type, properties=properties or {}
         )
 
@@ -125,7 +126,7 @@ class SemanticGraph:
         logger.debug(f"Added node: {label} ({node_type.value})")
         return node
 
-    def add_relation(
+    def add_relation():
         self,
         source_id: str,
         target_id: str,
@@ -139,7 +140,7 @@ class SemanticGraph:
             return None
 
         relation_id = str(uuid.uuid4())
-        relation = KnowledgeRelation(
+        relation = KnowledgeRelation()
             id=relation_id,
             source_id=source_id,
             target_id=target_id,
@@ -152,7 +153,7 @@ class SemanticGraph:
         self.node_relations[source_id].add(relation_id)
         self.node_relations[target_id].add(relation_id)
 
-        logger.debug(
+        logger.debug()
             f"Added relation: {relation_type.value} between {source_id} and {target_id}"
         )
         return relation
@@ -165,7 +166,7 @@ class SemanticGraph:
             relation = self.relations[relation_id]
 
             # Get the other node in the relationship
-            other_id = (
+            other_id = ()
                 relation.target_id
                 if relation.source_id == node_id
                 else relation.source_id
@@ -196,7 +197,7 @@ class SemanticGraph:
             # Explore neighbors
             for relation_id in self.node_relations.get(current_id, set()):
                 relation = self.relations[relation_id]
-                next_id = (
+                next_id = ()
                     relation.target_id
                     if relation.source_id == current_id
                     else relation.source_id
@@ -233,7 +234,7 @@ class SemanticGraph:
                         relation = self.relations[relation_id]
 
                         # Add connected node to queue
-                        other_id = (
+                        other_id = ()
                             relation.target_id
                             if relation.source_id == node_id
                             else relation.source_id
@@ -245,7 +246,7 @@ class SemanticGraph:
             "relations": [self.relations[rid].to_dict() for rid in visited_relations],
         }
 
-    def search_nodes(
+    def search_nodes():
         self, query: str, node_type: Optional[NodeType] = None
     ) -> List[KnowledgeNode]:
         """Search nodes by label or properties."""
@@ -285,7 +286,7 @@ class KnowledgeExtractor:
             NodeType.DOCUMENT: ["file", "document", "report", "log"],
         }
 
-    def extract_from_text(
+    def extract_from_text():
         self, text: str, context: Dict[str, Any] = None
     ) -> List[KnowledgeNode]:
         """Extract entities and relationships from text."""
@@ -299,11 +300,11 @@ class KnowledgeExtractor:
             for keyword in keywords:
                 if keyword in words:
                     # Create node for detected entity
-                    node = self.graph.add_node(
+                    node = self.graph.add_node()
                         label=f"{keyword.title()} from text",
                         node_type=node_type,
                         properties={
-                            "source_text": (
+                            "source_text": ()
                                 text[:100] + "..." if len(text) > 100 else text
                             ),
                             "extraction_method": "keyword_matching",
@@ -314,7 +315,7 @@ class KnowledgeExtractor:
 
         return extracted_nodes
 
-    def extract_from_user_activity(
+    def extract_from_user_activity():
         self, user_id: str, activity_data: Dict[str, Any]
     ) -> List[KnowledgeNode]:
         """Extract knowledge from user activity."""
@@ -323,7 +324,7 @@ class KnowledgeExtractor:
         # Create user node if not exists
         user_nodes = self.graph.search_nodes(user_id, NodeType.PERSON)
         if not user_nodes:
-            user_node = self.graph.add_node(
+            user_node = self.graph.add_node()
                 label=f"User {user_id}",
                 node_type=NodeType.PERSON,
                 properties={"user_id": user_id},
@@ -333,7 +334,7 @@ class KnowledgeExtractor:
 
         # Extract activities
         for action, details in activity_data.items():
-            activity_node = self.graph.add_node(
+            activity_node = self.graph.add_node()
                 label=f"{action} activity",
                 node_type=NodeType.EVENT,
                 properties={
@@ -344,7 +345,7 @@ class KnowledgeExtractor:
             )
 
             # Create relationship
-            self.graph.add_relation(
+            self.graph.add_relation()
                 user_node.id, activity_node.id, RelationType.CREATED_BY
             )
 
@@ -367,19 +368,19 @@ class SemanticReasoner:
         for relation in self.graph.relations.values():
             if relation.relation_type == RelationType.IS_A:
                 # If A is_a B and B is_a C, then A is_a C
-                target_relations = self.graph.node_relations.get(
+                target_relations = self.graph.node_relations.get()
                     relation.target_id, set()
                 )
 
                 for target_rel_id in target_relations:
                     target_rel = self.graph.relations[target_rel_id]
-                    if (
+                    if ()
                         target_rel.relation_type == RelationType.IS_A
                         and target_rel.source_id == relation.target_id
                     ):
 
                         # Check if this relation already exists
-                        existing = any(
+                        existing = any()
                             r.source_id == relation.source_id
                             and r.target_id == target_rel.target_id
                             and r.relation_type == RelationType.IS_A
@@ -387,7 +388,7 @@ class SemanticReasoner:
                         )
 
                         if not existing:
-                            inferred_rel = self.graph.add_relation(
+                            inferred_rel = self.graph.add_relation()
                                 relation.source_id,
                                 target_rel.target_id,
                                 RelationType.IS_A,
@@ -400,7 +401,7 @@ class SemanticReasoner:
         logger.info(f"Inferred {len(inferred_relations)} new relationships")
         return inferred_relations
 
-    def find_similar_entities(
+    def find_similar_entities():
         self, node_id: str, threshold: float = 0.7
     ) -> List[Tuple[KnowledgeNode, float]]:
         """Find entities similar to the given node."""
@@ -419,7 +420,7 @@ class SemanticReasoner:
             other_neighbors = set(n.id for n in self.graph.get_node_neighbors(other_id))
 
             if target_neighbors or other_neighbors:
-                similarity = len(target_neighbors & other_neighbors) / len(
+                similarity = len(target_neighbors & other_neighbors) / len()
                     target_neighbors | other_neighbors
                 )
 
@@ -479,7 +480,7 @@ class SemanticKnowledgeManager:
 
         logger.info("Initialized base knowledge graph")
 
-    def process_message(
+    def process_message():
         self, message: str, user_id: str, context: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """Process message and extract knowledge."""
@@ -487,7 +488,7 @@ class SemanticKnowledgeManager:
         extracted_nodes = self.extractor.extract_from_text(message, context)
 
         # Create message node
-        message_node = self.graph.add_node(
+        message_node = self.graph.add_node()
             f"Message from {user_id}",
             NodeType.DOCUMENT,
             properties={

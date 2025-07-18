@@ -16,7 +16,6 @@ from pathlib import Path
 from pathlib import Path
 
 
-
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
@@ -79,7 +78,7 @@ class DatabaseConnection:
     username: Optional[str] = None
     password: Optional[str] = None
     file_path: Optional[str] = None  # For SQLite
-    
+
     # Advanced settings
     pool_size: int = 10
     max_overflow: int = 20
@@ -87,19 +86,19 @@ class DatabaseConnection:
     pool_recycle: int = 3600
     ssl_mode: Optional[str] = None
     charset: str = "utf8mb4"
-    
+
     # Connection options
     connect_timeout: int = 30
     read_timeout: int = 30
     write_timeout: int = 30
-    
+
     def get_connection_string(self) -> str:
         """Generate connection string for the database."""
         if self.db_type == DatabaseType.SQLITE:
             if self.file_path:
                 return f"sqlite:///{self.file_path}"
             return "sqlite:///data/plexichat.db"
-        
+
         elif self.db_type == DatabaseType.POSTGRESQL:
             base_url = f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
             params = []
@@ -107,11 +106,11 @@ class DatabaseConnection:
                 params.append(f"sslmode={self.ssl_mode}")
             if self.connect_timeout:
                 params.append(f"connect_timeout={self.connect_timeout}")
-            
+
             if params:
                 base_url += "?" + "&".join(params)
             return base_url
-        
+
         elif self.db_type in [DatabaseType.MYSQL, DatabaseType.MARIADB]:
             base_url = f"mysql+pymysql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
             params = []
@@ -119,11 +118,11 @@ class DatabaseConnection:
                 params.append(f"charset={self.charset}")
             if self.ssl_mode:
                 params.append(f"ssl_mode={self.ssl_mode}")
-            
+
             if params:
                 base_url += "?" + "&".join(params)
             return base_url
-        
+
         raise ValueError(f"Unsupported database type: {self.db_type}")
 
 @dataclass
@@ -135,7 +134,7 @@ class SetupProgress:
     test_results: Optional[Dict[str, Any]] = None
     errors: Optional[List[str]] = None
     warnings: Optional[List[str]] = None
-    
+
     def __post_init__(self):
         if self.completed_steps is None:
             self.completed_steps = []
@@ -148,13 +147,13 @@ class SetupProgress:
 
 class DatabaseSetupWizard:
     """Comprehensive database setup wizard."""
-    
+
     def __init__(self):
         self.progress = SetupProgress()
-        self.from pathlib import Path
-config_dir = Path()("config")
+        from pathlib import Path
+self.config_dir = Path("config")
         self.config_dir.mkdir(exist_ok=True)
-        
+
         # Database type configurations
         self.db_configs = {
             DatabaseType.SQLITE: {
@@ -235,7 +234,7 @@ config_dir = Path()("config")
             "connection_configured": self.progress.connection_config is not None,
             "test_results": self.progress.test_results or {}
         }
-    
+
     def get_database_types(self) -> Dict[str, Any]:
         """Get available database types with descriptions."""
         return {
@@ -248,29 +247,29 @@ config_dir = Path()("config")
                 for db_type, config in self.db_configs.items()
             ]
         }
-    
+
     def set_database_type(self, db_type: str) -> Dict[str, Any]:
         """Set the database type and initialize connection config."""
         try:
             database_type = DatabaseType(db_type)
-            
+
             # Initialize connection config with defaults
             config = self.db_configs[database_type]
-            
-            self.progress.connection_config = DatabaseConnection(
+
+            self.progress.connection_config = DatabaseConnection()
                 db_type=database_type,
                 port=config["default_port"],
                 database="plexichat"
             )
-            
+
             # Mark step as completed
             if self.progress.completed_steps is None:
                 self.progress.completed_steps = []
             if SetupStep.DATABASE_TYPE not in self.progress.completed_steps:
                 self.progress.completed_steps.append(SetupStep.DATABASE_TYPE)
-            
+
             self.progress.current_step = SetupStep.CONNECTION_DETAILS
-            
+
             return {
                 "success": True,
                 "message": f"Database type set to {config['name']}",
@@ -281,7 +280,7 @@ config_dir = Path()("config")
                     "database": "plexichat"
                 }
             }
-            
+
         except ValueError:
             error_msg = f"Invalid database type: {db_type}"
             if self.progress.errors is None:
@@ -302,7 +301,7 @@ config_dir = Path()("config")
                 "error": error_msg,
                 "valid_types": [t.value for t in DatabaseType]
             }
-    
+
     def set_connection_details(self, details: Dict[str, Any]) -> Dict[str, Any]:
         """Set database connection details."""
         if not self.progress.connection_config:
@@ -310,18 +309,18 @@ config_dir = Path()("config")
                 "success": False,
                 "error": "Database type must be selected first"
             }
-        
+
         try:
             # Update connection config
             config = self.progress.connection_config
-            
+
             if config.db_type == DatabaseType.SQLITE:
                 config.file_path = details.get("file_path", "data/plexichat.db")
             else:
                 config.host = details.get("host", "localhost")
                 config.port = details.get("port", config.port)
                 config.database = details.get("database", "plexichat")
-            
+
             # Mark step as completed
             if self.progress.completed_steps is None:
                 self.progress.completed_steps = []
@@ -333,20 +332,20 @@ config_dir = Path()("config")
                 self.progress.completed_steps = []
             if SetupStep.CONNECTION_DETAILS not in self.progress.completed_steps:
                 self.progress.completed_steps.append(SetupStep.CONNECTION_DETAILS)
-            
+
             # Determine next step
             if config.db_type == DatabaseType.SQLITE:
                 self.progress.current_step = SetupStep.ADVANCED_SETTINGS
             else:
                 self.progress.current_step = SetupStep.AUTHENTICATION
-            
+
             return {
                 "success": True,
                 "message": "Connection details configured",
                 "next_step": self.progress.current_step.value,
                 "connection_string_preview": self._get_safe_connection_string()
             }
-            
+
         except Exception as e:
             error_msg = f"Failed to set connection details: {e}"
             if self.progress.errors is None:
@@ -356,7 +355,7 @@ config_dir = Path()("config")
                 "success": False,
                 "error": error_msg
             }
-    
+
     def set_authentication(self, auth_details: Dict[str, Any]) -> Dict[str, Any]:
         """Set database authentication details."""
         if not self.progress.connection_config:
@@ -364,23 +363,23 @@ config_dir = Path()("config")
                 "success": False,
                 "error": "Connection details must be configured first"
             }
-        
+
         try:
             config = self.progress.connection_config
             config.username = auth_details.get("username")
             config.password = auth_details.get("password")
-            
+
             # Mark step as completed
             self._add_completed_step(SetupStep.AUTHENTICATION)
-            
+
             self.progress.current_step = SetupStep.ADVANCED_SETTINGS
-            
+
             return {
                 "success": True,
                 "message": "Authentication configured",
                 "next_step": self.progress.current_step.value
             }
-            
+
         except Exception as e:
             error_msg = f"Failed to set authentication: {e}"
             self._add_error(error_msg)
@@ -388,7 +387,7 @@ config_dir = Path()("config")
                 "success": False,
                 "error": error_msg
             }
-    
+
     def set_advanced_settings(self, settings: Dict[str, Any]) -> Dict[str, Any]:
         """Set advanced database from plexichat.core.config import settings
 settings."""
@@ -397,10 +396,10 @@ settings."""
                 "success": False,
                 "error": "Connection must be configured first"
             }
-        
+
         try:
             config = self.progress.connection_config
-            
+
             # Update advanced settings
             config.from plexichat.core.config import settings
 pool_size = settings().get("pool_size", config.pool_size)
@@ -416,12 +415,12 @@ ssl_mode = settings().get("ssl_mode", config.ssl_mode)
 charset = settings().get("charset", config.charset)
             config.from plexichat.core.config import settings
 connect_timeout = settings().get("connect_timeout", config.connect_timeout)
-            
+
             # Mark step as completed
             self._add_completed_step(SetupStep.ADVANCED_SETTINGS)
-            
+
             self.progress.current_step = SetupStep.TEST_CONNECTION
-            
+
             return {
                 "success": True,
                 "message": "Advanced settings configured",
@@ -432,7 +431,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                     "charset": config.charset
                 }
             }
-            
+
         except Exception as e:
             error_msg = f"Failed to set advanced settings: {e}"
             self._add_error(error_msg)
@@ -440,21 +439,21 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                 "success": False,
                 "error": error_msg
             }
-    
+
     def _get_safe_connection_string(self) -> str:
         """Get connection string with password masked."""
         if not self.progress.connection_config:
             return ""
-        
+
         conn_str = self.progress.connection_config.get_connection_string()
-        
+
         # Mask password in connection string
         if self.progress.connection_config.password:
-            conn_str = conn_str.replace(
+            conn_str = conn_str.replace()
                 self.progress.connection_config.password,
                 "***"
             )
-        
+
         return conn_str
 
     async def test_connection(self) -> Dict[str, Any]:
@@ -528,7 +527,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             # Ensure directory exists
             from pathlib import Path
 
-            db_path = Path()(config.file_path or "data/plexichat.db")
+            self.db_path = Path(config.file_path or "data/plexichat.db")
             db_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Test connection
@@ -741,7 +740,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                 except ImportError:
                     logger.warning("User model not available")
                     return False
-                admin_user = User(
+                admin_user = User()
                     username="admin",
                     email="admin@plexichat.local",
                     is_admin=True,
@@ -754,7 +753,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                 except ImportError:
                     logger.warning("Guild model not available")
                     return False
-                sample_guild = Guild(
+                sample_guild = Guild()
                     name="General",
                     description="Default server for PlexiChat",
                     owner_id=1  # Admin user
@@ -766,7 +765,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
                 except ImportError:
                     logger.warning("Message model not available")
                     return False
-                welcome_message = Message(
+                welcome_message = Message()
                     content="Welcome to PlexiChat! This is a sample message.",
                     author_id=1,
                     guild_id=1
@@ -823,7 +822,7 @@ connect_timeout = settings().get("connect_timeout", config.connect_timeout)
             # Update environment file
             from pathlib import Path
 
-            env_file = Path()(".env")
+            self.env_file = Path(".env")
             env_content = []
 
             if env_file.exists():

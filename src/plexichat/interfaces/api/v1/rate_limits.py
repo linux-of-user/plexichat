@@ -7,17 +7,14 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 
-
-
-
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from plexichat.app.logger_config import logger
 from plexichat.app.security.permissions import Permission, PermissionManager
-from plexichat.app.security.rate_limiter import (
+from plexichat.app.security.rate_limiter import ()
+import time
 
     API,
     Comprehensive,
@@ -132,7 +129,7 @@ async def get_rate_limit_rules(admin_user: str = Depends(verify_admin_permission
         rules = []
 
         for rule in limiter.rules.values():
-            rules.append({
+            rules.append({)
                 "name": rule.name,
                 "limit_type": rule.limit_type.value,
                 "max_requests": rule.max_requests,
@@ -153,7 +150,7 @@ async def get_rate_limit_rules(admin_user: str = Depends(verify_admin_permission
         raise HTTPException(status_code=500, detail="Failed to retrieve rules")
 
 @router.post("/rules")
-async def create_rate_limit_rule(
+async def create_rate_limit_rule()
     rule_data: RateLimitRuleCreate,
     admin_user: str = Depends(verify_admin_permission)
 ):
@@ -168,7 +165,7 @@ async def create_rate_limit_rule(
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid enum value: {e}")
 
-        rule = RateLimitRule(
+        rule = RateLimitRule()
             name=rule_data.name,
             limit_type=limit_type,
             max_requests=rule_data.max_requests,
@@ -199,7 +196,7 @@ async def create_rate_limit_rule(
         raise HTTPException(status_code=500, detail="Failed to create rule")
 
 @router.put("/rules/{rule_name}")
-async def update_rate_limit_rule(
+async def update_rate_limit_rule()
     rule_name: str,
     rule_updates: RateLimitRuleUpdate,
     admin_user: str = Depends(verify_admin_permission)
@@ -236,7 +233,7 @@ async def update_rate_limit_rule(
         raise HTTPException(status_code=500, detail="Failed to update rule")
 
 @router.delete("/rules/{rule_name}")
-async def delete_rate_limit_rule(
+async def delete_rate_limit_rule()
     rule_name: str,
     admin_user: str = Depends(verify_admin_permission)
 ):
@@ -258,7 +255,7 @@ async def delete_rate_limit_rule(
         raise HTTPException(status_code=500, detail="Failed to delete rule")
 
 @router.get("/status/{client_ip}")
-async def get_rate_limit_status(
+async def get_rate_limit_status()
     client_ip: str,
     user_id: Optional[str] = None,
     admin_user: str = Depends(verify_admin_permission)
@@ -275,7 +272,7 @@ async def get_rate_limit_status(
             client_key = limiter._get_client_key(client_ip, user_id, rule)
             current_count = limiter.tracker.get_request_count(client_key, rule.time_window)
 
-            status = RateLimitStatus(
+            status = RateLimitStatus()
                 user_id=user_id,
                 client_ip=client_ip,
                 rule_name=rule.name,
@@ -293,7 +290,7 @@ async def get_rate_limit_status(
         raise HTTPException(status_code=500, detail="Failed to get status")
 
 @router.get("/violations", response_model=List[ViolationResponse])
-async def get_rate_limit_violations(
+async def get_rate_limit_violations()
     limit: int = 100,
     admin_user: str = Depends(verify_admin_permission)
 ):
@@ -303,7 +300,7 @@ async def get_rate_limit_violations(
         violations = limiter.tracker.violations[-limit:]
 
         return [
-            ViolationResponse(
+            ViolationResponse()
                 timestamp=datetime.fromtimestamp(v.timestamp),
                 client_ip=v.client_ip,
                 user_id=v.user_id,
@@ -323,7 +320,7 @@ async def get_rate_limit_violations(
         raise HTTPException(status_code=500, detail="Failed to get violations")
 
 @router.post("/unban-ip/{ip_address}")
-async def unban_ip_address(
+async def unban_ip_address()
     ip_address: str,
     admin_user: str = Depends(verify_admin_permission)
 ):
@@ -345,7 +342,7 @@ async def unban_ip_address(
         raise HTTPException(status_code=500, detail="Failed to unban IP")
 
 @router.post("/unban-user/{user_id}")
-async def unban_user(
+async def unban_user()
     user_id: str,
     admin_user: str = Depends(verify_admin_permission)
 ):

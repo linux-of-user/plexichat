@@ -60,7 +60,7 @@ except ImportError:
             self.initialized = True
 
         async def get_system_health(self):
-            return type('Health', (), {
+            return type('Health', (), {)
                 'total_backups': 156,
                 'active_backups': 12,
                 'completed_backups': 144,
@@ -78,7 +78,7 @@ except ImportError:
 
         async def get_recent_backups(self, limit=10):
             return [
-                type('Backup', (), {
+                type('Backup', (), {)
                     'backup_id': f'backup-{i:03d}',
                     'source_path': f'/data/backup_{i}',
                     'backup_type': 'INCREMENTAL' if i % 2 else 'FULL',
@@ -93,7 +93,7 @@ except ImportError:
 
         async def get_backup_nodes(self):
             return [
-                type('Node', (), {
+                type('Node', (), {)
                     'node_id': f'node-{i:03d}',
                     'address': f'backup-node-{i}.local:8080',
                     'status': 'ONLINE' if i < 8 else 'OFFLINE',
@@ -272,7 +272,7 @@ class EnhancedBackupManagementWidget:
             header_frame.pack(fill=tk.X, pady=(0, 10))
 
             # Title
-            title_label = ttk.Label(
+            title_label = ttk.Label()
                 header_frame,
                 text=" Enhanced Backup Management",
                 font=("Arial", 18, "bold")
@@ -280,7 +280,7 @@ class EnhancedBackupManagementWidget:
             title_label.pack(side=tk.LEFT)
 
             # Status indicator
-            self.status_indicator = ttk.Label(
+            self.status_indicator = ttk.Label()
                 header_frame,
                 text=" Initializing...",
                 foreground="orange",
@@ -362,7 +362,7 @@ class EnhancedBackupManagementWidget:
             # Convert to our data structures
             recent_backups = []
             for backup in recent_backups_data:
-                backup_info = BackupInfo(
+                backup_info = BackupInfo()
                     backup_id=backup.backup_id,
                     source_path=backup.source_path,
                     backup_type=backup.backup_type,
@@ -376,7 +376,7 @@ class EnhancedBackupManagementWidget:
 
             backup_nodes = []
             for node in backup_nodes_data:
-                node_info = BackupNodeInfo(
+                node_info = BackupNodeInfo()
                     node_id=node.node_id,
                     address=node.address,
                     status=node.status,
@@ -387,7 +387,7 @@ class EnhancedBackupManagementWidget:
                 )
                 backup_nodes.append(node_info)
 
-            return BackupSystemStatus(
+            return BackupSystemStatus()
                 total_backups=health.total_backups,
                 active_backups=health.active_backups,
                 completed_backups=health.completed_backups,
@@ -407,7 +407,7 @@ class EnhancedBackupManagementWidget:
         except Exception as e:
             logger.error(f"Error loading backup status: {e}")
             # Return default status
-            return BackupSystemStatus(
+            return BackupSystemStatus()
                 total_backups=0,
                 active_backups=0,
                 completed_backups=0,
@@ -498,7 +498,7 @@ class EnhancedBackupManagementWidget:
 
             # Add backups
             for backup in self.status_data.recent_backups:
-                values = (
+                values = ()
                     backup.backup_id,
                     backup.source_path,
                     backup.backup_type,
@@ -544,7 +544,7 @@ class EnhancedBackupManagementWidget:
             # Add nodes
             for node in self.status_data.backup_nodes:
                 storage_percent = (node.storage_used_gb / node.storage_total_gb * 100) if node.storage_total_gb > 0 else 0
-                values = (
+                values = ()
                     node.node_id,
                     node.address,
                     node.status,
@@ -666,25 +666,25 @@ class EnhancedBackupManagementWidget:
             control_frame = ttk.Frame(self.backups_frame)
             control_frame.pack(fill=tk.X, padx=10, pady=5)
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Create Backup",
                 command=self.create_backup_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Refresh",
                 command=self.refresh_backups
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Delete Backup",
                 command=self.delete_backup_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Export Report",
                 command=self.export_backup_report
@@ -695,11 +695,11 @@ class EnhancedBackupManagementWidget:
             backups_list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
             # Create treeview for backups
-            backup_columns = ("ID", "Source", "Type", "Status", "Created", "Size", "Shards", "Security")
+            backup_columns = ("ID", "Source", Type, "Status", "Created", "Size", "Shards", "Security")
             self.backups_tree = ttk.Treeview(backups_list_frame, columns=backup_columns, show="headings", height=12)
 
             # Configure columns with better widths
-            column_widths = {"ID": 100, "Source": 150, "Type": 80, "Status": 80,
+            column_widths = {"ID": 100, "Source": 150, Type: 80, "Status": 80,
                            "Created": 120, "Size": 80, "Shards": 60, "Security": 100}
 
             for col in backup_columns:
@@ -743,19 +743,19 @@ class EnhancedBackupManagementWidget:
             control_frame = ttk.Frame(self.nodes_frame)
             control_frame.pack(fill=tk.X, padx=10, pady=5)
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Add Node",
                 command=self.add_backup_node_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Refresh",
                 command=self.refresh_nodes
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Node Health",
                 command=self.check_node_health
@@ -814,19 +814,19 @@ class EnhancedBackupManagementWidget:
             recovery_controls_frame = ttk.LabelFrame(self.recovery_frame, text="Recovery Operations", padding=10)
             recovery_controls_frame.pack(fill=tk.X, padx=10, pady=5)
 
-            ttk.Button(
+            ttk.Button()
                 recovery_controls_frame,
                 text=" Browse Backups",
                 command=self.browse_backups_for_recovery
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 recovery_controls_frame,
                 text=" Restore Backup",
                 command=self.restore_backup_dialog
             ).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button(
+            ttk.Button()
                 recovery_controls_frame,
                 text=" Verify Integrity",
                 command=self.verify_backup_integrity
@@ -856,7 +856,7 @@ class EnhancedBackupManagementWidget:
 
             # Auto backup checkbox
             if self.auto_backup_var:
-                auto_backup_cb = ttk.Checkbutton(
+                auto_backup_cb = ttk.Checkbutton()
                     backup_settings_frame,
                     text="Enable Automatic Backups",
                     variable=self.auto_backup_var
@@ -865,7 +865,7 @@ class EnhancedBackupManagementWidget:
 
             # Encryption checkbox
             if self.encryption_enabled_var:
-                encryption_cb = ttk.Checkbutton(
+                encryption_cb = ttk.Checkbutton()
                     backup_settings_frame,
                     text="Enable Quantum Encryption",
                     variable=self.encryption_enabled_var
@@ -889,7 +889,7 @@ class EnhancedBackupManagementWidget:
 
             # Auto refresh checkbox
             if self.auto_refresh_var:
-                auto_refresh_cb = ttk.Checkbutton(
+                auto_refresh_cb = ttk.Checkbutton()
                     control_frame,
                     text="Auto Refresh",
                     variable=self.auto_refresh_var,
@@ -898,14 +898,14 @@ class EnhancedBackupManagementWidget:
                 auto_refresh_cb.pack(side=tk.LEFT, padx=(0, 10))
 
             # Manual refresh button
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Refresh Now",
                 command=self.manual_refresh
             ).pack(side=tk.LEFT, padx=(0, 10))
 
             # Export button
-            ttk.Button(
+            ttk.Button()
                 control_frame,
                 text=" Export Data",
                 command=self.export_backup_data
@@ -1024,7 +1024,7 @@ class EnhancedBackupManagementWidget:
             source_path = filedialog.askdirectory(title="Select directory to backup")
             if source_path:
                 # Simple backup type selection
-                backup_type = simpledialog.askstring(
+                backup_type = simpledialog.askstring()
                     "Backup Type",
                     "Enter backup type (FULL/INCREMENTAL):",
                     initialvalue="INCREMENTAL"
@@ -1040,7 +1040,7 @@ class EnhancedBackupManagementWidget:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-            backup_id = loop.run_until_complete(
+            backup_id = loop.run_until_complete()
                 backup_manager.create_backup(source_path, backup_type, 'GOVERNMENT')
             )
 
@@ -1180,7 +1180,7 @@ class EnhancedBackupManagementWidget:
                 messagebox.showwarning("Warning", "No data to export")
                 return
 
-            filename = filedialog.asksaveasfilename(
+            filename = filedialog.asksaveasfilename()
                 defaultextension=".json",
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
             )

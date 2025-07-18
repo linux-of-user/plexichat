@@ -42,11 +42,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             user_agent = request.headers.get("user-agent", "")
             endpoint = str(request.url.path)
 
-            allowed, threat = await ddos_protection.check_request(
+            allowed, threat = await ddos_protection.check_request()
                 client_ip, user_agent, endpoint
             )
             if not allowed:
-                return Response(
+                return Response()
                     content="Access denied - DDoS protection",
                     status_code=429,
                     headers={"Retry-After": "3600"},
@@ -55,7 +55,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             # Rate limiting check
             rate_allowed, rate_message = await rate_limiter.is_allowed(client_ip, "api")
             if not rate_allowed:
-                return Response(
+                return Response()
                     content=f"Rate limit exceeded: {rate_message}",
                     status_code=429,
                     headers={"Retry-After": "60"},
@@ -110,7 +110,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
         # No valid authentication found
         if path.startswith("/api/"):
-            return Response(
+            return Response()
                 content='{"error": "Authentication required"}',
                 status_code=401,
                 media_type="application/json",

@@ -24,8 +24,7 @@ def validate_directory_structure():
     """Validate that all required directories exist."""
 
     from pathlib import Path
-project_root = Path
-Path(__file__).parent.parent
+    project_root = Path(__file__).parent.parent
 
     required_dirs = [
         "config", "data", "backups", "logs", "plugins",

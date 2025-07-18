@@ -35,7 +35,7 @@ class SystemMonitor:
         self.start_time = datetime.now(timezone.utc)
         self.error_counts = {}
         self.last_health_check = None
-        
+
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get comprehensive system metrics."""
         try:
@@ -50,14 +50,14 @@ class SystemMonitor:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
-            
+
             # Process info
             process = psutil.Process()
             process_memory = process.memory_info()
-            
+
             # Application uptime
             uptime = datetime.now(timezone.utc) - self.start_time
-            
+
             metrics = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "uptime_seconds": uptime.total_seconds(),
@@ -79,13 +79,13 @@ class SystemMonitor:
                 },
                 "error_counts": self.error_counts.copy()
             }
-            
+
             return metrics
-            
+
         except Exception as e:
             logger.error("Failed to collect system metrics: %s", e)
             return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
-    
+
     def check_system_health(self) -> Dict[str, Any]:
         """Perform comprehensive system health check."""
         health_status = {
@@ -94,10 +94,10 @@ class SystemMonitor:
             "checks": {},
             "alerts": []
         }
-        
+
         try:
             metrics = self.get_system_metrics()
-            
+
             # Memory check
             memory_usage = metrics.get("memory", {}).get("percent_used", 0)
             if memory_usage > 90:
@@ -111,7 +111,7 @@ class SystemMonitor:
                     health_status["overall_status"] = "WARNING"
             else:
                 health_status["checks"]["memory"] = "OK"
-            
+
             # CPU check
             cpu_usage = metrics.get("cpu", {}).get("percent", 0)
             if cpu_usage > 95:
@@ -125,7 +125,7 @@ class SystemMonitor:
                     health_status["overall_status"] = "WARNING"
             else:
                 health_status["checks"]["cpu"] = "OK"
-            
+
             # Disk check
             disk_usage = metrics.get("disk", {}).get("percent_used", 0)
             if disk_usage > 95:
@@ -139,7 +139,7 @@ class SystemMonitor:
                     health_status["overall_status"] = "WARNING"
             else:
                 health_status["checks"]["disk"] = "OK"
-            
+
             # Error rate check
             total_errors = sum(self.error_counts.values())
             if total_errors > 100:  # More than 100 errors
@@ -153,41 +153,41 @@ class SystemMonitor:
                     health_status["overall_status"] = "WARNING"
             else:
                 health_status["checks"]["errors"] = "OK"
-            
+
             self.last_health_check = datetime.now(timezone.utc)
-            
+
         except Exception as e:
             health_status["overall_status"] = "ERROR"
             health_status["error"] = str(e)
             logger.error("Health check failed: %s", e)
-        
+
         return health_status
-    
+
     def record_error(self, error_type: str, severity: str = ErrorSeverity.MEDIUM):
         """Record an error occurrence."""
         key = f"{error_type}_{severity}"
         self.error_counts[key] = self.error_counts.get(key, 0) + 1
-        
+
         # Check if monitoring is enabled (simplified)
         monitoring_enabled = True  # Default to True for now
         if monitoring_enabled:
-            monitoring_logger.warning("ERROR_RECORDED: type=%s severity=%s count=%d", 
+            monitoring_logger.warning("ERROR_RECORDED: type=%s severity=%s count=%d", )
                                     error_type, severity, self.error_counts[key])
 
 
 class ErrorHandler:
     """Comprehensive error handling with context and recovery."""
-    
+
     def __init__(self):
         self.monitor = SystemMonitor()
         self.error_log_file = Path("logs") / "errors.jsonl"
         self.error_log_file.parent.mkdir(parents=True, exist_ok=True)
-    
-    def handle_error(self, error: Exception, context: Dict[str, Any] = None, 
-                    severity: str = ErrorSeverity.MEDIUM, 
+
+    def handle_error(self, error: Exception, context: Dict[str, Any] = None, ):
+                    severity: str = ErrorSeverity.MEDIUM,
                     recovery_action: Optional[Callable] = None) -> Dict[str, Any]:
         """Handle an error with comprehensive logging and optional recovery."""
-        
+
         error_info = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "error_type": type(error).__name__,
@@ -197,7 +197,7 @@ class ErrorHandler:
             "traceback": traceback.format_exc(),
             "system_metrics": self.monitor.get_system_metrics()
         }
-        
+
         # Log the error
         if severity == ErrorSeverity.CRITICAL:
             logger.critical("CRITICAL ERROR: %s - %s", error_info["error_type"], error_info["error_message"])
@@ -207,17 +207,17 @@ class ErrorHandler:
             logger.warning("ERROR: %s - %s", error_info["error_type"], error_info["error_message"])
         else:
             logger.info("LOW SEVERITY ERROR: %s - %s", error_info["error_type"], error_info["error_message"])
-        
+
         # Record error for monitoring
         self.monitor.record_error(error_info["error_type"], severity)
-        
+
         # Save detailed error info to file
         try:
             with open(self.error_log_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(error_info) + "\n")
         except Exception as e:
             logger.error("Failed to write error log: %s", e)
-        
+
         # Attempt recovery if provided
         recovery_result = None
         if recovery_action:
@@ -233,10 +233,10 @@ class ErrorHandler:
                 error_info["recovery_attempted"] = True
                 error_info["recovery_successful"] = False
                 error_info["recovery_error"] = str(recovery_error)
-        
+
         return error_info
 
-def error_handler_decorator(severity: str = ErrorSeverity.MEDIUM, 
+def error_handler_decorator(severity: str = ErrorSeverity.MEDIUM, ):
                           recovery_action: Optional[Callable] = None):
     """Decorator for automatic error handling."""
     def decorator(func):
@@ -246,7 +246,7 @@ def error_handler_decorator(severity: str = ErrorSeverity.MEDIUM,
                 return func(*args, **kwargs)
             except Exception as e:
                 handler = ErrorHandler()
-                error_info = handler.handle_error(e, 
+                error_info = handler.handle_error(e, )
                                                context={"function": func.__name__},
                                                severity=severity,
                                                recovery_action=recovery_action)
@@ -262,22 +262,22 @@ def monitor_performance(func):
         try:
             result = func(*args, **kwargs)
             duration = time.time() - start_time
-            
+
             # Check if monitoring is enabled (simplified)
             monitoring_enabled = True  # Default to True for now
             monitoring_log_performance = True  # Default to True for now
-            
+
             if monitoring_enabled and monitoring_log_performance:
-                monitoring_logger.info("PERFORMANCE: %s.%s duration=%.3fs status=success", 
+                monitoring_logger.info("PERFORMANCE: %s.%s duration=%.3fs status=success", )
                                      func.__module__, func.__name__, duration)
             return result
-            
+
         except Exception as e:
             duration = time.time() - start_time
-            monitoring_logger.error("PERFORMANCE: %s.%s duration=%.3fs status=error error=%s", 
+            monitoring_logger.error("PERFORMANCE: %s.%s duration=%.3fs status=error error=%s", )
                                   func.__module__, func.__name__, duration, str(e))
             raise
-    
+
     return wrapper
 
 # Global instances

@@ -15,8 +15,9 @@ from typing import Any, Dict, List, Optional, Set
 import aiohttp
 
 
-
 """
+import http.client
+import time
 PlexiChat Backup Node Network
 
 Distributed backup node network with encrypted inter-node communication,
@@ -139,7 +140,7 @@ class BackupNodeNetwork:
 
         try:
             # Initialize HTTP session
-            self.http_session = aiohttp.ClientSession(
+            self.http_session = aiohttp.ClientSession()
                 timeout=aiohttp.ClientTimeout(total=30),
                 connector=aiohttp.TCPConnector(limit=100)
             )
@@ -209,7 +210,7 @@ class BackupNodeNetwork:
             # Create distribution plan
             distributions = []
             for shard in shards:
-                distribution = await self._create_shard_distribution(
+                distribution = await self._create_shard_distribution()
                     shard, available_nodes, request
                 )
                 distributions.append(distribution)
@@ -256,7 +257,7 @@ class BackupNodeNetwork:
             affected_distributions = []
             for backup_distributions in self.shard_distributions.values():
                 for distribution in backup_distributions:
-                    if (failed_node_id in distribution.primary_nodes or
+                    if (failed_node_id in distribution.primary_nodes or)
                         failed_node_id in distribution.replica_nodes):
                         affected_distributions.append(distribution)
 
@@ -357,7 +358,7 @@ class BackupNodeNetwork:
                 async with self.http_session.get(url) as response:
                     if response.status == 200:
                         data = await response.json()
-                        return NodeHealthMetrics(
+                        return NodeHealthMetrics()
                             node_id=node.node_id,
                             timestamp=datetime.now(timezone.utc),
                             cpu_usage=data.get("cpu_usage", 0.0),
@@ -372,7 +373,7 @@ class BackupNodeNetwork:
 
 
         # Return default metrics if collection fails
-        return NodeHealthMetrics(
+        return NodeHealthMetrics()
             node_id=node.node_id,
             timestamp=datetime.now(timezone.utc),
             cpu_usage=0.0,
@@ -422,7 +423,7 @@ class BackupNodeNetwork:
                 logger.error(f" Health monitoring loop error: {e}")
                 await asyncio.sleep(self.heartbeat_interval)
 
-    async def _create_shard_distribution(self, shard: Any, available_nodes: List[BackupNode],
+    async def _create_shard_distribution(self, shard: Any, available_nodes: List[BackupNode],)
                                        request) -> ShardDistribution:
         """Create distribution plan for a shard."""
         # Select primary nodes
@@ -434,7 +435,7 @@ class BackupNodeNetwork:
         # Select verification nodes
         verification_nodes = await self._select_verification_nodes(shard, available_nodes, request)
 
-        return ShardDistribution(
+        return ShardDistribution()
             backup_id=request.backup_id,
             shard_id=shard.shard_id,
             primary_nodes=[node.node_id for node in primary_nodes],
@@ -443,11 +444,11 @@ class BackupNodeNetwork:
             distribution_strategy="intelligent_geographic"
         )
 
-    async def _select_primary_nodes(self, shard: Any, available_nodes: List[BackupNode],
+    async def _select_primary_nodes(self, shard: Any, available_nodes: List[BackupNode],)
                                   request) -> List[BackupNode]:
         """Select primary nodes for shard storage."""
         # Sort nodes by reliability and capacity
-        sorted_nodes = sorted(
+        sorted_nodes = sorted()
             available_nodes,
             key=lambda n: (n.reliability_score, n.storage_capacity - n.storage_used),
             reverse=True
@@ -457,14 +458,14 @@ class BackupNodeNetwork:
         num_primary = min(2, len(sorted_nodes))  # Usually 2 primary nodes
         return sorted_nodes[:num_primary]
 
-    async def _select_replica_nodes(self, shard: Any, available_nodes: List[BackupNode],
+    async def _select_replica_nodes(self, shard: Any, available_nodes: List[BackupNode],)
                                   primary_nodes: List[BackupNode], request) -> List[BackupNode]:
         """Select replica nodes for redundancy."""
         # Exclude primary nodes
         replica_candidates = [n for n in available_nodes if n not in primary_nodes]
 
         # Sort by geographic diversity and reliability
-        sorted_candidates = sorted(
+        sorted_candidates = sorted()
             replica_candidates,
             key=lambda n: (n.reliability_score, n.geographic_region != primary_nodes[0].geographic_region),
             reverse=True
@@ -474,7 +475,7 @@ class BackupNodeNetwork:
         num_replicas = min(request.redundancy_factor - len(primary_nodes), len(sorted_candidates))
         return sorted_candidates[:num_replicas]
 
-    async def _select_verification_nodes(self, shard: Any, available_nodes: List[BackupNode],
+    async def _select_verification_nodes(self, shard: Any, available_nodes: List[BackupNode],)
                                        request) -> List[BackupNode]:
         """Select nodes for verification."""
         # Select nodes with verification capability

@@ -13,35 +13,14 @@ from typing import Any, Dict, List, Optional, Set
 
 
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from plexichat.app.logger_config import logger
 
 """
+import time
 Role-Based Permission System for PlexiChat
 Comprehensive permission management with granular access control.
 """
@@ -53,58 +32,58 @@ class Permission(Enum):
     SEND_MESSAGES = "send_messages"
     DELETE_MESSAGES = "delete_messages"
     EDIT_MESSAGES = "edit_messages"
-    
+
     # File permissions
     UPLOAD_FILES = "upload_files"
     DOWNLOAD_FILES = "download_files"
     DELETE_FILES = "delete_files"
     SHARE_FILES = "share_files"
-    
+
     # User management
     VIEW_USERS = "view_users"
     MANAGE_USERS = "manage_users"
     BAN_USERS = "ban_users"
     KICK_USERS = "kick_users"
-    
+
     # Server management
     MANAGE_SERVERS = "manage_servers"
     CREATE_CHANNELS = "create_channels"
     DELETE_CHANNELS = "delete_channels"
     MANAGE_ROLES = "manage_roles"
-    
+
     # Administrative
     ADMIN_PANEL = "admin_panel"
     SYSTEM_CONFIG = "system_config"
     VIEW_LOGS = "view_logs"
     MANAGE_PLUGINS = "manage_plugins"
-    
+
     # API access
     API_READ = "api_read"
     API_WRITE = "api_write"
     API_ADMIN = "api_admin"
-    
+
     # Rate limiting
     BYPASS_RATE_LIMITS = "bypass_rate_limits"
     MANAGE_RATE_LIMITS = "manage_rate_limits"
-    
+
     # Security
     VIEW_SECURITY_LOGS = "view_security_logs"
     MANAGE_SECURITY = "manage_security"
     QUARANTINE_USERS = "quarantine_users"
-    
+
     # Backup and clustering
     MANAGE_BACKUPS = "manage_backups"
     MANAGE_CLUSTERS = "manage_clusters"
     VIEW_SYSTEM_STATUS = "view_system_status"
-    
+
     # AI features
     USE_AI = "use_ai"
     MANAGE_AI = "manage_ai"
-    
+
     # Emoji and reactions
     USE_EMOJIS = "use_emojis"
     MANAGE_EMOJIS = "manage_emojis"
-    
+
     # Profile management
     UPDATE_PROFILE = "update_profile"
     VIEW_PROFILES = "view_profiles"
@@ -129,7 +108,7 @@ class Role:
     is_system: bool = False
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
-    
+
     def __post_init__(self):
         if isinstance(self.permissions, list):
             self.permissions = set(Permission(p) if isinstance(p, str) else p for p in self.permissions)
@@ -161,31 +140,31 @@ class PermissionCheck:
 
 class PermissionManager:
     """Manages roles and permissions."""
-    
+
     def __init__(self, config_path: str = "config/permissions.json"):
-        self.from pathlib import Path
-config_path = Path()(config_path)
+        from pathlib import Path
+self.config_path = Path(config_path)
         self.roles: Dict[str, Role] = {}
         self.user_permissions: Dict[str, UserPermissions] = {}
         self.permission_cache: Dict[str, Dict[str, bool]] = {}
-        
+
         # Load configuration
         self.load_config()
-        
+
         # Create default roles if none exist
         if not self.roles:
             self._create_default_roles()
-    
+
     def load_config(self) -> None:
         """Load permissions configuration."""
         try:
             if self.config_path.exists() if self.config_path else False:
                 with open(self.config_path, 'r') as f:
                     config_data = json.load(f)
-                
+
                 # Load roles
                 for role_data in config_data.get("roles", []):
-                    role = Role(
+                    role = Role()
                         name=role_data["name"],
                         display_name=role_data["display_name"],
                         description=role_data["description"],
@@ -194,16 +173,16 @@ config_path = Path()(config_path)
                         color=role_data.get("color", "#ffffff"),
                         is_default=role_data.get("is_default", False),
                         is_system=role_data.get("is_system", False),
-                        created_at=datetime.fromisoformat(role_data.get("created_at", from datetime import datetime
+                        created_at=datetime.fromisoformat(role_data.get("created_at", from datetime import datetime))
 datetime.now().isoformat())),
-                        updated_at=datetime.fromisoformat(role_data.get("updated_at", from datetime import datetime
+                        updated_at=datetime.fromisoformat(role_data.get("updated_at", from datetime import datetime))
 datetime.now().isoformat()))
                     )
                     self.roles[role.name] = role
-                
+
                 # Load user permissions
                 for user_data in config_data.get("user_permissions", []):
-                    user_perms = UserPermissions(
+                    user_perms = UserPermissions()
                         user_id=user_data["user_id"],
                         global_roles=user_data.get("global_roles", []),
                         server_roles=user_data.get("server_roles", {}),
@@ -217,26 +196,26 @@ datetime.now().isoformat()))
                             for scope_id, perms in user_data.get("denied_permissions", {}).items()
                         },
                         is_active=user_data.get("is_active", True),
-                        created_at=datetime.fromisoformat(user_data.get("created_at", from datetime import datetime
+                        created_at=datetime.fromisoformat(user_data.get("created_at", from datetime import datetime))
 datetime.now().isoformat())),
-                        updated_at=datetime.fromisoformat(user_data.get("updated_at", from datetime import datetime
+                        updated_at=datetime.fromisoformat(user_data.get("updated_at", from datetime import datetime))
 datetime.now().isoformat()))
                     )
                     self.user_permissions[user_perms.user_id] = user_perms
-                
+
                 logger.info(f" Loaded {len(self.roles)} roles and {len(self.user_permissions)} user permissions")
             else:
                 self._create_default_roles()
-                
+
         except Exception as e:
             logger.error(f" Failed to load permissions config: {e}")
             self._create_default_roles()
-    
+
     def save_config(self) -> None:
         """Save permissions configuration."""
         try:
             self.config_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             config_data = {
                 "roles": [
                     {
@@ -274,19 +253,19 @@ datetime.now().isoformat()))
                     for user_perms in self.user_permissions.values()
                 ]
             }
-            
+
             with open(self.config_path, 'w') as f:
                 json.dump(config_data, f, indent=2, default=str)
-            
+
             logger.info(" Permissions configuration saved")
-            
+
         except Exception as e:
             logger.error(f" Failed to save permissions config: {e}")
-    
+
     def _create_default_roles(self) -> None:
         """Create default system roles."""
         default_roles = [
-            Role(
+            Role()
                 name="admin",
                 display_name="Administrator",
                 description="Full system access",
@@ -295,7 +274,7 @@ datetime.now().isoformat()))
                 color="#ff0000",
                 is_system=True
             ),
-            Role(
+            Role()
                 name="moderator",
                 display_name="Moderator",
                 description="Server moderation capabilities",
@@ -308,7 +287,7 @@ datetime.now().isoformat()))
                 priority=500,
                 color="#00ff00"
             ),
-            Role(
+            Role()
                 name="user",
                 display_name="User",
                 description="Standard user permissions",
@@ -321,7 +300,7 @@ datetime.now().isoformat()))
                 color="#0000ff",
                 is_default=True
             ),
-            Role(
+            Role()
                 name="guest",
                 display_name="Guest",
                 description="Limited guest access",
@@ -331,7 +310,7 @@ datetime.now().isoformat()))
                 priority=10,
                 color="#888888"
             ),
-            Role(
+            Role()
                 name="banned",
                 display_name="Banned",
                 description="Banned user with no permissions",
@@ -340,20 +319,20 @@ datetime.now().isoformat()))
                 color="#000000"
             )
         ]
-        
+
         for role in default_roles:
             self.roles[role.name] = role
-        
+
         self.save_config()
         logger.info(" Created default permission roles")
-    
+
     def create_role(self, role: Role) -> bool:
         """Create a new role."""
         try:
             if role.name in self.roles:
                 logger.warning(f" Role already exists: {role.name}")
                 return False
-            
+
             role.from datetime import datetime
 created_at = datetime().now()
             role.from datetime import datetime
@@ -361,78 +340,78 @@ updated_at = datetime().now()
             self.roles[role.name] = role
             self.save_config()
             self._clear_permission_cache()
-            
+
             logger.info(f" Created role: {role.name}")
             return True
-            
+
         except Exception as e:
             logger.error(f" Failed to create role {role.name}: {e}")
             return False
-    
+
     def update_role(self, role_name: str, updates: Dict[str, Any]) -> bool:
         """Update an existing role."""
         try:
             if role_name not in self.roles:
                 logger.warning(f" Role not found: {role_name}")
                 return False
-            
+
             role = self.roles[role_name]
-            
+
             if role.is_system and "permissions" in updates:
                 logger.warning(f" Cannot modify permissions of system role: {role_name}")
                 return False
-            
+
             for key, value in updates.items():
                 if hasattr(role, key):
                     if key == "permissions":
                         role.permissions = set(Permission(p) if isinstance(p, str) else p for p in value)
                     else:
                         setattr(role, key, value)
-            
+
             role.from datetime import datetime
 updated_at = datetime().now()
             self.save_config()
             self._clear_permission_cache()
-            
+
             logger.info(f" Updated role: {role_name}")
             return True
-            
+
         except Exception as e:
             logger.error(f" Failed to update role {role_name}: {e}")
             return False
-    
+
     def delete_role(self, role_name: str) -> bool:
         """Delete a role."""
         try:
             if role_name not in self.roles:
                 logger.warning(f" Role not found: {role_name}")
                 return False
-            
+
             role = self.roles[role_name]
             if role.is_system:
                 logger.warning(f" Cannot delete system role: {role_name}")
                 return False
-            
+
             # Remove role from all users
             for user_perms in self.user_permissions.values():
                 if role_name in user_perms.global_roles:
                     user_perms.global_roles.remove(role_name)
-                
+
                 for server_roles in user_perms.server_roles.values():
                     if role_name in server_roles:
                         server_roles.remove(role_name)
-                
+
                 for channel_roles in user_perms.channel_roles.values():
                     if role_name in channel_roles:
                         channel_roles.remove(role_name)
-            
+
             del self.roles[role_name]
             self.save_config()
             self._clear_permission_cache()
-            
+
             logger.info(f" Deleted role: {role_name}")
             return True
-            
+
         except Exception as e:
             logger.error(f" Failed to delete role {role_name}: {e}")
             return False
@@ -561,7 +540,7 @@ updated_at = datetime().now()
             cache_key = f"{user_id}:{permission.value}:{scope.value}:{scope_id or 'none'}"
             if cache_key in self.permission_cache.get(user_id, {}):
                 cached_result = self.permission_cache[user_id][cache_key]
-                return PermissionCheck(
+                return PermissionCheck()
                     user_id=user_id,
                     permission=permission,
                     scope=scope,
@@ -576,7 +555,7 @@ updated_at = datetime().now()
                 if default_role:
                     self.assign_role(user_id, default_role.name)
                 else:
-                    result = PermissionCheck(
+                    result = PermissionCheck()
                         user_id=user_id,
                         permission=permission,
                         scope=scope,
@@ -590,7 +569,7 @@ updated_at = datetime().now()
             user_perms = self.user_permissions[user_id]
 
             if not user_perms.is_active:
-                result = PermissionCheck(
+                result = PermissionCheck()
                     user_id=user_id,
                     permission=permission,
                     scope=scope,
@@ -609,7 +588,7 @@ updated_at = datetime().now()
             for denial_scope in denial_scopes:
                 if denial_scope in user_perms.denied_permissions:
                     if permission in user_perms.denied_permissions[denial_scope]:
-                        result = PermissionCheck(
+                        result = PermissionCheck()
                             user_id=user_id,
                             permission=permission,
                             scope=scope,
@@ -628,7 +607,7 @@ updated_at = datetime().now()
             for grant_scope in grant_scopes:
                 if grant_scope in user_perms.explicit_permissions:
                     if permission in user_perms.explicit_permissions[grant_scope]:
-                        result = PermissionCheck(
+                        result = PermissionCheck()
                             user_id=user_id,
                             permission=permission,
                             scope=scope,
@@ -660,7 +639,7 @@ updated_at = datetime().now()
                 if role_name in self.roles:
                     role = self.roles[role_name]
                     if permission in role.permissions:
-                        result = PermissionCheck(
+                        result = PermissionCheck()
                             user_id=user_id,
                             permission=permission,
                             scope=scope,
@@ -673,7 +652,7 @@ updated_at = datetime().now()
                         return result
 
             # Permission not found
-            result = PermissionCheck(
+            result = PermissionCheck()
                 user_id=user_id,
                 permission=permission,
                 scope=scope,
@@ -687,7 +666,7 @@ updated_at = datetime().now()
 
         except Exception as e:
             logger.error(f" Failed to check permission {permission.value} for user {user_id}: {e}")
-            return PermissionCheck(
+            return PermissionCheck()
                 user_id=user_id,
                 permission=permission,
                 scope=scope,

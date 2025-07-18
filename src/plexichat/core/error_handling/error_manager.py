@@ -16,7 +16,6 @@ from .enhanced_error_handler import EnhancedErrorHandler
 from ..resilience.manager import get_system_resilience
 
 
-
 """
 PlexiChat Core Error Manager
 
@@ -29,16 +28,17 @@ try:
 except ImportError: Optional[EnhancedErrorHandler] = None
 
 try:
-except ImportError: Optional[CircuitBreaker] = None
+    from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
+except ImportError:
+    CircuitBreaker = None
     CircuitBreakerConfig = None
 
 try:
-except ImportError: Optional[CrashReporter] = None
+    from .crash_reporter import CrashReporter
+except ImportError:
+    CrashReporter = None
 
 logger = logging.getLogger(__name__)
-
-
-
 
 
 @dataclass
@@ -147,7 +147,7 @@ class ErrorManager:
 
             # Start background monitoring tasks
             if self.monitoring_enabled:
-                self.background_tasks.extend([
+                self.background_tasks.extend([)
                     asyncio.create_task(self._metrics_collection_loop()),
                     asyncio.create_task(self._pattern_detection_loop()),
                     asyncio.create_task(self._health_monitoring_loop()),
@@ -161,7 +161,7 @@ class ErrorManager:
             logger.error(f" Failed to initialize Error Manager: {e}")
             raise
 
-    def handle_error(self, exception: Exception, context: Optional[Dict[str, Any]] = None,
+    def handle_error(self, exception: Exception, context: Optional[Dict[str, Any]] = None,):
                     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                     category: ErrorCategory = ErrorCategory.UNKNOWN,
                     component: Optional[str] = None, user_id: Optional[str] = None,
@@ -172,7 +172,7 @@ class ErrorManager:
         timestamp = datetime.now(timezone.utc)
 
         # Create error context
-        error_context = ErrorContext(
+        error_context = ErrorContext()
             error_id=error_id,
             timestamp=timestamp,
             exception=exception,
@@ -188,7 +188,7 @@ class ErrorManager:
         try:
             # Use enhanced handler for detailed processing if available
             if self.enhanced_handler:
-                enhanced_context = self.enhanced_handler.handle_error(
+                enhanced_context = self.enhanced_handler.handle_error()
                     exception=exception,
                     severity=severity,
                     category=category,
@@ -232,12 +232,12 @@ class ErrorManager:
 
         return error_context
 
-    def report_crash(self, exception: Exception, context: Optional[Dict[str, Any]] = None,
+    def report_crash(self, exception: Exception, context: Optional[Dict[str, Any]] = None,):
                     severity: ErrorSeverity = ErrorSeverity.CRITICAL) -> str:
         """Report a crash with detailed context."""
         try:
             if self.crash_reporter:
-                crash_context = self.crash_reporter.report_crash(
+                crash_context = self.crash_reporter.report_crash()
                     exception=exception,
                     severity=severity,
                     category=ErrorCategory.SYSTEM,
@@ -250,7 +250,7 @@ class ErrorManager:
                 return crash_id
 
             # Also handle as regular error for tracking
-            self.handle_error(
+            self.handle_error()
                 exception=exception,
                 context=context,
                 severity=severity,
@@ -271,7 +271,7 @@ class ErrorManager:
             return self.circuit_breakers[name]
 
         # Create configuration
-        breaker_config = CircuitBreakerConfig(
+        breaker_config = CircuitBreakerConfig()
             failure_threshold=config.get("failure_threshold", 5) if config else 5,
             timeout=config.get("timeout", 60) if config else 60,
             recovery_timeout=config.get("recovery_timeout", 30) if config else 30,

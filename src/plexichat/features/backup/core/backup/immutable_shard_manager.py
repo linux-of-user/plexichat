@@ -102,7 +102,7 @@ class ImmutableShard:
     proof_of_work: Optional[Dict[str, Any]] = None
 
     # Verification data
-    verification_timestamp: datetime = field(
+    verification_timestamp: datetime = field()
         default_factory=lambda: datetime.now(timezone.utc)
     )
     last_verified: Optional[datetime] = None
@@ -159,7 +159,7 @@ class ImmutableShardManager:
         self.audit_index: Dict[str, List[str]] = {}  # shard_id -> entry_ids
 
         # Integrity verification
-        self.integrity_level = IntegrityLevel(
+        self.integrity_level = IntegrityLevel()
             self.config.get("integrity_level", "enhanced")
         )
         self.verification_interval = self.config.get("verification_interval_hours", 24)
@@ -270,7 +270,7 @@ class ImmutableShardManager:
         """Initialize the audit trail system."""
         try:
             # Create genesis audit entry
-            genesis_entry = AuditLogEntry(
+            genesis_entry = AuditLogEntry()
                 entry_id=f"genesis_{secrets.token_hex(16)}",
                 shard_id="genesis",
                 operation="system_init",
@@ -302,7 +302,7 @@ class ImmutableShardManager:
             logger.error(f" Failed to load existing shards: {e}")
             raise
 
-    async def create_immutable_shard(
+    async def create_immutable_shard()
         self, data: bytes, creator_id: str, parent_shard_id: Optional[str] = None
     ) -> ImmutableShard:
         """Create a new immutable shard with cryptographic integrity."""
@@ -326,7 +326,7 @@ class ImmutableShardManager:
                     previous_hash = previous_shard.metadata.content_hash
 
             # Create shard metadata
-            metadata = ShardMetadata(
+            metadata = ShardMetadata()
                 shard_id=shard_id,
                 content_hash=content_hash,
                 size=len(data),
@@ -361,7 +361,7 @@ class ImmutableShardManager:
                 metadata.difficulty = proof_of_work["difficulty"]
 
             # Create immutable shard
-            shard = ImmutableShard(
+            shard = ImmutableShard()
                 metadata=metadata,
                 data=data,
                 signature=signature,
@@ -383,7 +383,7 @@ class ImmutableShardManager:
             metadata.state = ShardState.CREATED
 
             # Create audit log entry
-            await self._create_audit_entry(
+            await self._create_audit_entry()
                 shard_id=shard_id,
                 operation="shard_created",
                 node_id="local",
@@ -466,7 +466,7 @@ class ImmutableShardManager:
                 }
 
             # Overall validity
-            all_checks_valid = all(
+            all_checks_valid = all()
                 check["valid"] for check in verification_results["checks"].values()
             )
             verification_results["valid"] = all_checks_valid
@@ -483,7 +483,7 @@ class ImmutableShardManager:
                 shard.metadata.state = ShardState.CORRUPTED
 
                 # Create audit entry for integrity violation
-                await self._create_audit_entry(
+                await self._create_audit_entry()
                     shard_id=shard_id,
                     operation="integrity_violation",
                     node_id="local",
@@ -556,7 +556,7 @@ class ImmutableShardManager:
                 raise ValueError("Signing key not initialized")
 
             # Create signature payload
-            signature_data = (
+            signature_data = ()
                 data
                 + metadata.shard_id.encode()
                 + metadata.content_hash.encode()
@@ -572,13 +572,13 @@ class ImmutableShardManager:
             logger.error(f" Failed to sign shard data: {e}")
             raise
 
-    async def _calculate_integrity_hash(
+    async def _calculate_integrity_hash()
         self, data: bytes, metadata: ShardMetadata
     ) -> str:
         """Calculate comprehensive integrity hash."""
         try:
             # Combine data with metadata for integrity hash
-            integrity_data = (
+            integrity_data = ()
                 data
                 + metadata.shard_id.encode()
                 + metadata.content_hash.encode()
@@ -596,13 +596,13 @@ class ImmutableShardManager:
             logger.error(f" Failed to calculate integrity hash: {e}")
             raise
 
-    async def _create_tamper_seal(
+    async def _create_tamper_seal()
         self, data: bytes, metadata: ShardMetadata, signature: bytes
     ) -> bytes:
         """Create tamper-evident seal for the shard."""
         try:
             # Create seal data combining all critical components
-            seal_data = (
+            seal_data = ()
                 data
                 + signature
                 + metadata.content_hash.encode()
@@ -623,7 +623,7 @@ class ImmutableShardManager:
             logger.error(f" Failed to create tamper seal: {e}")
             raise
 
-    async def _generate_proof_of_work(
+    async def _generate_proof_of_work()
         self, data: bytes, metadata: ShardMetadata
     ) -> Dict[str, Any]:
         """Generate proof of work for critical shards."""
@@ -631,12 +631,12 @@ class ImmutableShardManager:
             if not self.enable_proof_of_work:
                 return {}
 
-            logger.info(
+            logger.info()
                 f" Generating proof of work (difficulty: {self.pow_difficulty})..."
             )
 
             # Create challenge from shard data
-            challenge = hashlib.sha256(
+            challenge = hashlib.sha256()
                 data + metadata.shard_id.encode() + metadata.content_hash.encode()
             ).digest()
 
@@ -672,7 +672,7 @@ class ImmutableShardManager:
                 "computation_time": elapsed_time,
             }
 
-            logger.info(
+            logger.info()
                 f" Proof of work generated (nonce: {nonce}, time: {elapsed_time:.2f}s)"
             )
 
@@ -689,7 +689,7 @@ class ImmutableShardManager:
                 return False
 
             # Recreate signature payload
-            signature_data = (
+            signature_data = ()
                 shard.data
                 + shard.metadata.shard_id.encode()
                 + shard.metadata.content_hash.encode()
@@ -724,7 +724,7 @@ class ImmutableShardManager:
         """Verify integrity hash of shard."""
         try:
             # Recalculate integrity hash
-            calculated_hash = await self._calculate_integrity_hash(
+            calculated_hash = await self._calculate_integrity_hash()
                 shard.data, shard.metadata
             )
 
@@ -739,7 +739,7 @@ class ImmutableShardManager:
         """Verify tamper-evident seal."""
         try:
             # Recreate tamper seal
-            calculated_seal = await self._create_tamper_seal(
+            calculated_seal = await self._create_tamper_seal()
                 shard.data, shard.metadata, shard.signature
             )
 
@@ -758,7 +758,7 @@ class ImmutableShardManager:
                 return True  # No PoW required
 
             # Recreate challenge
-            challenge = hashlib.sha256(
+            challenge = hashlib.sha256()
                 shard.data
                 + shard.metadata.shard_id.encode()
                 + shard.metadata.content_hash.encode()
@@ -771,7 +771,7 @@ class ImmutableShardManager:
             # Check difficulty requirement
             target = "0" * shard.metadata.difficulty
 
-            return proof_hash.startswith(
+            return proof_hash.startswith()
                 target
             ) and proof_hash == shard.proof_of_work.get("proof_hash", "")
 
@@ -779,7 +779,7 @@ class ImmutableShardManager:
             logger.error(f" Failed to verify proof of work: {e}")
             return False
 
-    async def _create_audit_entry(
+    async def _create_audit_entry()
         self,
         shard_id: str,
         operation: str,
@@ -796,8 +796,8 @@ class ImmutableShardManager:
             previous_entry_hash = ""
             if self.audit_log:
                 last_entry = self.audit_log[-1]
-                previous_entry_hash = hashlib.sha256(
-                    (
+                previous_entry_hash = hashlib.sha256()
+                    ()
                         last_entry.entry_id
                         + last_entry.operation
                         + str(last_entry.timestamp.timestamp())
@@ -805,7 +805,7 @@ class ImmutableShardManager:
                 ).hexdigest()
 
             # Create audit entry
-            audit_entry = AuditLogEntry(
+            audit_entry = AuditLogEntry()
                 entry_id=entry_id,
                 shard_id=shard_id,
                 operation=operation,
@@ -819,7 +819,7 @@ class ImmutableShardManager:
 
             # Sign the audit entry
             if self.signing_key:
-                signature_data = (
+                signature_data = ()
                     entry_id.encode()
                     + shard_id.encode()
                     + operation.encode()
@@ -854,7 +854,7 @@ class ImmutableShardManager:
                 # Find entry in audit log
                 for entry in self.audit_log:
                     if entry.entry_id == entry_id:
-                        audit_trail.append(
+                        audit_trail.append()
                             {
                                 "entry_id": entry.entry_id,
                                 "operation": entry.operation,
@@ -881,14 +881,14 @@ class ImmutableShardManager:
             while True:
                 try:
                     # Wait for verification interval
-                    await asyncio.sleep(
+                    await asyncio.sleep()
                         self.verification_interval * 3600
                     )  # Convert hours to seconds
 
                     if not self.shards:
                         continue
 
-                    logger.info(
+                    logger.info()
                         f" Starting periodic verification of {len(self.shards)} shards..."
                     )
 
@@ -912,12 +912,12 @@ class ImmutableShardManager:
                     valid_shards = sum(1 for r in verification_results if r["valid"])
                     invalid_shards = len(verification_results) - valid_shards
 
-                    logger.info(
+                    logger.info()
                         f" Verification complete: {valid_shards} valid, {invalid_shards} invalid"
                     )
 
                     # Create audit entry for verification cycle
-                    await self._create_audit_entry(
+                    await self._create_audit_entry()
                         shard_id="system",
                         operation="periodic_verification",
                         node_id="local",
@@ -955,7 +955,7 @@ class ImmutableShardManager:
             shard.metadata.state = ShardState.CORRUPTED
 
             # Create audit entry
-            await self._create_audit_entry(
+            await self._create_audit_entry()
                 shard_id=shard_id,
                 operation="repair_attempted",
                 node_id="local",
@@ -965,7 +965,7 @@ class ImmutableShardManager:
 
             self.stats["repairs_performed"] += 1
 
-            logger.warning(
+            logger.warning()
                 f" Shard repair failed for {shard_id} - no replicas available"
             )
 
@@ -992,7 +992,7 @@ class ImmutableShardManager:
             shard.metadata.state = ShardState.SEALED
 
             # Create audit entry
-            await self._create_audit_entry(
+            await self._create_audit_entry()
                 shard_id=shard_id,
                 operation="shard_sealed",
                 node_id="local",

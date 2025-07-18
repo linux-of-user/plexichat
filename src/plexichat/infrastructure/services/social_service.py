@@ -10,21 +10,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-
 from plexichat.app.logger_config import logger
 from plexichat.core.config import settings
 from plexichat.core.config import settings
@@ -100,7 +85,6 @@ class UserProfile:
 
     def __post_init__(self):
         if self.joined_at is None:
-            self.from datetime import datetime
 joined_at = datetime.now()
 datetime = datetime.now()
         if self.privacy_settings is None:
@@ -125,7 +109,6 @@ class SocialActivity:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.from datetime import datetime
 created_at = datetime.now()
 datetime = datetime.now()
 
@@ -170,7 +153,7 @@ class SocialService:
         """Generate a unique activity ID."""
         return f"activity_{int(time.time() * 1000)}_{time.time_ns() % 1000000}"
 
-    def create_user_profile(
+    def create_user_profile():
         self,
         user_id: int,
         display_name: str,
@@ -192,7 +175,7 @@ settings.update(privacy_settings)
                 profile = existing_profile
             else:
                 # Create new profile
-                profile = UserProfile(
+                profile = UserProfile()
                     user_id=user_id,
                     display_name=display_name,
                     bio=bio,
@@ -203,7 +186,7 @@ settings.update(privacy_settings)
             self._save_social_data()
 
             # Log activity
-            self._log_activity(
+            self._log_activity()
                 user_id=user_id,
                 activity_type=SocialActivityType.PROFILE_UPDATED,
                 data={"display_name": display_name}
@@ -220,7 +203,7 @@ settings.update(privacy_settings)
         """Get a user's profile."""
         return self.user_profiles.get(user_id)
 
-    def update_user_status(
+    def update_user_status():
         self,
         user_id: int,
         status: UserStatus,
@@ -245,7 +228,7 @@ datetime = datetime.now()
 
             # Log activity if status changed
             if old_status != status:
-                self._log_activity(
+                self._log_activity()
                     user_id=user_id,
                     activity_type=SocialActivityType.STATUS_UPDATED,
                     data={"old_status": old_status.value, "new_status": status.value}
@@ -258,7 +241,7 @@ datetime = datetime.now()
             logger.error(f"Failed to update user status: {e}")
             return False
 
-    def send_friend_request(
+    def send_friend_request():
         self,
         requester_id: int,
         recipient_id: int,
@@ -275,7 +258,7 @@ datetime = datetime.now()
 
             # Check if recipient allows friend requests
             recipient_profile = self.get_user_profile(recipient_id)
-            if (recipient_profile and
+            if (recipient_profile and)
                 not recipient_profile.privacy_from plexichat.core.config import settings
 settings.get("allow_friend_requests", True)):
                 raise ValueError("User does not accept friend requests")
@@ -293,12 +276,11 @@ settings.get("allow_friend_requests", True)):
                     raise ValueError("Cannot send friend request to blocked user")
 
             # Create friendship
-            friendship = Friendship(
+            friendship = Friendship()
                 friendship_id=friendship_id,
                 requester_id=requester_id,
                 recipient_id=recipient_id,
                 status=FriendshipStatus.PENDING,
-                from datetime import datetime
 created_at = datetime.now()
 datetime = datetime.now(),
                 message=message
@@ -308,14 +290,14 @@ datetime = datetime.now(),
             self._save_social_data()
 
             # Log activities
-            self._log_activity(
+            self._log_activity()
                 user_id=requester_id,
                 activity_type=SocialActivityType.FRIEND_REQUEST_SENT,
                 target_user_id=recipient_id,
                 data={"friendship_id": friendship_id}
             )
 
-            self._log_activity(
+            self._log_activity()
                 user_id=recipient_id,
                 activity_type=SocialActivityType.FRIEND_REQUEST_RECEIVED,
                 target_user_id=requester_id,
@@ -329,7 +311,7 @@ datetime = datetime.now(),
             logger.error(f"Failed to send friend request: {e}")
             return None
 
-    def respond_to_friend_request(
+    def respond_to_friend_request():
         self,
         friendship_id: str,
         user_id: int,
@@ -363,14 +345,14 @@ datetime = datetime.now()
             self._save_social_data()
 
             # Log activities for both users
-            self._log_activity(
+            self._log_activity()
                 user_id=friendship.requester_id,
                 activity_type=activity_type,
                 target_user_id=friendship.recipient_id,
                 data={"friendship_id": friendship_id, "accepted": accept}
             )
 
-            self._log_activity(
+            self._log_activity()
                 user_id=friendship.recipient_id,
                 activity_type=activity_type,
                 target_user_id=friendship.requester_id,
@@ -397,14 +379,14 @@ datetime = datetime.now()
             self._save_social_data()
 
             # Log activities
-            self._log_activity(
+            self._log_activity()
                 user_id=user_id,
                 activity_type=SocialActivityType.FRIEND_REMOVED,
                 target_user_id=friend_id,
                 data={"friendship_id": friendship_id}
             )
 
-            self._log_activity(
+            self._log_activity()
                 user_id=friend_id,
                 activity_type=SocialActivityType.FRIEND_REMOVED,
                 target_user_id=user_id,
@@ -438,7 +420,7 @@ datetime = datetime.now()
             self._save_social_data()
 
             # Log activity
-            self._log_activity(
+            self._log_activity()
                 user_id=user_id,
                 activity_type=SocialActivityType.USER_BLOCKED,
                 target_user_id=blocked_user_id
@@ -469,7 +451,7 @@ datetime = datetime.now()
             self._save_social_data()
 
             # Log activity
-            self._log_activity(
+            self._log_activity()
                 user_id=user_id,
                 activity_type=SocialActivityType.USER_UNBLOCKED,
                 target_user_id=blocked_user_id
@@ -484,7 +466,7 @@ datetime = datetime.now()
 
     def is_user_blocked(self, user_id: int, other_user_id: int) -> bool:
         """Check if a user is blocked by another user."""
-        return (
+        return ()
             other_user_id in self.blocked_users.get(user_id, set()) or
             user_id in self.blocked_users.get(other_user_id, set())
         )
@@ -511,7 +493,7 @@ datetime = datetime.now()
 
             if friend_id:
                 friend_profile = self.get_user_profile(friend_id)
-                friends.append({
+                friends.append({)
                     "user_id": friend_id,
                     "display_name": friend_profile.display_name if friend_profile else f"User{friend_id}",
                     "status": friend_profile.status.value if friend_profile else UserStatus.OFFLINE.value,
@@ -537,7 +519,7 @@ datetime = datetime.now()
             if friendship.requester_id == user_id:
                 # Requests sent by this user
                 recipient_profile = self.get_user_profile(friendship.recipient_id)
-                sent_requests.append({
+                sent_requests.append({)
                     "friendship_id": friendship.friendship_id,
                     "user_id": friendship.recipient_id,
                     "display_name": recipient_profile.display_name if recipient_profile else f"User{friendship.recipient_id}",
@@ -549,7 +531,7 @@ datetime = datetime.now()
             elif friendship.recipient_id == user_id:
                 # Requests received by this user
                 requester_profile = self.get_user_profile(friendship.requester_id)
-                received_requests.append({
+                received_requests.append({)
                     "friendship_id": friendship.friendship_id,
                     "user_id": friendship.requester_id,
                     "display_name": requester_profile.display_name if requester_profile else f"User{friendship.requester_id}",
@@ -563,7 +545,7 @@ datetime = datetime.now()
             "received": received_requests
         }
 
-    def _log_activity(
+    def _log_activity():
         self,
         user_id: int,
         activity_type: SocialActivityType,
@@ -574,7 +556,7 @@ datetime = datetime.now()
         try:
             activity_id = self._generate_activity_id()
 
-            activity = SocialActivity(
+            activity = SocialActivity()
                 activity_id=activity_id,
                 user_id=user_id,
                 activity_type=activity_type,
@@ -587,7 +569,7 @@ datetime = datetime.now()
             # Keep only recent activities (last 1000)
             if len(self.social_activities) > 1000:
                 # Remove oldest activities
-                sorted_activities = sorted(
+                sorted_activities = sorted()
                     self.social_activities.items(),
                     key=lambda x: x[1].created_at
                 )
@@ -621,7 +603,7 @@ datetime = datetime.now()
                 if activity.target_user_id:
                     target_profile = self.get_user_profile(activity.target_user_id)
 
-                feed.append({
+                feed.append({)
                     "activity_id": activity.activity_id,
                     "type": activity.activity_type.value,
                     "user": {
@@ -652,7 +634,7 @@ datetime = datetime.now()
 
             for user_id, profile in self.user_profiles.items():
                 if query_lower in profile.display_name.lower():
-                    matching_users.append({
+                    matching_users.append({)
                         "user_id": user_id,
                         "display_name": profile.display_name,
                         "bio": profile.bio,
@@ -677,7 +659,7 @@ datetime = datetime.now()
             pending_requests = len([f for f in self.friendships.values() if f.status == FriendshipStatus.PENDING])
 
             # Online users
-            online_users = len([
+            online_users = len([)
                 p for p in self.user_profiles.values()
                 if p.status in [UserStatus.ONLINE, UserStatus.AWAY, UserStatus.BUSY]
             ])
@@ -695,8 +677,7 @@ datetime = datetime.now()
                 "pending_friend_requests": pending_requests,
                 "total_blocked_users": sum(len(blocked_set) for blocked_set in self.blocked_users.values()),
                 "activity_counts": activity_counts,
-                "last_updated": from datetime import datetime
-datetime = datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat()
             }
 
         except Exception as e:

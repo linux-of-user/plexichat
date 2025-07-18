@@ -29,6 +29,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 PlexiChat End-to-End Encryption System
 
 Implements E2E encryption for all API endpoints, ensuring that even if
@@ -66,20 +67,20 @@ class E2ESession:
     user_id: str
     endpoint_type: EndpointType
     protocol: E2EProtocol
-    
+
     # Key material
     local_private_key: bytes
     local_public_key: bytes
     remote_public_key: Optional[bytes] = None
     shared_secret: Optional[bytes] = None
-    
+
     # Ratchet state (for Double Ratchet protocol)
     root_key: Optional[bytes] = None
     chain_key_send: Optional[bytes] = None
     chain_key_recv: Optional[bytes] = None
     message_keys_send: List[bytes] = field(default_factory=list)
     message_keys_recv: List[bytes] = field(default_factory=list)
-    
+
     # Session metadata
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_used: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -105,7 +106,7 @@ class E2EMessage:
 class EndToEndEncryption:
     """
     End-to-End Encryption System for API Endpoints
-    
+
     Features:
     - Forward secrecy (each message uses unique key)
     - Perfect forward secrecy (past messages remain secure)
@@ -114,38 +115,38 @@ class EndToEndEncryption:
     - Endpoint-specific encryption policies
     - Session management and key rotation
     """
-    
+
     def __init__(self, config_dir: str = "config/security/e2e"):
-        self.from pathlib import Path
-config_dir = Path()(config_dir)
+        from pathlib import Path
+self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Database for E2E sessions
         self.db_path = self.config_dir / "e2e_sessions.db"
-        
+
         # Session storage
         self.active_sessions: Dict[str, E2ESession] = {}
         self.endpoint_policies: Dict[EndpointType, Dict[str, Any]] = {}
-        
+
         # Encryption systems
         self.quantum_encryption = QuantumEncryptionSystem()
         self.distributed_keys = DistributedKeyManager()
-        
+
         # Initialize system (will be called manually during app startup)
         self._initialization_task = None
-    
+
     async def _initialize_system(self):
         """Initialize the E2E encryption system."""
         await self._init_database()
         await self._load_sessions()
         await self._setup_endpoint_policies()
         logger.info(" End-to-end encryption system initialized")
-    
+
     async def _init_database(self):
         """Initialize the E2E sessions database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS e2e_sessions (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS e2e_sessions ()
                     session_id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
                     endpoint_type TEXT NOT NULL,
@@ -164,9 +165,9 @@ config_dir = Path()(config_dir)
                     metadata TEXT
                 )
             """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS e2e_messages (
+
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS e2e_messages ()
                     message_id TEXT PRIMARY KEY,
                     session_id TEXT NOT NULL,
                     sender_id TEXT NOT NULL,
@@ -179,9 +180,9 @@ config_dir = Path()(config_dir)
                     FOREIGN KEY (session_id) REFERENCES e2e_sessions (session_id)
                 )
             """)
-            
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS endpoint_access_log (
+
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS endpoint_access_log ()
                     log_id TEXT PRIMARY KEY,
                     session_id TEXT NOT NULL,
                     endpoint_type TEXT NOT NULL,
@@ -191,16 +192,16 @@ config_dir = Path()(config_dir)
                     metadata TEXT
                 )
             """)
-            
+
             await db.commit()
-    
+
     async def _load_sessions(self):
         """Load active E2E sessions from database."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("SELECT * FROM e2e_sessions WHERE last_used > ?", 
+            async with db.execute("SELECT * FROM e2e_sessions WHERE last_used > ?", )
                                  [(datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()]) as cursor:
                 async for row in cursor:
-                    session = E2ESession(
+                    session = E2ESession()
                         session_id=row[0],
                         user_id=row[1],
                         endpoint_type=EndpointType(row[2]),
@@ -219,7 +220,7 @@ config_dir = Path()(config_dir)
                         metadata=json.loads(row[15]) if row[15] else {}
                     )
                     self.active_sessions[session.session_id] = session
-    
+
     async def _setup_endpoint_policies(self):
         """Setup encryption policies for different endpoint types."""
         self.endpoint_policies = {
@@ -273,40 +274,40 @@ config_dir = Path()(config_dir)
                 "max_messages": 1000
             }
         }
-    
+
     async def create_session(self, user_id: str, endpoint_type: EndpointType) -> E2ESession:
         """Create a new E2E encryption session."""
         policy = self.endpoint_policies[endpoint_type]
         protocol = policy["protocol"]
-        
+
         session_id = f"e2e_{endpoint_type.value}_{user_id}_{secrets.token_hex(8)}"
-        
+
         # Generate key pair based on protocol
         if protocol in [E2EProtocol.SIGNAL_PROTOCOL, E2EProtocol.DOUBLE_RATCHET]:
             # Use X25519 for key exchange
             private_key = x25519.X25519PrivateKey.generate()
             public_key = private_key.public_key()
-            
-            private_key_bytes = private_key.private_bytes(
+
+            private_key_bytes = private_key.private_bytes()
                 encoding=serialization.Encoding.Raw,
                 format=serialization.PrivateFormat.Raw,
                 encryption_algorithm=serialization.NoEncryption()
             )
-            public_key_bytes = public_key.public_bytes(
+            public_key_bytes = public_key.public_bytes()
                 encoding=serialization.Encoding.Raw,
                 format=serialization.PublicFormat.Raw
             )
-        
+
         else:  # Quantum-resistant protocols
             # Use quantum-resistant key generation
             domain_key = await self.distributed_keys.get_domain_key(KeyDomain.COMMUNICATION)
             if domain_key:
                 # Derive session keys from domain key
-                private_key_bytes = hashlib.blake2b(
+                private_key_bytes = hashlib.blake2b()
                     domain_key + user_id.encode() + session_id.encode(),
                     digest_size=32
                 ).digest()
-                public_key_bytes = hashlib.blake2b(
+                public_key_bytes = hashlib.blake2b()
                     private_key_bytes + b"public",
                     digest_size=32
                 ).digest()
@@ -314,8 +315,8 @@ config_dir = Path()(config_dir)
                 # Fallback to random keys
                 private_key_bytes = secrets.token_bytes(32)
                 public_key_bytes = secrets.token_bytes(32)
-        
-        session = E2ESession(
+
+        session = E2ESession()
             session_id=session_id,
             user_id=user_id,
             endpoint_type=endpoint_type,
@@ -327,10 +328,10 @@ config_dir = Path()(config_dir)
                 "created_by": "e2e_encryption_system"
             }
         )
-        
+
         self.active_sessions[session_id] = session
         await self._save_session(session)
-        
+
         logger.info(f" Created E2E session: {session_id} for {endpoint_type.value}")
         return session
 
@@ -351,7 +352,7 @@ config_dir = Path()(config_dir)
                 shared_secret = private_key.exchange(remote_key)
 
                 # Derive root key using HKDF
-                hkdf = HKDF(
+                hkdf = HKDF()
                     algorithm=hashes.SHA256(),
                     length=32,
                     salt=b"PlexiChat-E2E-Root-Key",
@@ -371,12 +372,12 @@ config_dir = Path()(config_dir)
 
         else:  # Quantum-resistant protocols
             # Use quantum-resistant key agreement
-            session.shared_secret = self._quantum_key_agreement(
+            session.shared_secret = self._quantum_key_agreement()
                 session.local_private_key,
                 remote_public_key,
                 session.session_id
             )
-            session.root_key = hashlib.blake2b(
+            session.root_key = hashlib.blake2b()
                 session.shared_secret + b"root_key",
                 digest_size=32
             ).digest()
@@ -393,19 +394,19 @@ config_dir = Path()(config_dir)
             raise ValueError("Root key not established")
 
         # Initialize chain keys
-        session.chain_key_send = hashlib.blake2b(
+        session.chain_key_send = hashlib.blake2b()
             session.root_key + b"send_chain",
             digest_size=32
         ).digest()
 
-        session.chain_key_recv = hashlib.blake2b(
+        session.chain_key_recv = hashlib.blake2b()
             session.root_key + b"recv_chain",
             digest_size=32
         ).digest()
 
         # Pre-generate some message keys
         for _ in range(10):
-            message_key = hashlib.blake2b(
+            message_key = hashlib.blake2b()
                 session.chain_key_send + len(session.message_keys_send).to_bytes(4, 'big'),
                 digest_size=32
             ).digest()
@@ -417,7 +418,7 @@ config_dir = Path()(config_dir)
         combined = local_private + remote_public + context.encode()
         return hashlib.blake2b(combined, digest_size=32).digest()
 
-    async def encrypt_message(self, session_id: str, plaintext: bytes,
+    async def encrypt_message(self, session_id: str, plaintext: bytes,)
                              recipient_id: str = "") -> Optional[E2EMessage]:
         """Encrypt a message using E2E encryption."""
         if session_id not in self.active_sessions:
@@ -446,7 +447,7 @@ config_dir = Path()(config_dir)
 
         else:
             # Generate message key from root key
-            message_key = hashlib.blake2b(
+            message_key = hashlib.blake2b()
                 session.root_key + session.message_count.to_bytes(4, 'big'),
                 digest_size=32
             ).digest()
@@ -459,7 +460,7 @@ config_dir = Path()(config_dir)
 
         # Create message
         message_id = f"msg_{session_id}_{message_key_index}_{secrets.token_hex(4)}"
-        message = E2EMessage(
+        message = E2EMessage()
             message_id=message_id,
             session_id=session_id,
             sender_id=session.user_id,
@@ -507,7 +508,7 @@ config_dir = Path()(config_dir)
             message_key = await self._get_receive_message_key(session, message.message_key_index)
         else:
             # Generate message key from root key
-            message_key = hashlib.blake2b(
+            message_key = hashlib.blake2b()
                 session.root_key + message.message_key_index.to_bytes(4, 'big'),
                 digest_size=32
             ).digest()
@@ -541,14 +542,14 @@ config_dir = Path()(config_dir)
         if direction == "send":
             # Generate new message keys
             for i in range(10):
-                message_key = hashlib.blake2b(
+                message_key = hashlib.blake2b()
                     session.chain_key_send + (len(session.message_keys_send) + i).to_bytes(4, 'big'),
                     digest_size=32
                 ).digest()
                 session.message_keys_send.append(message_key)
 
             # Advance chain key
-            session.chain_key_send = hashlib.blake2b(
+            session.chain_key_send = hashlib.blake2b()
                 session.chain_key_send + b"advance",
                 digest_size=32
             ).digest()
@@ -556,14 +557,14 @@ config_dir = Path()(config_dir)
         else:  # receive
             # Generate new message keys
             for i in range(10):
-                message_key = hashlib.blake2b(
+                message_key = hashlib.blake2b()
                     session.chain_key_recv + (len(session.message_keys_recv) + i).to_bytes(4, 'big'),
                     digest_size=32
                 ).digest()
                 session.message_keys_recv.append(message_key)
 
             # Advance chain key
-            session.chain_key_recv = hashlib.blake2b(
+            session.chain_key_recv = hashlib.blake2b()
                 session.chain_key_recv + b"advance",
                 digest_size=32
             ).digest()
@@ -582,7 +583,7 @@ config_dir = Path()(config_dir)
     def _sign_message(self, message: E2EMessage, session: E2ESession) -> bytes:
         """Sign a message for authentication."""
         # Create message hash
-        message_data = (
+        message_data = ()
             message.message_id.encode() +
             message.session_id.encode() +
             message.encrypted_payload +
@@ -592,7 +593,7 @@ config_dir = Path()(config_dir)
         message_hash = hashlib.blake2b(message_data, digest_size=32).digest()
 
         # Sign with session private key (simplified - use proper signing in production)
-        signature = hashlib.blake2b(
+        signature = hashlib.blake2b()
             session.local_private_key + message_hash,
             digest_size=64
         ).digest()
@@ -605,7 +606,7 @@ config_dir = Path()(config_dir)
             return False
 
         # Recreate message hash
-        message_data = (
+        message_data = ()
             message.message_id.encode() +
             message.session_id.encode() +
             message.encrypted_payload +
@@ -615,7 +616,7 @@ config_dir = Path()(config_dir)
         message_hash = hashlib.blake2b(message_data, digest_size=32).digest()
 
         # Verify signature (simplified - use proper verification in production)
-        expected_signature = hashlib.blake2b(
+        expected_signature = hashlib.blake2b()
             session.local_private_key + message_hash,
             digest_size=64
         ).digest()
@@ -647,14 +648,14 @@ config_dir = Path()(config_dir)
     async def _save_session(self, session: E2ESession):
         """Save session to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT OR REPLACE INTO e2e_sessions
-                (session_id, user_id, endpoint_type, protocol, local_private_key,
+                (session_id, user_id, endpoint_type, protocol, local_private_key,)
                  local_public_key, remote_public_key, shared_secret, root_key,
                  chain_key_send, chain_key_recv, created_at, last_used,
                  message_count, is_verified, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 session.session_id,
                 session.user_id,
                 session.endpoint_type.value,
@@ -677,12 +678,12 @@ config_dir = Path()(config_dir)
     async def _save_message(self, message: E2EMessage):
         """Save message to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT INTO e2e_messages
-                (message_id, session_id, sender_id, recipient_id, encrypted_payload,
+                (message_id, session_id, sender_id, recipient_id, encrypted_payload,)
                  message_key_index, timestamp, signature, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 message.message_id,
                 message.session_id,
                 message.sender_id,
@@ -758,7 +759,7 @@ config_dir = Path()(config_dir)
         # Count messages from today
         today = datetime.now(timezone.utc).date()
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute(
+            async with db.execute()
                 "SELECT COUNT(*) FROM e2e_messages WHERE DATE(timestamp) = ?",
                 [today.isoformat()]
             ) as cursor:

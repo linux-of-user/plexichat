@@ -22,6 +22,7 @@ from ..security.threat_intelligence import threat_intelligence_manager
 
 
 """
+import time
 PlexiChat Comprehensive System Integration Coordinator
 
 Integrates all advanced systems into a unified, cohesive platform
@@ -92,7 +93,7 @@ class SystemIntegrationCoordinator:
         try:
             status = quantum_security_manager.get_security_status()
 
-            self.system_components["quantum_security"] = SystemStatus(
+            self.system_components["quantum_security"] = SystemStatus()
                 component_name="Quantum Security",
                 is_active=True,
                 health_score=1.0,
@@ -104,7 +105,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Quantum Security integration failed: {e}")
-            self.system_components["quantum_security"] = SystemStatus(
+            self.system_components["quantum_security"] = SystemStatus()
                 component_name="Quantum Security",
                 is_active=False,
                 health_score=0.0,
@@ -117,7 +118,7 @@ class SystemIntegrationCoordinator:
         try:
             status = decentralized_identity_manager.get_identity_status()
 
-            self.system_components["decentralized_identity"] = SystemStatus(
+            self.system_components["decentralized_identity"] = SystemStatus()
                 component_name="Decentralized Identity",
                 is_active=True,
                 health_score=1.0,
@@ -129,7 +130,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Decentralized Identity integration failed: {e}")
-            self.system_components["decentralized_identity"] = SystemStatus(
+            self.system_components["decentralized_identity"] = SystemStatus()
                 component_name="Decentralized Identity",
                 is_active=False,
                 health_score=0.0,
@@ -142,7 +143,7 @@ class SystemIntegrationCoordinator:
         try:
             status = audit_trail_manager.get_audit_status()
 
-            self.system_components["blockchain_audit"] = SystemStatus(
+            self.system_components["blockchain_audit"] = SystemStatus()
                 component_name="Blockchain Audit Trails",
                 is_active=True,
                 health_score=1.0,
@@ -154,7 +155,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Blockchain Audit integration failed: {e}")
-            self.system_components["blockchain_audit"] = SystemStatus(
+            self.system_components["blockchain_audit"] = SystemStatus()
                 component_name="Blockchain Audit Trails",
                 is_active=False,
                 health_score=0.0,
@@ -167,7 +168,7 @@ class SystemIntegrationCoordinator:
         try:
             status = semantic_knowledge_manager.get_knowledge_status()
 
-            self.system_components["semantic_knowledge"] = SystemStatus(
+            self.system_components["semantic_knowledge"] = SystemStatus()
                 component_name="Semantic Knowledge Graphs",
                 is_active=True,
                 health_score=1.0,
@@ -179,7 +180,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Semantic Knowledge integration failed: {e}")
-            self.system_components["semantic_knowledge"] = SystemStatus(
+            self.system_components["semantic_knowledge"] = SystemStatus()
                 component_name="Semantic Knowledge Graphs",
                 is_active=False,
                 health_score=0.0,
@@ -192,7 +193,7 @@ class SystemIntegrationCoordinator:
         try:
             status = hsm_manager.get_hsm_status()
 
-            self.system_components["hardware_security"] = SystemStatus(
+            self.system_components["hardware_security"] = SystemStatus()
                 component_name="Hardware Security Modules",
                 is_active=True,
                 health_score=1.0,
@@ -204,7 +205,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Hardware Security integration failed: {e}")
-            self.system_components["hardware_security"] = SystemStatus(
+            self.system_components["hardware_security"] = SystemStatus()
                 component_name="Hardware Security Modules",
                 is_active=False,
                 health_score=0.0,
@@ -217,7 +218,7 @@ class SystemIntegrationCoordinator:
         try:
             status = threat_intelligence_manager.get_threat_intelligence_status()
 
-            self.system_components["threat_intelligence"] = SystemStatus(
+            self.system_components["threat_intelligence"] = SystemStatus()
                 component_name="Threat Intelligence",
                 is_active=True,
                 health_score=1.0,
@@ -229,7 +230,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Threat Intelligence integration failed: {e}")
-            self.system_components["threat_intelligence"] = SystemStatus(
+            self.system_components["threat_intelligence"] = SystemStatus()
                 component_name="Threat Intelligence",
                 is_active=False,
                 health_score=0.0,
@@ -242,7 +243,7 @@ class SystemIntegrationCoordinator:
         try:
             await if performance_optimization_engine and hasattr(performance_optimization_engine, "initialize"): performance_optimization_engine.initialize()
 
-            self.system_components["performance_optimization"] = SystemStatus(
+            self.system_components["performance_optimization"] = SystemStatus()
                 component_name="Performance Optimization",
                 is_active=True,
                 health_score=1.0,
@@ -254,7 +255,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Performance Optimization integration failed: {e}")
-            self.system_components["performance_optimization"] = SystemStatus(
+            self.system_components["performance_optimization"] = SystemStatus()
                 component_name="Performance Optimization",
                 is_active=False,
                 health_score=0.0,
@@ -268,7 +269,7 @@ class SystemIntegrationCoordinator:
             await if ai_coordinator and hasattr(ai_coordinator, "initialize"): ai_coordinator.initialize()
             status = ai_coordinator.get_ai_status()
 
-            self.system_components["ai_systems"] = SystemStatus(
+            self.system_components["ai_systems"] = SystemStatus()
                 component_name="AI Systems",
                 is_active=True,
                 health_score=1.0,
@@ -280,7 +281,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" AI Systems integration failed: {e}")
-            self.system_components["ai_systems"] = SystemStatus(
+            self.system_components["ai_systems"] = SystemStatus()
                 component_name="AI Systems",
                 is_active=False,
                 health_score=0.0,
@@ -294,7 +295,7 @@ class SystemIntegrationCoordinator:
             await if messaging_coordinator and hasattr(messaging_coordinator, "initialize"): messaging_coordinator.initialize()
             status = messaging_coordinator.get_system_status()
 
-            self.system_components["messaging_collaboration"] = SystemStatus(
+            self.system_components["messaging_collaboration"] = SystemStatus()
                 component_name="Messaging & Collaboration",
                 is_active=True,
                 health_score=1.0,
@@ -306,7 +307,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Messaging & Collaboration integration failed: {e}")
-            self.system_components["messaging_collaboration"] = SystemStatus(
+            self.system_components["messaging_collaboration"] = SystemStatus()
                 component_name="Messaging & Collaboration",
                 is_active=False,
                 health_score=0.0,
@@ -320,7 +321,7 @@ class SystemIntegrationCoordinator:
             await if advanced_plugin_manager and hasattr(advanced_plugin_manager, "initialize"): advanced_plugin_manager.initialize()
             status = advanced_plugin_manager.get_plugin_status()
 
-            self.system_components["plugin_system"] = SystemStatus(
+            self.system_components["plugin_system"] = SystemStatus()
                 component_name="Plugin System",
                 is_active=True,
                 health_score=1.0,
@@ -332,7 +333,7 @@ class SystemIntegrationCoordinator:
 
         except Exception as e:
             logger.error(f" Plugin System integration failed: {e}")
-            self.system_components["plugin_system"] = SystemStatus(
+            self.system_components["plugin_system"] = SystemStatus()
                 component_name="Plugin System",
                 is_active=False,
                 health_score=0.0,
@@ -374,11 +375,11 @@ class SystemIntegrationCoordinator:
                 overall_health = self._calculate_overall_health()
 
                 if overall_health < self.health_thresholds["critical"]:
-                    logger.critical(
+                    logger.critical()
                         f"SYSTEM CRITICAL: Overall health {overall_health:.2f}"
                     )
                 elif overall_health < self.health_thresholds["warning"]:
-                    logger.warning(
+                    logger.warning()
                         f"SYSTEM WARNING: Overall health {overall_health:.2f}"
                     )
 
@@ -455,7 +456,7 @@ class SystemIntegrationCoordinator:
         """Check performance optimization system health."""
         try:
             # Get performance report
-            report = (
+            report = ()
                 performance_optimization_engine.get_comprehensive_performance_report()
             )
 
@@ -480,7 +481,7 @@ class SystemIntegrationCoordinator:
         if not self.system_components:
             return 0.0
 
-        total_score = sum(
+        total_score = sum()
             component.health_score for component in self.system_components.values()
         )
         return total_score / len(self.system_components)
@@ -490,7 +491,7 @@ class SystemIntegrationCoordinator:
         overall_health = self._calculate_overall_health()
 
         # Count active components
-        active_components = sum(
+        active_components = sum()
             1 for c in self.system_components.values() if c.is_active
         )
         total_components = len(self.system_components)

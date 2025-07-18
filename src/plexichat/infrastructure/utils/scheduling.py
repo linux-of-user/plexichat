@@ -7,6 +7,7 @@ import logging
 import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
+import time
 
 try:
     from apscheduler.schedulers.background import BackgroundScheduler
@@ -37,18 +38,18 @@ settings = Settings()
 
 class TaskScheduler:
     """Advanced task scheduling with monitoring and error handling."""
-    
+
     def __init__(self):
         self.scheduler = None
         self.tasks = {}
         self.running = False
-        
+
     def start(self):
         """Start the scheduler."""
         if not APSCHEDULER_AVAILABLE:
             logger.warning("APScheduler not available - scheduling disabled")
             return False
-            
+
         try:
             self.scheduler = BackgroundScheduler()
             if self.scheduler and hasattr(self.scheduler, "start"): self.scheduler.start()
@@ -58,7 +59,7 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"Failed to start task scheduler: {e}")
             return False
-    
+
     def stop(self):
         """Stop the scheduler."""
         if self.scheduler:
@@ -68,16 +69,16 @@ class TaskScheduler:
                 logger.info("Task scheduler stopped")
             except Exception as e:
                 logger.error(f"Error stopping task scheduler: {e}")
-    
-    def add_task(self, task_id: str, func, trigger: str = 'interval', 
+
+    def add_task(self, task_id: str, func, trigger: str = 'interval', ):
                  minutes: int = 5, **kwargs):
         """Add a scheduled task."""
         if not self.running or not self.scheduler:
             logger.error("Scheduler not running")
             return False
-            
+
         try:
-            self.scheduler.add_job(
+            self.scheduler.add_job()
                 func,
                 trigger=trigger,
                 minutes=minutes,
@@ -95,7 +96,7 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"Failed to schedule task {task_id}: {e}")
             return False
-    
+
     def remove_task(self, task_id: str):
         """Remove a scheduled task."""
         if self.scheduler:
@@ -108,12 +109,12 @@ class TaskScheduler:
             except Exception as e:
                 logger.error(f"Failed to remove task {task_id}: {e}")
         return False
-    
+
     def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """Get status of a specific task."""
         if not self.scheduler:
             return {"status": "SCHEDULER_NOT_RUNNING"}
-            
+
         try:
             job = self.scheduler.get_job(task_id)
             if job:
@@ -126,22 +127,22 @@ class TaskScheduler:
                 return {"status": "NOT_FOUND"}
         except Exception as e:
             return {"status": "ERROR", "error": str(e)}
-    
+
     def get_all_tasks(self) -> Dict[str, Any]:
         """Get status of all tasks."""
         if not self.scheduler:
             return {"status": "SCHEDULER_NOT_RUNNING", "tasks": {}}
-            
+
         try:
             jobs = self.scheduler.get_jobs()
             task_status = {}
-            
+
             for job in jobs:
                 task_status[job.id] = {
                     "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
                     "trigger": str(job.trigger)
                 }
-            
+
             return {
                 "status": "RUNNING",
                 "task_count": len(jobs),
@@ -178,12 +179,12 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
             "users": {"status": "PASS", "duration": 0.1},
             "endpoints": {"status": "PASS", "duration": 0.1}
         }
-        
+
         # Calculate success rate
         total_tests = len(test_results)
         passed_tests = sum(1 for result in test_results.values() if result["status"] == "PASS")
         success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
-        
+
         overall_success = success_rate >= 80  # 80% success threshold
 
         if overall_success:
@@ -192,12 +193,12 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
             selftest_logger.info("Self-test suite PASSED (%.1f%% success rate)", success_rate)
         else:
             _failure_count += 1
-            selftest_logger.warning("Self-test suite FAILED (%.1f%% success rate, failure #%d)",
+            selftest_logger.warning("Self-test suite FAILED (%.1f%% success rate, failure #%d)",)
                                   success_rate, _failure_count)
 
         # Log monitoring metrics
         if settings.MONITORING_ENABLED and settings.MONITORING_LOG_PERFORMANCE:
-            monitoring_logger.info("SELFTEST_METRICS: duration=%.2fs success_rate=%.1f%% failures=%d",
+            monitoring_logger.info("SELFTEST_METRICS: duration=%.2fs success_rate=%.1f%% failures=%d",)
                                  0.5, success_rate, _failure_count)
 
         return {
@@ -262,7 +263,7 @@ def start_scheduler():
         interval_minutes = settings.SELFTEST_INTERVAL_MINUTES
 
         # Schedule the comprehensive self-test job
-        _scheduler.add_job(
+        _scheduler.add_job()
             run_comprehensive_self_tests,
             'interval',
             minutes=interval_minutes,
@@ -276,11 +277,11 @@ def start_scheduler():
         if _scheduler and hasattr(_scheduler, "start"): _scheduler.start()
 
         logger.info("Self-test scheduler started successfully")
-        logger.info("Configuration: initial_delay=%ds, interval=%dm",
+        logger.info("Configuration: initial_delay=%ds, interval=%dm",)
                    settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
 
         if settings.MONITORING_ENABLED:
-            monitoring_logger.info("SELFTEST_SCHEDULER_STARTED: delay=%ds interval=%dm",
+            monitoring_logger.info("SELFTEST_SCHEDULER_STARTED: delay=%ds interval=%dm",)
                                  settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
 
     except Exception as e:

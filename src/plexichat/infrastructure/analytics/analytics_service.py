@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
+import time
 
 try:
 
@@ -28,18 +29,7 @@ from app.models.user import User
 from sqlmodel import Session, and_, func, select
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
 Comprehensive analytics and statistics service.
@@ -96,7 +86,7 @@ class AnalyticsService:
     async def _initialize_redis(self):
         """Initialize Redis connection for caching."""
         try:
-            self.redis_client = redis.from_url(
+            self.redis_client = redis.from_url()
                 getattr(settings, 'REDIS_URL', 'redis://localhost:6379'),
                 decode_responses=True
             )
@@ -105,15 +95,14 @@ class AnalyticsService:
         except Exception as e:
             logger.warning(f"Redis connection failed, using in-memory storage: {e}")
 
-    async def record_metric(self, name: str, value: float,
+    async def record_metric(self, name: str, value: float,)
                            metric_type: MetricType = MetricType.COUNTER,
                            tags: Optional[Dict[str, str]] = None):
         """Record a metric."""
-        metric = Metric(
+        metric = Metric()
             name=name,
             type=metric_type,
             value=value,
-            from datetime import datetime
 timestamp = datetime.now()
 datetime.utcnow(),
             tags=tags
@@ -198,27 +187,25 @@ datetime.utcnow(),
         try:
             async with db_cluster.get_session() as session:
                 # Active users (last 5 minutes)
-                from datetime import datetime
 five_min_ago = datetime.now()
 datetime.utcnow() - timedelta(minutes=5)
-                active_users = await session.execute(
+                active_users = await session.execute()
                     select(func.count(User.id.distinct()))
                     .where(User.last_seen >= five_min_ago)
                 )
                 self.real_time_stats['active_users'] = active_users.scalar() or 0
 
                 # Messages in last hour
-                from datetime import datetime
 hour_ago = datetime.now()
 datetime.utcnow() - timedelta(hours=1)
-                recent_messages = await session.execute(
+                recent_messages = await session.execute()
                     select(func.count(Message.id))
                     .where(Message.timestamp >= hour_ago)
                 )
                 self.real_time_stats['messages_last_hour'] = recent_messages.scalar() or 0
 
                 # Online users
-                online_users = await session.execute(
+                online_users = await session.execute()
                     select(func.count(User.id))
                     .where(User.status == 'online')
                 )
@@ -232,21 +219,21 @@ datetime.utcnow() - timedelta(hours=1)
         try:
             async with db_cluster.get_session() as session:
                 # User's guilds
-                user_guilds = await session.execute(
+                user_guilds = await session.execute()
                     select(func.count(GuildMember.guild_id))
                     .where(GuildMember.user_id == user_id)
                 )
                 guilds_count = user_guilds.scalar() or 0
 
                 # User's messages
-                user_messages = await session.execute(
+                user_messages = await session.execute()
                     select(func.count(Message.id))
                     .where(Message.author_id == user_id)
                 )
                 messages_count = user_messages.scalar() or 0
 
                 # User's files
-                user_files = await session.execute(
+                user_files = await session.execute()
                     select(func.count(FileRecord.id))
                     .where(FileRecord.uploaded_by == user_id)
                 )
@@ -291,10 +278,9 @@ datetime.utcnow() - timedelta(hours=1)
                 total_users = await session.execute(select(func.count(User.id)))
 
                 # Active users today
-                from datetime import datetime
 today = datetime.now()
 datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-                active_today = await session.execute(
+                active_today = await session.execute()
                     select(func.count(User.id.distinct()))
                     .where(User.last_seen >= today)
                 )
@@ -303,7 +289,7 @@ datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
                 total_guilds = await session.execute(select(func.count(Guild.id)))
 
                 # Active guilds today
-                active_guilds_today = await session.execute(
+                active_guilds_today = await session.execute()
                     select(func.count(Guild.id.distinct()))
                     .join(Channel, Channel.guild_id == Guild.id)
                     .join(Message, Message.channel_id == Channel.id)
@@ -317,16 +303,15 @@ datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
                 total_messages = await session.execute(select(func.count(Message.id)))
 
                 # Messages today
-                messages_today = await session.execute(
+                messages_today = await session.execute()
                     select(func.count(Message.id))
                     .where(Message.timestamp >= today)
                 )
 
                 # Messages last hour
-                from datetime import datetime
 hour_ago = datetime.now()
 datetime.utcnow() - timedelta(hours=1)
-                messages_last_hour = await session.execute(
+                messages_last_hour = await session.execute()
                     select(func.count(Message.id))
                     .where(Message.timestamp >= hour_ago)
                 )
@@ -370,7 +355,6 @@ datetime.utcnow() - timedelta(hours=1)
     async def get_guild_analytics(self, guild_id: int, time_range: TimeRange = TimeRange.WEEK) -> Dict[str, Any]:
         """Get analytics for a specific guild."""
         try:
-            from datetime import datetime
 end_time = datetime.now()
 datetime.utcnow()
             start_time = self._get_start_time(end_time, time_range)
@@ -419,7 +403,7 @@ datetime.utcnow()
         else:
             return end_time - timedelta(weeks=1)
 
-    async def _get_member_history(self, session: Session, guild_id: int,
+    async def _get_member_history(self, session: Session, guild_id: int,)
                                  start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
         """Get member count history for a guild."""
         # Simplified implementation - would need member join/leave tracking
@@ -428,17 +412,17 @@ datetime.utcnow()
             {'timestamp': end_time.isoformat(), 'count': 105}
         ]
 
-    async def _get_message_activity(self, session: Session, guild_id: int,
+    async def _get_message_activity(self, session: Session, guild_id: int,)
                                    start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
         """Get message activity for a guild."""
-        result = await session.execute(
-            select(
+        result = await session.execute()
+            select()
                 func.date_trunc('hour', Message.timestamp).label('hour'),
                 func.count(Message.id).label('count')
             )
             .join(Channel, Channel.id == Message.channel_id)
-            .where(
-                and_(
+            .where()
+                and_()
                     Channel.guild_id == guild_id,
                     Message.timestamp >= start_time,
                     Message.timestamp <= end_time
@@ -456,17 +440,17 @@ datetime.utcnow()
             for row in result
         ]
 
-    async def _get_channel_activity(self, session: Session, guild_id: int,
+    async def _get_channel_activity(self, session: Session, guild_id: int,)
                                    start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
         """Get channel activity for a guild."""
-        result = await session.execute(
-            select(
+        result = await session.execute()
+            select()
                 Channel.name,
                 func.count(Message.id).label('message_count')
             )
             .join(Message, Message.channel_id == Channel.id)
-            .where(
-                and_(
+            .where()
+                and_()
                     Channel.guild_id == guild_id,
                     Message.timestamp >= start_time,
                     Message.timestamp <= end_time
@@ -485,19 +469,19 @@ datetime.utcnow()
             for row in result
         ]
 
-    async def _get_top_users(self, session: Session, guild_id: int,
+    async def _get_top_users(self, session: Session, guild_id: int,)
                             start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
         """Get top users by message count for a guild."""
-        result = await session.execute(
-            select(
+        result = await session.execute()
+            select()
                 User.username,
                 User.display_name,
                 func.count(Message.id).label('message_count')
             )
             .join(Message, Message.author_id == User.id)
             .join(Channel, Channel.id == Message.channel_id)
-            .where(
-                and_(
+            .where()
+                and_()
                     Channel.guild_id == guild_id,
                     Message.timestamp >= start_time,
                     Message.timestamp <= end_time
@@ -521,7 +505,7 @@ datetime.utcnow()
         """Get real-time metrics."""
         return dict(self.real_time_stats)
 
-    async def export_analytics(self, guild_id: Optional[int] = None,
+    async def export_analytics(self, guild_id: Optional[int] = None,)
                               time_range: TimeRange = TimeRange.MONTH) -> Dict[str, Any]:
         """Export analytics data for reporting."""
         if guild_id:
@@ -535,7 +519,7 @@ analytics_service = AnalyticsService()
 # Convenience functions for recording metrics
 async def record_user_action(action: str, user_id: int, **kwargs):
     """Record a user action metric."""
-    await analytics_service.record_metric(
+    await analytics_service.record_metric()
         f"user_action.{action}",
         1,
         MetricType.COUNTER,
@@ -544,7 +528,7 @@ async def record_user_action(action: str, user_id: int, **kwargs):
 
 async def record_api_request(endpoint: str, method: str, status_code: int, duration: float):
     """Record an API request metric."""
-    await analytics_service.record_metric(
+    await analytics_service.record_metric()
         "api_request",
         1,
         MetricType.COUNTER,
@@ -555,7 +539,7 @@ async def record_api_request(endpoint: str, method: str, status_code: int, durat
         }
     )
 
-    await analytics_service.record_metric(
+    await analytics_service.record_metric()
         "api_request_duration",
         duration,
         MetricType.HISTOGRAM,
@@ -571,7 +555,7 @@ async def record_websocket_event(event_type: str, user_id: Optional[int] = None)
     if user_id:
         tags['user_id'] = str(user_id)
 
-    await analytics_service.record_metric(
+    await analytics_service.record_metric()
         "websocket_event",
         1,
         MetricType.COUNTER,

@@ -11,8 +11,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 
-
-
 from plexichat.core.config import settings
 from plexichat.core.config import settings
 from plexichat.core.config import settings
@@ -29,6 +27,7 @@ from plexichat.core.config import settings
 from plexichat.core.config import settings
 
 """
+import time
 PlexiChat Voice/Video Channel System
 
 Advanced voice and video communication with Discord-like features:
@@ -212,7 +211,7 @@ class VoiceVideoChannel:
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
 
-    def add_participant(self, user_id: str, username: str, display_name: str,
+    def add_participant(self, user_id: str, username: str, display_name: str,):
                        role: ParticipantRole = ParticipantRole.SPEAKER) -> bool:
         """Add participant to channel."""
         if len(self.participants) >= self.max_participants:
@@ -221,7 +220,7 @@ class VoiceVideoChannel:
         if self.is_locked and role not in [ParticipantRole.MODERATOR, ParticipantRole.HOST]:
             return False
 
-        participant = ChannelParticipant(
+        participant = ChannelParticipant()
             user_id=user_id,
             username=username,
             display_name=display_name,
@@ -386,7 +385,7 @@ class VoiceVideoManager:
 
     async def create_channel(self, channel_data: Dict[str, Any]) -> VoiceVideoChannel:
         """Create new voice/video channel."""
-        channel = VoiceVideoChannel(
+        channel = VoiceVideoChannel()
             channel_id=channel_data["channel_id"],
             name=channel_data["name"],
             description=channel_data.get("description", ""),
@@ -398,7 +397,7 @@ class VoiceVideoManager:
         logger.info(f"Created {channel.channel_type.value} channel: {channel.name}")
         return channel
 
-    async def join_channel(self, channel_id: str, user_id: str, username: str,
+    async def join_channel(self, channel_id: str, user_id: str, username: str,)
                           display_name: str) -> bool:
         """Join voice/video channel."""
         if channel_id not in self.channels:

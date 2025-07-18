@@ -75,12 +75,12 @@ class ConversationContext:
 
     # Context metadata
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_interaction: datetime = field(
+    last_interaction: datetime = field()
         default_factory=lambda: datetime.now(timezone.utc)
     )
     interaction_count: int = 0
 
-    def add_message(
+    def add_message():
         self, role: str, content: str, metadata: Optional[Dict[str, Any]] = None
     ):
         """Add message to conversation history."""
@@ -213,7 +213,7 @@ class MultilingualChatbot:
         # AI provider integration
         self.ai_provider = None  # Will be injected
 
-    async def start_conversation(
+    async def start_conversation()
         self,
         user_id: str,
         channel_id: Optional[str] = None,
@@ -229,7 +229,7 @@ class MultilingualChatbot:
             language = await self._detect_user_language(user_id)
 
         # Create conversation context
-        context = ConversationContext(
+        context = ConversationContext()
             conversation_id=conversation_id,
             user_id=user_id,
             channel_id=channel_id,
@@ -252,13 +252,13 @@ class MultilingualChatbot:
         welcome_message = await self._generate_welcome_message(context, personality)
         context.add_message("assistant", welcome_message)
 
-        logger.info(
+        logger.info()
             f"Started conversation {conversation_id} for user {user_id} in {language}"
         )
 
         return conversation_id
 
-    async def process_message(
+    async def process_message()
         self,
         conversation_id: str,
         message: str,
@@ -280,12 +280,12 @@ class MultilingualChatbot:
             # Translate message to bot's working language if needed
             working_message = message
             if detected_language != context.language and detected_language != "en":
-                working_message = await self._translate_text(
+                working_message = await self._translate_text()
                     message, detected_language, "en"
                 )
 
             # Add user message to context
-            context.add_message(
+            context.add_message()
                 "user",
                 message,
                 {
@@ -305,7 +305,7 @@ class MultilingualChatbot:
                 context.topics.append(intent)
 
             # Generate response based on intent and context
-            response_content = await self._generate_response(
+            response_content = await self._generate_response()
                 context, working_message, intent, entities
             )
 
@@ -313,14 +313,14 @@ class MultilingualChatbot:
             final_response = response_content
             was_translated = False
             if context.language != "en":
-                final_response = await self._translate_text(
+                final_response = await self._translate_text()
                     response_content, "en", context.language
                 )
                 was_translated = True
 
             # Create response object
             response_time = (time.time() - start_time) * 1000
-            response = ChatbotResponse(
+            response = ChatbotResponse()
                 content=final_response,
                 language=context.language,
                 confidence=0.9,  # Placeholder
@@ -333,7 +333,7 @@ class MultilingualChatbot:
             )
 
             # Add assistant response to context
-            context.add_message(
+            context.add_message()
                 "assistant",
                 final_response,
                 {
@@ -349,20 +349,20 @@ class MultilingualChatbot:
             return response
 
         except Exception as e:
-            logger.error(
+            logger.error()
                 f"Error processing message in conversation {conversation_id}: {e}"
             )
 
             # Return error response
             error_response = await self._generate_error_response(context.language)
-            return ChatbotResponse(
+            return ChatbotResponse()
                 content=error_response,
                 language=context.language,
                 confidence=0.0,
                 response_time_ms=(time.time() - start_time) * 1000,
             )
 
-    async def _generate_response(
+    async def _generate_response()
         self,
         context: ConversationContext,
         message: str,
@@ -374,7 +374,7 @@ class MultilingualChatbot:
         # Build conversation history for AI model
         conversation_history = []
         for msg in context.messages[-10:]:  # Last 10 messages for context
-            conversation_history.append(
+            conversation_history.append()
                 {"role": msg["role"], "content": msg["content"]}
             )
 
@@ -384,13 +384,13 @@ class MultilingualChatbot:
         # Generate response using AI provider
         if self.ai_provider:
             try:
-                ai_response = await self.ai_provider.generate_response(
+                ai_response = await self.ai_provider.generate_response()
                     messages=conversation_history,
                     system_prompt=system_prompt,
                     max_tokens=500,
                     temperature=0.7,
                 )
-                return ai_response.get(
+                return ai_response.get()
                     "content", "I'm sorry, I couldn't generate a response."
                 )
             except Exception as e:
@@ -420,7 +420,7 @@ respond in their preferred language ({context.language}).
 """
         return prompt
 
-    async def _generate_fallback_response(
+    async def _generate_fallback_response()
         self, intent: str, entities: Dict[str, Any], context: ConversationContext
     ) -> str:
         """Generate fallback response using rule-based system."""
@@ -448,7 +448,7 @@ respond in their preferred language ({context.language}).
             ],
         }
 
-        intent_responses = responses.get(
+        intent_responses = responses.get()
             intent, ["I understand. How can I help you with that?"]
         )
         return random.choice(intent_responses)
@@ -498,7 +498,7 @@ respond in their preferred language ({context.language}).
         # Placeholder - would check user preferences
         return self.default_language
 
-    async def _translate_text(
+    async def _translate_text()
         self, text: str, source_lang: str, target_lang: str
     ) -> str:
         """Translate text between languages."""
@@ -511,11 +511,11 @@ respond in their preferred language ({context.language}).
         # Placeholder - would load from database
         return {}
 
-    async def _generate_welcome_message(
+    async def _generate_welcome_message()
         self, context: ConversationContext, personality: str
     ) -> str:
         """Generate welcome message."""
-        personality_config = self.personalities.get(
+        personality_config = self.personalities.get()
             personality, self.personalities["default"]
         )
 
@@ -539,7 +539,7 @@ respond in their preferred language ({context.language}).
 
         return error_messages.get(language, error_messages["en"])
 
-    def _update_statistics(
+    def _update_statistics():
         self, context: ConversationContext, response: ChatbotResponse
     ):
         """Update chatbot statistics."""
@@ -549,7 +549,7 @@ respond in their preferred language ({context.language}).
         # Update average response time
         current_avg = self.stats["average_response_time"]
         total_messages = self.stats["total_messages"]
-        new_avg = (
+        new_avg = ()
             (current_avg * (total_messages - 1)) + response.response_time_ms
         ) / total_messages
         self.stats["average_response_time"] = new_avg
@@ -585,7 +585,7 @@ respond in their preferred language ({context.language}).
 
         return goodbye_messages.get(language, goodbye_messages["en"])
 
-    def get_conversation_context(
+    def get_conversation_context():
         self, conversation_id: str
     ) -> Optional[ConversationContext]:
         """Get conversation context."""

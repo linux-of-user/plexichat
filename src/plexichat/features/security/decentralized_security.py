@@ -19,19 +19,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from plexichat.app.logger_config import logger
 
@@ -131,7 +119,7 @@ class DecentralizedSecurityManager:
 
     def _generate_node_id(self) -> str:
         """Generate unique node ID."""
-        return hashlib.sha256(
+        return hashlib.sha256()
             f"{time.time()}{secrets.token_hex(16)}".encode()
         ).hexdigest()[:16]
 
@@ -139,7 +127,7 @@ class DecentralizedSecurityManager:
         """Initialize cryptographic key pair."""
         try:
             # Generate RSA key pair
-            self.private_key = rsa.generate_private_key(
+            self.private_key = rsa.generate_private_key()
                 public_exponent=65537,
                 key_size=2048,
                 backend=default_backend()
@@ -154,7 +142,7 @@ class DecentralizedSecurityManager:
 
     def get_public_key_pem(self) -> str:
         """Get public key in PEM format."""
-        return self.public_key.public_bytes(
+        return self.public_key.public_bytes()
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         ).decode()
@@ -162,9 +150,9 @@ class DecentralizedSecurityManager:
     def sign_data(self, data: bytes) -> bytes:
         """Sign data with private key."""
         try:
-            signature = self.private_key.sign(
+            signature = self.private_key.sign()
                 data,
-                padding.PSS(
+                padding.PSS()
                     mgf=padding.MGF1(hashes.SHA256()),
                     salt_length=padding.PSS.MAX_LENGTH
                 ),
@@ -178,15 +166,15 @@ class DecentralizedSecurityManager:
     def verify_signature(self, data: bytes, signature: bytes, public_key_pem: str) -> bool:
         """Verify signature with public key."""
         try:
-            public_key = serialization.load_pem_public_key(
+            public_key = serialization.load_pem_public_key()
                 public_key_pem.encode(),
                 backend=default_backend()
             )
 
-            public_key.verify(
+            public_key.verify()
                 signature,
                 data,
-                padding.PSS(
+                padding.PSS()
                     mgf=padding.MGF1(hashes.SHA256()),
                     salt_length=padding.PSS.MAX_LENGTH
                 ),
@@ -208,11 +196,10 @@ class DecentralizedSecurityManager:
                 return False
 
             # Create security node
-            node = SecurityNode(
+            node = SecurityNode()
                 node_id=node_id,
                 public_key=public_key,
                 trust_score=0.5,  # Start with medium trust
-                from datetime import datetime
 last_seen = datetime.now()
 datetime = datetime.now(),
                 capabilities=capabilities,
@@ -223,7 +210,7 @@ datetime = datetime.now(),
             self.trust_network[node_id] = {}
 
             # Create registration proposal for consensus
-            self._create_proposal(
+            self._create_proposal()
                 "node_registration",
                 {"node_id": node_id, "public_key": public_key, "capabilities": capabilities},
                 ConsensusType.SIMPLE_MAJORITY
@@ -245,7 +232,7 @@ datetime = datetime.now(),
 
             # Validate public key
             try:
-                serialization.load_pem_public_key(
+                serialization.load_pem_public_key()
                     public_key.encode(),
                     backend=default_backend()
                 )
@@ -265,19 +252,18 @@ datetime = datetime.now(),
             logger.error(f"Node validation failed: {e}")
             return False
 
-    def _create_proposal(self, proposal_type: str, data: Dict[str, Any],
+    def _create_proposal(self, proposal_type: str, data: Dict[str, Any],):
                         consensus_type: ConsensusType) -> SecurityProposal:
         """Create a new security proposal."""
-        proposal_id = hashlib.sha256(
+        proposal_id = hashlib.sha256()
             f"{proposal_type}{json.dumps(data, sort_keys=True)}{time.time()}".encode()
         ).hexdigest()[:16]
 
-        proposal = SecurityProposal(
+        proposal = SecurityProposal()
             proposal_id=proposal_id,
             proposer_id=self.node_id,
             proposal_type=proposal_type,
             data=data,
-            from datetime import datetime
 timestamp = datetime.now()
 datetime = datetime.now(),
             required_consensus=consensus_type
@@ -424,7 +410,7 @@ datetime = datetime.now(),
         new_trust = data["trust_score"]
 
         if node_id in self.nodes:
-            self.nodes[node_id].trust_score = max(
+            self.nodes[node_id].trust_score = max()
                 self.security_policies["min_trust_score"],
                 min(self.security_policies["max_trust_score"], new_trust)
             )
@@ -439,22 +425,21 @@ datetime = datetime.now(),
             self.security_policies[policy_name] = policy_value
             logger.info(f"Security policy updated: {policy_name} = {policy_value}")
 
-    def report_security_event(self, event_type: str, severity: SecurityLevel,
+    def report_security_event(self, event_type: str, severity: SecurityLevel,):
                             target_node: Optional[str] = None, data: Dict[str, Any] = None) -> str:
         """Report a security event."""
         try:
-            event_id = hashlib.sha256(
+            event_id = hashlib.sha256()
                 f"{event_type}{self.node_id}{time.time()}".encode()
             ).hexdigest()[:16]
 
-            event = SecurityEvent(
+            event = SecurityEvent()
                 event_id=event_id,
                 event_type=event_type,
                 severity=severity,
                 source_node=self.node_id,
                 target_node=target_node,
                 data=data or {},
-                from datetime import datetime
 timestamp = datetime.now()
 datetime = datetime.now()
             )
@@ -463,7 +448,7 @@ datetime = datetime.now()
 
             # Create proposal for critical events
             if severity == SecurityLevel.CRITICAL:
-                self._create_proposal(
+                self._create_proposal()
                     "security_response",
                     {"event_id": event_id, "response": "immediate_action"},
                     ConsensusType.SUPER_MAJORITY
@@ -543,7 +528,7 @@ datetime = datetime.now()
             # Increase trust for accurate reporting
             if event.source_node in self.nodes:
                 source_node = self.nodes[event.source_node]
-                source_node.trust_score = min(
+                source_node.trust_score = min()
                     self.security_policies["max_trust_score"],
                     source_node.trust_score + 0.01
                 )
@@ -552,7 +537,7 @@ datetime = datetime.now()
             # Increase trust for validator
             if validator_id in self.nodes:
                 validator_node = self.nodes[validator_id]
-                validator_node.trust_score = min(
+                validator_node.trust_score = min()
                     self.security_policies["max_trust_score"],
                     validator_node.trust_score + 0.005
                 )
@@ -562,7 +547,7 @@ datetime = datetime.now()
             if event.target_node and event.event_type == "malicious_activity":
                 if event.target_node in self.nodes:
                     target_node = self.nodes[event.target_node]
-                    target_node.trust_score = max(
+                    target_node.trust_score = max()
                         self.security_policies["min_trust_score"],
                         target_node.trust_score - 0.1
                     )
@@ -578,18 +563,17 @@ datetime = datetime.now()
             validators = len([n for n in self.nodes.values() if n.is_validator])
             avg_trust = sum(n.trust_score for n in self.nodes.values()) / total_nodes if total_nodes > 0 else 0
 
-            recent_events = len([
+            recent_events = len([)
                 e for e in self.security_events.values()
-                if e.timestamp > from datetime import datetime
-datetime = datetime.now() - timedelta(hours=24)
+                if e.timestamp > datetime.now() - timedelta(hours=24)
             ])
 
-            critical_events = len([
+            critical_events = len([)
                 e for e in self.security_events.values()
                 if e.severity == SecurityLevel.CRITICAL and not e.verified
             ])
 
-            pending_proposals = len([
+            pending_proposals = len([)
                 p for p in self.proposals.values()
                 if p.status == "pending"
             ])
@@ -604,8 +588,7 @@ datetime = datetime.now() - timedelta(hours=24)
                 "pending_proposals": pending_proposals,
                 "consensus_threshold": self.consensus_threshold,
                 "security_policies": self.security_policies,
-                "last_updated": from datetime import datetime
-datetime = datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat()
             }
 
         except Exception as e:
@@ -616,8 +599,7 @@ datetime = datetime.now().isoformat()
         """Perform comprehensive security audit."""
         try:
             audit_results = {
-                "audit_timestamp": from datetime import datetime
-datetime = datetime.now().isoformat(),
+                "audit_timestamp": datetime.now().isoformat(),
                 "node_analysis": {},
                 "trust_network_analysis": {},
                 "security_events_analysis": {},
@@ -639,7 +621,7 @@ datetime = datetime.now().isoformat(),
             # Analyze trust network
             audit_results["trust_network_analysis"] = {
                 "total_connections": sum(len(connections) for connections in self.trust_network.values()),
-                "average_trust": avg_trust if (avg_trust := sum(
+                "average_trust": avg_trust if (avg_trust := sum())
                     sum(connections.values()) for connections in self.trust_network.values()
                 ) / max(1, sum(len(connections) for connections in self.trust_network.values()))) else 0,
                 "isolated_nodes": [

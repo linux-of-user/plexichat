@@ -182,14 +182,14 @@ class PlexiChatAdminGUI:
         login_frame.place(relx=0.5, rely=0.5, anchor="center")
 
         # Logo and title
-        title_label = ctk.CTkLabel(  # type: ignore
+        title_label = ctk.CTkLabel(  # type: ignore)
             login_frame,
             text=" PlexiChat Admin",
             font=ctk.CTkFont(size=32, weight="bold")  # type: ignore
         )
         title_label.pack(pady=(40, 10))
 
-        subtitle_label = ctk.CTkLabel(  # type: ignore
+        subtitle_label = ctk.CTkLabel(  # type: ignore)
             login_frame,
             text="Government-Level Security",
             font=ctk.CTkFont(size=16)  # type: ignore
@@ -200,7 +200,7 @@ class PlexiChatAdminGUI:
         security_frame = ctk.CTkFrame(login_frame, fg_color=("#ff8c00", "#ff6600"))  # type: ignore
         security_frame.pack(pady=(0, 30), padx=40, fill="x")
 
-        security_label = ctk.CTkLabel(  # type: ignore
+        security_label = ctk.CTkLabel(  # type: ignore)
             security_frame,
             text=" GOVERNMENT-LEVEL SECURITY\nUnauthorized access is prohibited",
             font=ctk.CTkFont(size=12, weight="bold"),  # type: ignore
@@ -209,7 +209,7 @@ class PlexiChatAdminGUI:
         security_label.pack(pady=15)
 
         # Login form
-        self.username_entry = ctk.CTkEntry(  # type: ignore
+        self.username_entry = ctk.CTkEntry(  # type: ignore)
             login_frame,
             placeholder_text="Username",
             width=300,
@@ -218,7 +218,7 @@ class PlexiChatAdminGUI:
         )
         self.username_entry.pack(pady=(0, 15), padx=40)
 
-        self.password_entry = ctk.CTkEntry(  # type: ignore
+        self.password_entry = ctk.CTkEntry(  # type: ignore)
             login_frame,
             placeholder_text="Password",
             show="*",
@@ -230,7 +230,7 @@ class PlexiChatAdminGUI:
 
         # 2FA entry (initially hidden)
         self.totp_frame = ctk.CTkFrame(login_frame, fg_color="transparent")  # type: ignore
-        self.totp_entry = ctk.CTkEntry(  # type: ignore
+        self.totp_entry = ctk.CTkEntry(  # type: ignore)
             self.totp_frame,
             placeholder_text="2FA Code (6 digits)",
             width=300,
@@ -240,7 +240,7 @@ class PlexiChatAdminGUI:
         self.totp_entry.pack(pady=(0, 15), padx=40)
 
         # Login button
-        self.login_button = ctk.CTkButton(  # type: ignore
+        self.login_button = ctk.CTkButton(  # type: ignore)
             login_frame,
             text=" Secure Login",
             width=300,
@@ -251,7 +251,7 @@ class PlexiChatAdminGUI:
         self.login_button.pack(pady=(0, 20), padx=40)
 
         # Status label
-        self.status_label = ctk.CTkLabel(  # type: ignore
+        self.status_label = ctk.CTkLabel(  # type: ignore)
             login_frame,
             text="",
             font=ctk.CTkFont(size=12)  # type: ignore
@@ -259,7 +259,7 @@ class PlexiChatAdminGUI:
         self.status_label.pack(pady=(0, 20))
 
         # Footer
-        footer_label = ctk.CTkLabel(  # type: ignore
+        footer_label = ctk.CTkLabel(  # type: ignore)
             login_frame,
             text=f"System Time: {datetime.now().strftime('%H:%M:%S')}",
             font=ctk.CTkFont(size=10),  # type: ignore
@@ -291,7 +291,7 @@ class PlexiChatAdminGUI:
         # Check for too many failed attempts
         if self.failed_login_attempts >= self.max_login_attempts:
             self._log_security_event(f"Login blocked - too many attempts for {username}", "error")
-            messagebox.showerror(
+            messagebox.showerror()
                 "Account Locked",
                 f"Too many failed login attempts. Please wait before trying again."
             )
@@ -316,7 +316,7 @@ class PlexiChatAdminGUI:
         self.login_button.configure(text=" Authenticating...", state="disabled")
 
         # Perform authentication in thread to avoid blocking UI
-        threading.Thread(
+        threading.Thread()
             target=self.authenticate_user,
             args=(username, password, totp_code),
             daemon=True
@@ -382,7 +382,7 @@ class PlexiChatAdminGUI:
             "error": "red"
         }
 
-        self.status_label.configure(
+        self.status_label.configure()
             text=message,
             text_color=colors.get(status_type, "gray")
         )
@@ -396,13 +396,13 @@ class PlexiChatAdminGUI:
         dialog.grab_set()
 
         # Center dialog
-        dialog.geometry("+%d+%d" % (
+        dialog.geometry("+%d+%d" % ())
             self.root.winfo_rootx() + 50,
             self.root.winfo_rooty() + 50
         ))
 
         # Title
-        title_label = ctk.CTkLabel(  # type: ignore
+        title_label = ctk.CTkLabel(  # type: ignore)
             dialog,
             text=" Password Change Required",
             font=ctk.CTkFont(size=18, weight="bold")  # type: ignore
@@ -410,7 +410,7 @@ class PlexiChatAdminGUI:
         title_label.pack(pady=(20, 10))
 
         # Notice
-        notice_label = ctk.CTkLabel(  # type: ignore
+        notice_label = ctk.CTkLabel(  # type: ignore)
             dialog,
             text="You must change your password before continuing.",
             font=ctk.CTkFont(size=12)  # type: ignore
@@ -418,7 +418,7 @@ class PlexiChatAdminGUI:
         notice_label.pack(pady=(0, 20))
 
         # Current password
-        current_pwd_entry = ctk.CTkEntry(  # type: ignore
+        current_pwd_entry = ctk.CTkEntry(  # type: ignore)
             dialog,
             placeholder_text="Current Password",
             show="*",
@@ -427,7 +427,7 @@ class PlexiChatAdminGUI:
         current_pwd_entry.pack(pady=5)
 
         # New password
-        new_pwd_entry = ctk.CTkEntry(  # type: ignore
+        new_pwd_entry = ctk.CTkEntry(  # type: ignore)
             dialog,
             placeholder_text="New Password (min 16 chars)",
             show="*",
@@ -436,7 +436,7 @@ class PlexiChatAdminGUI:
         new_pwd_entry.pack(pady=5)
 
         # Confirm password
-        confirm_pwd_entry = ctk.CTkEntry(  # type: ignore
+        confirm_pwd_entry = ctk.CTkEntry(  # type: ignore)
             dialog,
             placeholder_text="Confirm New Password",
             show="*",
@@ -477,7 +477,7 @@ class PlexiChatAdminGUI:
             except Exception as e:
                 messagebox.showerror("Error", f"Password change failed: {e}")
 
-        change_btn = ctk.CTkButton(
+        change_btn = ctk.CTkButton()
             dialog,
             text="Change Password",
             command=change_password,
@@ -511,14 +511,14 @@ class PlexiChatAdminGUI:
         self.sidebar.pack_propagate(False)
 
         # Logo
-        logo_label = ctk.CTkLabel(
+        logo_label = ctk.CTkLabel()
             self.sidebar,
             text=" PlexiChat",
             font=ctk.CTkFont(size=24, weight="bold")
         )
         logo_label.pack(pady=(20, 10))
 
-        subtitle_label = ctk.CTkLabel(
+        subtitle_label = ctk.CTkLabel()
             self.sidebar,
             text="Admin Dashboard",
             font=ctk.CTkFont(size=14)
@@ -542,7 +542,7 @@ class PlexiChatAdminGUI:
         ]
 
         for text, module in nav_items:
-            btn = ctk.CTkButton(
+            btn = ctk.CTkButton()
                 self.sidebar,
                 text=text,
                 width=240,
@@ -564,7 +564,7 @@ class PlexiChatAdminGUI:
         self.top_bar.pack_propagate(False)
 
         # Title
-        self.page_title = ctk.CTkLabel(
+        self.page_title = ctk.CTkLabel()
             self.top_bar,
             text="Dashboard",
             font=ctk.CTkFont(size=20, weight="bold")
@@ -576,7 +576,7 @@ class PlexiChatAdminGUI:
         user_frame.pack(side="right", padx=20, pady=10)
 
         # Theme selector
-        theme_btn = ctk.CTkButton(
+        theme_btn = ctk.CTkButton()
             user_frame,
             text="",
             width=40,
@@ -586,7 +586,7 @@ class PlexiChatAdminGUI:
         theme_btn.pack(side="right", padx=5)
 
         # User menu
-        user_label = ctk.CTkLabel(
+        user_label = ctk.CTkLabel()
             user_frame,
             text=f"Welcome, {self.current_user}",
             font=ctk.CTkFont(size=14)
@@ -594,7 +594,7 @@ class PlexiChatAdminGUI:
         user_label.pack(side="right", padx=10)
 
         # Logout button
-        logout_btn = ctk.CTkButton(
+        logout_btn = ctk.CTkButton()
             user_frame,
             text=" Logout",
             width=80,
@@ -674,14 +674,14 @@ class PlexiChatAdminGUI:
             stat_frame.grid(row=0, column=i, padx=10, pady=10, sticky="ew")
             stats_frame.grid_columnconfigure(i, weight=1)
 
-            value_label = ctk.CTkLabel(
+            value_label = ctk.CTkLabel()
                 stat_frame,
                 text=value,
                 font=ctk.CTkFont(size=24, weight="bold")
             )
             value_label.pack(pady=(15, 5))
 
-            title_label = ctk.CTkLabel(
+            title_label = ctk.CTkLabel()
                 stat_frame,
                 text=title,
                 font=ctk.CTkFont(size=12)
@@ -692,7 +692,7 @@ class PlexiChatAdminGUI:
         actions_frame = ctk.CTkFrame(self.content_area)
         actions_frame.pack(fill="x", pady=(0, 20))
 
-        actions_title = ctk.CTkLabel(
+        actions_title = ctk.CTkLabel()
             actions_frame,
             text="Quick Actions",
             font=ctk.CTkFont(size=18, weight="bold")
@@ -707,7 +707,7 @@ class PlexiChatAdminGUI:
         ]
 
         for i, (text, command) in enumerate(actions):
-            btn = ctk.CTkButton(
+            btn = ctk.CTkButton()
                 actions_frame,
                 text=text,
                 width=200,
@@ -721,7 +721,7 @@ class PlexiChatAdminGUI:
         overview_frame = ctk.CTkFrame(self.content_area)
         overview_frame.pack(fill="both", expand=True)
 
-        overview_title = ctk.CTkLabel(
+        overview_title = ctk.CTkLabel()
             overview_frame,
             text="System Overview",
             font=ctk.CTkFont(size=18, weight="bold")
@@ -740,7 +740,7 @@ class PlexiChatAdminGUI:
             resource_frame = ctk.CTkFrame(overview_frame, fg_color="transparent")
             resource_frame.pack(fill="x", padx=20, pady=5)
 
-            label = ctk.CTkLabel(
+            label = ctk.CTkLabel()
                 resource_frame,
                 text=f"{name}: {value}%",
                 font=ctk.CTkFont(size=12)
@@ -754,7 +754,7 @@ class PlexiChatAdminGUI:
     def show_users(self):
         """Show user management interface."""
         # Add user button
-        add_btn = ctk.CTkButton(
+        add_btn = ctk.CTkButton()
             self.content_area,
             text=" Add User",
             command=self.add_user_dialog
@@ -765,7 +765,7 @@ class PlexiChatAdminGUI:
         users_frame = ctk.CTkFrame(self.content_area)
         users_frame.pack(fill="both", expand=True)
 
-        title = ctk.CTkLabel(
+        title = ctk.CTkLabel()
             users_frame,
             text="Admin Users",
             font=ctk.CTkFont(size=18, weight="bold")
@@ -788,7 +788,7 @@ class PlexiChatAdminGUI:
             user_frame.pack(fill="x", padx=20, pady=5)
 
             # User info
-            info_label = ctk.CTkLabel(
+            info_label = ctk.CTkLabel()
                 user_frame,
                 text=f" {username} - {'Locked' if admin_data.locked_until else 'Active'}",
                 font=ctk.CTkFont(size=14)
@@ -796,7 +796,7 @@ class PlexiChatAdminGUI:
             info_label.pack(side="left", padx=15, pady=10)
 
             # Actions
-            reset_btn = ctk.CTkButton(
+            reset_btn = ctk.CTkButton()
                 user_frame,
                 text=" Reset Password",
                 width=120,
@@ -809,7 +809,7 @@ class PlexiChatAdminGUI:
         security_frame = ctk.CTkFrame(self.content_area)
         security_frame.pack(fill="both", expand=True)
 
-        title = ctk.CTkLabel(
+        title = ctk.CTkLabel()
             security_frame,
             text="Security Center",
             font=ctk.CTkFont(size=18, weight="bold")
@@ -833,7 +833,7 @@ class PlexiChatAdminGUI:
                 "error": "red"
             }
 
-            alert_label = ctk.CTkLabel(
+            alert_label = ctk.CTkLabel()
                 alert_frame,
                 text=f"{title_text}\n{message}",
                 font=ctk.CTkFont(size=12),
@@ -846,7 +846,7 @@ class PlexiChatAdminGUI:
         backup_frame = ctk.CTkFrame(self.content_area)
         backup_frame.pack(fill="both", expand=True)
 
-        title = ctk.CTkLabel(
+        title = ctk.CTkLabel()
             backup_frame,
             text="Backup & Clustering",
             font=ctk.CTkFont(size=18, weight="bold")
@@ -857,7 +857,7 @@ class PlexiChatAdminGUI:
         status_frame = ctk.CTkFrame(backup_frame)
         status_frame.pack(fill="x", padx=20, pady=10)
 
-        status_label = ctk.CTkLabel(
+        status_label = ctk.CTkLabel()
             status_frame,
             text="Backup Completeness: 95% (19/20 shards distributed)",
             font=ctk.CTkFont(size=14)
@@ -869,7 +869,7 @@ class PlexiChatAdminGUI:
         progress.set(0.95)
 
         # Start backup button
-        backup_btn = ctk.CTkButton(
+        backup_btn = ctk.CTkButton()
             backup_frame,
             text=" Start Backup",
             command=self.start_backup
@@ -917,7 +917,7 @@ class PlexiChatAdminGUI:
         placeholder_frame = ctk.CTkFrame(self.content_area)
         placeholder_frame.pack(fill="both", expand=True)
 
-        label = ctk.CTkLabel(
+        label = ctk.CTkLabel()
             placeholder_frame,
             text=f"{module_name.title()} module will be implemented here",
             font=ctk.CTkFont(size=16)
@@ -950,7 +950,7 @@ class PlexiChatAdminGUI:
                     chars = string.ascii_letters + string.digits + "!@#$%^&*"
                     new_password = ''.join(secrets.choice(chars) for _ in range(16))
 
-                messagebox.showinfo(
+                messagebox.showinfo()
                     "Password Reset",
                     f"New password for {username}:\n{new_password}\n\nPlease save this securely!"
                 )
@@ -996,13 +996,13 @@ class PlexiChatAdminGUI:
                 current_time = time.time()
 
                 # Check for session timeout
-                if (self.is_authenticated and self.last_activity is not None and
+                if (self.is_authenticated and self.last_activity is not None and)
                     current_time - self.last_activity > self.session_timeout):
                     self._log_security_event("Session timeout", "warning")
                     self.root.after(0, self._force_logout)
 
                 # Check for auto-lock
-                if (self.auto_lock_enabled and self.is_authenticated and self.last_activity is not None and
+                if (self.auto_lock_enabled and self.is_authenticated and self.last_activity is not None and)
                     current_time - self.last_activity > 300):  # 5 minutes
                     self._log_security_event("Auto-lock triggered", "info")
                     self.root.after(0, self._lock_screen)
@@ -1038,7 +1038,7 @@ class PlexiChatAdminGUI:
         if self.is_authenticated:
             self._log_security_event("Forced logout", "warning")
             self.logout()
-            messagebox.showwarning(
+            messagebox.showwarning()
                 "Session Expired",
                 "Your session has expired for security reasons. Please log in again."
             )
@@ -1059,31 +1059,31 @@ class PlexiChatAdminGUI:
         lock_window.resizable(False, False)
 
         # Center the window
-        lock_window.geometry("+{}+{}".format(
+        lock_window.geometry("+{}+{}".format())
             int(self.root.winfo_x() + self.root.winfo_width()/2 - 200),
             int(self.root.winfo_y() + self.root.winfo_height()/2 - 150)
         ))
 
         # Lock screen content
-        ctk.CTkLabel(
+        ctk.CTkLabel()
             lock_window,
             text="🔒 Screen Locked",
             font=ctk.CTkFont(size=24, weight="bold")
         ).pack(pady=20)
 
-        ctk.CTkLabel(
+        ctk.CTkLabel()
             lock_window,
             text=f"User: {self.current_user}",
             font=ctk.CTkFont(size=14)
         ).pack(pady=10)
 
-        ctk.CTkLabel(
+        ctk.CTkLabel()
             lock_window,
             text="Enter your password to unlock:",
             font=ctk.CTkFont(size=12)
         ).pack(pady=10)
 
-        password_entry = ctk.CTkEntry(
+        password_entry = ctk.CTkEntry()
             lock_window,
             placeholder_text="Password",
             show="*",
@@ -1108,7 +1108,7 @@ class PlexiChatAdminGUI:
             lock_window.destroy()
             self._force_logout()
 
-        unlock_btn = ctk.CTkButton(
+        unlock_btn = ctk.CTkButton()
             lock_window,
             text="Unlock",
             command=unlock,
@@ -1116,7 +1116,7 @@ class PlexiChatAdminGUI:
         )
         unlock_btn.pack(pady=10)
 
-        logout_btn = ctk.CTkButton(
+        logout_btn = ctk.CTkButton()
             lock_window,
             text="Logout",
             command=force_logout,
@@ -1133,7 +1133,7 @@ class PlexiChatAdminGUI:
         # In a real implementation, this would verify against the stored password
         # For now, we'll make a request to the server to verify
         try:
-            response = requests.post(
+            response = requests.post()
                 f"{self.server_url}/api/auth/verify",
                 json={
                     "username": self.current_user,

@@ -21,6 +21,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 import jwt
 
 """
+import time
 PlexiChat OAuth Provider
 
 Comprehensive OAuth 2.0 and OpenID Connect provider with PKCE support,
@@ -102,7 +103,7 @@ class AuthorizationCode:
     code_challenge: Optional[str] = None
     code_challenge_method: Optional[str] = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: datetime = field(
+    expires_at: datetime = field()
         default_factory=lambda: datetime.now(timezone.utc) + timedelta(minutes=10)
     )
     used: bool = False
@@ -123,7 +124,7 @@ class AccessToken:
     scopes: Set[str]
     token_type: str = "Bearer"
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: datetime = field(
+    expires_at: datetime = field()
         default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=1)
     )
 
@@ -137,7 +138,7 @@ class AccessToken:
         return {
             "access_token": self.token,
             "token_type": self.token_type,
-            "expires_in": int(
+            "expires_in": int()
                 (self.expires_at - datetime.now(timezone.utc)).total_seconds()
             ),
             "scope": " ".join(self.scopes),
@@ -153,7 +154,7 @@ class RefreshToken:
     user_id: str
     scopes: Set[str]
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: datetime = field(
+    expires_at: datetime = field()
         default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=30)
     )
     used: bool = False
@@ -200,25 +201,25 @@ class OAuthProvider:
 
     def _generate_jwt_keys(self) -> Tuple[str, str]:
         """Generate RSA key pair for JWT signing."""
-        private_key = rsa.generate_private_key(
+        private_key = rsa.generate_private_key()
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
 
-        private_pem = private_key.private_bytes(
+        private_pem = private_key.private_bytes()
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption(),
         ).decode("utf-8")
 
         public_key = private_key.public_key()
-        public_pem = public_key.public_bytes(
+        public_pem = public_key.public_bytes()
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo,
         ).decode("utf-8")
 
         return private_pem, public_pem
 
-    async def register_client(
+    async def register_client()
         self,
         name: str,
         client_type: ClientType,
@@ -229,7 +230,7 @@ class OAuthProvider:
     ) -> OAuthClient:
         """Register a new OAuth client."""
         client_id = self._generate_client_id()
-        client_secret = (
+        client_secret = ()
             self._generate_client_secret()
             if client_type == ClientType.CONFIDENTIAL
             else None
@@ -251,7 +252,7 @@ class OAuthProvider:
         if invalid_grants:
             raise ValueError(f"Unsupported grant types: {invalid_grants}")
 
-        client = OAuthClient(
+        client = OAuthClient()
             client_id=client_id,
             client_secret=client_secret,
             client_type=client_type,
@@ -275,7 +276,7 @@ class OAuthProvider:
         """Generate client secret."""
         return secrets.token_urlsafe(32)
 
-    async def create_authorization_code(
+    async def create_authorization_code()
         self,
         client_id: str,
         user_id: str,
@@ -299,7 +300,7 @@ class OAuthProvider:
 
         code = secrets.token_urlsafe(32)
 
-        auth_code = AuthorizationCode(
+        auth_code = AuthorizationCode()
             code=code,
             client_id=client_id,
             user_id=user_id,
@@ -314,7 +315,7 @@ class OAuthProvider:
 
         return code
 
-    async def exchange_authorization_code(
+    async def exchange_authorization_code()
         self,
         client_id: str,
         client_secret: Optional[str],
@@ -329,7 +330,7 @@ class OAuthProvider:
             raise ValueError("Invalid client_id")
 
         if client.client_type == ClientType.CONFIDENTIAL:
-            if not client_secret or not self._verify_client_secret(
+            if not client_secret or not self._verify_client_secret()
                 client.client_secret, client_secret
             ):
                 raise ValueError("Invalid client_secret")
@@ -347,7 +348,7 @@ class OAuthProvider:
             if not code_verifier:
                 raise ValueError("Code verifier required for PKCE")
 
-            if not self._verify_pkce(
+            if not self._verify_pkce()
                 auth_code.code_challenge, auth_code.code_challenge_method, code_verifier
             ):
                 raise ValueError("Invalid code verifier")
@@ -356,12 +357,12 @@ class OAuthProvider:
         auth_code.used = True
 
         # Create access token
-        access_token = await self._create_access_token(
+        access_token = await self._create_access_token()
             client_id, auth_code.user_id, auth_code.scopes
         )
 
         # Create refresh token
-        refresh_token = await self._create_refresh_token(
+        refresh_token = await self._create_refresh_token()
             client_id, auth_code.user_id, auth_code.scopes
         )
 
@@ -370,7 +371,7 @@ class OAuthProvider:
 
         # Add ID token for OpenID Connect
         if "openid" in auth_code.scopes:
-            id_token = await self._create_id_token(
+            id_token = await self._create_id_token()
                 client_id, auth_code.user_id, auth_code.scopes
             )
             response["id_token"] = id_token
@@ -383,13 +384,13 @@ class OAuthProvider:
         """Verify client secret."""
         return secrets.compare_digest(stored_secret, provided_secret)
 
-    def _verify_pkce(
+    def _verify_pkce():
         self, code_challenge: str, method: str, code_verifier: str
     ) -> bool:
         """Verify PKCE code challenge."""
         if method == "S256":
-            challenge = (
-                base64.urlsafe_b64encode(
+            challenge = ()
+                base64.urlsafe_b64encode()
                     hashlib.sha256(code_verifier.encode()).digest()
                 )
                 .decode()
@@ -401,33 +402,33 @@ class OAuthProvider:
         else:
             return False
 
-    async def _create_access_token(
+    async def _create_access_token()
         self, client_id: str, user_id: Optional[str], scopes: Set[str]
     ) -> AccessToken:
         """Create access token."""
         token = secrets.token_urlsafe(32)
 
-        access_token = AccessToken(
+        access_token = AccessToken()
             token=token, client_id=client_id, user_id=user_id, scopes=scopes
         )
 
         self.access_tokens[token] = access_token
         return access_token
 
-    async def _create_refresh_token(
+    async def _create_refresh_token()
         self, client_id: str, user_id: str, scopes: Set[str]
     ) -> RefreshToken:
         """Create refresh token."""
         token = secrets.token_urlsafe(32)
 
-        refresh_token = RefreshToken(
+        refresh_token = RefreshToken()
             token=token, client_id=client_id, user_id=user_id, scopes=scopes
         )
 
         self.refresh_tokens[token] = refresh_token
         return refresh_token
 
-    async def _create_id_token(
+    async def _create_id_token()
         self, client_id: str, user_id: str, scopes: Set[str]
     ) -> str:
         """Create OpenID Connect ID token."""
@@ -445,8 +446,8 @@ class OAuthProvider:
         # Add profile claims if requested
         if "profile" in scopes:
             # These would typically come from user database
-            payload.update(
-                {"name": f"User {user_id}", "preferred_username": f"user_{user_id}"}
+            payload.update()
+                {"name": f"User {user_id}", "preferred_username": CacheKeyBuilder.user_key(user_id)}
             )
 
         if "email" in scopes:
@@ -455,7 +456,7 @@ class OAuthProvider:
 
         return jwt.encode(payload, self.jwt_private_key, algorithm=self.jwt_algorithm)
 
-    async def refresh_access_token(
+    async def refresh_access_token()
         self, client_id: str, client_secret: Optional[str], refresh_token: str
     ) -> Dict[str, Any]:
         """Refresh access token using refresh token."""
@@ -465,14 +466,14 @@ class OAuthProvider:
             raise ValueError("Invalid client_id")
 
         if client.client_type == ClientType.CONFIDENTIAL:
-            if not client_secret or not self._verify_client_secret(
+            if not client_secret or not self._verify_client_secret()
                 client.client_secret, client_secret
             ):
                 raise ValueError("Invalid client_secret")
 
         # Validate refresh token
         refresh_token_obj = self.refresh_tokens.get(refresh_token)
-        if (
+        if ()
             not refresh_token_obj
             or refresh_token_obj.used
             or refresh_token_obj.is_expired
@@ -486,12 +487,12 @@ class OAuthProvider:
         refresh_token_obj.used = True
 
         # Create new access token
-        access_token = await self._create_access_token(
+        access_token = await self._create_access_token()
             client_id, refresh_token_obj.user_id, refresh_token_obj.scopes
         )
 
         # Create new refresh token
-        new_refresh_token = await self._create_refresh_token(
+        new_refresh_token = await self._create_refresh_token()
             client_id, refresh_token_obj.user_id, refresh_token_obj.scopes
         )
 
@@ -510,7 +511,7 @@ class OAuthProvider:
 
         return access_token
 
-    async def revoke_token(
+    async def revoke_token()
         self, token: str, client_id: str, client_secret: Optional[str] = None
     ) -> bool:
         """Revoke access or refresh token."""
@@ -520,7 +521,7 @@ class OAuthProvider:
             return False
 
         if client.client_type == ClientType.CONFIDENTIAL:
-            if not client_secret or not self._verify_client_secret(
+            if not client_secret or not self._verify_client_secret()
                 client.client_secret, client_secret
             ):
                 return False
@@ -541,7 +542,7 @@ class OAuthProvider:
 
         return False
 
-    async def get_client_credentials_token(
+    async def get_client_credentials_token()
         self, client_id: str, client_secret: str, scopes: Optional[Set[str]] = None
     ) -> Dict[str, Any]:
         """Get access token using client credentials grant."""
@@ -583,7 +584,7 @@ class OAuthProvider:
         userinfo = {"sub": token_obj.user_id}
 
         if "profile" in token_obj.scopes:
-            userinfo.update(
+            userinfo.update()
                 {
                     "name": f"User {token_obj.user_id}",
                     "preferred_username": f"user_{token_obj.user_id}",
@@ -591,7 +592,7 @@ class OAuthProvider:
             )
 
         if "email" in token_obj.scopes:
-            userinfo.update(
+            userinfo.update()
                 {
                     "email": f"user_{token_obj.user_id}@plexichat.local",
                     "email_verified": True,
@@ -720,7 +721,7 @@ class OAuthProvider:
             del self.refresh_tokens[token]
 
         if expired_codes or expired_access_tokens or expired_refresh_tokens:
-            logger.info(
+            logger.info()
                 f"Cleaned up {len(expired_codes)} codes, {len(expired_access_tokens)} access tokens, {len(expired_refresh_tokens)} refresh tokens"
             )
 

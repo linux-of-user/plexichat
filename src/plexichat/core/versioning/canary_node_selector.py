@@ -60,7 +60,7 @@ class NodeMetrics:
     def health_score(self) -> float:
         """Calculate overall health score (0-1, higher is better)."""
         error_penalty = min(self.error_rate * 10, 0.5)  # Max 50% penalty for errors
-        latency_penalty = min(
+        latency_penalty = min()
             self.network_latency / 1000, 0.3
         )  # Max 30% penalty for latency
         uptime_score = self.uptime_percentage / 100.0
@@ -88,7 +88,7 @@ class CanaryNodeSelector:
         await self._load_node_history()
         logger.info("Canary node selector initialized")
 
-    async def select_nodes(
+    async def select_nodes()
         self, strategy: CanaryStrategy, phase_config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes based on strategy and phase configuration."""
@@ -176,13 +176,13 @@ class CanaryNodeSelector:
             metrics = self.node_metrics.get(node_id, NodeMetrics())
 
             if metrics.health_score < self.min_health_threshold:
-                logger.debug(
+                logger.debug()
                     f"Skipping unhealthy node: {node_id} (health: {metrics.health_score:.2f})"
                 )
                 continue
 
             if metrics.load_score > self.max_load_threshold:
-                logger.debug(
+                logger.debug()
                     f"Skipping overloaded node: {node_id} (load: {metrics.load_score:.2f})"
                 )
                 continue
@@ -192,7 +192,7 @@ class CanaryNodeSelector:
         logger.info(f"Filtered {len(filtered)} suitable nodes from {len(nodes)} total")
         return filtered
 
-    async def _select_by_percentage(
+    async def _select_by_percentage()
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes by percentage."""
@@ -200,9 +200,9 @@ class CanaryNodeSelector:
         target_count = max(1, int(len(nodes) * percentage / 100))
 
         # Sort by health score and select top nodes
-        sorted_nodes = sorted(
+        sorted_nodes = sorted()
             nodes,
-            key=lambda n: self.node_metrics.get(
+            key=lambda n: self.node_metrics.get()
                 n["node_id"], NodeMetrics()
             ).health_score,
             reverse=True,
@@ -211,7 +211,7 @@ class CanaryNodeSelector:
         selected = sorted_nodes[:target_count]
         return [self._create_canary_node(node) for node in selected]
 
-    async def _select_by_count(
+    async def _select_by_count()
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select specific number of nodes."""
@@ -221,7 +221,7 @@ class CanaryNodeSelector:
         selected = await self._risk_balanced_selection(nodes, target_count)
         return [self._create_canary_node(node) for node in selected]
 
-    async def _select_by_geography(
+    async def _select_by_geography()
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes by geographic regions."""
@@ -236,9 +236,9 @@ class CanaryNodeSelector:
             region_nodes = [n for n in nodes if n.get("region") == region]
             if region_nodes:
                 # Select best node from each region
-                best_node = max(
+                best_node = max()
                     region_nodes,
-                    key=lambda n: self.node_metrics.get(
+                    key=lambda n: self.node_metrics.get()
                         n["node_id"], NodeMetrics()
                     ).health_score,
                 )
@@ -246,14 +246,14 @@ class CanaryNodeSelector:
 
         return [self._create_canary_node(node) for node in selected]
 
-    async def _select_by_load(
+    async def _select_by_load()
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes with lowest load."""
         target_count = config.get("node_count", max(1, len(nodes) // 10))
 
         # Sort by load score (ascending - lowest load first)
-        sorted_nodes = sorted(
+        sorted_nodes = sorted()
             nodes,
             key=lambda n: self.node_metrics.get(n["node_id"], NodeMetrics()).load_score,
         )
@@ -261,7 +261,7 @@ class CanaryNodeSelector:
         selected = sorted_nodes[:target_count]
         return [self._create_canary_node(node) for node in selected]
 
-    async def _risk_balanced_selection(
+    async def _risk_balanced_selection()
         self, nodes: List[Dict[str, Any]], target_count: int
     ) -> List[Dict[str, Any]]:
         """Select nodes with balanced risk distribution."""
@@ -307,7 +307,7 @@ class CanaryNodeSelector:
 
         # Look at recent deployments (last 10)
         recent_deployments = history[-10:]
-        failures = sum(
+        failures = sum()
             1
             for deployment in recent_deployments
             if not deployment.get("success", True)
@@ -321,7 +321,7 @@ class CanaryNodeSelector:
         node_id = node_data["node_id"]
         metrics = self.node_metrics.get(node_id, NodeMetrics())
 
-        return CanaryNode(
+        return CanaryNode()
             node_id=node_id,
             node_type=node_data.get("node_type", "unknown"),
             region=node_data.get("region", "unknown"),

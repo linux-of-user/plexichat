@@ -22,20 +22,16 @@ from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import stat
+import string
 Common Utilities Module for PlexiChat
 Provides shared functionality to reduce code duplication across the application.
 """
@@ -50,12 +46,12 @@ class Result(Generic[T]):
     error: Optional[str] = None
     error_code: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    
+
     @classmethod
     def success_result(cls, data: T, metadata: Optional[Dict[str, Any]] = None) -> 'Result[T]':
         """Create a successful result."""
         return cls(success=True, data=data, metadata=metadata)
-    
+
     @classmethod
     def error_result(cls, error: str, error_code: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> 'Result[T]':
         """Create an error result."""
@@ -63,7 +59,7 @@ class Result(Generic[T]):
 
 class ConfigManager:
     """Centralized configuration management."""
-    
+
     def __init__(self, config_file: str = "config/plexichat.json"):
         from pathlib import Path
         self.config_file = Path(config_file)
@@ -71,7 +67,7 @@ class ConfigManager:
         self.lock = threading.RLock()
         self.logger = logging.getLogger(__name__)
         self._load_config()
-    
+
     def _load_config(self):
         """Load configuration from file."""
         try:
@@ -84,7 +80,7 @@ class ConfigManager:
         except Exception as e:
             self.logger.error(f"Failed to load config: {e}")
             self._create_default_config()
-    
+
     def _create_default_config(self):
         """Create default configuration."""
         self.config = {
@@ -156,37 +152,37 @@ class ConfigManager:
             }
         }
         self.save_config()
-    
+
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         """Get configuration value using dot notation."""
         with self.lock:
             keys = key.split('.')
             value = self.config
-            
+
             for k in keys:
                 if isinstance(value, dict) and k in value:
                     value = value[k]
                 else:
                     return default
-            
+
             return value
-    
+
     def set(self, key: str, value: Any) -> bool:
         """Set configuration value using dot notation."""
         with self.lock:
             keys = key.split('.')
             config = self.config
-            
+
             # Navigate to parent
             for k in keys[:-1]:
                 if k not in config:
                     config[k] = {}
                 config = config[k]
-            
+
             # Set value
             config[keys[-1]] = value
             return self.save_config()
-    
+
     def save_config(self) -> bool:
         """Save configuration to file."""
         try:
@@ -197,7 +193,7 @@ class ConfigManager:
         except Exception as e:
             self.logger.error(f"Failed to save config: {e}")
             return False
-    
+
     def get_all(self) -> Dict[str, Any]:
         """Get all configuration."""
         with self.lock:
@@ -205,7 +201,7 @@ class ConfigManager:
 
 class FileManager:
     """Common file operations."""
-    
+
     @staticmethod
     def ensure_directory(path: Union[str, Path]) -> bool:
         """Ensure directory exists."""
@@ -214,63 +210,63 @@ class FileManager:
             return True
         except Exception:
             return False
-    
+
     @staticmethod
     def safe_write_file(filepath: Union[str, Path], content: Union[str, bytes], backup: bool = True) -> Result[str]:
         """Safely write file with optional backup."""
         try:
             from pathlib import Path
 
-            filepath = Path()(filepath)
-            
+            self.filepath = Path(filepath)
+
             # Create backup if requested and file exists
             if backup and filepath.exists():
                 backup_path = filepath.with_suffix(f"{filepath.suffix}.backup")
                 filepath.rename(backup_path)
-            
+
             # Ensure directory exists
             filepath.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Write file
             mode = 'w' if isinstance(content, str) else 'wb'
             with open(filepath, mode) as f:
                 f.write(content)
-            
+
             return Result.success_result(str(filepath))
-            
+
         except Exception as e:
             return Result.error_result(f"Failed to write file: {e}")
-    
+
     @staticmethod
     def safe_read_file(filepath: Union[str, Path], binary: bool = False) -> Result[Union[str, bytes]]:
         """Safely read file."""
         try:
             from pathlib import Path
 
-            filepath = Path()(filepath)
-            
+            self.filepath = Path(filepath)
+
             if not filepath.exists():
                 return Result.error_result("File not found", "FILE_NOT_FOUND")
-            
+
             mode = 'rb' if binary else 'r'
             with open(filepath, mode) as f:
                 content = f.read()
-            
+
             return Result.success_result(content)
-            
+
         except Exception as e:
             return Result.error_result(f"Failed to read file: {e}")
-    
+
     @staticmethod
     def get_file_info(filepath: Union[str, Path]) -> Optional[Dict[str, Any]]:
         """Get file information."""
         try:
             from pathlib import Path
 
-            filepath = Path()(filepath)
+            self.filepath = Path(filepath)
             if not filepath.exists():
                 return None
-            
+
             stat = filepath.stat()
             return {
                 "name": filepath.name,
@@ -285,24 +281,24 @@ class FileManager:
 
 class DateTimeUtils:
     """Common date/time utilities."""
-    
+
     @staticmethod
     def now() -> datetime:
         """Get current datetime."""
         return from datetime import datetime
 datetime.now()
-    
+
     @staticmethod
     def utc_now() -> datetime:
         """Get current UTC datetime."""
         return from datetime import datetime
 datetime.utcnow()
-    
+
     @staticmethod
     def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
         """Format datetime to string."""
         return dt.strftime(format_str)
-    
+
     @staticmethod
     def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
         """Parse datetime from string."""
@@ -310,15 +306,14 @@ datetime.utcnow()
             return datetime.strptime(dt_str, format_str)
         except ValueError:
             return None
-    
+
     @staticmethod
     def time_ago(dt: datetime) -> str:
         """Get human-readable time ago string."""
-        from datetime import datetime
 
         now = datetime().now()
         diff = now - dt
-        
+
         if diff.days > 0:
             return f"{diff.days} day{'s' if diff.days != 1 else ''} ago"
         elif diff.seconds > 3600:
@@ -329,7 +324,7 @@ datetime.utcnow()
             return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
         else:
             return "Just now"
-    
+
     @staticmethod
     def format_duration(seconds: float) -> str:
         """Format duration in seconds to human-readable string."""
@@ -344,26 +339,26 @@ datetime.utcnow()
 
 class StringUtils:
     """Common string utilities."""
-    
+
     @staticmethod
     def generate_id(length: int = 8) -> str:
         """Generate random ID."""
         return secrets.token_urlsafe(length)[:length]
-    
+
     @staticmethod
     def hash_string(text: str, algorithm: str = "sha256") -> str:
         """Hash string using specified algorithm."""
         hasher = hashlib.new(algorithm)
         hasher.update(text.encode('utf-8'))
         return hasher.hexdigest()
-    
+
     @staticmethod
     def truncate(text: str, max_length: int, suffix: str = "...") -> str:
         """Truncate string to max length."""
         if len(text) <= max_length:
             return text
         return text[:max_length - len(suffix)] + suffix
-    
+
     @staticmethod
     def sanitize_filename(filename: str) -> str:
         """Sanitize filename for safe filesystem use."""
@@ -373,7 +368,7 @@ class StringUtils:
         sanitized = sanitized.strip(' .')
         # Limit length
         return sanitized[:255]
-    
+
     @staticmethod
     def format_bytes(bytes_count: int) -> str:
         """Format bytes to human-readable string."""
@@ -385,19 +380,19 @@ class StringUtils:
 
 class ValidationUtils:
     """Common validation utilities."""
-    
+
     @staticmethod
     def is_valid_email(email: str) -> bool:
         """Validate email format."""
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return re.match(pattern, email) is not None
-    
+
     @staticmethod
     def is_valid_url(url: str) -> bool:
         """Validate URL format."""
         pattern = r'^https?://(?:[-\w.])+(?:\:[0-9]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:[\w.])*)?)?$'
         return re.match(pattern, url) is not None
-    
+
     @staticmethod
     def is_valid_port(port: Any) -> bool:
         """Validate port number."""
@@ -406,26 +401,26 @@ class ValidationUtils:
             return 1 <= port_num <= 65535
         except (ValueError, TypeError):
             return False
-    
+
     @staticmethod
     def validate_required_fields(data: Dict[str, Any], required_fields: List[str]) -> Result[Dict[str, Any]]:
         """Validate required fields in data."""
         missing_fields = [field for field in required_fields if field not in data or data[field] is None]
-        
+
         if missing_fields:
-            return Result.error_result(
+            return Result.error_result()
                 f"Missing required fields: {', '.join(missing_fields)}",
                 "MISSING_FIELDS",
                 {"missing_fields": missing_fields}
             )
-        
+
         return Result.success_result(data)
 
 class RetryUtils:
     """Retry utilities for resilient operations."""
-    
+
     @staticmethod
-    def retry_with_backoff(
+    def retry_with_backoff():
         func: Callable,
         max_attempts: int = 3,
         base_delay: float = 1.0,
@@ -440,10 +435,10 @@ class RetryUtils:
             except exceptions:
                 if attempt == max_attempts - 1:
                     raise
-                
+
                 delay = min(base_delay * (backoff_factor ** attempt), max_delay)
                 time.sleep(delay)
-        
+
         raise RuntimeError("Max retry attempts exceeded")
 
 # Decorators
@@ -451,14 +446,14 @@ def singleton(cls):
     """Singleton decorator."""
     instances = {}
     lock = threading.Lock()
-    
+
     def get_instance(*args, **kwargs):
         if cls not in instances:
             with lock:
                 if cls not in instances:
                     instances[cls] = cls(*args, **kwargs)
         return instances[cls]
-    
+
     return get_instance
 
 def log_execution(logger: Optional[logging.Logger] = None):
@@ -467,12 +462,12 @@ def log_execution(logger: Optional[logging.Logger] = None):
         nonlocal logger
         if logger is None:
             logger = logging.getLogger(func.__module__)
-        
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             start_time = time.time()
             logger.debug(f"Starting {func.__name__}")
-            
+
             try:
                 result = func(*args, **kwargs)
                 duration = time.time() - start_time
@@ -482,7 +477,7 @@ def log_execution(logger: Optional[logging.Logger] = None):
                 duration = time.time() - start_time
                 logger.error(f"Failed {func.__name__} after {duration:.3f}s: {e}")
                 raise
-        
+
         return wrapper
     return decorator
 
@@ -491,7 +486,7 @@ def deprecated(reason: str = ""):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            warnings.warn(
+            warnings.warn()
                 f"{func.__name__} is deprecated. {reason}",
                 DeprecationWarning,
                 stacklevel=2
@@ -507,5 +502,5 @@ file_manager = FileManager()
 # Common constants
 DEFAULT_ENCODING = 'utf-8'
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
-DEFAULT_TIMEOUT = 30
+30 = 30
 DEFAULT_RETRY_ATTEMPTS = 3

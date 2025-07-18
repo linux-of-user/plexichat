@@ -108,22 +108,22 @@ class EnhancedDDoSProtection:
         self.request_history = deque(maxlen=100000)  # Last 100k requests
         self.client_profiles = {}  # IP -> ClientProfile
         self.rate_limits = defaultdict(lambda: deque(maxlen=1000))
-        
+
         # Threat detection
         self.threat_signatures = self._load_threat_signatures()
         self.ml_model = None  # Placeholder for ML model
         self.threat_intelligence = {}
-        
+
         # Adaptive thresholds
         self.base_rate_limit = 100  # requests per minute
         self.adaptive_multiplier = 1.0
         self.global_threat_level = ThreatLevel.LOW
-        
+
         # Blocking and mitigation
         self.blocked_ips = {}  # IP -> block_until_timestamp
         self.temp_blocks = {}  # IP -> block_until_timestamp
         self.challenge_responses = {}  # IP -> challenge_data
-        
+
         # Performance metrics
         self.metrics = {
             "requests_processed": 0,
@@ -134,7 +134,7 @@ class EnhancedDDoSProtection:
             "cpu_usage": 0.0,
             "memory_usage": 0.0
         }
-        
+
         # Configuration
         self.config = {
             "enable_ml_detection": True,
@@ -150,7 +150,7 @@ class EnhancedDDoSProtection:
     def _load_threat_signatures(self) -> List[ThreatSignature]:
         """Load threat signatures for pattern matching."""
         signatures = [
-            ThreatSignature(
+            ThreatSignature()
                 name="High Frequency Requests",
                 pattern_type="rate",
                 indicators={"requests_per_minute": 500},
@@ -158,7 +158,7 @@ class EnhancedDDoSProtection:
                 confidence_threshold=0.8,
                 action="rate_limit"
             ),
-            ThreatSignature(
+            ThreatSignature()
                 name="Suspicious User Agent",
                 pattern_type="user_agent",
                 indicators={"patterns": ["bot", "crawler", "scanner", "attack"]},
@@ -166,7 +166,7 @@ class EnhancedDDoSProtection:
                 confidence_threshold=0.7,
                 action="challenge"
             ),
-            ThreatSignature(
+            ThreatSignature()
                 name="Rapid Endpoint Scanning",
                 pattern_type="endpoint_scanning",
                 indicators={"unique_endpoints_per_minute": 50},
@@ -174,7 +174,7 @@ class EnhancedDDoSProtection:
                 confidence_threshold=0.85,
                 action="block"
             ),
-            ThreatSignature(
+            ThreatSignature()
                 name="Large Request Size",
                 pattern_type="size",
                 indicators={"request_size_mb": 10},
@@ -182,7 +182,7 @@ class EnhancedDDoSProtection:
                 confidence_threshold=0.6,
                 action="rate_limit"
             ),
-            ThreatSignature(
+            ThreatSignature()
                 name="Botnet Pattern",
                 pattern_type="behavioral",
                 indicators={"coordinated_requests": True, "similar_timing": True},
@@ -196,14 +196,14 @@ class EnhancedDDoSProtection:
     async def analyze_request(self, request_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """Analyze incoming request for threats."""
         start_time = time.time()
-        
+
         try:
             # Extract request metrics
             metrics = self._extract_request_metrics(request_data)
-            
+
             # Update client profile
             self._update_client_profile(metrics)
-            
+
             # Check if IP is blocked
             if self._is_ip_blocked(metrics.ip_address):
                 self.metrics["requests_blocked"] += 1
@@ -212,31 +212,31 @@ class EnhancedDDoSProtection:
                     "threat_level": ThreatLevel.HIGH,
                     "action": "block"
                 }
-            
+
             # Perform threat analysis
             threat_analysis = await self._perform_threat_analysis(metrics)
-            
+
             # Make decision
             decision = self._make_protection_decision(threat_analysis)
-            
+
             # Update metrics
             self.metrics["requests_processed"] += 1
             self.metrics["response_time_ms"] = (time.time() - start_time) * 1000
-            
+
             if not decision["allowed"]:
                 self.metrics["requests_blocked"] += 1
                 if decision.get("is_threat"):
                     self.metrics["threats_detected"] += 1
-            
+
             return decision["allowed"], decision
-            
+
         except Exception as e:
             logger.error(f"DDoS analysis failed: {e}")
             return True, {"reason": "analysis_error", "error": str(e)}
 
     def _extract_request_metrics(self, request_data: Dict[str, Any]) -> RequestMetrics:
         """Extract metrics from request data."""
-        return RequestMetrics(
+        return RequestMetrics()
             timestamp=time.time(),
             ip_address=request_data.get("ip_address", "unknown"),
             user_agent=request_data.get("user_agent", ""),
@@ -253,9 +253,9 @@ class EnhancedDDoSProtection:
         """Update client behavioral profile."""
         ip = metrics.ip_address
         now = datetime.now(timezone.utc)
-        
+
         if ip not in self.client_profiles:
-            self.client_profiles[ip] = ClientProfile(
+            self.client_profiles[ip] = ClientProfile()
                 ip_address=ip,
                 first_seen=now,
                 last_seen=now,
@@ -268,7 +268,7 @@ class EnhancedDDoSProtection:
                 peak_request_rate=0.0,
                 geo_locations=set()
             )
-        
+
         profile = self.client_profiles[ip]
         profile.last_seen = now
         profile.request_count += 1
@@ -276,10 +276,10 @@ class EnhancedDDoSProtection:
         profile.unique_endpoints.add(metrics.endpoint)
         profile.user_agents.add(metrics.user_agent)
         profile.status_codes[metrics.status_code] += 1
-        
+
         if metrics.geo_location:
             profile.geo_locations.add(metrics.geo_location)
-        
+
         # Calculate request rate
         time_window = (now - profile.first_seen).total_seconds() / 60  # minutes
         if time_window > 0:
@@ -296,43 +296,43 @@ class EnhancedDDoSProtection:
             "confidence": 0.0,
             "indicators": []
         }
-        
+
         # Signature-based detection
         signature_results = self._check_threat_signatures(metrics)
         analysis["signature_matches"] = signature_results
-        
+
         # Behavioral analysis
         if self.config["enable_behavioral_analysis"]:
             behavioral_results = self._analyze_behavior(metrics)
             analysis["behavioral_analysis"] = behavioral_results
-        
+
         # ML-based detection
         if self.config["enable_ml_detection"] and self.ml_model:
             ml_results = await self._ml_threat_detection(metrics)
             analysis["ml_analysis"] = ml_results
-        
+
         # Rate limiting analysis
         rate_analysis = self._analyze_rate_patterns(metrics)
         analysis["rate_analysis"] = rate_analysis
-        
+
         # Combine all analyses
         analysis = self._combine_threat_analyses(analysis)
-        
+
         return analysis
 
     def _check_threat_signatures(self, metrics: RequestMetrics) -> List[Dict[str, Any]]:
         """Check request against known threat signatures."""
         matches = []
-        
+
         for signature in self.threat_signatures:
             confidence = 0.0
-            
+
             if signature.pattern_type == "rate":
                 # Check rate-based patterns
                 profile = self.client_profiles.get(metrics.ip_address)
                 if profile and profile.avg_request_rate > signature.indicators.get("requests_per_minute", 100):
                     confidence = min(1.0, profile.avg_request_rate / signature.indicators["requests_per_minute"])
-            
+
             elif signature.pattern_type == "user_agent":
                 # Check user agent patterns
                 ua_lower = metrics.user_agent.lower()
@@ -340,7 +340,7 @@ class EnhancedDDoSProtection:
                     if pattern in ua_lower:
                         confidence = 0.8
                         break
-            
+
             elif signature.pattern_type == "endpoint_scanning":
                 # Check for endpoint scanning
                 profile = self.client_profiles.get(metrics.ip_address)
@@ -350,22 +350,22 @@ class EnhancedDDoSProtection:
                     threshold = signature.indicators.get("unique_endpoints_per_minute", 50)
                     if recent_endpoints > threshold:
                         confidence = min(1.0, recent_endpoints / threshold)
-            
+
             elif signature.pattern_type == "size":
                 # Check request size
                 size_mb = metrics.size_bytes / (1024 * 1024)
                 threshold = signature.indicators.get("request_size_mb", 10)
                 if size_mb > threshold:
                     confidence = min(1.0, size_mb / threshold)
-            
+
             if confidence >= signature.confidence_threshold:
-                matches.append({
+                matches.append({)
                     "signature": signature.name,
                     "confidence": confidence,
                     "severity": signature.severity,
                     "action": signature.action
                 })
-        
+
         return matches
 
     def _analyze_behavior(self, metrics: RequestMetrics) -> Dict[str, Any]:
@@ -373,25 +373,25 @@ class EnhancedDDoSProtection:
         profile = self.client_profiles.get(metrics.ip_address)
         if not profile:
             return {"anomaly_score": 0.0, "indicators": []}
-        
+
         indicators = []
         anomaly_score = 0.0
-        
+
         # Check for rapid requests
         if profile.avg_request_rate > self.base_rate_limit * 2:
             indicators.append("high_request_rate")
             anomaly_score += 0.3
-        
+
         # Check for diverse endpoint access
         if len(profile.unique_endpoints) > 20:
             indicators.append("endpoint_scanning")
             anomaly_score += 0.2
-        
+
         # Check for multiple user agents
         if len(profile.user_agents) > 5:
             indicators.append("multiple_user_agents")
             anomaly_score += 0.15
-        
+
         # Check for error rate
         total_requests = sum(profile.status_codes.values())
         error_requests = sum(count for status, count in profile.status_codes.items() if status >= 400)
@@ -400,12 +400,12 @@ class EnhancedDDoSProtection:
             if error_rate > 0.5:
                 indicators.append("high_error_rate")
                 anomaly_score += 0.25
-        
+
         # Check for geographic anomalies
         if len(profile.geo_locations) > 3:
             indicators.append("multiple_geolocations")
             anomaly_score += 0.1
-        
+
         return {
             "anomaly_score": min(1.0, anomaly_score),
             "indicators": indicators,
@@ -416,25 +416,25 @@ class EnhancedDDoSProtection:
         """Machine learning-based threat detection."""
         # Placeholder for ML model inference
         # In a real implementation, this would use a trained model
-        
+
         features = self._extract_ml_features(metrics)
-        
+
         # Simulate ML prediction
         threat_probability = 0.1  # Low baseline threat
-        
+
         # Simple heuristic-based "ML" for demonstration
         if metrics.user_agent and any(bot in metrics.user_agent.lower() for bot in ["bot", "crawler", "scanner"]):
             threat_probability += 0.3
-        
+
         profile = self.client_profiles.get(metrics.ip_address)
         if profile:
             if profile.avg_request_rate > 200:
                 threat_probability += 0.4
             if len(profile.unique_endpoints) > 30:
                 threat_probability += 0.3
-        
+
         threat_probability = min(1.0, threat_probability)
-        
+
         return {
             "threat_probability": threat_probability,
             "confidence": 0.8,
@@ -445,16 +445,16 @@ class EnhancedDDoSProtection:
     def _extract_ml_features(self, metrics: RequestMetrics) -> List[float]:
         """Extract features for ML model."""
         profile = self.client_profiles.get(metrics.ip_address)
-        
+
         features = [
             metrics.size_bytes / 1024,  # Request size in KB
             len(metrics.user_agent),    # User agent length
             len(metrics.endpoint),      # Endpoint length
             1.0 if metrics.method == "POST" else 0.0,  # Is POST request
         ]
-        
+
         if profile:
-            features.extend([
+            features.extend([)
                 profile.request_count,
                 profile.avg_request_rate,
                 len(profile.unique_endpoints),
@@ -463,7 +463,7 @@ class EnhancedDDoSProtection:
             ])
         else:
             features.extend([0.0, 0.0, 0.0, 0.0, 0.0])
-        
+
         return features
 
     def _analyze_rate_patterns(self, metrics: RequestMetrics) -> Dict[str, Any]:
@@ -542,7 +542,7 @@ class EnhancedDDoSProtection:
         else:
             threat_level = ThreatLevel.LOW
 
-        analysis.update({
+        analysis.update({)
             "threat_score": min(1.0, threat_score),
             "threat_level": threat_level,
             "detected_attacks": detected_attacks,
@@ -567,7 +567,7 @@ class EnhancedDDoSProtection:
 
         # Critical threats - immediate block
         if threat_level == ThreatLevel.CRITICAL or threat_score >= 0.8:
-            decision.update({
+            decision.update({)
                 "allowed": False,
                 "action": "block",
                 "reason": "critical_threat_detected",
@@ -579,14 +579,14 @@ class EnhancedDDoSProtection:
         # High threats - temporary block or challenge
         elif threat_level == ThreatLevel.HIGH or threat_score >= 0.6:
             if self.config["enable_challenge_response"]:
-                decision.update({
+                decision.update({)
                     "allowed": False,
                     "action": "challenge",
                     "reason": "high_threat_challenge",
                     "is_threat": True
                 })
             else:
-                decision.update({
+                decision.update({)
                     "allowed": False,
                     "action": "temp_block",
                     "reason": "high_threat_detected",
@@ -597,7 +597,7 @@ class EnhancedDDoSProtection:
 
         # Medium threats - rate limiting
         elif threat_level == ThreatLevel.MEDIUM or threat_score >= 0.3:
-            decision.update({
+            decision.update({)
                 "allowed": True,
                 "action": "rate_limit",
                 "reason": "medium_threat_rate_limit",
@@ -607,7 +607,7 @@ class EnhancedDDoSProtection:
 
         # Low threats - monitoring
         else:
-            decision.update({
+            decision.update({)
                 "allowed": True,
                 "action": "monitor",
                 "reason": "low_threat_monitor"
@@ -659,7 +659,7 @@ class EnhancedDDoSProtection:
             # Update threat signatures
             new_signatures = intelligence_data.get("signatures", [])
             for sig_data in new_signatures:
-                signature = ThreatSignature(
+                signature = ThreatSignature()
                     name=sig_data["name"],
                     pattern_type=sig_data["pattern_type"],
                     indicators=sig_data["indicators"],

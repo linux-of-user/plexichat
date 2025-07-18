@@ -7,7 +7,6 @@ from typing import Optional
     from .files_enhanced import router as files_enhanced_router
 
 
-
 """
 PlexiChat API v1 - Files Module
 

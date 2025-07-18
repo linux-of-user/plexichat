@@ -19,6 +19,7 @@ from .user_profiles import setup_user_profile_endpoints
 from fastapi import APIRouter
 
 """
+import time
 PlexiChat Phase V API Expansion Coordinator
 Manages the massive expansion of API endpoints with comprehensive functionality
 """
@@ -140,7 +141,7 @@ class Phase5APIExpansionCoordinator:
     async def _initialize_category_routers(self):
         """Initialize routers for each API category."""
         for category in APICategory:
-            router = APIRouter(
+            router = APIRouter()
                 prefix=f"/{category.value.replace('_', '-')}", tags=[category.value]
             )
             self.category_routers[category] = router
@@ -210,85 +211,85 @@ class Phase5APIExpansionCoordinator:
 
         # Register endpoint info
         endpoints = [
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/me",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Get current user profile",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/me",
                 "PUT",
                 APICategory.USER_PROFILES,
                 "Update current user profile",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Get user profile by ID",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/avatar",
                 "POST",
                 APICategory.USER_PROFILES,
                 "Upload user avatar",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/banner",
                 "POST",
                 APICategory.USER_PROFILES,
                 "Upload user banner",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/preferences",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Get user preferences",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/preferences",
                 "PUT",
                 APICategory.USER_PROFILES,
                 "Update user preferences",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/privacy",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Get privacy settings",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/privacy",
                 "PUT",
                 APICategory.USER_PROFILES,
                 "Update privacy settings",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/activity",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Get user activity",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/connections",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Get user connections",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/{user_id}/badges",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Get user badges",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/search",
                 "GET",
                 APICategory.USER_PROFILES,
                 "Search user profiles",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/user-profiles/bulk",
                 "POST",
                 APICategory.USER_PROFILES,
@@ -297,7 +298,7 @@ class Phase5APIExpansionCoordinator:
         ]
 
         for endpoint in endpoints:
-            self.registered_endpoints[f"{endpoint.category.value}{endpoint.path}"] = (
+            self.registered_endpoints[f"{endpoint.category.value}{endpoint.path}"] = ()
                 endpoint
             )
 
@@ -308,48 +309,48 @@ class Phase5APIExpansionCoordinator:
         await setup_search_endpoints(router)
 
         endpoints = [
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/global",
                 "GET",
                 APICategory.SEARCH,
                 "Global search across all content",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/messages", "GET", APICategory.SEARCH, "Search messages"
             ),
             APIEndpointInfo("/search/users", "GET", APICategory.SEARCH, "Search users"),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/channels", "GET", APICategory.SEARCH, "Search channels"
             ),
             APIEndpointInfo("/search/files", "GET", APICategory.SEARCH, "Search files"),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/semantic",
                 "POST",
                 APICategory.SEARCH,
                 "Semantic search with AI",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/advanced",
                 "POST",
                 APICategory.SEARCH,
                 "Advanced search with filters",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/suggestions",
                 "GET",
                 APICategory.SEARCH,
                 "Get search suggestions",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/history", "GET", APICategory.SEARCH, "Get search history"
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/saved", "GET", APICategory.SEARCH, "Get saved searches"
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/saved", "POST", APICategory.SEARCH, "Save a search"
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/search/saved/{search_id}",
                 "DELETE",
                 APICategory.SEARCH,
@@ -358,7 +359,7 @@ class Phase5APIExpansionCoordinator:
         ]
 
         for endpoint in endpoints:
-            self.registered_endpoints[f"{endpoint.category.value}{endpoint.path}"] = (
+            self.registered_endpoints[f"{endpoint.category.value}{endpoint.path}"] = ()
                 endpoint
             )
 
@@ -369,84 +370,84 @@ class Phase5APIExpansionCoordinator:
         await setup_safety_endpoints(router)
 
         endpoints = [
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/report", "POST", APICategory.SAFETY, "Report content or user"
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/reports",
                 "GET",
                 APICategory.SAFETY,
                 "Get safety reports",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/reports/{report_id}",
                 "GET",
                 APICategory.SAFETY,
                 "Get specific report",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/reports/{report_id}/action",
                 "POST",
                 APICategory.SAFETY,
                 "Take action on report",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/moderate",
                 "POST",
                 APICategory.SAFETY,
                 "Moderate content",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/automod/rules",
                 "GET",
                 APICategory.SAFETY,
                 "Get automod rules",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/automod/rules",
                 "POST",
                 APICategory.SAFETY,
                 "Create automod rule",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/automod/rules/{rule_id}",
                 "PUT",
                 APICategory.SAFETY,
                 "Update automod rule",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/automod/rules/{rule_id}",
                 "DELETE",
                 APICategory.SAFETY,
                 "Delete automod rule",
                 requires_admin=True,
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/blocked-users", "GET", APICategory.SAFETY, "Get blocked users"
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/blocked-users/{user_id}",
                 "POST",
                 APICategory.SAFETY,
                 "Block user",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/blocked-users/{user_id}",
                 "DELETE",
                 APICategory.SAFETY,
                 "Unblock user",
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/content-filter", "POST", APICategory.SAFETY, "Filter content"
             ),
-            APIEndpointInfo(
+            APIEndpointInfo()
                 "/safety/trust-score/{user_id}",
                 "GET",
                 APICategory.SAFETY,
@@ -455,7 +456,7 @@ class Phase5APIExpansionCoordinator:
         ]
 
         for endpoint in endpoints:
-            self.registered_endpoints[f"{endpoint.category.value}{endpoint.path}"] = (
+            self.registered_endpoints[f"{endpoint.category.value}{endpoint.path}"] = ()
                 endpoint
             )
 

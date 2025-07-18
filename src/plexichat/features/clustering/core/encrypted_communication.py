@@ -23,10 +23,11 @@ from cryptography.x509.oid import NameOID
 
 from ....core_system.security.certificate_manager import get_certificate_manager
 from ....core_system.security.hardware_security import get_hsm_manager
-from ....core_system.security.unified_audit_system import (
+from ....core_system.security.unified_audit_system import ()
 from pathlib import Path
 
 from pathlib import Path
+import time
 
     HEARTBEAT_ENCRYPTION,
     HOT_UPDATE_SUPPORT,
@@ -167,8 +168,8 @@ class EnhancedEncryptedCommunicationManager:
 
     def __init__(self, node_id: str, data_dir: Path):
         self.node_id = node_id
-        self.from pathlib import Path
-data_dir = Path()(data_dir)
+        from pathlib import Path
+self.data_dir = Path(data_dir)
         self.crypto_dir = self.data_dir / "crypto"
         self.keys_dir = self.crypto_dir / "keys"
         self.certs_dir = self.crypto_dir / "certs"
@@ -212,7 +213,7 @@ data_dir = Path()(data_dir)
         self.audit_system = get_unified_audit_system()
         self.certificate_manager = get_certificate_manager()
         self.hsm_manager = get_hsm_manager()
-        
+
         # Message tracking and statistics
         self.sent_messages: Dict[str, EncryptedMessage] = {}
         self.received_messages: Dict[str, EncryptedMessage] = {}
@@ -240,7 +241,7 @@ data_dir = Path()(data_dir)
         self.cipher_cache: Dict[str, Union[AESGCM, ChaCha20Poly1305]] = {}
 
         self._initialized = False
-    
+
     async def initialize(self) -> bool:
         """Initialize the enhanced encrypted communication system."""
         if self._initialized:
@@ -248,7 +249,7 @@ data_dir = Path()(data_dir)
 
         try:
             # Log initialization start
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
                 f"Initializing encrypted communication for node {self.node_id}",
                 SecuritySeverity.INFO,
@@ -287,7 +288,7 @@ data_dir = Path()(data_dir)
             self._initialized = True
 
             # Log successful initialization
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
                 f"Encrypted communication initialized successfully for node {self.node_id}",
                 SecuritySeverity.INFO,
@@ -307,7 +308,7 @@ data_dir = Path()(data_dir)
 
         except Exception as e:
             # Log initialization failure
-            self.audit_system.log_security_event(
+            self.audit_system.log_security_event()
                 SecurityEventType.SYSTEM_COMPROMISE,
                 f"Failed to initialize encrypted communication: {str(e)}",
                 SecuritySeverity.ERROR,
@@ -336,7 +337,7 @@ data_dir = Path()(data_dir)
                 if self.hsm_manager.is_available():
                     self.private_key = await self.hsm_manager.load_private_key(f"{self.node_id}_private")
                 else:
-                    self.private_key = serialization.load_pem_private_key(
+                    self.private_key = serialization.load_pem_private_key()
                         private_key_data,
                         password=None,
                         backend=default_backend()
@@ -344,7 +345,7 @@ data_dir = Path()(data_dir)
 
                 with open(public_key_path, 'rb') as f:
                     public_key_data = f.read()
-                    self.public_key = serialization.load_pem_public_key(
+                    self.public_key = serialization.load_pem_public_key()
                         public_key_data,
                         backend=default_backend()
                     )
@@ -362,7 +363,7 @@ data_dir = Path()(data_dir)
         """Generate enhanced cryptographic keys with multiple algorithms."""
         try:
             # Generate primary RSA key pair (for compatibility)
-            self.private_key = rsa.generate_private_key(
+            self.private_key = rsa.generate_private_key()
                 public_exponent=65537,
                 key_size=4096,  # Increased key size
                 backend=default_backend()
@@ -379,14 +380,14 @@ data_dir = Path()(data_dir)
             public_key_path = self.keys_dir / f"{self.node_id}_public.pem"
 
             # Serialize private key
-            private_pem = self.private_key.private_bytes(
+            private_pem = self.private_key.private_bytes()
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
             )
 
             # Serialize public key
-            public_pem = self.public_key.public_bytes(
+            public_pem = self.public_key.public_bytes()
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
@@ -454,7 +455,7 @@ data_dir = Path()(data_dir)
         """Generate enhanced X.509 certificate with security extensions."""
         try:
             # Create certificate subject
-            subject = issuer = x509.Name([
+            subject = issuer = x509.Name([)
                 x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
                 x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "PlexiChat"),
                 x509.NameAttribute(NameOID.LOCALITY_NAME, "Cluster"),
@@ -475,16 +476,16 @@ data_dir = Path()(data_dir)
             builder = builder.not_valid_after(now + timedelta(days=365))
 
             # Add security extensions
-            builder = builder.add_extension(
-                x509.SubjectAlternativeName([
+            builder = builder.add_extension()
+                x509.SubjectAlternativeName([)
                     x509.DNSName(self.node_id),
                     x509.DNSName(f"{self.node_id}.plexichat.local"),
                 ]),
                 critical=False,
             )
 
-            builder = builder.add_extension(
-                x509.KeyUsage(
+            builder = builder.add_extension()
+                x509.KeyUsage()
                     digital_signature=True,
                     key_encipherment=True,
                     key_agreement=True,
@@ -498,8 +499,8 @@ data_dir = Path()(data_dir)
                 critical=True,
             )
 
-            builder = builder.add_extension(
-                x509.ExtendedKeyUsage([
+            builder = builder.add_extension()
+                x509.ExtendedKeyUsage([)
                     x509.oid.ExtendedKeyUsageOID.CLIENT_AUTH,
                     x509.oid.ExtendedKeyUsageOID.SERVER_AUTH,
                 ]),
@@ -519,39 +520,39 @@ data_dir = Path()(data_dir)
         except Exception as e:
             logger.error(f"Failed to generate enhanced certificate: {e}")
             raise
-    
-    async def send_encrypted_message(self, recipient_node_id: str, message_type: MessageType,
+
+    async def send_encrypted_message(self, recipient_node_id: str, message_type: MessageType,)
                                    payload: Dict[str, Any]) -> Optional[str]:
         """
         Send encrypted message to another node.
-        
+
         Args:
             recipient_node_id: Target node ID
             message_type: Type of message
             payload: Message payload
-            
+
         Returns:
             Message ID if sent successfully, None otherwise
         """
         if not INTER_NODE_ENCRYPTION:
             logger.warning("Inter-node encryption is disabled")
             return None
-        
+
         try:
             # Generate message ID
             message_id = f"{self.node_id}_{recipient_node_id}_{secrets.token_hex(8)}"
-            
+
             # Serialize payload
             payload_json = json.dumps(payload).encode()
-            
+
             # Encrypt payload
             encrypted_payload, nonce = await self._encrypt_payload(payload_json)
-            
+
             # Sign message
             signature = await self._sign_message(encrypted_payload, recipient_node_id)
-            
+
             # Create encrypted message
-            message = EncryptedMessage(
+            message = EncryptedMessage()
                 message_id=message_id,
                 sender_node_id=self.node_id,
                 recipient_node_id=recipient_node_id,
@@ -562,64 +563,64 @@ data_dir = Path()(data_dir)
                 nonce=nonce,
                 key_version=self.current_key_version
             )
-            
+
             # Store sent message
             self.sent_messages[message_id] = message
-            
+
             # Send message (implementation would depend on transport layer)
             await self._transmit_message(message)
-            
+
             self.stats['messages_sent'] += 1
             self.stats['encryption_operations'] += 1
-            
+
             logger.debug(f"Sent encrypted message {message_id} to {recipient_node_id}")
             return message_id
-            
+
         except Exception as e:
             logger.error(f"Failed to send encrypted message to {recipient_node_id}: {e}")
             return None
-    
+
     async def receive_encrypted_message(self, message_data: bytes) -> Optional[Dict[str, Any]]:
         """
         Receive and decrypt message from another node.
-        
+
         Args:
             message_data: Raw encrypted message data
-            
+
         Returns:
             Decrypted message payload if successful, None otherwise
         """
         try:
             # Deserialize message
             message = self._deserialize_message(message_data)
-            
+
             # Verify sender authentication
             if not await self._verify_sender_authentication(message):
                 self.stats['authentication_failures'] += 1
                 logger.warning(f"Authentication failed for message from {message.sender_node_id}")
                 return None
-            
+
             # Verify message signature
             if not await self._verify_message_signature(message):
                 logger.warning(f"Signature verification failed for message {message.message_id}")
                 return None
-            
+
             # Decrypt payload
-            decrypted_payload = await self._decrypt_payload(
+            decrypted_payload = await self._decrypt_payload()
                 message.encrypted_payload, message.nonce, message.key_version
             )
-            
+
             # Deserialize payload
             payload = json.loads(decrypted_payload.decode())
-            
+
             # Store received message
             self.received_messages[message.message_id] = message
-            
+
             self.stats['messages_received'] += 1
             self.stats['decryption_operations'] += 1
-            
+
             logger.debug(f"Received encrypted message {message.message_id} from {message.sender_node_id}")
-            
+
             return {
                 'message_id': message.message_id,
                 'sender_node_id': message.sender_node_id,
@@ -627,35 +628,35 @@ data_dir = Path()(data_dir)
                 'payload': payload,
                 'timestamp': message.timestamp.isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to receive encrypted message: {e}")
             return None
-    
+
     async def send_heartbeat(self, recipient_node_id: str, status_data: Dict[str, Any]) -> bool:
         """Send encrypted heartbeat message."""
         if not HEARTBEAT_ENCRYPTION:
             return True  # Skip encryption for heartbeats if disabled
-        
+
         heartbeat_payload = {
             'node_id': self.node_id,
             'timestamp': datetime.now(timezone.utc).isoformat(),
             'status': status_data,
             'key_version': self.current_key_version
         }
-        
-        message_id = await self.send_encrypted_message(
+
+        message_id = await self.send_encrypted_message()
             recipient_node_id, MessageType.HEARTBEAT, heartbeat_payload
         )
-        
+
         return message_id is not None
-    
+
     async def send_hot_update(self, recipient_node_id: str, update_data: Dict[str, Any]) -> bool:
         """Send hot update message for zero-downtime updates."""
         if not HOT_UPDATE_SUPPORT:
             logger.warning("Hot update support is disabled")
             return False
-        
+
         update_payload = {
             'update_type': update_data.get('type', 'config'),
             'update_data': update_data,
@@ -663,59 +664,59 @@ data_dir = Path()(data_dir)
             'rollback_data': update_data.get('rollback_data'),
             'timestamp': datetime.now(timezone.utc).isoformat()
         }
-        
-        message_id = await self.send_encrypted_message(
+
+        message_id = await self.send_encrypted_message()
             recipient_node_id, MessageType.HOT_UPDATE, update_payload
         )
-        
+
         return message_id is not None
-    
+
     async def add_trusted_node(self, node_id: str, certificate_data: bytes) -> bool:
         """Add a trusted node certificate."""
         try:
             certificate = x509.load_pem_x509_certificate(certificate_data, default_backend())
-            
+
             # Verify certificate validity
             if not self._verify_certificate(certificate):
                 logger.error(f"Invalid certificate for node {node_id}")
                 return False
-            
+
             self.trusted_nodes[node_id] = certificate
             self.node_public_keys[node_id] = certificate.public_key()
-            
+
             logger.info(f"Added trusted node: {node_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to add trusted node {node_id}: {e}")
             return False
-    
+
     async def rotate_keys(self) -> bool:
         """Rotate symmetric encryption keys."""
         try:
             # Generate new key
             new_key = secrets.token_bytes(32)  # 256-bit key for AES-256
             new_version = self.current_key_version + 1
-            
+
             # Store new key
             self.symmetric_keys[new_version] = new_key
             self.current_key_version = new_version
-            
+
             # Keep old keys for a transition period
             if len(self.symmetric_keys) > 5:  # Keep last 5 versions
                 oldest_version = min(self.symmetric_keys.keys())
                 del self.symmetric_keys[oldest_version]
-            
+
             self.stats['key_rotations'] += 1
             self.stats['last_key_rotation'] = datetime.now(timezone.utc).isoformat()
-            
+
             logger.info(f"Rotated encryption keys to version {new_version}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to rotate keys: {e}")
             return False
-    
+
     async def get_statistics(self) -> Dict[str, Any]:
         """Get communication statistics."""
         return {

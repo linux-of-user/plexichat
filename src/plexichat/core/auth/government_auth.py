@@ -23,4 +23,4 @@ class GovernmentAuth:
         return None
 
 def get_government_auth():
-    return GovernmentAuth() 
+    return GovernmentAuth()

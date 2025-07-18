@@ -15,6 +15,7 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 Device management models for intelligent shard distribution.
 Handles device-based backup storage and smart shard placement.
 """
@@ -57,14 +58,14 @@ class StorageDevice(SQLModel, table=True):
     __tablename__ = "storage_devices"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
     # Device identification
     device_name: str = Field(max_length=255, index=True)
     device_type: DeviceType = Field(index=True)
-    hardware_id: str = Field(
+    hardware_id: str = Field()
         max_length=255, unique=True, index=True
     )  # MAC address, serial, etc.
 
@@ -92,10 +93,10 @@ class StorageDevice(SQLModel, table=True):
     reliability_score: float = Field(default=1.0, ge=0, le=1.0)  # 0-1 based on uptime
 
     # Device preferences
-    prefer_own_messages: bool = Field(
+    prefer_own_messages: bool = Field()
         default=True
     )  # Prefer storing user's own message shards
-    allow_critical_data: bool = Field(
+    allow_critical_data: bool = Field()
         default=True
     )  # Allow storing critical system data
     storage_priority: int = Field(default=5, ge=1, le=10)  # 1=low, 10=high priority
@@ -113,13 +114,13 @@ class StorageDevice(SQLModel, table=True):
 
     # Geographic and network information
     geographic_region: Optional[str] = Field(max_length=100)
-    network_zone: Optional[str] = Field(
+    network_zone: Optional[str] = Field()
         max_length=100
     )  # For network topology optimization
 
     # Timestamps
     registered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    last_updated_at: datetime = Field(
+    last_updated_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
@@ -127,12 +128,12 @@ class StorageDevice(SQLModel, table=True):
     capabilities: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
 
     # Relationships
-    shard_assignments: List["DeviceShardAssignment"] = Relationship(
+    shard_assignments: List["DeviceShardAssignment"] = Relationship()
         back_populates="device"
     )
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_device_user_status", "user_id", "status"),
         Index("idx_device_type_status", "device_type", "status"),
         Index("idx_device_storage", "available_storage_bytes", "current_shard_count"),
@@ -153,7 +154,7 @@ class DeviceShardAssignment(SQLModel, table=True):
     backup_id: int = Field(foreign_key="enhanced_backups.id", index=True)
 
     # Assignment metadata
-    assignment_reason: str = Field(
+    assignment_reason: str = Field()
         max_length=100
     )  # 'user_preference', 'optimal_placement', 'redundancy'
     priority_level: int = Field(default=5, ge=1, le=10)
@@ -182,7 +183,7 @@ class DeviceShardAssignment(SQLModel, table=True):
     device: Optional[StorageDevice] = Relationship(back_populates="shard_assignments")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_assignment_device_active", "device_id", "is_active"),
         Index("idx_assignment_shard_device", "shard_id", "device_id", unique=True),
         Index("idx_assignment_backup_device", "backup_id", "device_id"),
@@ -226,7 +227,7 @@ class DeviceCapabilityReport(SQLModel, table=True):
     corrupted_shards_count: int = Field(default=0, ge=0)
 
     # Timestamp
-    reported_at: datetime = Field(
+    reported_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
 
@@ -305,12 +306,12 @@ class DeviceNetworkTopology(SQLModel, table=True):
 
     # Connection quality
     connection_stability: float = Field(default=1.0, ge=0, le=1.0)
-    last_measured_at: datetime = Field(
+    last_measured_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_topology_devices", "device_a_id", "device_b_id", unique=True),
         Index("idx_topology_latency", "latency_ms"),
         Index("idx_topology_bandwidth", "bandwidth_mbps"),

@@ -37,14 +37,14 @@ class ThreadTask:
     kwargs: dict
     priority: int = 0
     created_at: Optional[float] = None
-    
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = time.time()
 
 class ThreadManager:
     """Thread manager with performance optimization."""
-    
+
     def __init__(self, max_workers: int = 10):
         self.max_workers = max_workers
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -57,12 +57,12 @@ class ThreadManager:
         self._shutdown = False
         self._worker_thread = None
         self._start_worker()
-    
+
     def _start_worker(self):
         """Start background worker thread."""
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
         self._worker_thread.start()
-    
+
     def _worker_loop(self):
         """Main worker loop."""
         while not self._shutdown:
@@ -75,12 +75,12 @@ class ThreadManager:
                 continue
             except Exception as e:
                 logger.error(f"Worker loop error: {e}")
-    
+
     def _execute_task(self, task: ThreadTask):
         """Execute a single task."""
         try:
             start_time = time.time()
-            
+
             # Execute task
             result = task.function(*task.args, **task.kwargs)
 
@@ -98,14 +98,14 @@ class ThreadManager:
             # Log to database
             if self.db_manager:
                 asyncio.create_task(self._log_task_completion(task, result, duration))
-                
+
         except Exception as e:
             self.failed_tasks[task.task_id] = e
             logger.error(f"Task {task.task_id} failed: {e}")
-            
+
             if self.performance_logger:
                 self.performance_logger.record_metric("thread_tasks_failed", 1, "count")
-    
+
     async def _log_task_completion(self, task: ThreadTask, result: Any, duration: float):
         """Log task completion to database."""
         try:
@@ -125,7 +125,7 @@ class ThreadManager:
                 await self.db_manager.execute_query(query, params)
         except Exception as e:
             logger.error(f"Error logging task completion: {e}")
-    
+
     def submit_task(self, task_id: str, function: Callable, *args, **kwargs) -> str:
         """Submit task for execution."""
         task = ThreadTask(
@@ -135,12 +135,12 @@ class ThreadManager:
             kwargs=kwargs
         )
         self.task_queue.put(task)
-        
+
         if self.performance_logger:
             self.performance_logger.record_metric("thread_tasks_submitted", 1, "count")
-        
+
         return task_id
-    
+
     def submit_batch(self, tasks: List[Dict[str, Any]]) -> List[str]:
         """Submit multiple tasks."""
         task_ids = []
@@ -153,7 +153,7 @@ class ThreadManager:
             )
             task_ids.append(task_id)
         return task_ids
-    
+
     def get_result(self, task_id: str, timeout: Optional[float] = None) -> Any:
         """Get task result."""
         start_time = time.time()
@@ -161,20 +161,20 @@ class ThreadManager:
             if timeout and (time.time() - start_time) > timeout:
                 raise TimeoutError(f"Task {task_id} timed out")
             time.sleep(0.1)
-        
+
         if task_id in self.failed_tasks:
             raise self.failed_tasks[task_id]
-        
+
         return self.completed_tasks.get(task_id)
-    
+
     def is_completed(self, task_id: str) -> bool:
         """Check if task is completed."""
         return task_id in self.completed_tasks
-    
+
     def is_failed(self, task_id: str) -> bool:
         """Check if task failed."""
         return task_id in self.failed_tasks
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get thread manager status."""
         return {
@@ -185,7 +185,7 @@ class ThreadManager:
             "queue_size": self.task_queue.qsize(),
             "shutdown": self._shutdown
         }
-    
+
     def shutdown(self, wait: bool = True):
         """Shutdown thread manager."""
         self._shutdown = True
@@ -195,30 +195,30 @@ class ThreadManager:
 
 class AsyncThreadManager:
     """Async thread manager for async/await integration."""
-    
+
     def __init__(self, max_workers: int = 10):
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self.performance_logger = performance_logger
-    
+
     async def run_in_thread(self, function: Callable, *args, **kwargs) -> Any:
         """Run function in thread pool."""
         loop = asyncio.get_event_loop()
-        
+
         start_time = time.time()
         try:
             result = await loop.run_in_executor(self.executor, function, *args, **kwargs)
-            
+
             if self.performance_logger:
                 duration = time.time() - start_time
                 self.performance_logger.record_metric("async_thread_duration", duration, "seconds")
                 self.performance_logger.record_metric("async_thread_tasks_completed", 1, "count")
-            
+
             return result
         except Exception as e:
             if self.performance_logger:
                 self.performance_logger.record_metric("async_thread_tasks_failed", 1, "count")
             raise
-    
+
     async def run_batch(self, tasks: List[Dict[str, Any]]) -> List[Any]:
         """Run multiple tasks in parallel."""
         futures = []
@@ -229,9 +229,9 @@ class AsyncThreadManager:
                 **task.get("kwargs", {})
             )
             futures.append(future)
-        
+
         return await asyncio.gather(*futures, return_exceptions=True)
-    
+
     def shutdown(self):
         """Shutdown async thread manager."""
         self.executor.shutdown(wait=True)

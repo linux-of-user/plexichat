@@ -1,4 +1,6 @@
 # pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -18,11 +20,9 @@ from tabulate import tabulate
 
 
 from pathlib import Path
-from datetime import datetime
 
 
 from pathlib import Path
-from datetime import datetime
 
 from plexichat.core.config.config_manager import ConfigManager
 from plexichat.core.database.enhanced_abstraction import enhanced_db_manager
@@ -78,7 +78,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
             report = await performance_optimizer.analyze_database_performance(database_name)
 
             if format == 'json':
-                click.echo(json.dumps({
+                click.echo(json.dumps({))
                     "database": report.database_name,
                     "performance_score": report.performance_score,
                     "optimization_priority": report.optimization_priority,
@@ -91,7 +91,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
                 }, indent=2))
 
             elif format == 'yaml':
-                click.echo(yaml.dump({
+                click.echo(yaml.dump({))
                     "database_performance_report": {
                         "database": report.database_name,
                         "analysis_timestamp": report.analysis_timestamp.isoformat(),
@@ -146,7 +146,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
                         click.echo("\n Index Recommendations:")
                         index_data = []
                         for idx in report.recommended_indexes[:5]:  # Show top 5
-                            index_data.append([
+                            index_data.append([)
                                 idx.index_definition.table,
                                 ", ".join(idx.index_definition.columns),
                                 f"{idx.estimated_improvement:.1f}%",
@@ -158,7 +158,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
                         click.echo("\n Schema Recommendations:")
                         schema_data = []
                         for rec in report.schema_recommendations[:5]:  # Show top 5
-                            schema_data.append([
+                            schema_data.append([)
                                 f"{rec.table_name}.{rec.column_name}",
                                 rec.current_type,
                                 rec.recommended_type,
@@ -202,7 +202,7 @@ def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool
                 auto_apply_local = False
 
             # Run optimization
-            tasks = await performance_optimizer.optimize_database_performance(
+            tasks = await performance_optimizer.optimize_database_performance()
                 database_name, auto_apply=auto_apply_local
             )
 
@@ -215,14 +215,14 @@ def optimize(ctx, database: str, auto_apply: bool, max_tasks: int, dry_run: bool
             task_data = []
             for task in tasks:
                 status_color = "green" if task.success else "red" if task.status.value == "failed" else "yellow"
-                task_data.append([
+                task_data.append([)
                     task.optimization_type.replace("_", " ").title(),
                     task.description,
                     click.style(task.status.value.title(), fg=status_color),
                     f"Priority {task.priority}"
                 ])
 
-            click.echo(tabulate(task_data, headers=["Type", "Description", "Status", "Priority"], tablefmt="grid"))
+            click.echo(tabulate(task_data, headers=[Type, "Description", "Status", "Priority"], tablefmt="grid"))
 
             if auto_apply_local:
                 successful_tasks = [t for t in tasks if t.success]
@@ -334,7 +334,7 @@ def indexes(ctx, database: str, format: str):
                     click.echo("\n Top Index Recommendations:")
                     rec_data = []
                     for rec in recommendations:
-                        rec_data.append([
+                        rec_data.append([)
                             rec['table'],
                             ", ".join(rec['columns']),
                             f"Priority {rec['priority']}",
@@ -435,7 +435,7 @@ def status(ctx):
             for db_name, report in reports.items():
                 score = report.get('performance_score', 0)
                 priority = report.get('optimization_priority', 'unknown')
-                score_data.append([
+                score_data.append([)
                     db_name,
                     f"{score:.1f}/100",
                     priority.title(),

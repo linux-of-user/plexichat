@@ -16,6 +16,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 """
+import time
 PlexiChat Web Application Firewall (WAF)
 Integrates ModSecurity with OWASP Core Rule Set for comprehensive protection
 """
@@ -65,7 +66,7 @@ class WAFRule:
         """Compile regex pattern after initialization."""
         if self.pattern and not self.compiled_pattern:
             try:
-                self.compiled_pattern = re.compile(
+                self.compiled_pattern = re.compile()
                     self.pattern, re.IGNORECASE | re.MULTILINE
                 )
             except re.error as e:
@@ -130,7 +131,7 @@ class WebApplicationFirewall:
         """Load OWASP Core Rule Set patterns."""
         owasp_rules = [
             # SQL Injection Rules
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_001",
                 rule_type=WAFRuleType.SQL_INJECTION,
                 pattern=r"(?i)(union\s+select|select\s+.*\s+from|insert\s+into|delete\s+from|update\s+.*\s+set|drop\s+table|create\s+table)",
@@ -138,7 +139,7 @@ class WebApplicationFirewall:
                 severity=9,
                 description="SQL injection attempt detected",
             ),
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_002",
                 rule_type=WAFRuleType.SQL_INJECTION,
                 pattern=r"(?i)(\'\s*(or|and)\s*\'\s*=\s*\'|\'\s*(or|and)\s*1\s*=\s*1|admin\'\s*--|\'\s*or\s*\'1\'\s*=\s*\'1)",
@@ -147,7 +148,7 @@ class WebApplicationFirewall:
                 description="SQL injection authentication bypass attempt",
             ),
             # XSS Rules
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_003",
                 rule_type=WAFRuleType.XSS,
                 pattern=r"(?i)(<script[^>]*>.*?</script>|javascript:|vbscript:|onload\s*=|onerror\s*=|onclick\s*=)",
@@ -155,7 +156,7 @@ class WebApplicationFirewall:
                 severity=8,
                 description="Cross-site scripting (XSS) attempt detected",
             ),
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_004",
                 rule_type=WAFRuleType.XSS,
                 pattern=r"(?i)(<iframe[^>]*>|<object[^>]*>|<embed[^>]*>|<applet[^>]*>)",
@@ -164,7 +165,7 @@ class WebApplicationFirewall:
                 description="Potentially malicious HTML tag detected",
             ),
             # Remote File Inclusion
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_005",
                 rule_type=WAFRuleType.RFI,
                 pattern=r"(?i)(http://|https://|ftp://|file://|php://|data://|expect://|zip://)",
@@ -173,7 +174,7 @@ class WebApplicationFirewall:
                 description="Remote file inclusion attempt detected",
             ),
             # Local File Inclusion / Path Traversal
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_006",
                 rule_type=WAFRuleType.PATH_TRAVERSAL,
                 pattern=r"(?i)(\.\.\/|\.\.\\|\/etc\/passwd|\/etc\/shadow|\/proc\/|\/sys\/|\.\.%2f|\.\.%5c)",
@@ -182,16 +183,16 @@ class WebApplicationFirewall:
                 description="Path traversal attempt detected",
             ),
             # Command Injection
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_007",
                 rule_type=WAFRuleType.COMMAND_INJECTION,
-                pattern=r"(?i)(;|\||\&|\$\(|\`|nc\s|wget\s|curl\s|bash\s|sh\s|cmd\s|powershell\s)",
+                pattern=r"(?i)(;|\||\&|\$\(|\`|nc\s|wget\s|curl\s|bash\s|sh\s|cmd\s|powershell\s)",)
                 action=WAFAction.BLOCK,
                 severity=9,
                 description="Command injection attempt detected",
             ),
             # Protocol Attacks
-            WAFRule(
+            WAFRule()
                 rule_id="OWASP_008",
                 rule_type=WAFRuleType.PROTOCOL_ATTACK,
                 pattern=r"(?i)(content-length:\s*-|\r\n\r\n|http\/1\.[01]\s+[45]\d\d)",
@@ -211,7 +212,7 @@ class WebApplicationFirewall:
         """Load custom WAF rules."""
         custom_rules = [
             # PlexiChat specific rules
-            WAFRule(
+            WAFRule()
                 rule_id="CUSTOM_001",
                 rule_type=WAFRuleType.CUSTOM,
                 pattern=r"(?i)(plexichat_admin|admin_panel|/admin/|/administrator/)",
@@ -219,7 +220,7 @@ class WebApplicationFirewall:
                 severity=5,
                 description="Admin panel access attempt",
             ),
-            WAFRule(
+            WAFRule()
                 rule_id="CUSTOM_002",
                 rule_type=WAFRuleType.CUSTOM,
                 pattern=r"(?i)(\.env|\.config|\.ini|\.conf|\.yaml|\.yml|\.json)$",
@@ -235,7 +236,7 @@ class WebApplicationFirewall:
 
         logger.info(f" Loaded {len(custom_rules)} custom WAF rules")
 
-    async def analyze_request(
+    async def analyze_request()
         self, request: Request
     ) -> Tuple[bool, Optional[WAFViolation]]:
         """
@@ -261,7 +262,7 @@ class WebApplicationFirewall:
         if client_ip in self.blocked_ips:
             block_time = self.blocked_ips[client_ip]
             if datetime.now(timezone.utc) - block_time < timedelta(hours=1):
-                return False, WAFViolation(
+                return False, WAFViolation()
                     rule_id="BLOCKED_IP",
                     rule_type=WAFRuleType.RATE_LIMITING,
                     severity=10,
@@ -290,7 +291,7 @@ class WebApplicationFirewall:
             for component_name, component_data in request_data.items():
                 if component_data and rule.compiled_pattern.search(str(component_data)):
                     # Rule violation detected
-                    violation = WAFViolation(
+                    violation = WAFViolation()
                         rule_id=rule_id,
                         rule_type=rule.rule_type,
                         severity=rule.severity,
@@ -309,7 +310,7 @@ class WebApplicationFirewall:
                     # Update statistics
                     self.stats["violations_detected"] += 1
                     self.stats["rules_triggered"][rule_id] += 1
-                    self.stats["top_attacking_ips"][client_ip] = (
+                    self.stats["top_attacking_ips"][client_ip] = ()
                         self.stats["top_attacking_ips"].get(client_ip, 0) + 1
                     )
 
@@ -324,7 +325,7 @@ class WebApplicationFirewall:
                             self.blocked_ips[client_ip] = datetime.now(timezone.utc)
                         return False, violation
                     elif rule.action == WAFAction.LOG:
-                        logger.warning(
+                        logger.warning()
                             f"WAF violation logged: {violation.description} from {client_ip}"
                         )
                         continue  # Continue checking other rules
@@ -425,7 +426,7 @@ async def waf_middleware(request: Request, call_next):
 
         if not allowed and violation:
             # Return blocked response
-            return JSONResponse(
+            return JSONResponse()
                 status_code=403,
                 content={
                     "error": "Request blocked by Web Application Firewall",

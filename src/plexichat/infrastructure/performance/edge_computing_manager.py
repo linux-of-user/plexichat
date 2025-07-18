@@ -26,8 +26,6 @@ from ...core.config import get_config
 from plexichat.core.logging import get_logger
 
 
-
-
 try:
     import psutil
 except ImportError:
@@ -538,9 +536,7 @@ class EdgeComputingManager:
                     await self._analyze_load_patterns()
 
                     # Update statistics
-                    self.edge_stats["uptime_seconds"] = (
-                        datetime.now(timezone.utc) - self.start_time
-                    ).total_seconds()
+                    self.edge_stats["uptime_seconds"] = (datetime.now(timezone.utc) - self.start_time).total_seconds()
 
                 except Exception as e:
                     logger.error(f" Error in load monitoring loop: {e}")
@@ -713,7 +709,6 @@ class EdgeComputingManager:
             if len(self.load_history) < 3:
                 return None
 
-            self.load_history[-1]
             recent_metrics = list(self.load_history)[-5:]
 
             # Calculate average metrics over recent period
@@ -1227,7 +1222,7 @@ class EdgeComputingManager:
             if len(same_hour_metrics) >= 5:
                 # Calculate average load for this hour
                 avg_cpu = statistics.mean([m.cpu_usage_percent for m in same_hour_metrics])
-                statistics.mean([m.memory_usage_percent for m in same_hour_metrics])
+                avg_memory = statistics.mean([m.memory_usage_percent for m in same_hour_metrics])
                 avg_response_time = statistics.mean([m.average_response_time_ms for m in same_hour_metrics])
 
                 # Predict if scaling will be needed
@@ -1384,8 +1379,7 @@ class EdgeComputingManager:
 
     # ==================== ENHANCED EDGE COMPUTING METHODS ====================
 
-    async def deploy_service_to_edge(self, service_name: str, node_ids: List[str],
-                                   deployment_config: Dict[str, Any]) -> Dict[str, Any]:
+    async def deploy_service_to_edge(self, service_name: str, node_ids: List[str], deployment_config: Dict[str, Any]) -> Dict[str, Any]:
         """Deploy a service to specific edge nodes."""
         try:
             deployment_results = {}
@@ -1434,8 +1428,7 @@ class EdgeComputingManager:
             logger.error(f" Failed to deploy service {service_name}: {e}")
             return {"error": str(e)}
 
-    async def get_optimal_node_for_request(self, client_lat: float, client_lon: float,
-                                         service_name: Optional[str] = None) -> Optional[str]:
+    async def get_optimal_node_for_request(self, client_lat: float, client_lon: float, service_name: Optional[str] = None) -> Optional[str]:
         """Find the optimal edge node for a client request."""
         try:
             candidate_nodes = []

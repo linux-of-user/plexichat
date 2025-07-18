@@ -14,7 +14,6 @@ import random
 try:
     from plexichat.interfaces.api.v1.auth import get_current_user
     from plexichat.app.logger_config import get_logger
-    from plexichat.core.config import settings
 except ImportError:
     get_current_user = lambda: {}
     get_logger = lambda name: print
@@ -61,7 +60,7 @@ async def require_dev_access(current_user: Dict = Depends(get_current_user)):
     if not ("admin" in user_roles or "developer" in user_roles or "tester" in user_roles):
         # In development mode, allow all authenticated users
         if settings.get("environment") != "development":
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Development/testing privileges required"
             )
@@ -91,7 +90,7 @@ async def delay_test(delay_seconds: float = Query(1.0, ge=0, le=30)):
     start_time = time.time()
     await asyncio.sleep(delay_seconds)
     end_time = time.time()
-    
+
     return {
         "requested_delay": delay_seconds,
         "actual_delay": end_time - start_time,
@@ -99,13 +98,13 @@ async def delay_test(delay_seconds: float = Query(1.0, ge=0, le=30)):
     }
 
 @router.get("/random")
-async def random_data(
+async def random_data()
     size: int = Query(100, ge=1, le=10000),
-    data_type: str = Query("string", regex="^(string|number|boolean|mixed)$")
+    data_type: str = Query("string", pattern="^(string|number|boolean|mixed)$")
 ):
     """Generate random test data."""
     data = []
-    
+
     for _ in range(size):
         if data_type == "string":
             data.append(f"test_string_{random.randint(1000, 9999)}")
@@ -121,7 +120,7 @@ async def random_data(
                 data.append(random.randint(1, 100))
             else:
                 data.append(random.choice([True, False]))
-    
+
     return {
         "data": data,
         "size": len(data),
@@ -130,7 +129,7 @@ async def random_data(
     }
 
 @router.post("/error")
-async def error_test(
+async def error_test()
     error_code: int = Query(500, ge=400, le=599),
     error_message: str = Query("Test error message")
 ):
@@ -138,17 +137,17 @@ async def error_test(
     raise HTTPException(status_code=error_code, detail=error_message)
 
 @router.post("/test", response_model=TestResponse)
-async def run_test(
+async def run_test()
     request: TestRequest,
     current_user: Dict = Depends(require_dev_access)
 ):
     """Run a specific test case."""
     start_time = time.time()
     test_id = f"test_{int(start_time)}_{random.randint(1000, 9999)}"
-    
+
     try:
         result = {}
-        
+
         if request.test_type == "database":
             result = await _test_database_connection()
         elif request.test_type == "auth":
@@ -161,10 +160,10 @@ async def run_test(
             result = await _test_performance()
         else:
             raise HTTPException(status_code=400, detail=f"Unknown test type: {request.test_type}")
-        
+
         duration = time.time() - start_time
-        
-        return TestResponse(
+
+        return TestResponse()
             test_id=test_id,
             test_type=request.test_type,
             status="completed",
@@ -172,12 +171,12 @@ async def run_test(
             duration=duration,
             timestamp=str(time.time())
         )
-        
+
     except Exception as e:
         duration = time.time() - start_time
         logger.error(f"Test {test_id} failed: {e}")
-        
-        return TestResponse(
+
+        return TestResponse()
             test_id=test_id,
             test_type=request.test_type,
             status="failed",
@@ -187,20 +186,20 @@ async def run_test(
         )
 
 @router.post("/load-test", response_model=LoadTestResponse)
-async def load_test(
+async def load_test()
     request: LoadTestRequest,
     current_user: Dict = Depends(require_dev_access)
 ):
     """Run load test on specified endpoint."""
     test_id = f"load_test_{int(time.time())}_{random.randint(1000, 9999)}"
-    
+
     try:
         # Simulate load test results
         total_requests = request.concurrent_users * request.requests_per_second * request.duration_seconds
         successful_requests = int(total_requests * random.uniform(0.85, 0.99))
         failed_requests = total_requests - successful_requests
-        
-        return LoadTestResponse(
+
+        return LoadTestResponse()
             test_id=test_id,
             status="completed",
             total_requests=total_requests,
@@ -211,7 +210,7 @@ async def load_test(
             min_response_time=random.uniform(10, 50),
             requests_per_second=float(request.requests_per_second)
         )
-        
+
     except Exception as e:
         logger.error(f"Load test {test_id} failed: {e}")
         raise HTTPException(status_code=500, detail=f"Load test failed: {e}")
@@ -222,7 +221,7 @@ async def get_system_info(current_user: Dict = Depends(require_dev_access)):
     try:
         import platform
         import sys
-        
+
         return {
             "python_version": sys.version,
             "platform": platform.platform(),
@@ -232,14 +231,14 @@ async def get_system_info(current_user: Dict = Depends(require_dev_access)):
             "debug_mode": settings.get("debug", False),
             "timestamp": time.time()
         }
-        
+
     except Exception as e:
         logger.error(f"Get system info error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/logs/test")
-async def test_logging(
-    level: str = Query("info", regex="^(debug|info|warning|error|critical)$"),
+async def test_logging()
+    level: str = Query("info", pattern="^(debug|info|warning|error|critical)$"),
     message: str = Query("Test log message")
 ):
     """Test logging functionality."""
@@ -254,13 +253,13 @@ async def test_logging(
             logger.error(message)
         elif level == "critical":
             logger.critical(message)
-        
+
         return {
             "message": f"Log message sent with level: {level}",
             "logged_message": message,
             "timestamp": time.time()
         }
-        
+
     except Exception as e:
         logger.error(f"Test logging error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

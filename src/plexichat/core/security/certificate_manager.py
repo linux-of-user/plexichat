@@ -32,6 +32,8 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import subprocess
+import time
 PlexiChat Certificate Manager - SINGLE SOURCE OF TRUTH
 
 CONSOLIDATED from multiple certificate management systems:
@@ -107,8 +109,8 @@ class ConsolidatedCertificateManager:
         self.certificates: Dict[str, CertificateInfo] = {}
 
         # Configuration
-        self.from pathlib import Path
-cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
+        from pathlib import Path
+self.cert_directory = Path(self.config.get("cert_directory", "./certificates"))
         self.lets_encrypt_email = self.config.get("lets_encrypt_email", "admin@example.com")
         self.lets_encrypt_staging = self.config.get("lets_encrypt_staging", False)
         self.auto_renewal_enabled = self.config.get("auto_renewal_enabled", True)
@@ -157,7 +159,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
                 key_file = self.cert_directory / f"{domain}.key"
 
                 if key_file.exists():
-                    cert_info = await self._create_certificate_info_from_files(
+                    cert_info = await self._create_certificate_info_from_files()
                         domain, cert_file, key_file
                     )
                     if cert_info:
@@ -167,7 +169,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
         except Exception as e:
             logger.error(f"Failed to load existing certificates: {e}")
 
-    async def _create_certificate_info_from_files(
+    async def _create_certificate_info_from_files()
         self, domain: str, cert_path: Path, key_path: Path
     ) -> Optional[CertificateInfo]:
         """Create certificate info from existing files."""
@@ -184,7 +186,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
             if "Let's Encrypt" in str(cert.issuer):
                 cert_type = CertificateType.LETS_ENCRYPT
 
-            return CertificateInfo(
+            return CertificateInfo()
                 domain=domain,
                 certificate_type=cert_type,
                 certificate_path=cert_path,
@@ -212,7 +214,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
         else:
             return CertificateStatus.VALID
 
-    async def generate_certificate(
+    async def generate_certificate()
         self,
         domain: str,
         certificate_type: CertificateType = CertificateType.LETS_ENCRYPT,
@@ -237,19 +239,19 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
             logger.error(f"Failed to generate certificate for {domain}: {e}")
             return None
 
-    async def _generate_self_signed_certificate(
+    async def _generate_self_signed_certificate()
         self, domain: str, san_domains: Optional[List[str]] = None
     ) -> Optional[CertificateInfo]:
         """Generate a self-signed certificate."""
         try:
             # Generate private key
-            private_key = rsa.generate_private_key(
+            private_key = rsa.generate_private_key()
                 public_exponent=65537,
                 key_size=2048,
             )
 
             # Create certificate
-            subject = issuer = x509.Name([
+            subject = issuer = x509.Name([)
                 x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
                 x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "CA"),
                 x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
@@ -263,7 +265,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
             cert_builder = cert_builder.public_key(private_key.public_key())
             cert_builder = cert_builder.serial_number(x509.random_serial_number())
             cert_builder = cert_builder.not_valid_before(datetime.now(timezone.utc))
-            cert_builder = cert_builder.not_valid_after(
+            cert_builder = cert_builder.not_valid_after()
                 datetime.now(timezone.utc) + timedelta(days=365)
             )
 
@@ -272,7 +274,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
             if san_domains:
                 san_list.extend([x509.DNSName(san) for san in san_domains])
 
-            cert_builder = cert_builder.add_extension(
+            cert_builder = cert_builder.add_extension()
                 x509.SubjectAlternativeName(san_list),
                 critical=False,
             )
@@ -288,14 +290,14 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
                 f.write(certificate.public_bytes(serialization.Encoding.PEM))
 
             with open(key_path, "wb") as f:
-                f.write(private_key.private_bytes(
+                f.write(private_key.private_bytes())
                     encoding=serialization.Encoding.PEM,
                     format=serialization.PrivateFormat.PKCS8,
                     encryption_algorithm=serialization.NoEncryption()
                 ))
 
             # Create certificate info
-            cert_info = CertificateInfo(
+            cert_info = CertificateInfo()
                 domain=domain,
                 certificate_type=CertificateType.SELF_SIGNED,
                 certificate_path=cert_path,
@@ -312,7 +314,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
             logger.error(f"Failed to generate self-signed certificate for {domain}: {e}")
             return None
 
-    async def _generate_lets_encrypt_certificate(
+    async def _generate_lets_encrypt_certificate()
         self, domain: str, email: Optional[str] = None, san_domains: Optional[List[str]] = None
     ) -> Optional[CertificateInfo]:
         """Generate a Let's Encrypt certificate using certbot."""
@@ -347,7 +349,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
                 cmd.append("--test-cert")
 
             # Run certbot
-            process = await asyncio.create_subprocess_exec(
+            process = await asyncio.create_subprocess_exec()
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
@@ -359,10 +361,10 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
                 # Find certificate files
                 from pathlib import Path
 
-                cert_path = Path()(f"/etc/letsencrypt/live/{domain}/fullchain.pem")
+                self.cert_path = Path(f"/etc/letsencrypt/live/{domain}/fullchain.pem")
                 from pathlib import Path
 
-                key_path = Path()(f"/etc/letsencrypt/live/{domain}/privkey.pem")
+                self.key_path = Path(f"/etc/letsencrypt/live/{domain}/privkey.pem")
 
                 if cert_path.exists() and key_path.exists():
                     # Copy to our certificate directory
@@ -373,7 +375,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
                     shutil.copy2(key_path, local_key_path)
 
                     # Create certificate info
-                    cert_info = await self._create_certificate_info_from_files(
+                    cert_info = await self._create_certificate_info_from_files()
                         domain, local_cert_path, local_key_path
                     )
 
@@ -420,7 +422,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
         try:
             cmd = ["certbot", "renew", "--cert-name", domain, "--quiet"]
 
-            process = await asyncio.create_subprocess_exec(
+            process = await asyncio.create_subprocess_exec()
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
@@ -431,7 +433,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
             if process.returncode == 0:
                 # Update certificate info
                 cert_info = self.certificates[domain]
-                updated_info = await self._create_certificate_info_from_files(
+                updated_info = await self._create_certificate_info_from_files()
                     domain, cert_info.certificate_path, cert_info.private_key_path
                 )
                 if updated_info:
@@ -463,7 +465,7 @@ cert_directory = Path()(self.config.get("cert_directory", "./certificates"))
 
         try:
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-            context.load_cert_chain(
+            context.load_cert_chain()
                 str(cert_info.certificate_path),
                 str(cert_info.private_key_path)
             )

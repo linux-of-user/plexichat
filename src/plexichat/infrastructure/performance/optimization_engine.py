@@ -14,9 +14,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 
-
-
-
 import psutil
 import psutil
 import psutil
@@ -31,6 +28,7 @@ import psutil
 import psutil
 
 """
+import time
 PlexiChat Performance Optimization Engine
 
 Advanced performance optimization with specific success metrics:
@@ -100,7 +98,7 @@ class PerformanceMonitor:
 
         # Performance targets
         self.targets = {
-            "response_time_ms": PerformanceTarget(
+            "response_time_ms": PerformanceTarget()
                 metric_name="response_time_ms",
                 target_value=100.0,  # Target: <100ms response time
                 current_value=0.0,
@@ -108,7 +106,7 @@ class PerformanceMonitor:
                 priority=1,
                 optimization_strategy="caching_and_database_optimization"
             ),
-            "throughput_rps": PerformanceTarget(
+            "throughput_rps": PerformanceTarget()
                 metric_name="throughput_rps",
                 target_value=1000.0,  # Target: 1000 requests/second
                 current_value=0.0,
@@ -116,7 +114,7 @@ class PerformanceMonitor:
                 priority=1,
                 optimization_strategy="async_processing_and_load_balancing"
             ),
-            "memory_usage_mb": PerformanceTarget(
+            "memory_usage_mb": PerformanceTarget()
                 metric_name="memory_usage_mb",
                 target_value=512.0,  # Target: <512MB memory usage
                 current_value=0.0,
@@ -124,7 +122,7 @@ class PerformanceMonitor:
                 priority=2,
                 optimization_strategy="memory_optimization_and_gc_tuning"
             ),
-            "cpu_usage_percent": PerformanceTarget(
+            "cpu_usage_percent": PerformanceTarget()
                 metric_name="cpu_usage_percent",
                 target_value=70.0,  # Target: <70% CPU usage
                 current_value=0.0,
@@ -132,7 +130,7 @@ class PerformanceMonitor:
                 priority=2,
                 optimization_strategy="cpu_optimization_and_async_processing"
             ),
-            "database_query_time_ms": PerformanceTarget(
+            "database_query_time_ms": PerformanceTarget()
                 metric_name="database_query_time_ms",
                 target_value=50.0,  # Target: <50ms query time
                 current_value=0.0,
@@ -197,7 +195,7 @@ class PerformanceMonitor:
         try:
             # CPU usage
             cpu_percent = psutil.cpu_percent(interval=1)
-            self.record_metric(PerformanceMetric(
+            self.record_metric(PerformanceMetric())
                 metric_name="cpu_usage_percent",
                 value=cpu_percent,
                 unit="percent",
@@ -207,7 +205,7 @@ class PerformanceMonitor:
             # Memory usage
             memory = psutil.virtual_memory()
             memory_mb = memory.used / 1024 / 1024
-            self.record_metric(PerformanceMetric(
+            self.record_metric(PerformanceMetric())
                 metric_name="memory_usage_mb",
                 value=memory_mb,
                 unit="MB",
@@ -215,7 +213,7 @@ class PerformanceMonitor:
             ))
 
             # Memory usage percentage
-            self.record_metric(PerformanceMetric(
+            self.record_metric(PerformanceMetric())
                 metric_name="memory_usage_percent",
                 value=memory.percent,
                 unit="percent",
@@ -225,14 +223,14 @@ class PerformanceMonitor:
             # Disk I/O
             disk_io = psutil.disk_io_counters()
             if disk_io:
-                self.record_metric(PerformanceMetric(
+                self.record_metric(PerformanceMetric())
                     metric_name="disk_read_mb_per_sec",
                     value=disk_io.read_bytes / 1024 / 1024,
                     unit="MB/s",
                     category="system"
                 ))
 
-                self.record_metric(PerformanceMetric(
+                self.record_metric(PerformanceMetric())
                     metric_name="disk_write_mb_per_sec",
                     value=disk_io.write_bytes / 1024 / 1024,
                     unit="MB/s",
@@ -242,14 +240,14 @@ class PerformanceMonitor:
             # Network I/O
             network_io = psutil.net_io_counters()
             if network_io:
-                self.record_metric(PerformanceMetric(
+                self.record_metric(PerformanceMetric())
                     metric_name="network_sent_mb_per_sec",
                     value=network_io.bytes_sent / 1024 / 1024,
                     unit="MB/s",
                     category="system"
                 ))
 
-                self.record_metric(PerformanceMetric(
+                self.record_metric(PerformanceMetric())
                     metric_name="network_recv_mb_per_sec",
                     value=network_io.bytes_recv / 1024 / 1024,
                     unit="MB/s",
@@ -478,7 +476,7 @@ class DatabaseOptimizer:
 
         # Record slow queries
         if execution_time_ms > self.slow_query_threshold_ms:
-            self.slow_queries.append({
+            self.slow_queries.append({)
                 "query": query,
                 "execution_time_ms": execution_time_ms,
                 "result_size": result_size,
@@ -490,7 +488,7 @@ class DatabaseOptimizer:
                 self.slow_queries = self.slow_queries[-500:]
 
         # Record performance metric
-        performance_monitor.record_metric(PerformanceMetric(
+        performance_monitor.record_metric(PerformanceMetric())
             metric_name="database_query_time_ms",
             value=execution_time_ms,
             unit="ms",
@@ -507,7 +505,7 @@ class DatabaseOptimizer:
                           if (datetime.now(timezone.utc) - q["timestamp"]).total_seconds() < 3600]
 
             if len(recent_slow) > 10:
-                suggestions.append({
+                suggestions.append({)
                     "type": "slow_queries",
                     "priority": "high",
                     "description": f"Found {len(recent_slow)} slow queries in the last hour",
@@ -518,7 +516,7 @@ class DatabaseOptimizer:
         # Analyze cache hit rate
         cache_stats = self.query_cache.get_stats()
         if cache_stats["hit_rate_percent"] < self.cache_hit_target:
-            suggestions.append({
+            suggestions.append({)
                 "type": "cache_optimization",
                 "priority": "medium",
                 "description": f"Query cache hit rate is {cache_stats['hit_rate_percent']:.1f}% (target: {self.cache_hit_target}%)",
@@ -527,7 +525,7 @@ class DatabaseOptimizer:
             })
 
         # Analyze query patterns
-        frequent_queries = sorted(
+        frequent_queries = sorted()
             self.query_stats.values(),
             key=lambda x: x["total_executions"],
             reverse=True
@@ -535,7 +533,7 @@ class DatabaseOptimizer:
 
         for query_stat in frequent_queries:
             if query_stat["average_time_ms"] > self.slow_query_threshold_ms:
-                suggestions.append({
+                suggestions.append({)
                     "type": "frequent_slow_query",
                     "priority": "high",
                     "description": f"Frequently executed query is slow (avg: {query_stat['average_time_ms']:.1f}ms)",
@@ -632,7 +630,7 @@ class MemoryOptimizer:
             # Take memory snapshot after GC
             snapshot = self.take_memory_snapshot()
 
-            logger.info(f"Memory optimization: collected {collected} objects, "
+            logger.info(f"Memory optimization: collected {collected} objects, ")
                        f"memory usage: {snapshot.get('process_memory_mb', 0):.1f}MB")
 
         except Exception as e:
@@ -664,7 +662,7 @@ class MemoryOptimizer:
 
         # Check if memory usage is high
         if current_memory > 512:  # 512MB threshold
-            suggestions.append({
+            suggestions.append({)
                 "type": "high_memory_usage",
                 "priority": "high",
                 "description": f"Process memory usage is {current_memory:.1f}MB",
@@ -675,13 +673,13 @@ class MemoryOptimizer:
         # Check GC frequency
         if len(self.gc_stats) > 10:
             recent_gc = self.gc_stats[-10:]
-            avg_interval = sum(
+            avg_interval = sum()
                 (recent_gc[i]["timestamp"] - recent_gc[i-1]["timestamp"]).total_seconds()
                 for i in range(1, len(recent_gc))
             ) / (len(recent_gc) - 1)
 
             if avg_interval < 30:  # GC every 30 seconds is frequent
-                suggestions.append({
+                suggestions.append({)
                     "type": "frequent_gc",
                     "priority": "medium",
                     "description": f"Garbage collection occurring every {avg_interval:.1f} seconds",

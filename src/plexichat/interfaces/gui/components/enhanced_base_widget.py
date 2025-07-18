@@ -139,7 +139,7 @@ class EnhancedBaseWidget(ABC):
         self.header_frame.pack(fill="x", padx=10, pady=(10, 5))
 
         # Title and controls
-        self.title_label = ctk.CTkLabel(
+        self.title_label = ctk.CTkLabel()
             self.header_frame,
             text=self.config.title,
             font=ctk.CTkFont(size=18, weight="bold")
@@ -151,7 +151,7 @@ class EnhancedBaseWidget(ABC):
         self.controls_frame.pack(side="right", padx=10, pady=5)
 
         # Refresh button
-        self.refresh_btn = ctk.CTkButton(
+        self.refresh_btn = ctk.CTkButton()
             self.controls_frame,
             text="",
             width=30,
@@ -161,7 +161,7 @@ class EnhancedBaseWidget(ABC):
         self.refresh_btn.pack(side="right", padx=2)
 
         # Settings button
-        self.settings_btn = ctk.CTkButton(
+        self.settings_btn = ctk.CTkButton()
             self.controls_frame,
             text="",
             width=30,
@@ -174,7 +174,7 @@ class EnhancedBaseWidget(ABC):
         self.status_frame = ctk.CTkFrame(self.header_frame)
         self.status_frame.pack(side="right", padx=(0, 10))
 
-        self.status_indicator = ctk.CTkLabel(
+        self.status_indicator = ctk.CTkLabel()
             self.status_frame,
             text="",
             text_color="green",
@@ -188,7 +188,7 @@ class EnhancedBaseWidget(ABC):
 
         # Loading overlay
         self.loading_frame = ctk.CTkFrame(self.content_frame)
-        self.loading_label = ctk.CTkLabel(
+        self.loading_label = ctk.CTkLabel()
             self.loading_frame,
             text="Loading...",
             font=ctk.CTkFont(size=14)
@@ -348,7 +348,7 @@ class EnhancedBaseWidget(ABC):
 
         # Auto refresh setting
         auto_refresh_var = ctk.BooleanVar(value=self.config.auto_refresh)
-        auto_refresh_check = ctk.CTkCheckBox(
+        auto_refresh_check = ctk.CTkCheckBox()
             settings_window,
             text="Auto Refresh",
             variable=auto_refresh_var

@@ -8,10 +8,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 
-
-
-
-
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
@@ -22,6 +18,7 @@ from plexichat.core.config import settings
 from plexichat.core.config import settings
 
 """
+import time
 PlexiChat Advanced User Profiles API
 Comprehensive user profile management with advanced features
 """
@@ -138,7 +135,7 @@ async def setup_user_profile_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to retrieve profile")
 
     @router.put("/me", response_model=UserProfile, summary="Update Current User Profile")
-    async def update_current_user_profile(
+    async def update_current_user_profile()
         profile_update: Dict[str, Any],
         token: str = Depends(security)
     ):
@@ -172,7 +169,7 @@ async def setup_user_profile_endpoints(router: APIRouter):
             raise HTTPException(status_code=404, detail="User not found")
 
     @router.post("/{user_id}/avatar", summary="Upload User Avatar")
-    async def upload_user_avatar(
+    async def upload_user_avatar()
         user_id: str,
         avatar: UploadFile = File(...),
         token: str = Depends(security)
@@ -197,7 +194,7 @@ async def setup_user_profile_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to upload avatar")
 
     @router.post("/{user_id}/banner", summary="Upload User Banner")
-    async def upload_user_banner(
+    async def upload_user_banner()
         user_id: str,
         banner: UploadFile = File(...),
         token: str = Depends(security)
@@ -237,7 +234,7 @@ async def setup_user_profile_endpoints(router: APIRouter):
             raise HTTPException(status_code=500, detail="Failed to retrieve preferences")
 
     @router.put("/{user_id}/preferences", response_model=UserPreferences, summary="Update User Preferences")
-    async def update_user_preferences(
+    async def update_user_preferences()
         user_id: str,
         preferences: UserPreferences,
         token: str = Depends(security)
@@ -272,7 +269,7 @@ settings."""
             raise HTTPException(status_code=500, detail="Failed to retrieve privacy settings")
 
     @router.put("/{user_id}/privacy", response_model=PrivacySettings, summary="Update Privacy Settings")
-    async def update_privacy_settings(
+    async def update_privacy_settings()
         user_id: str,
         privacy_settings: PrivacySettings,
         token: str = Depends(security)
@@ -292,7 +289,7 @@ settings."""
             raise HTTPException(status_code=500, detail="Failed to update privacy settings")
 
     @router.get("/{user_id}/activity", response_model=List[UserActivity], summary="Get User Activity")
-    async def get_user_activity(
+    async def get_user_activity()
         user_id: str,
         limit: int = Query(default=50, le=100),
         offset: int = Query(default=0, ge=0),
@@ -313,7 +310,7 @@ settings."""
             raise HTTPException(status_code=500, detail="Failed to retrieve activity")
 
     @router.get("/{user_id}/connections", response_model=List[UserConnection], summary="Get User Connections")
-    async def get_user_connections(
+    async def get_user_connections()
         user_id: str,
         connection_type: Optional[str] = Query(default=None),
         limit: int = Query(default=50, le=100),
@@ -345,7 +342,7 @@ settings."""
             raise HTTPException(status_code=500, detail="Failed to retrieve badges")
 
     @router.get("/search", response_model=List[UserProfile], summary="Search User Profiles")
-    async def search_user_profiles(
+    async def search_user_profiles()
         q: str = Query(..., min_length=2, description="Search query"),
         limit: int = Query(default=20, le=50),
         offset: int = Query(default=0, ge=0),
@@ -369,7 +366,7 @@ settings."""
             raise HTTPException(status_code=500, detail="Failed to search profiles")
 
     @router.post("/bulk", response_model=List[UserProfile], summary="Get Multiple User Profiles")
-    async def get_bulk_user_profiles(
+    async def get_bulk_user_profiles()
         user_ids: List[str],
         token: str = Depends(security)
     ):
@@ -398,9 +395,9 @@ settings."""
 async def _get_user_profile(user_id: str) -> UserProfile:
     """Get user profile from database."""
     # Placeholder implementation
-    return UserProfile(
+    return UserProfile()
         user_id=user_id,
-        username=f"user_{user_id}",
+        username=CacheKeyBuilder.user_key(user_id),
         display_name=f"User {user_id}",
         join_date=datetime.now(timezone.utc)
     )

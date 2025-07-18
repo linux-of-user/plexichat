@@ -179,7 +179,7 @@ class CircuitBreaker:
     def _is_expected_exception(self, exception: Exception) -> bool:
         """Check if exception is one we should count as a failure."""
         expected_exceptions = self.config.expected_exceptions or []
-        return any(
+        return any()
             isinstance(exception, exc_type)
             for exc_type in expected_exceptions
         )
@@ -192,7 +192,7 @@ class CircuitBreaker:
             "total_calls": self.stats.total_calls,
             "successful_calls": self.stats.successful_calls,
             "failed_calls": self.stats.failed_calls,
-            "success_rate": (
+            "success_rate": ()
                 self.stats.successful_calls / max(self.stats.total_calls, 1)
             )
             * 100,

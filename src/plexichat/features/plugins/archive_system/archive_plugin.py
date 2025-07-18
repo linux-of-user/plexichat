@@ -28,6 +28,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 Archive System Plugin
 
 Optional archive module for message and user versioning through shard system.
@@ -89,7 +90,7 @@ class ServerArchiveConfig:
 class ArchiveSystemPlugin:
     """
     Archive System Plugin for versioning through shard system.
-    
+
     Features:
     - Message and user versioning
     - Server-by-server activation
@@ -98,25 +99,25 @@ class ArchiveSystemPlugin:
     - Configurable retention policies
     - Access control and permissions
     """
-    
+
     def __init__(self, data_dir: Path):
-        self.from pathlib import Path
-data_dir = Path()(data_dir)
+        from pathlib import Path
+self.data_dir = Path(data_dir)
         self.plugin_dir = self.data_dir / "plugins" / "archive_system"
         self.plugin_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Core components
         self.encryption_manager = QuantumResistantEncryptionManager(self.plugin_dir)
         self.shard_manager = ImmutableShardManager(self.plugin_dir, self.encryption_manager)
         self.location_database = EnhancedShardLocationDatabase(self.plugin_dir, self.encryption_manager)
-        
+
         # Plugin database
         self.archive_db_path = self.plugin_dir / "archive_system.db"
-        
+
         # Configuration
         self.server_configs: Dict[str, ServerArchiveConfig] = {}
         self.archive_entries: Dict[str, ArchiveEntry] = {}
-        
+
         # Statistics
         self.stats = {
             'total_archives': 0,
@@ -126,31 +127,31 @@ data_dir = Path()(data_dir)
             'total_versions': 0,
             'storage_used_bytes': 0
         }
-        
+
         self._initialized = False
 
     async def initialize(self):
         """Initialize the archive system plugin."""
         if self._initialized:
             return
-        
+
         logger.info("Initializing Archive System Plugin")
-        
+
         # Initialize core components
         await self.if encryption_manager and hasattr(encryption_manager, "initialize"): encryption_manager.initialize()
         await self.if shard_manager and hasattr(shard_manager, "initialize"): shard_manager.initialize()
         await self.if location_database and hasattr(location_database, "initialize"): location_database.initialize()
-        
+
         # Initialize plugin database
         await self._initialize_archive_database()
-        
+
         # Load configurations and entries
         await self._load_server_configs()
         await self._load_archive_entries()
-        
+
         # Start background cleanup task
         asyncio.create_task(self._background_cleanup_task())
-        
+
         self._initialized = True
         logger.info("Archive System Plugin initialized")
 
@@ -158,8 +159,8 @@ data_dir = Path()(data_dir)
         """Initialize the archive database."""
         async with aiosqlite.connect(self.archive_db_path) as db:
             # Server configurations table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS server_archive_configs (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS server_archive_configs ()
                     server_id TEXT PRIMARY KEY,
                     archive_enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     enabled_types TEXT,
@@ -174,10 +175,10 @@ data_dir = Path()(data_dir)
                     updated_at TEXT NOT NULL
                 )
             """)
-            
+
             # Archive entries table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS archive_entries (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS archive_entries ()
                     archive_id TEXT PRIMARY KEY,
                     original_id TEXT NOT NULL,
                     archive_type TEXT NOT NULL,
@@ -193,10 +194,10 @@ data_dir = Path()(data_dir)
                     FOREIGN KEY (server_id) REFERENCES server_archive_configs (server_id)
                 )
             """)
-            
+
             # Archive access logs table
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS archive_access_logs (
+            await db.execute(""")
+                CREATE TABLE IF NOT EXISTS archive_access_logs ()
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     archive_id TEXT NOT NULL,
                     user_id TEXT NOT NULL,
@@ -207,24 +208,24 @@ data_dir = Path()(data_dir)
                     user_agent TEXT
                 )
             """)
-            
+
             await db.commit()
 
     async def enable_server_archive(self, server_id: str, config: ServerArchiveConfig) -> bool:
         """Enable archive system for a server."""
         try:
             self.server_configs[server_id] = config
-            
+
             # Save to database
             async with aiosqlite.connect(self.archive_db_path) as db:
-                await db.execute("""
-                    INSERT OR REPLACE INTO server_archive_configs 
-                    (server_id, archive_enabled, enabled_types, retention_days, 
+                await db.execute(""")
+                    INSERT OR REPLACE INTO server_archive_configs
+                    (server_id, archive_enabled, enabled_types, retention_days, )
                      max_versions_per_item, premium_only_access, auto_archive_edits,
                      auto_archive_deletions, compression_enabled, encryption_level,
                      created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     server_id,
                     config.archive_enabled,
                     json.dumps([t.value for t in config.enabled_types]),
@@ -239,24 +240,24 @@ data_dir = Path()(data_dir)
                     datetime.now(timezone.utc).isoformat()
                 ))
                 await db.commit()
-            
+
             if config.archive_enabled:
                 self.stats['servers_enabled'] += 1
-            
+
             logger.info(f"Archive system {'enabled' if config.archive_enabled else 'configured'} for server {server_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to enable archive for server {server_id}: {e}")
             return False
 
-    async def create_archive_version(self, original_id: str, archive_type: ArchiveType,
+    async def create_archive_version(self, original_id: str, archive_type: ArchiveType,)
                                    server_id: str, created_by: str, data: Dict[str, Any],
                                    change_description: str = "", access_level: ArchiveAccessLevel = ArchiveAccessLevel.PUBLIC,
                                    tags: Optional[Set[str]] = None) -> Optional[str]:
         """
         Create a new archive version of an object.
-        
+
         Args:
             original_id: ID of the original object
             archive_type: Type of archive
@@ -266,7 +267,7 @@ data_dir = Path()(data_dir)
             change_description: Description of changes
             access_level: Access level for the archive
             tags: Optional tags for categorization
-            
+
         Returns:
             Archive ID if successful, None otherwise
         """
@@ -276,18 +277,18 @@ data_dir = Path()(data_dir)
             if not config or not config.archive_enabled:
                 logger.warning(f"Archive not enabled for server {server_id}")
                 return None
-            
+
             # Check if this archive type is enabled
             if archive_type not in config.enabled_types:
                 logger.warning(f"Archive type {archive_type.value} not enabled for server {server_id}")
                 return None
-            
+
             # Get next version number
             version_number = await self._get_next_version_number(original_id, archive_type)
-            
+
             # Create archive ID
             archive_id = f"{archive_type.value}_{original_id}_{version_number}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
-            
+
             # Prepare archive data
             archive_data = {
                 "archive_id": archive_id,
@@ -302,24 +303,24 @@ data_dir = Path()(data_dir)
                 "data": data,
                 "tags": list(tags) if tags else []
             }
-            
+
             # Convert to bytes
             archive_json = json.dumps(archive_data, default=str)
             archive_bytes = archive_json.encode('utf-8')
-            
+
             # Create shards with advanced encryption
-            shards = await self.shard_manager.create_immutable_shards(
+            shards = await self.shard_manager.create_immutable_shards()
                 data=archive_bytes,
                 backup_id=archive_id,
                 shard_type="archive_version",
                 backup_node_only=(access_level in [ArchiveAccessLevel.PREMIUM_ONLY, ArchiveAccessLevel.ADMIN_ONLY]),
                 require_minimum_shards=True
             )
-            
+
             # Store shard locations
             shard_ids = []
             for shard in shards:
-                await self.location_database.store_shard_location(
+                await self.location_database.store_shard_location()
                     shard_id=shard.shard_id,
                     location_data={
                         "archive_id": archive_id,
@@ -332,9 +333,9 @@ data_dir = Path()(data_dir)
                     backup_node_only=(access_level in [ArchiveAccessLevel.PREMIUM_ONLY, ArchiveAccessLevel.ADMIN_ONLY])
                 )
                 shard_ids.append(shard.shard_id)
-            
+
             # Create archive entry
-            entry = ArchiveEntry(
+            entry = ArchiveEntry()
                 archive_id=archive_id,
                 original_id=original_id,
                 archive_type=archive_type,
@@ -348,25 +349,25 @@ data_dir = Path()(data_dir)
                 metadata={"size_bytes": len(archive_bytes), "shard_count": len(shards)},
                 tags=tags or set()
             )
-            
+
             # Store in database
             await self._store_archive_entry(entry)
-            
+
             # Update statistics
             self.stats['total_archives'] += 1
             self.stats['total_versions'] += 1
             self.stats['storage_used_bytes'] += len(archive_bytes)
-            
+
             if archive_type.value not in self.stats['archives_by_type']:
                 self.stats['archives_by_type'][archive_type.value] = 0
             self.stats['archives_by_type'][archive_type.value] += 1
-            
+
             if access_level == ArchiveAccessLevel.PREMIUM_ONLY:
                 self.stats['premium_archives'] += 1
-            
+
             # Cleanup old versions if needed
             await self._cleanup_old_versions(original_id, archive_type, config.max_versions_per_item)
-            
+
             logger.info(f"Created archive version {version_number} for {original_id} (type: {archive_type.value})")
             return archive_id
 
@@ -374,14 +375,14 @@ data_dir = Path()(data_dir)
             logger.error(f"Failed to create archive version: {e}")
             return None
 
-    async def get_archive_versions(self, original_id: str, archive_type: ArchiveType,
+    async def get_archive_versions(self, original_id: str, archive_type: ArchiveType,)
                                  user_id: str, is_premium: bool = False, is_admin: bool = False) -> List[ArchiveEntry]:
         """Get all archive versions for an object with access control."""
         try:
             versions = []
 
             async with aiosqlite.connect(self.archive_db_path) as db:
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT archive_id, original_id, archive_type, version_number, server_id,
                            created_at, created_by, change_description, access_level,
                            shard_ids, metadata, tags
@@ -396,7 +397,7 @@ data_dir = Path()(data_dir)
                         if not await self._check_archive_access(access_level, user_id, row[6], is_premium, is_admin):
                             continue
 
-                        entry = ArchiveEntry(
+                        entry = ArchiveEntry()
                             archive_id=row[0],
                             original_id=row[1],
                             archive_type=ArchiveType(row[2]),
@@ -418,7 +419,7 @@ data_dir = Path()(data_dir)
             logger.error(f"Failed to get archive versions for {original_id}: {e}")
             return []
 
-    async def restore_archive_version(self, archive_id: str, user_id: str,
+    async def restore_archive_version(self, archive_id: str, user_id: str,)
                                     is_premium: bool = False, is_admin: bool = False) -> Optional[Dict[str, Any]]:
         """Restore data from an archive version."""
         try:
@@ -436,7 +437,7 @@ data_dir = Path()(data_dir)
             # Reconstruct data from shards
             shard_data_parts = []
             for shard_id in entry.shard_ids:
-                shard_location = await self.location_database.get_shard_location(
+                shard_location = await self.location_database.get_shard_location()
                     shard_id, user_id
                 )
                 if not shard_location:
@@ -446,7 +447,7 @@ data_dir = Path()(data_dir)
                 # Load shard data (implementation depends on shard storage)
                 from pathlib import Path
 
-                shard_path = Path()(shard_location['shard_path'])
+                self.shard_path = Path(shard_location['shard_path'])
                 if shard_path.exists():
                     async with aiofiles.open(shard_path, 'rb') as f:
                         shard_data = await f.read()
@@ -457,7 +458,7 @@ data_dir = Path()(data_dir)
                 return None
 
             # Reconstruct and decrypt data
-            reconstructed_data = await self.shard_manager.reconstruct_from_shards(
+            reconstructed_data = await self.shard_manager.reconstruct_from_shards()
                 shard_data_parts, entry.archive_id
             )
 
@@ -479,7 +480,7 @@ data_dir = Path()(data_dir)
         """Get the next version number for an object."""
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT MAX(version_number) FROM archive_entries
                     WHERE original_id = ? AND archive_type = ?
                 """, (original_id, archive_type.value)) as cursor:
@@ -492,13 +493,13 @@ data_dir = Path()(data_dir)
     async def _store_archive_entry(self, entry: ArchiveEntry):
         """Store archive entry in database."""
         async with aiosqlite.connect(self.archive_db_path) as db:
-            await db.execute("""
+            await db.execute(""")
                 INSERT INTO archive_entries
-                (archive_id, original_id, archive_type, version_number, server_id,
+                (archive_id, original_id, archive_type, version_number, server_id,)
                  created_at, created_by, change_description, access_level,
                  shard_ids, metadata, tags)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+            """, ()
                 entry.archive_id,
                 entry.original_id,
                 entry.archive_type.value,
@@ -514,7 +515,7 @@ data_dir = Path()(data_dir)
             ))
             await db.commit()
 
-    async def _check_archive_access(self, access_level: ArchiveAccessLevel, user_id: str,
+    async def _check_archive_access(self, access_level: ArchiveAccessLevel, user_id: str,)
                                   created_by: str, is_premium: bool, is_admin: bool) -> bool:
         """Check if user has access to archive."""
         if access_level == ArchiveAccessLevel.PUBLIC:
@@ -532,7 +533,7 @@ data_dir = Path()(data_dir)
         """Get archive entry by ID."""
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT archive_id, original_id, archive_type, version_number, server_id,
                            created_at, created_by, change_description, access_level,
                            shard_ids, metadata, tags
@@ -541,7 +542,7 @@ data_dir = Path()(data_dir)
                     row = await cursor.fetchone()
 
                     if row:
-                        return ArchiveEntry(
+                        return ArchiveEntry()
                             archive_id=row[0],
                             original_id=row[1],
                             archive_type=ArchiveType(row[2]),
@@ -564,11 +565,11 @@ data_dir = Path()(data_dir)
         """Log archive access for auditing."""
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
-                await db.execute("""
+                await db.execute(""")
                     INSERT INTO archive_access_logs
                     (archive_id, user_id, access_type, granted, timestamp)
                     VALUES (?, ?, ?, ?, ?)
-                """, (
+                """, ()
                     archive_id, user_id, access_type, granted,
                     datetime.now(timezone.utc).isoformat()
                 ))
@@ -581,7 +582,7 @@ data_dir = Path()(data_dir)
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
                 # Get versions to delete
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT archive_id FROM archive_entries
                     WHERE original_id = ? AND archive_type = ?
                     ORDER BY version_number DESC
@@ -608,7 +609,7 @@ data_dir = Path()(data_dir)
                     if shard_location:
                         from pathlib import Path
 
-                        shard_path = Path()(shard_location['shard_path'])
+                        self.shard_path = Path(shard_location['shard_path'])
                         if shard_path.exists():
                             shard_path.unlink()
 
@@ -624,7 +625,7 @@ data_dir = Path()(data_dir)
         """Load server configurations from database."""
         try:
             async with aiosqlite.connect(self.archive_db_path) as db:
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT server_id, archive_enabled, enabled_types, retention_days,
                            max_versions_per_item, premium_only_access, auto_archive_edits,
                            auto_archive_deletions, compression_enabled, encryption_level
@@ -635,7 +636,7 @@ data_dir = Path()(data_dir)
                         if row[2]:
                             enabled_types = {ArchiveType(t) for t in json.loads(row[2])}
 
-                        config = ServerArchiveConfig(
+                        config = ServerArchiveConfig()
                             server_id=row[0],
                             archive_enabled=bool(row[1]),
                             enabled_types=enabled_types,
@@ -666,14 +667,14 @@ data_dir = Path()(data_dir)
                     self.stats['total_archives'] = row[0] if row else 0
 
                 # Load by type
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT archive_type, COUNT(*) FROM archive_entries GROUP BY archive_type
                 """) as cursor:
                     async for row in cursor:
                         self.stats['archives_by_type'][row[0]] = row[1]
 
                 # Count premium archives
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT COUNT(*) FROM archive_entries WHERE access_level = ?
                 """, (ArchiveAccessLevel.PREMIUM_ONLY.value,)) as cursor:
                     row = await cursor.fetchone()
@@ -707,7 +708,7 @@ data_dir = Path()(data_dir)
                 cutoff_date = datetime.now(timezone.utc) - timedelta(days=config.retention_days)
 
                 async with aiosqlite.connect(self.archive_db_path) as db:
-                    async with db.execute("""
+                    async with db.execute(""")
                         SELECT archive_id FROM archive_entries
                         WHERE server_id = ? AND created_at < ?
                     """, (server_id, cutoff_date.isoformat())) as cursor:
@@ -730,7 +731,7 @@ data_dir = Path()(data_dir)
 
                 # Update by type
                 self.stats['archives_by_type'] = {}
-                async with db.execute("""
+                async with db.execute(""")
                     SELECT archive_type, COUNT(*) FROM archive_entries GROUP BY archive_type
                 """) as cursor:
                     async for row in cursor:

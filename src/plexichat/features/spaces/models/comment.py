@@ -15,6 +15,7 @@ from ....infrastructure.utils.snowflake import SnowflakeGenerator
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 PlexiChat Comment Model
 
 Reddit-like comment model for posts with threading support.
@@ -34,7 +35,7 @@ class Comment(SQLModel, table=True):
     __tablename__ = "comments"
 
     # Primary identification
-    comment_id: str = Field(
+    comment_id: str = Field()
         default_factory=lambda: str(comment_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -42,13 +43,13 @@ class Comment(SQLModel, table=True):
     )
 
     # Post and author relationships
-    post_id: str = Field(
+    post_id: str = Field()
         foreign_key="posts.post_id",
         index=True,
         description="Post this comment belongs to",
     )
 
-    author_id: str = Field(
+    author_id: str = Field()
         foreign_key="users.id", index=True, description="User who created this comment"
     )
 
@@ -56,7 +57,7 @@ class Comment(SQLModel, table=True):
     content: str = Field(sa_column=Column(Text), description="Comment content")
 
     # Threading support
-    parent_comment_id: Optional[str] = Field(
+    parent_comment_id: Optional[str] = Field()
         default=None,
         foreign_key="comments.comment_id",
         index=True,
@@ -64,7 +65,7 @@ class Comment(SQLModel, table=True):
     )
 
     # Comment hierarchy
-    depth: int = Field(
+    depth: int = Field()
         default=0,
         ge=0,
         index=True,
@@ -74,30 +75,30 @@ class Comment(SQLModel, table=True):
     # Voting and engagement
     upvote_count: int = Field(default=0, index=True, description="Number of upvotes")
 
-    downvote_count: int = Field(
+    downvote_count: int = Field()
         default=0, index=True, description="Number of downvotes"
     )
 
     reply_count: int = Field(default=0, description="Number of direct replies")
 
     # Comment status
-    deleted: bool = Field(
+    deleted: bool = Field()
         default=False, index=True, description="Whether comment is deleted"
     )
 
-    removed: bool = Field(
+    removed: bool = Field()
         default=False, index=True, description="Whether comment is removed by moderator"
     )
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Comment creation timestamp",
     )
 
-    updated_at: Optional[datetime] = Field(
+    updated_at: Optional[datetime] = Field()
         default=None, sa_column=Column(DateTime), description="Last update timestamp"
     )
 
@@ -114,7 +115,7 @@ class Comment(SQLModel, table=True):
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     def __repr__(self) -> str:
-        content_preview = (
+        content_preview = ()
             self.content[:50] + "..." if len(self.content) > 50 else self.content
         )
         return f"<Comment(comment_id='{self.comment_id}', content='{content_preview}', depth={self.depth})>"
@@ -156,7 +157,7 @@ class Comment(SQLModel, table=True):
             "comment_id": self.comment_id,
             "post_id": self.post_id,
             "author_id": self.author_id,
-            "content": (
+            "content": ()
                 self.content
                 if self.is_visible()
                 else "[deleted]" if self.deleted else "[removed]"
@@ -176,7 +177,7 @@ class Comment(SQLModel, table=True):
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index("idx_comment_post_created", "post_id", "created_at"),
     Index("idx_comment_post_score", "post_id", "upvote_count", "downvote_count"),
     Index("idx_comment_author_created", "author_id", "created_at"),

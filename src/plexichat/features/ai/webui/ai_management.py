@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List
 
 
-from ..core.ai_abstraction_layer import (
+from ..core.ai_abstraction_layer import ()
 from pathlib import Path
 
 
@@ -103,7 +103,7 @@ async def models_management(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/models/add")
-async def add_model_form(
+async def add_model_form()
     request: Request,
     model_id: str = Form(...),
     model_name: str = Form(...),
@@ -118,7 +118,7 @@ async def add_model_form(
 ):
     """Add new AI model via form."""
     try:
-        model = AIModel(
+        model = AIModel()
             id=model_id,
             name=model_name,
             provider=AIProvider(provider),
@@ -188,7 +188,7 @@ async def providers_management(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/providers/configure")
-async def configure_provider_form(
+async def configure_provider_form()
     request: Request,
     provider: str = Form(...),
     api_key: str = Form(""),
@@ -246,7 +246,7 @@ async def permissions_management(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/permissions/add")
-async def add_permission_form(
+async def add_permission_form()
     request: Request,
     user_id: str = Form(...),
     model_id: str = Form(...),
@@ -254,7 +254,7 @@ async def add_permission_form(
 ):
     """Add user permission via form."""
     try:
-        ai_layer.access_control.add_user_permission(
+        ai_layer.access_control.add_user_permission()
             user_id,
             model_id,
             [ModelCapability(cap) for cap in capabilities]
@@ -339,7 +339,7 @@ async def ai_test_interface(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/test/request")
-async def test_ai_request(
+async def test_ai_request()
     request: Request,
     user_id: str = Form("test_user"),
     model_id: str = Form(...),
@@ -350,7 +350,7 @@ async def test_ai_request(
 ):
     """Test AI request via form."""
     try:
-        ai_request = AIRequest(
+        ai_request = AIRequest()
             user_id=user_id,
             model_id=model_id,
             prompt=prompt,

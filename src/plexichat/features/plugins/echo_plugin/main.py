@@ -37,4 +37,4 @@ class EchoPlugin(PluginInterface):
             "version": "1.0.0",
             "description": "A simple Echo plugin that echoes messages.",
             "plugin_type": "utility"
-        } 
+        }

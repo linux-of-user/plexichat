@@ -12,8 +12,6 @@ from typing import Callable
 from .auth import SecurityLevel, session_manager
 
 
-
-
 from fastapi import HTTPException, Request
 
 """

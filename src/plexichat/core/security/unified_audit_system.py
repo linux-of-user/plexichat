@@ -28,6 +28,8 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import copy
+import string
 PlexiChat Unified Audit System - SINGLE SOURCE OF TRUTH
 
 CONSOLIDATED from multiple audit and monitoring systems:
@@ -179,7 +181,7 @@ class AuditBlock:
 
     def calculate_hash(self) -> str:
         """Calculate block hash."""
-        block_string = json.dumps({
+        block_string = json.dumps({)
             "index": self.index,
             "timestamp": self.timestamp,
             "events": [event.to_dict() for event in self.events],
@@ -250,7 +252,7 @@ class TamperResistantLogger:
 
             # Calculate HMAC
             entry_json = json.dumps(log_entry, sort_keys=True, separators=(',', ':'))
-            entry_hash = hmac.new(
+            entry_hash = hmac.new()
                 self.secret_key,
                 entry_json.encode('utf-8'),
                 hashlib.sha256
@@ -300,7 +302,7 @@ class TamperResistantLogger:
 
                     # Check sequence
                     if entry.get("sequence") != expected_sequence:
-                        verification_results["missing_sequences"].append({
+                        verification_results["missing_sequences"].append({)
                             "line": line_num,
                             "expected": expected_sequence,
                             "actual": entry.get("sequence")
@@ -309,7 +311,7 @@ class TamperResistantLogger:
 
                     # Check hash chain
                     if entry.get("previous_hash") != previous_hash:
-                        verification_results["hash_mismatches"].append({
+                        verification_results["hash_mismatches"].append({)
                             "line": line_num,
                             "expected_previous": previous_hash,
                             "actual_previous": entry.get("previous_hash")
@@ -320,14 +322,14 @@ class TamperResistantLogger:
                     entry_copy = entry.copy()
                     stored_hash = entry_copy.pop("hash", "")
                     entry_json = json.dumps(entry_copy, sort_keys=True, separators=(',', ':'))
-                    calculated_hash = hmac.new(
+                    calculated_hash = hmac.new()
                         self.secret_key,
                         entry_json.encode('utf-8'),
                         hashlib.sha256
                     ).hexdigest()
 
                     if stored_hash != calculated_hash:
-                        verification_results["corrupted_entries"].append({
+                        verification_results["corrupted_entries"].append({)
                             "line": line_num,
                             "sequence": entry.get("sequence"),
                             "stored_hash": stored_hash,
@@ -339,7 +341,7 @@ class TamperResistantLogger:
                     expected_sequence += 1
 
                 except json.JSONDecodeError:
-                    verification_results["corrupted_entries"].append({
+                    verification_results["corrupted_entries"].append({)
                         "line": line_num,
                         "error": "Invalid JSON"
                     })
@@ -373,7 +375,7 @@ class AuditBlockchain:
 
     def _create_genesis_block(self):
         """Create the first block in the chain."""
-        genesis_block = AuditBlock(
+        genesis_block = AuditBlock()
             index=0,
             timestamp=time.time(),
             events=[],
@@ -398,7 +400,7 @@ class AuditBlockchain:
             return
 
         previous_block = self.chain[-1]
-        new_block = AuditBlock(
+        new_block = AuditBlock()
             index=len(self.chain),
             timestamp=time.time(),
             events=self.pending_events.copy(),
@@ -491,7 +493,7 @@ class UnifiedAuditSystem:
         self.initialized = False
 
         # Core components
-        self.blockchain = AuditBlockchain(
+        self.blockchain = AuditBlockchain()
             difficulty=self.config.get("blockchain_difficulty", 4)
         )
 
@@ -505,7 +507,7 @@ Path(self.config.get("log_directory", "logs/security"))
         if isinstance(secret_key, str):
             secret_key = secret_key.encode('utf-8')
 
-        self.tamper_logger = TamperResistantLogger(
+        self.tamper_logger = TamperResistantLogger()
             log_dir / "security_audit.log",
             secret_key
         )
@@ -517,7 +519,7 @@ Path(self.config.get("log_directory", "logs/security"))
 
         # Monitoring and alerting
         self.monitoring_active = False
-        self.alert_thresholds = self.config.get("alert_thresholds", {
+        self.alert_thresholds = self.config.get("alert_thresholds", {)
             "failed_logins_per_minute": 10,
             "admin_actions_per_hour": 50,
             "critical_events_per_hour": 5
@@ -548,7 +550,7 @@ Path(self.config.get("log_directory", "logs/security"))
             logger.error(f" Unified Audit System initialization failed: {e}")
             return False
 
-    def log_security_event(self,
+    def log_security_event(self,):
                           event_type: SecurityEventType,
                           description: str,
                           severity: SecuritySeverity = SecuritySeverity.INFO,
@@ -566,7 +568,7 @@ Path(self.config.get("log_directory", "logs/security"))
 
         event_id = str(uuid.uuid4())
 
-        event = SecurityEvent(
+        event = SecurityEvent()
             event_id=event_id,
             event_type=event_type,
             timestamp=datetime.now(timezone.utc),
@@ -645,7 +647,7 @@ Path(self.config.get("log_directory", "logs/security"))
             "overall_integrity": blockchain_valid and tamper_log_result.get("verified", False)
         }
 
-    def get_compliance_report(self,
+    def get_compliance_report(self,):
                             start_date: datetime,
                             end_date: datetime,
                             compliance_standard: str = "general") -> Dict[str, Any]:
@@ -709,7 +711,7 @@ Path(self.config.get("log_directory", "logs/security"))
 
         # Check failed login threshold
         if event.event_type == SecurityEventType.LOGIN_FAILURE:
-            recent_failures = self._count_recent_events(
+            recent_failures = self._count_recent_events()
                 SecurityEventType.LOGIN_FAILURE,
                 event.source_ip,
                 timedelta(minutes=1)
@@ -718,7 +720,7 @@ Path(self.config.get("log_directory", "logs/security"))
             if recent_failures >= self.alert_thresholds.get("failed_logins_per_minute", 10):
                 self._trigger_alert(event, f"Brute force attack detected: {recent_failures} failed logins")
 
-    def _count_recent_events(self,
+    def _count_recent_events(self,):
                            event_type: SecurityEventType,
                            source_ip: Optional[str],
                            time_window: timedelta) -> int:
@@ -751,7 +753,7 @@ Path(self.config.get("log_directory", "logs/security"))
         }
 
         # Log the alert as a security event
-        self.log_security_event(
+        self.log_security_event()
             SecurityEventType.SECURITY_ALERT,
             f"Security alert triggered: {message}",
             SecuritySeverity.ALERT,
@@ -818,7 +820,7 @@ Path(self.config.get("log_directory", "logs/security"))
         """Check overall system health."""
         # Verify blockchain integrity
         if not self.blockchain.is_chain_valid():
-            self.log_security_event(
+            self.log_security_event()
                 SecurityEventType.SYSTEM_COMPROMISE,
                 "Audit blockchain integrity compromised",
                 SecuritySeverity.CRITICAL,

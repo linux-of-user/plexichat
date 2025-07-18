@@ -5,6 +5,7 @@
 # pyright: reportReturnType=false
 # pyright: reportArgumentType=false
 """
+import time
 PlexiChat Messages Router
 
 Enhanced message handling with comprehensive validation, rate limiting,
@@ -175,7 +176,7 @@ class MessageService:
     async def create_message(self, data: MessageCreate, sender_id: int) -> Message:
         if self.db_manager:
             try:
-                query = (
+                query = ()
                     "INSERT INTO messages (content, sender_id, recipient_id, timestamp) "
                     "VALUES (?, ?, ?, ?) RETURNING id, content, sender_id, recipient_id, timestamp"
                 )
@@ -197,7 +198,7 @@ class MessageService:
                             id_, content, sender_id_, recipient_id_, timestamp_ = row  # type: ignore
                         except Exception:
                             id_, content, sender_id_, recipient_id_, timestamp_ = 0, "", 0, 0, datetime.now()
-                        return Message(
+                        return Message()
                             id=_safe_int(id_),
                             content=str(content),
                             sender_id=_safe_int(sender_id_),
@@ -205,7 +206,7 @@ class MessageService:
                             timestamp=_safe_datetime(timestamp_)
                         )
                     elif isinstance(row, dict):
-                        return Message(
+                        return Message()
                             id=_safe_int(row.get("id", 0)),
                             content=str(row.get("content", "")),
                             sender_id=_safe_int(row.get("sender_id", 0)),
@@ -215,7 +216,7 @@ class MessageService:
             except Exception as e:
                 logger.error(f"Error creating message: {e}")
                 raise HTTPException(status_code=500, detail="Failed to create message")
-        return Message(
+        return Message()
             id=1,
             content=data.content,
             sender_id=sender_id,
@@ -225,13 +226,13 @@ class MessageService:
 
 message_service = MessageService()
 
-@router.post(
+@router.post()
     "/send",
     response_model=MessageRead,
     status_code=status.HTTP_201_CREATED,
     responses={400: {"model": ValidationErrorResponse}, 429: {"description": "Rate limit exceeded"}}
 )
-async def send_message(
+async def send_message()
     request: Request,
     data: MessageCreate,
     background_tasks: BackgroundTasks,
@@ -245,12 +246,12 @@ async def send_message(
         optimization_engine.start_performance_tracking(operation_id)
     try:
         if not await message_service.validate_recipient(data.recipient_id):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Recipient not found"
             )
         if not await message_service.check_rate_limit(current_user.get("id", 0)):
-            raise HTTPException(
+            raise HTTPException()
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Rate limit exceeded. Please wait before sending another message."
             )
@@ -258,7 +259,7 @@ async def send_message(
         background_tasks.add_task(_process_message_background, message.id, current_user.get("id", 0), data.recipient_id)
         if optimization_engine and operation_id:
             optimization_engine.end_performance_tracking(operation_id)
-        return MessageRead(
+        return MessageRead()
             id=message.id,
             content=message.content,
             sender_id=message.sender_id,
@@ -277,12 +278,12 @@ def _process_message_sync(message_id: int, sender_id: int, recipient_id: int) ->
     logger.info(f"Processing message {message_id} from {sender_id} to {recipient_id}")
     pass
 
-@router.get(
+@router.get()
     "/list",
     response_model=List[MessageRead],
     responses={400: {"model": ValidationErrorResponse}}
 )
-async def list_messages(
+async def list_messages()
     request: Request,
     limit: int = Query(50, ge=1, le=100, description="Number of messages to retrieve"),
     offset: int = Query(0, ge=0, description="Number of messages to skip"),
@@ -293,7 +294,7 @@ async def list_messages(
         return []
     try:
         order = "DESC" if sort_order.lower() == "desc" else "ASC"
-        query = (
+        query = ()
             "SELECT id, content, sender_id, recipient_id, timestamp FROM messages "
             "WHERE sender_id = ? OR recipient_id = ? "
             f"ORDER BY timestamp {order} LIMIT ? OFFSET ?"
@@ -317,7 +318,7 @@ async def list_messages(
                         id_, content, sender_id_, recipient_id_, timestamp_ = row  # type: ignore
                     except Exception:
                         id_, content, sender_id_, recipient_id_, timestamp_ = 0, "", 0, 0, datetime.now()
-                    messages.append(MessageRead(
+                    messages.append(MessageRead())
                         id=_safe_int(id_),
                         content=str(content),
                         sender_id=_safe_int(sender_id_),
@@ -325,7 +326,7 @@ async def list_messages(
                         timestamp=_safe_datetime(timestamp_)
                     ))
                 elif isinstance(row, dict):
-                    messages.append(MessageRead(
+                    messages.append(MessageRead())
                         id=_safe_int(row.get("id", 0)),
                         content=str(row.get("content", "")),
                         sender_id=_safe_int(row.get("sender_id", 0)),

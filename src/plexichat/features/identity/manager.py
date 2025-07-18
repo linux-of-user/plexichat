@@ -16,9 +16,10 @@ from typing import Any, Dict, List, Optional, Set
 
 from datetime import datetime
 
-from datetime import datetime
 
 """
+import string
+import time
 PlexiChat Decentralized Identity & Self-Sovereign Identity (SSI) System
 
 Implements verifiable credentials, decentralized identifiers (DIDs),
@@ -119,7 +120,7 @@ class ZeroTrustPolicy:
     conditions: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-    def evaluate(self, user_credentials: List[VerifiableCredential],
+    def evaluate(self, user_credentials: List[VerifiableCredential],):
                 trust_score: float, context: Dict[str, Any]) -> bool:
         """Evaluate if access should be granted."""
         # Check trust level
@@ -139,7 +140,6 @@ class ZeroTrustPolicy:
         # Check additional conditions
         for condition, value in self.conditions.items():
             if condition == "time_range":
-                from datetime import datetime
 current_hour = datetime.now()
 datetime = datetime.now().hour
                 if not (value["start"] <= current_hour <= value["end"]):
@@ -169,7 +169,7 @@ class DIDManager:
         # Generate unique identifier
         identifier = hashlib.sha256(f"{user_id}_{secrets.token_hex(16)}".encode()).hexdigest()[:32]
 
-        did = DecentralizedIdentifier(
+        did = DecentralizedIdentifier()
             method=self.method,
             identifier=identifier
         )
@@ -221,13 +221,13 @@ class CredentialIssuer:
         self.issued_credentials: Dict[str, VerifiableCredential] = {}
         self.revoked_credentials: Set[str] = set()
 
-    def issue_credential(self, subject_did: str, credential_type: CredentialType,
+    def issue_credential(self, subject_did: str, credential_type: CredentialType,):
                         claims: Dict[str, Any], validity_days: int = 365) -> VerifiableCredential:
         """Issue a verifiable credential."""
         credential_id = f"urn:uuid:{uuid.uuid4()}"
 
         # Create credential
-        credential = VerifiableCredential(
+        credential = VerifiableCredential()
             id=credential_id,
             type=["VerifiableCredential", credential_type.value.title() + "Credential"],
             issuer=self.issuer_did,
@@ -260,7 +260,7 @@ class CredentialIssuer:
     def _create_proof(self, credential_id: str, subject_did: str, claims: Dict[str, Any]) -> Dict[str, Any]:
         """Create cryptographic proof for credential."""
         # Simplified proof (in production, use proper digital signatures)
-        proof_value = hashlib.sha256(
+        proof_value = hashlib.sha256()
             f"{credential_id}{subject_did}{json.dumps(claims, sort_keys=True)}".encode()
         ).hexdigest()
 
@@ -287,7 +287,7 @@ class ZeroTrustAccessManager:
     def _create_default_policies(self):
         """Create default ZTNA policies."""
         # Admin access policy
-        admin_policy = ZeroTrustPolicy(
+        admin_policy = ZeroTrustPolicy()
             policy_id="admin_access",
             resource="/admin/*",
             required_credentials=["AdminCredential"],
@@ -300,7 +300,7 @@ class ZeroTrustAccessManager:
         self.policies["admin_access"] = admin_policy
 
         # User data access policy
-        user_policy = ZeroTrustPolicy(
+        user_policy = ZeroTrustPolicy()
             policy_id="user_data_access",
             resource="/api/user/*",
             required_credentials=["IdentityCredential"],
@@ -309,7 +309,7 @@ class ZeroTrustAccessManager:
         self.policies["user_data_access"] = user_policy
 
         # Sensitive operations policy
-        sensitive_policy = ZeroTrustPolicy(
+        sensitive_policy = ZeroTrustPolicy()
             policy_id="sensitive_operations",
             resource="/api/sensitive/*",
             required_credentials=["IdentityCredential", "AuthorizationCredential"],
@@ -320,7 +320,7 @@ class ZeroTrustAccessManager:
         )
         self.policies["sensitive_operations"] = sensitive_policy
 
-    def evaluate_access(self, user_did: str, resource: str,
+    def evaluate_access(self, user_did: str, resource: str,):
                        credentials: List[VerifiableCredential],
                        context: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate access request using Zero-Trust principles."""
@@ -422,7 +422,7 @@ class DecentralizedIdentityManager:
         did = self.did_manager.create_did(user_id)
 
         # Issue identity credential
-        identity_credential = self.credential_issuer.issue_credential(
+        identity_credential = self.credential_issuer.issue_credential()
             subject_did=did.did,
             credential_type=CredentialType.IDENTITY,
             claims={
@@ -462,7 +462,7 @@ class DecentralizedIdentityManager:
                     user_credentials.append(credential)
 
         # Evaluate access
-        return self.ztna_manager.evaluate_access(
+        return self.ztna_manager.evaluate_access()
             user_identity["did"], resource, user_credentials, context
         )
 

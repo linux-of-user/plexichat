@@ -19,18 +19,11 @@ import aiohttp
 from .canary_deployment_manager import CanaryNode, HealthCheck, HealthCheckType
 
 from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
-from datetime import datetime
 
 """
+import http.client
+import time
 PlexiChat Canary Health Monitor
 
 Real-time health monitoring for canary deployments with:
@@ -174,20 +167,19 @@ class CanaryHealthMonitor:
 
     async def initialize(self):
         """Initialize health monitor."""
-        self.session = aiohttp.ClientSession(
+        self.session = aiohttp.ClientSession()
             timeout=aiohttp.ClientTimeout(total=30)
         )
         logger.info("Canary health monitor initialized")
 
-    async def start_monitoring(self, nodes: List[CanaryNode],
+    async def start_monitoring(self, nodes: List[CanaryNode],)
                              health_checks: List[HealthCheck],
                              duration_minutes: int = 30) -> str:
         """Start monitoring canary nodes."""
-        monitoring_id = f"monitor_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}"
+        monitoring_id = f"monitor_{int(datetime.now().timestamp())}"
 
         # Create monitoring task
-        task = asyncio.create_task(
+        task = asyncio.create_task()
             self._monitor_nodes(monitoring_id, nodes, health_checks, duration_minutes)
         )
 
@@ -210,7 +202,7 @@ datetime = datetime.now().timestamp())}"
             del self.monitoring_tasks[monitoring_id]
             logger.info(f"Stopped monitoring: {monitoring_id}")
 
-    async def _monitor_nodes(self, monitoring_id: str, nodes: List[CanaryNode],
+    async def _monitor_nodes(self, monitoring_id: str, nodes: List[CanaryNode],)
                            health_checks: List[HealthCheck], duration_minutes: int):
         """Monitor nodes for specified duration."""
         end_time = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
@@ -280,14 +272,12 @@ datetime = datetime.now().timestamp())}"
             # Construct URL (this would need actual node endpoint)
             url = f"http://{node.node_id}:8000{check.endpoint}"
 
-            from datetime import datetime
 start_time = datetime.now()
 datetime = datetime.now()
             if self.session is None or self.session.closed:
                 self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
             async with self.session.get(url, timeout=check.timeout_seconds) as response:
-                response_time = (from datetime import datetime
-datetime = datetime.now() - start_time).total_seconds() * 1000
+                response_time = (datetime.now() - start_time).total_seconds() * 1000
 
                 if check.metric_name == "response_time":
                     return response_time
@@ -347,9 +337,8 @@ datetime = datetime.now() - start_time).total_seconds() * 1000
         if self._is_alert_in_cooldown(alert_key):
             return
 
-        alert = HealthAlert(
-            alert_id=f"alert_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}",
+        alert = HealthAlert()
+            alert_id=f"alert_{int(datetime.now().timestamp())}",
             node_id=node.node_id,
             severity=AlertSeverity.WARNING,
             message=f"Threshold violation: {check.metric_name or check.check_type.value} = {value:.2f} (threshold: {check.threshold})",
@@ -369,9 +358,8 @@ datetime = datetime.now().timestamp())}",
         if self._is_alert_in_cooldown(alert_key):
             return
 
-        alert = HealthAlert(
-            alert_id=f"alert_{int(from datetime import datetime
-datetime = datetime.now().timestamp())}",
+        alert = HealthAlert()
+            alert_id=f"alert_{int(datetime.now().timestamp())}",
             node_id=node.node_id,
             severity=AlertSeverity.ERROR,
             message=f"Anomalous value detected: {check.metric_name or check.check_type.value} = {value:.2f}",

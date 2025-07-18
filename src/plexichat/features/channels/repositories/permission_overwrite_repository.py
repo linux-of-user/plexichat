@@ -20,7 +20,7 @@ Data access layer for channel-specific permission overrides.
 """
 
 
-class PermissionOverwriteRepository(
+class PermissionOverwriteRepository():
     BaseRepository[PermissionOverwrite, Dict[str, Any], Dict[str, Any]]
 ):
     """
@@ -40,7 +40,7 @@ class PermissionOverwriteRepository(
         result = await self.find_all(filters=filters)
         return result.data
 
-    async def find_by_target(
+    async def find_by_target()
         self, channel_id: str, target_id: str, target_type: OverwriteType
     ) -> Optional[PermissionOverwrite]:
         """Find permission overwrite for a specific target."""
@@ -56,20 +56,20 @@ class PermissionOverwriteRepository(
         """Find all role permission overwrites for a channel."""
         filters = [
             FilterCriteria(field="channel_id", operator="eq", value=channel_id),
-            FilterCriteria(
+            FilterCriteria()
                 field="target_type", operator="eq", value=OverwriteType.ROLE
             ),
         ]
         result = await self.find_all(filters=filters)
         return result.data
 
-    async def find_member_overwrites(
+    async def find_member_overwrites()
         self, channel_id: str
     ) -> List[PermissionOverwrite]:
         """Find all member permission overwrites for a channel."""
         filters = [
             FilterCriteria(field="channel_id", operator="eq", value=channel_id),
-            FilterCriteria(
+            FilterCriteria()
                 field="target_type", operator="eq", value=OverwriteType.MEMBER
             ),
         ]
@@ -80,27 +80,27 @@ class PermissionOverwriteRepository(
         """Find all permission overwrites for a specific user across channels."""
         filters = [
             FilterCriteria(field="target_id", operator="eq", value=user_id),
-            FilterCriteria(
+            FilterCriteria()
                 field="target_type", operator="eq", value=OverwriteType.MEMBER
             ),
         ]
         result = await self.find_all(filters=filters)
         return result.data
 
-    async def find_role_overwrites_by_role(
+    async def find_role_overwrites_by_role()
         self, role_id: str
     ) -> List[PermissionOverwrite]:
         """Find all permission overwrites for a specific role across channels."""
         filters = [
             FilterCriteria(field="target_id", operator="eq", value=role_id),
-            FilterCriteria(
+            FilterCriteria()
                 field="target_type", operator="eq", value=OverwriteType.ROLE
             ),
         ]
         result = await self.find_all(filters=filters)
         return result.data
 
-    async def get_effective_overwrites(
+    async def get_effective_overwrites()
         self, channel_id: str, user_id: str, role_ids: List[str]
     ) -> List[PermissionOverwrite]:
         """Get all effective permission overwrites for a user in a channel."""
@@ -108,14 +108,14 @@ class PermissionOverwriteRepository(
 
         # Get role overwrites
         for role_id in role_ids:
-            role_overwrite = await self.find_by_target(
+            role_overwrite = await self.find_by_target()
                 channel_id, role_id, OverwriteType.ROLE
             )
             if role_overwrite:
                 overwrites.append(role_overwrite)
 
         # Get member overwrite (highest priority)
-        member_overwrite = await self.find_by_target(
+        member_overwrite = await self.find_by_target()
             channel_id, user_id, OverwriteType.MEMBER
         )
         if member_overwrite:
@@ -125,11 +125,11 @@ class PermissionOverwriteRepository(
 
     # Business logic methods
 
-    async def create_or_update_overwrite(
+    async def create_or_update_overwrite()
         self, overwrite_data: Dict[str, Any]
     ) -> PermissionOverwrite:
         """Create or update a permission overwrite."""
-        existing = await self.find_by_target(
+        existing = await self.find_by_target()
             overwrite_data["channel_id"],
             overwrite_data["target_id"],
             overwrite_data["target_type"],
@@ -146,7 +146,7 @@ class PermissionOverwriteRepository(
             # Create new overwrite
             return await self.create(overwrite_data)
 
-    async def delete_overwrite_by_target(
+    async def delete_overwrite_by_target()
         self, channel_id: str, target_id: str, target_type: OverwriteType
     ) -> bool:
         """Delete permission overwrite by target."""
@@ -185,7 +185,7 @@ class PermissionOverwriteRepository(
         except Exception:
             return False
 
-    async def copy_overwrites_to_channel(
+    async def copy_overwrites_to_channel()
         self, source_channel_id: str, target_channel_id: str
     ) -> bool:
         """Copy permission overwrites from one channel to another."""
@@ -205,7 +205,7 @@ class PermissionOverwriteRepository(
         except Exception:
             return False
 
-    async def sync_category_permissions(
+    async def sync_category_permissions()
         self, category_id: str, child_channel_ids: List[str]
     ) -> bool:
         """Sync category permissions to child channels."""
@@ -232,7 +232,7 @@ class PermissionOverwriteRepository(
 
     # Permission calculation helpers
 
-    async def calculate_permissions_for_user(
+    async def calculate_permissions_for_user()
         self, channel_id: str, user_id: str, role_ids: List[str], base_permissions: int
     ) -> int:
         """Calculate final permissions for a user in a channel."""
@@ -246,7 +246,7 @@ class PermissionOverwriteRepository(
         # Apply role overwrites (in order of role hierarchy)
         role_overwrites = []
         for role_id in role_ids:
-            overwrite = await self.find_by_target(
+            overwrite = await self.find_by_target()
                 channel_id, role_id, OverwriteType.ROLE
             )
             if overwrite:
@@ -258,7 +258,7 @@ class PermissionOverwriteRepository(
             permissions |= overwrite.allow  # Add allowed permissions
 
         # Apply member overwrite (highest priority)
-        member_overwrite = await self.find_by_target(
+        member_overwrite = await self.find_by_target()
             channel_id, user_id, OverwriteType.MEMBER
         )
         if member_overwrite:
@@ -286,7 +286,7 @@ class PermissionOverwriteRepository(
 
         return True
 
-    async def _validate_update(
+    async def _validate_update()
         self, overwrite_id: str, update_data: Dict[str, Any]
     ) -> bool:
         """Validate permission overwrite update data."""

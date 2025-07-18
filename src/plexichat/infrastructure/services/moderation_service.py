@@ -13,15 +13,12 @@ from sqlmodel import Session, select
 from datetime import datetime
 
 
-
-from datetime import datetime
-
 from fastapi import HTTPException, status
 
 from plexichat.app.logger_config import logger
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.models.message import Message
-from plexichat.app.models.moderation import (
+from plexichat.app.models.moderation import ()
 
     Comprehensive,
     Handles,
@@ -95,7 +92,7 @@ class ModerationService:
     def __init__(self, session: Session):
         self.session = session
         self.role_permissions = self._initialize_role_permissions()
-        self.user_roles_cache = {}  # Cache for user roles
+        # Using unified cache instead of local cache: self.user_roles_cache  # Cache for user roles
 
     def _initialize_role_permissions(self) -> Dict[UserRole, Set[Permission]]:
         """Initialize default permissions for each role."""
@@ -153,7 +150,7 @@ class ModerationService:
                     return cached_role
 
             # Check for active moderation status
-            statement = select(UserModerationStatus).where(
+            statement = select(UserModerationStatus).where()
                 (UserModerationStatus.user_id == user_id) &
                 (UserModerationStatus.is_active)
             )
@@ -174,7 +171,7 @@ class ModerationService:
                     role = UserRole.MEMBER
             else:
                 # Check for moderator role
-                mod_statement = select(ModeratorRole).where(
+                mod_statement = select(ModeratorRole).where()
                     (ModeratorRole.user_id == user_id) &
                     (ModeratorRole.is_active)
                 )
@@ -238,7 +235,7 @@ class ModerationService:
             logger.error(f"Failed to check moderation permissions: {e}")
             return False
 
-    def assign_role(
+    def assign_role():
         self,
         user_id: int,
         role: UserRole,
@@ -260,8 +257,8 @@ class ModerationService:
 
             if role in [UserRole.BANNED, UserRole.MUTED, UserRole.RESTRICTED]:
                 # Create or update moderation status
-                existing_status = self.session.exec(
-                    select(UserModerationStatus).where(
+                existing_status = self.session.exec()
+                    select(UserModerationStatus).where()
                         (UserModerationStatus.user_id == user_id) &
                         (UserModerationStatus.guild_id == guild_id) &
                         (UserModerationStatus.is_active)
@@ -279,7 +276,7 @@ class ModerationService:
                     UserRole.RESTRICTED: ModerationStatus.RESTRICTED
                 }
 
-                new_status = UserModerationStatus(
+                new_status = UserModerationStatus()
                     user_id=user_id,
                     guild_id=guild_id,
                     status=status_mapping[role],
@@ -293,8 +290,8 @@ class ModerationService:
 
             elif role in [UserRole.MODERATOR, UserRole.ADMIN, UserRole.TRUSTED]:
                 # Create or update moderator role
-                existing_mod = self.session.exec(
-                    select(ModeratorRole).where(
+                existing_mod = self.session.exec()
+                    select(ModeratorRole).where()
                         (ModeratorRole.user_id == user_id) &
                         (ModeratorRole.guild_id == guild_id) &
                         (ModeratorRole.is_active)
@@ -312,7 +309,7 @@ class ModerationService:
                     UserRole.ADMIN: 3
                 }
 
-                new_mod = ModeratorRole(
+                new_mod = ModeratorRole()
                     user_id=user_id,
                     guild_id=guild_id,
                     role_level=level_mapping[role],
@@ -333,7 +330,7 @@ class ModerationService:
             self.session.rollback()
             return False
 
-    def execute_enhanced_moderation_action(
+    def execute_enhanced_moderation_action():
         self,
         moderator_id: int,
         target_user_id: int,
@@ -348,7 +345,7 @@ class ModerationService:
         try:
             # Check if moderator can moderate target user
             if not self.can_moderate_user(moderator_id, target_user_id, guild_id):
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient permissions to moderate this user"
                 )
@@ -365,13 +362,13 @@ class ModerationService:
                 required_permission = Permission.DELETE_MESSAGES
 
             if required_permission and not self.has_permission(moderator_id, required_permission, guild_id):
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Missing required permission: {required_permission.value}"
                 )
 
             # Execute the original moderation action
-            log_id = self.moderate_user(
+            log_id = self.moderate_user()
                 moderator_id=moderator_id,
                 target_user_id=target_user_id,
                 action=action,
@@ -399,7 +396,7 @@ class ModerationService:
             logger.error(f"Failed to execute enhanced moderation action: {e}")
             return None
 
-    def create_moderation_appeal(
+    def create_moderation_appeal():
         self,
         user_id: int,
         moderation_log_id: int,
@@ -433,7 +430,7 @@ class ModerationService:
             self.session.rollback()
             return False
 
-    def review_moderation_appeal(
+    def review_moderation_appeal():
         self,
         moderator_id: int,
         moderation_log_id: int,
@@ -445,7 +442,7 @@ class ModerationService:
         try:
             # Check if moderator has permission to handle appeals
             if not self.has_permission(moderator_id, Permission.HANDLE_APPEALS, guild_id):
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient permissions to handle appeals"
                 )
@@ -466,8 +463,8 @@ class ModerationService:
                 log_entry.is_active = False
 
                 # Remove any active moderation status
-                active_status = self.session.exec(
-                    select(UserModerationStatus).where(
+                active_status = self.session.exec()
+                    select(UserModerationStatus).where()
                         (UserModerationStatus.user_id == log_entry.target_user_id) &
                         (UserModerationStatus.guild_id == guild_id) &
                         (UserModerationStatus.is_active)
@@ -505,7 +502,7 @@ class ModerationService:
             current_role = self.get_user_role(user_id, guild_id)
 
             # Get moderation history
-            history_statement = select(ModerationLog).where(
+            history_statement = select(ModerationLog).where()
                 ModerationLog.target_user_id == user_id
             )
 
@@ -515,8 +512,8 @@ class ModerationService:
             history = self.session.exec(history_statement.order_by(ModerationLog.created_at.desc())).all()
 
             # Get active moderation status
-            active_status = self.session.exec(
-                select(UserModerationStatus).where(
+            active_status = self.session.exec()
+                select(UserModerationStatus).where()
                     (UserModerationStatus.user_id == user_id) &
                     (UserModerationStatus.guild_id == guild_id) &
                     (UserModerationStatus.is_active)
@@ -573,7 +570,7 @@ class ModerationService:
                 "error": str(e)
             }
 
-    async def check_moderator_permissions(
+    async def check_moderator_permissions()
         self,
         user_id: int,
         guild_id: Optional[int] = None,
@@ -583,18 +580,18 @@ class ModerationService:
         """Check if user has moderator permissions for the specified context."""
         try:
             # Check for moderator role
-            statement = select(ModeratorRole).where(
+            statement = select(ModeratorRole).where()
                 (ModeratorRole.user_id == user_id) &
                 (ModeratorRole.is_active)
             )
 
             if guild_id:
-                statement = statement.where(
+                statement = statement.where()
                     (ModeratorRole.guild_id == guild_id) | (ModeratorRole.guild_id.is_(None))
                 )
 
             if channel_id:
-                statement = statement.where(
+                statement = statement.where()
                     (ModeratorRole.channel_id == channel_id) | (ModeratorRole.channel_id.is_(None))
                 )
 
@@ -624,7 +621,7 @@ class ModerationService:
             logger.error(f"Error checking moderator permissions: {e}")
             return False, None
 
-    async def moderate_user(
+    async def moderate_user()
         self,
         moderator_id: int,
         target_user_id: int,
@@ -638,25 +635,25 @@ class ModerationService:
         """Apply moderation action to a user."""
         try:
             # Check moderator permissions
-            has_permission, moderator_role = await self.check_moderator_permissions(
+            has_permission, moderator_role = await self.check_moderator_permissions()
                 moderator_id, guild_id, channel_id, action
             )
 
             if not has_permission:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient moderator permissions"
                 )
 
             # Check severity limits
             if moderator_role and severity.value > moderator_role.max_punishment_severity.value:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Action severity exceeds moderator permissions"
                 )
 
             # Get or create user moderation status
-            user_status = self.session.exec(
+            user_status = self.session.exec()
                 select(UserModerationStatus).where(UserModerationStatus.user_id == target_user_id)
             ).first()
 
@@ -689,7 +686,7 @@ class ModerationService:
             user_status.updated_at = datetime.now(timezone.utc)
 
             # Create moderation log entry
-            log_entry = ModerationLog(
+            log_entry = ModerationLog()
                 action=action,
                 severity=severity,
                 moderator_id=moderator_id,
@@ -714,7 +711,7 @@ class ModerationService:
             logger.error(f"Error applying moderation action: {e}")
             return False
 
-    async def moderate_message(
+    async def moderate_message()
         self,
         moderator_id: int,
         message_id: int,
@@ -727,12 +724,12 @@ class ModerationService:
         """Apply moderation action to a message."""
         try:
             # Check moderator permissions
-            has_permission, _ = await self.check_moderator_permissions(
+            has_permission, _ = await self.check_moderator_permissions()
                 moderator_id, guild_id, channel_id, action
             )
 
             if not has_permission:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient moderator permissions"
                 )
@@ -763,7 +760,7 @@ datetime.utcnow()
                 message.is_pinned = False
 
             # Create moderation log entry
-            log_entry = ModerationLog(
+            log_entry = ModerationLog()
                 action=action,
                 severity=ModerationSeverity.MEDIUM,
                 moderator_id=moderator_id,
@@ -789,13 +786,13 @@ datetime.utcnow()
             logger.error(f"Error moderating message: {e}")
             return False
 
-    async def check_user_restrictions(
+    async def check_user_restrictions()
         self,
         user_id: int
     ) -> Dict[str, Any]:
         """Check current moderation restrictions for a user."""
         try:
-            user_status = self.session.exec(
+            user_status = self.session.exec()
                 select(UserModerationStatus).where(UserModerationStatus.user_id == user_id)
             ).first()
 
@@ -845,7 +842,7 @@ datetime.utcnow()
             logger.error(f"Error checking user restrictions: {e}")
             return {"error": "Failed to check restrictions"}
 
-    async def grant_moderator_role(
+    async def grant_moderator_role()
         self,
         granter_id: int,
         user_id: int,
@@ -861,14 +858,14 @@ datetime.utcnow()
             has_permission, granter_role = await self.check_moderator_permissions(granter_id, guild_id, channel_id)
 
             if not has_permission or not granter_role or not granter_role.can_manage_roles:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient permissions to grant moderator roles"
                 )
 
             # Check if user already has a moderator role in this context
-            existing_role = self.session.exec(
-                select(ModeratorRole).where(
+            existing_role = self.session.exec()
+                select(ModeratorRole).where()
                     (ModeratorRole.user_id == user_id) &
                     (ModeratorRole.guild_id == guild_id) &
                     (ModeratorRole.channel_id == channel_id) &
@@ -889,7 +886,7 @@ datetime.utcnow()
                 }
 
             # Create moderator role
-            moderator_role = ModeratorRole(
+            moderator_role = ModeratorRole()
                 user_id=user_id,
                 guild_id=guild_id,
                 channel_id=channel_id,
@@ -916,7 +913,7 @@ datetime.utcnow()
             logger.error(f"Error granting moderator role: {e}")
             return False
 
-    async def revoke_moderator_role(
+    async def revoke_moderator_role()
         self,
         revoker_id: int,
         moderator_role_id: int,
@@ -929,12 +926,12 @@ datetime.utcnow()
                 raise HTTPException(status_code=404, detail="Moderator role not found")
 
             # Check permissions
-            has_permission, revoker_role = await self.check_moderator_permissions(
+            has_permission, revoker_role = await self.check_moderator_permissions()
                 revoker_id, moderator_role.guild_id, moderator_role.channel_id
             )
 
             if not has_permission or not revoker_role or not revoker_role.can_manage_roles:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient permissions to revoke moderator roles"
                 )
@@ -955,7 +952,7 @@ datetime.utcnow()
             logger.error(f"Error revoking moderator role: {e}")
             return False
 
-    async def submit_appeal(
+    async def submit_appeal()
         self,
         user_id: int,
         moderation_log_id: int,
@@ -969,7 +966,7 @@ datetime.utcnow()
 
             # Check if user can appeal this action
             if moderation_log.target_user_id != user_id:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Can only appeal your own moderation actions"
                 )
@@ -995,7 +992,7 @@ datetime.utcnow()
             logger.error(f"Error submitting appeal: {e}")
             return False
 
-    async def review_appeal(
+    async def review_appeal()
         self,
         reviewer_id: int,
         moderation_log_id: int,
@@ -1009,12 +1006,12 @@ datetime.utcnow()
                 raise HTTPException(status_code=404, detail="Moderation log not found")
 
             # Check reviewer permissions
-            has_permission, _ = await self.check_moderator_permissions(
+            has_permission, _ = await self.check_moderator_permissions()
                 reviewer_id, moderation_log.guild_id, moderation_log.channel_id
             )
 
             if not has_permission:
-                raise HTTPException(
+                raise HTTPException()
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient permissions to review appeals"
                 )
@@ -1035,8 +1032,8 @@ datetime.utcnow()
 
                 # Update user status if applicable
                 if moderation_log.target_user_id:
-                    user_status = self.session.exec(
-                        select(UserModerationStatus).where(
+                    user_status = self.session.exec()
+                        select(UserModerationStatus).where()
                             UserModerationStatus.user_id == moderation_log.target_user_id
                         )
                     ).first()
@@ -1069,7 +1066,7 @@ datetime.utcnow()
             logger.error(f"Error reviewing appeal: {e}")
             return False
 
-    async def get_moderation_logs(
+    async def get_moderation_logs()
         self,
         guild_id: Optional[int] = None,
         target_user_id: Optional[int] = None,
@@ -1098,7 +1095,7 @@ datetime.utcnow()
                 moderator = self.session.get(EnhancedUser, log.moderator_id)
                 target_user = self.session.get(EnhancedUser, log.target_user_id) if log.target_user_id else None
 
-                result.append({
+                result.append({)
                     "id": log.id,
                     "uuid": log.uuid,
                     "action": log.action.value,

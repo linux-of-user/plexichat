@@ -15,6 +15,7 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 Enhanced government-level secure backup system models.
 Handles distributed sharding, redundancy tracking, and secure recovery.
 """
@@ -69,7 +70,7 @@ class EnhancedBackup(SQLModel, table=True):
     __tablename__ = "enhanced_backups"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -79,7 +80,7 @@ class EnhancedBackup(SQLModel, table=True):
     status: BackupStatus = Field(default=BackupStatus.CREATING, index=True)
 
     # Security classification
-    security_level: SecurityLevel = Field(
+    security_level: SecurityLevel = Field()
         default=SecurityLevel.CONFIDENTIAL, index=True
     )
     classification_reason: Optional[str] = Field(sa_column=Column(Text))
@@ -106,7 +107,7 @@ class EnhancedBackup(SQLModel, table=True):
     # Sharding information
     shard_count: int = Field(ge=1)
     shard_size_bytes: int = Field(ge=1024)  # Minimum 1KB
-    redundancy_factor: int = Field(
+    redundancy_factor: int = Field()
         default=5, ge=3
     )  # Government standard: 5 copies minimum
     recovery_threshold: int = Field(ge=1)  # Minimum shards needed for recovery
@@ -118,7 +119,7 @@ class EnhancedBackup(SQLModel, table=True):
     missing_shards: int = Field(default=0)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
     completed_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -141,7 +142,7 @@ class EnhancedBackup(SQLModel, table=True):
     distributions: List["ShardDistribution"] = Relationship(back_populates="backup")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_backup_status_created", "status", "created_at"),
         Index("idx_backup_security_level", "security_level", "created_at"),
         Index("idx_backup_type_status", "backup_type", "status"),
@@ -154,7 +155,7 @@ class EnhancedBackupShard(SQLModel, table=True):
     __tablename__ = "enhanced_backup_shards"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -167,7 +168,7 @@ class EnhancedBackupShard(SQLModel, table=True):
     size_bytes: int = Field(ge=0)
     checksum_sha256: str = Field(max_length=64, index=True)
     checksum_sha512: str = Field(max_length=128)
-    checksum_blake2b: str = Field(
+    checksum_blake2b: str = Field()
         max_length=128
     )  # Additional checksum for verification
 
@@ -186,7 +187,7 @@ class EnhancedBackupShard(SQLModel, table=True):
     target_distribution_count: int = Field(ge=1)
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
 
@@ -195,7 +196,7 @@ class EnhancedBackupShard(SQLModel, table=True):
     distributions: List["ShardDistribution"] = Relationship(back_populates="shard")
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_shard_backup_index", "backup_id", "shard_index", unique=True),
         Index("idx_shard_status_verification", "status", "last_verification_at"),
         Index("idx_shard_checksum", "checksum_sha256"),
@@ -217,12 +218,12 @@ class ShardDistribution(SQLModel, table=True):
     storage_node_id: Optional[int] = Field(foreign_key="backup_nodes.id", index=True)
     user_id: Optional[int] = Field(foreign_key="users_enhanced.id", index=True)
     storage_path: str = Field(max_length=1000)
-    storage_type: str = Field(
+    storage_type: str = Field()
         max_length=50
     )  # 'user_storage', 'backup_node', 'cloud', 'local'
 
     # Distribution details
-    distributed_at: datetime = Field(
+    distributed_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
     last_verified_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -245,8 +246,8 @@ class ShardDistribution(SQLModel, table=True):
     shard: Optional[EnhancedBackupShard] = Relationship(back_populates="distributions")
 
     # Indexes
-    __table_args__ = (
-        Index(
+    __table_args__ = ()
+        Index()
             "idx_distribution_shard_storage", "shard_id", "storage_type", "is_active"
         ),
         Index("idx_distribution_user_active", "user_id", "is_active"),
@@ -260,7 +261,7 @@ class BackupNode(SQLModel, table=True):
     __tablename__ = "backup_nodes"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
@@ -300,10 +301,10 @@ class BackupNode(SQLModel, table=True):
     configuration: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_backup_node_active_online", "is_active", "is_online"),
         Index("idx_backup_node_security", "security_level", "is_active"),
-        Index(
+        Index()
             "idx_backup_node_capacity", "total_capacity_bytes", "used_capacity_bytes"
         ),
     )
@@ -340,7 +341,7 @@ class UserBackupQuota(SQLModel, table=True):
     last_cleanup_at: Optional[datetime] = Field(sa_column=Column(DateTime))
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_user_quota_usage", "used_storage_bytes", "max_storage_bytes"),
     )
 
@@ -351,13 +352,13 @@ class BackupRecoveryLog(SQLModel, table=True):
     __tablename__ = "backup_recovery_logs"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(
+    uuid: str = Field()
         default_factory=lambda: str(uuid.uuid4()), unique=True, index=True
     )
 
     # Recovery identification
     backup_id: int = Field(foreign_key="enhanced_backups.id", index=True)
-    recovery_type: str = Field(
+    recovery_type: str = Field()
         max_length=50, index=True
     )  # 'full', 'partial', 'emergency'
 
@@ -372,14 +373,14 @@ class BackupRecoveryLog(SQLModel, table=True):
     bytes_recovered: int = Field(default=0, ge=0)
 
     # Status
-    status: str = Field(
+    status: str = Field()
         max_length=50, index=True
     )  # 'started', 'in_progress', 'completed', 'failed'
     success: bool = Field(default=False, index=True)
     error_message: Optional[str] = Field(sa_column=Column(Text))
 
     # Timestamps
-    started_at: datetime = Field(
+    started_at: datetime = Field()
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
     completed_at: Optional[datetime] = Field(sa_column=Column(DateTime))
@@ -388,7 +389,7 @@ class BackupRecoveryLog(SQLModel, table=True):
     recovery_metadata: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
 
     # Indexes
-    __table_args__ = (
+    __table_args__ = ()
         Index("idx_recovery_backup_status", "backup_id", "status"),
         Index("idx_recovery_user_time", "requested_by", "started_at"),
     )

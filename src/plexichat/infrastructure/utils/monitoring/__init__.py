@@ -5,7 +5,7 @@
 # pyright: reportReturnType=false
 from typing import Optional
 from .error_handler import (
-    ErrorHandler,
+ErrorHandler,
     ErrorSeverity,
     SystemMonitor,
     error_handler,
@@ -15,11 +15,11 @@ from .error_handler import (
 )
 
 __all__ = [
-    "ErrorHandler", 
-    "SystemMonitor", 
+    "ErrorHandler",
+    "SystemMonitor",
     "ErrorSeverity",
-    "error_handler", 
+    "error_handler",
     "system_monitor",
-    "error_handler_decorator", 
+    "error_handler_decorator",
     "monitor_performance"
 ]

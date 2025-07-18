@@ -17,6 +17,7 @@ import aiosqlite
 
 
 """
+import time
 Backup Node Authentication and Authorization System
 Government-level security for backup node API access with restricted shard collection.
 """
@@ -128,9 +129,9 @@ class BackupNodeAuthManager:
         """Initialize authentication database."""
         async with aiosqlite.connect(self.auth_db_path) as db:
             # API keys table
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS backup_node_api_keys (
+                CREATE TABLE IF NOT EXISTS backup_node_api_keys ()
                     key_id TEXT PRIMARY KEY,
                     api_key_hash TEXT NOT NULL UNIQUE,
                     node_id TEXT NOT NULL,
@@ -152,9 +153,9 @@ class BackupNodeAuthManager:
             )
 
             # Access logs table
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS shard_access_logs (
+                CREATE TABLE IF NOT EXISTS shard_access_logs ()
                     log_id TEXT PRIMARY KEY,
                     api_key_id TEXT NOT NULL,
                     node_id TEXT NOT NULL,
@@ -171,9 +172,9 @@ class BackupNodeAuthManager:
             )
 
             # Failed attempts tracking
-            await db.execute(
+            await db.execute()
                 """
-                CREATE TABLE IF NOT EXISTS failed_auth_attempts (
+                CREATE TABLE IF NOT EXISTS failed_auth_attempts ()
                     attempt_id TEXT PRIMARY KEY,
                     node_id TEXT NOT NULL,
                     ip_address TEXT NOT NULL,
@@ -188,7 +189,7 @@ class BackupNodeAuthManager:
 
         logger.info("Backup node authentication database initialized")
 
-    def generate_api_key(
+    def generate_api_key():
         self,
         node_id: str,
         node_name: str,
@@ -230,7 +231,7 @@ class BackupNodeAuthManager:
                 allowed_shard_types = {"*"}  # All types
 
         # Create API key object
-        api_key = BackupNodeAPIKey(
+        api_key = BackupNodeAPIKey()
             key_id=key_id,
             api_key_hash=api_key_hash,
             node_id=node_id,
@@ -252,12 +253,12 @@ class BackupNodeAuthManager:
         # Store API key
         self.api_keys[key_id] = api_key
 
-        logger.info(
+        logger.info()
             f"Generated API key for backup node {node_id} with {permission_level.value} permissions"
         )
         return key_id, raw_api_key
 
-    async def authenticate_api_key(
+    async def authenticate_api_key()
         self, raw_api_key: str, ip_address: str = "unknown"
     ) -> Optional[BackupNodeAPIKey]:
         """
@@ -277,7 +278,7 @@ class BackupNodeAuthManager:
             if api_key.api_key_hash == api_key_hash:
                 # Check if key is active and not expired
                 if api_key.status != APIKeyStatus.ACTIVE:
-                    await self._log_failed_attempt(
+                    await self._log_failed_attempt()
                         api_key.node_id,
                         ip_address,
                         raw_api_key,
@@ -285,11 +286,11 @@ class BackupNodeAuthManager:
                     )
                     return None
 
-                if api_key.expires_at and api_key.expires_at < datetime.now(
+                if api_key.expires_at and api_key.expires_at < datetime.now()
                     timezone.utc
                 ):
                     api_key.status = APIKeyStatus.EXPIRED
-                    await self._log_failed_attempt(
+                    await self._log_failed_attempt()
                         api_key.node_id, ip_address, raw_api_key, "Key expired"
                     )
                     return None
@@ -297,7 +298,7 @@ class BackupNodeAuthManager:
                 # Check if node is locked out
                 if api_key.node_id in self.lockout_times:
                     if datetime.now(timezone.utc) < self.lockout_times[api_key.node_id]:
-                        await self._log_failed_attempt(
+                        await self._log_failed_attempt()
                             api_key.node_id, ip_address, raw_api_key, "Node locked out"
                         )
                         return None
@@ -312,22 +313,22 @@ class BackupNodeAuthManager:
                 # Reset rate limiting if needed
                 if datetime.now(timezone.utc) >= api_key.rate_limit_reset:
                     api_key.hourly_shard_count = 0
-                    api_key.rate_limit_reset = datetime.now(timezone.utc) + timedelta(
+                    api_key.rate_limit_reset = datetime.now(timezone.utc) + timedelta()
                         hours=1
                     )
 
-                logger.info(
+                logger.info()
                     f"Successfully authenticated API key for node {api_key.node_id}"
                 )
                 return api_key
 
         # No matching key found
-        await self._log_failed_attempt(
+        await self._log_failed_attempt()
             "unknown", ip_address, raw_api_key, "Invalid API key"
         )
         return None
 
-    async def _log_failed_attempt(
+    async def _log_failed_attempt()
         self, node_id: str, ip_address: str, attempted_key: str, reason: str
     ):
         """Log failed authentication attempt."""
@@ -336,10 +337,10 @@ class BackupNodeAuthManager:
 
         # Check if lockout threshold reached
         if self.failed_attempts[node_id] >= self.max_failed_attempts:
-            self.lockout_times[node_id] = (
+            self.lockout_times[node_id] = ()
                 datetime.now(timezone.utc) + self.lockout_duration
             )
-            logger.warning(
+            logger.warning()
                 f"Node {node_id} locked out due to {self.failed_attempts[node_id]} failed attempts"
             )
 
@@ -347,13 +348,13 @@ class BackupNodeAuthManager:
         attempt_id = f"fail_{secrets.token_hex(8)}"
 
         async with aiosqlite.connect(self.auth_db_path) as db:
-            await db.execute(
+            await db.execute()
                 """
                 INSERT INTO failed_auth_attempts
                 (attempt_id, node_id, ip_address, attempted_key, timestamp, reason)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
-                (
+                ()
                     attempt_id,
                     node_id,
                     ip_address,
@@ -364,7 +365,7 @@ class BackupNodeAuthManager:
             )
             await db.commit()
 
-        logger.warning(
+        logger.warning()
             f"Failed authentication attempt from {ip_address} for node {node_id}: {reason}"
         )
 

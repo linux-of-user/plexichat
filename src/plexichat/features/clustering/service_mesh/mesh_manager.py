@@ -19,6 +19,7 @@ from pathlib import Path
 from pathlib import Path
 
 """
+import time
 PlexiChat Service Mesh Manager
 
 Advanced service mesh implementation with:
@@ -337,12 +338,12 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             logger.error(f"Failed to create security rule {rule.rule_id}: {e}")
             return False
 
-    async def enable_canary_deployment(self, service_name: str, canary_version: str,
+    async def enable_canary_deployment(self, service_name: str, canary_version: str,)
                                      traffic_percentage: float) -> bool:
         """Enable canary deployment for service."""
         try:
             # Create traffic splitting rule
-            rule = TrafficRule(
+            rule = TrafficRule()
                 rule_id=f"{service_name}-canary",
                 source_service="*",
                 destination_service=service_name,
@@ -362,7 +363,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             logger.error(f"Failed to enable canary deployment: {e}")
             return False
 
-    async def configure_circuit_breaker(self, service_name: str,
+    async def configure_circuit_breaker(self, service_name: str,)
                                       failure_threshold: int = 5,
                                       timeout_seconds: int = 30,
                                       recovery_time_seconds: int = 60) -> bool:
@@ -411,7 +412,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
             logger.error(f"Failed to configure circuit breaker: {e}")
             return False
 
-    async def inject_fault(self, service_name: str, fault_type: str,
+    async def inject_fault(self, service_name: str, fault_type: str,)
                          percentage: float, delay_ms: Optional[int] = None,
                          abort_code: Optional[int] = None) -> bool:
         """Inject fault for testing resilience."""
@@ -430,7 +431,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
                 }
 
             # Create traffic rule with fault injection
-            rule = TrafficRule(
+            rule = TrafficRule()
                 rule_id=f"{service_name}-fault-injection",
                 source_service="*",
                 destination_service=service_name,
@@ -456,7 +457,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
         metrics = self.service_metrics[service_name]
 
         # Calculate derived metrics
-        success_rate = (metrics.get("successful_requests", 0) /
+        success_rate = (metrics.get("successful_requests", 0) /)
                        max(metrics.get("total_requests", 1), 1)) * 100
 
         return {
@@ -484,7 +485,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
 
         # Add services
         for service_key, service in self.services.items():
-            topology["services"].append({
+            topology["services"].append({)
                 "name": service.service_name,
                 "namespace": service.namespace,
                 "host": service.host,
@@ -496,7 +497,7 @@ Path(f"config/service_mesh_{self.mesh_type.value}.yaml")
 
         # Add connections (derived from traffic rules)
         for rule in self.traffic_rules.values():
-            topology["connections"].append({
+            topology["connections"].append({)
                 "source": rule.source_service,
                 "destination": rule.destination_service,
                 "protocol": "HTTP",  # Simplified

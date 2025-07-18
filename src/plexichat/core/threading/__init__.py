@@ -18,7 +18,7 @@ except ImportError as e:
 
 __all__ = [
     "ThreadManager",
-    "AsyncThreadManager", 
+    "AsyncThreadManager",
     "ThreadTask",
     "thread_manager",
     "async_thread_manager",

@@ -16,6 +16,7 @@ from ....infrastructure.utils.snowflake import SnowflakeGenerator
 from sqlalchemy import DateTime, Index, Text
 
 """
+import time
 PlexiChat Channel Model
 
 Discord-like channel model with comprehensive features for text, voice, and special channels.
@@ -66,7 +67,7 @@ class Channel(SQLModel, table=True):
     __tablename__ = "channels"
 
     # Primary identification
-    channel_id: str = Field(
+    channel_id: str = Field()
         default_factory=lambda: str(channel_snowflake.generate_id()),
         primary_key=True,
         index=True,
@@ -74,31 +75,31 @@ class Channel(SQLModel, table=True):
     )
 
     # Server relationship
-    server_id: str = Field(
+    server_id: str = Field()
         foreign_key="servers.server_id",
         index=True,
         description="Server this channel belongs to",
     )
 
     # Basic channel information
-    name: str = Field(
+    name: str = Field()
         max_length=100, index=True, description="Channel name (1-100 characters)"
     )
 
-    type: ChannelType = Field(
+    type: ChannelType = Field()
         default=ChannelType.GUILD_TEXT, index=True, description="Type of channel"
     )
 
-    topic: Optional[str] = Field(
+    topic: Optional[str] = Field()
         default=None, sa_column=Column(Text), description="Channel topic/description"
     )
 
     # Channel organization
-    position: int = Field(
+    position: int = Field()
         default=0, index=True, description="Sorting position of the channel"
     )
 
-    parent_id: Optional[str] = Field(
+    parent_id: Optional[str] = Field()
         default=None,
         foreign_key="channels.channel_id",
         index=True,
@@ -106,35 +107,35 @@ class Channel(SQLModel, table=True):
     )
 
     # Voice channel specific settings
-    user_limit: Optional[int] = Field(
+    user_limit: Optional[int] = Field()
         default=0,
         ge=0,
         le=99,
         description="User limit for voice channels (0 = unlimited)",
     )
 
-    bitrate: Optional[int] = Field(
+    bitrate: Optional[int] = Field()
         default=64000,
         ge=8000,
         le=384000,
         description="Voice channel bitrate in bits per second",
     )
 
-    video_quality_mode: Optional[VideoQualityMode] = Field(
+    video_quality_mode: Optional[VideoQualityMode] = Field()
         default=VideoQualityMode.AUTO,
         description="Video quality mode for voice channels",
     )
 
-    rtc_region: Optional[str] = Field(
+    rtc_region: Optional[str] = Field()
         default=None, max_length=50, description="Voice region override"
     )
 
     # Channel moderation
-    nsfw: bool = Field(
+    nsfw: bool = Field()
         default=False, index=True, description="Whether channel is marked as NSFW"
     )
 
-    rate_limit_per_user: int = Field(
+    rate_limit_per_user: int = Field()
         default=0,
         ge=0,
         le=21600,
@@ -142,104 +143,104 @@ class Channel(SQLModel, table=True):
     )
 
     # Thread specific settings
-    owner_id: Optional[str] = Field(
+    owner_id: Optional[str] = Field()
         default=None,
         foreign_key="users.id",
         description="Thread owner (for thread channels)",
     )
 
-    message_count: Optional[int] = Field(
+    message_count: Optional[int] = Field()
         default=0, ge=0, description="Approximate message count (for threads)"
     )
 
-    member_count: Optional[int] = Field(
+    member_count: Optional[int] = Field()
         default=0, ge=0, description="Approximate member count (for threads)"
     )
 
     # Thread metadata
-    thread_metadata: Optional[Dict[str, Any]] = Field(
+    thread_metadata: Optional[Dict[str, Any]] = Field()
         default=None, sa_column=Column(JSON), description="Thread-specific metadata"
     )
 
     # Forum channel settings
-    default_auto_archive_duration: Optional[int] = Field(
+    default_auto_archive_duration: Optional[int] = Field()
         default=1440, description="Default auto archive duration in minutes"
     )
 
-    default_thread_rate_limit_per_user: Optional[int] = Field(
+    default_thread_rate_limit_per_user: Optional[int] = Field()
         default=0, ge=0, le=21600, description="Default rate limit for threads in forum"
     )
 
-    default_sort_order: Optional[SortOrderType] = Field(
+    default_sort_order: Optional[SortOrderType] = Field()
         default=SortOrderType.LATEST_ACTIVITY,
         description="Default sort order for forum posts",
     )
 
     # Channel permissions and features
-    permissions_synced: bool = Field(
+    permissions_synced: bool = Field()
         default=True, description="Whether permissions are synced with parent category"
     )
 
     # System channels
-    system_channel_flags: int = Field(
+    system_channel_flags: int = Field()
         default=0, description="System channel flags bitfield"
     )
 
     # Channel status
-    archived: bool = Field(
+    archived: bool = Field()
         default=False, index=True, description="Whether channel is archived"
     )
 
     locked: bool = Field(default=False, description="Whether channel is locked")
 
-    invitable: bool = Field(
+    invitable: bool = Field()
         default=True, description="Whether non-moderators can add users to thread"
     )
 
     # Timestamps
-    created_at: datetime = Field(
+    created_at: datetime = Field()
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime),
         index=True,
         description="Channel creation timestamp",
     )
 
-    updated_at: Optional[datetime] = Field(
+    updated_at: Optional[datetime] = Field()
         default=None, sa_column=Column(DateTime), description="Last update timestamp"
     )
 
-    last_message_id: Optional[str] = Field(
+    last_message_id: Optional[str] = Field()
         default=None,
         foreign_key="messages.message_id",
         description="ID of the last message sent",
     )
 
-    last_pin_timestamp: Optional[datetime] = Field(
+    last_pin_timestamp: Optional[datetime] = Field()
         default=None,
         sa_column=Column(DateTime),
         description="When the last pinned message was pinned",
     )
 
     # Auto-archive settings
-    auto_archive_duration: Optional[int] = Field(
+    auto_archive_duration: Optional[int] = Field()
         default=1440, description="Auto archive duration in minutes"
     )
 
-    archive_timestamp: Optional[datetime] = Field(
+    archive_timestamp: Optional[datetime] = Field()
         default=None,
         sa_column=Column(DateTime),
         description="When the thread was archived",
     )
 
     # Forum channel tags
-    available_tags: Optional[List[Dict[str, Any]]] = Field(
+    available_tags: Optional[List[Dict[str, Any]]] = Field()
         default=None,
         sa_column=Column(JSON),
         description="Available tags for forum posts",
     )
 
     # Applied tags (for forum posts)
-    applied_tags: Optional[List[str]] = Field(
+    applied_tags: Optional[List[str]] = Field()
         default=None,
         sa_column=Column(JSON),
         description="Applied tag IDs (for forum posts)",
@@ -311,7 +312,7 @@ class Channel(SQLModel, table=True):
 
 
 # Database indexes for performance
-__table_args__ = (
+__table_args__ = ()
     Index("idx_channel_server_type", "server_id", "type"),
     Index("idx_channel_server_position", "server_id", "position"),
     Index("idx_channel_parent_position", "parent_id", "position"),
