@@ -407,7 +407,7 @@ class Phase2ScalabilityCoordinator:
         """Get value from distributed cache."""
         return await self.distributed_cache.get(key, default)
 
-    async def set_cache_value()
+    async def set_cache_value(
         self, key: str, value: Any, ttl: Optional[int] = None
     ) -> bool:
         """Set value in distributed cache."""
@@ -444,10 +444,13 @@ class Phase2ScalabilityCoordinator:
             self.enabled = False
 
             # Stop components in reverse order
-            await self.if task_queue_manager and hasattr(task_queue_manager, "stop"): task_queue_manager.stop()
-            await self.if distributed_cache and hasattr(distributed_cache, "stop"): distributed_cache.stop()
+            if task_queue_manager and hasattr(task_queue_manager, "stop"):
+                await task_queue_manager.stop()
+            if distributed_cache and hasattr(distributed_cache, "stop"):
+                await distributed_cache.stop()
             await self.microservices_orchestrator.stop_all_services()
-            await self.if service_registry and hasattr(service_registry, "stop"): service_registry.stop()
+            if service_registry and hasattr(service_registry, "stop"):
+                await service_registry.stop()
 
             logger.info(" Phase II Scalability System shutdown complete")
 

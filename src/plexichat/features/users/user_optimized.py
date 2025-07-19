@@ -5,7 +5,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat User Model
 
 Enhanced user model with comprehensive functionality and performance optimization.
@@ -20,7 +19,10 @@ from typing import Any, Dict, List, Optional, Union
 try:
     from sqlmodel import SQLModel, Field, Relationship
 except ImportError:
-    SQLModel = object
+    from typing import Any
+    class SQLModel:
+        def __init_subclass__(cls, table: bool = False, **kwargs):
+            super().__init_subclass__()
     Field = lambda *args, **kwargs: None
     Relationship = lambda *args, **kwargs: None
 
@@ -240,7 +242,7 @@ class UserService:
                 if result:
                     # Convert result to User object
                     row = result[0]
-                    user = User()
+                    user = User(
                         id=row[0],
                         username=row[1],
                         email=row[2],
@@ -294,7 +296,7 @@ class UserService:
                 if result:
                     # Convert result to User object
                     row = result[0]
-                    user = User()
+                    user = User(
                         id=row[0],
                         username=row[1],
                         email=row[2],

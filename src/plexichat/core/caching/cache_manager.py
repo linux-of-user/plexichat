@@ -308,8 +308,18 @@ class DistributedCacheManager(CacheManager):
 
             result = await self.db_manager.execute_query(query, params)
             if result:
-                value_json, expires_at = result[0]
-                return json.loads(value_json)
+                if isinstance(result, dict):
+                    value_json = result.get('value', '')
+                    return json.loads(value_json) if value_json else None
+                elif isinstance(result, (list, tuple)) and len(result) > 0:
+                    row = result[0]
+                    if isinstance(row, dict):
+                        value_json = row.get('value', '')
+                    elif isinstance(row, (list, tuple)) and len(row) >= 2:
+                        value_json = row[0]
+                    else:
+                        value_json = str(row)
+                    return json.loads(value_json)
 
             return None
         except Exception as e:

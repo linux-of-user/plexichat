@@ -157,7 +157,7 @@ class MigrationRepository:
             logger.error(f"Failed to record migration start: {e}")
             return False
 
-    async def record_migration_completion(self, version: str, success: bool, )
+    async def record_migration_completion(self, version: str, success: bool,
                                         execution_time: float, error: Optional[str] = None) -> bool:
         """Record the completion of a migration."""
         try:
@@ -319,7 +319,7 @@ class UnifiedMigrationManager:
                 elif current_section == 'down':
                     down_sql += line + '\n'
 
-            migration = Migration()
+            migration = Migration(
                 version=version,
                 name=name,
                 description=description,
@@ -376,7 +376,7 @@ class UnifiedMigrationManager:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             # Record successful completion
-            await self.repository.record_migration_completion()
+            await self.repository.record_migration_completion(
                 migration.version, True, execution_time
             )
 
@@ -386,7 +386,7 @@ class UnifiedMigrationManager:
         except Exception as e:
             # Record failure
             execution_time = (datetime.now() - start_time).total_seconds()
-            await self.repository.record_migration_completion()
+            await self.repository.record_migration_completion(
                 migration.version, False, execution_time, str(e)
             )
 

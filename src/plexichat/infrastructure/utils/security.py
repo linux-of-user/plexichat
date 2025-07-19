@@ -126,7 +126,7 @@ class SecurityUtilities:
 
             # Create HMAC signature
             secret_key = getattr(settings, 'JWT_SECRET', 'mock-secret-key')
-            signature = hmac.new()
+            signature = hmac.new(
                 secret_key.encode(),
                 data.encode(),
                 hashlib.sha256
@@ -149,7 +149,7 @@ class SecurityUtilities:
 
             # Verify HMAC signature
             secret_key = getattr(settings, 'JWT_SECRET', 'mock-secret-key')
-            expected_signature = hmac.new()
+            expected_signature = hmac.new(
                 secret_key.encode(),
                 data.encode(),
                 hashlib.sha256
@@ -171,7 +171,7 @@ class SecurityUtilities:
                     password = getattr(settings, 'JWT_SECRET', 'mock-secret-key').encode()
                     salt = b'plexichat_salt_2024'  # In production, use random salt
 
-                    kdf = PBKDF2HMAC()
+                    kdf = PBKDF2HMAC(
                         algorithm=hashes.SHA256(),
                         length=32,
                         salt=salt,
@@ -181,7 +181,7 @@ class SecurityUtilities:
                     self._encryption_key = key
                 else:
                     # Fallback key generation
-                    self._encryption_key = hashlib.sha256()
+                    self._encryption_key = hashlib.sha256(
                         getattr(settings, 'JWT_SECRET', 'mock-secret-key').encode()
                     ).digest()
             except Exception as e:

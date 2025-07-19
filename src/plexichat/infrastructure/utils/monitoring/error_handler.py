@@ -171,7 +171,7 @@ class SystemMonitor:
         # Check if monitoring is enabled (simplified)
         monitoring_enabled = True  # Default to True for now
         if monitoring_enabled:
-            monitoring_logger.warning("ERROR_RECORDED: type=%s severity=%s count=%d", )
+            monitoring_logger.warning("ERROR_RECORDED: type=%s severity=%s count=%d",
                                     error_type, severity, self.error_counts[key])
 
 
@@ -183,7 +183,7 @@ class ErrorHandler:
         self.error_log_file = Path("logs") / "errors.jsonl"
         self.error_log_file.parent.mkdir(parents=True, exist_ok=True)
 
-    def handle_error(self, error: Exception, context: Dict[str, Any] = None, ):
+    def handle_error(self, error: Exception, context: Dict[str, Any] = None,
                     severity: str = ErrorSeverity.MEDIUM,
                     recovery_action: Optional[Callable] = None) -> Dict[str, Any]:
         """Handle an error with comprehensive logging and optional recovery."""
@@ -236,7 +236,7 @@ class ErrorHandler:
 
         return error_info
 
-def error_handler_decorator(severity: str = ErrorSeverity.MEDIUM, ):
+def error_handler_decorator(severity: str = ErrorSeverity.MEDIUM,
                           recovery_action: Optional[Callable] = None):
     """Decorator for automatic error handling."""
     def decorator(func):
@@ -246,7 +246,7 @@ def error_handler_decorator(severity: str = ErrorSeverity.MEDIUM, ):
                 return func(*args, **kwargs)
             except Exception as e:
                 handler = ErrorHandler()
-                error_info = handler.handle_error(e, )
+                error_info = handler.handle_error(e,
                                                context={"function": func.__name__},
                                                severity=severity,
                                                recovery_action=recovery_action)
@@ -268,13 +268,13 @@ def monitor_performance(func):
             monitoring_log_performance = True  # Default to True for now
 
             if monitoring_enabled and monitoring_log_performance:
-                monitoring_logger.info("PERFORMANCE: %s.%s duration=%.3fs status=success", )
+                monitoring_logger.info("PERFORMANCE: %s.%s duration=%.3fs status=success",
                                      func.__module__, func.__name__, duration)
             return result
 
         except Exception as e:
             duration = time.time() - start_time
-            monitoring_logger.error("PERFORMANCE: %s.%s duration=%.3fs status=error error=%s", )
+            monitoring_logger.error("PERFORMANCE: %s.%s duration=%.3fs status=error error=%s",
                                   func.__module__, func.__name__, duration, str(e))
             raise
 

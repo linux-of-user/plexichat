@@ -563,7 +563,7 @@ class ScalabilityManager:
             # Simulate adding a new node
             self.load_balancer.add_node(new_node_id)
 
-            self.auto_scaler.record_scaling_event('scale_up', {)
+            self.auto_scaler.record_scaling_event('scale_up', {
                 'new_node': new_node_id,
                 'total_nodes': len(self.load_balancer.nodes)
             })
@@ -585,7 +585,7 @@ class ScalabilityManager:
                 node_to_remove = nodes_list[-1]
                 self.load_balancer.remove_node(node_to_remove)
 
-                self.auto_scaler.record_scaling_event('scale_down', {)
+                self.auto_scaler.record_scaling_event('scale_down', {
                     'removed_node': node_to_remove,
                     'total_nodes': len(self.load_balancer.nodes)
                 })

@@ -70,7 +70,7 @@ class TaskScheduler:
             except Exception as e:
                 logger.error(f"Error stopping task scheduler: {e}")
 
-    def add_task(self, task_id: str, func, trigger: str = 'interval', ):
+    def add_task(self, task_id: str, func, trigger: str = 'interval',
                  minutes: int = 5, **kwargs):
         """Add a scheduled task."""
         if not self.running or not self.scheduler:
@@ -78,7 +78,7 @@ class TaskScheduler:
             return False
 
         try:
-            self.scheduler.add_job()
+            self.scheduler.add_job(
                 func,
                 trigger=trigger,
                 minutes=minutes,
@@ -193,12 +193,12 @@ def run_comprehensive_self_tests() -> Dict[str, Any]:
             selftest_logger.info("Self-test suite PASSED (%.1f%% success rate)", success_rate)
         else:
             _failure_count += 1
-            selftest_logger.warning("Self-test suite FAILED (%.1f%% success rate, failure #%d)",)
+            selftest_logger.warning("Self-test suite FAILED (%.1f%% success rate, failure #%d)",
                                   success_rate, _failure_count)
 
         # Log monitoring metrics
         if settings.MONITORING_ENABLED and settings.MONITORING_LOG_PERFORMANCE:
-            monitoring_logger.info("SELFTEST_METRICS: duration=%.2fs success_rate=%.1f%% failures=%d",)
+            monitoring_logger.info("SELFTEST_METRICS: duration=%.2fs success_rate=%.1f%% failures=%d",
                                  0.5, success_rate, _failure_count)
 
         return {
@@ -263,7 +263,7 @@ def start_scheduler():
         interval_minutes = settings.SELFTEST_INTERVAL_MINUTES
 
         # Schedule the comprehensive self-test job
-        _scheduler.add_job()
+        _scheduler.add_job(
             run_comprehensive_self_tests,
             'interval',
             minutes=interval_minutes,
@@ -277,11 +277,11 @@ def start_scheduler():
         if _scheduler and hasattr(_scheduler, "start"): _scheduler.start()
 
         logger.info("Self-test scheduler started successfully")
-        logger.info("Configuration: initial_delay=%ds, interval=%dm",)
+        logger.info("Configuration: initial_delay=%ds, interval=%dm",
                    settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
 
         if settings.MONITORING_ENABLED:
-            monitoring_logger.info("SELFTEST_SCHEDULER_STARTED: delay=%ds interval=%dm",)
+            monitoring_logger.info("SELFTEST_SCHEDULER_STARTED: delay=%ds interval=%dm",
                                  settings.SELFTEST_INITIAL_DELAY_SECONDS, interval_minutes)
 
     except Exception as e:

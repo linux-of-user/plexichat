@@ -61,7 +61,7 @@ except ImportError:
 
 # HTTP client imports
 try:
-    import httpx
+    import httpx  # type: ignore
 except ImportError:
     httpx = None
 
@@ -147,7 +147,7 @@ class WebhookService:
 
                 if result:
                     row = result[0]
-                    return WebhookResponse()
+                    return WebhookResponse(
                         id=row[0],
                         name=row[1],
                         url=row[2],
@@ -162,7 +162,7 @@ class WebhookService:
                 raise HTTPException(status_code=500, detail="Failed to create webhook")
 
         # Fallback mock webhook
-        return WebhookResponse()
+        return WebhookResponse(
             id=1,
             name=webhook_data.name,
             url=webhook_data.url,
@@ -195,7 +195,7 @@ class WebhookService:
                 webhooks = []
                 if result:
                     for row in result:
-                        webhooks.append(WebhookResponse())
+                        webhooks.append(WebhookResponse(
                             id=row[0],
                             name=row[1],
                             url=row[2],
@@ -253,7 +253,7 @@ class WebhookService:
                 # Create signature if secret is provided
                 headers = {"Content-Type": "application/json"}
                 if webhook_row[3]:  # secret
-                    signature = hmac.new()
+                    signature = hmac.new(
                         webhook_row[3].encode(),
                         json.dumps(payload).encode(),
                         hashlib.sha256
@@ -268,7 +268,7 @@ class WebhookService:
                 if httpx:
                     try:
                         async with httpx.AsyncClient(timeout=30.0) as client:
-                            response = await client.post()
+                            response = await client.post(
                                 webhook_row[2],  # url
                                 json=payload,
                                 headers=headers
@@ -324,7 +324,7 @@ class WebhookService:
 # Initialize service
 webhook_service = WebhookService()
 
-@router.post()
+@router.post(
     "/",
     response_model=WebhookResponse,
     status_code=status.HTTP_201_CREATED,
@@ -349,7 +349,7 @@ async def create_webhook(
 
     return await webhook_service.create_webhook(webhook_data, current_user.get("id", 0))
 
-@router.get()
+@router.get(
     "/",
     response_model=List[WebhookResponse],
     summary="List webhooks"
@@ -370,7 +370,7 @@ async def list_webhooks(
 
     return await webhook_service.list_webhooks(current_user.get("id", 0), limit, offset)
 
-@router.post()
+@router.post(
     "/{webhook_id}/trigger",
     summary="Trigger webhook"
 )
@@ -397,7 +397,7 @@ async def trigger_webhook(
 
     return {"message": "Webhook triggered", "webhook_id": webhook_id}
 
-@router.post()
+@router.post(
     "/broadcast",
     summary="Broadcast event to all webhooks"
 )

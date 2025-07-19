@@ -78,7 +78,7 @@ class CleanShutdown:
                 cmdline = ' '.join(proc.info['cmdline'] or [])
 
                 # Check if this is our process
-                if any(pattern in cmdline.lower() for pattern in [)
+                if any(pattern in cmdline.lower() for pattern in [
                     'app.main:app',
                     'enhanced_launch.py',
                     'run.py',

@@ -384,7 +384,7 @@ class VoiceVideoManager:
 
     async def create_channel(self, channel_data: Dict[str, Any]) -> VoiceVideoChannel:
         """Create new voice/video channel."""
-        channel = VoiceVideoChannel()
+        channel = VoiceVideoChannel(
             channel_id=channel_data["channel_id"],
             name=channel_data["name"],
             description=channel_data.get("description", ""),
@@ -396,7 +396,7 @@ class VoiceVideoManager:
         logger.info(f"Created {channel.channel_type.value} channel: {channel.name}")
         return channel
 
-    async def join_channel(self, channel_id: str, user_id: str, username: str,)
+    async def join_channel(self, channel_id: str, user_id: str, username: str,
                           display_name: str) -> bool:
         """Join voice/video channel."""
         if channel_id not in self.channels:

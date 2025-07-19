@@ -49,7 +49,7 @@ except ImportError:
 
 # Analytics imports
 try:
-    from plexichat.core.analytics.analytics_engine import analytics_engine
+    from plexichat.core.analytics.analytics_engine import analytics_engine  # type: ignore
 except ImportError:
     analytics_engine = None
 
@@ -64,7 +64,7 @@ except ImportError:
 
 # Testing imports
 try:
-    from plexichat.tests.comprehensive_test_suite import test_framework
+    from plexichat.tests.comprehensive_test_suite import test_framework  # type: ignore
 except ImportError:
     test_framework = None
 
@@ -133,7 +133,7 @@ class SystemService:
                 except Exception:
                     pass
 
-            return SystemStatus()
+            return SystemStatus(
                 status="healthy",
                 timestamp=datetime.now().isoformat(),
                 version=getattr(settings, 'API_VERSION', '1.0.0'),
@@ -144,7 +144,7 @@ class SystemService:
 
         except Exception as e:
             logger.error(f"Error getting system status: {e}")
-            return SystemStatus()
+            return SystemStatus(
                 status="error",
                 timestamp=datetime.now().isoformat(),
                 version=getattr(settings, 'API_VERSION', '1.0.0'),
@@ -188,7 +188,7 @@ class SystemService:
                 except Exception:
                     pass
 
-            return AnalyticsReport()
+            return AnalyticsReport(
                 total_users=total_users,
                 total_files=total_files,
                 total_messages=total_messages,
@@ -198,7 +198,7 @@ class SystemService:
 
         except Exception as e:
             logger.error(f"Error generating analytics report: {e}")
-            return AnalyticsReport()
+            return AnalyticsReport(
                 total_users=0,
                 total_files=0,
                 total_messages=0,
@@ -214,7 +214,7 @@ class SystemService:
                 # Use EXISTING test framework
                 results = await test_framework.run_comprehensive_tests()
 
-                return TestResults()
+                return TestResults(
                     total_tests=results.get("total", 0),
                     passed=results.get("passed", 0),
                     failed=results.get("failed", 0),
@@ -224,7 +224,7 @@ class SystemService:
                 )
             else:
                 # Mock test results
-                return TestResults()
+                return TestResults(
                     total_tests=10,
                     passed=8,
                     failed=1,
@@ -240,7 +240,7 @@ class SystemService:
 
         except Exception as e:
             logger.error(f"Error running system tests: {e}")
-            return TestResults()
+            return TestResults(
                 total_tests=0,
                 passed=0,
                 failed=1,
@@ -252,7 +252,7 @@ class SystemService:
 # Initialize service
 system_service = SystemService()
 
-@router.get()
+@router.get(
     "/status",
     response_model=SystemStatus,
     summary="Get system status"
@@ -271,7 +271,7 @@ async def get_system_status(
 
     return await system_service.get_system_status()
 
-@router.get()
+@router.get(
     "/analytics",
     response_model=AnalyticsReport,
     summary="Get analytics report"
@@ -290,7 +290,7 @@ async def get_analytics_report(
 
     return await system_service.get_analytics_report()
 
-@router.post()
+@router.post(
     "/tests/run",
     response_model=TestResults,
     summary="Run system tests"
@@ -309,7 +309,7 @@ async def run_system_tests(
 
     return await system_service.run_system_tests()
 
-@router.get()
+@router.get(
     "/performance",
     summary="Get performance metrics"
 )
@@ -341,7 +341,7 @@ async def get_performance_metrics(
             detail="Failed to retrieve performance metrics"
         )
 
-@router.post()
+@router.post(
     "/optimize",
     summary="Trigger system optimization"
 )
@@ -373,19 +373,23 @@ async def trigger_optimization(
             }
     except Exception as e:
         logger.error(f"Error during system optimization: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to complete system optimization"
         )
 
-from plexichat.core.resilience.manager import get_system_resilience
-
-resilience_manager = get_system_resilience()
+try:
+    from plexichat.core.resilience.manager import get_system_resilience  # type: ignore
+    resilience_manager = get_system_resilience()
+except ImportError:
+    resilience_manager = None
 
 @router.get("/resilience", summary="Get system resilience status")
 async def get_resilience_status():
     """Get the current system resilience status."""
     try:
+        if resilience_manager is None:
+            return {"success": False, "error": "Resilience manager not available"}
         report = await resilience_manager.run_system_check()
         return {"success": True, "resilience": report}
     except Exception as e:

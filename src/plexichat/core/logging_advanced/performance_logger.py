@@ -315,7 +315,7 @@ class PerformanceLogger:
             name=name,
             value=value,
             unit=unit,
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             tags=tags or {},
             metadata=metadata or {}
         )

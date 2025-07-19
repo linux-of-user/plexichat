@@ -161,20 +161,15 @@ class SystemIntegrator:
             "plexichat.cli.user_cli",
         ]
 
-        # Test modules
-        test_modules = [
-            "plexichat.tests.test_database_performance",
-            "plexichat.tests.test_security",
-            "plexichat.tests.test_backup",
-            "plexichat.tests.test_clustering_system",
-            "plexichat.tests.test_complete_system",
-        ]
+        # Remove test_modules and any references to plexichat.tests.*
+        # If you need to run tests, use the plugin manager:
+        # from plexichat.core.plugins.unified_plugin_manager import run_all_tests
+        # results = run_all_tests()
 
         modules.extend(core_modules)
         modules.extend(service_modules)
         modules.extend(web_modules)
         modules.extend(cli_modules)
-        modules.extend(test_modules)
 
         return modules
 

@@ -209,7 +209,7 @@ class AuthService:
 
         # Fallback for testing
         if user_id == 1:
-            return User()
+            return User(
                 id=1,
                 username="admin",
                 email="admin@example.com",

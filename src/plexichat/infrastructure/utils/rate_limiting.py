@@ -133,7 +133,7 @@ class RateLimiter:
             # Save cleaned data
             self._save_data()
 
-    def check_rate_limit(self, key: str, max_attempts: int, window_minutes: int,):
+    def check_rate_limit(self, key: str, max_attempts: int, window_minutes: int,
                         algorithm: str = "sliding_window") -> bool:
         """
         Check if a request should be rate limited.
@@ -245,7 +245,7 @@ class RateLimiter:
         """Get the number of attempts for a key in the last N hours."""
         with self._lock:
             cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
-            return len([)
+            return len([
                 attempt for attempt in self.attempt_counts[key]
                 if attempt > cutoff_time
             ])
@@ -275,7 +275,7 @@ class RateLimiter:
 # Global rate limiter instance
 rate_limiter = RateLimiter()
 
-def rate_limit(max_attempts: int = 10, window_minutes: int = 1, ):
+def rate_limit(max_attempts: int = 10, window_minutes: int = 1,
               algorithm: str = "sliding_window", key_func: Optional[callable] = None):
     """Decorator for rate limiting functions."""
     def decorator(func):

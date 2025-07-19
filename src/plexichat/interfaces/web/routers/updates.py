@@ -60,7 +60,7 @@ except ImportError:
 
 # HTTP client imports
 try:
-    import httpx
+    import httpx  # type: ignore
 except ImportError:
     httpx = None
 
@@ -108,7 +108,7 @@ class UpdateService:
         """Get version information with update check."""
         try:
             current_version = getattr(settings, 'VERSION', '1.0.0')
-            version_info = VersionInfo()
+            version_info = VersionInfo(
                 current_version=current_version,
                 latest_version=None,
                 update_available=False,
@@ -122,7 +122,7 @@ class UpdateService:
                     if self.performance_logger and timer:
                         with timer("update_check_request"):
                             async with httpx.AsyncClient(timeout=10.0) as client:
-                                response = await client.get()
+                                response = await client.get(
                                     getattr(settings, 'UPDATE_CHECK_URL', 'https://api.github.com/repos/plexichat/plexichat/releases/latest')
                                 )
                                 if response.status_code == 200:
@@ -134,7 +134,7 @@ class UpdateService:
                                     version_info.download_url = data.get('html_url', '')
                     else:
                         async with httpx.AsyncClient(timeout=10.0) as client:
-                            response = await client.get()
+                            response = await client.get(
                                 getattr(settings, 'UPDATE_CHECK_URL', 'https://api.github.com/repos/plexichat/plexichat/releases/latest')
                             )
                             if response.status_code == 200:
@@ -151,7 +151,7 @@ class UpdateService:
 
         except Exception as e:
             logger.error(f"Error getting version info: {e}")
-            return VersionInfo()
+            return VersionInfo(
                 current_version=getattr(settings, 'VERSION', '1.0.0'),
                 latest_version=None,
                 update_available=False,
@@ -181,7 +181,7 @@ class UpdateService:
                 history = []
                 if result:
                     for row in result:
-                        history.append(UpdateHistory())
+                        history.append(UpdateHistory(
                             id=row[0],
                             version_from=row[1],
                             version_to=row[2],
@@ -234,8 +234,8 @@ class UpdateService:
 
     async def perform_update(self, target_version: str) -> UpdateStatus:
         """Perform system update (placeholder implementation)."""
+        current_version = getattr(settings, 'VERSION', '1.0.0')
         try:
-            current_version = getattr(settings, 'VERSION', '1.0.0')
 
             # Log update attempt
             update_id = await self.log_update_attempt(current_version, target_version, "started")
@@ -255,7 +255,7 @@ class UpdateService:
             # Log completion
             await self.log_update_attempt(current_version, target_version, "completed")
 
-            return UpdateStatus()
+            return UpdateStatus(
                 status="completed",
                 message=f"Successfully updated from {current_version} to {target_version}",
                 progress=100,
@@ -267,7 +267,7 @@ class UpdateService:
             logger.error(f"Error performing update: {e}")
             await self.log_update_attempt(current_version, target_version, "failed", str(e))
 
-            return UpdateStatus()
+            return UpdateStatus(
                 status="failed",
                 message=f"Update failed: {str(e)}",
                 progress=0,
@@ -278,7 +278,7 @@ class UpdateService:
 # Initialize service
 update_service = UpdateService()
 
-@router.get()
+@router.get(
     "/version",
     response_model=VersionInfo,
     summary="Get version information"
@@ -297,7 +297,7 @@ async def get_version_info(
 
     return await update_service.get_version_info()
 
-@router.get()
+@router.get(
     "/history",
     response_model=List[UpdateHistory],
     summary="Get update history"
@@ -317,7 +317,7 @@ async def get_update_history(
 
     return await update_service.get_update_history(limit)
 
-@router.post()
+@router.post(
     "/check",
     response_model=VersionInfo,
     summary="Check for updates"
@@ -336,7 +336,7 @@ async def check_for_updates(
 
     return await update_service.get_version_info()
 
-@router.post()
+@router.post(
     "/install/{version}",
     response_model=UpdateStatus,
     summary="Install update"
@@ -365,7 +365,7 @@ async def install_update(
         started_at=datetime.now()
     )
 
-@router.get()
+@router.get(
     "/status",
     response_model=UpdateStatus,
     summary="Get update status"
@@ -389,7 +389,7 @@ async def get_update_status(
         progress=0
     )
 
-@router.post()
+@router.post(
     "/backup",
     summary="Create backup before update"
 )
@@ -422,7 +422,7 @@ async def create_backup(
 
     except Exception as e:
         logger.error(f"Error creating backup: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create backup"
         )

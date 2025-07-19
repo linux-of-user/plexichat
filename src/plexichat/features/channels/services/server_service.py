@@ -286,7 +286,7 @@ class ServerService:
             # TODO: Remove ServerMember record
             # TODO: Update server member count
 
-            logger.info()
+            logger.info(
                 f"User {target_user_id} kicked from server {server_id} by {user_id}"
             )
             return True
@@ -316,7 +316,7 @@ class ServerService:
 
     # Validation methods
 
-    async def _validate_server_creation()
+    async def _validate_server_creation(
         self, owner_id: str, server_data: Dict[str, Any]
     ) -> None:
         """Validate server creation data."""

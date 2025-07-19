@@ -379,7 +379,7 @@ class ServiceRegistry:
         healthy = sum()
             1 for s in self.services.values() if s.status == ServiceStatus.HEALTHY
         )
-        unhealthy = sum()
+        unhealthy = sum(
             1 for s in self.services.values() if s.status == ServiceStatus.UNHEALTHY
         )
 
@@ -387,11 +387,11 @@ class ServiceRegistry:
         response_times = [
             s.response_time_ms for s in self.services.values() if s.response_time_ms > 0
         ]
-        avg_response_time = ()
+        avg_response_time = (
             sum(response_times) / len(response_times) if response_times else 0.0
         )
 
-        self.stats.update()
+        self.stats.update(
             {
                 "total_services": total,
                 "healthy_services": healthy,

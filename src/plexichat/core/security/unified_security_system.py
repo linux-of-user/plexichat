@@ -37,11 +37,11 @@ from ...shared.constants import (
 # Core imports
 try:
     from ..database.manager import database_manager
-    from ..config import get_config
+    from ..config import get_config  # type: ignore
 except ImportError:
     database_manager = None
 
-    def get_config():
+    def get_config(key: Optional[str] = None, default: Any = None) -> Any:
         class MockConfig:
             class security:
                 level = "GOVERNMENT"
@@ -365,7 +365,11 @@ class TokenManager:
                     iterations=100000,
                 )
                 key = kdf.derive(self.secret_key.encode())
-                self.fernet = Fernet(key)
+                if Fernet is None:
+                    raise RuntimeError("Fernet not available")
+                import base64
+                encoded_key = base64.urlsafe_b64encode(key)
+                self.fernet = Fernet(encoded_key)
             else:
                 self.fernet = None
         except Exception as e:

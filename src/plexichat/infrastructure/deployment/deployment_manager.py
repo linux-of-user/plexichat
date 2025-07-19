@@ -471,7 +471,7 @@ class ContainerManager:
             logger.error(f"Error building Docker image: {e}")
             return False
 
-    async def push_image(self, image_name: str, tag: str = "latest", )
+    async def push_image(self, image_name: str, tag: str = "latest",
                         registry: str = "docker.io") -> bool:
         """Push Docker image to registry."""
         if not self.docker_available:

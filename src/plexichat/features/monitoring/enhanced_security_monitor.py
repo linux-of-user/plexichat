@@ -439,7 +439,7 @@ class EnhancedSecurityMonitor:
 
     def get_recent_incidents(self, limit: int = 10) -> List[SecurityIncident]:
         """Get recent security incidents."""
-        incidents = sorted()
+        incidents = sorted(
             self.incidents.values(),
             key=lambda x: x.created_at,
             reverse=True
@@ -482,7 +482,7 @@ def get_security_monitor() -> EnhancedSecurityMonitor:
 # Convenience functions for creating security events
 def create_login_event(source_ip: str, user_id: str, success: bool, details: Dict[str, Any] = None) -> SecurityEvent:
     """Create a login event."""
-    return SecurityEvent()
+    return SecurityEvent(
         timestamp=datetime.now(),
         event_type=EventType.LOGIN_SUCCESS if success else EventType.LOGIN_FAILURE,
         threat_level=ThreatLevel.LOW if success else ThreatLevel.MEDIUM,

@@ -361,7 +361,7 @@ class ZeroTrustEngine:
         """Perform continuous verification of active sessions."""
         try:
             current_time = datetime.now()
-            verification_interval = timedelta()
+            verification_interval = timedelta(
                 minutes=self.trust_policies["monitoring"]["continuous_verification_interval_minutes"]
             )
 
@@ -369,7 +369,7 @@ class ZeroTrustEngine:
                 # Check if verification is due
                 if current_time - context.last_activity > verification_interval:
                     # Re-evaluate trust
-                    trust_level, risk_score, risk_factors = await self.evaluate_trust()
+                    trust_level, risk_score, risk_factors = await self.evaluate_trust(
                         context.user_id, context, "session_verification"
                     )
 
@@ -396,11 +396,11 @@ class ZeroTrustEngine:
         except Exception as e:
             logger.error(f"Continuous verification failed: {e}")
 
-    async def _create_security_incident(self, incident_type: str, severity: IncidentSeverity,)
+    async def _create_security_incident(self, incident_type: str, severity: IncidentSeverity,
                                       user_id: str = None, ip_address: str = None,
                                       description: str = "", evidence: Dict[str, Any] = None):
         """Create a security incident."""
-        incident = SecurityIncident()
+        incident = SecurityIncident(
             incident_id=f"inc_{int(time.time() * 1000)}",
             incident_type=incident_type,
             severity=severity,

@@ -171,7 +171,7 @@ class PerformanceOptimizer:
         """Cache result using EXISTING optimization engine."""
         try:
             if self.optimization_engine:
-                await self.optimization_engine.await cache_set(key, value, ttl)
+                await self.optimization_engine.cache_set(key, value, ttl)
         except Exception as e:
             logger.error(f"Cache set error: {e}")
 
@@ -179,7 +179,7 @@ class PerformanceOptimizer:
         """Get cached result using EXISTING optimization engine."""
         try:
             if self.optimization_engine:
-                return await self.optimization_engine.await cache_get(key)
+                return await self.optimization_engine.cache_get(key)
             return None
         except Exception as e:
             logger.error(f"Cache get error: {e}")
@@ -281,7 +281,7 @@ def rate_limit(limit: int, window: int = 60, key_func: Optional[Callable] = None
 
             if not rate_limiter.is_allowed(rate_key, limit, window):
                 from fastapi import HTTPException, status
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail="Rate limit exceeded"
                 )

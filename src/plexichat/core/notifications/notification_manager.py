@@ -431,7 +431,7 @@ class NotificationManager:
 
             notifications = []
             for row in result:
-                notifications.append({)
+                notifications.append({
                     "id": row[0],
                     "type": row[1],
                     "title": row[2],

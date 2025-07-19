@@ -33,7 +33,7 @@ from typing import Optional
 from ...shared.models import Event, Priority, Status, Task
 from ...shared.types import JSON, ConfigDict
 from ...shared.exceptions import ValidationError, SecurityError, ServiceUnavailableError
-from ...shared.constants import ()
+from ...shared.constants import (
     CLUSTER_HEARTBEAT_INTERVAL, CLUSTER_ELECTION_TIMEOUT, MAX_CLUSTER_NODES
 )
 

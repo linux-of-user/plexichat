@@ -456,7 +456,7 @@ class Validator:
             "total_validation_time": self.total_validation_time,
             "average_validation_time": avg_validation_time,
             "success_rate": (self.validations_performed - self.validations_failed) / self.validations_performed
-            if self.validations_performed > 0 else 0
+                if self.validations_performed > 0 else 0
         }
 
 # Global validator

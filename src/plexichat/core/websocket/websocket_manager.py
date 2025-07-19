@@ -1,6 +1,4 @@
 """
-import socket
-import threading
 PlexiChat WebSocket Manager
 
 WebSocket management with threading and performance optimization.
@@ -9,16 +7,21 @@ WebSocket management with threading and performance optimization.
 import asyncio
 import json
 import logging
+import socket
+import threading
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 from dataclasses import dataclass
 
-try:
+if TYPE_CHECKING:
     from fastapi import WebSocket, WebSocketDisconnect
-except ImportError:
-    WebSocket = None
-    WebSocketDisconnect = Exception
+else:
+    try:
+        from fastapi import WebSocket, WebSocketDisconnect
+    except ImportError:
+        WebSocket = Any
+        WebSocketDisconnect = Exception
 
 try:
     from plexichat.core.database.manager import database_manager
@@ -100,7 +103,7 @@ class WebSocketManager:
 
                 # Broadcast message
                 if self.async_thread_manager:
-                    await self.async_thread_manager.run_in_thread()
+                    await self.async_thread_manager.run_in_thread(
                         self._broadcast_message_sync, message
                     )
                 else:
@@ -183,7 +186,7 @@ class WebSocketManager:
         try:
             await websocket.accept()
 
-            connection = WebSocketConnection()
+            connection = WebSocketConnection(
                 websocket=websocket,
                 user_id=user_id,
                 connection_id=connection_id,
@@ -303,7 +306,7 @@ class WebSocketManager:
 
     async def send_to_user(self, user_id: int, message: Dict[str, Any]):
         """Send message to specific user."""
-        await self.message_queue.put({)
+        await self.message_queue.put({
             "target_type": "user",
             "target_id": user_id,
             "content": message
@@ -311,7 +314,7 @@ class WebSocketManager:
 
     async def send_to_channel(self, channel: str, message: Dict[str, Any]):
         """Send message to channel."""
-        await self.message_queue.put({)
+        await self.message_queue.put({
             "target_type": "channel",
             "target_id": channel,
             "content": message
@@ -319,7 +322,7 @@ class WebSocketManager:
 
     async def broadcast_to_all(self, message: Dict[str, Any]):
         """Broadcast message to all connections."""
-        await self.message_queue.put({)
+        await self.message_queue.put({
             "target_type": "all",
             "content": message
         })

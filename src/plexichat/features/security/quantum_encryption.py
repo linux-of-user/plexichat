@@ -92,7 +92,7 @@ class QuantumKey:
     security_tier: SecurityTier
     key_data: bytes
     public_key: Optional[bytes] = None
-    salt: bytes = field(default_factory=lambda: get_random_bytes(64))
+    salt: bytes = field(default_factory=lambda: get_random_bytes(64) if get_random_bytes else secrets.token_bytes(64))
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: Optional[datetime] = None
     rotation_count: int = 0
@@ -307,12 +307,16 @@ class QuantumEncryptionSystem:
             )
 
             # Simulate Kyber key (in real implementation, use actual Kyber)
+            if get_random_bytes is None:
+                raise RuntimeError("get_random_bytes not available")
             kyber_key = get_random_bytes(key_size)
 
             return rsa_bytes + b"||KYBER||" + kyber_key
 
         else:
             # Generate random key material
+            if get_random_bytes is None:
+                raise RuntimeError("get_random_bytes not available")
             return get_random_bytes(key_size)
 
     async def _save_key(self, key: QuantumKey):
@@ -512,13 +516,17 @@ class QuantumEncryptionSystem:
         rsa_key_data, kyber_key_data = key_parts
 
         # Generate session key for actual data encryption
+        if get_random_bytes is None:
+            raise RuntimeError("get_random_bytes not available")
         session_key = get_random_bytes(32)
         nonce = get_random_bytes(12)
 
         # Encrypt data with ChaCha20-Poly1305
+        if ChaCha20_Poly1305 is None:
+            raise RuntimeError("ChaCha20_Poly1305 not available")
         cipher = ChaCha20_Poly1305.new(key=session_key, nonce=nonce)
-        encrypted_data = cipher.encrypt_and_digest(data)[0]
-        tag = cipher.digest
+        encrypted_data, tag = cipher.encrypt_and_digest(data)
+        # tag = cipher.digest
 
         # Encrypt session key with RSA (classical part)
         rsa_key = serialization.load_pem_private_key(rsa_key_data, password=None, backend=default_backend())
@@ -610,6 +618,8 @@ class QuantumEncryptionSystem:
             raise ValueError("Key decryption mismatch - possible tampering")
 
         # Decrypt the actual data
+        if ChaCha20_Poly1305 is None:
+            raise RuntimeError("ChaCha20_Poly1305 not available")
         cipher = ChaCha20_Poly1305.new(key=session_key_rsa, nonce=nonce)
         decrypted_data = cipher.decrypt_and_verify(encrypted_data, tag)
 
@@ -620,10 +630,13 @@ class QuantumEncryptionSystem:
         if PBKDF2 is None or AES is None:
             raise ImportError("pycryptodome is required for PBKDF2 and AES")
         # This is a simulation - in real implementation, use actual Kyber
-        kdf = PBKDF2(kyber_key, get_random_bytes(16), 32, count=100000)
+        if get_random_bytes is None:
+            raise RuntimeError("get_random_bytes not available")
+        salt = get_random_bytes(16)
+        kdf = PBKDF2(kyber_key, salt, 32, count=100000)
         cipher = AES.new(kdf, AES.MODE_GCM)
         ciphertext, tag = cipher.encrypt_and_digest(data)
-        return cipher.nonce + tag + ciphertext
+        return bytes(cipher.nonce) + tag + ciphertext
 
     def _simulate_kyber_decrypt(self, encrypted_data: bytes, kyber_key: bytes) -> bytes:
         """Simulate Kyber decryption (replace with real Kyber implementation)."""
@@ -645,10 +658,11 @@ class QuantumEncryptionSystem:
         # Derive encryption key from stored key
         kdf = PBKDF2(key.key_data, key.salt, 32, count=100000)
 
+        if get_random_bytes is None:
+            raise RuntimeError("get_random_bytes not available")
         nonce = get_random_bytes(12)
         cipher = ChaCha20_Poly1305.new(key=kdf, nonce=nonce)
-        encrypted_data = cipher.encrypt_and_digest(data)[0]
-        tag = cipher.digest
+        encrypted_data, tag = cipher.encrypt_and_digest(data)
 
         final_data = nonce + tag + encrypted_data
 
@@ -749,7 +763,7 @@ class QuantumEncryptionSystem:
             hierarchy=KeyHierarchy.SESSION_KEY,
             algorithm=QuantumAlgorithm.HYBRID_RSA_KYBER,
             security_tier=security_tier,
-            key_data=get_random_bytes(512),  # Pure random for sessions
+            key_data=get_random_bytes(512) if get_random_bytes else secrets.token_bytes(512),  # Pure random for sessions
             expires_at=datetime.now(timezone.utc) + timedelta(hours=1),  # Short-lived
             metadata={
                 "purpose": "session_encryption",
@@ -824,7 +838,7 @@ class QuantumEncryptionSystem:
 
         # Check all key hierarchies
         for key_dict in [self.master_keys, self.domain_keys, self.service_keys]:
-            for key_id, key in list(key_dict.items()):
+            for _, key in list(key_dict.items()):
                 if force or self._is_key_expired(key):
                     await self._rotate_key(key)
                     rotated_count += 1

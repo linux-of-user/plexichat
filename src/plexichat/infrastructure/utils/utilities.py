@@ -420,7 +420,7 @@ class RetryUtils:
     """Retry utilities for resilient operations."""
 
     @staticmethod
-    def retry_with_backoff():
+    def retry_with_backoff(
         func: Callable,
         max_attempts: int = 3,
         base_delay: float = 1.0,
@@ -486,7 +486,7 @@ def deprecated(reason: str = ""):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            warnings.warn()
+            warnings.warn(
                 f"{func.__name__} is deprecated. {reason}",
                 DeprecationWarning,
                 stacklevel=2

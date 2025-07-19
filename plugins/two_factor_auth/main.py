@@ -50,23 +50,23 @@ class PluginMetadata:
     enabled: bool
     category: str
     tags: List[str]
-        homepage: Optional[str] = None
-        repository: Optional[str] = None
-        license: str = "Unknown"
-        icon: Optional[str] = None
-        screenshots: Optional[List[str]] = None
-        changelog: Optional[List[Dict[str, Any]]] = None
-        download_count: int = 0
-        rating: float = 0.0
-        last_updated: Optional[str] = None
-        size_bytes: int = 0
-        checksum: Optional[str] = None
-        ui_pages: Optional[List[Dict[str, Any]]] = None
-        api_endpoints: Optional[List[str]] = None
-        webhooks: Optional[List[str]] = None
-        settings_schema: Optional[Dict[str, Any]] = None
-        auto_start: bool = False
-        background_tasks: Optional[List[str]] = None
+    homepage: Optional[str] = None
+    repository: Optional[str] = None
+    license: str = "Unknown"
+    icon: Optional[str] = None
+    screenshots: Optional[List[str]] = None
+    changelog: Optional[List[Dict[str, Any]]] = None
+    download_count: int = 0
+    rating: float = 0.0
+    last_updated: Optional[str] = None
+    size_bytes: int = 0
+    checksum: Optional[str] = None
+    ui_pages: Optional[List[Dict[str, Any]]] = None
+    api_endpoints: Optional[List[str]] = None
+    webhooks: Optional[List[str]] = None
+    settings_schema: Optional[Dict[str, Any]] = None
+    auto_start: bool = False
+    background_tasks: Optional[List[str]] = None
         
         def __post_init__(self):
             if self.screenshots is None:
@@ -103,9 +103,12 @@ class TwoFactorAuthPlugin(PluginInterface):
     """Advanced Two-Factor Authentication Plugin."""
     
     def __init__(self):
-        super().__init__("TwoFactorAuth", "1.0.0")
+        self.name = "TwoFactorAuth"
+        self.version = "1.0.0"
         self.plugin_type = PluginType.SECURITY_NODE
-        
+        self.logger = logging.getLogger(f"plugin.{self.name}")
+        self.manager = None  # Will be set by plugin manager
+
         # Plugin data directory
         self.data_dir = Path("data/plugins/two_factor_auth")
         self.data_dir.mkdir(parents=True, exist_ok=True)

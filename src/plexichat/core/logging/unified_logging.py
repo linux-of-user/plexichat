@@ -27,9 +27,9 @@ from pathlib import Path
 
 # Core imports
 try:
-    from ..config import get_config
+    from ..config import get_config  # type: ignore
 except ImportError:
-    def get_config():
+    def get_config(key: Optional[str] = None, default: Any = None) -> Any:
         class MockConfig:
             class logging:
                 level = "INFO"
@@ -154,15 +154,15 @@ class StructuredFormatter(logging.Formatter):
 
         # Add extra fields
         if hasattr(record, 'context'):
-            context = record.context
-            if hasattr(context, '__dataclass_fields__'):
-                log_entry["context"] = asdict(context)
+            context = getattr(record, 'context', None)
+            if context and hasattr(context, '__dataclass_fields__'):
+                log_entry["context"] = asdict(context)  # type: ignore
             else:
                 log_entry["context"] = context
         if hasattr(record, 'category'):
-            log_entry["category"] = record.category
+            log_entry["category"] = getattr(record, 'category', None)
         if hasattr(record, 'extra_data'):
-            log_entry["extra"] = record.extra_data
+            log_entry["extra"] = getattr(record, 'extra_data', None)
 
         return json.dumps(log_entry)
 
@@ -263,8 +263,9 @@ class PerformanceTimer:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        duration = time.time() - self.start_time
-        self.logger.log_performance(self.operation, duration, **self.kwargs)
+        if self.start_time is not None:
+            duration = time.time() - self.start_time
+            self.logger.log_performance(self.operation, duration, **self.kwargs)
 
 
 class UnifiedLogger:
@@ -383,7 +384,7 @@ class CompressingRotatingFileHandler(logging.handlers.RotatingFileHandler):
         """Perform rollover with compression."""
         if self.stream:
             self.stream.close()
-            self.stream = None
+            self.stream = None  # type: ignore
 
         if self.backupCount > 0:
             for i in range(self.backupCount - 1, 0, -1):

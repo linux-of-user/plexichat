@@ -318,7 +318,9 @@ class PerformanceMonitorPlugin(PluginInterface):
     """Performance Monitor Plugin."""
     
     def __init__(self):
-        super().__init__("performance_monitor", "1.0.0")
+        super().__init__()
+        self.name = "performance_monitor"
+        self.version = "1.0.0"
         self.router = APIRouter()
         self.monitor = None
         self.data_dir = Path(__file__).parent / "data"

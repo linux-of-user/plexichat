@@ -32,7 +32,7 @@ from ...shared.exceptions import (  # type: ignore
     ValidationError, AuthorizationError, ResourceNotFoundError,
     QuotaExceededError
 )
-from ...shared.constants import ()
+from ...shared.constants import (
     MAX_USERNAME_LENGTH, MAX_EMAIL_LENGTH, MAX_DISPLAY_NAME_LENGTH
 )
 
@@ -115,5 +115,3 @@ __all__ = [
     "message_service",
     "file_service",
 ]
-
-__version__ = "1.0.0"

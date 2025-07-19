@@ -142,12 +142,12 @@ def api_analyze_sentiment():
         include_emotions = data.get('include_emotions', True)
         user_id = data.get('user_id', 'admin')
         service = get_ai_features_service()
-        result = asyncio.run(service.analyze_sentiment())
+        result = asyncio.run(service.analyze_sentiment(
             text=text,
             user_id=user_id,
             include_emotions=include_emotions
         ))
-        return jsonify({)
+        return jsonify({
             'success': True,
             'result': {
                 'analysis_id': result.analysis_id,
@@ -176,13 +176,13 @@ def api_semantic_search():
         similarity_threshold = data.get('similarity_threshold', 0.3)
         filters = data.get('filters')
         service = get_ai_features_service()
-        results = asyncio.run(service.semantic_search())
+        results = asyncio.run(service.semantic_search(
             query=query,
             max_results=max_results,
             similarity_threshold=similarity_threshold,
             filters=filters
         ))
-        return jsonify({)
+        return jsonify({
             'success': True,
             'results': [
                 {
@@ -219,7 +219,7 @@ def api_moderate_content():
             user_id=user_id,
             metadata=metadata
         ))
-        return jsonify({)
+        return jsonify({
             'success': True,
             'result': {
                 'moderation_id': result.moderation_id,
@@ -248,12 +248,12 @@ def api_add_to_index():
         content = data['content']
         metadata = data.get('metadata', {})
         service = get_ai_features_service()
-        success = asyncio.run(service.add_to_semantic_index())
+        success = asyncio.run(service.add_to_semantic_index(
             content_id=content_id,
             content=content,
             metadata=metadata
         ))
-        return jsonify({)
+        return jsonify({
             'success': success,
             'message': 'Content added to semantic index' if success else 'Failed to add content to index'
         })

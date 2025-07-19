@@ -341,7 +341,7 @@ class IPSecurityManager:
         self.suspicious_ips[ip]['failed_attempts'] += 1
         self.suspicious_ips[ip]['last_attempt'] = datetime.now()
 
-        logger.warning("Marked IP %s as suspicious (%d failed attempts)", )
+        logger.warning("Marked IP %s as suspicious (%d failed attempts)",
                       ip, self.suspicious_ips[ip]['failed_attempts'])
 
     def add_to_whitelist(self, ip: str):

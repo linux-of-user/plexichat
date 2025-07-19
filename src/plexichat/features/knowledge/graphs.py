@@ -401,7 +401,7 @@ class SemanticReasoner:
         logger.info(f"Inferred {len(inferred_relations)} new relationships")
         return inferred_relations
 
-    def find_similar_entities():
+    def find_similar_entities(
         self, node_id: str, threshold: float = 0.7
     ) -> List[Tuple[KnowledgeNode, float]]:
         """Find entities similar to the given node."""
@@ -480,7 +480,7 @@ class SemanticKnowledgeManager:
 
         logger.info("Initialized base knowledge graph")
 
-    def process_message():
+    def process_message(
         self, message: str, user_id: str, context: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """Process message and extract knowledge."""
@@ -488,7 +488,7 @@ class SemanticKnowledgeManager:
         extracted_nodes = self.extractor.extract_from_text(message, context)
 
         # Create message node
-        message_node = self.graph.add_node()
+        message_node = self.graph.add_node(
             f"Message from {user_id}",
             NodeType.DOCUMENT,
             properties={

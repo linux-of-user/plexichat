@@ -339,7 +339,7 @@ async def ai_test_interface(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/test/request")
-async def test_ai_request()
+async def test_ai_request(
     request: Request,
     user_id: str = Form("test_user"),
     model_id: str = Form(...),
@@ -350,7 +350,7 @@ async def test_ai_request()
 ):
     """Test AI request via form."""
     try:
-        ai_request = AIRequest()
+        ai_request = AIRequest(
             user_id=user_id,
             model_id=model_id,
             prompt=prompt,

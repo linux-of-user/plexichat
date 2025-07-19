@@ -138,9 +138,9 @@ except ImportError as e:
     logger.info("Falling back to basic logging")
     
     # Define fallback functions
-    def handle_test_command(*args, **kwargs):
+    async def handle_test_command(*args, **kwargs) -> int:
         logger.error("Test commands not available - CLI module not imported")
-        return False
+        return 1
 
 # ============================================================================
 # TERMINAL UI CLASSES AND FUNCTIONS
@@ -738,7 +738,7 @@ class SystemManager:
 
         return health
 
-    def get_disk_space(self) -> Dict[str, int]:
+    def get_disk_space(self) -> Dict[str, Any]:
         """Get disk space information."""
         try:
             total, used, free = shutil.disk_usage(os.getcwd())
@@ -1056,7 +1056,11 @@ def run_enhanced_tests():
     """Run the comprehensive test suite."""
     try:
         import asyncio
-        from src.plexichat.tests.test_runner import run_tests
+        try:
+            from src.plexichat.tests.unified_test_manager import run_tests
+        except ImportError:
+            logger.error("Test runner not available")
+            return False
 
         logger.info("🚀 Running PlexiChat comprehensive test suite...")
 
@@ -1206,7 +1210,11 @@ def run_update_system():
         logger.info("Starting PlexiChat Update System...")
 
         # Import the existing update system
-        from plexichat.interfaces.cli.commands.updates import UpdateCLI
+        try:
+            from src.plexichat.interfaces.cli.commands.updates import UpdateCLI
+        except ImportError:
+            logger.error("Update CLI not available")
+            return False
 
         update_cli = UpdateCLI()
 
@@ -1667,44 +1675,7 @@ def handle_github_commands(command: str, args: List[str], target_dir: str):
             print(f"{Colors.RED}Please specify a version tag to download{Colors.RESET}")
             print(f"Example: python run.py download v1.2.0")
 
-def setup_environment():
-    """Set up the runtime environment including required directories and environment variables."""
-    logger.debug("Setting up environment...")
 
-    # Define required directories
-    directories = {
-        'logs': 'Log files',
-        'data': 'Application data',
-        'config': 'Configuration files',
-        'temp': 'Temporary files',
-        'backups': 'Backup files',
-        'uploads': 'User uploads',
-        'downloads': 'Downloaded versions'
-    }
-
-    # Create directories if they don't exist
-    for directory, desc in directories.items():
-        try:
-            dir_path = Path(directory)
-            dir_path.mkdir(exist_ok=True, parents=True)
-            logger.debug(f"Directory ready: {dir_path.absolute()} ({desc})")
-        except Exception as e:
-            logger.error(f"Failed to create directory {directory}: {e}")
-            raise
-
-    # Set environment variables with defaults if not already set
-    env_vars = {
-        'PLEXICHAT_ENV': 'production',
-        'PLEXICHAT_CONFIG_DIR': 'config',
-        'PLEXICHAT_LOG_LEVEL': 'INFO',
-        'PLEXICHAT_VERSION': PLEXICHAT_VERSION
-    }
-
-    for var, default in env_vars.items():
-        os.environ.setdefault(var, default)
-        logger.debug(f"Environment variable set: {var}={os.environ[var]}")
-
-    logger.info("Environment setup completed")
 
 def main():
     # --- BOOTSTRAP LOGIC: Download codebase if missing ---
@@ -1741,7 +1712,7 @@ def main():
                 print(f"- {tag['name']}")
         except Exception as e:
             print(f"Error fetching tags: {e}")
-        sys.exit(0)
+            sys.exit(0)
     # Warn if bootstrapping an alpha/pre-release version
     if args.bootstrap_version and ("alpha" in args.bootstrap_version or "a." in args.bootstrap_version or "beta" in args.bootstrap_version):
         print(f"[BOOTSTRAP] WARNING: You are bootstrapping an alpha/pre-release version: {args.bootstrap_version}")
@@ -1878,7 +1849,7 @@ def main():
             if dest.exists():
                 if dest.is_dir():
                     shutil.rmtree(dest)
-                else:
+                elif dest.is_file():
                     dest.unlink()
             shutil.move(str(item), str(dest))
         # Remove all parent extracted directories up to the original extracted dir

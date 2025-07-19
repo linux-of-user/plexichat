@@ -55,10 +55,8 @@ class InterfaceManager:
         try:
             self.interfaces[name] = status
             logger.info(f"Registered interface: {name} (status: {status})")
-
             if self.performance_logger:
                 self.performance_logger.record_metric("interfaces_registered", 1, "count")
-
         except Exception as e:
             logger.error(f"Error registering interface {name}: {e}")
 
@@ -103,7 +101,6 @@ def register_interfaces():
             interface_manager.register_interface("api", False)
 
         logger.info("Interfaces registered successfully")
-
     except Exception as e:
         logger.error(f"Error registering interfaces: {e}")
 
@@ -171,7 +168,6 @@ __all__ = [
     "ValidationError",
     "AuthorizationError",
     "APIError",
-
     # Interface components
     "interface_manager",
     "web_available",
@@ -180,4 +176,4 @@ __all__ = [
 ]
 
 # Version info
-__version__ = "3.0.0"
+__version__ = "3.0.0" 

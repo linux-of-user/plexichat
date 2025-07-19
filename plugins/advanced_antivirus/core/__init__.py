@@ -1,13 +1,3 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum

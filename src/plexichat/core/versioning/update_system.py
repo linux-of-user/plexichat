@@ -1585,7 +1585,7 @@ Path("src"))
 
                 # Stage component update in atomic transaction
                 if plan.atomic_transaction:
-                    await self.atomic_manager.stage_operation()
+                    await self.atomic_manager.stage_operation(
                         plan.atomic_transaction,
                         "live_patch",
                         f"updates/{component}",

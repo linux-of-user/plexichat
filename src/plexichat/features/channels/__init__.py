@@ -18,11 +18,11 @@ from typing import Optional
 # Import shared components (NEW ARCHITECTURE)
 from ...shared.models import Channel, Message, User, Permission, Role, Priority, Status
 from ...shared.types import ChannelId, UserId, JSON, ConfigDict
-from ...shared.exceptions import ()
+from ...shared.exceptions import (
     ValidationError, AuthorizationError, ResourceNotFoundError,
     QuotaExceededError
 )
-from ...shared.constants import ()
+from ...shared.constants import (
     MAX_CHANNEL_NAME_LENGTH, MAX_CHANNEL_DESCRIPTION_LENGTH, MAX_CHANNEL_MEMBERS
 )
 
@@ -75,3 +75,4 @@ __all__ = [
     "PermissionOverwriteService",
     "ReactionService",
     "MessageService",
+]

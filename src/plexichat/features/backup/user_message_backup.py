@@ -376,15 +376,15 @@ datetime.now().timestamp())}"
                           if prefs.server_id == server_id]
 
             report['total_users'] = len(server_users)
-            report['users_with_backups'] = len([u for u in server_users )
+            report['users_with_backups'] = len([u for u in server_users
                                               if u.opt_out_level != OptOutLevel.COMPLETE])
-            report['opted_out_users'] = len([u for u in server_users )
+            report['opted_out_users'] = len([u for u in server_users
                                            if u.opt_out_level == OptOutLevel.COMPLETE])
             report['consent_given_users'] = len([u for u in server_users if u.consent_given])
 
             # Backup types distribution
             for backup_type in BackupType:
-                excluded_count = len([u for u in server_users )
+                excluded_count = len([u for u in server_users
                                     if backup_type in u.excluded_backup_types])
                 report['backup_types_distribution'][backup_type.value] = {
                     'total_users': len(server_users),

@@ -26,7 +26,7 @@ from plugin_internal import *
 
 # Import the CLI extension API
 try:
-from plugin_internal import *
+    from plugin_internal import ultimate_cli, UltimateCommand, CommandCategory
 except ImportError:
     ultimate_cli = None
     UltimateCommand = None
@@ -36,7 +36,8 @@ class MegaCLIPlugin(PluginInterface):
     def __init__(self, plugin_id: str = "mega_cli", config: Optional[dict] = None):
         if config is None:
             config = {}
-        super().__init__(plugin_id, config)
+        self.plugin_id = plugin_id
+        self.config = config
         self.logger = logging.getLogger("plugin.mega_cli")
         self.categories = [
             "dev", "net", "sys", "user", "file", "chat", "ai", "db", "cloud", "test", "admin", "perf", "sec", "misc"
