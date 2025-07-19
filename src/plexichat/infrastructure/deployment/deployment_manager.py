@@ -441,7 +441,7 @@ class ContainerManager:
         except FileNotFoundError:
             return False
 
-    async def build_image(self, image_name: str, tag: str = "latest", )
+    async def build_image(self, image_name: str, tag: str = "latest",
                          dockerfile_path: str = "Dockerfile") -> bool:
         """Build Docker image."""
         if not self.docker_available:
@@ -525,7 +525,7 @@ class KubernetesDeployer:
         deployment_id = f"deploy_{int(datetime.now().timestamp())}"
         start_time = datetime.now()
 
-        result = DeploymentResult()
+        result = DeploymentResult(
             deployment_id=deployment_id,
             environment=config.environment,
             version=config.version,
@@ -777,7 +777,7 @@ class DeploymentManager:
             logger.error(f"Deployment pipeline failed: {e}")
 
             # Create failed deployment result
-            failed_result = DeploymentResult()
+            failed_result = DeploymentResult(
                 deployment_id=f"failed_{int(datetime.now().timestamp())}",
                 environment=config.environment,
                 version=config.version,
@@ -804,7 +804,7 @@ class DeploymentManager:
 
     def get_deployment_history(self, limit: int = 10) -> List[DeploymentResult]:
         """Get deployment history."""
-        return sorted()
+        return sorted(
             self.deployment_history,
             key=lambda d: d.start_time,
             reverse=True

@@ -104,7 +104,7 @@ class Message(SQLModel, table=True):
     attachments: Optional[str] = Field(None, description="JSON string of attachments")
     mentions: Optional[str] = Field(None, description="JSON string of user mentions")
     reactions: Optional[str] = Field(None, description="JSON string of reactions")
-    metadata: Optional[str] = Field(None, description="Additional metadata as JSON")
+    extra_metadata: Optional[str] = Field(None, description="Additional metadata as JSON")
 
     # Search and indexing
     search_vector: Optional[str] = Field(None, description="Search vector for full-text search")
@@ -182,7 +182,7 @@ class MessageService:
                 create_query = """
                     INSERT INTO messages ()
                         content, message_type, sender_id, recipient_id, channel_id,
-                        parent_id, timestamp, attachments, mentions, metadata
+                        parent_id, timestamp, attachments, mentions, extra_metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     RETURNING *
                 """
@@ -196,7 +196,7 @@ class MessageService:
                     "timestamp": datetime.now(),
                     "attachments": json.dumps(message_data.attachments) if message_data.attachments else None,
                     "mentions": json.dumps(message_data.mentions) if message_data.mentions else None,
-                    "metadata": json.dumps({"created_by": "api"})
+                    "extra_metadata": json.dumps({"created_by": "api"})
                 }
 
                 if self.performance_logger and timer:

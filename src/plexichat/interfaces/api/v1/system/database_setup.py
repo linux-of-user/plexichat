@@ -8,7 +8,7 @@ import secrets
 from typing import Any, Dict, Optional
 
 from app.db import get_session
-from app.logger_config import logger
+from plexichat.app.logger_config import logger
 from app.security.database_encryption import EncryptedDatabaseManager, get_encryption_manager
 from core.external_database import ()
 

@@ -8,28 +8,15 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from app.db import get_session
-from app.logger_config import logger
-from app.models.enhanced_models import BotAccount, BotType, EnhancedUser
-from app.services.user_management import UserManagementService
+from plexichat.app.logger_config import logger
+from plexichat.features.users.user import User
+from plexichat.infrastructure.utils.auth import get_current_user
+from plexichat.infrastructure.services.user_management import UserManagementService, BotAccount, BotType, EnhancedUser
 from sqlmodel import Session, select
 
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-
-from app.utils.auth import from, from plexichat.infrastructure.utils.auth import get_current_user, import, plexichat.infrastructure.utils.auth
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
 
 """
 import time
@@ -85,17 +72,16 @@ router = APIRouter(prefix="/api/v1/bots", tags=["Bot Management"])
 
 
 @router.post("/create", response_model=BotResponse)
-async def create_bot()
+async def create_bot(
     request: BotCreateRequest,
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ) -> BotResponse:
     """Create a new bot account."""
     user_service = UserManagementService(session)
 
     try:
-        bot_user, bot_account = await user_service.create_bot_account()
+        bot_user, bot_account = await user_service.create_bot_account(
             owner_id=current_user.id,
             bot_name=request.name,
             bot_description=request.description,
@@ -109,7 +95,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             bot_account.webhook_url = request.webhook_url
             session.commit()
 
-        return BotResponse()
+        return BotResponse(
             id=bot_user.id,
             username=bot_user.username,
             name=bot_account.bot_name,
@@ -132,9 +118,8 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/my-bots", response_model=BotListResponse)
-async def get_my_bots()
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user),
+async def get_my_bots(
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ) -> BotListResponse:
     """Get all bots owned by the current user."""
@@ -144,7 +129,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         bots_data = await user_service.get_user_bots(current_user.id)
 
         bots = [
-            BotResponse()
+            BotResponse(
                 id=bot["id"],
                 username=bot["username"],
                 name=bot["name"],
@@ -170,18 +155,17 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.put("/{bot_id}/permissions", response_model=Dict[str, Any])
-async def update_bot_permissions()
+async def update_bot_permissions(
     bot_id: int,
     request: BotPermissionUpdateRequest,
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Update bot permissions."""
     user_service = UserManagementService(session)
 
     try:
-        bot_account = await user_service.update_bot_permissions()
+        bot_account = await user_service.update_bot_permissions(
             bot_id=bot_id,
             owner_id=current_user.id,
             permissions=request.permissions
@@ -199,17 +183,16 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.delete("/{bot_id}")
-async def delete_bot()
+async def delete_bot(
     bot_id: int,
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Delete a bot account."""
     user_service = UserManagementService(session)
 
     try:
-        success = await user_service.delete_bot_account()
+        success = await user_service.delete_bot_account(
             bot_id=bot_id,
             owner_id=current_user.id
         )
@@ -228,17 +211,16 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/{bot_id}/stats")
-async def get_bot_stats()
+async def get_bot_stats(
     bot_id: int,
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Get bot usage statistics."""
     try:
         # Verify ownership
-        bot_account = session.exec()
-            select(BotAccount).join(EnhancedUser).where()
+        bot_account = session.exec(
+            select(BotAccount).join(EnhancedUser).where(
                 (BotAccount.user_id == bot_id) &
                 (EnhancedUser.bot_owner_id == current_user.id)
             )
@@ -265,17 +247,16 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.post("/{bot_id}/regenerate-token")
-async def regenerate_bot_token()
+async def regenerate_bot_token(
     bot_id: int,
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ) -> Dict[str, Any]:
     """Regenerate bot token for security."""
     try:
         # Verify ownership
-        bot_account = session.exec()
-            select(BotAccount).join(EnhancedUser).where()
+        bot_account = session.exec(
+            select(BotAccount).join(EnhancedUser).where(
                 (BotAccount.user_id == bot_id) &
                 (EnhancedUser.bot_owner_id == current_user.id)
             )
@@ -288,9 +269,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         new_token = secrets.token_urlsafe(32)
 
         bot_account.bot_token = new_token
-        bot_account.from datetime import datetime
-updated_at = datetime.now()
-datetime = datetime.now()
+        bot_account.updated_at = datetime.now()
 
         session.commit()
 

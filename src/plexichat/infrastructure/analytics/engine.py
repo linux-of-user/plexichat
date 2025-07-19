@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 from app.core.config.settings import settings
-from app.logger_config import logger
+from plexichat.app.logger_config import logger
 
 from datetime import datetime
 

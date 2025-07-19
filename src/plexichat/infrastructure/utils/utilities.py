@@ -285,14 +285,12 @@ class DateTimeUtils:
     @staticmethod
     def now() -> datetime:
         """Get current datetime."""
-        return from datetime import datetime
-datetime.now()
+        return datetime.now()
 
     @staticmethod
     def utc_now() -> datetime:
         """Get current UTC datetime."""
-        return from datetime import datetime
-datetime.utcnow()
+        return datetime.utcnow()
 
     @staticmethod
     def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
@@ -408,7 +406,7 @@ class ValidationUtils:
         missing_fields = [field for field in required_fields if field not in data or data[field] is None]
 
         if missing_fields:
-            return Result.error_result()
+            return Result.error_result(
                 f"Missing required fields: {', '.join(missing_fields)}",
                 "MISSING_FIELDS",
                 {"missing_fields": missing_fields}

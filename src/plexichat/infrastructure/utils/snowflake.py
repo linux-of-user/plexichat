@@ -5,7 +5,7 @@
 # pyright: reportReturnType=false
 import time
 
-from app.logger_config import logger
+from plexichat.app.logger_config import logger
 from typing import Optional
 
 

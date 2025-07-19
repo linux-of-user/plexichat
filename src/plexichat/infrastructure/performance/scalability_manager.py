@@ -227,7 +227,7 @@ class AutoScaler:
 
     def add_metrics(self, cluster_metrics: Dict[str, Any]):
         """Add cluster metrics for scaling decisions."""
-        self.metrics_history.append({)
+        self.metrics_history.append({
             'timestamp': datetime.now(),
             'metrics': cluster_metrics
         })
@@ -329,7 +329,7 @@ class CapacityPlanner:
 
     def add_usage_data(self, usage_data: Dict[str, Any]):
         """Add usage data for capacity planning."""
-        self.usage_history.append({)
+        self.usage_history.append({
             'timestamp': datetime.now(),
             'data': usage_data
         })
@@ -410,17 +410,17 @@ class CapacityPlanner:
             change_percent = prediction['change_percent']
 
             if change_percent > 50:
-                recommendations.append()
+                recommendations.append(
                     f"High growth predicted for {metric}: {change_percent:.1f}% increase expected. "
                     "Consider scaling up resources proactively."
                 )
             elif change_percent > 25:
-                recommendations.append()
+                recommendations.append(
                     f"Moderate growth predicted for {metric}: {change_percent:.1f}% increase expected. "
                     "Monitor closely and prepare for scaling."
                 )
             elif change_percent < -25:
-                recommendations.append()
+                recommendations.append(
                     f"Declining usage predicted for {metric}: {change_percent:.1f}% decrease expected. "
                     "Consider scaling down to optimize costs."
                 )
