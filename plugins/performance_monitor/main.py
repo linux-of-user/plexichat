@@ -347,3 +347,17 @@ class PerformanceMonitorPlugin(PluginInterface):
             "file_system_access": True,
             "database_access": False
         }
+
+def run_cpu_benchmark():
+    """Run the CPU benchmark from the performance_monitor plugin."""
+    # Assuming there is a function or class in this file that runs the CPU test
+    # If not, implement a simple CPU benchmark here
+    import time
+    print("Running CPU benchmark...")
+    start = time.time()
+    total = 0
+    for i in range(10**7):
+        total += i % 7
+    duration = time.time() - start
+    print(f"CPU benchmark completed in {duration:.2f} seconds. Result: {total}")
+    return duration, total
