@@ -183,8 +183,7 @@ class ConfigurationManager:
             # Check cache first
             import time
             current_time = time.time()
-            if (current_time - self._cache_timestamp < self.cache_ttl and )
-                key in self._config_cache):
+            if (current_time - self._cache_timestamp < self.cache_ttl and key in self._config_cache):
                 return self._config_cache[key]
 
             # Get from settings
