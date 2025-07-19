@@ -84,7 +84,7 @@ class CleanShutdown:
                     'run.py',
                     'chatapi'
                 ]):
-                    processes.append({)
+                    processes.append({
                         'pid': proc.info['pid'],
                         'name': proc.info['name'],
                         'cmdline': cmdline,
@@ -105,7 +105,7 @@ class CleanShutdown:
 
                             # Add if not already found
                             if not any(p['pid'] == conn.pid for p in processes):
-                                processes.append({)
+                                processes.append({
                                     'pid': conn.pid,
                                     'name': proc.name(),
                                     'cmdline': cmdline,

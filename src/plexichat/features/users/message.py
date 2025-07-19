@@ -215,7 +215,7 @@ class MessageService:
 
                     # Convert result to Message object
                     row = result[0]
-                    message = Message()
+                    message = Message(
                         id=row[0],
                         content=row[1],
                         message_type=MessageType(row[2]),
@@ -286,7 +286,7 @@ class MessageService:
 
                     # Convert result to Message object
                     row = result[0]
-                    return Message()
+                    return Message(
                         id=row[0],
                         content=row[1],
                         # ... map other fields
@@ -352,7 +352,7 @@ class MessageService:
                 messages = []
                 if result:
                     for row in result:
-                        messages.append(Message())
+                        messages.append(Message(
                             id=row[0],
                             content=row[1],
                             # ... map other fields

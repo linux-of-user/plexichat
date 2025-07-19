@@ -289,9 +289,7 @@ class VoiceVideoChannel:
 
     def start_streaming(self) -> bool:
         """Start streaming the channel."""
-        if not self.streaming_from plexichat.core.config import settings
-settings.enabled or not self.streaming_from plexichat.core.config import settings
-settings.stream_key:
+        if not self.streaming_settings.enabled or not self.streaming_settings.stream_key:
             return False
 
         # In production, this would start actual streaming
@@ -340,10 +338,8 @@ settings.stream_key:
             "total_duration_minutes": self.total_duration_minutes,
             "speaking_participants": len(self.get_speaking_participants()),
             "screen_sharing_participants": len(self.get_screen_sharing_participants()),
-            "recording_active": self.recording_from plexichat.core.config import settings
-settings.enabled,
-            "streaming_active": self.streaming_from plexichat.core.config import settings
-settings.enabled
+            "recording_active": self.recording_enabled,
+            "streaming_active": self.streaming_enabled
         }
 
     def to_dict(self) -> Dict[str, Any]:
