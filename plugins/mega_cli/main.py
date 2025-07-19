@@ -22,11 +22,11 @@ from pathlib import Path
 from typing import List, Dict, Any, Callable, Optional
 
 # Plugin interface imports (fallback for PluginInterface)
-from plexichat.core.plugins.unified_plugin_manager import PluginInterface
+from plugin_internal import *
 
 # Import the CLI extension API
 try:
-    from plexichat.interfaces.cli.ultimate.cli_coordinator import ultimate_cli, UltimateCommand, CommandCategory
+from plugin_internal import *
 except ImportError:
     ultimate_cli = None
     UltimateCommand = None

@@ -14,33 +14,7 @@ from typing import Optional
 import tabulate
 
 
-from plexichat.ai.core.ai_abstraction_layer import (  # !/usr/bin/env python3; Add parent directory to path for imports)
-
-    AI,
-    CLI,
-    Command-line,
-    Path,
-    PlexiChat,
-    ProviderStatus,
-    Tool,
-    0,
-    """,
-    .parent.parent.parent,
-    __file__,
-    and,
-    for,
-    from,
-    import,
-    interface,
-    managing,
-    models.,
-    pathlib,
-    plexichat.ai.providers,
-    providers,
-    str,
-    sys.path.insert,
-)
-
+from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIModel,
     AIProvider,
@@ -100,10 +74,10 @@ class AICommandLineInterface:
                 if len(base_url) > 25:
                     base_url = base_url[:22] + "..."
 
-                rows.append([)
+                rows.append([
                     provider_type.value,
                     "Yes" if config.get("enabled", False) else "No",
-                    status.get("status", ProviderStatus.UNAVAILABLE).value,
+                    status.get("status", "UNAVAILABLE").value,
                     len(status.get("models", [])),
                     health_str,
                     base_url
@@ -259,12 +233,11 @@ class AICommandLineInterface:
         logger.info("-" * 50)
 
         request = AIRequest()
-            user_id=user_id,
-            model_id=model_id,
-            prompt=prompt,
-            max_tokens=100,
-            temperature=0.7
-        )
+        request.user_id = user_id
+        request.model_id = model_id
+        request.prompt = prompt
+        request.max_tokens = 100
+        request.temperature = 0.7
 
         try:
             response = await self.ai_layer.process_request(request)
@@ -308,15 +281,14 @@ class AICommandLineInterface:
         """Add new AI model."""
         try:
             model = AIModel()
-                id=model_data["id"],
-                name=model_data["name"],
-                provider=AIProvider(model_data["provider"]),
-                capabilities=[ModelCapability(cap) for cap in model_data["capabilities"]],
-                max_tokens=model_data["max_tokens"],
-                cost_per_1k_tokens=model_data["cost_per_1k_tokens"],
-                context_window=model_data["context_window"],
-                priority=model_data.get("priority", 1)
-            )
+            model.id = model_data["id"]
+            model.name = model_data["name"]
+            model.provider = AIProvider(model_data["provider"])
+            model.capabilities = [ModelCapability(cap) for cap in model_data["capabilities"]]
+            model.max_tokens = model_data["max_tokens"]
+            model.cost_per_1k_tokens = model_data["cost_per_1k_tokens"]
+            model.context_window = model_data["context_window"]
+            model.priority = model_data.get("priority", 1)
 
             success = await self.ai_layer.add_model(model)
             if success:
@@ -439,8 +411,7 @@ async def main():
         elif args.command == "test":
             await cli.test_model(args.model_id, args.prompt, args.user_id)
         elif args.command == "configure":
-            await cli.configure_provider(args.provider, args.api_key,)
-                                       args.base_url or "", not args.disabled)
+            await cli.configure_provider(args.provider, args.api_key, args.base_url or "", not args.disabled)
         elif args.command == "add-model":
             with open(args.config_file, 'r') as f:
                 model_data = json.load(f)

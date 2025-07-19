@@ -21,7 +21,7 @@ retry logic, and crash reporting to functions and methods.
 logger = logging.getLogger(__name__, Optional)
 
 
-def error_handler():
+def error_handler(
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
     category: ErrorCategory = ErrorCategory.UNKNOWN,
     component: Optional[str] = None,
@@ -60,7 +60,7 @@ def error_handler():
                 }
 
                 # Handle the error
-                await error_manager.handle_error()
+                await error_manager.handle_error(
                     exception=e,
                     context=context,
                     severity=severity,
@@ -70,7 +70,7 @@ def error_handler():
 
                 # Attempt recovery if strategies are specified
                 if recovery_strategies:
-                    recovery_result = await recovery_manager.attempt_recovery()
+                    recovery_result = await recovery_manager.attempt_recovery(
                         exception=e,
                         context=context,
                         component=component or func.__name__,

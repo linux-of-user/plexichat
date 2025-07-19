@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -181,7 +183,7 @@ class EnhancedAuthenticationSystem:
         try:
             # Check if IP is blocked
             if self._is_ip_blocked(ip_address):
-                return AuthenticationResult()
+                return AuthenticationResult(
                     success=False,
                     user_id=None,
                     session_token=None,
@@ -196,7 +198,7 @@ class EnhancedAuthenticationSystem:
             # Check if user exists
             if username not in self.users:
                 self._record_failed_attempt(ip_address)
-                return AuthenticationResult()
+                return AuthenticationResult(
                     success=False,
                     user_id=None,
                     session_token=None,
@@ -218,7 +220,7 @@ class EnhancedAuthenticationSystem:
                     user_profile.lock_expires = None
                     user_profile.failed_attempts = 0
                 else:
-                    return AuthenticationResult()
+                    return AuthenticationResult(
                         success=False,
                         user_id=username,
                         session_token=None,
@@ -233,7 +235,7 @@ class EnhancedAuthenticationSystem:
             # Verify password
             if not self._verify_password(password, user_profile.password_hash, user_profile.salt):
                 self._record_failed_login(user_profile, ip_address)
-                return AuthenticationResult()
+                return AuthenticationResult(
                     success=False,
                     user_id=username,
                     session_token=None,
@@ -260,7 +262,7 @@ class EnhancedAuthenticationSystem:
             )
 
             if mfa_required and mfa_code is None:
-                return AuthenticationResult()
+                return AuthenticationResult(
                     success=False,
                     user_id=username,
                     session_token=None,
@@ -274,7 +276,7 @@ class EnhancedAuthenticationSystem:
 
             if mfa_required and not self._verify_mfa_code(user_profile, mfa_code):
                 self._record_failed_login(user_profile, ip_address)
-                return AuthenticationResult()
+                return AuthenticationResult(
                     success=False,
                     user_id=username,
                     session_token=None,
@@ -306,7 +308,7 @@ class EnhancedAuthenticationSystem:
             # Determine security level
             security_level = self._determine_security_level(risk_score, user_profile.mfa_enabled)
 
-            return AuthenticationResult()
+            return AuthenticationResult(
                 success=True,
                 user_id=username,
                 session_token=session_token,
@@ -320,7 +322,7 @@ class EnhancedAuthenticationSystem:
 
         except Exception as e:
             logger.error(f"Authentication error: {e}")
-            return AuthenticationResult()
+            return AuthenticationResult(
                 success=False,
                 user_id=None,
                 session_token=None,

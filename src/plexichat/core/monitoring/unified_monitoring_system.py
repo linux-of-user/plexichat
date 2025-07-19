@@ -169,14 +169,11 @@ class MetricsCollector:
         self.max_metrics_per_name = 10000
         self.lock = threading.Lock()
 
-    def record_metric(self, name: str, value: Union[int, float], ):
-                     metric_type: MetricType = MetricType.GAUGE,
-                     tags: Optional[Dict[str, str]] = None,
-                     metadata: Optional[Dict[str, Any]] = None):
+    def record_metric(self, name: str, value: Union[int, float], metric_type: MetricType = MetricType.GAUGE, tags: Optional[Dict[str, str]] = None, metadata: Optional[Dict[str, Any]] = None):
         """Record a metric."""
         try:
             with self.lock:
-                metric = Metric()
+                metric = Metric(
                     name=name,
                     value=value,
                     metric_type=metric_type,
@@ -194,8 +191,7 @@ class MetricsCollector:
         except Exception as e:
             logger.error(f"Error recording metric {name}: {e}")
 
-    def get_metrics(self, name: str, start_time: Optional[datetime] = None,):
-                   end_time: Optional[datetime] = None) -> List[Metric]:
+    def get_metrics(self, name: str, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None) -> List[Metric]:
         """Get metrics by name and time range."""
         try:
             with self.lock:
@@ -274,7 +270,7 @@ class AnalyticsCollector:
             while self.processing:
                 try:
                     # Get event with timeout
-                    event = await asyncio.wait_for()
+                    event = await asyncio.wait_for(
                         self.event_queue.get(),
                         timeout=1.0
                     )
@@ -322,9 +318,7 @@ class AnalyticsCollector:
         # This would update real-time counters and metrics
         pass
 
-    def get_events(self, event_type: Optional[EventType] = None,):
-                  start_time: Optional[datetime] = None,
-                  end_time: Optional[datetime] = None) -> List[AnalyticsEvent]:
+    def get_events(self, event_type: Optional[EventType] = None, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None) -> List[AnalyticsEvent]:
         """Get events by type and time range."""
         try:
             with self.lock:
@@ -427,7 +421,7 @@ class SystemMonitor:
             boot_time = psutil.boot_time()
             uptime_seconds = time.time() - boot_time
 
-            return SystemMetrics()
+            return SystemMetrics(
                 timestamp=datetime.now(timezone.utc),
                 cpu_percent=cpu_percent,
                 memory_percent=memory_percent,
@@ -441,7 +435,7 @@ class SystemMonitor:
 
         except Exception as e:
             logger.error(f"Error collecting system metrics: {e}")
-            return SystemMetrics()
+            return SystemMetrics(
                 timestamp=datetime.now(timezone.utc),
                 cpu_percent=0.0,
                 memory_percent=0.0,
@@ -475,7 +469,7 @@ class SystemMonitor:
             database_connections = 0
             cache_hit_rate = 0.0
 
-            return ApplicationMetrics()
+            return ApplicationMetrics(
                 timestamp=datetime.now(timezone.utc),
                 active_connections=active_connections,
                 request_count=request_count,
@@ -489,7 +483,7 @@ class SystemMonitor:
 
         except Exception as e:
             logger.error(f"Error collecting application metrics: {e}")
-            return ApplicationMetrics()
+            return ApplicationMetrics(
                 timestamp=datetime.now(timezone.utc),
                 active_connections=0,
                 request_count=0,
@@ -651,7 +645,7 @@ class AlertManager:
                 triggered = latest_metric.value == threshold
             elif condition == "rate_increase":
                 # Check rate of increase over time
-                recent_metrics = self.metrics_collector.get_metrics()
+                recent_metrics = self.metrics_collector.get_metrics(
                     metric_name,
                     start_time=datetime.now(timezone.utc) - timedelta(minutes=5)
                 )
@@ -665,7 +659,7 @@ class AlertManager:
             if triggered:
                 if alert_id not in self.alerts or self.alerts[alert_id].resolved:
                     # Create new alert
-                    alert = Alert()
+                    alert = Alert(
                         alert_id=alert_id,
                         name=rule["name"],
                         severity=rule["severity"],
@@ -818,15 +812,11 @@ class UnifiedMonitoringManager:
                 await asyncio.sleep(3600)
 
     # Metrics methods
-    def record_metric(self, name: str, value: Union[int, float],):
-                     metric_type: MetricType = MetricType.GAUGE,
-                     tags: Optional[Dict[str, str]] = None,
-                     metadata: Optional[Dict[str, Any]] = None):
+    def record_metric(self, name: str, value: Union[int, float], metric_type: MetricType = MetricType.GAUGE, tags: Optional[Dict[str, str]] = None, metadata: Optional[Dict[str, Any]] = None):
         """Record a metric."""
         self.metrics_collector.record_metric(name, value, metric_type, tags, metadata)
 
-    def get_metrics(self, name: str, start_time: Optional[datetime] = None,):
-                   end_time: Optional[datetime] = None) -> List[Metric]:
+    def get_metrics(self, name: str, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None) -> List[Metric]:
         """Get metrics by name and time range."""
         return self.metrics_collector.get_metrics(name, start_time, end_time)
 
@@ -835,11 +825,9 @@ class UnifiedMonitoringManager:
         return self.metrics_collector.get_latest_metric(name)
 
     # Analytics methods
-    async def track_event(self, event_type: EventType, user_id: Optional[str] = None,)
-                         session_id: Optional[str] = None, properties: Optional[Dict[str, Any]] = None,
-                         context: Optional[Dict[str, Any]] = None, duration_ms: Optional[float] = None):
+    async def track_event(self, event_type: EventType, user_id: Optional[str] = None, session_id: Optional[str] = None, properties: Optional[Dict[str, Any]] = None, context: Optional[Dict[str, Any]] = None, duration_ms: Optional[float] = None):
         """Track an analytics event."""
-        event = AnalyticsEvent()
+        event = AnalyticsEvent(
             event_id=str(uuid4()),
             event_type=event_type,
             timestamp=datetime.now(timezone.utc),
@@ -852,9 +840,7 @@ class UnifiedMonitoringManager:
 
         await self.analytics_collector.track_event(event)
 
-    def get_events(self, event_type: Optional[EventType] = None,):
-                  start_time: Optional[datetime] = None,
-                  end_time: Optional[datetime] = None) -> List[AnalyticsEvent]:
+    def get_events(self, event_type: Optional[EventType] = None, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None) -> List[AnalyticsEvent]:
         """Get events by type and time range."""
         return self.analytics_collector.get_events(event_type, start_time, end_time)
 
@@ -937,7 +923,7 @@ class UnifiedMonitoringManager:
                 "total_events": len(events),
                 "event_types": dict(event_counts),
                 "unique_users": len(user_events),
-                "most_active_users": sorted()
+                "most_active_users": sorted(
                     user_events.items(),
                     key=lambda x: x[1],
                     reverse=True

@@ -283,7 +283,7 @@ update_service = UpdateService()
     response_model=VersionInfo,
     summary="Get version information"
 )
-async def get_version_info()
+async def get_version_info(
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
@@ -302,7 +302,7 @@ async def get_version_info()
     response_model=List[UpdateHistory],
     summary="Get update history"
 )
-async def get_update_history()
+async def get_update_history(
     request: Request,
     limit: int = 50,
     current_user: Dict[str, Any] = Depends(require_admin)
@@ -322,7 +322,7 @@ async def get_update_history()
     response_model=VersionInfo,
     summary="Check for updates"
 )
-async def check_for_updates()
+async def check_for_updates(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
@@ -341,7 +341,7 @@ async def check_for_updates()
     response_model=UpdateStatus,
     summary="Install update"
 )
-async def install_update()
+async def install_update(
     request: Request,
     version: str,
     background_tasks: BackgroundTasks,
@@ -358,7 +358,7 @@ async def install_update()
     # Start update in background
     background_tasks.add_task(update_service.perform_update, version)
 
-    return UpdateStatus()
+    return UpdateStatus(
         status="started",
         message=f"Update to version {version} has been initiated",
         progress=0,
@@ -370,7 +370,7 @@ async def install_update()
     response_model=UpdateStatus,
     summary="Get update status"
 )
-async def get_update_status()
+async def get_update_status(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
@@ -383,7 +383,7 @@ async def get_update_status()
 
     # In a real implementation, this would check the actual update status
     # For now, return a default status
-    return UpdateStatus()
+    return UpdateStatus(
         status="idle",
         message="No update in progress",
         progress=0
@@ -393,7 +393,7 @@ async def get_update_status()
     "/backup",
     summary="Create backup before update"
 )
-async def create_backup()
+async def create_backup(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):

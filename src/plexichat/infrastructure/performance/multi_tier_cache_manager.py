@@ -15,10 +15,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
-import aiomcache
+try:
+    import aiomcache  # type: ignore
+except ImportError:
+    aiomcache = None
 import http.client
 try:
-    import redis.asyncio as redis
+    import redis.asyncio as redis  # type: ignore
 except ImportError:
     redis = None
 
@@ -143,8 +146,8 @@ class MultiTierCacheManager:
 
         # Cache tiers
         self.l1_cache: Dict[str, CacheEntry] = {}  # In-memory cache
-        self.redis_client: Optional[redis.Redis] = None
-        self.memcached_client: Optional[aiomcache.Client] = None
+        self.redis_client = None  # type: ignore
+        self.memcached_client = None  # type: ignore
         self.cdn_session: Optional[aiohttp.ClientSession] = None
 
         # Configuration
@@ -206,8 +209,12 @@ class MultiTierCacheManager:
             return False
 
         try:
+            if redis is None:
+                logger.warning("Redis not available, skipping L2 cache initialization")
+                return False
+
             redis_config = self.config.get("redis", {})
-            self.redis_client = redis.Redis()
+            self.redis_client = redis.Redis(
                 host=redis_config.get("host", "localhost"),
                 port=redis_config.get("port", 6379),
                 db=redis_config.get("db", 0),
@@ -236,6 +243,10 @@ class MultiTierCacheManager:
             return False
 
         try:
+            if aiomcache is None:
+                logger.warning("aiomcache not available, skipping L3 cache initialization")
+                return False
+
             memcached_config = self.config.get("memcached", {})
             host = memcached_config.get("host", "localhost")
             port = memcached_config.get("port", 11211)
@@ -263,15 +274,15 @@ class MultiTierCacheManager:
         try:
             cdn_config = self.config.get("cdn", {})
 
-            timeout = aiohttp.ClientTimeout()
+            timeout = aiohttp.ClientTimeout(
                 total=cdn_config.get("timeout", 30),
                 connect=cdn_config.get("connect_timeout", 10)
             )
 
-            self.cdn_session = aiohttp.ClientSession()
+            self.cdn_session = aiohttp.ClientSession(
                 timeout=timeout,
                 headers=cdn_config.get("headers", {}),
-                connector=aiohttp.TCPConnector()
+                connector=aiohttp.TCPConnector(
                     limit=cdn_config.get("max_connections", 100),
                     limit_per_host=cdn_config.get("max_connections_per_host", 30)
                 )
@@ -622,7 +633,7 @@ class MultiTierCacheManager:
             # Create cache entry
             expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds) if ttl_seconds > 0 else None
 
-            entry = CacheEntry()
+            entry = CacheEntry(
                 key=key,
                 value=value,  # Store original value in L1 for speed
                 tier=CacheTier.L1_MEMORY,
@@ -667,7 +678,7 @@ class MultiTierCacheManager:
             serialized_value, _ = self._serialize_and_compress(value)
             exptime = ttl_seconds if ttl_seconds > 0 else 0
 
-            await self.memcached_client.set()
+            await self.memcached_client.set(
                 key.encode(),
                 serialized_value,
                 exptime=exptime
@@ -712,6 +723,10 @@ class MultiTierCacheManager:
         serialized_size = len(str(value))
         if serialized_size < self.compression_threshold:
             tiers.append(CacheTier.L1_MEMORY)
+
+        # Use TTL to determine other tiers
+        if ttl_seconds > 3600:  # Long-lived data
+            tiers.append(CacheTier.L2_REDIS)
 
         # L2 Redis for distributed caching
         if self.redis_client:
@@ -812,6 +827,9 @@ class MultiTierCacheManager:
     async def _invalidate_cdn(self, key: str) -> bool:
         """Invalidate CDN cache for key."""
         try:
+            if self.cdn_session is None:
+                return False
+
             cdn_config = self.config.get("cdn", {})
             invalidate_url = cdn_config.get("invalidate_url", "https://api.cdn.example.com/invalidate")
 
@@ -828,7 +846,7 @@ class MultiTierCacheManager:
             # Check entry count limit
             if len(self.l1_cache) >= self.l1_max_size:
                 # Evict least recently used entries
-                sorted_entries = sorted()
+                sorted_entries = sorted(
                     self.l1_cache.items(),
                     key=lambda x: x[1].last_accessed or x[1].created_at
                 )
@@ -846,7 +864,7 @@ class MultiTierCacheManager:
 
             if total_memory > max_memory_bytes:
                 # Evict largest entries first
-                sorted_by_size = sorted()
+                sorted_by_size = sorted(
                     self.l1_cache.items(),
                     key=lambda x: x[1].size_bytes,
                     reverse=True
@@ -883,9 +901,7 @@ class MultiTierCacheManager:
 
                 if total_ops > 1:
                     # Running average
-                    tier_stats.average_access_time_ms = ()
-                        (current_avg * (total_ops - 1) + access_time * 1000) / total_ops
-                    )
+                    tier_stats.average_access_time_ms = (current_avg * (total_ops - 1) + access_time * 1000) / total_ops
                 else:
                     tier_stats.average_access_time_ms = access_time * 1000
 

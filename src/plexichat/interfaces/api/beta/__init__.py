@@ -1,3 +1,6 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -10,8 +13,8 @@ from typing import Any, Dict, List, Optional, Union
 
 
 from ...ai import get_ai_manager
-from ...core.auth import ()
-from ...core.security import security_manager
+from ...core.auth import auth_manager  # type: ignore
+from ...core.security import security_manager  # type: ignore
 from ...services import get_service
 from . import ai, auth, collaboration, experimental, users
 

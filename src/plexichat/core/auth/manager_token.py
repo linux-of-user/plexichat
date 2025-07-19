@@ -153,7 +153,7 @@ class TokenManager:
             expires_at = now + self.access_token_lifetime
 
             # Create token data
-            token_data = TokenData()
+            token_data = TokenData(
                 token_id=token_id,
                 user_id=user_id,
                 session_id=session_id,

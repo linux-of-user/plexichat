@@ -73,7 +73,7 @@ class PasswordValidator:
             password_result = self.input_validator.validate_password(password, username)
 
             # Convert to legacy ValidationResult format for compatibility
-            return ValidationResult()
+            return ValidationResult(
                 valid=password_result.is_valid,
                 errors=password_result.errors,
                 warnings=password_result.warnings,
@@ -82,7 +82,7 @@ class PasswordValidator:
 
         except Exception as e:
             logger.error(f"Password validation error: {e}")
-            return ValidationResult()
+            return ValidationResult(
                 valid=False,
                 errors=[f"Password validation failed: {e}"],
                 warnings=[],
@@ -157,7 +157,7 @@ class TokenValidator:
         except Exception:
             errors.append("Invalid base64 encoding")
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings
@@ -184,7 +184,7 @@ class TokenValidator:
             if claims["iat"] > time.time() + 60:  # Allow 1 minute clock skew
                 warnings.append("Token issued in the future")
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings
@@ -217,7 +217,7 @@ class BiometricValidator:
         else:
             errors.append(f"Unsupported biometric type: {biometric_type}")
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings

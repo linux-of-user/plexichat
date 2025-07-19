@@ -4,12 +4,19 @@ import logging
 from typing import Any, Optional
 
 try:
-    from .cache_manager import ()
-        CacheManager, DistributedCacheManager, CacheEntry,
-        cache_manager, distributed_cache_manager,
-        cache_get, cache_set, cache_delete,
-        cache_get_async, cache_set_async,
-        cached, async_cached
+    from .cache_manager import (
+        CacheManager,
+        DistributedCacheManager,
+        CacheEntry,
+        cache_manager,
+        distributed_cache_manager,
+        cache_get,
+        cache_set,
+        cache_delete,
+        cache_get_async,
+        cache_set_async,
+        cached,
+        async_cached_decorator
     )
     logger = logging.getLogger(__name__)
     logger.info("Caching modules imported")
@@ -29,7 +36,7 @@ __all__ = [
     "cache_get_async",
     "cache_set_async",
     "cached",
-    "async_cached",
+    "async_cached_decorator",
 ]
 
 __version__ = "1.0.0"

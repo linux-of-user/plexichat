@@ -52,7 +52,7 @@ class SecurityManager:
         self.database_encryption = database_encryption
 
         # Initialize distributed security monitoring
-        self.security_monitor = DistributedSecurityMonitor()
+        self.security_monitor = DistributedSecurityMonitor(
             node_id=f"plexichat_node_{id(self)}",
             encryption_system=self.quantum_encryption,
             key_manager=self.distributed_keys
@@ -135,7 +135,7 @@ class SecurityManager:
             "database_encryption": database_status,
             "overall_security_level": self._calculate_security_level(),
             "last_check": datetime.now(timezone.utc).isoformat(),
-            "system_ready": all([)
+            "system_ready": all([
                 quantum_status["operational"],
                 key_management_status["operational"],
                 e2e_status["operational"],
@@ -153,7 +153,7 @@ class SecurityManager:
         try:
             # Test encryption/decryption
             test_data = b"PlexiChat Security Test"
-            context = type('Context', (), {)
+            context = type('Context', (), {
                 'operation_id': f"test_{secrets.token_hex(4)}",
                 'data_type': 'test',
                 'security_tier': type('SecurityTier', (), {'QUANTUM_PROOF': 5})(),
@@ -251,7 +251,7 @@ class SecurityManager:
         if not self.security_status:
             return "UNKNOWN"
 
-        all_operational = all()
+        all_operational = all(
             component.get("operational", False)
             for component in [
                 self.security_status.get("quantum_encryption", {}),
@@ -263,7 +263,7 @@ class SecurityManager:
 
         if all_operational:
             # Check for any issues
-            total_issues = sum()
+            total_issues = sum(
                 len(component.get("issues", []))
                 for component in [
                     self.security_status.get("quantum_encryption", {}),

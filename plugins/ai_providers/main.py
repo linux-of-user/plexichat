@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Plugin interface imports with fallbacks
 try:
-    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
+    from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
 except ImportError:
     class PluginInterface:
         def __init__(self, name, version):
@@ -34,9 +34,6 @@ except ImportError:
     class PluginType:
         FEATURE = "feature"
 
-try:
-    from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
-except ImportError:
     class ModulePermissions:
         def __init__(self, **kwargs):
             for k, v in kwargs.items():
@@ -47,10 +44,6 @@ except ImportError:
         FILE_SYSTEM_ACCESS = "file_system_access"
         NETWORK_ACCESS = "network_access"
 
-# Provider imports with fallbacks
-try:
-    from .providers.bitnet import BitNetProvider, BitNetConfig
-except ImportError:
     class BitNetConfig:
         def __init__(self, **kwargs):
             for k, v in kwargs.items():
@@ -68,9 +61,6 @@ except ImportError:
         async def benchmark(self):
             return {"provider": "BitNet", "status": "not_available"}
 
-try:
-    from .providers.llama import LlamaProvider, LlamaConfig
-except ImportError:
     class LlamaConfig:
         def __init__(self, **kwargs):
             for k, v in kwargs.items():
@@ -88,9 +78,6 @@ except ImportError:
         async def benchmark(self):
             return {"provider": "Llama", "status": "not_available"}
 
-try:
-    from .providers.hf import HFProvider, HFConfig
-except ImportError:
     class HFConfig:
         def __init__(self, **kwargs):
             for k, v in kwargs.items():
@@ -108,9 +95,6 @@ except ImportError:
         async def benchmark(self):
             return {"provider": "HuggingFace", "status": "not_available"}
 
-try:
-    from .webui.panel import AIPanel
-except ImportError:
     class AIPanel:
         def __init__(self):
             pass
@@ -121,9 +105,6 @@ except ImportError:
         async def initialize(self):
             pass
 
-try:
-    from .tests.suite import TestSuite
-except ImportError:
     class TestSuite:
         def __init__(self):
             pass
@@ -132,6 +113,12 @@ except ImportError:
         async def run_all(self):
             return {"status": "tests_not_available"}
         async def initialize(self):
+            pass
+
+    class AIAbstractionLayer:
+        def __init__(self):
+            pass
+        async def register_provider(self, name, provider):
             pass
 
 logger = logging.getLogger(__name__)
@@ -270,24 +257,29 @@ class AIProvidersPlugin(PluginInterface):
         """Register providers with AI layer."""
         try:
             # Import AI layer
-            from plexichat.features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+            try:
+                from plexichat.features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+            except ImportError:
+                # Use fallback
+                pass
+
             ai_layer = AIAbstractionLayer()
-            
+
             # Register providers
             if self.bitnet:
                 await ai_layer.register_provider("bitnet", self.bitnet)
                 logger.info("BitNet registered")
-            
+
             if self.llama:
                 await ai_layer.register_provider("llama", self.llama)
                 logger.info("Llama registered")
-            
+
             if self.hf:
                 await ai_layer.register_provider("hf", self.hf)
                 logger.info("HF registered")
-            
+
             self.providers_registered = True
-            
+
         except Exception as e:
             logger.error(f"Failed to register providers: {e}")
 

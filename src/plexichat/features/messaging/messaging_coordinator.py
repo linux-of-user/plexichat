@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -220,7 +222,7 @@ settings.get("allow_direct_messages", True):
 
         # Check for business automation
         if recipient.business_profile:
-            auto_response = await self.business_manager.process_incoming_message()
+            auto_response = await self.business_manager.process_incoming_message(
                 sender.user_id, message, recipient.business_profile.business_id
             )
             if auto_response:

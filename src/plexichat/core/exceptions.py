@@ -36,7 +36,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 class PlexiChatException(Exception):
     """Base exception for PlexiChat with enhanced error tracking."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         error_code: Optional[str] = None,
@@ -95,7 +95,7 @@ class AuthorizationError(PlexiChatException):
 class ValidationError(PlexiChatException):
     """Data validation errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         field_errors: Optional[Dict[str, List[str]]] = None,
@@ -107,7 +107,7 @@ class ValidationError(PlexiChatException):
 class DatabaseError(PlexiChatException):
     """Database operation errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         operation: Optional[str] = None,
@@ -121,7 +121,7 @@ class DatabaseError(PlexiChatException):
 class FileError(PlexiChatException):
     """File operation errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         file_path: Optional[str] = None,
@@ -135,7 +135,7 @@ class FileError(PlexiChatException):
 class NetworkError(PlexiChatException):
     """Network operation errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         url: Optional[str] = None,
@@ -149,7 +149,7 @@ class NetworkError(PlexiChatException):
 class ConfigurationError(PlexiChatException):
     """Configuration related errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         config_key: Optional[str] = None,
@@ -163,7 +163,7 @@ class ConfigurationError(PlexiChatException):
 class RateLimitError(PlexiChatException):
     """Rate limiting errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         limit: Optional[int] = None,
@@ -179,7 +179,7 @@ class RateLimitError(PlexiChatException):
 class SecurityError(PlexiChatException):
     """Security related errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         threat_type: Optional[str] = None,
@@ -208,7 +208,7 @@ class SecurityError(PlexiChatException):
 class PerformanceError(PlexiChatException):
     """Performance related errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         operation: Optional[str] = None,
@@ -224,7 +224,7 @@ class PerformanceError(PlexiChatException):
 class ClusterError(PlexiChatException):
     """Cluster operation errors."""
 
-    def __init__():
+    def __init__(
         self,
         message: str,
         node_id: Optional[str] = None,

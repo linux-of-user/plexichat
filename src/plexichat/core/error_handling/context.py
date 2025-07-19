@@ -171,7 +171,7 @@ class ErrorBoundary:
     appropriately, and optionally provides fallback behavior.
     """
 
-    def __init__():
+    def __init__(
         self,
         name: str,
         fallback_value: Optional[Any] = None,

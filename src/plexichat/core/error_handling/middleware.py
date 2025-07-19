@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__, Optional)
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """Comprehensive error handling middleware for FastAPI."""
 
-    def __init__(self, app: ASGIApp,):
+    def __init__(self, app: ASGIApp,
                  debug: bool = False,
                  include_request_details: bool = True,
                  log_errors: bool = True,

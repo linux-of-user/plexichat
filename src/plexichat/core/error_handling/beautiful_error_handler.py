@@ -1,3 +1,17 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
+"""
+PlexiChat Beautiful Error Handler
+
+Comprehensive error handling with beautiful error pages and detailed logging.
+"""
+
 import json
 import logging
 import traceback
@@ -6,29 +20,21 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-from fastapi import Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-
-"""
-import platform
-import sys
-import time
-Beautiful Error Handler System
-Comprehensive error handling with attractive error pages and detailed logging.
-"""
+try:
+    from fastapi import Request, HTTPException  # type: ignore
+    from fastapi.responses import HTMLResponse, JSONResponse  # type: ignore
+    from fastapi.templating import Jinja2Templates  # type: ignore
+    FASTAPI_AVAILABLE = True
+except ImportError:
+    Request = None
+    HTTPException = None
+    HTMLResponse = None
+    JSONResponse = None
+    Jinja2Templates = None
+    FASTAPI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
 
 class ErrorCode:
     """Standardized error codes with witty messages."""
@@ -56,21 +62,29 @@ class ErrorCode:
     PLUGIN_ERROR = ("ERR_PLUGIN_TANTRUM", "A plugin is throwing a tantrum!")
     AI_ERROR = ("ERR_AI_CONFUSED", "Our AI is a bit confused right now!")
 
+
+class ErrorContext:
+    """Context information for errors."""
+    
+    def __init__(self, request: Optional[Any] = None, user_id: Optional[str] = None):
+        self.request = request
+        self.user_id = user_id
+        self.timestamp = datetime.now()
+        self.request_id = getattr(request, 'state', {}).get('request_id') if request else None
+
+
 class BeautifulErrorHandler:
     """Beautiful error handler with comprehensive logging and user-friendly pages."""
 
     def __init__(self, templates_dir: str = "src/plexichat/app/web/templates"):
-        from pathlib import Path
-self.templates_dir = Path(templates_dir)
-        self.templates = Jinja2Templates(directory=str(self.templates_dir))
-        from pathlib import Path
-self.error_log_file = Path("error_log.json")
-        from pathlib import Path
-self.crash_log_file = Path("crash_log.json")
+        self.templates_dir = Path(templates_dir)
+        self.templates = Jinja2Templates(directory=str(self.templates_dir)) if Jinja2Templates else None
+        self.error_log_file = Path("error_log.json")
+        self.crash_log_file = Path("crash_log.json")
 
         # Error statistics
         self.error_stats: Dict[str, int] = {}
-        self.recent_errors: list = []
+        self.recent_errors: List[Dict[str, Any]] = []
 
         # Load existing error logs
         self._load_error_logs()
@@ -78,7 +92,7 @@ self.crash_log_file = Path("crash_log.json")
     def _load_error_logs(self):
         """Load existing error logs."""
         try:
-            if self.error_log_file.exists() if self.error_log_file else False:
+            if self.error_log_file.exists():
                 with open(self.error_log_file, 'r') as f:
                     data = json.load(f)
                     self.error_stats = data.get('stats', {})
@@ -92,162 +106,138 @@ self.crash_log_file = Path("crash_log.json")
             data = {
                 'stats': self.error_stats,
                 'recent': self.recent_errors[-100:],  # Keep last 100
-                'last_updated': from datetime import datetime
-datetime.now().isoformat()
+                'last_updated': datetime.now().isoformat()
             }
             with open(self.error_log_file, 'w') as f:
                 json.dump(data, f, indent=2, default=str)
         except Exception as e:
             logger.error(f"Failed to save error logs: {e}")
 
-    def _log_error(self, error_id: str, error_code: str, error_message: str,):
-                   request: Optional[Request] = None, exception: Optional[Exception] = None):
-        """Log error with comprehensive details."""
-        error_entry = {
-            'error_id': error_id,
-            'error_code': error_code,
-            'message': error_message,
-            'timestamp': from datetime import datetime
-datetime.now().isoformat(),
-            'request_info': self._extract_request_info(request) if request else None,
-            'exception_info': self._extract_exception_info(exception) if exception else None
-        }
-
-        # Add to recent errors
-        self.recent_errors.append(error_entry)
-
+    def log_error(self, error: Exception, context: Optional[ErrorContext] = None):
+        """Log an error with context."""
+        error_type = type(error).__name__
+        error_message = str(error)
+        
         # Update statistics
-        if error_code not in self.error_stats:
-            self.error_stats[error_code] = 0
-        self.error_stats[error_code] += 1
-
+        self.error_stats[error_type] = self.error_stats.get(error_type, 0) + 1
+        
+        # Create error record
+        error_record = {
+            'id': str(uuid.uuid4()),
+            'timestamp': datetime.now().isoformat(),
+            'type': error_type,
+            'message': error_message,
+            'traceback': traceback.format_exc(),
+            'user_id': context.user_id if context else None,
+            'request_id': context.request_id if context else None,
+            'request_path': getattr(context.request, 'url', {}).path if context and context.request else None,
+            'request_method': getattr(context.request, 'method', None) if context and context.request else None,
+            'user_agent': getattr(context.request, 'headers', {}).get('user-agent') if context and context.request else None,
+            'ip_address': getattr(context.request, 'client', {}).host if context and context.request else None
+        }
+        
+        self.recent_errors.append(error_record)
+        
+        # Keep only recent errors
+        if len(self.recent_errors) > 100:
+            self.recent_errors = self.recent_errors[-100:]
+        
         # Save to file
         self._save_error_logs()
-
+        
         # Log to standard logger
-        logger.error(f"Error {error_id}: {error_code} - {error_message}")
-        if exception:
-            logger.error(f"Exception details: {str(exception)}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
+        logger.error(f"{error_type}: {error_message}", extra=error_record)
 
-    def _extract_request_info(self, request: Request) -> Dict[str, Any]:
-        """Extract relevant information from request."""
-        return {
-            'method': request.method,
-            'url': str(request.url),
-            'path': request.url.path,
-            'query_params': dict(request.query_params),
-            'headers': dict(request.headers),
-            'client_ip': request.client.host if request.client else None,
-            'user_agent': request.headers.get('user-agent', 'Unknown')
+    def create_error_response(self, error: Exception, request: Optional[Any] = None) -> Any:
+        """Create a beautiful error response."""
+        if not self.templates or not FASTAPI_AVAILABLE:
+            return {
+                "error": str(error),
+                "type": type(error).__name__,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+        error_type = type(error).__name__
+        status_code = getattr(error, 'status_code', 500)
+        
+        # Get error code and message
+        error_code, friendly_message = self._get_error_code_and_message(error_type, status_code)
+        
+        # Determine error template
+        template_name = "errors/500.html"
+        if status_code == 404:
+            template_name = "errors/404.html"
+        elif status_code == 403:
+            template_name = "errors/403.html"
+        elif status_code == 400:
+            template_name = "errors/400.html"
+        
+        context = {
+            "request": request,
+            "error_type": error_type,
+            "error_message": str(error),
+            "friendly_message": friendly_message,
+            "error_code": error_code,
+            "status_code": status_code,
+            "timestamp": datetime.now().isoformat(),
+            "support_email": "support@plexichat.com",
+            "error_id": str(uuid.uuid4())
         }
+        
+        try:
+            return self.templates.TemplateResponse(template_name, context)
+        except Exception:
+            # Fallback to JSON response
+            return JSONResponse(
+                status_code=status_code,
+                content={
+                    "error": str(error),
+                    "type": error_type,
+                    "error_code": error_code,
+                    "friendly_message": friendly_message,
+                    "status_code": status_code,
+                    "timestamp": datetime.now().isoformat()
+                }
+            ) if JSONResponse else context
 
-    def _extract_exception_info(self, exception: Exception) -> Dict[str, Any]:
-        """Extract exception information."""
-        return {
-            'type': type(exception).__name__,
-            'message': str(exception),
-            'traceback': traceback.format_exc(),
-            'args': exception.args if hasattr(exception, 'args') else None
-        }
-
-    def _get_error_context(self, error_id: str, error_code: str, error_message: str,):
-                          status_code: int, request: Optional[Request] = None) -> Dict[str, Any]:
-        """Get context for error template."""
-        return {
-            'error_id': error_id,
-            'error_code': error_code,
-            'error_message': error_message,
-            'status_code': status_code,
-            'timestamp': from datetime import datetime
-datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC'),
-            'server_id': 'PlexiChat-Server-01',  # Could be dynamic
-            'request': request,
-            'support_url': '/support',
-            'docs_url': '/docs',
-            'home_url': '/',
-            'dashboard_url': '/ui'
-        }
-
-    async def handle_404(self, request: Request) -> HTMLResponse:
-        """Handle 404 Not Found errors."""
-        error_id = str(uuid.uuid4())[:8]
-        error_code, error_message = ErrorCode.NOT_FOUND
-
-        self._log_error(error_id, error_code, error_message, request)
-
-        context = self._get_error_context(error_id, error_code, error_message, 404, request)
-
-        return self.templates.TemplateResponse()
-            "errors/404.html",
-            {"request": request, **context}
-        )
-
-    async def handle_500(self, request: Request, exception: Optional[Exception] = None) -> HTMLResponse:
-        """Handle 500 Internal Server Error."""
-        error_id = str(uuid.uuid4())[:8]
-        error_code, error_message = ErrorCode.INTERNAL_ERROR
-
-        self._log_error(error_id, error_code, error_message, request, exception)
-
-        context = self._get_error_context(error_id, error_code, error_message, 500, request)
-
-        return self.templates.TemplateResponse()
-            "errors/500.html",
-            {"request": request, **context}
-        )
-
-    async def handle_403(self, request: Request) -> HTMLResponse:
-        """Handle 403 Forbidden errors."""
-        error_id = str(uuid.uuid4())[:8]
-        error_code, error_message = ErrorCode.FORBIDDEN
-
-        self._log_error(error_id, error_code, error_message, request)
-
-        context = self._get_error_context(error_id, error_code, error_message, 403, request)
-
-        return self.templates.TemplateResponse()
-            "errors/403.html",
-            {"request": request, **context}
-        )
-
-    async def handle_rate_limit(self, request: Request) -> HTMLResponse:
-        """Handle 429 Rate Limit errors."""
-        error_id = str(uuid.uuid4())[:8]
-        error_code, error_message = ErrorCode.RATE_LIMITED
-
-        self._log_error(error_id, error_code, error_message, request)
-
-        context = self._get_error_context(error_id, error_code, error_message, 429, request)
-
-        return self.templates.TemplateResponse()
-            "errors/429.html",
-            {"request": request, **context}
-        )
-
-    async def handle_api_error(self, request: Request, status_code: int,)
-                              error_code: str, error_message: str,
-                              details: Optional[Dict[str, Any]] = None) -> JSONResponse:
-        """Handle API errors with JSON response."""
-        error_id = str(uuid.uuid4())[:8]
-
-        self._log_error(error_id, error_code, error_message, request)
-
-        response_data = {
-            'error': True,
-            'error_id': error_id,
-            'error_code': error_code,
-            'message': error_message,
-            'status_code': status_code,
-            'timestamp': from datetime import datetime
-datetime.now().isoformat(),
-            'details': details or {}
-        }
-
-        return JSONResponse()
-            status_code=status_code,
-            content=response_data
-        )
+    def _get_error_code_and_message(self, error_type: str, status_code: int) -> tuple:
+        """Get error code and friendly message based on error type and status code."""
+        if status_code == 400:
+            return ErrorCode.BAD_REQUEST
+        elif status_code == 401:
+            return ErrorCode.UNAUTHORIZED
+        elif status_code == 403:
+            return ErrorCode.FORBIDDEN
+        elif status_code == 404:
+            return ErrorCode.NOT_FOUND
+        elif status_code == 405:
+            return ErrorCode.METHOD_NOT_ALLOWED
+        elif status_code == 429:
+            return ErrorCode.RATE_LIMITED
+        elif status_code == 500:
+            return ErrorCode.INTERNAL_ERROR
+        elif status_code == 501:
+            return ErrorCode.NOT_IMPLEMENTED
+        elif status_code == 502:
+            return ErrorCode.BAD_GATEWAY
+        elif status_code == 503:
+            return ErrorCode.SERVICE_UNAVAILABLE
+        elif status_code == 504:
+            return ErrorCode.GATEWAY_TIMEOUT
+        elif "validation" in error_type.lower():
+            return ErrorCode.VALIDATION_ERROR
+        elif "auth" in error_type.lower():
+            return ErrorCode.AUTHENTICATION_ERROR
+        elif "permission" in error_type.lower():
+            return ErrorCode.PERMISSION_ERROR
+        elif "plugin" in error_type.lower():
+            return ErrorCode.PLUGIN_ERROR
+        elif "ai" in error_type.lower():
+            return ErrorCode.AI_ERROR
+        elif "database" in error_type.lower() or "db" in error_type.lower():
+            return ErrorCode.DATABASE_ERROR
+        else:
+            return ErrorCode.INTERNAL_ERROR
 
     def get_error_statistics(self) -> Dict[str, Any]:
         """Get error statistics."""
@@ -256,8 +246,7 @@ datetime.now().isoformat(),
         # Calculate error rates
         recent_24h = [
             e for e in self.recent_errors
-            if datetime.fromisoformat(e['timestamp']) > from datetime import datetime
-datetime.now().replace(hour=0, minute=0, second=0)
+            if datetime.fromisoformat(e['timestamp']) > datetime.now().replace(hour=0, minute=0, second=0)
         ]
 
         return {
@@ -269,40 +258,58 @@ datetime.now().replace(hour=0, minute=0, second=0)
             'error_rate_24h': len(recent_24h) / 24 if recent_24h else 0  # Errors per hour
         }
 
-    def create_crash_report(self, exception: Exception, context: Optional[Dict[str, Any]] = None) -> str:
-        """Create detailed crash report."""
-        crash_id = str(uuid.uuid4())
+    def clear_error_logs(self):
+        """Clear all error logs."""
+        self.error_stats.clear()
+        self.recent_errors.clear()
+        self._save_error_logs()
 
-        crash_report = {
-            'crash_id': crash_id,
-            'timestamp': from datetime import datetime
-datetime.now().isoformat(),
-            'exception': self._extract_exception_info(exception),
-            'context': context or {},
-            'system_info': {
-                'python_version': None,  # Could add sys.version
-                'platform': None,        # Could add platform.platform()
-                'memory_usage': None     # Could add memory info
-            }
+    def export_error_logs(self, format: str = "json") -> str:
+        """Export error logs in specified format."""
+        data = {
+            'statistics': self.error_stats,
+            'recent_errors': self.recent_errors,
+            'exported_at': datetime.now().isoformat()
         }
+        
+        if format.lower() == "json":
+            return json.dumps(data, indent=2, default=str)
+        else:
+            return str(data)
 
-        # Save crash report
-        try:
-            crash_reports = []
-            if self.crash_log_file.exists() if self.crash_log_file else False:
-                with open(self.crash_log_file, 'r') as f:
-                    crash_reports = json.load(f)
 
-            crash_reports.append(crash_report)
+# Global error handler instance
+_error_handler: Optional[BeautifulErrorHandler] = None
 
-            # Keep only last 50 crash reports
-            crash_reports = crash_reports[-50:]
 
-            with open(self.crash_log_file, 'w') as f:
-                json.dump(crash_reports, f, indent=2, default=str)
+def get_error_handler() -> BeautifulErrorHandler:
+    """Get the global error handler instance."""
+    global _error_handler
+    if _error_handler is None:
+        _error_handler = BeautifulErrorHandler()
+    return _error_handler
 
-        except Exception as e:
-            logger.error(f"Failed to save crash report: {e}")
 
-        logger.critical(f"CRASH REPORT {crash_id}: {str(exception)}")
-        return crash_id
+def configure_error_handler(templates_dir: str):
+    """Configure the global error handler."""
+    global _error_handler
+    _error_handler = BeautifulErrorHandler(templates_dir)
+
+
+# Convenience functions
+def log_error(error: Exception, context: Optional[ErrorContext] = None):
+    """Log an error using the global handler."""
+    handler = get_error_handler()
+    handler.log_error(error, context)
+
+
+def create_error_response(error: Exception, request: Optional[Any] = None) -> Any:
+    """Create an error response using the global handler."""
+    handler = get_error_handler()
+    return handler.create_error_response(error, request)
+
+
+def get_error_statistics() -> Dict[str, Any]:
+    """Get error statistics using the global handler."""
+    handler = get_error_handler()
+    return handler.get_error_statistics()

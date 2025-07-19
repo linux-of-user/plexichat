@@ -103,7 +103,7 @@ class EnhancedErrorHandler:
 
     def _initialize_default_patterns(self):
         """Initialize default error patterns to detect."""
-        self.error_patterns.update({)
+        self.error_patterns.update({
             'database_connection_failures': ErrorPattern('database_connection', threshold=3, window_minutes=5),
             'authentication_failures': ErrorPattern('authentication', threshold=10, window_minutes=15),
             'external_service_failures': ErrorPattern('external_service', threshold=5, window_minutes=10),
@@ -111,7 +111,7 @@ class EnhancedErrorHandler:
             'network_timeouts': ErrorPattern('network_timeout', threshold=3, window_minutes=5),
         })
 
-    async def handle_error(self, exception: Exception,)
+    async def handle_error(self, exception: Exception,
                           context: Dict[str, Any] = None,
                           severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                           category: ErrorCategory = ErrorCategory.UNKNOWN,
@@ -153,7 +153,7 @@ class EnhancedErrorHandler:
 
         # Crash reporting for critical errors
         if severity in [ErrorSeverity.CRITICAL, ErrorSeverity.EMERGENCY]:
-            crash_context = self.crash_reporter.report_crash()
+            crash_context = self.crash_reporter.report_crash(
                 exception=exception,
                 severity=severity,
                 category=category,

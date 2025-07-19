@@ -330,7 +330,7 @@ webhook_service = WebhookService()
     status_code=status.HTTP_201_CREATED,
     summary="Create webhook"
 )
-async def create_webhook()
+async def create_webhook(
     request: Request,
     webhook_data: WebhookCreate,
     current_user: Dict[str, Any] = Depends(get_current_user)
@@ -354,7 +354,7 @@ async def create_webhook()
     response_model=List[WebhookResponse],
     summary="List webhooks"
 )
-async def list_webhooks()
+async def list_webhooks(
     request: Request,
     limit: int = 50,
     offset: int = 0,
@@ -374,7 +374,7 @@ async def list_webhooks()
     "/{webhook_id}/trigger",
     summary="Trigger webhook"
 )
-async def trigger_webhook()
+async def trigger_webhook(
     request: Request,
     webhook_id: int,
     event: WebhookEvent,
@@ -401,7 +401,7 @@ async def trigger_webhook()
     "/broadcast",
     summary="Broadcast event to all webhooks"
 )
-async def broadcast_event()
+async def broadcast_event(
     request: Request,
     event: WebhookEvent,
     background_tasks: BackgroundTasks,

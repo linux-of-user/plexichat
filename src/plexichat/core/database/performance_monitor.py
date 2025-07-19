@@ -111,7 +111,7 @@ class DatabasePerformanceMonitor:
 
         logger.info("🛑 Database performance monitoring stopped")
 
-    def record_query_execution(self, query: str, execution_time: float, ):
+    def record_query_execution(self, query: str, execution_time: float,
                              rows_affected: int = 0, error: Optional[str] = None,
                              cache_hit: bool = False):
         """Record query execution metrics."""
@@ -121,7 +121,7 @@ class DatabasePerformanceMonitor:
         query_hash = str(hash(query.strip().lower()))
 
         if query_hash not in self.query_metrics:
-            self.query_metrics[query_hash] = QueryMetrics()
+            self.query_metrics[query_hash] = QueryMetrics(
                 query_hash=query_hash,
                 query_text=query[:200] + "..." if len(query) > 200 else query
             )
@@ -142,7 +142,7 @@ class DatabasePerformanceMonitor:
 
         if error:
             metrics.error_count += 1
-            self.error_queries.append({)
+            self.error_queries.append({
                 'query': query[:100],
                 'error': error,
                 'timestamp': datetime.now()
@@ -150,13 +150,13 @@ class DatabasePerformanceMonitor:
 
         # Check for slow queries
         if execution_time > self.slow_query_threshold:
-            self.slow_queries.append({)
+            self.slow_queries.append({
                 'query': query[:100],
                 'execution_time': execution_time,
                 'timestamp': datetime.now()
             })
 
-    def update_connection_metrics(self, active: int, idle: int, total: int, ):
+    def update_connection_metrics(self, active: int, idle: int, total: int,
                                 errors: int = 0, timeouts: int = 0):
         """Update connection pool metrics."""
         if not self.enabled:
@@ -165,7 +165,7 @@ class DatabasePerformanceMonitor:
         self.connection_metrics.active_connections = active
         self.connection_metrics.idle_connections = idle
         self.connection_metrics.total_connections = total
-        self.connection_metrics.peak_connections = max()
+        self.connection_metrics.peak_connections = max(
             self.connection_metrics.peak_connections, total
         )
         self.connection_metrics.connection_errors += errors
@@ -313,7 +313,7 @@ class DatabasePerformanceMonitor:
             },
             'alerts': {
                 'total_alerts': len(self.performance_alerts),
-                'recent_alerts': len([a for a in self.performance_alerts )
+                'recent_alerts': len([a for a in self.performance_alerts
                                     if a['timestamp'] > datetime.now() - timedelta(hours=1)])
             }
         }

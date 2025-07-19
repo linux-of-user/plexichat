@@ -117,7 +117,7 @@ async def get_db():
 # API endpoints
 if router:
     @router.post("/", response_model=MessageResponse)
-    async def create_message()
+    async def create_message(
         message: MessageCreate,
         background_tasks: BackgroundTasks,
         current_user: dict = Depends(get_current_user),
@@ -259,7 +259,7 @@ if router:
             raise HTTPException(status_code=500, detail="Internal server error")
 
     @router.get("/{message_id}", response_model=MessageResponse)
-    async def get_message()
+    async def get_message(
         message_id: str,
         current_user: dict = Depends(get_current_user),
         db = Depends(get_db)
@@ -297,7 +297,7 @@ if router:
             raise HTTPException(status_code=500, detail="Internal server error")
 
     @router.delete("/{message_id}")
-    async def delete_message()
+    async def delete_message(
         message_id: str,
         current_user: dict = Depends(get_current_user),
         db = Depends(get_db)

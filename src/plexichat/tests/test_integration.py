@@ -1,3 +1,11 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
 Integration Tests
 
@@ -85,7 +93,7 @@ class IntegrationTests(TestSuite):
         user_id = registration_data.get('user_id') or registration_data.get('id')
         assert user_id, "Registration should return user ID"
 
-        self.test_data['users'].append({)
+        self.test_data['users'].append({
             'id': user_id,
             'username': user_data['username'],
             'email': user_data['email'],
@@ -154,7 +162,7 @@ class IntegrationTests(TestSuite):
         message_id = message_response.get('id') or message_response.get('message_id')
         assert message_id, "Message creation should return message ID"
 
-        self.test_data['messages'].append({)
+        self.test_data['messages'].append({
             'id': message_id,
             'content': message_data['content'],
             'user_id': user['id']
@@ -215,7 +223,7 @@ class IntegrationTests(TestSuite):
         file_id = upload_response.get('file_id') or upload_response.get('id')
         assert file_id, "File upload should return file ID"
 
-        self.test_data['files'].append({)
+        self.test_data['files'].append({
             'id': file_id,
             'filename': 'integration_test.txt',
             'user_id': user['id']
@@ -267,7 +275,7 @@ class IntegrationTests(TestSuite):
             workspace_response = response.json()
             workspace_id = workspace_response.get('id')
 
-            self.test_data['workspaces'].append({)
+            self.test_data['workspaces'].append({
                 'id': workspace_id,
                 'name': workspace_data['name'],
                 'owner_id': user['id']

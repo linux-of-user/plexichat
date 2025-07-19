@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -329,7 +331,7 @@ self.key_dir = Path(self.config.get("key_dir", "data/keys"))
             salt = secrets.token_bytes(32)
             nonce = secrets.token_bytes(16)
 
-            context = EncryptionContext()
+            context = EncryptionContext(
                 algorithm=self.default_algorithm,
                 key_ids=key_ids,
                 threshold=self.key_threshold,
@@ -341,7 +343,7 @@ self.key_dir = Path(self.config.get("key_dir", "data/keys"))
             encryption_key = await self._derive_encryption_key(key_ids, salt)
 
             # Encrypt data using AES-GCM (quantum-resistant when used with post-quantum key exchange)
-            cipher = Cipher()
+            cipher = Cipher(
                 algorithms.AES(encryption_key),
                 modes.GCM(nonce),
                 backend=default_backend()

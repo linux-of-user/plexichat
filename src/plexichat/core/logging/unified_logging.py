@@ -22,7 +22,7 @@ import threading
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union, Callable
 from enum import Enum
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
 # Core imports
@@ -154,7 +154,11 @@ class StructuredFormatter(logging.Formatter):
 
         # Add extra fields
         if hasattr(record, 'context'):
-            log_entry["context"] = record.context
+            context = record.context
+            if hasattr(context, '__dataclass_fields__'):
+                log_entry["context"] = asdict(context)
+            else:
+                log_entry["context"] = context
         if hasattr(record, 'category'):
             log_entry["category"] = record.category
         if hasattr(record, 'extra_data'):
@@ -290,7 +294,7 @@ class UnifiedLogger:
 
     def _log(self, level: LogLevel, category: LogCategory, message: str, **kwargs):
         """Internal logging method."""
-        entry = LogEntry()
+        entry = LogEntry(
             timestamp=datetime.now(),
             level=level,
             category=category,
@@ -348,8 +352,7 @@ class UnifiedLogger:
     def performance(self, operation: str, duration: float, **kwargs):
         """Log performance metric."""
         message = f"Performance: {operation} took {duration:.3f}s"
-        self._log(LogLevel.INFO, LogCategory.PERFORMANCE, message, )
-                 operation=operation, duration=duration, **kwargs)
+        self._log(LogLevel.INFO, LogCategory.PERFORMANCE, message, operation=operation, duration=duration, **kwargs)
 
         # Record in performance tracker
         if self.manager and hasattr(self.manager, 'performance_tracker'):
@@ -358,9 +361,7 @@ class UnifiedLogger:
     def request(self, method: str, path: str, status_code: int, duration: float, **kwargs):
         """Log HTTP request."""
         message = f"{method} {path} {status_code} ({duration:.3f}s)"
-        self._log(LogLevel.INFO, LogCategory.API, message,)
-                 method=method, path=path, status_code=status_code,
-                 duration=duration, **kwargs)
+        self._log(LogLevel.INFO, LogCategory.API, message, method=method, path=path, status_code=status_code, duration=duration, **kwargs)
 
     def timer(self, operation: str, **kwargs):
         """Get performance timer context manager."""
@@ -469,12 +470,9 @@ class UnifiedLoggingManager:
             # Set formatter
             if getattr(self.config.logging, 'console_colors', True):
                 formatter = ColoredFormatter()
-                    '[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s'
-                )
+                formatter = logging.Formatter('[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s')
             else:
-                formatter = logging.Formatter()
-                    '[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s'
-                )
+                formatter = logging.Formatter('[%(asctime)s] [%(levelname)-8s] %(name)s: %(message)s')
 
             console_handler.setFormatter(formatter)
 
@@ -494,7 +492,7 @@ class UnifiedLoggingManager:
             log_file = log_dir / 'plexichat.log'
 
             # Use custom rotating file handler with compression
-            file_handler = CompressingRotatingFileHandler()
+            file_handler = CompressingRotatingFileHandler(
                 log_file,
                 maxBytes=getattr(self.config.logging, 'max_file_size', 10*1024*1024),
                 backupCount=getattr(self.config.logging, 'backup_count', 5),
@@ -507,9 +505,7 @@ class UnifiedLoggingManager:
             file_handler.setLevel(level)
 
             # Set formatter
-            formatter = logging.Formatter()
-                '[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s'
-            )
+            formatter = logging.Formatter('[%(asctime)s] [%(levelname)-8s] [%(name)s:%(lineno)d] %(funcName)s() - %(message)s')
             file_handler.setFormatter(formatter)
 
             # Add to root logger
@@ -567,7 +563,7 @@ class UnifiedLoggingManager:
             for log_file in log_dir.glob("*.log*"):
                 if log_file.is_file():
                     stat = log_file.stat()
-                    log_files.append({)
+                    log_files.append({
                         'path': log_file,
                         'mtime': stat.st_mtime,
                         'size': stat.st_size
@@ -611,7 +607,7 @@ class UnifiedLoggingManager:
             structured_file = log_dir / 'plexichat-structured.log'
 
             from logging.handlers import RotatingFileHandler
-            structured_handler = RotatingFileHandler()
+            structured_handler = RotatingFileHandler(
                 structured_file,
                 maxBytes=getattr(self.config.logging, 'max_file_size', 10*1024*1024),
                 backupCount=getattr(self.config.logging, 'backup_count', 5)

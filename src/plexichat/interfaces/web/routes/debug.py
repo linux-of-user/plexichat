@@ -67,7 +67,7 @@ async def debug_dashboard(request: Request):
             for session_id, session in debug_manager.debug_sessions.items()
         ]
 
-        return templates.TemplateResponse("debug_dashboard.html", {)
+        return templates.TemplateResponse("debug_dashboard.html", {
             "request": request,
             "recent_events": recent_events,
             "error_summary": error_summary,
@@ -82,7 +82,7 @@ async def debug_dashboard(request: Request):
 
 
 @router.get("/events")
-async def get_debug_events()
+async def get_debug_events(
     level: Optional[str] = Query(None),
     source: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=10000),
@@ -127,7 +127,7 @@ async def get_debug_events()
             writer.writeheader()
 
             for event_data in events_data:
-                writer.writerow({)
+                writer.writerow({
                     "timestamp": event_data["timestamp"],
                     "level": event_data["level"],
                     "source": event_data["source"],
@@ -136,7 +136,7 @@ async def get_debug_events()
 
             return JSONResponse(content=output.getvalue(), media_type="text/csv")
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "events": events_data,
             "count": len(events_data),
@@ -159,7 +159,7 @@ async def get_error_summary():
         debug_manager = get_debug_manager()
         error_summary = debug_manager.get_error_summary()
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "error_summary": error_summary
         })
@@ -179,7 +179,7 @@ async def get_performance_data():
         # Analyze bottlenecks
         bottlenecks = analyze_performance_bottlenecks()
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "performance_summary": performance_summary,
             "bottlenecks": bottlenecks
@@ -208,7 +208,7 @@ async def get_memory_data():
                     curr_memory = snapshot["memory_usage"]
                     change = curr_memory - prev_memory
 
-                    memory_trend.append({)
+                    memory_trend.append({
                         "timestamp": snapshot["timestamp"],
                         "memory_usage": curr_memory,
                         "change": change,
@@ -217,7 +217,7 @@ async def get_memory_data():
         else:
             memory_trend = []
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "memory_snapshots": recent_snapshots,
             "memory_trend": memory_trend,
@@ -237,7 +237,7 @@ async def get_debug_sessions():
 
         sessions_data = []
         for session_id, session in debug_manager.debug_sessions.items():
-            sessions_data.append({)
+            sessions_data.append({
                 "session_id": session_id,
                 "name": session.name,
                 "start_time": session.start_time,
@@ -249,7 +249,7 @@ async def get_debug_sessions():
                 "metadata": session.metadata
             })
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "sessions": sessions_data
         })
@@ -270,7 +270,7 @@ async def get_debug_session(session_id: str):
 
         session_data = debug_manager.export_debug_data(session_id)
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "session_data": session_data
         })
@@ -294,7 +294,7 @@ async def create_debug_session(name: str = Form(...), metadata: str = Form("{}")
 
         session_id = debug_manager.create_debug_session(name, metadata_dict)
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "session_id": session_id,
             "message": f"Debug session '{name}' created successfully"
@@ -316,7 +316,7 @@ async def delete_debug_session(session_id: str):
 
         debug_manager.clear_debug_data(session_id)
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "message": f"Debug session {session_id} deleted successfully"
         })
@@ -333,7 +333,7 @@ async def take_memory_snapshot(label: str = Form("")):
         debug_manager = get_debug_manager()
         debug_manager.take_memory_snapshot(label)
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "message": "Memory snapshot taken successfully"
         })
@@ -344,7 +344,7 @@ async def take_memory_snapshot(label: str = Form("")):
 
 
 @router.post("/export")
-async def export_debug_data()
+async def export_debug_data(
     session_id: Optional[str] = Form(None),
     format: str = Form("json")
 ):
@@ -357,7 +357,7 @@ async def export_debug_data()
             dump_path = create_debug_dump()
 
             if dump_path:
-                return FileResponse()
+                return FileResponse(
                     path=dump_path,
                     filename=f"debug_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                     media_type="application/json"
@@ -382,7 +382,7 @@ async def clear_debug_data(session_id: Optional[str] = Form(None)):
 
         message = f"Debug data cleared for session {session_id}" if session_id else "All debug data cleared"
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "message": message
         })
@@ -407,7 +407,7 @@ async def get_live_events():
         # Get error counts
         error_summary = debug_manager.get_error_summary()
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "recent_events": [
                 {
@@ -429,7 +429,7 @@ async def get_live_events():
 
 
 @router.get("/search")
-async def search_debug_events()
+async def search_debug_events(
     query: str = Query(...),
     level: Optional[str] = Query(None),
     source: Optional[str] = Query(None),
@@ -447,7 +447,7 @@ async def search_debug_events()
         query_lower = query.lower()
 
         for event in all_events:
-            if (query_lower in event.message.lower() or )
+            if (query_lower in event.message.lower() or
                 query_lower in event.source.lower() or
                 any(query_lower in str(v).lower() for v in event.context.values())):
 
@@ -475,7 +475,7 @@ async def search_debug_events()
             for event in matching_events
         ]
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "events": events_data,
             "count": len(events_data),

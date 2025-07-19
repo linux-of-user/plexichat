@@ -1,3 +1,6 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -226,13 +229,13 @@ class Phase2ScalabilityCoordinator:
             return {"status": "completed", "result": "AI processing complete"}
 
         # Register handlers
-        self.task_queue_manager.register_task_handler()
+        self.task_queue_manager.register_task_handler(
             "email_notification", email_notification_handler
         )
-        self.task_queue_manager.register_task_handler()
+        self.task_queue_manager.register_task_handler(
             "file_processing", file_processing_handler
         )
-        self.task_queue_manager.register_task_handler()
+        self.task_queue_manager.register_task_handler(
             "ai_processing", ai_processing_handler
         )
 

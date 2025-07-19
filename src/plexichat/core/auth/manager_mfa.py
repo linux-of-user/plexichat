@@ -151,7 +151,7 @@ class Advanced2FASystem:
             totp = pyotp.TOTP(setup_data["totp_secret_plain"])
             if totp.verify(verification_code, valid_window=self.totp_window):
                 # Setup verified, create user config
-                user_config = TwoFactorConfig()
+                user_config = TwoFactorConfig(
                     user_id=setup_data["user_id"],
                     enabled=True,
                     enabled_methods=setup_data["methods"],

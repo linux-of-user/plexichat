@@ -217,14 +217,12 @@ class TaskScheduler:
         try:
             # Run task with timeout
             if self.async_thread_manager:
-                result = await asyncio.wait_for()
-                    self.async_thread_manager.run_in_thread()
-                        task.function, *task.args, **task.kwargs
-                    ),
+                result = await asyncio.wait_for(
+                    self.async_thread_manager.run_in_thread(task.function, *task.args, **task.kwargs),
                     timeout=task.timeout_seconds
                 )
             else:
-                result = await asyncio.wait_for()
+                result = await asyncio.wait_for(
                     self._run_task_async(task),
                     timeout=task.timeout_seconds
                 )
@@ -248,15 +246,12 @@ class TaskScheduler:
 
             # Track analytics
             if track_event:
-                await track_event()
-                    "scheduled_task_completed",
-                    properties={
-                        "task_name": task.name,
-                        "task_type": task.task_type.value,
-                        "execution_time": execution_time,
-                        "run_count": task.run_count
-                    }
-                )
+                await track_event("scheduled_task_completed", properties={
+                    "task_name": task.name,
+                    "task_type": task.task_type.value,
+                    "execution_time": execution_time,
+                    "run_count": task.run_count
+                })
 
             logger.info(f"Task completed: {task.name} ({task.task_id}) in {execution_time:.2f}s")
 
@@ -353,14 +348,12 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"Error cleaning up completed tasks: {e}")
 
-    async def schedule_once(self, name: str, function: Callable, scheduled_at: datetime,)
-                          args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300,
-                          max_retries: int = 3, metadata: dict = None) -> str:
+    async def schedule_once(self, name: str, function: Callable, scheduled_at: datetime, args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300, max_retries: int = 3, metadata: dict = None) -> str:
         """Schedule a one-time task."""
         try:
             task_id = str(uuid4())
 
-            task = ScheduledTask()
+            task = ScheduledTask(
                 task_id=task_id,
                 name=name,
                 function=function,
@@ -392,16 +385,13 @@ class TaskScheduler:
             logger.error(f"Error scheduling one-time task: {e}")
             raise
 
-    async def schedule_recurring(self, name: str, function: Callable, interval_seconds: int,)
-                               args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300,
-                               max_runs: Optional[int] = None, max_retries: int = 3,
-                               metadata: dict = None) -> str:
+    async def schedule_recurring(self, name: str, function: Callable, interval_seconds: int, args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300, max_runs: Optional[int] = None, max_retries: int = 3, metadata: dict = None) -> str:
         """Schedule a recurring task."""
         try:
             task_id = str(uuid4())
             next_run = datetime.now() + timedelta(seconds=interval_seconds)
 
-            task = ScheduledTask()
+            task = ScheduledTask(
                 task_id=task_id,
                 name=name,
                 function=function,
@@ -433,10 +423,7 @@ class TaskScheduler:
             logger.error(f"Error scheduling recurring task: {e}")
             raise
 
-    async def schedule_cron(self, name: str, function: Callable, cron_expression: str,)
-                          args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300,
-                          max_runs: Optional[int] = None, max_retries: int = 3,
-                          metadata: dict = None) -> str:
+    async def schedule_cron(self, name: str, function: Callable, cron_expression: str, args: tuple = (), kwargs: dict = None, timeout_seconds: int = 300, max_runs: Optional[int] = None, max_retries: int = 3, metadata: dict = None) -> str:
         """Schedule a cron-based task."""
         try:
             if not croniter:
@@ -448,7 +435,7 @@ class TaskScheduler:
             cron = croniter.croniter(cron_expression, datetime.now())
             next_run = cron.get_next(datetime)
 
-            task = ScheduledTask()
+            task = ScheduledTask(
                 task_id=task_id,
                 name=name,
                 function=function,
@@ -507,7 +494,7 @@ class TaskScheduler:
         try:
             if self.db_manager:
                 query = """
-                    INSERT INTO scheduled_tasks ()
+                    INSERT INTO scheduled_tasks (
                         task_id, name, task_type, status, created_at, scheduled_at,
                         next_run, last_run, run_count, max_runs, cron_expression,
                         interval_seconds, timeout_seconds, retry_count, max_retries, metadata

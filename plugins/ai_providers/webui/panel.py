@@ -11,6 +11,13 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+try:
+    from ..providers.bitnet import AIRequest
+except ImportError:
+    class AIRequest:
+        def __init__(self, *args, **kwargs):
+            pass
+
 
 class AIPanel:
     """AI Providers WebUI panel."""
@@ -186,7 +193,6 @@ class AIPanel:
                 return {"success": False, "error": "Provider and model required"}
             
             # Create request
-            from ..providers.bitnet import AIRequest
             ai_request = AIRequest(
                 model_id=model,
                 prompt=prompt,

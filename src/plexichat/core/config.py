@@ -87,10 +87,7 @@ class Settings(BaseSettings):
     # File upload settings
     MAX_FILE_SIZE: int = Field(default=100 * 1024 * 1024, description="Max file size in bytes")
     UPLOAD_DIR: str = Field(default="uploads", description="Upload directory")
-    ALLOWED_FILE_TYPES: List[str] = Field()
-        default=[".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".doc", ".docx"],
-        description="Allowed file extensions"
-    )
+    ALLOWED_FILE_TYPES: List[str] = Field(default=[".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".doc", ".docx"], description="Allowed file extensions")
 
     # Logging settings
     LOG_LEVEL: str = Field(default="INFO", description="Logging level")

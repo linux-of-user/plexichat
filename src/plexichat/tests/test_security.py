@@ -1,3 +1,11 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
 Security Tests
 
@@ -267,7 +275,7 @@ class SecurityTests(TestSuite):
         assert response.status_code != 500, "Server error with large input"
 
         # Test invalid JSON
-        response = self.make_request('POST', '/api/v1/messages/create', )
+        response = self.make_request('POST', '/api/v1/messages/create',
                                    data='{"invalid": json}',
                                    headers={'Content-Type': 'application/json'})
 

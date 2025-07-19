@@ -76,7 +76,7 @@ def dashboard():
         service = get_zk_service()
         stats = asyncio.run(service.get_security_statistics())
         health = asyncio.run(service.health_check())
-        return render_template()
+        return render_template(
             'admin/zero_knowledge_security_management.html',
             stats=stats,
             health=health,

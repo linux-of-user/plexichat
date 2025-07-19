@@ -349,7 +349,7 @@ class ReplyService:
                     return None
 
                 # Create reply message
-                reply_message = Message()
+                reply_message = Message(
                     sender_id=sender_id,
                     recipient_id=kwargs.get('recipient_id', original_message.sender_id),
                     channel_id=kwargs.get('channel_id', original_message.channel_id),
@@ -412,7 +412,7 @@ class EnhancedMessagingService:
                 raise Exception("Rate limit exceeded")
 
             with Session(engine) as session:
-                message = Message()
+                message = Message(
                     sender_id=sender_id,
                     recipient_id=kwargs.get('recipient_id'),
                     channel_id=kwargs.get('channel_id'),

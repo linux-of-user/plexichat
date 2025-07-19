@@ -125,7 +125,7 @@ class UnifiedLoggingManager:
 
         # Main log file handler with rotation
         main_log_file = self.logs_dir / "plexichat.log"
-        file_handler = logging.handlers.RotatingFileHandler()
+        file_handler = logging.handlers.RotatingFileHandler(
             main_log_file,
             maxBytes=self._parse_size(self.config["max_file_size"]),
             backupCount=self.config["backup_count"]
@@ -147,7 +147,7 @@ class UnifiedLoggingManager:
 
             # File handler for specialized log
             log_file = self.logs_dir / log_type / log_config["file"]
-            handler = logging.handlers.RotatingFileHandler()
+            handler = logging.handlers.RotatingFileHandler(
                 log_file,
                 maxBytes=self._parse_size(self.config["max_file_size"]),
                 backupCount=self.config["backup_count"]
@@ -165,7 +165,7 @@ class UnifiedLoggingManager:
 
     def _get_standard_formatter(self) -> logging.Formatter:
         """Get standard text formatter."""
-        return logging.Formatter()
+        return logging.Formatter(
             fmt=self.config["format"],
             datefmt="%Y-%m-%d %H:%M:%S"
         )
@@ -263,7 +263,7 @@ class UnifiedLoggingManager:
             }
 
             # Create a log record with extra data
-            record = logging.LogRecord()
+            record = logging.LogRecord(
                 name="plexichat.security",
                 level=logging.INFO,
                 pathname="",
@@ -294,7 +294,7 @@ class UnifiedLoggingManager:
                 **details
             }
 
-            record = logging.LogRecord()
+            record = logging.LogRecord(
                 name="plexichat.audit",
                 level=logging.INFO,
                 pathname="",

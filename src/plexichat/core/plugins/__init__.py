@@ -23,7 +23,7 @@ from typing import Dict, Any, Optional, List
 
 # Import unified plugin system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from .unified_plugin_manager import ()
+    from .unified_plugin_manager import (
         # Main classes
         UnifiedPluginManager,
         unified_plugin_manager,
@@ -62,7 +62,7 @@ except ImportError as e:
     # Fallback definitions if unified plugin system fails to import
     import logging
 
-    warnings.warn()
+    warnings.warn(
         f"Failed to import unified plugin system: {e}. Using fallback plugin system.",
         ImportWarning,
         stacklevel=2

@@ -176,7 +176,7 @@ async def admin_login_page(request: Request):
         return HTMLResponse("<h1>Admin Login</h1><form method='post'><input name='username' placeholder='Username'><input name='password' type='password' placeholder='Password'><button>Login</button></form>")
 
 @router.post("/login")
-async def admin_login()
+async def admin_login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...)
@@ -264,7 +264,7 @@ async def admin_users(request: Request, admin: dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Failed to load users")
 
 @router.post("/users")
-async def create_admin_user()
+async def create_admin_user(
     request: AdminCreateRequest,
     admin: dict = Depends(require_admin)
 ):

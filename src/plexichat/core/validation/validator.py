@@ -69,8 +69,7 @@ class BaseValidator(ABC):
 class StringValidator(BaseValidator):
     """String validator."""
 
-    def __init__(self, min_length: Optional[int] = None, max_length: Optional[int] = None,):
-                 pattern: Optional[str] = None, choices: Optional[List[str]] = None, **kwargs):
+    def __init__(self, min_length: Optional[int] = None, max_length: Optional[int] = None, pattern: Optional[str] = None, choices: Optional[List[str]] = None, **kwargs):
         super().__init__(**kwargs)
         self.min_length = min_length
         self.max_length = max_length
@@ -113,7 +112,7 @@ class StringValidator(BaseValidator):
         if self.choices and value not in self.choices:
             errors.append(self._create_error(field_name, f"Value must be one of: {', '.join(self.choices)}", "choices", value))
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
@@ -165,7 +164,7 @@ class IntegerValidator(BaseValidator):
         if self.max_value is not None and value > self.max_value:
             errors.append(self._create_error(field_name, f"Maximum value is {self.max_value}", "max_value", value))
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
@@ -177,9 +176,7 @@ class EmailValidator(BaseValidator):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.email_pattern = re.compile()
-            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        )
+        self.email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
     def validate(self, value: Any, field_name: str = "field") -> ValidationResult:
         """Validate email value."""
@@ -210,7 +207,7 @@ class EmailValidator(BaseValidator):
         if len(value) > 254:  # RFC 5321 limit
             errors.append(self._create_error(field_name, "Email address too long", "max_length", value))
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
@@ -239,7 +236,7 @@ class DateTimeValidator(BaseValidator):
 
         # If already datetime, return as-is
         if isinstance(value, datetime):
-            return ValidationResult()
+            return ValidationResult(
                 valid=True,
                 errors=errors,
                 warnings=warnings,
@@ -250,7 +247,7 @@ class DateTimeValidator(BaseValidator):
         if isinstance(value, str):
             try:
                 parsed_datetime = datetime.strptime(value, self.format_string)
-                return ValidationResult()
+                return ValidationResult(
                     valid=True,
                     errors=errors,
                     warnings=warnings,
@@ -266,8 +263,7 @@ class DateTimeValidator(BaseValidator):
 class ListValidator(BaseValidator):
     """List validator."""
 
-    def __init__(self, item_validator: Optional[BaseValidator] = None, ):
-                 min_items: Optional[int] = None, max_items: Optional[int] = None, **kwargs):
+    def __init__(self, item_validator: Optional[BaseValidator] = None, min_items: Optional[int] = None, max_items: Optional[int] = None, **kwargs):
         super().__init__(**kwargs)
         self.item_validator = item_validator
         self.min_items = min_items
@@ -316,7 +312,7 @@ class ListValidator(BaseValidator):
         else:
             cleaned_items = value
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
@@ -372,7 +368,7 @@ class DictValidator(BaseValidator):
                 if key not in self.schema:
                     cleaned_data[key] = val
 
-        return ValidationResult()
+        return ValidationResult(
             valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
@@ -420,7 +416,7 @@ class Validator:
             logger.error(f"Validation error: {e}")
             self.validations_failed += 1
 
-            return ValidationResult()
+            return ValidationResult(
                 valid=False,
                 errors=[ValidationError(field=field_name, message=str(e), code="validation_error", value=data)],
                 warnings=[],
@@ -430,7 +426,7 @@ class Validator:
     async def validate_async(self, data: Any, validator: BaseValidator, field_name: str = "data") -> ValidationResult:
         """Validate data asynchronously."""
         if self.async_thread_manager:
-            return await self.async_thread_manager.run_in_thread()
+            return await self.async_thread_manager.run_in_thread(
                 self.validate, data, validator, field_name
             )
         else:
@@ -448,20 +444,19 @@ class Validator:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get validation statistics."""
-        avg_validation_time = ()
-            self.total_validation_time / self.validations_performed
-            if self.validations_performed > 0 else 0
-        )
+        avg_validation_time = self.total_validation_time / self.validations_performed
+        if self.validations_performed > 0:
+            avg_validation_time = self.total_validation_time / self.validations_performed
+        else:
+            avg_validation_time = 0
 
         return {
             "validations_performed": self.validations_performed,
             "validations_failed": self.validations_failed,
             "total_validation_time": self.total_validation_time,
             "average_validation_time": avg_validation_time,
-            "success_rate": ()
-                (self.validations_performed - self.validations_failed) / self.validations_performed
-                if self.validations_performed > 0 else 0
-            )
+            "success_rate": (self.validations_performed - self.validations_failed) / self.validations_performed
+            if self.validations_performed > 0 else 0
         }
 
 # Global validator

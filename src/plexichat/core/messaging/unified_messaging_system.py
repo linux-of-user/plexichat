@@ -558,7 +558,7 @@ class UnifiedMessagingManager:
                 self.validator.validate_attachments(attachments)
 
             # Create message
-            message = Message()
+            message = Message(
                 id=str(uuid4()),
                 content=content,
                 user_id=sender_id,
@@ -575,7 +575,7 @@ class UnifiedMessagingManager:
             # Encrypt message if needed
             if msg_metadata.encryption_level != EncryptionLevel.NONE:
                 recipients = self.channel_manager.get_channel_members(channel_id)
-                message.content = await self.encryption.encrypt_message()
+                message.content = await self.encryption.encrypt_message(
                     content, msg_metadata.encryption_level, sender_id, recipients
                 )
 
@@ -630,7 +630,7 @@ class UnifiedMessagingManager:
             # Decrypt message if needed
             metadata = self.message_metadata.get(message_id)
             if metadata and metadata.encryption_level != EncryptionLevel.NONE:
-                message.content = await self.encryption.decrypt_message()
+                message.content = await self.encryption.decrypt_message(
                     message.content, metadata.encryption_level, message.user_id, user_id
                 )
 
@@ -693,7 +693,7 @@ class UnifiedMessagingManager:
             for message in channel_messages:
                 metadata = self.message_metadata.get(message.id)
                 if metadata and metadata.encryption_level != EncryptionLevel.NONE:
-                    message.content = await self.encryption.decrypt_message()
+                    message.content = await self.encryption.decrypt_message(
                         message.content, metadata.encryption_level, message.user_id, user_id
                     )
                 decrypted_messages.append(message)

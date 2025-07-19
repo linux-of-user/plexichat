@@ -570,7 +570,7 @@ class ModerationService:
                 "error": str(e)
             }
 
-    async def check_moderator_permissions()
+    async def check_moderator_permissions(
         self,
         user_id: int,
         guild_id: Optional[int] = None,
@@ -621,7 +621,7 @@ class ModerationService:
             logger.error(f"Error checking moderator permissions: {e}")
             return False, None
 
-    async def moderate_user()
+    async def moderate_user(
         self,
         moderator_id: int,
         target_user_id: int,
@@ -711,7 +711,7 @@ class ModerationService:
             logger.error(f"Error applying moderation action: {e}")
             return False
 
-    async def moderate_message()
+    async def moderate_message(
         self,
         moderator_id: int,
         message_id: int,
@@ -786,7 +786,7 @@ datetime.utcnow()
             logger.error(f"Error moderating message: {e}")
             return False
 
-    async def check_user_restrictions()
+    async def check_user_restrictions(
         self,
         user_id: int
     ) -> Dict[str, Any]:
@@ -842,7 +842,7 @@ datetime.utcnow()
             logger.error(f"Error checking user restrictions: {e}")
             return {"error": "Failed to check restrictions"}
 
-    async def grant_moderator_role()
+    async def grant_moderator_role(
         self,
         granter_id: int,
         user_id: int,
@@ -913,7 +913,7 @@ datetime.utcnow()
             logger.error(f"Error granting moderator role: {e}")
             return False
 
-    async def revoke_moderator_role()
+    async def revoke_moderator_role(
         self,
         revoker_id: int,
         moderator_role_id: int,
@@ -952,7 +952,7 @@ datetime.utcnow()
             logger.error(f"Error revoking moderator role: {e}")
             return False
 
-    async def submit_appeal()
+    async def submit_appeal(
         self,
         user_id: int,
         moderation_log_id: int,
@@ -992,7 +992,7 @@ datetime.utcnow()
             logger.error(f"Error submitting appeal: {e}")
             return False
 
-    async def review_appeal()
+    async def review_appeal(
         self,
         reviewer_id: int,
         moderation_log_id: int,
@@ -1066,7 +1066,7 @@ datetime.utcnow()
             logger.error(f"Error reviewing appeal: {e}")
             return False
 
-    async def get_moderation_logs()
+    async def get_moderation_logs(
         self,
         guild_id: Optional[int] = None,
         target_user_id: Optional[int] = None,

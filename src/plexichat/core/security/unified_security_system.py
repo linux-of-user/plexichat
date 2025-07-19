@@ -25,11 +25,11 @@ from dataclasses import dataclass, field
 # Import shared components (NEW ARCHITECTURE)
 from ...shared.models import User, Event, Alert, Priority, Status
 from ...shared.types import UserId, Token, HashedPassword, Salt, SecurityContext
-from ...shared.exceptions import ()
+from ...shared.exceptions import (
     SecurityError, AuthenticationError, AuthorizationError,
     ValidationError, RateLimitError
 )
-from ...shared.constants import ()
+from ...shared.constants import (
     DEFAULT_SECRET_KEY, PASSWORD_MIN_LENGTH, MAX_LOGIN_ATTEMPTS,
     LOCKOUT_DURATION_MINUTES
 )
@@ -183,10 +183,7 @@ class SecurityMetrics:
             self.metrics["blocked_requests"] += 1
         if threat_level != ThreatLevel.LOW:
             self.metrics["threats_detected"] += 1
-        self.threat_counts[threat_level] += 1
-        self.metrics["response_time_ms"] = ()
-            self.metrics["response_time_ms"] * 0.9 + response_time * 0.1
-        )
+        self.metrics["response_time_ms"] = self.metrics["response_time_ms"] * 0.9 + response_time * 0.1
 
     def record_event(self, event_type: SecurityEventType):
         """Record a security event."""
@@ -199,12 +196,8 @@ class SecurityMetrics:
             "metrics": self.metrics.copy(),
             "event_counts": self.event_counts.copy(),
             "threat_counts": self.threat_counts.copy(),
-            "block_rate": ()
-                self.metrics["blocked_requests"] / max(self.metrics["total_requests"], 1)
-            ),
-            "threat_rate": ()
-                self.metrics["threats_detected"] / max(self.metrics["total_requests"], 1)
-            ),
+            "block_rate": self.metrics["blocked_requests"] / max(self.metrics["total_requests"], 1),
+            "threat_rate": self.metrics["threats_detected"] / max(self.metrics["total_requests"], 1),
         }
 
 
@@ -365,7 +358,7 @@ class TokenManager:
         """Setup Fernet encryption for tokens."""
         try:
             if PBKDF2HMAC and hashes:
-                kdf = PBKDF2HMAC()
+                kdf = PBKDF2HMAC(
                     algorithm=hashes.SHA256(),
                     length=32,
                     salt=self.secret_key.encode()[:16],
@@ -379,8 +372,8 @@ class TokenManager:
             logger.error(f"Error setting up token encryption: {e}")
             self.fernet = None
 
-    def generate_token(self, user_id: str, token_type: str = "access",):
-                      metadata: Optional[Dict[str, Any]] = None) -> str:
+    def generate_token(self, user_id: str, token_type: str = "access",
+                       metadata: Optional[Dict[str, Any]] = None) -> str:
         """Generate a secure token."""
         try:
             now = datetime.now(timezone.utc)
@@ -411,7 +404,7 @@ class TokenManager:
                 token = encrypted_token.decode()
             else:
                 # Fallback: HMAC signed token
-                signature = hmac.new()
+                signature = hmac.new(
                     self.secret_key.encode(),
                     token_data.encode(),
                     hashlib.sha256
@@ -448,7 +441,7 @@ class TokenManager:
                 except ValueError:
                     return None
 
-                expected_signature = hmac.new()
+                expected_signature = hmac.new(
                     self.secret_key.encode(),
                     token_data.encode(),
                     hashlib.sha256
@@ -825,7 +818,7 @@ class UnifiedSecurityManager:
     async def _log_security_event(self, request: SecurityRequest, response: SecurityResponse):
         """Log security events."""
         for event_type in response.security_events:
-            event = SecurityEvent()
+            event = SecurityEvent(
                 event_type=event_type,
                 timestamp=datetime.now(timezone.utc),
                 user_id=request.user_id,

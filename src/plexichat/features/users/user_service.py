@@ -35,7 +35,7 @@ class UserService:
     async def create_user(self, user_data: UserCreate) -> User:
         """Create a new user."""
         user_id = f"user_{len(self.users) + 1}"
-        user = User()
+        user = User(
             id=user_id,
             username=user_data.username,
             email=user_data.email,

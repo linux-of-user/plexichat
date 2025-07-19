@@ -25,8 +25,11 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
-from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
+from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
+from typing import Optional
+
+from plugin_internal import *
+from plugin_internal import *
 
 logger = logging.getLogger(__name__)
 
@@ -409,6 +412,7 @@ class APIIntegrationLayerPlugin(PluginInterface):
             name="api_integration_layer",
             version="1.0.0",
             description="Comprehensive API integration layer providing unified access to all v1 API endpoints",
+            author="PlexiChat Team",
             plugin_type=PluginType.INTEGRATION
         )
 
@@ -590,6 +594,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
         async def get_health_status():
             """Get health status."""
             try:
+                if self.api_core is None:
+                    return JSONResponse(content={"status": "not_initialized"})
                 health = await self.api_core.get_health_status()
                 return JSONResponse(content=health)
             except Exception as e:
@@ -618,7 +624,7 @@ class APIIntegrationLayerPlugin(PluginInterface):
                          name="api_integration_static")
 
     # Convenience methods for other plugins to use
-    def get_api_core(self) -> APIIntegrationCore:
+    def get_api_core(self) -> Optional[APIIntegrationCore]:
         """Get API core instance for other plugins."""
         return self.api_core
 
@@ -626,6 +632,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
     async def test_endpoint_discovery(self) -> Dict[str, Any]:
         """Test endpoint discovery."""
         try:
+            if self.api_core is None:
+                return {"success": False, "error": "API core not initialized"}
             endpoints = await self.api_core.discover_endpoints()
             if not endpoints:
                 return {"success": False, "error": "No endpoints discovered"}
@@ -638,6 +646,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
     async def test_authentication(self) -> Dict[str, Any]:
         """Test authentication functionality."""
         try:
+            if self.api_core is None:
+                return {"success": False, "error": "API core not initialized"}
             # Test with dummy credentials (should fail gracefully)
             result = await self.api_core.authenticate("test_user", "test_pass")
 
@@ -653,6 +663,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
     async def test_request_routing(self) -> Dict[str, Any]:
         """Test request routing."""
         try:
+            if self.api_core is None:
+                return {"success": False, "error": "API core not initialized"}
             # Test system info endpoint (should be available without auth)
             request = APIRequest(endpoint="/system/info", method="GET")
             result = await self.api_core.make_api_request(request)
@@ -668,6 +680,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
     async def test_caching(self) -> Dict[str, Any]:
         """Test response caching."""
         try:
+            if self.api_core is None:
+                return {"success": False, "error": "API core not initialized"}
             if not self.api_core.cache_enabled:
                 return {"success": True, "message": "Caching disabled, test skipped"}
 
@@ -694,6 +708,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
     async def test_rate_limiting(self) -> Dict[str, Any]:
         """Test rate limiting."""
         try:
+            if self.api_core is None:
+                return {"success": False, "error": "API core not initialized"}
             # Test rate limit check
             within_limit = self.api_core._check_rate_limit()
 
@@ -708,6 +724,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
     async def test_error_handling(self) -> Dict[str, Any]:
         """Test error handling."""
         try:
+            if self.api_core is None:
+                return {"success": False, "error": "API core not initialized"}
             # Test with invalid endpoint
             request = APIRequest(endpoint="/invalid/endpoint", method="GET")
 
@@ -732,6 +750,8 @@ class APIIntegrationLayerPlugin(PluginInterface):
     async def test_batch_operations(self) -> Dict[str, Any]:
         """Test batch operations."""
         try:
+            if self.api_core is None:
+                return {"success": False, "error": "API core not initialized"}
             # Test batch request with multiple system info calls
             requests = [
                 APIRequest(endpoint="/system/info", method="GET"),

@@ -193,7 +193,7 @@ class AdminManager:
 
             # Create session
             token = secrets.token_urlsafe(32)
-            session = AdminSession()
+            session = AdminSession(
                 token=token,
                 username=username,
                 created_at=datetime.now(timezone.utc),

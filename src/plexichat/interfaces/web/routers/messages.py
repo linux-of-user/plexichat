@@ -198,7 +198,7 @@ class MessageService:
                             id_, content, sender_id_, recipient_id_, timestamp_ = row  # type: ignore
                         except Exception:
                             id_, content, sender_id_, recipient_id_, timestamp_ = 0, "", 0, 0, datetime.now()
-                        return Message()
+                        return Message(
                             id=_safe_int(id_),
                             content=str(content),
                             sender_id=_safe_int(sender_id_),
@@ -206,7 +206,7 @@ class MessageService:
                             timestamp=_safe_datetime(timestamp_)
                         )
                     elif isinstance(row, dict):
-                        return Message()
+                        return Message(
                             id=_safe_int(row.get("id", 0)),
                             content=str(row.get("content", "")),
                             sender_id=_safe_int(row.get("sender_id", 0)),
@@ -216,7 +216,7 @@ class MessageService:
             except Exception as e:
                 logger.error(f"Error creating message: {e}")
                 raise HTTPException(status_code=500, detail="Failed to create message")
-        return Message()
+        return Message(
             id=1,
             content=data.content,
             sender_id=sender_id,
@@ -232,7 +232,7 @@ message_service = MessageService()
     status_code=status.HTTP_201_CREATED,
     responses={400: {"model": ValidationErrorResponse}, 429: {"description": "Rate limit exceeded"}}
 )
-async def send_message()
+async def send_message(
     request: Request,
     data: MessageCreate,
     background_tasks: BackgroundTasks,

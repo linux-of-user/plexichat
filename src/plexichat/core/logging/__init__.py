@@ -30,7 +30,7 @@ from typing import Optional, Dict, Any, List
 
 # Import unified logging system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from .unified_logging import ()
+    from .unified_logging import (
         # Main classes
         UnifiedLoggingManager,
         unified_logging_manager,
@@ -71,7 +71,7 @@ except ImportError as e:
     # Fallback definitions if unified logging fails to import
     import logging
 
-    warnings.warn()
+    warnings.warn(
         f"Failed to import unified logging system: {e}. Using fallback logging.",
         ImportWarning,
         stacklevel=2

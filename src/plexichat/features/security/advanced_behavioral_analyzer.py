@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -404,7 +406,7 @@ class AdvancedBehavioralAnalyzer:
         ])
 
         # Pattern features
-        features.extend([)
+        features.extend([
             self._calculate_regularity_score(fingerprint.request_intervals),
             self._calculate_entropy(fingerprint.endpoint_sequence),
             self._calculate_user_agent_consistency(fingerprint.user_agent_variations),
@@ -413,7 +415,7 @@ class AdvancedBehavioralAnalyzer:
 
         # Request-specific features
         current_endpoint = request_data.get('endpoint', '')
-        features.extend([)
+        features.extend([
             len(current_endpoint),
             current_endpoint.count('/'),
             current_endpoint.count('?'),

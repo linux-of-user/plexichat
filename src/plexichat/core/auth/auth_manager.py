@@ -203,7 +203,7 @@ class AuthManager:
 
             # Check rate limiting
             if await self._is_rate_limited(request):
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.RATE_LIMITED,
                     success=False,
                     error_message="Too many authentication attempts",
@@ -213,7 +213,7 @@ class AuthManager:
 
             # Check if account is locked
             if await self._is_account_locked(request.username):
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.ACCOUNT_LOCKED,
                     success=False,
                     error_message="Account is temporarily locked",
@@ -243,7 +243,7 @@ class AuthManager:
                     available_methods = status.get("enabled_methods", [])
                 else:
                     available_methods = []
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.MFA_REQUIRED,
                     success=False,
                     user_id=user_id,
@@ -262,7 +262,7 @@ class AuthManager:
 
                 if not mfa_result.get("success", False):
                     await self._record_failed_attempt(request)
-                    return AuthenticationResponse()
+                    return AuthenticationResponse(
                         result=AuthenticationResult.INVALID_CREDENTIALS,
                         success=False,
                         error_message="Invalid MFA code",
@@ -321,7 +321,7 @@ class AuthManager:
                 duration=time.time() - start_time,
             )
 
-            return AuthenticationResponse()
+            return AuthenticationResponse(
                 result=AuthenticationResult.SUCCESS,
                 success=True,
                 user_id=user_id,
@@ -345,7 +345,7 @@ class AuthManager:
                 duration=time.time() - start_time,
             )
 
-            return AuthenticationResponse()
+            return AuthenticationResponse(
                 result=AuthenticationResult.INVALID_CREDENTIALS,
                 success=False,
                 error_message="Authentication failed",
@@ -470,14 +470,14 @@ class AuthManager:
             )
 
             if result.success:
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.SUCCESS,
                     success=True,
                     user_id=result.user_id,
                     password_change_required=result.password_expired,
                 )
             else:
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.INVALID_CREDENTIALS,
                     success=False,
                     error_message="Invalid username or password",
@@ -485,7 +485,7 @@ class AuthManager:
 
         except Exception as e:
             logger.error(f" Password authentication error: {e}")
-            return AuthenticationResponse()
+            return AuthenticationResponse(
                 result=AuthenticationResult.INVALID_CREDENTIALS,
                 success=False,
                 error_message="Authentication failed",
@@ -497,7 +497,7 @@ class AuthManager:
         """Authenticate with OAuth provider."""
         # OAuth authentication logic here - using request for future implementation
         _ = request  # Mark as used
-        return AuthenticationResponse()
+        return AuthenticationResponse(
             result=AuthenticationResult.INVALID_CREDENTIALS,
             success=False,
             error_message="OAuth authentication not implemented",
@@ -509,7 +509,7 @@ class AuthManager:
         """Authenticate with biometric data."""
         # Biometric authentication logic here - using request for future implementation
         _ = request  # Mark as used
-        return AuthenticationResponse()
+        return AuthenticationResponse(
             result=AuthenticationResult.INVALID_CREDENTIALS,
             success=False,
             error_message="Biometric authentication not implemented",
@@ -521,7 +521,7 @@ class AuthManager:
         """Authenticate with hardware security key."""
         # Hardware key authentication logic here - using request for future implementation
         _ = request  # Mark as used
-        return AuthenticationResponse()
+        return AuthenticationResponse(
             result=AuthenticationResult.INVALID_CREDENTIALS,
             success=False,
             error_message="Hardware key authentication not implemented",

@@ -284,7 +284,7 @@ class FileListResponse(BaseModel):
     response_model=FileUploadResponse,
     status_code=status.HTTP_201_CREATED
 )
-async def upload_file()
+async def upload_file(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),

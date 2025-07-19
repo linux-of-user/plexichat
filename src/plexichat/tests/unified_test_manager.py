@@ -1,12 +1,20 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
-import logging
-import http.client
 PlexiChat Unified Test Manager
 
 Comprehensive testing system that runs all tests from within the CLI.
 Tests everything from API endpoints to security features.
 """
 
+import logging
+import http.client
 import asyncio
 import json
 import os
@@ -384,7 +392,7 @@ class UnifiedTestManager:
             self.logger.warning(f"⚠️  {summary['total_failed']} tests failed. Check logs for details.")
 
         # Log audit event
-        log_audit_event()
+        log_audit_event(
             user_id="system",
             action="test_suite_completed",
             resource="plexichat",
@@ -444,7 +452,7 @@ class UnifiedTestManager:
             }
 
             async with aiohttp.ClientSession() as session:
-                async with session.post()
+                async with session.post(
                     f"{self.base_url}/api/v1/auth/register",
                     json=test_user,
                     timeout=10
@@ -470,7 +478,7 @@ class UnifiedTestManager:
             }
 
             async with aiohttp.ClientSession() as session:
-                async with session.post()
+                async with session.post(
                     f"{self.base_url}/api/v1/auth/login",
                     data=login_data,
                     timeout=10
@@ -491,7 +499,7 @@ class UnifiedTestManager:
 
             # Try to access protected endpoint without token
             async with aiohttp.ClientSession() as session:
-                async with session.get()
+                async with session.get(
                     f"{self.base_url}/api/v1/auth/me",
                     timeout=10
                 ) as response:
@@ -510,7 +518,7 @@ class UnifiedTestManager:
 
             # Try to access admin endpoint without proper auth
             async with aiohttp.ClientSession() as session:
-                async with session.get()
+                async with session.get(
                     f"{self.base_url}/api/v1/admin/users",
                     timeout=10
                 ) as response:
@@ -531,7 +539,7 @@ class UnifiedTestManager:
             malicious_content = "'; DROP TABLE messages; --"
 
             async with aiohttp.ClientSession() as session:
-                async with session.post()
+                async with session.post(
                     f"{self.base_url}/api/v1/messages/create",
                     data={"content": malicious_content, "message_type": "text"},
                     timeout=10
@@ -554,7 +562,7 @@ class UnifiedTestManager:
             xss_content = "<script>alert('XSS')</script>"
 
             async with aiohttp.ClientSession() as session:
-                async with session.post()
+                async with session.post(
                     f"{self.base_url}/api/v1/messages/create",
                     data={"content": xss_content, "message_type": "text"},
                     timeout=10

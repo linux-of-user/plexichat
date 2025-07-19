@@ -24,7 +24,7 @@ from typing import Any, Dict, Optional, List
 
 # Import unified security system (NEW SINGLE SOURCE OF TRUTH)
 try:
-    from .unified_security_system import ()
+    from .unified_security_system import (  # type: ignore
         # Main classes
         UnifiedSecurityManager,
         unified_security_manager,
@@ -69,8 +69,7 @@ try:
 except ImportError as e:
     # Fallback definitions if unified security system fails to import
     import logging
-
-    warnings.warn()
+    warnings.warn(
         f"Failed to import unified security system: {e}. Using fallback security.",
         ImportWarning,
         stacklevel=2

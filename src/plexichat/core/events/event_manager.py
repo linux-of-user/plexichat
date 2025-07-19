@@ -132,7 +132,7 @@ class EventManager:
             try:
                 # Get event from queue with timeout
                 try:
-                    priority, event = await asyncio.wait_for()
+                    priority, event = await asyncio.wait_for(
                         self.event_queue.get(), timeout=1.0
                     )
                 except asyncio.TimeoutError:
@@ -171,7 +171,7 @@ class EventManager:
                     # Execute handler
                     if handler.async_handler:
                         if self.async_thread_manager:
-                            result = await self.async_thread_manager.run_in_thread()
+                            result = await self.async_thread_manager.run_in_thread(
                                 self._execute_handler_sync, handler, event
                             )
                         else:
@@ -204,7 +204,7 @@ class EventManager:
 
             # Track analytics
             if track_event:
-                await track_event()
+                await track_event(
                     "event_processed",
                     properties={
                         "event_type": event.event_type,
@@ -241,14 +241,14 @@ class EventManager:
             logger.error(f"Async handler execution error: {e}")
             raise
 
-    async def emit_event(self, event_type: str, source: str, data: Dict[str, Any],)
+    async def emit_event(self, event_type: str, source: str, data: Dict[str, Any],
                         priority: EventPriority = EventPriority.NORMAL,
                         metadata: Dict[str, Any] = None) -> str:
         """Emit an event."""
         try:
             event_id = str(uuid4())
 
-            event = Event()
+            event = Event(
                 event_id=event_id,
                 event_type=event_type,
                 source=source,
@@ -279,14 +279,14 @@ class EventManager:
         }
         return priority_map.get(priority, 2)
 
-    def register_handler(self, event_type: str, handler_func: Callable,):
+    def register_handler(self, event_type: str, handler_func: Callable,
                         priority: int = 100, handler_id: Optional[str] = None,
                         filter_func: Optional[Callable] = None) -> str:
         """Register event handler."""
         try:
             handler_id = handler_id or str(uuid4())
 
-            handler = EventHandler()
+            handler = EventHandler(
                 handler_id=handler_id,
                 event_type=event_type,
                 handler_func=handler_func,
@@ -363,7 +363,7 @@ class EventManager:
         except Exception as e:
             logger.error(f"Error storing event: {e}")
 
-    async def get_events(self, event_type: Optional[str] = None, )
+    async def get_events(self, event_type: Optional[str] = None,
                         source: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
         """Get events from database."""
         try:
@@ -388,7 +388,7 @@ class EventManager:
 
             events = []
             for row in result:
-                events.append({)
+                events.append({
                     "event_id": row[0],
                     "event_type": row[1],
                     "source": row[2],
@@ -447,10 +447,7 @@ class EventManager:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get event manager statistics."""
-        avg_processing_time = ()
-            self.total_processing_time / self.events_processed
-            if self.events_processed > 0 else 0
-        )
+        avg_processing_time = self.total_processing_time / self.events_processed if self.events_processed > 0 else 0
 
         return {
             "processing": self.processing,

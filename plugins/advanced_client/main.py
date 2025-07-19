@@ -19,6 +19,17 @@ import threading
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from plugin_internal import *
+try:
+    from plexichat.features.ai.core.ai_abstraction_layer import AIAbstractionLayer, AIRequest as CoreAIRequest
+except ImportError:
+    AIAbstractionLayer = None
+    CoreAIRequest = None
+try:
+    from plexichat.integration.master_coordinator import PlexiChatMasterCoordinator
+    integration_coordinator = PlexiChatMasterCoordinator()
+except ImportError:
+    integration_coordinator = None
 
 # Plugin interface imports
 import sys
@@ -475,53 +486,55 @@ class AdvancedClientPlugin(PluginInterface):
 
         # Use existing AI integration system
         try:
-            from plexichat.features.ai.core.ai_abstraction_layer import AIAbstractionLayer, AIRequest
-            self._ai_layer = AIAbstractionLayer()
-            self._ai_request_class = AIRequest
+            if AIAbstractionLayer is not None and CoreAIRequest is not None:
+                self._ai_layer = AIAbstractionLayer()
+                self._ai_request_class = CoreAIRequest
 
-            # Create wrapper for compatibility
-            class AIIntegrationWrapper:
-                def __init__(self, ai_layer, request_class, logger):
-                    self.ai_layer = ai_layer
-                    self.request_class = request_class
-                    self.logger = logger
-                    self.model = "gpt-3.5-turbo"  # Default model
+                # Create wrapper for compatibility
+                class AIIntegrationWrapper:
+                    def __init__(self, ai_layer, request_class, logger):
+                        self.ai_layer = ai_layer
+                        self.request_class = request_class
+                        self.logger = logger
+                        self.model = "gpt-3.5-turbo"  # Default model
 
-                async def process_chat_message(self, message: str, user_id: str = "default", context: Optional[Dict] = None) -> Dict[str, Any]:
-                    try:
-                        request = self.request_class(
-                            user_id=user_id,
-                            model_id=self.model,
-                            prompt=message,
-                            context=context or []
-                        )
-                        response = await self.ai_layer.process_request(request)
-                        return {"response": response.content, "success": True}
-                    except Exception as e:
-                        self.logger.error(f"AI processing error: {e}")
-                        return {"response": f"Error: {e}", "success": False}
+                    async def process_chat_message(self, message: str, user_id: str = "default", context: Optional[Dict] = None) -> Dict[str, Any]:
+                        try:
+                            request = self.request_class(
+                                user_id=user_id,
+                                model_id=self.model,
+                                prompt=message,
+                                context=context or []
+                            )
+                            response = await self.ai_layer.process_request(request)
+                            return {"response": response.content, "success": True}
+                        except Exception as e:
+                            self.logger.error(f"AI processing error: {e}")
+                            return {"response": f"Error: {e}", "success": False}
 
-                async def process_voice_command(self, audio_data: bytes) -> str:
-                    return "Voice command processed (not implemented)"
+                    async def process_voice_command(self, audio_data: bytes) -> str:
+                        return "Voice command processed (not implemented)"
 
-                async def generate_smart_suggestions(self, user_id: str, context: Optional[Dict] = None) -> List[str]:
-                    try:
-                        prompt = f"Generate smart suggestions for user context: {context}"
-                        request = self.request_class(
-                            user_id=user_id,
-                            model_id=self.model,
-                            prompt=prompt,
-                            max_tokens=100
-                        )
-                        response = await self.ai_layer.process_request(request)
-                        # Parse suggestions from response
-                        suggestions = response.content.split('\n')[:3]  # Get first 3 lines as suggestions
-                        return [s.strip() for s in suggestions if s.strip()]
-                    except Exception as e:
-                        self.logger.error(f"Suggestions error: {e}")
-                        return ["Default suggestion 1", "Default suggestion 2"]
+                    async def generate_smart_suggestions(self, user_id: str, context: Optional[Dict] = None) -> List[str]:
+                        try:
+                            prompt = f"Generate smart suggestions for user context: {context}"
+                            request = self.request_class(
+                                user_id=user_id,
+                                model_id=self.model,
+                                prompt=prompt,
+                                max_tokens=100
+                            )
+                            response = await self.ai_layer.process_request(request)
+                            # Parse suggestions from response
+                            suggestions = response.content.split('\n')[:3]  # Get first 3 lines as suggestions
+                            return [s.strip() for s in suggestions if s.strip()]
+                        except Exception as e:
+                            self.logger.error(f"Suggestions error: {e}")
+                            return ["Default suggestion 1", "Default suggestion 2"]
 
-            self.ai_integration = AIIntegrationWrapper(self._ai_layer, self._ai_request_class, self.logger)
+                self.ai_integration = AIIntegrationWrapper(self._ai_layer, self._ai_request_class, self.logger)
+            else:
+                raise ImportError('AIAbstractionLayer or AIRequest not available')
         except ImportError:
             self.logger.warning("AI abstraction layer not available")
             # Fallback implementation
@@ -536,42 +549,47 @@ class AdvancedClientPlugin(PluginInterface):
                     return ["Suggestion based on context"]
             self.ai_integration = FallbackAI()
 
-        # Use existing voice processing
-        try:
-            from plexichat.features.ai.advanced_ai_system import VoiceProcessor  # type: ignore[import]
-            self.voice_processor = VoiceProcessor()
-        except ImportError:
-            self.logger.warning("Voice processor not available")
-            class FallbackVoice:
-                async def process_audio(self, audio_data: bytes) -> str:
-                    return "Audio processed"
-                async def process_voice_command(self, audio_data: bytes, user_id: str = "default") -> dict:
-                    return {"output": "Voice command processed"}
-            self.voice_processor: FallbackVoice = FallbackVoice()
+        # Use existing voice processing - use local VoiceProcessor
+        self.voice_processor = VoiceProcessor({})
 
         # Analytics will be initialized later with plugin's own AdvancedAnalytics
         self.analytics = None
 
         # Use existing API integration
+        class FallbackAPI:
+            def __init__(self, logger):
+                self.logger = logger
+            async def make_request(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+                self.logger.info(f"API request to {endpoint} with data: {data}")
+                return {"status": "success", "data": data}
+            def get_plugin(self, plugin_name: str):
+                self.logger.info(f"Plugin requested: {plugin_name}")
+                return None
+            async def make_api_request(self, request):
+                # Fallback for make_api_request
+                self.logger.info(f"Fallback make_api_request called: {request}")
+                return {"status": "success", "data": {}}
+
         try:
-            from plexichat.infrastructure.integration.coordinator import integration_coordinator  # type: ignore[import]
-            self.api_integration = integration_coordinator
+            if integration_coordinator is not None and hasattr(integration_coordinator, 'make_request'):
+                # Create wrapper to match expected interface
+                class APIWrapper:
+                    def __init__(self, coordinator, logger):
+                        self.coordinator = coordinator
+                        self.logger = logger
+                    async def make_request(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+                        return await self.coordinator.make_request(endpoint, data)
+                    def get_plugin(self, plugin_name: str):
+                        return self.coordinator.get_plugin(plugin_name) if hasattr(self.coordinator, 'get_plugin') else None
+                    async def make_api_request(self, request):
+                        return await self.coordinator.make_api_request(request) if hasattr(self.coordinator, 'make_api_request') else {"status": "success", "data": {}}
+
+                self.api_integration = APIWrapper(integration_coordinator, self.logger)
+            else:
+                raise ImportError('integration_coordinator not available or incompatible')
         except ImportError:
-            self.logger.warning("Integration coordinator not available")
-            class FallbackAPI:
-                def __init__(self, logger):
-                    self.logger = logger
-                async def make_request(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
-                    self.logger.info(f"API request to {endpoint} with data: {data}")
-                    return {"status": "success", "data": data}
-                def get_plugin(self, plugin_name: str):
-                    self.logger.info(f"Plugin requested: {plugin_name}")
-                    return None
-                async def make_api_request(self, request):
-                    # Fallback for make_api_request
-                    self.logger.info(f"Fallback make_api_request called: {request}")
-                    return {"status": "success", "data": {}}
-            self.api_integration: FallbackAPI = FallbackAPI(self.logger)
+            self.logger.warning("Integration coordinator not available or incompatible")
+            self.api_integration = FallbackAPI(self.logger)
 
         # State management
         self.active_sessions: Dict[str, CollaborationSession] = {}

@@ -1718,36 +1718,76 @@ def main():
     import platform
     def bootstrap_log(msg):
         print(f"[BOOTSTRAP] {msg}")
+    # Parse --bootstrap-version argument early
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--bootstrap-version', type=str, default=None, help='Specify a version/tag to bootstrap (e.g., a.1.1-23)')
+    parser.add_argument('--list-versions', action='store_true', help='List available tags/releases for bootstrapping')
+    args, _ = parser.parse_known_args()
     src_dir = Path(__file__).parent / 'src' / 'plexichat'
+    GITHUB_REPO = "linux-of-user/plexichat"
+    GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}"
+    GITHUB_TAGS_URL = f"{GITHUB_API_URL}/tags"
+    GITHUB_RELEASES_URL = f"{GITHUB_API_URL}/releases"
+    GITHUB_LATEST_URL = f"{GITHUB_RELEASES_URL}/latest"
+    GITHUB_DOWNLOAD_URL = f"https://github.com/{GITHUB_REPO}/archive"
+    target_dir = Path(__file__).parent
+    # List available tags/releases if requested
+    if args.list_versions:
+        try:
+            with urllib.request.urlopen(GITHUB_TAGS_URL) as response:
+                tags = json.loads(response.read().decode())
+            print("Available tags:")
+            for tag in tags:
+                print(f"- {tag['name']}")
+        except Exception as e:
+            print(f"Error fetching tags: {e}")
+        sys.exit(0)
+    # Warn if bootstrapping an alpha/pre-release version
+    if args.bootstrap_version and ("alpha" in args.bootstrap_version or "a." in args.bootstrap_version or "beta" in args.bootstrap_version):
+        print(f"[BOOTSTRAP] WARNING: You are bootstrapping an alpha/pre-release version: {args.bootstrap_version}")
     if not src_dir.exists():
         bootstrap_log('plexichat source not found, attempting to download codebase from GitHub...')
-        GITHUB_REPO = "linux-of-user/plexichat"
-        GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}"
-        GITHUB_LATEST_URL = f"{GITHUB_API_URL}/releases/latest"
-        GITHUB_DOWNLOAD_URL = f"https://github.com/{GITHUB_REPO}/archive"
-        target_dir = Path(__file__).parent
         tried = []
         success = False
         extracted = None
+        # If user specified a version/tag, try that first
+        if args.bootstrap_version:
+            try:
+                tag = args.bootstrap_version
+                download_url = f"{GITHUB_DOWNLOAD_URL}/{tag}.zip"
+                target_path = target_dir / f"plexichat-{tag}.zip"
+                tried.append(download_url)
+                bootstrap_log(f"Trying specified version: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / f"plexichat-{tag}"
+                with zipfile.ZipFile(target_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Specified version download failed: {e}")
         # Try latest release zip
-        try:
-            with urllib.request.urlopen(GITHUB_LATEST_URL) as response:
-                data = json.loads(response.read().decode())
-            version_tag = data['tag_name']
-            download_url = f"{GITHUB_DOWNLOAD_URL}/{version_tag}.zip"
-            target_path = target_dir / f"plexichat-{version_tag}.zip"
-            tried.append(download_url)
-            bootstrap_log(f"Trying latest release: {download_url}")
-            with urllib.request.urlopen(download_url) as response:
-                with open(target_path, 'wb') as f:
-                    shutil.copyfileobj(response, f)
-            extract_dir = target_dir / f"plexichat-{version_tag}"
-            with zipfile.ZipFile(target_path, 'r') as zip_ref:
-                zip_ref.extractall(extract_dir)
-            success = True
-            extracted = extract_dir
-        except Exception as e:
-            bootstrap_log(f"Latest release download failed: {e}")
+        if not success:
+            try:
+                with urllib.request.urlopen(GITHUB_LATEST_URL) as response:
+                    data = json.loads(response.read().decode())
+                version_tag = data['tag_name']
+                download_url = f"{GITHUB_DOWNLOAD_URL}/{version_tag}.zip"
+                target_path = target_dir / f"plexichat-{version_tag}.zip"
+                tried.append(download_url)
+                bootstrap_log(f"Trying latest release: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / f"plexichat-{version_tag}"
+                with zipfile.ZipFile(target_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Latest release download failed: {e}")
         # Fallback: main branch zip
         if not success:
             try:
@@ -1865,4 +1905,6 @@ def main():
     # ... existing code ...
 
 if __name__ == "__main__":
+    if '--help' in sys.argv or '-h' in sys.argv:
+        print("\n[BOOTSTRAP OPTIONS]\n  --bootstrap-version TAG   Bootstrap a specific version/tag (e.g., a.1.1-23)\n  --list-versions         List available tags/releases for bootstrapping\n")
     main()

@@ -258,7 +258,7 @@ def main():
                        help='Verbose output')
     parser.add_argument('--no-cleanup', action='store_true',)
                        help='Skip cleanup after tests')
-    parser.add_argument('--save-report', action='store_true', default=True,)
+    parser.add_argument('--save-report', action='store_true', default=True,
                        help='Save test report to file')
 
     args = parser.parse_args()
@@ -269,7 +269,7 @@ def main():
 
     # Run tests
     try:
-        report = asyncio.run(run_tests())
+        report = asyncio.run(run_tests(
             categories=args.categories,
             verbose=args.verbose,
             save_report=args.save_report

@@ -143,8 +143,7 @@ class UserBackupPreferences:
 class BackupOperation:
     """Backup operation tracking."""
 
-    def __init__(self, backup_id: str, backup_type: BackupType, ):
-                 backup_name: str, user_id: Optional[str] = None):
+    def __init__(self, backup_id: str, backup_type: BackupType, backup_name: str, user_id: Optional[str] = None):
         self.backup_id = backup_id
         self.backup_type = backup_type
         self.backup_name = backup_name
@@ -248,7 +247,7 @@ class ShardManager:
                 checksum = hashlib.sha256(chunk).hexdigest()
 
                 # Create shard info
-                shard_info = ShardInfo()
+                shard_info = ShardInfo(
                     shard_id=shard_id,
                     backup_id=backup_id,
                     shard_index=i,
@@ -280,7 +279,7 @@ class ShardManager:
 
                 checksum = hashlib.sha256(parity_data).hexdigest()
 
-                shard_info = ShardInfo()
+                shard_info = ShardInfo(
                     shard_id=shard_id,
                     backup_id=backup_id,
                     shard_index=i,
@@ -398,13 +397,13 @@ class UserBackupManager:
         # This would load from database in production
         pass
 
-    async def set_user_backup_preference(self, user_id: str, opt_status: BackupOptStatus,)
-                                       data_types: Optional[List[str]] = None,
-                                       retention_days: int = 30,
-                                       encryption_level: str = "standard"):
+    async def set_user_backup_preference(self, user_id: str, opt_status: BackupOptStatus,
+                                         data_types: Optional[List[str]] = None,
+                                         retention_days: int = 30,
+                                         encryption_level: str = "standard"):
         """Set user backup preferences."""
         try:
-            preferences = UserBackupPreferences()
+            preferences = UserBackupPreferences(
                 user_id=user_id,
                 opt_status=opt_status,
                 data_types=data_types or ["messages", "settings"],
@@ -478,7 +477,7 @@ class UserBackupManager:
             operation.shard_ids = [s.shard_id for s in shards]
 
             # Create backup info
-            backup_info = BackupInfo()
+            backup_info = BackupInfo(
                 backup_id=backup_id,
                 backup_name=backup_name,
                 backup_type=BackupType.USER_DATA,
@@ -601,7 +600,7 @@ class UnifiedBackupManager:
             checksum = await self._calculate_file_checksum(backup_file)
 
             # Create backup info
-            backup_info = BackupInfo()
+            backup_info = BackupInfo(
                 backup_id=backup_id,
                 backup_name=backup_name,
                 backup_type=BackupType.DATABASE,
@@ -659,8 +658,8 @@ class UnifiedBackupManager:
             logger.error(f"Database export error: {e}")
             return False
 
-    async def create_files_backup(self, backup_name: Optional[str] = None,)
-                                include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
+    async def create_files_backup(self, backup_name: Optional[str] = None,
+                                 include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
         """Create files backup."""
         try:
             backup_id = str(uuid4())
@@ -687,7 +686,7 @@ class UnifiedBackupManager:
             checksum = await self._calculate_file_checksum(backup_file)
 
             # Create backup info
-            backup_info = BackupInfo()
+            backup_info = BackupInfo(
                 backup_id=backup_id,
                 backup_name=backup_name,
                 backup_type=BackupType.FILES,
@@ -787,7 +786,7 @@ class UnifiedBackupManager:
             # Create combined backup info
             total_size = db_backup.file_size + files_backup.file_size
 
-            backup_info = BackupInfo()
+            backup_info = BackupInfo(
                 backup_id=backup_id,
                 backup_name=backup_name,
                 backup_type=BackupType.FULL,
@@ -1000,8 +999,8 @@ async def create_database_backup(backup_name: Optional[str] = None) -> Optional[
     """Create database backup using global manager."""
     return await unified_backup_manager.create_database_backup(backup_name)
 
-async def create_files_backup(backup_name: Optional[str] = None,)
-                            include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
+async def create_files_backup(backup_name: Optional[str] = None,
+                             include_paths: Optional[List[str]] = None) -> Optional[BackupInfo]:
     """Create files backup using global manager."""
     return await unified_backup_manager.create_files_backup(backup_name, include_paths)
 

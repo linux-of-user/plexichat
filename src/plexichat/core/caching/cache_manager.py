@@ -10,7 +10,7 @@ import logging
 import time
 import threading
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Callable
 from dataclasses import dataclass
 
 try:
@@ -41,7 +41,7 @@ class CacheEntry:
     created_at: float
     expires_at: Optional[float]
     access_count: int = 0
-    last_accessed: float = None
+    last_accessed: Optional[float] = None
 
     def __post_init__(self):
         if self.last_accessed is None:
@@ -117,17 +117,18 @@ class CacheManager:
 
         with self.lock:
             # Sort by last accessed time
-            sorted_entries = sorted()
+            sorted_entries: list[tuple[str, CacheEntry]] = sorted(
                 self.cache.items(),
-                key=lambda x: x[1].last_accessed
+                key=lambda x: x[1].last_accessed if x[1].last_accessed is not None else 0.0
             )
 
             # Remove oldest entries
             entries_to_remove = len(self.cache) - self.max_size + 1
             for i in range(entries_to_remove):
-                key, _ = sorted_entries[i]
-                del self.cache[key]
-                self.evictions += 1
+                if i < len(sorted_entries):
+                    key, _ = sorted_entries[i]
+                    del self.cache[key]
+                    self.evictions += 1
 
             if self.performance_logger:
                 self.performance_logger.record_metric("cache_lru_evictions", entries_to_remove, "count")
@@ -171,7 +172,7 @@ class CacheManager:
                 elif self.default_ttl > 0:
                     expires_at = current_time + self.default_ttl
 
-                entry = CacheEntry()
+                entry = CacheEntry(
                     key=key,
                     value=value,
                     created_at=current_time,
@@ -401,7 +402,7 @@ async def cache_set_async(key: str, value: Any, ttl: Optional[int] = None) -> bo
     return await cache_manager.set_async(key, value, ttl)
 
 # Decorators
-def cached(ttl: Optional[int] = None, key_func: Optional[callable] = None):
+def cached(ttl: Optional[int] = None, key_func: Optional[Callable] = None):
     """Decorator to cache function results."""
     def decorator(func):
         async def wrapper(*args, **kwargs):
@@ -417,14 +418,17 @@ def cached(ttl: Optional[int] = None, key_func: Optional[callable] = None):
                 return result
 
             # Execute function and cache result
-            result = func(*args, **kwargs)
-            await cache_set(cache_key, result, ttl)
+            if asyncio.iscoroutinefunction(func):
+                result = await func(*args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
+            await cache_set_async(cache_key, result, ttl)
 
             return result
         return wrapper
     return decorator
 
-def async_cached(ttl: Optional[int] = None, key_func: Optional[callable] = None):
+def async_cached_decorator(ttl: Optional[int] = None, key_func: Optional[Callable] = None):
     """Decorator to cache async function results."""
     def decorator(func):
         async def wrapper(*args, **kwargs):
@@ -440,7 +444,10 @@ def async_cached(ttl: Optional[int] = None, key_func: Optional[callable] = None)
                 return result
 
             # Execute function and cache result
-            result = await func(*args, **kwargs)
+            if asyncio.iscoroutinefunction(func):
+                result = await func(*args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
             await cache_set_async(cache_key, result, ttl)
 
             return result

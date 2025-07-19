@@ -737,7 +737,7 @@ timestamp = datetime().now()
 
                 try:
                     # Create fallback request
-                    fallback_request = AIRequest()
+                    fallback_request = AIRequest(
                         user_id=request.user_id,
                         model_id=fallback_model_id,
                         prompt=request.prompt,
@@ -822,7 +822,7 @@ timestamp = datetime().now()
                 provider_instance = self.provider_instances[model.provider]
 
                 # Convert to provider request format
-                provider_request = ProviderAIRequest()
+                provider_request = ProviderAIRequest(
                     model_id=model.id,
                     prompt=request.prompt,
                     max_tokens=request.max_tokens,

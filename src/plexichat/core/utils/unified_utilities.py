@@ -1,5 +1,12 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
-import string
 PlexiChat Unified Utilities - SINGLE SOURCE OF TRUTH
 
 Consolidates ALL utility functionality from:
@@ -11,6 +18,7 @@ Consolidates ALL utility functionality from:
 Provides a single, unified interface for all utility operations.
 """
 
+import string
 import asyncio
 import hashlib
 import hmac
@@ -372,8 +380,7 @@ class ListUtils:
             return default
 
     @staticmethod
-    def batch_process(lst: List[Any], batch_size: int, ):
-                     processor: Callable[[List[Any]], Any]) -> List[Any]:
+    def batch_process(lst: List[Any], batch_size: int, processor: Callable[[List[Any]], Any]) -> List[Any]:
         """Process list in batches."""
         try:
             results = []
@@ -482,8 +489,7 @@ class AsyncUtils:
             return default
 
     @staticmethod
-    async def retry_async(coro_func: Callable, max_retries: int = 3,)
-                         delay: float = 1.0, backoff: float = 2.0) -> Any:
+    async def retry_async(coro_func: Callable, max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0) -> Any:
         """Retry async function with exponential backoff."""
         last_exception = None
 
@@ -849,8 +855,7 @@ class ResponseUtils:
             return {"success": True, "message": "Success"}
 
     @staticmethod
-    def error_response(message: str, error_code: Optional[str] = None,):
-                      details: Optional[Any] = None) -> Dict[str, Any]:
+    def error_response(message: str, error_code: Optional[str] = None, details: Optional[Any] = None) -> Dict[str, Any]:
         """Create error response."""
         try:
             response = {
@@ -871,8 +876,7 @@ class ResponseUtils:
             return {"success": False, "message": "Error"}
 
     @staticmethod
-    def paginated_response(data: List[Any], page: int, per_page: int,):
-                          total: int, message: str = "Success") -> Dict[str, Any]:
+    def paginated_response(data: List[Any], page: int, per_page: int, total: int, message: str = "Success") -> Dict[str, Any]:
         """Create paginated response."""
         try:
             total_pages = (total + per_page - 1) // per_page

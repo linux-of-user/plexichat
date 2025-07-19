@@ -171,7 +171,7 @@ class PasswordPolicyManager:
 
         is_valid = len(errors) == 0
 
-        return PasswordValidationResult()
+        return PasswordValidationResult(
             is_valid=is_valid,
             strength=strength,
             score=score,
@@ -230,7 +230,7 @@ class PasswordPolicyManager:
         if user_id not in self.password_histories:
             self.password_histories[user_id] = []
 
-        history_entry = PasswordHistory()
+        history_entry = PasswordHistory(
             password_hash=password_hash,
             created_at=datetime.now(),
             salt=salt

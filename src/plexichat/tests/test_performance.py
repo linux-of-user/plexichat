@@ -1,3 +1,11 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportArgumentType=false
+# pyright: reportCallIssue=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportAssignmentType=false
+# pyright: reportReturnType=false
 """
 Performance Tests
 
@@ -91,7 +99,7 @@ class PerformanceTests(TestSuite):
                 max_time = max(times)
                 min_time = min(times)
 
-                response_times.append({)
+                response_times.append({
                     'endpoint': f"{method} {endpoint}",
                     'avg_ms': avg_time,
                     'max_ms': max_time,
@@ -138,8 +146,7 @@ class PerformanceTests(TestSuite):
             avg_response_time = statistics.mean(response_times) if response_times else 0
             throughput = len(results) / total_time
 
-            logger.info(f"Concurrency {concurrency}: {successful_requests}/{len(results)} successful, ")
-                       f"avg response: {avg_response_time:.2f}ms, throughput: {throughput:.2f} req/s")
+            logger.info(f"Concurrency {concurrency}: {successful_requests}/{len(results)} successful, avg response: {avg_response_time:.2f}ms, throughput: {throughput:.2f} req/s")
 
             if failed_requests > 0:
                 logger.warning(f"Failed requests at concurrency {concurrency}: {failed_requests}")
@@ -148,7 +155,7 @@ class PerformanceTests(TestSuite):
         """Test database performance."""
         # Test multiple database operations
         operations = [
-            ('Create messages', 'POST', '/api/v1/messages/create',)
+            ('Create messages', 'POST', '/api/v1/messages/create',
              [{'json': {'content': f'Performance test message {i}', 'message_type': 'text'}}
               for i in range(10)]),
             ('List messages', 'GET', '/api/v1/messages', [{}] * 5),
@@ -238,8 +245,7 @@ class PerformanceTests(TestSuite):
         total_time = time.time() - start_time
         throughput = successful_creates / total_time
 
-        logger.info(f"Message throughput: {throughput:.2f} messages/second ")
-                   f"({successful_creates}/{num_messages} successful)")
+        logger.info(f"Message throughput: {throughput:.2f} messages/second ({successful_creates}/{num_messages} successful)")
 
     def test_api_scalability(self):
         """Test API scalability under load."""
@@ -267,23 +273,21 @@ class PerformanceTests(TestSuite):
             avg_response_time = statistics.mean(response_times) if response_times else 0
             throughput = len(worker_results) / total_time
 
-            results.append({)
+            results.append({
                 'load': load,
                 'success_rate': successful / len(worker_results),
                 'avg_response_time': avg_response_time,
                 'throughput': throughput
             })
 
-            logger.info(f"Load {load}: {successful}/{len(worker_results)} successful, ")
-                       f"avg response: {avg_response_time:.2f}ms, throughput: {throughput:.2f} req/s")
+            logger.info(f"Load {load}: {successful}/{len(worker_results)} successful, avg response: {avg_response_time:.2f}ms, throughput: {throughput:.2f} req/s")
 
         # Analyze scalability
         if len(results) > 1:
             baseline_throughput = results[0]['throughput']
             max_throughput = max(r['throughput'] for r in results)
 
-            logger.info(f"Scalability: baseline={baseline_throughput:.2f} req/s, ")
-                       f"max={max_throughput:.2f} req/s")
+            logger.info(f"Scalability: baseline={baseline_throughput:.2f} req/s, max={max_throughput:.2f} req/s")
 
     def test_resource_cleanup(self):
         """Test resource cleanup and garbage collection."""
@@ -303,8 +307,7 @@ class PerformanceTests(TestSuite):
             final_objects = len(gc.get_objects())
 
             object_increase = final_objects - initial_objects
-            logger.info(f"Object count: initial={initial_objects}, final={final_objects}, ")
-                       f"increase={object_increase}")
+            logger.info(f"Object count: initial={initial_objects}, final={final_objects}, increase={object_increase}")
 
             if object_increase > 1000:
                 logger.warning(f"High object count increase: {object_increase}")

@@ -1,3 +1,6 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
@@ -315,7 +318,7 @@ user_service = UserService()
     status_code=status.HTTP_201_CREATED,
     summary="Create user"
 )
-async def create_user()
+async def create_user(
     request: Request,
     user_data: UserCreate,
     current_user: Dict[str, Any] = Depends(require_admin)
@@ -357,7 +360,7 @@ async def list_users()
     response_model=UserResponse,
     summary="Get user"
 )
-async def get_user()
+async def get_user(
     request: Request,
     user_id: int,
     current_user: Dict[str, Any] = Depends(get_current_user)

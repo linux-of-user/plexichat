@@ -134,10 +134,10 @@ class AuthAuditLogger:
         else:
             logger.warning(f"{log_message} - Error: {event.error_message}")
 
-    def log_login_success(self, user_id: str, username: str, ip_address: str, ):
+    def log_login_success(self, user_id: str, username: str, ip_address: str,
                          user_agent: str = None, session_id: str = None):
         """Log successful login."""
-        event = AuditEvent()
+        event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=AuditEventType.LOGIN_SUCCESS,
             user_id=user_id,
@@ -155,7 +155,7 @@ class AuthAuditLogger:
 
         self.log_event(event)
 
-    def log_login_failure(self, username: str, ip_address: str, reason: str,):
+    def log_login_failure(self, username: str, ip_address: str, reason: str,
                          user_agent: str = None):
         """Log failed login attempt."""
         # Track failed attempts
@@ -180,7 +180,7 @@ class AuthAuditLogger:
         else:
             risk_level = RiskLevel.MEDIUM
 
-        event = AuditEvent()
+        event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=AuditEventType.LOGIN_FAILURE,
             username=username,
@@ -201,13 +201,13 @@ class AuthAuditLogger:
         if attempt_count >= self.lockout_threshold:
             self.log_account_locked(username, ip_address, "Too many failed login attempts")
 
-    def log_mfa_event(self, user_id: str, username: str, mfa_method: str,):
+    def log_mfa_event(self, user_id: str, username: str, mfa_method: str,
                      success: bool, ip_address: str = None, error_message: str = None):
         """Log MFA event."""
         event_type = AuditEventType.MFA_SUCCESS if success else AuditEventType.MFA_FAILURE
         risk_level = RiskLevel.LOW if success else RiskLevel.MEDIUM
 
-        event = AuditEvent()
+        event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=event_type,
             user_id=user_id,
@@ -221,10 +221,10 @@ class AuthAuditLogger:
 
         self.log_event(event)
 
-    def log_password_change(self, user_id: str, username: str, ip_address: str = None,):
+    def log_password_change(self, user_id: str, username: str, ip_address: str = None,
                            forced: bool = False):
         """Log password change."""
-        event = AuditEvent()
+        event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=AuditEventType.PASSWORD_CHANGE,
             user_id=user_id,
@@ -239,7 +239,7 @@ class AuthAuditLogger:
 
     def log_account_locked(self, username: str, ip_address: str = None, reason: str = None):
         """Log account lockout."""
-        event = AuditEvent()
+        event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=AuditEventType.ACCOUNT_LOCKED,
             username=username,
@@ -251,10 +251,10 @@ class AuthAuditLogger:
 
         self.log_event(event)
 
-    def log_privilege_escalation(self, user_id: str, username: str, old_role: str,):
+    def log_privilege_escalation(self, user_id: str, username: str, old_role: str,
                                new_role: str, granted_by: str = None):
         """Log privilege escalation."""
-        event = AuditEvent()
+        event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=AuditEventType.PRIVILEGE_ESCALATION,
             user_id=user_id,
@@ -270,10 +270,10 @@ class AuthAuditLogger:
 
         self.log_event(event)
 
-    def log_suspicious_activity(self, username: str = None, ip_address: str = None,):
+    def log_suspicious_activity(self, username: str = None, ip_address: str = None,
                               activity_type: str = None, details: Dict[str, Any] = None):
         """Log suspicious activity."""
-        event = AuditEvent()
+        event = AuditEvent(
             event_id=self._generate_event_id(),
             event_type=AuditEventType.SUSPICIOUS_ACTIVITY,
             username=username,

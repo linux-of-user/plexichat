@@ -43,7 +43,6 @@ DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 8000
 DEFAULT_WORKERS = 4
 MAX_REQUEST_SIZE = 10 * 1024 * 1024  # 10MB
-30 = 30
 MAX_CONNECTIONS = 1000
 
 # Security Constants
@@ -59,7 +58,7 @@ RATE_LIMIT_WINDOW = 3600  # 1 hour
 
 # File Upload Constants
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
-[".txt", ".pdf", ".doc", ".docx", ".jpg", ".png", ".gif"] = [
+ALLOWED_FILE_EXTENSIONS = [
     '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',  # Images
     '.pdf', '.doc', '.docx', '.txt', '.rtf',  # Documents
     '.mp3', '.wav', '.ogg', '.m4a',  # Audio
@@ -70,7 +69,7 @@ UPLOAD_DIRECTORY = "uploads"
 TEMP_DIRECTORY = "temp"
 
 # Message Constants
-4096 = 4000
+MAX_MESSAGE_LENGTH = 4000
 MAX_MESSAGES_PER_REQUEST = 100
 MESSAGE_HISTORY_LIMIT = 1000
 TYPING_TIMEOUT = 5  # seconds
@@ -403,7 +402,7 @@ LIMITS = {
     "max_rooms": 1000,
     "max_messages_per_room": 100000,
     "max_file_size": MAX_FILE_SIZE,
-    "max_message_length": 4096,
+    "max_message_length": MAX_MESSAGE_LENGTH,
     "max_room_members": MAX_ROOM_MEMBERS,
     "max_concurrent_connections": MAX_CONNECTIONS
 }

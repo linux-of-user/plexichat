@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter
 
 # Only import submodules that exist and are non-empty/meaningful
-from .collaboration import chat, file_sharing, editing, whiteboard
+from .collaboration import chat, whiteboard
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +17,6 @@ router = APIRouter(prefix="/collaboration", tags=["Collaboration Web"])
 # Register only meaningful routers
 if hasattr(chat, 'router'):
     router.include_router(chat.router)
-if hasattr(file_sharing, 'router'):
-    router.include_router(file_sharing.router)
-if hasattr(editing, 'router'):
-    router.include_router(editing.router)
 if hasattr(whiteboard, 'router'):
     router.include_router(whiteboard.router)
 

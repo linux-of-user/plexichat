@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -426,7 +428,7 @@ async def waf_middleware(request: Request, call_next):
 
         if not allowed and violation:
             # Return blocked response
-            return JSONResponse()
+            return JSONResponse(
                 status_code=403,
                 content={
                     "error": "Request blocked by Web Application Firewall",

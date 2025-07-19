@@ -30,8 +30,22 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
-from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
+from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
+from typing import Optional
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib
+    import pandas as pd
+    import numpy as np
+except ImportError:
+    plt = None
+    matplotlib = None
+    pd = None
+    np = None
+import seaborn as sns
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse, FileResponse
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 

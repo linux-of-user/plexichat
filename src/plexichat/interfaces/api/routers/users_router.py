@@ -135,7 +135,7 @@ async def get_db():
 # API endpoints
 if router:
     @router.post("/register", response_model=UserResponse)
-    async def register_user()
+    async def register_user(
         user: UserCreate,
         background_tasks: BackgroundTasks,
         db = Depends(get_db)
@@ -172,7 +172,7 @@ if router:
 
             # Send welcome notification
             if send_notification:
-                background_tasks.add_task()
+                background_tasks.add_task(
                     send_notification,
                     user_id,
                     "system",
@@ -182,7 +182,7 @@ if router:
 
             # Track analytics
             if track_event:
-                background_tasks.add_task()
+                background_tasks.add_task(
                     track_event,
                     "user_registered",
                     user_id=user_id,
@@ -193,7 +193,7 @@ if router:
             if performance_logger:
                 performance_logger.record_metric("users_registered", 1, "count")
 
-            return UserResponse()
+            return UserResponse(
                 id=user_id,
                 username=user.username,
                 email=user.email,
@@ -212,7 +212,7 @@ if router:
             raise HTTPException(status_code=500, detail="Registration failed")
 
     @router.post("/login", response_model=TokenResponse)
-    async def login_user()
+    async def login_user(
         user_login: UserLogin,
         background_tasks: BackgroundTasks,
         db = Depends(get_db)
@@ -245,7 +245,7 @@ if router:
 
             # Track analytics
             if track_event:
-                background_tasks.add_task()
+                background_tasks.add_task(
                     track_event,
                     "user_login",
                     user_id=user_data["id"],
@@ -256,7 +256,7 @@ if router:
             if performance_logger:
                 performance_logger.record_metric("user_logins", 1, "count")
 
-            return TokenResponse()
+            return TokenResponse(
                 access_token=access_token,
                 refresh_token=refresh_token,
                 token_type="bearer",
@@ -272,7 +272,7 @@ if router:
             raise HTTPException(status_code=500, detail="Login failed")
 
     @router.get("/me", response_model=UserResponse)
-    async def get_current_user_info()
+    async def get_current_user_info(
         current_user: dict = Depends(get_current_user)
     ):
         """Get current user information."""
@@ -297,7 +297,7 @@ if router:
                 return UserResponse(**user_data)
 
             # Fallback
-            return UserResponse()
+            return UserResponse(
                 id=user_id,
                 username=current_user["username"],
                 email=current_user["email"],
@@ -314,7 +314,7 @@ if router:
             raise HTTPException(status_code=500, detail="Failed to get user information")
 
     @router.put("/me", response_model=UserResponse)
-    async def update_current_user()
+    async def update_current_user(
         user_update: UserUpdate,
         background_tasks: BackgroundTasks,
         current_user: dict = Depends(get_current_user)
@@ -338,7 +338,7 @@ if router:
 
             # Track analytics
             if track_event:
-                background_tasks.add_task()
+                background_tasks.add_task(
                     track_event,
                     "user_updated",
                     user_id=user_id,
@@ -352,7 +352,7 @@ if router:
                     return UserResponse(**user_data)
 
             # Fallback
-            return UserResponse()
+            return UserResponse(
                 id=user_id,
                 username=current_user["username"],
                 email=user_update.email or current_user["email"],
@@ -369,7 +369,7 @@ if router:
             raise HTTPException(status_code=500, detail="Update failed")
 
     @router.post("/me/avatar")
-    async def upload_avatar()
+    async def upload_avatar(
         file: UploadFile = File(...),
         background_tasks: BackgroundTasks,
         current_user: dict = Depends(get_current_user)
@@ -387,7 +387,7 @@ if router:
 
             # Upload file
             if upload_file:
-                file_metadata = await upload_file()
+                file_metadata = await upload_file(
                     file_data,
                     file.filename,
                     user_id,
@@ -404,7 +404,7 @@ if router:
 
                     # Track analytics
                     if track_event:
-                        background_tasks.add_task()
+                        background_tasks.add_task(
                             track_event,
                             "avatar_uploaded",
                             user_id=user_id,
@@ -422,7 +422,7 @@ if router:
             raise HTTPException(status_code=500, detail="Upload failed")
 
     @router.get("/search")
-    async def search_users()
+    async def search_users(
         q: str = Query(..., min_length=2, description="Search query"),
         limit: int = Query(10, ge=1, le=50, description="Number of results"),
         current_user: dict = Depends(get_current_user)

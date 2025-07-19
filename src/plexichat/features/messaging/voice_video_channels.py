@@ -1,3 +1,5 @@
+# pyright: reportMissingImports=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportPossiblyUnboundVariable=false
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
@@ -51,8 +53,7 @@ class ChannelType(Enum):
 
 
 class AudioQuality(Enum):
-    """Audio quality from plexichat.core.config import settings
-settings."""
+    """Audio quality settings."""
     LOW = "low"  # 32 kbps
     MEDIUM = "medium"  # 64 kbps
     HIGH = "high"  # 128 kbps
@@ -60,8 +61,7 @@ settings."""
 
 
 class VideoQuality(Enum):
-    """Video quality from plexichat.core.config import settings
-settings."""
+    """Video quality settings."""
     LOW = "low"  # 480p
     MEDIUM = "medium"  # 720p
     HIGH = "high"  # 1080p
@@ -274,8 +274,7 @@ class VoiceVideoChannel:
 
     def start_recording(self) -> bool:
         """Start recording the channel."""
-        if not self.recording_from plexichat.core.config import settings
-settings.enabled:
+        if not self.recording_settings.enabled:
             return False
 
         # In production, this would start actual recording

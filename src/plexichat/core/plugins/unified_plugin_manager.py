@@ -139,7 +139,7 @@ class PluginMetadata:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'PluginMetadata':
         """Create metadata from dictionary."""
-        return cls()
+        return cls(
             name=data.get('name', ''),
             version=data.get('version', '1.0.0'),
             description=data.get('description', ''),
@@ -316,8 +316,7 @@ class PluginIsolationManager:
         self.isolated_modules: Dict[str, Any] = {}
         self.resource_limits: Dict[str, Dict[str, Any]] = {}
 
-    async def load_module_isolated(self, plugin_name: str, plugin_path: Path, )
-                                 config: Optional[Dict[str, Any]] = None) -> bool:
+    async def load_module_isolated(self, plugin_name: str, plugin_path: Path, config: Optional[Dict[str, Any]] = None) -> bool:
         """Load a module in isolation."""
         try:
             # For now, implement basic isolation
@@ -328,7 +327,7 @@ class PluginIsolationManager:
                 self.resource_limits[plugin_name] = config['resource_limits']
 
             # Load module with restricted imports
-            spec = importlib.util.spec_from_file_location()
+            spec = importlib.util.spec_from_file_location(
                 f"isolated_{plugin_name}",
                 plugin_path / "main.py"
             )
@@ -389,6 +388,7 @@ class PluginTestManager:
 
     def __init__(self):
         self.test_results: Dict[str, Dict[str, Any]] = {}
+        self.logger = logging.getLogger(__name__)
 
     async def run_plugin_tests(self, plugin_name: str, plugin_instance: PluginInterface) -> Dict[str, Any]:
         """Run tests for a specific plugin."""
@@ -405,7 +405,7 @@ class PluginTestManager:
                 "timestamp": datetime.now().isoformat(),
                 "self_tests": self_test_results,
                 "external_tests": external_test_results,
-                "overall_passed": ()
+                "overall_passed": (
                     self_test_results.get("passed", False) and
                     external_test_results.get("passed", True)
                 )
@@ -415,7 +415,7 @@ class PluginTestManager:
             return results
 
         except Exception as e:
-            logger.error(f"Failed to run tests for plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to run tests for plugin {plugin_name}: {e}")
             return {
                 "plugin_name": plugin_name,
                 "timestamp": datetime.now().isoformat(),
@@ -450,6 +450,7 @@ class UnifiedPluginManager:
     """
 
     def __init__(self, plugins_dir: Optional[Path] = None):
+        self.logger = logging.getLogger(__name__)
         self.plugins_dir = plugins_dir or Path("plugins")
         self.plugins_dir.mkdir(exist_ok=True)
 
@@ -489,7 +490,7 @@ class UnifiedPluginManager:
     async def initialize(self) -> bool:
         """Initialize the plugin manager."""
         try:
-            logger.info("Initializing unified plugin manager")
+            self.logger.info("Initializing unified plugin manager")
 
             # Discover plugins
             if self.auto_discover:
@@ -499,11 +500,11 @@ class UnifiedPluginManager:
             if self.auto_load_enabled:
                 await self.load_enabled_plugins()
 
-            logger.info("Unified plugin manager initialized successfully")
+            self.logger.info("Unified plugin manager initialized successfully")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to initialize plugin manager: {e}")
+            self.logger.error(f"Failed to initialize plugin manager: {e}")
             return False
 
     async def discover_plugins(self) -> List[str]:
@@ -546,7 +547,7 @@ class UnifiedPluginManager:
                                 break
 
                     if metadata:
-                        plugin_info = PluginInfo()
+                        plugin_info = PluginInfo(
                             plugin_id=plugin_name,
                             metadata=metadata,
                             path=plugin_dir,
@@ -557,16 +558,16 @@ class UnifiedPluginManager:
                         self.discovered_plugins.add(plugin_name)
                         discovered.append(plugin_name)
 
-                        logger.debug(f"Discovered plugin: {plugin_name}")
+                        self.logger.debug(f"Discovered plugin: {plugin_name}")
 
                 self.stats["total_discovered"] = len(self.discovered_plugins)
                 self.stats["last_discovery"] = datetime.now().isoformat()
 
-            logger.info(f"Discovered {len(discovered)} plugins")
+            self.logger.info(f"Discovered {len(discovered)} plugins")
             return discovered
 
         except Exception as e:
-            logger.error(f"Failed to discover plugins: {e}")
+            self.logger.error(f"Failed to discover plugins: {e}")
             return []
 
     async def _load_plugin_metadata(self, manifest_file: Path) -> Optional[PluginMetadata]:
@@ -582,12 +583,12 @@ class UnifiedPluginManager:
             return PluginMetadata.from_dict(data)
 
         except Exception as e:
-            logger.error(f"Failed to load metadata from {manifest_file}: {e}")
+            self.logger.error(f"Failed to load metadata from {manifest_file}: {e}")
             return None
 
     async def _create_default_metadata(self, plugin_name: str, plugin_dir: Path) -> PluginMetadata:
         """Create default metadata for plugins without manifest."""
-        return PluginMetadata()
+        return PluginMetadata(
             name=plugin_name,
             version="1.0.0",
             description=f"Plugin: {plugin_name}",
@@ -613,12 +614,12 @@ class UnifiedPluginManager:
             with self._lock:
                 # Check if already loaded
                 if plugin_name in self.loaded_plugins and not force_reload:
-                    logger.warning(f"Plugin already loaded: {plugin_name}")
+                    self.logger.warning(f"Plugin already loaded: {plugin_name}")
                     return True
 
                 # Check if discovered
                 if plugin_name not in self.plugin_info:
-                    logger.error(f"Plugin not discovered: {plugin_name}")
+                    self.logger.error(f"Plugin not discovered: {plugin_name}")
                     return False
 
                 plugin_info = self.plugin_info[plugin_name]
@@ -656,11 +657,11 @@ class UnifiedPluginManager:
                                     with open(doc_file, 'r', encoding='utf-8') as f:
                                         self.plugin_docs[plugin_name][doc_file.name] = f.read()
                                 except Exception as e:
-                                    logger.warning(f"Failed to load documentation from {doc_file}: {e}")
+                                    self.logger.warning(f"Failed to load documentation from {doc_file}: {e}")
 
                     # On plugin load, call set_context with a PluginContext instance
-                    context = PluginContext()
-                        logger=getattr(self, 'logger', None),
+                    context = PluginContext(
+                        logger=self.logger,
                         analytics=getattr(self, 'analytics', None),
                         db=getattr(self, 'db', None),
                         ai=getattr(self, 'ai', None),
@@ -675,7 +676,7 @@ class UnifiedPluginManager:
                     plugin_instance = self.loaded_plugins[plugin_name]
                     plugin_instance.set_context(context)
 
-                    logger.info(f"Plugin loaded successfully: {plugin_name}")
+                    self.logger.info(f"Plugin loaded successfully: {plugin_name}")
                     return True
                 else:
                     plugin_info.status = PluginStatus.FAILED
@@ -683,7 +684,7 @@ class UnifiedPluginManager:
                     return False
 
         except Exception as e:
-            logger.error(f"Failed to load plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to load plugin {plugin_name}: {e}")
             if plugin_name in self.plugin_info:
                 self.plugin_info[plugin_name].status = PluginStatus.ERROR
                 self.plugin_info[plugin_name].error_message = str(e)
@@ -698,10 +699,10 @@ class UnifiedPluginManager:
                 # Try to load dependency first
                 if dependency in self.plugin_info:
                     if not await self.load_plugin(dependency):
-                        logger.error(f"Failed to load dependency: {dependency} (required by {plugin_name})")
+                        self.logger.error(f"Failed to load dependency: {dependency} (required by {plugin_name})")
                         return False
                 else:
-                    logger.error(f"Dependency not found: {dependency} (required by {plugin_name})")
+                    self.logger.error(f"Dependency not found: {dependency} (required by {plugin_name})")
                     return False
 
         return True
@@ -720,7 +721,7 @@ class UnifiedPluginManager:
                 }
             }
 
-            success = await self.isolation_manager.load_module_isolated()
+            success = await self.isolation_manager.load_module_isolated(
                 plugin_name, plugin_info.path, config
             )
 
@@ -737,7 +738,7 @@ class UnifiedPluginManager:
             return False
 
         except Exception as e:
-            logger.error(f"Failed to load sandboxed plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to load sandboxed plugin {plugin_name}: {e}")
             return False
 
     async def _load_plugin_direct(self, plugin_name: str, plugin_info: PluginInfo) -> bool:
@@ -756,13 +757,13 @@ class UnifiedPluginManager:
                     break
 
             if not module_file:
-                logger.error(f"No main module file found for plugin: {plugin_name}")
+                self.logger.error(f"No main module file found for plugin: {plugin_name}")
                 return False
 
             # Load module
             spec = importlib.util.spec_from_file_location(f"plugin_{plugin_name}", module_file)
             if spec is None or spec.loader is None:
-                logger.error(f"Could not create spec for plugin: {plugin_name}")
+                self.logger.error(f"Could not create spec for plugin: {plugin_name}")
                 return False
 
             module = importlib.util.module_from_spec(spec)
@@ -781,7 +782,7 @@ class UnifiedPluginManager:
             return False
 
         except Exception as e:
-            logger.error(f"Failed to load direct plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to load direct plugin {plugin_name}: {e}")
             return False
 
     async def _instantiate_plugin(self, plugin_name: str, module: Any, plugin_info: PluginInfo) -> Optional[PluginInterface]:
@@ -808,14 +809,14 @@ class UnifiedPluginManager:
                 # Look for any class that inherits from PluginInterface
                 for attr_name in dir(module):
                     attr = getattr(module, attr_name)
-                    if (isinstance(attr, type) and)
+                    if (isinstance(attr, type) and
                         issubclass(attr, PluginInterface) and
                         attr != PluginInterface):
                         plugin_class = attr
                         break
 
             if not plugin_class:
-                logger.error(f"No plugin class found in module: {plugin_name}")
+                self.logger.error(f"No plugin class found in module: {plugin_name}")
                 return None
 
             # Instantiate plugin
@@ -826,11 +827,11 @@ class UnifiedPluginManager:
             if await plugin_instance.initialize():
                 return plugin_instance
             else:
-                logger.error(f"Plugin initialization failed: {plugin_name}")
+                self.logger.error(f"Plugin initialization failed: {plugin_name}")
                 return None
 
         except Exception as e:
-            logger.error(f"Failed to instantiate plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to instantiate plugin {plugin_name}: {e}")
             return None
 
     async def _register_plugin_components(self, plugin_name: str) -> None:
@@ -842,38 +843,38 @@ class UnifiedPluginManager:
             for cmd_name, cmd_func in commands.items():
                 full_cmd_name = f"{plugin_name}.{cmd_name}"
                 self.plugin_commands[full_cmd_name] = cmd_func
-                logger.debug(f"Registered command: {full_cmd_name}")
+                self.logger.debug(f"Registered command: {full_cmd_name}")
             # Register event handlers
             event_handlers = plugin_instance.get_event_handlers()
             for event_name, handler_func in event_handlers.items():
                 if event_name not in self.plugin_event_handlers:
                     self.plugin_event_handlers[event_name] = []
                 self.plugin_event_handlers[event_name].append(handler_func)
-                logger.debug(f"Registered event handler: {event_name} for {plugin_name}")
+                self.logger.debug(f"Registered event handler: {event_name} for {plugin_name}")
             # --- Register routers ---
             routers = plugin_instance.get_routers()
             if routers:
                 self.plugin_routers[plugin_name] = routers
-                logger.info(f"Registered routers for plugin {plugin_name}: {list(routers.keys())}")
+                self.logger.info(f"Registered routers for plugin {plugin_name}: {list(routers.keys())}")
             # --- Register DB extensions ---
             db_exts = plugin_instance.get_db_extensions()
             if db_exts:
                 self.plugin_db_extensions[plugin_name] = db_exts
-                logger.info(f"Registered DB extensions for plugin {plugin_name}: {list(db_exts.keys())}")
+                self.logger.info(f"Registered DB extensions for plugin {plugin_name}: {list(db_exts.keys())}")
             # --- Register security features ---
             sec_feats = plugin_instance.get_security_features()
             if sec_feats:
                 self.plugin_security_features[plugin_name] = sec_feats
-                logger.info(f"Registered security features for plugin {plugin_name}: {list(sec_feats.keys())}")
+                self.logger.info(f"Registered security features for plugin {plugin_name}: {list(sec_feats.keys())}")
         except Exception as e:
-            logger.error(f"Failed to register plugin components for {plugin_name}: {e}")
+            self.logger.error(f"Failed to register plugin components for {plugin_name}: {e}")
 
     async def unload_plugin(self, plugin_name: str) -> bool:
         """Unload a specific plugin."""
         try:
             with self._lock:
                 if plugin_name not in self.loaded_plugins:
-                    logger.warning(f"Plugin not loaded: {plugin_name}")
+                    self.logger.warning(f"Plugin not loaded: {plugin_name}")
                     return True
 
                 plugin_instance = self.loaded_plugins[plugin_name]
@@ -883,7 +884,7 @@ class UnifiedPluginManager:
                 try:
                     await plugin_instance.shutdown()
                 except Exception as e:
-                    logger.warning(f"Plugin shutdown error: {plugin_name} - {e}")
+                    self.logger.warning(f"Plugin shutdown error: {plugin_name} - {e}")
 
                 # Unregister components
                 await self._unregister_plugin_components(plugin_name)
@@ -896,11 +897,11 @@ class UnifiedPluginManager:
 
                 self.stats["total_loaded"] -= 1
 
-                logger.info(f"Plugin unloaded: {plugin_name}")
+                self.logger.info(f"Plugin unloaded: {plugin_name}")
                 return True
 
         except Exception as e:
-            logger.error(f"Failed to unload plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to unload plugin {plugin_name}: {e}")
             return False
 
     async def _unregister_plugin_components(self, plugin_name: str) -> None:
@@ -913,7 +914,7 @@ class UnifiedPluginManager:
             ]
             for cmd_name in commands_to_remove:
                 del self.plugin_commands[cmd_name]
-                logger.debug(f"Unregistered command: {cmd_name}")
+                self.logger.debug(f"Unregistered command: {cmd_name}")
 
             # Unregister event handlers
             for event_name, handlers in self.plugin_event_handlers.items():
@@ -922,13 +923,13 @@ class UnifiedPluginManager:
                 pass
 
         except Exception as e:
-            logger.error(f"Failed to unregister plugin components for {plugin_name}: {e}")
+            self.logger.error(f"Failed to unregister plugin components for {plugin_name}: {e}")
 
     async def enable_plugin(self, plugin_name: str) -> bool:
         """Enable a plugin."""
         try:
             if plugin_name not in self.plugin_info:
-                logger.error(f"Plugin not found: {plugin_name}")
+                self.logger.error(f"Plugin not found: {plugin_name}")
                 return False
 
             plugin_info = self.plugin_info[plugin_name]
@@ -946,14 +947,14 @@ class UnifiedPluginManager:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to enable plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to enable plugin {plugin_name}: {e}")
             return False
 
     async def disable_plugin(self, plugin_name: str) -> bool:
         """Disable a plugin."""
         try:
             if plugin_name not in self.plugin_info:
-                logger.error(f"Plugin not found: {plugin_name}")
+                self.logger.error(f"Plugin not found: {plugin_name}")
                 return False
 
             plugin_info = self.plugin_info[plugin_name]
@@ -971,7 +972,7 @@ class UnifiedPluginManager:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to disable plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to disable plugin {plugin_name}: {e}")
             return False
 
     async def load_enabled_plugins(self) -> Dict[str, bool]:
@@ -993,12 +994,12 @@ class UnifiedPluginManager:
                 results[plugin_name] = await self.load_plugin(plugin_name)
 
             loaded_count = sum(results.values())
-            logger.info(f"Loaded {loaded_count}/{len(enabled_plugins)} enabled plugins")
+            self.logger.info(f"Loaded {loaded_count}/{len(enabled_plugins)} enabled plugins")
 
             return results
 
         except Exception as e:
-            logger.error(f"Failed to load enabled plugins: {e}")
+            self.logger.error(f"Failed to load enabled plugins: {e}")
             return {}
 
     def _sort_plugins_by_dependencies_and_priority(self, plugin_names: List[str]) -> List[str]:
@@ -1016,7 +1017,7 @@ class UnifiedPluginManager:
                     dependencies = plugin_info.metadata.dependencies
 
                     # Check if all dependencies are already sorted or not in the list
-                    deps_satisfied = all()
+                    deps_satisfied = all(
                         dep in sorted_plugins or dep not in plugin_names
                         for dep in dependencies
                     )
@@ -1026,11 +1027,11 @@ class UnifiedPluginManager:
 
                 if not ready_plugins:
                     # Circular dependency or missing dependency
-                    logger.warning(f"Circular dependency detected in plugins: {remaining_plugins}")
+                    self.logger.warning(f"Circular dependency detected in plugins: {remaining_plugins}")
                     ready_plugins = remaining_plugins  # Load anyway
 
                 # Sort ready plugins by priority (now an int)
-                ready_plugins.sort()
+                ready_plugins.sort(
                     key=lambda name: self.plugin_info[name].metadata.priority,
                     reverse=True
                 )
@@ -1045,7 +1046,7 @@ class UnifiedPluginManager:
             return sorted_plugins
 
         except Exception as e:
-            logger.error(f"Failed to sort plugins: {e}")
+            self.logger.error(f"Failed to sort plugins: {e}")
             return plugin_names
 
     async def _update_plugin_enabled(self, plugin_name: str, enabled: bool) -> None:
@@ -1055,7 +1056,7 @@ class UnifiedPluginManager:
                 # This would update the database
                 pass
         except Exception as e:
-            logger.error(f"Failed to update plugin enabled status: {e}")
+            self.logger.error(f"Failed to update plugin enabled status: {e}")
 
     async def run_plugin_tests(self, plugin_name: str) -> Dict[str, Any]:
         """Run tests for a specific plugin."""
@@ -1067,7 +1068,7 @@ class UnifiedPluginManager:
             return await self.test_manager.run_plugin_tests(plugin_name, plugin_instance)
 
         except Exception as e:
-            logger.error(f"Failed to run tests for plugin {plugin_name}: {e}")
+            self.logger.error(f"Failed to run tests for plugin {plugin_name}: {e}")
             return {"error": str(e)}
 
     async def run_all_plugin_tests(self) -> Dict[str, Any]:
@@ -1091,7 +1092,7 @@ class UnifiedPluginManager:
             return all_results
 
         except Exception as e:
-            logger.error(f"Failed to run all plugin tests: {e}")
+            self.logger.error(f"Failed to run all plugin tests: {e}")
             return {"error": str(e)}
 
     def get_plugin_info(self, plugin_name: str) -> Optional[Dict[str, Any]]:
@@ -1124,7 +1125,7 @@ class UnifiedPluginManager:
             }
 
         except Exception as e:
-            logger.error(f"Failed to get plugin info for {plugin_name}: {e}")
+            self.logger.error(f"Failed to get plugin info for {plugin_name}: {e}")
             return None
 
     def get_all_plugins_info(self) -> Dict[str, Dict[str, Any]]:
@@ -1136,7 +1137,7 @@ class UnifiedPluginManager:
                 if (info := self.get_plugin_info(plugin_name)) is not None
             }
         except Exception as e:
-            logger.error(f"Failed to get all plugins info: {e}")
+            self.logger.error(f"Failed to get all plugins info: {e}")
             return {}
 
     def get_stats(self) -> Dict[str, Any]:
@@ -1170,7 +1171,7 @@ class UnifiedPluginManager:
                 return command_func(*args, **kwargs)
 
         except Exception as e:
-            logger.error(f"Failed to execute command {command_name}: {e}")
+            self.logger.error(f"Failed to execute command {command_name}: {e}")
             raise PluginError(f"Command execution failed: {e}")
 
     async def emit_event(self, event_name: str, *args, **kwargs) -> List[Any]:
@@ -1187,19 +1188,19 @@ class UnifiedPluginManager:
                             result = handler(*args, **kwargs)
                         results.append(result)
                     except Exception as e:
-                        logger.error(f"Event handler error for {event_name}: {e}")
+                        self.logger.error(f"Event handler error for {event_name}: {e}")
                         results.append(None)
 
             return results
 
         except Exception as e:
-            logger.error(f"Failed to emit event {event_name}: {e}")
+            self.logger.error(f"Failed to emit event {event_name}: {e}")
             return []
 
     async def shutdown(self) -> None:
         """Shutdown the plugin manager."""
         try:
-            logger.info("Shutting down plugin manager")
+            self.logger.info("Shutting down plugin manager")
 
             # Unload all plugins
             for plugin_name in list(self.loaded_plugins.keys()):
@@ -1212,10 +1213,10 @@ class UnifiedPluginManager:
             self.plugin_commands.clear()
             self.plugin_event_handlers.clear()
 
-            logger.info("Plugin manager shut down successfully")
+            self.logger.info("Plugin manager shut down successfully")
 
         except Exception as e:
-            logger.error(f"Failed to shutdown plugin manager: {e}")
+            self.logger.error(f"Failed to shutdown plugin manager: {e}")
 
     # --- New public API for main app to retrieve extension points ---
     def get_all_plugin_routers(self) -> Dict[str, Any]:

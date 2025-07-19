@@ -11,9 +11,7 @@ import logging
 from typing import Any, Dict, List, Optional, Callable
 from functools import wraps
 
-from plexichat.infrastructure.performance.multi_tier_cache_manager import ()
-    get_cache_manager, MultiTierCacheManager
-)
+from plexichat.infrastructure.performance.multi_tier_cache_manager import get_cache_manager, MultiTierCacheManager
 from plexichat.core.logging.unified_logging_manager import get_logger
 
 logger = get_logger(__name__)
@@ -97,15 +95,14 @@ class UnifiedCacheIntegration:
             return True
 
         try:
-            if pattern:
-                return await self.cache_manager.invalidate_pattern(pattern)
-            else:
-                return await self.cache_manager.clear_all()
+            # MultiTierCacheManager does not support pattern-based invalidation directly
+            # Only support clearing all tiers
+            return await self.cache_manager.clear()
         except Exception as e:
             logger.warning(f"Cache clear error: {e}")
             return False
 
-    def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         if not self.initialized or not self.cache_manager:
             return {
@@ -115,7 +112,7 @@ class UnifiedCacheIntegration:
             }
 
         try:
-            return self.cache_manager.get_comprehensive_stats()
+            return await self.cache_manager.get_stats()
         except Exception as e:
             logger.warning(f"Error getting cache stats: {e}")
             return {"error": str(e)}
@@ -316,9 +313,8 @@ class CacheMigrationHelper:
     @staticmethod
     def replace_cache_manager_imports():
         """Log warning about deprecated cache manager usage."""
-        logger.warning()
-            "⚠️  Deprecated cache manager detected. "
-            "Please migrate to unified_cache_integration for optimal performance."
+        logger.warning(
+            "⚠️  Deprecated cache manager detected. Please migrate to unified_cache_integration for optimal performance."
         )
 
     @staticmethod

@@ -156,50 +156,56 @@ class QuantumEncryptionSystem:
     async def _init_database(self):
         """Initialize the keys database."""
         async with aiosqlite.connect(self.keys_db) as db:
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS quantum_keys ()
-                    key_id TEXT PRIMARY KEY,
-                    hierarchy TEXT NOT NULL,
-                    algorithm TEXT NOT NULL,
-                    security_tier INTEGER NOT NULL,
-                    key_data BLOB NOT NULL,
-                    public_key BLOB,
-                    salt BLOB NOT NULL,
-                    created_at TEXT NOT NULL,
-                    expires_at TEXT,
-                    rotation_count INTEGER DEFAULT 0,
-                    parent_key_id TEXT,
-                    metadata TEXT,
-                    FOREIGN KEY (parent_key_id) REFERENCES quantum_keys (key_id)
+            await db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS quantum_keys
+                (key_id TEXT PRIMARY KEY,
+                hierarchy TEXT NOT NULL,
+                algorithm TEXT NOT NULL,
+                security_tier INTEGER NOT NULL,
+                key_data BLOB NOT NULL,
+                public_key BLOB,
+                salt BLOB NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT,
+                rotation_count INTEGER DEFAULT 0,
+                parent_key_id TEXT,
+                metadata TEXT,
+                FOREIGN KEY (parent_key_id) REFERENCES quantum_keys (key_id)
                 )
-            """)
+                """
+            )
 
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS key_relationships ()
-                    parent_id TEXT NOT NULL,
-                    child_id TEXT NOT NULL,
-                    relationship_type TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    PRIMARY KEY (parent_id, child_id),
-                    FOREIGN KEY (parent_id) REFERENCES quantum_keys (key_id),
-                    FOREIGN KEY (child_id) REFERENCES quantum_keys (key_id)
+            await db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS key_relationships
+                (parent_id TEXT NOT NULL,
+                child_id TEXT NOT NULL,
+                relationship_type TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (parent_id, child_id),
+                FOREIGN KEY (parent_id) REFERENCES quantum_keys (key_id),
+                FOREIGN KEY (child_id) REFERENCES quantum_keys (key_id)
                 )
-            """)
+                """
+            )
 
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS encryption_operations ()
-                    operation_id TEXT PRIMARY KEY,
-                    data_type TEXT NOT NULL,
-                    security_tier INTEGER NOT NULL,
-                    algorithms TEXT NOT NULL,
-                    key_ids TEXT NOT NULL,
-                    data_size INTEGER NOT NULL,
-                    encrypted_size INTEGER NOT NULL,
-                    operation_time REAL NOT NULL,
-                    created_at TEXT NOT NULL,
-                    metadata TEXT
+            await db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS encryption_operations
+                (operation_id TEXT PRIMARY KEY,
+                data_type TEXT NOT NULL,
+                security_tier INTEGER NOT NULL,
+                algorithms TEXT NOT NULL,
+                key_ids TEXT NOT NULL,
+                data_size INTEGER NOT NULL,
+                encrypted_size INTEGER NOT NULL,
+                operation_time REAL NOT NULL,
+                created_at TEXT NOT NULL,
+                metadata TEXT
                 )
-            """)
+                """
+            )
 
             await db.commit()
 
@@ -208,7 +214,7 @@ class QuantumEncryptionSystem:
         async with aiosqlite.connect(self.keys_db) as db:
             async with db.execute("SELECT * FROM quantum_keys") as cursor:
                 async for row in cursor:
-                    key = QuantumKey()
+                    key = QuantumKey(
                         key_id=row[0],
                         hierarchy=KeyHierarchy(row[1]),
                         algorithm=QuantumAlgorithm(row[2]),
@@ -252,7 +258,7 @@ class QuantumEncryptionSystem:
         # Generate key material
         key_data = self._generate_key_material(algorithm, security_tier)
 
-        master_key = QuantumKey()
+        master_key = QuantumKey(
             key_id=key_id,
             hierarchy=KeyHierarchy.MASTER_KEY,
             algorithm=algorithm,
@@ -287,12 +293,14 @@ class QuantumEncryptionSystem:
 
         if algorithm == QuantumAlgorithm.HYBRID_RSA_KYBER:
             # Generate hybrid key (RSA + simulated Kyber)
-            rsa_key = rsa.generate_private_key()
+            if rsa is None or padding is None or serialization is None:
+                raise ImportError("cryptography is required for RSA operations")
+            rsa_key = rsa.generate_private_key(
                 public_exponent=65537,
                 key_size=4096,
                 backend=default_backend()
             )
-            rsa_bytes = rsa_key.private_bytes()
+            rsa_bytes = rsa_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption()
@@ -310,25 +318,27 @@ class QuantumEncryptionSystem:
     async def _save_key(self, key: QuantumKey):
         """Save key to database."""
         async with aiosqlite.connect(self.keys_db) as db:
-            await db.execute(""")
+            await db.execute(
+                """
                 INSERT OR REPLACE INTO quantum_keys
-                (key_id, hierarchy, algorithm, security_tier, key_data, public_key,)
-                 salt, created_at, expires_at, rotation_count, parent_key_id, metadata)
+                (key_id, hierarchy, algorithm, security_tier, key_data, public_key, salt, created_at, expires_at, rotation_count, parent_key_id, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, ()
-                key.key_id,
-                key.hierarchy.value,
-                key.algorithm.value,
-                key.security_tier.value,
-                key.key_data,
-                key.public_key,
-                key.salt,
-                key.created_at.isoformat(),
-                key.expires_at.isoformat() if key.expires_at else None,
-                key.rotation_count,
-                key.parent_key_id,
-                json.dumps(key.metadata)
-            ))
+                """,
+                (
+                    key.key_id,
+                    key.hierarchy.value,
+                    key.algorithm.value,
+                    key.security_tier.value,
+                    key.key_data,
+                    key.public_key,
+                    key.salt,
+                    key.created_at.isoformat(),
+                    key.expires_at.isoformat() if key.expires_at else None,
+                    key.rotation_count,
+                    key.parent_key_id,
+                    json.dumps(key.metadata)
+                )
+            )
             await db.commit()
 
     async def encrypt_data(self, data: bytes, context: EncryptionContext) -> Tuple[bytes, Dict[str, Any]]:
@@ -356,8 +366,10 @@ class QuantumEncryptionSystem:
 
         # Layer 1: Service-level encryption
         if encryption_keys.get("service"):
+            if BLAKE2b is None or ChaCha20_Poly1305 is None:
+                raise ImportError("pycryptodome is required for encryption (BLAKE2b, ChaCha20_Poly1305)")
             service_key = encryption_keys["service"]
-            encrypted_data, layer_meta = await self._encrypt_layer()
+            encrypted_data, layer_meta = await self._encrypt_layer(
                 encrypted_data, service_key, "service_layer"
             )
             encryption_metadata["layers"].append(layer_meta)
@@ -366,8 +378,10 @@ class QuantumEncryptionSystem:
 
         # Layer 2: Domain-level encryption
         if encryption_keys.get("domain"):
+            if BLAKE2b is None or ChaCha20_Poly1305 is None:
+                raise ImportError("pycryptodome is required for encryption (BLAKE2b, ChaCha20_Poly1305)")
             domain_key = encryption_keys["domain"]
-            encrypted_data, layer_meta = await self._encrypt_layer()
+            encrypted_data, layer_meta = await self._encrypt_layer(
                 encrypted_data, domain_key, "domain_layer"
             )
             encryption_metadata["layers"].append(layer_meta)
@@ -376,8 +390,10 @@ class QuantumEncryptionSystem:
 
         # Layer 3: Session-level encryption (if applicable)
         if encryption_keys.get("session"):
+            if BLAKE2b is None or ChaCha20_Poly1305 is None:
+                raise ImportError("pycryptodome is required for encryption (BLAKE2b, ChaCha20_Poly1305)")
             session_key = encryption_keys["session"]
-            encrypted_data, layer_meta = await self._encrypt_layer()
+            encrypted_data, layer_meta = await self._encrypt_layer(
                 encrypted_data, session_key, "session_layer"
             )
             encryption_metadata["layers"].append(layer_meta)
@@ -385,6 +401,8 @@ class QuantumEncryptionSystem:
             encryption_metadata["key_ids"].append(session_key.key_id)
 
         # Final layer: Add integrity check
+        if BLAKE2b is None:
+            raise ImportError("pycryptodome is required for BLAKE2b integrity check")
         final_hash = BLAKE2b.new(digest_bits=512)
         final_hash.update(encrypted_data)
         integrity_hash = final_hash.digest()
@@ -392,7 +410,7 @@ class QuantumEncryptionSystem:
         # Combine encrypted data with integrity hash
         final_encrypted = integrity_hash + encrypted_data
 
-        encryption_metadata.update({)
+        encryption_metadata.update({
             "encrypted_size": len(final_encrypted),
             "integrity_hash": base64.b64encode(integrity_hash).decode(),
             "encryption_time": (datetime.now(timezone.utc) - operation_start).total_seconds(),
@@ -445,14 +463,14 @@ class QuantumEncryptionSystem:
         selected_keys = {}
 
         # Always use a service key
-        service_key = await self._get_or_create_service_key()
+        service_key = await self._get_or_create_service_key(
             context.data_type, context.security_tier
         )
         selected_keys["service"] = service_key
 
         # Use domain key for higher security tiers
         if context.security_tier.value >= SecurityTier.GOVERNMENT.value:
-            domain_key = await self._get_or_create_domain_key()
+            domain_key = await self._get_or_create_domain_key(
                 "default", context.security_tier
             )
             selected_keys["domain"] = domain_key
@@ -505,9 +523,9 @@ class QuantumEncryptionSystem:
         # Encrypt session key with RSA (classical part)
         rsa_key = serialization.load_pem_private_key(rsa_key_data, password=None, backend=default_backend())
         rsa_public_key = rsa_key.public_key()
-        rsa_encrypted_key = rsa_public_key.encrypt()
+        rsa_encrypted_key = rsa_public_key.encrypt(
             session_key,
-            padding.OAEP()
+            padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                 algorithm=hashes.SHA256(),
                 label=None
@@ -518,7 +536,7 @@ class QuantumEncryptionSystem:
         kyber_encrypted_key = self._simulate_kyber_encrypt(session_key, kyber_key_data)
 
         # Combine all components
-        final_data = ()
+        final_data = (
             len(rsa_encrypted_key).to_bytes(4, 'big') +
             rsa_encrypted_key +
             len(kyber_encrypted_key).to_bytes(4, 'big') +
@@ -575,9 +593,9 @@ class QuantumEncryptionSystem:
 
         # Decrypt session key with RSA
         rsa_key = serialization.load_pem_private_key(rsa_key_data, password=None, backend=default_backend())
-        session_key_rsa = rsa_key.decrypt()
+        session_key_rsa = rsa_key.decrypt(
             rsa_encrypted_key,
-            padding.OAEP()
+            padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                 algorithm=hashes.SHA256(),
                 label=None
@@ -599,6 +617,8 @@ class QuantumEncryptionSystem:
 
     def _simulate_kyber_encrypt(self, data: bytes, kyber_key: bytes) -> bytes:
         """Simulate Kyber encryption (replace with real Kyber implementation)."""
+        if PBKDF2 is None or AES is None:
+            raise ImportError("pycryptodome is required for PBKDF2 and AES")
         # This is a simulation - in real implementation, use actual Kyber
         kdf = PBKDF2(kyber_key, get_random_bytes(16), 32, count=100000)
         cipher = AES.new(kdf, AES.MODE_GCM)
@@ -607,6 +627,8 @@ class QuantumEncryptionSystem:
 
     def _simulate_kyber_decrypt(self, encrypted_data: bytes, kyber_key: bytes) -> bytes:
         """Simulate Kyber decryption (replace with real Kyber implementation)."""
+        if PBKDF2 is None or AES is None:
+            raise ImportError("pycryptodome is required for PBKDF2 and AES")
         # This is a simulation - in real implementation, use actual Kyber
         nonce = encrypted_data[:16]
         tag = encrypted_data[16:32]
@@ -618,6 +640,8 @@ class QuantumEncryptionSystem:
 
     async def _encrypt_chacha20(self, data: bytes, key: QuantumKey, layer_name: str) -> Tuple[bytes, Dict[str, Any]]:
         """Encrypt using ChaCha20-Poly1305."""
+        if PBKDF2 is None or ChaCha20_Poly1305 is None:
+            raise ImportError("pycryptodome is required for PBKDF2 and ChaCha20_Poly1305")
         # Derive encryption key from stored key
         kdf = PBKDF2(key.key_data, key.salt, 32, count=100000)
 
@@ -640,6 +664,8 @@ class QuantumEncryptionSystem:
 
     async def _decrypt_chacha20(self, data: bytes, key: QuantumKey, layer_meta: Dict[str, Any]) -> bytes:
         """Decrypt using ChaCha20-Poly1305."""
+        if PBKDF2 is None or ChaCha20_Poly1305 is None:
+            raise ImportError("pycryptodome is required for PBKDF2 and ChaCha20_Poly1305")
         # Derive decryption key from stored key
         kdf = PBKDF2(key.key_data, key.salt, 32, count=100000)
 
@@ -665,7 +691,7 @@ class QuantumEncryptionSystem:
         # Create new service key
         master_key = await self._get_master_key(security_tier)
 
-        service_key = QuantumKey()
+        service_key = QuantumKey(
             key_id=f"{key_id}_{secrets.token_hex(4)}",
             hierarchy=KeyHierarchy.SERVICE_KEY,
             algorithm=QuantumAlgorithm.HYBRID_RSA_KYBER,
@@ -696,7 +722,7 @@ class QuantumEncryptionSystem:
         # Create new domain key
         master_key = await self._get_master_key(security_tier)
 
-        domain_key = QuantumKey()
+        domain_key = QuantumKey(
             key_id=f"{key_id}_{secrets.token_hex(4)}",
             hierarchy=KeyHierarchy.DOMAIN_KEY,
             algorithm=QuantumAlgorithm.HYBRID_RSA_KYBER,
@@ -718,7 +744,7 @@ class QuantumEncryptionSystem:
     async def _get_or_create_session_key(self, security_tier: SecurityTier) -> QuantumKey:
         """Get or create a session-level key."""
         # Session keys are always ephemeral
-        session_key = QuantumKey()
+        session_key = QuantumKey(
             key_id=f"session_{secrets.token_hex(8)}",
             hierarchy=KeyHierarchy.SESSION_KEY,
             algorithm=QuantumAlgorithm.HYBRID_RSA_KYBER,
@@ -771,23 +797,25 @@ class QuantumEncryptionSystem:
     async def _log_encryption_operation(self, context: EncryptionContext, metadata: Dict[str, Any]):
         """Log encryption operation for audit purposes."""
         async with aiosqlite.connect(self.keys_db) as db:
-            await db.execute(""")
+            await db.execute(
+                """
                 INSERT INTO encryption_operations
-                (operation_id, data_type, security_tier, algorithms, key_ids,)
-                 data_size, encrypted_size, operation_time, created_at, metadata)
+                (operation_id, data_type, security_tier, algorithms, key_ids, data_size, encrypted_size, operation_time, created_at, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, ()
-                context.operation_id,
-                context.data_type,
-                context.security_tier.value,
-                json.dumps([alg.value for alg in context.algorithms]),
-                json.dumps(context.key_ids),
-                metadata.get("original_size", 0),
-                metadata.get("encrypted_size", 0),
-                metadata.get("encryption_time", 0),
-                metadata.get("created_at"),
-                json.dumps(metadata)
-            ))
+                """,
+                (
+                    context.operation_id,
+                    context.data_type,
+                    context.security_tier.value,
+                    json.dumps([alg.value for alg in context.algorithms]),
+                    json.dumps(context.key_ids),
+                    metadata.get("original_size", 0),
+                    metadata.get("encrypted_size", 0),
+                    metadata.get("encryption_time", 0),
+                    metadata.get("created_at"),
+                    json.dumps(metadata)
+                )
+            )
             await db.commit()
 
     async def rotate_keys(self, force: bool = False):
@@ -807,7 +835,7 @@ class QuantumEncryptionSystem:
     async def _rotate_key(self, old_key: QuantumKey):
         """Rotate a single key."""
         # Generate new key with same properties
-        new_key = QuantumKey()
+        new_key = QuantumKey(
             key_id=f"{old_key.key_id.rsplit('_', 1)[0]}_{secrets.token_hex(4)}",
             hierarchy=old_key.hierarchy,
             algorithm=old_key.algorithm,

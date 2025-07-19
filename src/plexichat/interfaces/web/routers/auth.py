@@ -52,10 +52,10 @@ except ImportError:
 
 # JWT imports
 try:
-    from jose import JWTError, jwt
+    from jose import JWTError, jwt  # type: ignore
 except ImportError:
     try:
-        import jwt
+        import jwt  # type: ignore
         JWTError = Exception
     except ImportError:
         jwt = None
@@ -141,7 +141,7 @@ class AuthService:
 
                 if result and len(result) > 0:
                     row = result[0]
-                    user = User()
+                    user = User(
                         id=row[0],
                         username=row[1],
                         email=row[2],
@@ -161,7 +161,7 @@ class AuthService:
 
         # Fallback for testing
         if username == "admin" and password == "password":
-            return User()
+            return User(
                 id=1,
                 username="admin",
                 email="admin@example.com",
@@ -193,7 +193,7 @@ class AuthService:
 
                 if result and len(result) > 0:
                     row = result[0]
-                    return User()
+                    return User(
                         id=row[0],
                         username=row[1],
                         email=row[2],
@@ -222,12 +222,12 @@ class AuthService:
 # Initialize service
 auth_service = AuthService()
 
-@router.post()
+@router.post(
     "/login",
     response_model=TokenResponse,
     responses={401: {"model": ErrorDetail}, 400: {"model": ErrorDetail}}
 )
-async def login()
+async def login(
     request: Request,
     login_data: LoginRequest
 ):
@@ -248,7 +248,7 @@ async def login()
             if performance_logger:
                 performance_logger.record_metric("login_failed", 1, "count")
 
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password"
             )
@@ -269,7 +269,7 @@ async def login()
 
         logger.info(f"User '{user.username}' logged in successfully at {datetime.now().isoformat()}Z")
 
-        return TokenResponse()
+        return TokenResponse(
             access_token=access_token,
             token_type="bearer",
             expires_in=int(access_token_expires.total_seconds())
@@ -279,7 +279,7 @@ async def login()
         raise
     except Exception as e:
         logger.error(f"Unexpected error during login: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
@@ -287,7 +287,7 @@ async def login()
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """Get current user from token with performance optimization."""
     if not credentials:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required"
         )
@@ -298,7 +298,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             with timer("token_validation"):
                 # Decode JWT token
                 if jwt:
-                    payload = jwt.decode()
+                    payload = jwt.decode(
                         credentials.credentials,
                         getattr(settings, 'JWT_SECRET', 'mock-secret'),
                         algorithms=[getattr(settings, 'JWT_ALGORITHM', 'HS256')]
@@ -310,7 +310,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         else:
             # Decode without performance tracking
             if jwt:
-                payload = jwt.decode()
+                payload = jwt.decode(
                     credentials.credentials,
                     getattr(settings, 'JWT_SECRET', 'mock-secret'),
                     algorithms=[getattr(settings, 'JWT_ALGORITHM', 'HS256')]
@@ -323,7 +323,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         user = await auth_service.get_user_by_id(user_id)
 
         if not user:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found"
             )
@@ -336,23 +336,23 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         }
 
     except JWTError:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"
         )
     except Exception as e:
         logger.error(f"Error validating token: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token validation failed"
         )
 
-@router.get()
+@router.get(
     "/me",
     response_model=UserResponse,
     responses={401: {"model": ErrorDetail}}
 )
-async def get_current_user_info()
+async def get_current_user_info(
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Get current user information with performance optimization."""
@@ -360,18 +360,18 @@ async def get_current_user_info()
     if performance_logger:
         performance_logger.record_metric("user_info_request", 1, "count")
 
-    return UserResponse()
+    return UserResponse(
         id=current_user["id"],
         username=current_user["username"],
         email=current_user["email"],
         is_active=current_user["is_active"]
     )
 
-@router.post()
+@router.post(
     "/logout",
     responses={200: {"description": "Successfully logged out"}}
 )
-async def logout()
+async def logout(
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Logout user (token invalidation would be handled by client)."""

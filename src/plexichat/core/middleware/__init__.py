@@ -4,7 +4,7 @@ import logging
 from typing import Any, Dict, List
 
 try:
-    from .middleware_manager import ()
+    from .middleware_manager import (
         MiddlewareManager, BaseMiddleware, MiddlewareContext,
         AuthenticationMiddleware, RateLimitMiddleware, ValidationMiddleware,
         LoggingMiddleware, PerformanceMiddleware,

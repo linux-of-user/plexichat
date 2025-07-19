@@ -85,7 +85,7 @@ class MessageProcessor:
 
                 # Process message in thread
                 if self.async_thread_manager:
-                    await self.async_thread_manager.run_in_thread()
+                    await self.async_thread_manager.run_in_thread(
                         self._process_message_sync, message
                     )
                 else:
@@ -316,7 +316,7 @@ message_processor = MessageProcessor()
 # Convenience functions
 async def queue_message(message_id: str, sender_id: int, content: str, message_type: str = "text", **kwargs):
     """Queue message for processing."""
-    message = MessageData()
+    message = MessageData(
         message_id=message_id,
         sender_id=sender_id,
         recipient_id=kwargs.get("recipient_id"),

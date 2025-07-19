@@ -13,9 +13,8 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 # Issue deprecation warning
-warnings.warn()
-    "plexichat.core.analytics is deprecated. "
-    "Use plexichat.core.monitoring instead.",
+warnings.warn(
+    "plexichat.core.analytics is deprecated. Use plexichat.core.monitoring instead.",
     DeprecationWarning,
     stacklevel=2
 )

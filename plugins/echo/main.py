@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 # Plugin interface imports with fallback
 try:
-    from ...infrastructure.modules.enhanced_plugin_manager import PluginInterface, PluginType, PluginMetadata
+from plugin_internal import *
 except ImportError:
     from enum import Enum
     from dataclasses import dataclass

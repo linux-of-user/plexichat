@@ -257,7 +257,7 @@ system_service = SystemService()
     response_model=SystemStatus,
     summary="Get system status"
 )
-async def get_system_status()
+async def get_system_status(
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
@@ -276,7 +276,7 @@ async def get_system_status()
     response_model=AnalyticsReport,
     summary="Get analytics report"
 )
-async def get_analytics_report()
+async def get_analytics_report(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
@@ -295,7 +295,7 @@ async def get_analytics_report()
     response_model=TestResults,
     summary="Run system tests"
 )
-async def run_system_tests()
+async def run_system_tests(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
@@ -313,7 +313,7 @@ async def run_system_tests()
     "/performance",
     summary="Get performance metrics"
 )
-async def get_performance_metrics()
+async def get_performance_metrics(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):
@@ -336,7 +336,7 @@ async def get_performance_metrics()
             }
     except Exception as e:
         logger.error(f"Error getting performance metrics: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve performance metrics"
         )
@@ -345,7 +345,7 @@ async def get_performance_metrics()
     "/optimize",
     summary="Trigger system optimization"
 )
-async def trigger_optimization()
+async def trigger_optimization(
     request: Request,
     current_user: Dict[str, Any] = Depends(require_admin)
 ):

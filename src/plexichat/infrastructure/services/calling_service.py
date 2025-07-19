@@ -202,7 +202,7 @@ class CallingService:
         self.active_calls: Dict[str, CallSession] = {}
         self.call_participants: Dict[str, List[CallParticipant]] = {}
 
-    async def initiate_call()
+    async def initiate_call(
         self,
         initiator_id: int,
         target_user_ids: List[int],
@@ -267,7 +267,7 @@ class CallingService:
             logger.error(f"Failed to initiate call: {e}")
             raise
 
-    async def join_call()
+    async def join_call(
         self,
         call_id: str,
         user_id: int,
@@ -325,7 +325,7 @@ class CallingService:
             logger.error(f"Failed to join call {call_id}: {e}")
             raise
 
-    async def answer_call()
+    async def answer_call(
         self,
         call_id: str,
         user_id: int,

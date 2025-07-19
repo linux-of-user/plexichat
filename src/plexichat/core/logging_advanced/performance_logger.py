@@ -112,10 +112,7 @@ class MetricBuffer:
         with self.lock:
             self.metrics[metric.name].append(metric)
 
-    def get_metrics(self, metric_name: str,):
-                   start_time: Optional[datetime] = None,
-                   end_time: Optional[datetime] = None,
-                   limit: Optional[int] = None) -> List[PerformanceMetric]:
+    def get_metrics(self, metric_name: str, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None, limit: Optional[int] = None) -> List[PerformanceMetric]:
         """Get metrics with optional filtering."""
         with self.lock:
             metrics = list(self.metrics.get(metric_name, []))
@@ -141,10 +138,7 @@ class MetricBuffer:
         """Clear metrics older than specified time."""
         with self.lock:
             for metric_name in self.metrics:
-                self.metrics[metric_name] = deque()
-                    [m for m in self.metrics[metric_name] if m.timestamp >= older_than],
-                    maxlen=self.max_size
-                )
+                self.metrics[metric_name] = deque([m for m in self.metrics[metric_name] if m.timestamp >= older_than], maxlen=self.max_size)
 
 class SystemMonitor:
     """System resource monitoring."""
@@ -157,24 +151,43 @@ class SystemMonitor:
 
     def get_cpu_usage(self) -> float:
         """Get current CPU usage percentage."""
+        if self.process is None:
+            return 0.0
         return self.process.cpu_percent()
 
     def get_memory_usage(self) -> Dict[str, float]:
         """Get memory usage information."""
+        if self.process is None:
+            return {"rss_mb": 0.0, "vms_mb": 0.0, "percent": 0.0, "system_total_gb": 0.0, "system_available_gb": 0.0, "system_percent": 0.0}
+
         memory_info = self.process.memory_info()
         system_memory = psutil.virtual_memory() if psutil else None
 
-        return {
+        result = {
             "rss_mb": memory_info.rss / 1024 / 1024,
             "vms_mb": memory_info.vms / 1024 / 1024,
             "percent": self.process.memory_percent(),
-            "system_total_gb": system_memory.total / 1024 / 1024 / 1024,
-            "system_available_gb": system_memory.available / 1024 / 1024 / 1024,
-            "system_percent": system_memory.percent
         }
+
+        if system_memory:
+            result.update({
+                "system_total_gb": system_memory.total / 1024 / 1024 / 1024,
+                "system_available_gb": system_memory.available / 1024 / 1024 / 1024,
+                "system_percent": system_memory.percent
+            })
+        else:
+            result.update({
+                "system_total_gb": 0.0,
+                "system_available_gb": 0.0,
+                "system_percent": 0.0
+            })
+
+        return result
 
     def get_disk_usage(self) -> Dict[str, float]:
         """Get disk I/O statistics."""
+        if self.process is None:
+            return {}
         try:
             disk_io = self.process.io_counters()
             return {
@@ -190,6 +203,8 @@ class SystemMonitor:
         """Get network I/O statistics."""
         try:
             network_io = psutil.net_io_counters() if psutil else None
+            if network_io is None:
+                return {}
             return {
                 "bytes_sent": network_io.bytes_sent,
                 "bytes_recv": network_io.bytes_recv,
@@ -201,10 +216,14 @@ class SystemMonitor:
 
     def get_thread_count(self) -> int:
         """Get current thread count."""
+        if self.process is None:
+            return 0
         return self.process.num_threads()
 
     def get_open_files_count(self) -> int:
         """Get number of open files."""
+        if self.process is None:
+            return 0
         try:
             return len(self.process.open_files())
         except (psutil.AccessDenied if psutil else Exception, AttributeError):
@@ -239,13 +258,13 @@ class PerformanceLogger:
 
     def _setup_performance_handler(self):
         """Setup performance-specific log handler."""
-        handler = logging.FileHandler()
+        handler = logging.FileHandler(
             self.log_dir / "performance.log",
             encoding='utf-8'
         )
         handler.setLevel(logging.INFO)
 
-        formatter = logging.Formatter()
+        formatter = logging.Formatter(
             '[%(asctime)s] [PERFORMANCE] [%(levelname)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
@@ -256,7 +275,7 @@ class PerformanceLogger:
 
     def _setup_default_alerts(self):
         """Setup default performance alerts."""
-        self.add_alert(PerformanceAlert())
+        self.add_alert(PerformanceAlert(
             metric_name="response_time",
             threshold=2.0,
             comparison="gt",
@@ -264,7 +283,7 @@ class PerformanceLogger:
             callback=self._slow_response_alert
         ))
 
-        self.add_alert(PerformanceAlert())
+        self.add_alert(PerformanceAlert(
             metric_name="memory_usage_percent",
             threshold=80.0,
             comparison="gt",
@@ -272,7 +291,7 @@ class PerformanceLogger:
             callback=self._high_memory_alert
         ))
 
-        self.add_alert(PerformanceAlert())
+        self.add_alert(PerformanceAlert(
             metric_name="cpu_usage_percent",
             threshold=90.0,
             comparison="gt",
@@ -290,15 +309,13 @@ class PerformanceLogger:
         with self.lock:
             self.alerts = [a for a in self.alerts if a.metric_name != metric_name]
 
-    def record_metric(self, name: str, value: float, unit: str = "",):
-                     tags: Optional[Dict[str, str]] = None,
-                     metadata: Optional[Dict[str, Any]] = None):
+    def record_metric(self, name: str, value: float, unit: str = "", tags: Optional[Dict[str, str]] = None, metadata: Optional[Dict[str, Any]] = None):
         """Record a performance metric."""
-        metric = PerformanceMetric()
+        metric = PerformanceMetric(
             name=name,
             value=value,
             unit=unit,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(),
             tags=tags or {},
             metadata=metadata or {}
         )
@@ -330,7 +347,7 @@ class PerformanceLogger:
             with self.lock:
                 self.active_timers.pop(timer_id, None)
 
-            self.record_metric()
+            self.record_metric(
                 name="response_time",
                 value=duration,
                 unit="seconds",
@@ -437,9 +454,7 @@ class PerformanceLogger:
 
         return summary
 
-    def export_metrics(self, output_file: Path,):
-                      start_time: Optional[datetime] = None,
-                      end_time: Optional[datetime] = None):
+    def export_metrics(self, output_file: Path, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None):
         """Export metrics to JSON file."""
         metrics_data = []
 

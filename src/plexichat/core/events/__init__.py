@@ -4,7 +4,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional
 
 try:
-    from .event_manager import ()
+    from .event_manager import (
         EventManager, Event, EventHandler, EventPriority,
         event_manager, emit_event, register_event_handler,
         unregister_event_handler, get_events, event_handler, global_event_handler

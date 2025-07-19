@@ -258,8 +258,7 @@ class ResponseUtils:
         return response
 
     @staticmethod
-    def paginated_response(data: List[Any], page: int, per_page: int,):
-                          total: int, message: str = "Success") -> Dict[str, Any]:
+    def paginated_response(data: List[Any], page: int, per_page: int, total: int, message: str = "Success") -> Dict[str, Any]:
         """Create paginated response."""
         total_pages = (total + per_page - 1) // per_page
 
@@ -282,8 +281,7 @@ class LoggingUtils:
     """Common logging utilities."""
 
     @staticmethod
-    def setup_logger(name: str, level: str = "INFO",):
-                    format_string: Optional[str] = None) -> logging.Logger:
+    def setup_logger(name: str, level: str = "INFO", format_string: Optional[str] = None) -> logging.Logger:
         """Setup logger with common configuration."""
         logger = logging.getLogger(name)
         logger.setLevel(getattr(logging, level.upper()))
@@ -301,8 +299,7 @@ class LoggingUtils:
         return logger
 
     @staticmethod
-    def log_performance(func_name: str, duration: float,):
-                       logger: Optional[logging.Logger] = None):
+    def log_performance(func_name: str, duration: float, logger: Optional[logging.Logger] = None):
         """Log performance metrics."""
         if logger is None:
             logger = logging.getLogger(__name__)
@@ -325,8 +322,7 @@ class AsyncUtils:
             raise
 
     @staticmethod
-    async def retry_async(coro_func: Callable, max_retries: int = 3,)
-                         delay: float = 1.0, backoff: float = 2.0):
+    async def retry_async(coro_func: Callable, max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0):
         """Retry async function with exponential backoff."""
         last_exception = None
 

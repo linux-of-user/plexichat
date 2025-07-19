@@ -526,7 +526,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
 
     # Voice Message Methods
 
-    async def create_voice_message()
+    async def create_voice_message(
         self,
         user_id: str,
         chat_id: str,
@@ -546,7 +546,7 @@ self.voice_storage_path = Path(self.config["voice_messages"]["storage_path"])
                 f.write(audio_data)
 
             # Create voice message
-            voice_message = VoiceMessage()
+            voice_message = VoiceMessage(
                 message_id=message_id,
                 user_id=user_id,
                 chat_id=chat_id,
