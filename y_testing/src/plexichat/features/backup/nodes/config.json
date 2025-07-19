@@ -1,0 +1,15 @@
+{
+  "node_id": "auto-generated",
+  "storage_path": "backup_node/storage",
+  "max_storage_gb": 100,
+  "port": 8001,
+  "cluster_enabled": true,
+  "encryption_enabled": true,
+  "replication_factor": 5,
+  "heartbeat_interval": 30,
+  "capabilities": [
+    "backup",
+    "replication",
+    "seeding"
+  ]
+}

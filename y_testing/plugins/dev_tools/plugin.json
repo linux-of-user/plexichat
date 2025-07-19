@@ -1,0 +1,101 @@
+{
+  "name": "dev_tools",
+  "version": "1.0.0",
+  "description": "Comprehensive development tools with code formatting, linting, testing utilities, and project management features",
+  "author": "PlexiChat Team",
+  "type": "development",
+  "enabled": true,
+  "priority": 8,
+  "dependencies": [],
+  "permissions": [
+    "file_system_access",
+    "network_access",
+    "webui_access",
+    "gui_access",
+    "process_execution"
+  ],
+  "capabilities": [
+    "code_formatting",
+    "code_linting",
+    "test_execution",
+    "project_management",
+    "git_integration",
+    "dependency_management",
+    "build_automation"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "supported_languages": {
+      "type": "array",
+      "default": ["python", "javascript", "typescript", "java", "cpp", "go", "rust"],
+      "description": "Supported programming languages"
+    },
+    "formatters": {
+      "type": "object",
+      "default": {
+        "python": "black",
+        "javascript": "prettier",
+        "typescript": "prettier",
+        "java": "google-java-format",
+        "cpp": "clang-format",
+        "go": "gofmt",
+        "rust": "rustfmt"
+      },
+      "description": "Code formatters for each language"
+    },
+    "linters": {
+      "type": "object",
+      "default": {
+        "python": "flake8",
+        "javascript": "eslint",
+        "typescript": "tslint",
+        "java": "checkstyle",
+        "cpp": "cppcheck",
+        "go": "golint",
+        "rust": "clippy"
+      },
+      "description": "Linters for each language"
+    },
+    "auto_format_on_save": {
+      "type": "boolean",
+      "default": false,
+      "description": "Automatically format code on save"
+    },
+    "test_frameworks": {
+      "type": "object",
+      "default": {
+        "python": "pytest",
+        "javascript": "jest",
+        "typescript": "jest",
+        "java": "junit",
+        "go": "go test",
+        "rust": "cargo test"
+      },
+      "description": "Test frameworks for each language"
+    }
+  },
+  "webui": {
+    "enabled": true,
+    "routes": [
+      {
+        "path": "/dev-tools",
+        "component": "DevToolsPanel",
+        "title": "Development Tools",
+        "icon": "tools"
+      }
+    ]
+  },
+  "self_tests": [
+    "test_formatting",
+    "test_linting",
+    "test_execution",
+    "test_project_management",
+    "test_git_integration"
+  ],
+  "requirements": [
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "pytest>=7.0.0",
+    "GitPython>=3.1.0"
+  ]
+}

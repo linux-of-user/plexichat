@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - PlexiChat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .error-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .navigation-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .link-section {
+            background: rgba(103, 126, 234, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(103, 126, 234, 0.2);
+        }
+
+        .link-section h3 {
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+            color: #667eea;
+            border-bottom: 1px solid rgba(103, 126, 234, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .nav-button {
+            display: block;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-button.secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+        }
+
+        .nav-button.secondary:hover {
+            box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+        }
+
+        .search-container {
+            margin-top: 2rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e0e6ed;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 0.7rem 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-button:hover {
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .footer-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e6ed;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .error-code {
+                font-size: 6rem;
+            }
+
+            .error-title {
+                font-size: 2rem;
+            }
+
+            .navigation-links {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape">🔗</div>
+        <div class="shape">💬</div>
+        <div class="shape">🌐</div>
+    </div>
+
+    <div class="error-container">
+        <div class="logo">NL</div>
+        <div class="error-code">404</div>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-message">
+            Oops! The page you're looking for seems to have wandered off into the digital void. 
+            Don't worry though - we'll help you find your way back to where you need to be.
+        </p>
+
+        <div class="navigation-links">
+            <div class="link-section">
+                <h3>🏠 Main Areas</h3>
+                <a href="/" class="nav-button">🏠 Home</a>
+                <a href="/ui" class="nav-button">🎛️ Dashboard</a>
+                <a href="/docs" class="nav-button">📚 Documentation</a>
+            </div>
+            <div class="link-section">
+                <h3>🔧 System</h3>
+                <a href="/health" class="nav-button">❤️ Health Check</a>
+                <a href="/api/v1/admin/status" class="nav-button">📊 System Status</a>
+                <a href="/api/v1/testing/status" class="nav-button">🧪 Testing</a>
+            </div>
+            <div class="link-section">
+                <h3>🔌 API</h3>
+                <a href="/api" class="nav-button">🔌 API Root</a>
+                <a href="/api/v1" class="nav-button">📡 API v1</a>
+                <a href="/openapi.json" class="nav-button">📋 OpenAPI Spec</a>
+            </div>
+            <div class="link-section">
+                <h3>🔐 Authentication</h3>
+                <a href="/auth/login" class="nav-button">🔑 Login</a>
+                <a href="/auth/register" class="nav-button">📝 Register</a>
+                <a href="javascript:history.back()" class="nav-button secondary">← Go Back</a>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <form action="/search" method="get">
+                <input type="text" name="q" class="search-input" placeholder="Search for what you're looking for...">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+
+        <div class="footer-info">
+            <p>PlexiChat Communication Platform</p>
+            <p>If you believe this is an error, please <a href="/support" style="color: #667eea;">contact support</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-focus search input
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.focus();
+            }
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    window.history.back();
+                } else if (e.key === 'h' && e.ctrlKey) {
+                    e.preventDefault();
+                    window.location.href = '/';
+                }
+            });
+
+            // Add some animation to the floating shapes
+            const shapes = document.querySelectorAll('.shape');
+            shapes.forEach((shape, index) => {
+                shape.style.fontSize = Math.random() * 2 + 1 + 'rem';
+                shape.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            });
+        });
+    </script>
+</body>
+</html>

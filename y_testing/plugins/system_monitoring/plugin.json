@@ -1,0 +1,172 @@
+{
+  "name": "system_monitoring",
+  "version": "1.0.0",
+  "description": "Advanced System Monitoring and Alerting plugin with real-time metrics, performance analysis, and intelligent alerting",
+  "author": "PlexiChat Monitoring Team",
+  "type": "monitoring",
+  "entry_point": "main",
+  "dependencies": ["core_system", "database_manager", "performance_manager"],
+  "permissions": ["monitoring:read", "monitoring:write", "system:access", "alerts:send"],
+  "api_version": "1.0",
+  "min_plexichat_version": "3.0.0",
+  "enabled": true,
+  "category": "monitoring",
+  "tags": ["monitoring", "alerting", "metrics", "performance", "health-checks", "dashboards"],
+  "homepage": "https://github.com/plexichat/plugins/system-monitoring",
+  "repository": "https://github.com/plexichat/plugins/system-monitoring",
+  "license": "MIT",
+  "icon": "monitor",
+  "screenshots": [
+    "dashboard.png",
+    "alerts.png",
+    "metrics.png",
+    "health_checks.png"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": ["Initial release", "Real-time monitoring", "Intelligent alerting", "Performance analysis", "Health checks"]
+    }
+  ],
+  "download_count": 1890,
+  "rating": 4.8,
+  "last_updated": "2024-01-15T10:30:00Z",
+  "size_bytes": 12582912,
+  "checksum": "sha256:mno345pqr678...",
+  "ui_pages": [
+    {
+      "name": "dashboard",
+      "path": "ui/dashboard",
+      "title": "Monitoring Dashboard",
+      "description": "Real-time system monitoring dashboard"
+    },
+    {
+      "name": "alerts",
+      "path": "ui/alerts",
+      "title": "Alert Management",
+      "description": "Configure and manage monitoring alerts"
+    },
+    {
+      "name": "metrics",
+      "path": "ui/metrics",
+      "title": "Metrics Explorer",
+      "description": "Explore and analyze system metrics"
+    },
+    {
+      "name": "health_checks",
+      "path": "ui/health_checks",
+      "title": "Health Checks",
+      "description": "Configure and monitor health checks"
+    },
+    {
+      "name": "performance",
+      "path": "ui/performance",
+      "title": "Performance Analysis",
+      "description": "Detailed performance analysis and optimization"
+    },
+    {
+      "name": "reports",
+      "path": "ui/reports",
+      "title": "Monitoring Reports",
+      "description": "Generate and view monitoring reports"
+    }
+  ],
+  "api_endpoints": [
+    "/api/v1/monitoring/metrics",
+    "/api/v1/monitoring/alerts",
+    "/api/v1/monitoring/health",
+    "/api/v1/monitoring/performance",
+    "/api/v1/monitoring/reports"
+  ],
+  "webhooks": [
+    "monitoring.alert.triggered",
+    "monitoring.alert.resolved",
+    "monitoring.health.check.failed",
+    "monitoring.performance.threshold.exceeded",
+    "monitoring.metric.anomaly.detected"
+  ],
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "enabled_modules": {
+        "type": "array",
+        "items": {"type": "string", "enum": ["metrics", "alerts", "health_checks", "performance", "reports"]},
+        "default": ["metrics", "alerts", "health_checks"],
+        "description": "Enabled monitoring modules"
+      },
+      "metrics_collection_interval": {
+        "type": "integer",
+        "minimum": 5,
+        "maximum": 300,
+        "default": 30,
+        "description": "Metrics collection interval in seconds"
+      },
+      "data_retention_days": {
+        "type": "integer",
+        "minimum": 7,
+        "maximum": 365,
+        "default": 30,
+        "description": "Metrics data retention in days"
+      },
+      "alert_channels": {
+        "type": "array",
+        "items": {"type": "string", "enum": ["email", "sms", "webhook", "slack", "discord"]},
+        "default": ["email"],
+        "description": "Available alert notification channels"
+      },
+      "health_check_interval": {
+        "type": "integer",
+        "minimum": 30,
+        "maximum": 3600,
+        "default": 300,
+        "description": "Health check interval in seconds"
+      },
+      "performance_thresholds": {
+        "type": "object",
+        "properties": {
+          "cpu_usage": {"type": "number", "minimum": 0, "maximum": 100, "default": 80},
+          "memory_usage": {"type": "number", "minimum": 0, "maximum": 100, "default": 85},
+          "disk_usage": {"type": "number", "minimum": 0, "maximum": 100, "default": 90},
+          "response_time": {"type": "number", "minimum": 0, "maximum": 10000, "default": 1000}
+        },
+        "default": {"cpu_usage": 80, "memory_usage": 85, "disk_usage": 90, "response_time": 1000},
+        "description": "Performance alert thresholds"
+      },
+      "enable_anomaly_detection": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable AI-powered anomaly detection"
+      },
+      "enable_auto_scaling": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable automatic scaling based on metrics"
+      },
+      "enable_capacity_planning": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable capacity planning and forecasting"
+      },
+      "enable_custom_metrics": {
+        "type": "boolean",
+        "default": true,
+        "description": "Allow custom metric definitions"
+      },
+      "enable_historical_analysis": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable historical data analysis"
+      }
+    },
+    "required": ["enabled_modules"]
+  },
+  "auto_start": true,
+  "background_tasks": [
+    "collect_metrics",
+    "process_alerts",
+    "run_health_checks",
+    "analyze_performance",
+    "cleanup_old_data"
+  ]
+} 

@@ -1,0 +1,111 @@
+{
+  "name": "Archive System",
+  "version": "1.0.0",
+  "description": "Optional archive module for message and user versioning through shard system with server-by-server activation and premium user permissions",
+  "author": "PlexiChat Team",
+  "license": "MIT",
+  "main": "archive_plugin.py",
+  "class": "ArchiveSystemPlugin",
+  "type": "system",
+  "category": "backup",
+  "dependencies": {
+    "python": ">=3.8",
+    "aiosqlite": ">=0.17.0",
+    "aiofiles": ">=0.8.0"
+  },
+  "permissions": [
+    "database.read",
+    "database.write", 
+    "filesystem.read",
+    "filesystem.write",
+    "encryption.use",
+    "shard.create",
+    "shard.read"
+  ],
+  "configuration": {
+    "default_retention_days": 365,
+    "default_max_versions": 100,
+    "default_encryption_level": "quantum-resistant",
+    "enable_compression": true,
+    "enable_auto_archive": true
+  },
+  "features": [
+    "Message versioning with edit history",
+    "User profile versioning",
+    "Channel configuration versioning", 
+    "Server configuration versioning",
+    "Permission change versioning",
+    "Server-by-server activation control",
+    "Premium user access restrictions",
+    "Configurable retention policies",
+    "Shard-based encrypted storage",
+    "Access control and audit logging",
+    "Automatic cleanup and maintenance",
+    "Version comparison and restoration"
+  ],
+  "api_endpoints": [
+    {
+      "path": "/archive/config/{server_id}",
+      "methods": ["GET", "POST", "PUT"],
+      "description": "Server archive configuration management",
+      "permissions": ["admin"]
+    },
+    {
+      "path": "/archive/versions/{original_id}",
+      "methods": ["GET"],
+      "description": "Get archive versions for an object",
+      "permissions": ["user"]
+    },
+    {
+      "path": "/archive/create",
+      "methods": ["POST"],
+      "description": "Create new archive version",
+      "permissions": ["user"]
+    },
+    {
+      "path": "/archive/restore/{archive_id}",
+      "methods": ["POST"],
+      "description": "Restore from archive version",
+      "permissions": ["user"]
+    },
+    {
+      "path": "/archive/statistics",
+      "methods": ["GET"],
+      "description": "Get archive system statistics",
+      "permissions": ["admin"]
+    }
+  ],
+  "database_tables": [
+    "server_archive_configs",
+    "archive_entries", 
+    "archive_access_logs"
+  ],
+  "storage_requirements": {
+    "estimated_size_per_version": "1-10KB",
+    "compression_ratio": "60-80%",
+    "encryption_overhead": "5-10%"
+  },
+  "performance": {
+    "archive_creation_time": "<100ms",
+    "version_retrieval_time": "<50ms",
+    "restoration_time": "<200ms",
+    "cleanup_frequency": "hourly"
+  },
+  "security": {
+    "encryption_algorithm": "quantum-resistant",
+    "access_control": "role-based",
+    "audit_logging": "comprehensive",
+    "data_integrity": "sha-512"
+  },
+  "installation": {
+    "auto_install": false,
+    "requires_restart": false,
+    "migration_required": false
+  },
+  "compatibility": {
+    "min_plexichat_version": "2.0.0",
+    "max_plexichat_version": "*",
+    "conflicts": [],
+    "recommends": ["backup_system", "clustering_system"]
+  }
+}

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --dark-color: #1a252f;
+            --light-color: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 50px;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero-section p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            color: white;
+            width: 100%;
+            max-width: 500px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .doc-section {
+            margin-bottom: 50px;
+        }
+
+        .doc-section h2 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .doc-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: none;
+            height: 100%;
+        }
+
+        .doc-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .doc-card .icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .doc-card h5 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .doc-card p {
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+
+        .doc-card .btn {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .doc-card .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .quick-links {
+            background: var(--primary-color);
+            color: white;
+            padding: 50px 0;
+            margin-top: 50px;
+        }
+
+        .quick-links h3 {
+            margin-bottom: 30px;
+        }
+
+        .quick-link {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .quick-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateX(10px);
+        }
+
+        .search-results {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .search-result {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .search-result:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .search-result h6 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+        }
+
+        .search-result p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-section p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> PlexiChat
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/">Admin Panel</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/api/docs">API Docs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/docs/">Documentation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1><i class="fas fa-book"></i> Documentation</h1>
+            <p>Comprehensive guides, API documentation, and tutorials for PlexiChat</p>
+            
+            <!-- Search Box -->
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="position-relative">
+                        <input type="text" id="search-input" class="search-box" placeholder="Search documentation...">
+                        <div id="search-results" class="search-results"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Sections -->
+    <div class="container">
+        {% for section_name, docs in doc_structure.items() %}
+        <div class="doc-section">
+            <h2><i class="fas fa-folder-open"></i> {{ section_name }}</h2>
+            <div class="row">
+                {% for doc in docs %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="doc-card">
+                        <div class="text-center">
+                            <div class="icon">
+                                <i class="{{ doc.icon }}"></i>
+                            </div>
+                            <h5>{{ doc.title }}</h5>
+                            <p>
+                                {% if doc.title == "Overview" %}
+                                    Get started with PlexiChat and learn about its core features and capabilities.
+                                {% elif doc.title == "Installation" %}
+                                    Step-by-step installation guide with setup wizard and manual installation options.
+                                {% elif doc.title == "User Guide" %}
+                                    Complete user guide covering all features and administrative functions.
+                                {% elif doc.title == "API Guide" %}
+                                    Comprehensive API documentation with examples and best practices.
+                                {% elif doc.title == "Interactive API" %}
+                                    Interactive API explorer with live testing capabilities.
+                                {% elif doc.title == "Troubleshooting" %}
+                                    Common issues, solutions, and diagnostic tools for problem resolution.
+                                {% else %}
+                                    Learn more about {{ doc.title.lower() }} and how to use it effectively.
+                                {% endif %}
+                            </p>
+                            {% if doc.file %}
+                            <a href="/docs/{{ doc.file.replace('.md', '') }}" class="btn btn-primary">
+                                <i class="fas fa-arrow-right"></i> Read More
+                            </a>
+                            {% elif doc.url %}
+                            <a href="{{ doc.url }}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Open
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Links -->
+    <section class="quick-links">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <h3><i class="fas fa-rocket"></i> Quick Start</h3>
+                    <a href="/docs/installation" class="quick-link">
+                        <i class="fas fa-download"></i> Installation Guide
+                    </a>
+                    <a href="/docs/user-guide" class="quick-link">
+                        <i class="fas fa-user"></i> User Guide
+                    </a>
+                    <a href="/admin/" class="quick-link">
+                        <i class="fas fa-tachometer-alt"></i> Admin Panel
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <h3><i class="fas fa-code"></i> Developers</h3>
+                    <a href="/docs/api-guide" class="quick-link">
+                        <i class="fas fa-book"></i> API Guide
+                    </a>
+                    <a href="/api/docs" class="quick-link">
+                        <i class="fas fa-play-circle"></i> Interactive API
+                    </a>
+                    <a href="/api/openapi.json" class="quick-link">
+                        <i class="fas fa-file-code"></i> OpenAPI Schema
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <h3><i class="fas fa-cogs"></i> Administration</h3>
+                    <a href="/docs/user-guide#user-management" class="quick-link">
+                        <i class="fas fa-users"></i> User Management
+                    </a>
+                    <a href="/docs/user-guide#system-configuration" class="quick-link">
+                        <i class="fas fa-sliders-h"></i> Configuration
+                    </a>
+                    <a href="/docs/user-guide#monitoring-and-logs" class="quick-link">
+                        <i class="fas fa-chart-line"></i> Monitoring
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <h3><i class="fas fa-life-ring"></i> Support</h3>
+                    <a href="/docs/troubleshooting" class="quick-link">
+                        <i class="fas fa-wrench"></i> Troubleshooting
+                    </a>
+                    <a href="/docs/faq" class="quick-link">
+                        <i class="fas fa-question-circle"></i> FAQ
+                    </a>
+                    <a href="/admin/system" class="quick-link">
+                        <i class="fas fa-heartbeat"></i> System Health
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 300);
+        });
+
+        searchInput.addEventListener('blur', function() {
+            // Hide results after a short delay to allow clicking
+            setTimeout(() => {
+                searchResults.style.display = 'none';
+            }, 200);
+        });
+
+        searchInput.addEventListener('focus', function() {
+            if (searchResults.children.length > 0) {
+                searchResults.style.display = 'block';
+            }
+        });
+
+        async function performSearch(query) {
+            try {
+                const response = await fetch(`/docs/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                displaySearchResults(data.results);
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+
+        function displaySearchResults(results) {
+            searchResults.innerHTML = '';
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result"><p>No results found</p></div>';
+            } else {
+                results.forEach(result => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'search-result';
+                    resultDiv.innerHTML = `
+                        <h6>${result.title}</h6>
+                        <p>${result.matches[0].context.substring(0, 100)}...</p>
+                    `;
+                    resultDiv.addEventListener('click', () => {
+                        window.location.href = `/docs/${result.file.replace('.md', '')}`;
+                    });
+                    searchResults.appendChild(resultDiv);
+                });
+            }
+            
+            searchResults.style.display = 'block';
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchResults.style.display = 'none';
+                searchInput.blur();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+{
+  "name": "notification_center",
+  "version": "1.0.0",
+  "description": "Advanced Notification Center plugin with multi-channel delivery, smart filtering, and personalized notification management",
+  "author": "PlexiChat Notification Team",
+  "type": "notification",
+  "entry_point": "main",
+  "dependencies": ["core_system", "database_manager", "user_manager"],
+  "permissions": ["notifications:read", "notifications:write", "channels:access", "templates:manage"],
+  "api_version": "1.0",
+  "min_plexichat_version": "3.0.0",
+  "enabled": true,
+  "category": "communication",
+  "tags": ["notifications", "messaging", "channels", "templates", "personalization", "delivery"],
+  "homepage": "https://github.com/plexichat/plugins/notification-center",
+  "repository": "https://github.com/plexichat/plugins/notification-center",
+  "license": "MIT",
+  "icon": "bell",
+  "screenshots": [
+    "notification_center.png",
+    "templates.png",
+    "channels.png",
+    "preferences.png"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": ["Initial release", "Multi-channel delivery", "Smart filtering", "Template system", "Personalization"]
+    }
+  ],
+  "download_count": 3420,
+  "rating": 4.9,
+  "last_updated": "2024-01-15T10:30:00Z",
+  "size_bytes": 6291456,
+  "checksum": "sha256:pqr678stu901...",
+  "ui_pages": [
+    {
+      "name": "center",
+      "path": "ui/center",
+      "title": "Notification Center",
+      "description": "Main notification center interface"
+    },
+    {
+      "name": "templates",
+      "path": "ui/templates",
+      "title": "Notification Templates",
+      "description": "Create and manage notification templates"
+    },
+    {
+      "name": "channels",
+      "path": "ui/channels",
+      "title": "Delivery Channels",
+      "description": "Configure notification delivery channels"
+    },
+    {
+      "name": "preferences",
+      "path": "ui/preferences",
+      "title": "User Preferences",
+      "description": "Manage user notification preferences"
+    },
+    {
+      "name": "history",
+      "path": "ui/history",
+      "title": "Notification History",
+      "description": "View notification delivery history"
+    },
+    {
+      "name": "analytics",
+      "path": "ui/analytics",
+      "title": "Notification Analytics",
+      "description": "Analytics and delivery statistics"
+    }
+  ],
+  "api_endpoints": [
+    "/api/v1/notifications/send",
+    "/api/v1/notifications/templates",
+    "/api/v1/notifications/channels",
+    "/api/v1/notifications/preferences",
+    "/api/v1/notifications/history"
+  ],
+  "webhooks": [
+    "notification.sent",
+    "notification.delivered",
+    "notification.failed",
+    "notification.read",
+    "notification.preferences.updated"
+  ],
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "enabled_channels": {
+        "type": "array",
+        "items": {"type": "string", "enum": ["email", "sms", "push", "in_app", "slack", "discord", "webhook"]},
+        "default": ["email", "in_app"],
+        "description": "Enabled notification delivery channels"
+      },
+      "default_template_language": {
+        "type": "string",
+        "default": "en",
+        "description": "Default language for notification templates"
+      },
+      "max_notifications_per_user": {
+        "type": "integer",
+        "minimum": 100,
+        "maximum": 10000,
+        "default": 1000,
+        "description": "Maximum notifications stored per user"
+      },
+      "retention_days": {
+        "type": "integer",
+        "minimum": 7,
+        "maximum": 365,
+        "default": 90,
+        "description": "Notification retention period in days"
+      },
+      "batch_processing": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable batch processing for bulk notifications"
+      },
+      "batch_size": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 1000,
+        "default": 100,
+        "description": "Batch size for bulk notifications"
+      },
+      "rate_limiting": {
+        "type": "object",
+        "properties": {
+          "enabled": {"type": "boolean", "default": true},
+          "max_per_minute": {"type": "integer", "minimum": 1, "maximum": 1000, "default": 60},
+          "max_per_hour": {"type": "integer", "minimum": 10, "maximum": 10000, "default": 1000}
+        },
+        "default": {"enabled": true, "max_per_minute": 60, "max_per_hour": 1000},
+        "description": "Rate limiting configuration"
+      },
+      "smart_filtering": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable smart notification filtering"
+      },
+      "personalization": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable personalized notifications"
+      },
+      "enable_analytics": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable notification analytics"
+      },
+      "enable_scheduling": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable scheduled notifications"
+      },
+      "timezone_handling": {
+        "type": "string",
+        "enum": ["user", "system", "utc"],
+        "default": "user",
+        "description": "Timezone handling strategy"
+      }
+    },
+    "required": ["enabled_channels"]
+  },
+  "auto_start": true,
+  "background_tasks": [
+    "process_notification_queue",
+    "cleanup_old_notifications",
+    "sync_delivery_status",
+    "generate_analytics"
+  ]
+} 

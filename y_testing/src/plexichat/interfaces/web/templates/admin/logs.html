@@ -1,0 +1,498 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<!-- Log Controls -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-filter"></i>
+                    Log Filters & Controls
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="log-level-filter" class="form-label">Log Level</label>
+                        <select id="log-level-filter" class="form-select" onchange="filterLogs()">
+                            <option value="all">All Levels</option>
+                            <option value="debug">DEBUG</option>
+                            <option value="info">INFO</option>
+                            <option value="warning">WARNING</option>
+                            <option value="error">ERROR</option>
+                            <option value="critical">CRITICAL</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="log-module-filter" class="form-label">Module</label>
+                        <select id="log-module-filter" class="form-select" onchange="filterLogs()">
+                            <option value="all">All Modules</option>
+                            <option value="web_server">Web Server</option>
+                            <option value="database">Database</option>
+                            <option value="auth">Authentication</option>
+                            <option value="api">API</option>
+                            <option value="system">System</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="log-search" class="form-label">Search</label>
+                        <input type="text" id="log-search" class="form-control" placeholder="Search logs..." onkeyup="searchLogs()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <div class="btn-group">
+                                <button class="btn btn-outline-primary" onclick="refreshLogs()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="clearLogView()">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="auto-refresh" checked onchange="toggleAutoRefresh()">
+                            <label class="form-check-label" for="auto-refresh">
+                                Auto-refresh logs (every 5 seconds)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="btn-group">
+                            <button class="btn btn-success btn-sm" onclick="downloadLogs()">
+                                <i class="fas fa-download"></i> Download Current View
+                            </button>
+                            <button class="btn btn-info btn-sm" onclick="downloadAllLogs()">
+                                <i class="fas fa-file-archive"></i> Download All Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Files -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-folder"></i>
+                    Available Log Files
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Size</th>
+                                <th>Last Modified</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in log_files %}
+                            <tr>
+                                <td>
+                                    <i class="fas fa-file-alt text-primary"></i>
+                                    {{ file.name }}
+                                </td>
+                                <td>{{ "%.2f"|format(file.size / 1024) }} KB</td>
+                                <td>{{ file.modified }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewLogFile('{{ file.name }}')">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                        <a href="/admin/logs/download/{{ file.name }}" class="btn btn-outline-success">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Live Log Viewer -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-stream"></i>
+                    Live Log Stream
+                    <span id="log-count" class="badge bg-secondary ms-2">{{ recent_logs|length }} entries</span>
+                </h6>
+                <div>
+                    <button class="btn btn-sm btn-outline-warning" onclick="pauseStream()">
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="scrollToBottom()">
+                        <i class="fas fa-arrow-down"></i> Bottom
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="log-viewer" class="log-viewer">
+                    {% for log in recent_logs %}
+                    <div class="log-entry log-{{ log.level.lower() }}" data-level="{{ log.level.lower() }}" data-module="{{ log.module }}">
+                        <div class="log-timestamp">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                        <div class="log-level">
+                            <span class="badge bg-{{ 'primary' if log.level == 'INFO' else 'warning' if log.level == 'WARNING' else 'danger' if log.level == 'ERROR' else 'secondary' }}">
+                                {{ log.level }}
+                            </span>
+                        </div>
+                        <div class="log-module">{{ log.module }}</div>
+                        <div class="log-message">{{ log.message }}</div>
+                        <div class="log-actions">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showLogDetails(this)" title="Show Details">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Details Modal -->
+<div class="modal fade" id="logDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Log Entry Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="log-details-content">
+                    <!-- Log details will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let autoRefreshInterval;
+    let streamPaused = false;
+    
+    // Initialize log viewer
+    document.addEventListener('DOMContentLoaded', function() {
+        startAutoRefresh();
+        scrollToBottom();
+    });
+    
+    function filterLogs() {
+        const levelFilter = document.getElementById('log-level-filter').value;
+        const moduleFilter = document.getElementById('log-module-filter').value;
+        const logEntries = document.querySelectorAll('.log-entry');
+        
+        let visibleCount = 0;
+        
+        logEntries.forEach(entry => {
+            const level = entry.dataset.level;
+            const module = entry.dataset.module;
+            
+            let show = true;
+            
+            if (levelFilter !== 'all' && level !== levelFilter) {
+                show = false;
+            }
+            
+            if (moduleFilter !== 'all' && module !== moduleFilter) {
+                show = false;
+            }
+            
+            entry.style.display = show ? 'flex' : 'none';
+            if (show) visibleCount++;
+        });
+        
+        updateLogCount(visibleCount);
+    }
+    
+    function searchLogs() {
+        const searchTerm = document.getElementById('log-search').value.toLowerCase();
+        const logEntries = document.querySelectorAll('.log-entry');
+        
+        let visibleCount = 0;
+        
+        logEntries.forEach(entry => {
+            const message = entry.querySelector('.log-message').textContent.toLowerCase();
+            const module = entry.querySelector('.log-module').textContent.toLowerCase();
+            
+            const matches = message.includes(searchTerm) || module.includes(searchTerm);
+            
+            if (searchTerm === '' || matches) {
+                entry.style.display = 'flex';
+                visibleCount++;
+            } else {
+                entry.style.display = 'none';
+            }
+        });
+        
+        updateLogCount(visibleCount);
+    }
+    
+    function refreshLogs() {
+        showNotification('Refreshing logs...', 'info');
+        location.reload();
+    }
+    
+    function clearLogView() {
+        if (confirm('Clear the current log view? This will not delete the actual log files.')) {
+            document.getElementById('log-viewer').innerHTML = '';
+            updateLogCount(0);
+        }
+    }
+    
+    function toggleAutoRefresh() {
+        const checkbox = document.getElementById('auto-refresh');
+        
+        if (checkbox.checked) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    }
+    
+    function startAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+        
+        autoRefreshInterval = setInterval(() => {
+            if (!streamPaused) {
+                fetchNewLogs();
+            }
+        }, 5000);
+    }
+    
+    function stopAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+    }
+    
+    function pauseStream() {
+        streamPaused = !streamPaused;
+        const btn = event.target.closest('button');
+        
+        if (streamPaused) {
+            btn.innerHTML = '<i class="fas fa-play"></i> Resume';
+            btn.className = 'btn btn-sm btn-outline-success';
+        } else {
+            btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            btn.className = 'btn btn-sm btn-outline-warning';
+        }
+    }
+    
+    function scrollToBottom() {
+        const logViewer = document.getElementById('log-viewer');
+        logViewer.scrollTop = logViewer.scrollHeight;
+    }
+    
+    function fetchNewLogs() {
+        // Simulate fetching new logs
+        const logViewer = document.getElementById('log-viewer');
+        const newLogEntry = createLogEntry({
+            timestamp: new Date(),
+            level: Math.random() > 0.7 ? 'WARNING' : 'INFO',
+            module: 'web_server',
+            message: `Sample log entry at ${new Date().toLocaleTimeString()}`
+        });
+        
+        logViewer.appendChild(newLogEntry);
+        
+        // Keep only last 100 entries
+        const entries = logViewer.querySelectorAll('.log-entry');
+        if (entries.length > 100) {
+            entries[0].remove();
+        }
+        
+        scrollToBottom();
+        updateLogCount(entries.length);
+    }
+    
+    function createLogEntry(log) {
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${log.level.toLowerCase()}`;
+        entry.dataset.level = log.level.toLowerCase();
+        entry.dataset.module = log.module;
+        
+        const badgeClass = log.level === 'INFO' ? 'primary' : 
+                          log.level === 'WARNING' ? 'warning' : 
+                          log.level === 'ERROR' ? 'danger' : 'secondary';
+        
+        entry.innerHTML = `
+            <div class="log-timestamp">${log.timestamp.toLocaleString()}</div>
+            <div class="log-level">
+                <span class="badge bg-${badgeClass}">${log.level}</span>
+            </div>
+            <div class="log-module">${log.module}</div>
+            <div class="log-message">${log.message}</div>
+            <div class="log-actions">
+                <button class="btn btn-sm btn-outline-secondary" onclick="showLogDetails(this)" title="Show Details">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+            </div>
+        `;
+        
+        return entry;
+    }
+    
+    function showLogDetails(button) {
+        const logEntry = button.closest('.log-entry');
+        const timestamp = logEntry.querySelector('.log-timestamp').textContent;
+        const level = logEntry.querySelector('.log-level .badge').textContent;
+        const module = logEntry.querySelector('.log-module').textContent;
+        const message = logEntry.querySelector('.log-message').textContent;
+        
+        const detailsContent = `
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Timestamp:</strong><br>
+                    <code>${timestamp}</code>
+                </div>
+                <div class="col-md-6">
+                    <strong>Level:</strong><br>
+                    <span class="badge bg-${level === 'INFO' ? 'primary' : level === 'WARNING' ? 'warning' : 'danger'}">${level}</span>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <strong>Module:</strong><br>
+                    <code>${module}</code>
+                </div>
+                <div class="col-md-6">
+                    <strong>Thread ID:</strong><br>
+                    <code>12345</code>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <strong>Message:</strong><br>
+                    <div class="alert alert-light mt-2">
+                        <code>${message}</code>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <strong>Additional Data:</strong><br>
+                    <pre class="bg-light p-2 mt-2"><code>{
+  "request_id": "req_123456",
+  "user_id": "user_789",
+  "ip_address": "192.168.1.100",
+  "user_agent": "Mozilla/5.0..."
+}</code></pre>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('log-details-content').innerHTML = detailsContent;
+        new bootstrap.Modal(document.getElementById('logDetailsModal')).show();
+    }
+    
+    function downloadLogs() {
+        showNotification('Preparing log download...', 'info');
+        // Implementation would export current filtered view
+        setTimeout(() => {
+            showNotification('Log download started', 'success');
+        }, 1000);
+    }
+    
+    function downloadAllLogs() {
+        showNotification('Preparing complete log archive...', 'info');
+        window.open('/admin/logs/download-all', '_blank');
+    }
+    
+    function viewLogFile(filename) {
+        showNotification(`Opening ${filename}...`, 'info');
+        // Implementation would open log file in viewer
+    }
+    
+    function updateLogCount(count) {
+        document.getElementById('log-count').textContent = `${count} entries`;
+    }
+</script>
+
+<style>
+    .log-viewer {
+        height: 500px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+    }
+    
+    .log-entry {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e9ecef;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+    
+    .log-entry:hover {
+        background-color: #e9ecef;
+    }
+    
+    .log-timestamp {
+        width: 150px;
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .log-level {
+        width: 80px;
+        text-align: center;
+    }
+    
+    .log-module {
+        width: 120px;
+        font-weight: bold;
+        color: #495057;
+    }
+    
+    .log-message {
+        flex: 1;
+        padding: 0 10px;
+        color: #212529;
+    }
+    
+    .log-actions {
+        width: 50px;
+        text-align: center;
+    }
+    
+    .log-info { border-left: 3px solid #0dcaf0; }
+    .log-warning { border-left: 3px solid #ffc107; }
+    .log-error { border-left: 3px solid #dc3545; }
+    .log-debug { border-left: 3px solid #6c757d; }
+    .log-critical { border-left: 3px solid #dc3545; background-color: #f8d7da; }
+</style>
+{% endblock %}

@@ -1,0 +1,80 @@
+{
+  "name": "file_manager",
+  "version": "1.0.0",
+  "description": "Advanced file management with bulk operations, preview, compression, and cloud sync",
+  "author": "PlexiChat Team",
+  "type": "utility",
+  "enabled": true,
+  "priority": 5,
+  "dependencies": [],
+  "permissions": [
+    "file_system_access",
+    "network_access",
+    "webui_access",
+    "gui_access"
+  ],
+  "capabilities": [
+    "file_operations",
+    "bulk_operations",
+    "file_preview",
+    "compression",
+    "cloud_sync",
+    "search",
+    "metadata_extraction"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "max_file_size": {
+      "type": "integer",
+      "default": 104857600,
+      "description": "Maximum file size for operations (100MB)"
+    },
+    "preview_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable file preview functionality"
+    },
+    "compression_level": {
+      "type": "integer",
+      "default": 6,
+      "description": "Default compression level (1-9)"
+    },
+    "cloud_providers": {
+      "type": "object",
+      "default": {
+        "enabled": false,
+        "providers": []
+      },
+      "description": "Cloud storage provider configuration"
+    },
+    "auto_backup": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable automatic backup of important files"
+    }
+  },
+  "webui": {
+    "enabled": true,
+    "routes": [
+      {
+        "path": "/file-manager",
+        "component": "FileManagerPanel",
+        "title": "File Manager",
+        "icon": "folder"
+      }
+    ]
+  },
+  "self_tests": [
+    "test_file_operations",
+    "test_compression",
+    "test_preview",
+    "test_search",
+    "test_metadata"
+  ],
+  "requirements": [
+    "aiofiles>=0.8.0",
+    "pillow>=9.0.0",
+    "python-magic>=0.4.24",
+    "zipfile38>=0.0.3"
+  ]
+}
