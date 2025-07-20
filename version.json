@@ -1,0 +1,40 @@
+{
+  "current_version": "a.1.1-31",
+  "version_type": "alpha",
+  "major_version": 1,
+  "minor_version": 1,
+  "build_number": 31,
+  "release_date": "2025-07-20",
+  "api_version": "v1",
+  "compatibility": {
+    "min_client_version": "a.1.0-0",
+    "max_client_version": "a.2.0-999"
+  },
+  "features": {
+    "file_attachments": true,
+    "ai_integration": true,
+    "security_scanning": true,
+    "backup_system": true,
+    "real_time_messaging": true,
+    "plugin_system": true,
+    "colorized_logging": true,
+    "refresh_system": true
+  },
+  "changelog": {
+    "a.1.1-31": {
+      "date": "2025-07-20",
+      "type": "fix",
+      "changes": [
+        "Fixed syntax errors in exceptions.py, unified_auth.py, audit_manager.py, biometric_manager.py, device_manager.py, and ai_features_routes.py",
+        "Implemented colorized logging with ColoredFormatter for better log visibility",
+        "Fixed function definition syntax errors (missing opening parentheses)",
+        "Fixed HTTPException calls with proper parameter formatting",
+        "Fixed FastAPI app initialization and CORS middleware setup",
+        "All CLI commands (gui, webui, api, test, clean, version, deps, system, wizard) now work properly",
+        "Enhanced logging with color-coded levels: DEBUG (cyan), INFO (green), WARNING (yellow), ERROR (red), CRITICAL (red+bold)",
+        "Improved error handling and logging throughout the application",
+        "Added refresh command to update system for redownloading and verifying current version"
+      ]
+    }
+  }
+}

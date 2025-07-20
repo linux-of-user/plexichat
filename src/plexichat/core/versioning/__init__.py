@@ -6,38 +6,11 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from .changelog_manager import ()
-from typing import Optional
-import logging
-import string
+"""
+PlexiChat Versioning System
 
-
-    Advanced,
-    New,
-    PlexiChat,
-    System,
-    Version,
-    Versioning,
-    """,
-    -,
-    .update_system,
-    .version_manager,
-    a.1.1-1,
-    b.1.2-1,
-    comprehensive,
-    e.g.,
-    format:,
-    from,
-    import,
-    letter.major.minor-build,
-    logging,
-    management:,
-    r.1.0-1,
-    scheme,
-    update,
-    versioning,
-    with,
-)
+Advanced versioning management with comprehensive update scheme.
+New format: letter.major.minor-build (e.g., a.1.1-1, b.1.2-1, r.1.0-1)
 
 - Types: 'a' (alpha), 'b' (beta), 'r' (release)
 - In-place upgrades and downgrades
@@ -58,25 +31,60 @@ Features:
 - Backup and rollback system
 """
 
-    ChangeEntry,
-    ChangelogManager,
-    ChangeType,
-    VersionChangelog,
-    changelog_manager,
-    UpdatePlan,
-    UpdateResult,
-    UpdateStatus,
-    UpdateSystem,
-    UpdateType,
-    update_system,
-)
-    Version,
-    VersionInfo,
-    VersionManager,
-    VersionStatus,
-    VersionType,
-    version_manager,
-)
+from typing import Optional
+import logging
+
+try:
+    from .changelog_manager import (
+        ChangeEntry,
+        ChangelogManager,
+        ChangeType,
+        VersionChangelog,
+        changelog_manager,
+    )
+except ImportError:
+    # Fallback for missing changelog manager
+    ChangeEntry = None
+    ChangelogManager = None
+    ChangeType = None
+    VersionChangelog = None
+    changelog_manager = None
+
+try:
+    from .update_system import (
+        UpdatePlan,
+        UpdateResult,
+        UpdateStatus,
+        UpdateSystem,
+        UpdateType,
+        update_system,
+    )
+except ImportError:
+    # Fallback for missing update system
+    UpdatePlan = None
+    UpdateResult = None
+    UpdateStatus = None
+    UpdateSystem = None
+    UpdateType = None
+    update_system = None
+
+try:
+    from .version_manager import (
+        Version,
+        VersionInfo,
+        VersionManager,
+        VersionStatus,
+        VersionType,
+        version_manager,
+    )
+except ImportError:
+    # Fallback for missing version manager
+    Version = None
+    VersionInfo = None
+    VersionManager = None
+    VersionStatus = None
+    VersionType = None
+    version_manager = None
 
 __version__ = "1.0.0"
 __all__ = [

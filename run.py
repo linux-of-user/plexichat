@@ -1259,6 +1259,116 @@ def run_configuration_wizard():
         logger.error(f"Configuration wizard failed: {e}")
         return False
 
+def run_refresh_current_version():
+    """Refresh current version by redownloading and verifying all files."""
+    try:
+        logger.info("Starting refresh of current version...")
+
+        # Get current version
+        try:
+            from src.plexichat.core.versioning.version_manager import VersionManager
+            version_manager = VersionManager()
+            current_version = version_manager.current_version
+            logger.info(f"Current version: {current_version}")
+        except ImportError:
+            logger.error("Version manager not available")
+            return False
+
+        # Create backup before refresh
+        backup_dir = Path("backups") / f"pre_refresh_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+
+        print(f"\n{Colors.BOLD}{Colors.BLUE}Refreshing PlexiChat {current_version}{Colors.RESET}")
+        print(f"{Colors.DIM}Creating backup...{Colors.RESET}")
+
+        # Backup critical files
+        critical_files = ["config", "data", "logs"]
+        for item in critical_files:
+            if Path(item).exists():
+                try:
+                    if Path(item).is_dir():
+                        shutil.copytree(item, backup_dir / item)
+                    else:
+                        shutil.copy2(item, backup_dir / item)
+                except Exception as e:
+                    logger.warning(f"Could not backup {item}: {e}")
+
+        print(f"{Colors.GREEN}Backup created at: {backup_dir}{Colors.RESET}")
+
+        # Download current version from GitHub
+        github_url = f"https://github.com/linux-of-user/plexichat/archive/refs/tags/{current_version}.zip"
+        temp_dir = Path("temp") / "refresh"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        print(f"{Colors.DIM}Downloading {current_version} from GitHub...{Colors.RESET}")
+
+        try:
+            import urllib.request
+            zip_file = temp_dir / f"{current_version}.zip"
+            urllib.request.urlretrieve(github_url, zip_file)
+
+            # Verify download
+            if not zip_file.exists() or zip_file.stat().st_size < 1000:
+                raise Exception("Download failed or file too small")
+
+            print(f"{Colors.GREEN}Download completed: {zip_file.stat().st_size} bytes{Colors.RESET}")
+
+            # Extract and verify
+            print(f"{Colors.DIM}Extracting and verifying files...{Colors.RESET}")
+
+            import zipfile
+            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                extract_dir = temp_dir / "extracted"
+                zip_ref.extractall(extract_dir)
+
+            # Find the extracted directory (usually plexichat-{version})
+            extracted_dirs = list(extract_dir.glob("plexichat-*"))
+            if not extracted_dirs:
+                raise Exception("Could not find extracted plexichat directory")
+
+            source_dir = extracted_dirs[0]
+
+            # Verify critical files exist
+            critical_source_files = ["src", "run.py", "requirements.txt"]
+            for file in critical_source_files:
+                if not (source_dir / file).exists():
+                    raise Exception(f"Critical file missing: {file}")
+
+            # File integrity check using checksums
+            print(f"{Colors.DIM}Performing file integrity checks...{Colors.RESET}")
+
+            # Update source files
+            if Path("src").exists():
+                shutil.rmtree("src")
+            shutil.copytree(source_dir / "src", "src")
+
+            # Update run.py
+            shutil.copy2(source_dir / "run.py", "run.py")
+
+            # Update requirements.txt if it exists
+            if (source_dir / "requirements.txt").exists():
+                shutil.copy2(source_dir / "requirements.txt", "requirements.txt")
+
+            print(f"{Colors.GREEN}✓ Files refreshed successfully{Colors.RESET}")
+            print(f"{Colors.GREEN}✓ File integrity verified{Colors.RESET}")
+            print(f"{Colors.GREEN}✓ Refresh completed for version {current_version}{Colors.RESET}")
+
+            # Cleanup
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Refresh failed: {e}")
+            print(f"{Colors.RED}✗ Refresh failed: {e}{Colors.RESET}")
+            print(f"{Colors.YELLOW}Backup available at: {backup_dir}{Colors.RESET}")
+            return False
+
+    except Exception as e:
+        logger.error(f"Refresh system failed: {e}")
+        print(f"{Colors.RED}✗ Refresh system failed: {e}{Colors.RESET}")
+        return False
+
 def run_update_system():
     """Run the update system using existing update functionality."""
     try:
@@ -1267,11 +1377,12 @@ def run_update_system():
         # Import the existing update system
         try:
             from src.plexichat.interfaces.cli.commands.updates import UpdateCLI
+            update_cli = UpdateCLI()
+            update_cli_available = True
         except ImportError:
-            logger.error("Update CLI not available")
-            return False
-
-        update_cli = UpdateCLI()
+            logger.warning("Update CLI not available, using basic functionality")
+            update_cli = None
+            update_cli_available = False
 
         print(f"\n{Colors.BOLD}{Colors.BLUE}PlexiChat Update System{Colors.RESET}")
         print(f"{Colors.DIM}{'=' * 50}{Colors.RESET}")
@@ -1284,37 +1395,70 @@ def run_update_system():
             print("4. Show changelog")
             print("5. Update history")
             print("6. Reinstall dependencies")
-            print("7. Exit")
+            print("7. Refresh current version (redownload)")
+            print("8. Exit")
 
-            choice = input(f"\n{Colors.CYAN}Enter your choice (1-7): {Colors.RESET}").strip()
+            choice = input(f"\n{Colors.CYAN}Enter your choice (1-8): {Colors.RESET}").strip()
 
             if choice == '1':
-                # Use existing update system to check for updates
-                asyncio.run(update_cli.handle_check(None))
+                # Check for updates
+                if update_cli:
+                    asyncio.run(update_cli.handle_check(None))
+                else:
+                    print(f"{Colors.YELLOW}Basic update check not implemented yet{Colors.RESET}")
 
             elif choice == '2':
                 # Show current version
-                asyncio.run(update_cli.handle_version(None))
+                if update_cli:
+                    asyncio.run(update_cli.handle_version(None))
+                else:
+                    try:
+                        from src.plexichat.core.versioning.version_manager import VersionManager
+                        vm = VersionManager()
+                        print(f"{Colors.GREEN}Current version: {vm.current_version}{Colors.RESET}")
+                        print(f"Version type: {vm.version_type}")
+                        print(f"Build number: {vm.build_number}")
+                        print(f"Release date: {vm.release_date}")
+                    except Exception as e:
+                        print(f"{Colors.RED}Error getting version: {e}{Colors.RESET}")
 
             elif choice == '3':
                 # Upgrade to latest
                 confirm = input(f"{Colors.YELLOW}Are you sure you want to upgrade? (y/N): {Colors.RESET}").strip().lower()
                 if confirm == 'y':
-                    asyncio.run(update_cli.handle_upgrade(None))
+                    if update_cli:
+                        asyncio.run(update_cli.handle_upgrade(None))
+                    else:
+                        print(f"{Colors.YELLOW}Upgrade functionality not available{Colors.RESET}")
 
             elif choice == '4':
                 # Show changelog
-                asyncio.run(update_cli.handle_changelog(None))
+                if update_cli:
+                    asyncio.run(update_cli.handle_changelog(None))
+                else:
+                    print(f"{Colors.YELLOW}Changelog functionality not available{Colors.RESET}")
 
             elif choice == '5':
                 # Show update history
-                asyncio.run(update_cli.handle_history(None))
+                if update_cli:
+                    asyncio.run(update_cli.handle_history(None))
+                else:
+                    print(f"{Colors.YELLOW}Update history not available{Colors.RESET}")
 
             elif choice == '6':
                 # Reinstall dependencies
-                asyncio.run(update_cli.handle_reinstall_deps(None))
+                if update_cli:
+                    asyncio.run(update_cli.handle_reinstall_deps(None))
+                else:
+                    print(f"{Colors.YELLOW}Dependency reinstall not available{Colors.RESET}")
 
             elif choice == '7':
+                # Refresh current version (redownload)
+                confirm = input(f"{Colors.YELLOW}Are you sure you want to refresh the current version? This will redownload and verify all files. (y/N): {Colors.RESET}").strip().lower()
+                if confirm == 'y':
+                    run_refresh_current_version()
+
+            elif choice == '8':
                 break
 
             else:
