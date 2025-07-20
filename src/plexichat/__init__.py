@@ -16,9 +16,22 @@ Uses EXISTING database abstraction and optimization systems.
 import logging
 import sys
 from typing import Any, Dict, Optional
+import json
+from pathlib import Path
 
 # Version information
-__version__ = "1.0.0"
+def get_version_from_json():
+    version_file = Path(__file__).parent.parent / "version.json"
+    if version_file.exists():
+        try:
+            with open(version_file, 'r', encoding='utf-8') as f:
+                version_data = json.load(f)
+                return version_data.get("version", "unknown")
+        except Exception:
+            pass
+    return "unknown"
+
+__version__ = get_version_from_json()
 __author__ = "PlexiChat Team"
 __description__ = "Enhanced chat application with comprehensive features"
 

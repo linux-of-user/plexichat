@@ -155,6 +155,9 @@ def load_config():
 # Load configuration
 config = load_config()
 
+# Load version info at module level for reuse
+version_info = load_version_from_json()
+
 # Feature imports with proper error handling
 try:
     from plexichat.features.ai.core.ai_abstraction_layer_simple import AIAbstractionLayer
@@ -889,7 +892,7 @@ def create_app() -> FastAPI:
 
         health_status = {
             "status": "healthy",
-            "version": config.get('system', {}).get('version', 'a.1.1-14'),
+            "version": version_info.get('version', 'unknown'),
             "timestamp": datetime.now().isoformat(),
             "services": {
                 "api": "running",
@@ -913,13 +916,13 @@ def create_app() -> FastAPI:
             logger.error(f"Failed to get version info: {e}")
             # Use centralized version from config
             return {
-                "version": config.get('system', {}).get('version', 'a.1.1-14'),
-                "version_type": config.get('system', {}).get('version_type', 'alpha'),
-                "major_version": config.get('system', {}).get('major_version', 1),
-                "minor_version": config.get('system', {}).get('minor_version', 1),
-                "build_number": config.get('system', {}).get('build_number', 14),
-                "api_version": config.get('system', {}).get('api_version', 'v1'),
-                "release_date": config.get('system', {}).get('release_date', datetime.now().strftime("%Y-%m-%d"))
+                "version": version_info.get('version', 'unknown'),
+                "version_type": version_info.get('version_type', 'alpha'),
+                "major_version": version_info.get('major_version', 1),
+                "minor_version": version_info.get('minor_version', 1),
+                "build_number": version_info.get('build_number', 0),
+                "api_version": version_info.get('api_version', 'v1'),
+                "release_date": version_info.get('release_date', datetime.now().strftime("%Y-%m-%d"))
             }
 
     # File upload endpoint
