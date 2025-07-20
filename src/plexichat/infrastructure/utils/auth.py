@@ -81,29 +81,18 @@ class AuthenticationUtilities:
             if self.performance_logger:
                 self.performance_logger.record_metric("failed_token_validations", 1, "count")
 
-            raise HTTPException()
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})
 
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error validating token: {e}")
-            raise HTTPException()
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication error",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication error", headers={"WWW-Authenticate": "Bearer"})
 
     async def get_current_active_user(self, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user)) -> Dict[str, Any]:
         """Get current active user."""
         if not current_user.get("is_active", False):
-            raise HTTPException()
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Inactive user"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
         return current_user
 
     async def require_admin(self, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user)) -> Dict[str, Any]:
@@ -116,10 +105,7 @@ class AuthenticationUtilities:
             if self.performance_logger:
                 self.performance_logger.record_metric("unauthorized_admin_attempts", 1, "count")
 
-            raise HTTPException()
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Admin privileges required"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required")
 
         # Performance tracking
         if self.performance_logger:
@@ -130,10 +116,7 @@ class AuthenticationUtilities:
     async def require_user_or_admin(self, user_id: int, current_user: Dict[str, Any] = Depends(lambda: auth_utils.get_current_user)) -> Dict[str, Any]:
         """Require user to be the owner or admin."""
         if current_user.get("id") != user_id and not current_user.get("is_admin", False):
-            raise HTTPException()
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
         return current_user
 
     @async_track_performance("api_key_validation") if async_track_performance else lambda f: f
@@ -320,10 +303,7 @@ def rate_limit(action: str, limit: int, window: int = 60):
                 if user_id:
                     allowed = await rate_limit_checker.check_rate_limit(user_id, action, limit, window)
                     if not allowed:
-                        raise HTTPException()
-                            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                            detail=f"Rate limit exceeded for {action}"
-                        )
+                        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=f"Rate limit exceeded for {action}")
 
             return await func(*args, **kwargs)
         return wrapper

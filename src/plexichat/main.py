@@ -261,7 +261,7 @@ async def initialize_core_services():
         # Initialize configuration manager
         if config_manager:
             logger.info("Loading configuration...")
-            config_manager.load_config()
+            config_manager.reload_configuration()
 
         # Initialize threading system
         if thread_manager:
@@ -281,7 +281,8 @@ async def initialize_core_services():
         # Initialize monitoring
         if system_monitor:
             logger.info("Starting system monitoring...")
-            await start_monitoring()
+            if start_monitoring:
+                await start_monitoring()
 
         # Initialize task scheduler
         if task_scheduler:
@@ -471,7 +472,7 @@ async def initialize_ssl():
                 if SSL_CONFIG["use_letsencrypt"] and SSL_CONFIG["email"]:
                     if ssl_manager and hasattr(ssl_manager, 'setup_automatic_https'):
                         try:
-                            result = ssl_manager.setup_automatic_https()
+                            result = ssl_manager.setup_automatic_https(
                                 domain=SSL_CONFIG["domain"],
                                 email=SSL_CONFIG["email"],
                                 domain_type="custom"
@@ -484,7 +485,7 @@ async def initialize_ssl():
                     # Use self-signed certificate
                     if ssl_manager and hasattr(ssl_manager, 'setup_automatic_https'):
                         try:
-                            result = ssl_manager.setup_automatic_https()
+                            result = ssl_manager.setup_automatic_https(
                                 domain=SSL_CONFIG["domain"],
                                 domain_type="localhost"
                             )
@@ -609,10 +610,7 @@ def validate_file_upload(file: UploadFile) -> bool:
     file.file.seek(0)  # Reset to beginning
 
     if file_size > MAX_FILE_SIZE:
-        raise HTTPException()
-            status_code=413,
-            detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
-        )
+        raise HTTPException(status_code=413, detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB")
 
     # Check file type (basic validation)
     allowed_types = [
@@ -625,10 +623,7 @@ def validate_file_upload(file: UploadFile) -> bool:
     if file.content_type:
         is_allowed = any(file.content_type.startswith(t) for t in allowed_types)
         if not is_allowed:
-            raise HTTPException()
-                status_code=400,
-                detail=f"File type {file.content_type} not allowed"
-            )
+            raise HTTPException(status_code=400, detail=f"File type {file.content_type} not allowed")
 
     return True
 
@@ -765,31 +760,19 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """Create and configure the PlexiChat application."""
     logger.info("Creating PlexiChat FastAPI application...")
-
     logger.info(f"Configuration loaded: {config.get('system', {}).get('name', 'PlexiChat')} v{config.get('system', {}).get('version', 'a.1.1-12')}")
 
     # Create FastAPI app with lifespan
-    app = FastAPI()
+    app = FastAPI(
         title=APP_NAME,
         version=APP_VERSION,
         description="Advanced Chat Application with AI Integration",
         lifespan=lifespan
     )
-
-    # Create FastAPI app
-    app = FastAPI()
-        title=f"PlexiChat {config.get('system', {}).get('version', 'a.1.1-14')}",
-        version=config.get('system', {}).get('version', 'a.1.1-14'),
-        description="Government-Level Secure Communication Platform",
-        debug=config.get('system', {}).get('debug', False),
-        docs_url="/docs" if config.get('system', {}).get('debug', False) else None,
-        redoc_url="/redoc" if config.get('system', {}).get('debug', False) else None,
-        lifespan=lifespan
-    )
     logger.info("FastAPI application created")
 
     # Add CORS middleware
-    app.add_middleware()
+    app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"] if config.get('system', {}).get('debug', False) else [],
         allow_credentials=True,
@@ -806,7 +789,7 @@ def create_app() -> FastAPI:
 
             # Redirect to HTTPS
             https_url = request.url.replace(scheme="https", port=SSL_CONFIG["port"])
-            return JSONResponse()
+            return JSONResponse(
                 status_code=301,
                 headers={"Location": str(https_url)},
                 content={"message": "Redirecting to HTTPS", "location": str(https_url)}
@@ -1003,7 +986,7 @@ def create_app() -> FastAPI:
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail="File not found")
 
-            return FileResponse()
+            return FileResponse(
                 path=str(file_path),
                 filename=file_metadata['original_filename'],
                 media_type=file_metadata['mime_type']
@@ -1052,7 +1035,7 @@ def create_app() -> FastAPI:
                 for file_id in attachments:
                     if file_id in uploaded_files:
                         file_meta = uploaded_files[file_id]
-                        attachment_models.append(FileUpload())
+                        attachment_models.append(FileUpload(
                             filename=file_meta['original_filename'],
                             size=file_meta['size'],
                             mime_type=file_meta['mime_type'],
@@ -1061,7 +1044,7 @@ def create_app() -> FastAPI:
                             status="attached"
                         ))
 
-            return MessageResponse()
+            return MessageResponse(
                 id=message_id,
                 content=content,
                 author="user",
@@ -1137,7 +1120,7 @@ def create_app() -> FastAPI:
                     for file_id in message['attachments']:
                         if file_id in uploaded_files:
                             file_meta = uploaded_files[file_id]
-                            attachment_models.append(FileUpload())
+                            attachment_models.append(FileUpload(
                                 filename=file_meta['original_filename'],
                                 size=file_meta['size'],
                                 mime_type=file_meta['mime_type'],
@@ -1146,7 +1129,7 @@ def create_app() -> FastAPI:
                                 status="attached"
                             ))
 
-                result.append(MessageResponse())
+                result.append(MessageResponse(
                     id=message['id'],
                     content=message['content'],
                     author=message['author'],
@@ -1188,7 +1171,7 @@ def create_app() -> FastAPI:
             # Basic security checks
             if file.content_type and file.content_type.startswith('application/octet-stream'):
                 scan_result["safe"] = False
-                scan_result["threats"].append({)
+                scan_result["threats"].append({
                     "type": "suspicious_file_type",
                     "description": "File type may be dangerous",
                     "severity": "medium"
@@ -1205,7 +1188,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
-        return JSONResponse()
+        return JSONResponse(
             status_code=exc.status_code,
             content={
                 "error": {
@@ -1225,8 +1208,7 @@ def create_app() -> FastAPI:
 app = create_app()
 
 if __name__ == "__main__":
-
-    uvicorn.run()
+    uvicorn.run(
         "src.plexichat.main:app",
         host=config.get('network', {}).get('host', '0.0.0.0'),
         port=config.get('network', {}).get('port', 8000),

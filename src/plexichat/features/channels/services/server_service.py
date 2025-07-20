@@ -260,7 +260,7 @@ class ServerService:
             logger.error(f"Failed to get server members for {server_id}: {e}")
             raise
 
-    async def kick_member()
+    async def kick_member(
         self, server_id: str, user_id: str, target_user_id: str
     ) -> bool:
         """
@@ -300,7 +300,7 @@ class ServerService:
     async def _can_user_view_server(self, server_id: str, user_id: str) -> bool:
         """Check if user can view server."""
         # User can view if they are a member or owner
-        return await self.server_repository.is_member()
+        return await self.server_repository.is_member(
             server_id, user_id
         ) or await self.server_repository.is_owner(server_id, user_id)
 

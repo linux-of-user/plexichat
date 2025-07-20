@@ -385,7 +385,7 @@ class Phase2ScalabilityCoordinator:
         self.stats["scaling_events_count"] += 1
         self.stats["last_scaling_event"] = datetime.now(timezone.utc)
 
-    async def submit_background_task()
+    async def submit_background_task(
         self, task_type: str, payload: Dict[str, Any], priority: str = "normal"
     ) -> str:
         """Submit a background task to the queue system."""
@@ -397,7 +397,7 @@ class Phase2ScalabilityCoordinator:
             "background": TaskPriority.BACKGROUND,
         }
 
-        return await self.task_queue_manager.submit_task()
+        return await self.task_queue_manager.submit_task(
             task_type=task_type,
             payload=payload,
             priority=priority_map.get(priority, TaskPriority.NORMAL),

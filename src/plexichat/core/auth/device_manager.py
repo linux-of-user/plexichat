@@ -25,7 +25,7 @@ class DeviceManager:
         self.initialized = True
         logger.info(" Device Manager initialized")
 
-    async def is_device_trusted()
+    async def is_device_trusted(
         self, user_id: str, device_info: Dict[str, Any]
     ) -> bool:
         """Check if device is trusted."""

@@ -112,7 +112,7 @@ def api_suggest_content():
             user_id=user_id,
             max_suggestions=max_suggestions
         ))
-        return jsonify({)
+        return jsonify({
             'success': True,
             'suggestions': [
                 {
@@ -213,7 +213,7 @@ def api_moderate_content():
         user_id = data.get('user_id', 'admin')
         metadata = data.get('metadata')
         service = get_ai_features_service()
-        result = asyncio.run(service.moderate_content())
+        result = asyncio.run(service.moderate_content(
             content=content,
             content_id=content_id,
             user_id=user_id,

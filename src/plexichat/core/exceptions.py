@@ -197,7 +197,7 @@ class SecurityError(PlexiChatException):
         """Log security event."""
         try:
             from plexichat.core.logging import log_security_event
-            log_security_event()
+            log_security_event(
                 event_type=self.threat_type or "security_exception",
                 severity=self.severity,
                 details=self.to_dict()
@@ -243,7 +243,7 @@ class ExceptionHandler:
         self.exception_counts: Dict[str, int] = {}
         self.last_reset = datetime.now()
 
-    def handle_exception():
+    def handle_exception(
         self,
         exception: Exception,
         context: Optional[Dict[str, Any]] = None
@@ -274,7 +274,7 @@ class ExceptionHandler:
                 "timestamp": datetime.now().isoformat()
             }
 
-    def _handle_plexichat_exception():
+    def _handle_plexichat_exception(
         self,
         exception: PlexiChatException,
         context: Optional[Dict[str, Any]]
@@ -286,13 +286,13 @@ class ExceptionHandler:
             error_response["context"] = context
 
         # Add exception count
-        error_response["occurrence_count"] = self.exception_counts.get()
+        error_response["occurrence_count"] = self.exception_counts.get(
             type(exception).__name__, 1
         )
 
         return error_response
 
-    def _handle_standard_exception():
+    def _handle_standard_exception(
         self,
         exception: Exception,
         context: Optional[Dict[str, Any]]
@@ -331,7 +331,7 @@ class ExceptionHandler:
 exception_handler = ExceptionHandler()
 
 # Convenience functions
-def handle_exception():
+def handle_exception(
     exception: Exception,
     context: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:

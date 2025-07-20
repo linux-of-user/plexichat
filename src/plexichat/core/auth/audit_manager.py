@@ -25,7 +25,7 @@ class AuthAuditManager:
         self.initialized = True
         logger.info(" Auth Audit Manager initialized")
 
-    async def log_auth_attempt()
+    async def log_auth_attempt(
         self,
         audit_id: str,
         username: str,
@@ -35,9 +35,10 @@ class AuthAuditManager:
         device_info: Dict[str, Any],
     ):
         """Log authentication attempt."""
+        logger.info(f"Auth attempt | audit_id={audit_id} | username={username} | ip={ip_address} | method={auth_method}")
         pass  # Mock implementation
 
-    async def log_auth_success()
+    async def log_auth_success(
         self,
         audit_id: str,
         user_id: str,
@@ -49,12 +50,14 @@ class AuthAuditManager:
         duration: float,
     ):
         """Log successful authentication."""
+        logger.info(f"Auth success | audit_id={audit_id} | user_id={user_id} | session_id={session_id} | level={security_level} | mfa={mfa_used} | trusted={device_trusted} | risk={risk_score} | duration={duration}")
         pass  # Mock implementation
 
-    async def log_auth_error()
+    async def log_auth_error(
         self, audit_id: str, username: str, error: str, duration: float
     ):
         """Log authentication error."""
+        logger.error(f"Auth error | audit_id={audit_id} | username={username} | error={error} | duration={duration}")
         pass  # Mock implementation
 
     async def shutdown(self):

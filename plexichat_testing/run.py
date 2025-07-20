@@ -53,8 +53,6 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple, Union
 import hashlib
 import re
-import atexit
-from concurrent.futures import ThreadPoolExecutor
 
 # Constants and Configuration
 PLEXICHAT_VERSION = "a.1.1-21"
@@ -97,66 +95,13 @@ class Colors:
     BG_CYAN = '\033[46m'
     BG_WHITE = '\033[47m'
 
-class ColoredFormatter(logging.Formatter):
-    """Custom formatter with colors for different log levels."""
-
-    COLORS = {
-        'DEBUG': Colors.CYAN,
-        'INFO': Colors.GREEN,
-        'WARNING': Colors.YELLOW,
-        'ERROR': Colors.RED,
-        'CRITICAL': Colors.RED + Colors.BG_WHITE + Colors.BOLD,
-    }
-
-    def format(self, record):
-        # Get the original formatted message
-        original_format = super().format(record)
-
-        # Add color based on log level
-        color = self.COLORS.get(record.levelname, Colors.WHITE)
-
-        # Format with colors and add timestamp highlighting
-        timestamp_color = Colors.DIM + Colors.CYAN
-        level_color = color + Colors.BOLD
-        message_color = color
-
-        # Split the original format to colorize parts
-        parts = original_format.split(' - ', 3)
-        if len(parts) >= 4:
-            timestamp, name, level, message = parts
-            colored_message = f"{timestamp_color}{timestamp}{Colors.RESET} - {Colors.BLUE}{name}{Colors.RESET} - {level_color}{level}{Colors.RESET} - {message_color}{message}{Colors.RESET}"
-        else:
-            colored_message = f"{color}{original_format}{Colors.RESET}"
-
-        return colored_message
-
-def setup_colored_logging():
-    """Setup colorized logging for better visibility."""
-    # Create colored formatter
-    formatter = ColoredFormatter(
-        fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-
-    # Setup console handler with colors
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
-
-    # Configure root logger
-    root_logger = logging.getLogger()
-    root_logger.handlers.clear()  # Remove existing handlers
-    root_logger.addHandler(console_handler)
-    root_logger.setLevel(logging.INFO)
-
-    return root_logger
-
 # Add src to path for imports
 src_path = str(Path(__file__).parent / "src")
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
-# Initialize colorized logging
-logger = setup_colored_logging()
+# Initialize basic logging first (will be overridden by unified logging)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Try to import and initialize unified logging system
@@ -1730,126 +1675,278 @@ def handle_github_commands(command: str, args: List[str], target_dir: str):
             print(f"{Colors.RED}Please specify a version tag to download{Colors.RESET}")
             print(f"Example: python run.py download v1.2.0")
 
-# Process lock logic (cross-platform, adapted from __main__.py)
-try:
-    import fcntl
-    HAS_FCNTL = True
-except ImportError:
-    try:
-        import msvcrt
-        HAS_MSVCRT = True
-        HAS_FCNTL = False
-    except ImportError:
-        HAS_FCNTL = False
-        HAS_MSVCRT = False
-
-PROCESS_LOCK_FILE = "plexichat.lock"
-_lock_file = None
-_thread_pool = None
 
 
-def acquire_process_lock():
-    global _lock_file
-    lock_path = Path(PROCESS_LOCK_FILE)
-    try:
-        if HAS_FCNTL:
-            _lock_file = os.open(str(lock_path), os.O_CREAT | os.O_WRONLY | os.O_TRUNC)
-            fcntl.flock(_lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            os.write(_lock_file, f"{os.getpid()}\n".encode())
-            os.fsync(_lock_file)
-            logger.info(f"Process lock acquired (PID: {os.getpid()})")
-            return True
-        elif HAS_MSVCRT:
-            _lock_file = os.open(str(lock_path), os.O_CREAT | os.O_WRONLY | os.O_TRUNC)
-            msvcrt.locking(_lock_file, msvcrt.LK_NBLCK, 1)
-            os.write(_lock_file, f"{os.getpid()}\n".encode())
-            os.fsync(_lock_file)
-            logger.info(f"Process lock acquired (PID: {os.getpid()})")
-            return True
-        else:
-            if lock_path.exists():
-                with open(lock_path, 'r') as f:
-                    pid = int(f.read().strip())
-                try:
-                    if sys.platform == "win32":
-                        import subprocess
-                        result = subprocess.run(['tasklist', '/FI', f'PID eq {pid}'], capture_output=True, text=True)
-                        if str(pid) in result.stdout:
-                            logger.error(f"Another PlexiChat instance is already running (PID: {pid})")
-                            return False
-                    else:
-                        os.kill(pid, 0)
-                        logger.error(f"Another PlexiChat instance is already running (PID: {pid})")
-                        return False
-                except Exception:
-                    lock_path.unlink(missing_ok=True)
-            with open(lock_path, 'w') as f:
-                f.write(f"{os.getpid()}\n")
-            logger.info(f"Process lock acquired (PID: {os.getpid()})")
-            return True
-    except Exception as e:
-        logger.error(f"Failed to acquire process lock: {e}")
-        return False
-
-def release_process_lock():
-    global _lock_file
-    lock_path = Path(PROCESS_LOCK_FILE)
-    try:
-        if _lock_file:
-            if HAS_FCNTL:
-                import fcntl
-                fcntl.flock(_lock_file, fcntl.LOCK_UN)
-                os.close(_lock_file)
-            elif HAS_MSVCRT:
-                import msvcrt
-                msvcrt.locking(_lock_file, msvcrt.LK_UNLCK, 1)
-                os.close(_lock_file)
-            _lock_file = None
-        if lock_path.exists():
-            lock_path.unlink(missing_ok=True)
-        logger.info("Process lock released")
-    except Exception as e:
-        logger.warning(f"Failed to release process lock: {e}")
-
-atexit.register(release_process_lock)
-
-# Kill old PlexiChat processes (if any)
-def kill_old_plexichat_processes():
-    try:
-        import psutil
-        current_pid = os.getpid()
-        killed = 0
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+def main():
+    # --- BOOTSTRAP LOGIC: Download codebase if missing ---
+    import sys, os
+    from pathlib import Path
+    import shutil
+    import zipfile
+    import tarfile
+    import urllib.request
+    import json
+    import platform
+    def bootstrap_log(msg):
+        print(f"[BOOTSTRAP] {msg}")
+    # Parse --bootstrap-version argument early
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--bootstrap-version', type=str, default=None, help='Specify a version/tag to bootstrap (e.g., a.1.1-23)')
+    parser.add_argument('--list-versions', action='store_true', help='List available tags/releases for bootstrapping')
+    args, _ = parser.parse_known_args()
+    src_dir = Path(__file__).parent / 'src' / 'plexichat'
+    GITHUB_REPO = "linux-of-user/plexichat"
+    GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}"
+    GITHUB_TAGS_URL = f"{GITHUB_API_URL}/tags"
+    GITHUB_RELEASES_URL = f"{GITHUB_API_URL}/releases"
+    GITHUB_LATEST_URL = f"{GITHUB_RELEASES_URL}/latest"
+    GITHUB_DOWNLOAD_URL = f"https://github.com/{GITHUB_REPO}/archive"
+    target_dir = Path(__file__).parent
+    # List available tags/releases if requested
+    if args.list_versions:
+        try:
+            with urllib.request.urlopen(GITHUB_TAGS_URL) as response:
+                tags = json.loads(response.read().decode())
+            print("Available tags:")
+            for tag in tags:
+                print(f"- {tag['name']}")
+        except Exception as e:
+            print(f"Error fetching tags: {e}")
+        sys.exit(0)
+    # Warn if bootstrapping an alpha/pre-release version
+    if args.bootstrap_version and ("alpha" in args.bootstrap_version or "a." in args.bootstrap_version or "beta" in args.bootstrap_version):
+        print(f"[BOOTSTRAP] WARNING: You are bootstrapping an alpha/pre-release version: {args.bootstrap_version}")
+    if not src_dir.exists():
+        bootstrap_log('plexichat source not found, attempting to download codebase from GitHub...')
+        tried = []
+        success = False
+        extracted = None
+        # If user specified a version/tag, try that first
+        if args.bootstrap_version:
             try:
-                if proc.info['pid'] == current_pid:
-                    continue
-                cmdline = ' '.join(proc.info['cmdline'] or [])
-                if 'plexichat' in cmdline.lower() or 'run.py' in cmdline.lower():
-                    proc.terminate()
-                    killed += 1
-                    logger.warning(f"Killed old PlexiChat process (PID: {proc.info['pid']})")
-            except Exception:
+                tag = args.bootstrap_version
+                download_url = f"{GITHUB_DOWNLOAD_URL}/{tag}.zip"
+                target_path = target_dir / f"plexichat-{tag}.zip"
+                tried.append(download_url)
+                bootstrap_log(f"Trying specified version: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / f"plexichat-{tag}"
+                with zipfile.ZipFile(target_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Specified version download failed: {e}")
+        # Try latest release zip
+        if not success:
+            try:
+                with urllib.request.urlopen(GITHUB_LATEST_URL) as response:
+                    data = json.loads(response.read().decode())
+                version_tag = data['tag_name']
+                download_url = f"{GITHUB_DOWNLOAD_URL}/{version_tag}.zip"
+                target_path = target_dir / f"plexichat-{version_tag}.zip"
+                tried.append(download_url)
+                bootstrap_log(f"Trying latest release: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / f"plexichat-{version_tag}"
+                with zipfile.ZipFile(target_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Latest release download failed: {e}")
+        # Fallback: main branch zip
+        if not success:
+            try:
+                download_url = f"{GITHUB_DOWNLOAD_URL}/refs/heads/main.zip"
+                target_path = target_dir / "plexichat-main.zip"
+                tried.append(download_url)
+                bootstrap_log(f"Trying main branch: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / "plexichat-main"
+                with zipfile.ZipFile(target_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Main branch download failed: {e}")
+        # Fallback: master branch zip
+        if not success:
+            try:
+                download_url = f"{GITHUB_DOWNLOAD_URL}/refs/heads/master.zip"
+                target_path = target_dir / "plexichat-master.zip"
+                tried.append(download_url)
+                bootstrap_log(f"Trying master branch: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / "plexichat-master"
+                with zipfile.ZipFile(target_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Master branch download failed: {e}")
+        # Fallback: main branch tar.gz
+        if not success:
+            try:
+                download_url = f"https://github.com/{GITHUB_REPO}/archive/refs/heads/main.tar.gz"
+                target_path = target_dir / "plexichat-main.tar.gz"
+                tried.append(download_url)
+                bootstrap_log(f"Trying main branch tar.gz: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / "plexichat-main"
+                with tarfile.open(target_path, 'r:gz') as tar_ref:
+                    tar_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Main branch tar.gz download failed: {e}")
+        # Fallback: master branch tar.gz
+        if not success:
+            try:
+                download_url = f"https://github.com/{GITHUB_REPO}/archive/refs/heads/master.tar.gz"
+                target_path = target_dir / "plexichat-master.tar.gz"
+                tried.append(download_url)
+                bootstrap_log(f"Trying master branch tar.gz: {download_url}")
+                with urllib.request.urlopen(download_url) as response:
+                    with open(target_path, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                extract_dir = target_dir / "plexichat-master"
+                with tarfile.open(target_path, 'r:gz') as tar_ref:
+                    tar_ref.extractall(extract_dir)
+                success = True
+                extracted = extract_dir
+            except Exception as e:
+                bootstrap_log(f"Master branch tar.gz download failed: {e}")
+        if not success or not extracted:
+            bootstrap_log(f"All download attempts failed. Tried URLs: {tried}")
+            sys.exit(1)
+        # --- Recursively find the real codebase root (contains run.py and src/) ---
+        def find_codebase_root(path):
+            # Returns the first directory containing both run.py and src/
+            for root, dirs, files in os.walk(path):
+                if 'run.py' in files and 'src' in dirs:
+                    return Path(root)
+            return None
+        codebase_root = find_codebase_root(extracted)
+        if not codebase_root:
+            bootstrap_log("ERROR: Could not find codebase root (directory with run.py and src/) after extraction.")
+            sys.exit(1)
+        # Move contents to current directory (except run.py)
+        for item in codebase_root.iterdir():
+            if item.name == 'run.py':
                 continue
-        if killed:
-            logger.info(f"Killed {killed} old PlexiChat processes before startup.")
-    except ImportError:
-        logger.warning("psutil not available, cannot auto-kill old processes.")
+            dest = target_dir / item.name
+            if dest.exists():
+                if dest.is_dir():
+                    shutil.rmtree(dest)
+                elif dest.is_file():
+                    dest.unlink()
+            shutil.move(str(item), str(dest))
+        # Remove all parent extracted directories up to the original extracted dir
+        try:
+            shutil.rmtree(extracted)
+        except Exception:
+            pass
+        # Remove all downloaded archives
+        for f in target_dir.glob('plexichat-*.zip'):
+            f.unlink()
+        for f in target_dir.glob('plexichat-*.tar.gz'):
+            f.unlink()
+        bootstrap_log('Download and extraction complete. Re-running run.py...')
+        os.execv(sys.executable, [sys.executable, __file__] + sys.argv[1:])
+    # --- END BOOTSTRAP LOGIC ---
 
-# Thread pool for multithreading
-def setup_thread_pool(workers: int = 4):
-    global _thread_pool
-    if _thread_pool is None:
-        _thread_pool = ThreadPoolExecutor(max_workers=workers)
-        logger.info(f"Thread pool initialized with {workers} workers.")
-    return _thread_pool
+    # Now import everything else (plexichat, src, etc.)
+    # All code that depends on the codebase must be here or below
+    import logging
+    import traceback
+    from datetime import datetime
 
-# At the start of main execution:
-if __name__ == "__main__":
-    logger.info("Starting PlexiChat...")
-    kill_old_plexichat_processes()
-    if not acquire_process_lock():
-        logger.error("Another instance is already running. Exiting.")
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="PlexiChat - Advanced Chat Platform",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=f"""
+{Colors.BOLD}Examples:{Colors.RESET}
+  run.py                    # Start API server with splitscreen CLI (default)
+  run.py setup              # Run first-time setup wizard
+  run.py gui                # Launch GUI interface
+  run.py version            # Manage versions and downloads
+  run.py update             # Check for and install updates
+  run.py deps               # Manage dependencies
+  run.py clean              # Clean system cache
+  run.py wizard             # Configure PlexiChat
+"""
+    )
+
+    # Command argument with expanded choices
+    parser.add_argument('command',
+                      nargs='?',
+                      default='api',
+                      choices=[
+                          'api', 'gui', 'webui', 'cli', 'admin', 'backup-node', 'plugin',
+                          'test', 'config', 'wizard', 'help', 'setup', 'update', 'version',
+                          'deps', 'system', 'clean', 'download', 'latest', 'versions',
+                          'advanced-setup', 'optimize', 'diagnostic', 'maintenance'
+                      ],
+                      help='Command to execute (default: %(default)s)')
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Handle commands
+    try:
+        if args.command == 'gui':
+            run_gui()
+        elif args.command == 'webui':
+            run_webui()
+        elif args.command == 'api':
+            run_api_server()
+        elif args.command == 'cli':
+            run_splitscreen_cli()
+        elif args.command == 'setup':
+            run_first_time_setup()
+        elif args.command == 'advanced-setup':
+            run_interactive_setup()
+        elif args.command == 'wizard':
+            run_configuration_wizard()
+        elif args.command == 'version':
+            run_version_manager()
+        elif args.command == 'deps':
+            run_dependency_manager()
+        elif args.command == 'system':
+            run_system_manager()
+        elif args.command == 'update':
+            run_update_system()
+        elif args.command == 'test':
+            run_enhanced_tests()
+        elif args.command == 'clean':
+            system_manager = SystemManager()
+            system_manager.cleanup_system()
+        elif args.command == 'help':
+            parser.print_help()
+        else:
+            logger.info(f"Running default API server...")
+            run_api_server()
+    except KeyboardInterrupt:
+        logger.info("Application interrupted by user")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Error running command '{args.command}': {e}")
+        logger.debug(traceback.format_exc())
         sys.exit(1)
-    setup_thread_pool()
-    logger.info("Startup complete. Running main application...")
-    # ... existing main logic ...
+
+if __name__ == "__main__":
+    if '--help' in sys.argv or '-h' in sys.argv:
+        print("\n[BOOTSTRAP OPTIONS]\n  --bootstrap-version TAG   Bootstrap a specific version/tag (e.g., a.1.1-23)\n  --list-versions         List available tags/releases for bootstrapping\n")
+    main()

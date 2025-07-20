@@ -376,7 +376,7 @@ class ServiceRegistry:
     def _update_stats(self):
         """Update registry statistics."""
         total = len(self.services)
-        healthy = sum()
+        healthy = sum(
             1 for s in self.services.values() if s.status == ServiceStatus.HEALTHY
         )
         unhealthy = sum(
@@ -422,7 +422,7 @@ class ServiceRegistry:
         """Get comprehensive registry status."""
         service_types_count = {}
         for service_type, service_ids in self.service_groups.items():
-            healthy_count = sum()
+            healthy_count = sum(
                 1
                 for sid in service_ids
                 if sid in self.services and self.services[sid].is_healthy()

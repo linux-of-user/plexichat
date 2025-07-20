@@ -484,7 +484,7 @@ async def authenticate_user(username: str, password: str, mfa_code: Optional[str
     """Authenticate user with username/password and optional MFA."""
     # Import the request class locally to avoid circular imports
     # Create authentication request
-    request = AuthenticationRequest()
+    request = AuthenticationRequest(
         username=username,
         password=password,
         mfa_code=mfa_code or "",

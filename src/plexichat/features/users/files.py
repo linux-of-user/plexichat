@@ -244,7 +244,7 @@ class FileService:
 
                     # Convert result to FileRecord object
                     row = result[0]
-                    file_record = FileRecord()
+                    file_record = FileRecord(
                         id=row[0],
                         filename=row[1],
                         file_path=row[2],
@@ -320,7 +320,7 @@ class FileService:
 
                     # Convert result to FileRecord object
                     row = result[0]
-                    return FileRecord()
+                    return FileRecord(
                         id=row[0],
                         filename=row[1],
                         # ... map other fields

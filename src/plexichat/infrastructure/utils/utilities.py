@@ -500,5 +500,5 @@ file_manager = FileManager()
 # Common constants
 DEFAULT_ENCODING = 'utf-8'
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
-30 = 30
+DEFAULT_TIMEOUT = 30
 DEFAULT_RETRY_ATTEMPTS = 3

@@ -95,7 +95,7 @@ class UnifiedAuthManager:
         self.session_timeout = timedelta(hours=8)
         self.token_secret = "your-secret-key"  # Should be from config
 
-    async def authenticate()
+    async def authenticate(
         self,
         username: str,
         password: str,
@@ -123,7 +123,7 @@ class UnifiedAuthManager:
         try:
             # Check if account is locked
             if await self._is_account_locked(username):
-                return AuthResult()
+                return AuthResult(
                     success=False,
                     error="Account is temporarily locked due to too many failed attempts"
                 )
@@ -136,21 +136,21 @@ class UnifiedAuthManager:
             elif method == AuthenticationMethod.OAUTH2:
                 user_data = await self._validate_oauth_token(password)  # password is OAuth token
             else:
-                return AuthResult()
+                return AuthResult(
                     success=False,
                     error=f"Authentication method {method.value} not yet implemented"
                 )
 
             if not user_data:
                 await self._record_failed_attempt(username)
-                return AuthResult()
+                return AuthResult(
                     success=False,
                     error="Invalid credentials"
                 )
 
             # Check if MFA is required
             if user_data.get('requires_mfa', False) and not mfa_code:
-                return AuthResult()
+                return AuthResult(
                     success=False,
                     requires_mfa=True,
                     error="MFA code required"
@@ -159,13 +159,13 @@ class UnifiedAuthManager:
             # Validate MFA if provided
             if mfa_code and not await self._validate_mfa(user_data['user_id'], mfa_code):
                 await self._record_failed_attempt(username)
-                return AuthResult()
+                return AuthResult(
                     success=False,
                     error="Invalid MFA code"
                 )
 
             # Create session
-            session = await self._create_session()
+            session = await self._create_session(
                 user_data,
                 method,
                 device_id,
@@ -180,7 +180,7 @@ class UnifiedAuthManager:
             if username in self.failed_attempts:
                 del self.failed_attempts[username]
 
-            return AuthResult()
+            return AuthResult(
                 success=True,
                 user_id=user_data['user_id'],
                 username=user_data['username'],
@@ -191,7 +191,7 @@ class UnifiedAuthManager:
 
         except Exception as e:
             logger.error(f"Authentication error for {username}: {e}")
-            return AuthResult()
+            return AuthResult(
                 success=False,
                 error="Authentication system error"
             )
@@ -285,7 +285,7 @@ class UnifiedAuthManager:
             self.locked_accounts[username] = now
             logger.warning(f"Account {username} locked due to {self.max_failed_attempts} failed attempts")
 
-    async def _create_session()
+    async def _create_session(
         self,
         user_data: Dict[str, Any],
         method: AuthenticationMethod,
@@ -300,7 +300,7 @@ class UnifiedAuthManager:
         now = datetime.now()
         expires_at = now + self.session_timeout
 
-        session = AuthSession()
+        session = AuthSession(
             session_id=session_id,
             user_id=user_data['user_id'],
             username=user_data['username'],

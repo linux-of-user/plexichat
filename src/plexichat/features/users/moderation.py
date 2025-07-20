@@ -245,7 +245,7 @@ class AutoModerationRule(SQLModel, table=True):
     description: Optional[str] = Field(sa_column=Column(Text))
 
     # Rule configuration
-    rule_type: str = Field()
+    rule_type: str = Field(
         max_length=50, index=True
     )  # 'keyword', 'spam', 'link', 'mention'
     patterns: List[str] = Field(default=[], sa_column=Column(JSON))
@@ -262,7 +262,7 @@ class AutoModerationRule(SQLModel, table=True):
 
     # Thresholds
     trigger_threshold: int = Field(default=1)  # Number of violations before action
-    time_window_minutes: Optional[int] = Field()
+    time_window_minutes: Optional[int] = Field(
         default=None
     )  # Time window for counting violations
 
@@ -277,7 +277,7 @@ class AutoModerationRule(SQLModel, table=True):
     last_triggered_at: Optional[datetime] = Field(sa_column=Column(DateTime))
 
     # Indexes
-    __table_args__ = ()
+    __table_args__ = (
         Index("idx_auto_mod_guild_active", "guild_id", "is_active"),
         Index("idx_auto_mod_type_active", "rule_type", "is_active"),
     )
