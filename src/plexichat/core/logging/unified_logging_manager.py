@@ -28,6 +28,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import importlib
 
 from ...shared.constants import LOGS_DIR
 from ...shared.exceptions import LoggingError
@@ -116,7 +117,23 @@ class UnifiedLoggingManager:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(getattr(logging, self.config["level"].upper()))
 
-        if self.config.get("json_format"):
+        # Try to use colorlog for colorized output
+        colorlog_spec = importlib.util.find_spec("colorlog")
+        if colorlog_spec is not None:
+            import colorlog
+            formatter = colorlog.ColoredFormatter(
+                fmt="%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+                log_colors={
+                    'DEBUG':    'cyan',
+                    'INFO':     'green',
+                    'WARNING':  'yellow',
+                    'ERROR':    'red',
+                    'CRITICAL': 'bold_red',
+                }
+            )
+            console_handler.setFormatter(formatter)
+        elif self.config.get("json_format"):
             console_handler.setFormatter(self._get_json_formatter())
         else:
             console_handler.setFormatter(self._get_standard_formatter())

@@ -73,8 +73,12 @@ class AuthenticationManager:
                     del self.failed_attempts[username]
 
                 # Create tokens
-                access_token = self.auth_core.create_access_token({"sub": str(user["id"])})
-                refresh_token = self.auth_core.create_refresh_token({"sub": str(user["id"])})
+                if self.auth_core:
+                    access_token = self.auth_core.create_access_token({"sub": str(user["id"])})
+                    refresh_token = self.auth_core.create_refresh_token({"sub": str(user["id"])})
+                else:
+                    logger.error("auth_core is not initialized; cannot create tokens.")
+                    return None
 
                 # Create session
                 session_data = {
@@ -263,7 +267,7 @@ class AuthenticationManager:
             sessions = []
             for session_id, session_data in self.active_sessions.items():
                 if session_data["user_id"] == user_id:
-                    sessions.append({)
+                    sessions.append({
                         "session_id": session_id,
                         "created_at": session_data["created_at"],
                         "last_activity": session_data["last_activity"],

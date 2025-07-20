@@ -1369,19 +1369,73 @@ def run_refresh_current_version():
         print(f"{Colors.RED}✗ Refresh system failed: {e}{Colors.RESET}")
         return False
 
+def run_bootstrap_update_system():
+    """Run update system in bootstrap mode (standalone)."""
+    print(f"\n{Colors.BOLD}{Colors.BLUE}PlexiChat Bootstrap Update System{Colors.RESET}")
+    print(f"{Colors.DIM}{'=' * 50}{Colors.RESET}")
+    print(f"{Colors.YELLOW}Running in bootstrap mode - limited functionality{Colors.RESET}")
+
+    while True:
+        print(f"\n{Colors.BOLD}Available Commands:{Colors.RESET}")
+        print("1. Show current version")
+        print("2. Refresh current version (redownload)")
+        print("3. Exit")
+
+        choice = input(f"\n{Colors.CYAN}Enter your choice (1-3): {Colors.RESET}").strip()
+
+        if choice == '1':
+            # Show basic version info
+            print(f"{Colors.GREEN}Bootstrap mode - version info not available{Colors.RESET}")
+
+        elif choice == '2':
+            # Refresh current version
+            confirm = input(f"{Colors.YELLOW}Are you sure you want to refresh? (y/N): {Colors.RESET}").strip().lower()
+            if confirm == 'y':
+                run_refresh_current_version()
+
+        elif choice == '3':
+            break
+
+        else:
+            print(f"{Colors.RED}Invalid choice. Please enter 1-3.{Colors.RESET}")
+
+    return True
+
 def run_update_system():
     """Run the update system using existing update functionality."""
     try:
         logger.info("Starting PlexiChat Update System...")
 
-        # Import the existing update system
+        # Check if we're in bootstrap mode (no src directory available)
+        bootstrap_mode = not Path("src").exists()
+
+        if bootstrap_mode:
+            logger.info("Running in bootstrap mode - using standalone update system")
+            return run_bootstrap_update_system()
+
+        # Import the existing CLI system and plugin commands
         try:
             from src.plexichat.interfaces.cli.commands.updates import UpdateCLI
+            from src.plexichat.core.plugins import unified_plugin_manager, execute_command
+            from src.plexichat.interfaces.cli.unified_cli import UnifiedCLI
+
             update_cli = UpdateCLI()
+            plugin_manager = unified_plugin_manager
+            unified_cli = UnifiedCLI()
+
+            # Discover and load plugin commands
+            asyncio.run(plugin_manager.discover_plugins())
+            plugin_commands = plugin_manager.plugin_commands
+
             update_cli_available = True
-        except ImportError:
-            logger.warning("Update CLI not available, using basic functionality")
+            logger.info(f"Loaded {len(plugin_commands)} plugin commands")
+
+        except ImportError as e:
+            logger.warning(f"Full CLI system not available: {e}, using basic functionality")
             update_cli = None
+            plugin_manager = None
+            unified_cli = None
+            plugin_commands = {}
             update_cli_available = False
 
         print(f"\n{Colors.BOLD}{Colors.BLUE}PlexiChat Update System{Colors.RESET}")
@@ -1396,9 +1450,21 @@ def run_update_system():
             print("5. Update history")
             print("6. Reinstall dependencies")
             print("7. Refresh current version (redownload)")
-            print("8. Exit")
 
-            choice = input(f"\n{Colors.CYAN}Enter your choice (1-8): {Colors.RESET}").strip()
+            # Show plugin commands if available
+            if plugin_commands:
+                print(f"\n{Colors.BOLD}Plugin Commands:{Colors.RESET}")
+                plugin_menu_start = 10
+                plugin_choices = {}
+                for i, (cmd_name, cmd_func) in enumerate(plugin_commands.items(), plugin_menu_start):
+                    print(f"{i}. {cmd_name}")
+                    plugin_choices[str(i)] = (cmd_name, cmd_func)
+                print(f"\n8. List all plugin commands")
+                print(f"9. Execute custom plugin command")
+
+            print(f"\n0. Exit")
+
+            choice = input(f"\n{Colors.CYAN}Enter your choice: {Colors.RESET}").strip()
 
             if choice == '1':
                 # Check for updates
@@ -1458,11 +1524,43 @@ def run_update_system():
                 if confirm == 'y':
                     run_refresh_current_version()
 
-            elif choice == '8':
+            elif choice == '8' and plugin_commands:
+                # List all plugin commands
+                print(f"\n{Colors.BOLD}All Plugin Commands:{Colors.RESET}")
+                for cmd_name in plugin_commands.keys():
+                    print(f"  - {cmd_name}")
+
+            elif choice == '9' and plugin_commands:
+                # Execute custom plugin command
+                cmd_name = input(f"{Colors.CYAN}Enter plugin command name: {Colors.RESET}").strip()
+                if cmd_name in plugin_commands:
+                    try:
+                        print(f"{Colors.GREEN}Executing {cmd_name}...{Colors.RESET}")
+                        result = asyncio.run(plugin_commands[cmd_name]())
+                        print(f"{Colors.GREEN}Command completed: {result}{Colors.RESET}")
+                    except Exception as e:
+                        print(f"{Colors.RED}Command failed: {e}{Colors.RESET}")
+                else:
+                    print(f"{Colors.RED}Command not found: {cmd_name}{Colors.RESET}")
+
+            elif plugin_commands and choice in [str(i) for i in range(10, 10 + len(plugin_commands))]:
+                # Execute specific plugin command
+                plugin_list = list(plugin_commands.items())
+                plugin_index = int(choice) - 10
+                if 0 <= plugin_index < len(plugin_list):
+                    cmd_name, cmd_func = plugin_list[plugin_index]
+                    try:
+                        print(f"{Colors.GREEN}Executing {cmd_name}...{Colors.RESET}")
+                        result = asyncio.run(cmd_func())
+                        print(f"{Colors.GREEN}Command completed: {result}{Colors.RESET}")
+                    except Exception as e:
+                        print(f"{Colors.RED}Command failed: {e}{Colors.RESET}")
+
+            elif choice == '0':
                 break
 
             else:
-                print(f"{Colors.RED}Invalid choice. Please enter 1-7.{Colors.RESET}")
+                print(f"{Colors.RED}Invalid choice.{Colors.RESET}")
 
     except ImportError as e:
         logger.error(f"Update system not available: {e}")
