@@ -90,11 +90,11 @@ def load_version_from_json():
             with open(version_file, 'r', encoding='utf-8') as f:
                 version_data = yaml.safe_load(f)
                 return {
-                    "version": version_data.get("version", "a.1.1-14"),
+                    "version": version_data.get("version", "a.1.1-16"),
                     "version_type": version_data.get("version_type", "alpha"),
                     "major_version": version_data.get("major_version", 1),
                     "minor_version": version_data.get("minor_version", 1),
-                    "build_number": version_data.get("build_number", 14),
+                    "build_number": version_data.get("build_number", 16),
                     "api_version": version_data.get("api_version", "v1"),
                     "release_date": version_data.get("release_date", "2024-12-19")
                 }
@@ -103,11 +103,11 @@ def load_version_from_json():
 
     # Return default version if file doesn't exist
     return {
-        "version": "a.1.1-14",
+        "version": "a.1.1-16",
         "version_type": "alpha",
         "major_version": 1,
         "minor_version": 1,
-        "build_number": 14,
+        "build_number": 16,
         "api_version": "v1",
         "release_date": "2024-12-19"
     }
@@ -231,6 +231,7 @@ from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form  # D
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import uuid
@@ -763,7 +764,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """Create and configure the PlexiChat application."""
     logger.info("Creating PlexiChat FastAPI application...")
-    logger.info(f"Configuration loaded: {config.get('system', {}).get('name', 'PlexiChat')} v{config.get('system', {}).get('version', 'a.1.1-12')}")
+    logger.info(f"Configuration loaded: {config.get('system', {}).get('name', 'PlexiChat')} v{config.get('system', {}).get('version', 'a.1.1-16')}")
 
     # Create FastAPI app with lifespan
     app = FastAPI(
@@ -833,10 +834,10 @@ def create_app() -> FastAPI:
     from pathlib import Path
     try:
         # Mount from web/static (new consolidated location)
-        web_static_path = Path("src/plexichat/web/static")
+        web_static_path = Path("src/plexichat/interfaces/web/static")
         if web_static_path.exists():
             app.mount("/static", StaticFiles(directory=str(web_static_path)), name="static")
-            logger.info("Web static files mounted from web/static")
+            logger.info("Web static files mounted from interfaces/web/static")
         else:
             # Fallback to old static location
             static_dir = Path("src/plexichat/static")
@@ -846,43 +847,13 @@ def create_app() -> FastAPI:
     except Exception as e:
         logger.warning(f"Static files failed to mount: {e}")
 
-    # Comprehensive API endpoints
+    # Jinja2 templates for web UI
+    web_templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
-    # Root endpoint
+    # Root endpoint - render the nice UI
     @app.get("/", response_class=HTMLResponse)
-    async def root():
-        """Root endpoint with basic info."""
-        return """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>PlexiChat</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; }
-                .header { color: #2c3e50; }
-                .info { background: #ecf0f1; padding: 20px; border-radius: 5px; }
-                .link { color: #3498db; text-decoration: none; }
-                .link:hover { text-decoration: underline; }
-            </style>
-        </head>
-        <body>
-            <h1 class="header">PlexiChat</h1>
-            <div class="info">
-                <p><strong>Government-Level Secure Communication Platform</strong></p>
-                <p>Version: {config.get('system', {}).get('version', 'a.1.1-14')}</p>
-                <p>Status: Running</p>
-                <br>
-                <p>Available endpoints:</p>
-                <ul>
-                    <li><a href="/docs" class="link">API Documentation</a></li>
-                    <li><a href="/api/v1/health" class="link">Health Check</a></li>
-                    <li><a href="/api/v1/info" class="link">System Info</a></li>
-                    <li><a href="/api/v1/version" class="link">Version Info</a></li>
-                </ul>
-            </div>
-        </body>
-        </html>
-        """
+    async def root(request: Request):
+        return web_templates.TemplateResponse("index.html", {"request": request})
 
     @app.get("/health")
     async def health_check():

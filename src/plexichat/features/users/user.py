@@ -174,16 +174,10 @@ class UserService:
                 if exists:
                     return None  # User already exists
 
-                # Create user
+                # Create user using abstraction layer
                 hashed_password = hash_password(user_data.password)
-                create_query = """
-                    INSERT INTO users ()
-                        username, email, hashed_password, first_name, last_name, bio,
-                        avatar_url, timezone, language, is_active, is_admin, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    RETURNING *
-                """
-                create_params = {
+
+                user_record = {
                     "username": user_data.username,
                     "email": user_data.email,
                     "hashed_password": hashed_password,
@@ -200,9 +194,9 @@ class UserService:
 
                 if self.performance_logger and timer:
                     with timer("user_creation_query"):
-                        result = await self.db_manager.execute_query(create_query, create_params)
+                        result = await self.db_manager.insert_record("users", user_record)
                 else:
-                    result = await self.db_manager.execute_query(create_query, create_params)
+                    result = await self.db_manager.insert_record("users", user_record)
 
                 if result:
                     # Convert result to User object

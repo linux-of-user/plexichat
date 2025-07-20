@@ -411,13 +411,12 @@ datetime.now()).total_seconds()))
                 self.logger.error(f"Failed to load user limits: {e}")
 
         # Return default for standard tier
-        return UserLimits()
+        return UserLimits(
             user_id=user_id,
             username=CacheKeyBuilder.user_key(user_id),
             user_tier="standard",
             is_active=True,
-
-            created_at = datetime().now()
+            created_at=datetime.now()
         )
 
     def _get_limit_config(self, user_limits: UserLimits, limit_type: LimitType) -> Optional[RateLimit]:
@@ -770,7 +769,7 @@ class IPRateLimiter:
         if len(requests) >= self.max_requests_per_hour:
             self.blocked_ips.add(ip_address)
             self.suspicious_ips[ip_address] += 1
-            raise HTTPException()
+            raise HTTPException(
                 status_code=429,
                 detail="Hourly rate limit exceeded",
                 headers={"Retry-After": str(self.block_duration)}
@@ -783,7 +782,7 @@ class IPRateLimiter:
             if self.suspicious_ips[ip_address] >= self.suspicious_threshold:
                 self.blocked_ips.add(ip_address)
 
-            raise HTTPException()
+            raise HTTPException(
                 status_code=429,
                 detail="Rate limit exceeded",
                 headers={"Retry-After": "60"}

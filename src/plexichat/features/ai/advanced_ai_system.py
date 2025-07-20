@@ -167,7 +167,7 @@ class AIProviderManager:
     def _initialize_default_models(self):
         """Initialize default AI models."""
         # OpenAI models
-        self.models["gpt-4"] = AIModel()
+        self.models["gpt-4"] = AIModel(
             model_id="gpt-4",
             provider=AIProvider.OPENAI,
             name="GPT-4",
@@ -182,7 +182,7 @@ class AIProviderManager:
             cost_per_token=0.00003
         )
 
-        self.models["gpt-3.5-turbo"] = AIModel()
+        self.models["gpt-3.5-turbo"] = AIModel(
             model_id="gpt-3.5-turbo",
             provider=AIProvider.OPENAI,
             name="GPT-3.5 Turbo",
@@ -197,7 +197,7 @@ class AIProviderManager:
         )
 
         # Anthropic models
-        self.models["claude-3"] = AIModel()
+        self.models["claude-3"] = AIModel(
             model_id="claude-3",
             provider=AIProvider.ANTHROPIC,
             name="Claude 3",
@@ -213,7 +213,7 @@ class AIProviderManager:
         )
 
         # Local models
-        self.models["local-moderation"] = AIModel()
+        self.models["local-moderation"] = AIModel(
             model_id="local-moderation",
             provider=AIProvider.LOCAL,
             name="Local Moderation Model",
@@ -227,13 +227,13 @@ class AIProviderManager:
         # Set fallback chain
         self.fallback_chain = ["gpt-4", "claude-3", "gpt-3.5-turbo", "local-moderation"]
 
-    async def get_available_model(self, capability: AICapability,)
+    async def get_available_model(self, capability: AICapability,
                                 preferred_provider: Optional[AIProvider] = None) -> Optional[AIModel]:
         """Get available model for specific capability."""
         # Try preferred provider first
         if preferred_provider:
             for model in self.models.values():
-                if (model.provider == preferred_provider and)
+                if (model.provider == preferred_provider and
                     model.supports_capability(capability) and
                     model.is_available):
                     return model
@@ -354,7 +354,7 @@ class ContentModerationEngine:
     def _load_default_filters(self):
         """Load default moderation filters."""
         # Basic banned words (simplified for demo)
-        self.banned_words.update([)
+        self.banned_words.update([
             "spam", "scam", "phishing", "malware"
         ])
 
@@ -368,11 +368,10 @@ class ContentModerationEngine:
     async def moderate_content(self, content: str, content_id: Optional[str] = None) -> ModerationResult:
         """Moderate content using AI and rules."""
         content_id = content_id or f"content_{int(datetime.now().timestamp())}"
-start_time = datetime.now()
-datetime = datetime.now()
+        start_time = datetime.now()
 
         # Initialize result
-        result = ModerationResult()
+        result = ModerationResult(
             content_id=content_id,
             action=ModerationAction.ALLOW,
             confidence=0.0,
@@ -451,7 +450,7 @@ datetime = datetime.now()
 
     def _determine_final_action(self, result: ModerationResult):
         """Determine final moderation action."""
-        max_score = max()
+        max_score = max(
             result.toxicity_score,
             result.spam_score,
             result.hate_speech_score,
@@ -512,13 +511,20 @@ class IntelligentAssistant:
         self.model_performance_stats = {}
         self.adaptive_routing = True
 
-    async def generate_content(self, prompt: str, content_type: str = "general",)
+    async def generate_content(self, prompt: str, content_type: str = "general",
                              max_length: int = 500, style: str = "professional") -> Dict[str, Any]:
         """Generate content based on prompt."""
         try:
             model = await self.provider_manager.get_available_model(AICapability.TEXT_GENERATION)
             if not model:
                 return {"success": False, "error": "No text generation model available"}
+
+            # TODO: Implement content generation logic
+            return {"success": True, "content": "Generated content placeholder"}
+
+        except Exception as e:
+            logger.error(f"Content generation failed: {e}")
+            return {"success": False, "error": str(e)}
 
     async def analyze_sentiment_advanced(self, text: str) -> Dict[str, Any]:
         """Advanced sentiment analysis with emotion detection."""
@@ -828,7 +834,7 @@ class TranslationEngine:
             "hi": "Hindi"
         }
 
-    async def translate_text(self, text: str, target_language: str,)
+    async def translate_text(self, text: str, target_language: str,
                            source_language: str = "auto") -> TranslationResult:
         """Translate text to target language."""
         try:
@@ -852,7 +858,7 @@ class TranslationEngine:
 
             response = await self.provider_manager.call_model(model.model_id, prompt)
 
-            return TranslationResult()
+            return TranslationResult(
                 original_text=text,
                 translated_text=response.get("response", ""),
                 source_language=source_language,
@@ -863,7 +869,7 @@ class TranslationEngine:
 
         except Exception as e:
             logger.error(f"Translation failed: {e}")
-            return TranslationResult()
+            return TranslationResult(
                 original_text=text,
                 translated_text=text,  # Return original on failure
                 source_language=source_language,
@@ -926,7 +932,7 @@ class SentimentAnalyzer:
             # In production, this would parse structured AI output
             sentiment = self._extract_sentiment(response.get("response", ""))
 
-            return SentimentResult()
+            return SentimentResult(
                 text=text,
                 overall_sentiment=sentiment["overall"],
                 confidence=sentiment["confidence"],
@@ -937,7 +943,7 @@ class SentimentAnalyzer:
 
         except Exception as e:
             logger.error(f"Sentiment analysis failed: {e}")
-            return SentimentResult()
+            return SentimentResult(
                 text=text,
                 overall_sentiment="neutral",
                 confidence=0.0,
@@ -976,7 +982,7 @@ class SmartSummarizer:
     def __init__(self, provider_manager: AIProviderManager):
         self.provider_manager = provider_manager
 
-    async def summarize_text(self, text: str, summary_type: str = "abstractive",)
+    async def summarize_text(self, text: str, summary_type: str = "abstractive",
                            max_length: int = 150) -> SummaryResult:
         """Summarize text intelligently."""
         try:
@@ -1005,7 +1011,7 @@ class SmartSummarizer:
             summary_words = len(response.get("response", "").split())
             compression_ratio = summary_words / original_words if original_words > 0 else 0
 
-            return SummaryResult()
+            return SummaryResult(
                 original_text=text,
                 summary=response.get("response", ""),
                 summary_type=summary_type,
@@ -1017,7 +1023,7 @@ class SmartSummarizer:
 
         except Exception as e:
             logger.error(f"Summarization failed: {e}")
-            return SummaryResult()
+            return SummaryResult(
                 original_text=text,
                 summary="Summary unavailable",
                 summary_type=summary_type,

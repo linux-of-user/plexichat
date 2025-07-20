@@ -112,32 +112,42 @@ self.data_path = Path(data_path)
         self._init_database()
         self._load_latest_model()
 
-    def _init_database(self):
-        """Initialize training database."""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(""")
-                CREATE TABLE IF NOT EXISTS training_data ()
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    content TEXT NOT NULL,
-                    content_hash TEXT NOT NULL,
-                    label TEXT NOT NULL,
-                    confidence REAL NOT NULL,
-                    categories TEXT NOT NULL,
-                    severity TEXT NOT NULL,
-                    source TEXT NOT NULL,
-                    metadata TEXT,
-                    created_at TEXT NOT NULL,
-                    used_in_training BOOLEAN DEFAULT FALSE
-                )
-            """)
+    async def _init_database(self):
+        """Initialize training database using abstraction layer."""
+        from plexichat.core.database import database_manager
 
-            conn.execute(""")
-                CREATE INDEX IF NOT EXISTS idx_content_hash ON training_data(content_hash)
-            """)
+        # Define training_data table schema
+        training_data_schema = {
+            "table_name": "training_data",
+            "columns": {
+                "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+                "content": {"type": "TEXT", "nullable": False},
+                "content_hash": {"type": "TEXT", "nullable": False},
+                "label": {"type": "TEXT", "nullable": False},
+                "confidence": {"type": "REAL", "nullable": False},
+                "categories": {"type": "TEXT", "nullable": False},
+                "severity": {"type": "TEXT", "nullable": False},
+                "source": {"type": "TEXT", "nullable": False},
+                "metadata": {"type": "TEXT"},
+                "created_at": {"type": "TEXT", "nullable": False},
+                "used_in_training": {"type": "BOOLEAN", "default": False}
+            }
+        }
 
-            conn.execute(""")
-                CREATE INDEX IF NOT EXISTS idx_label ON training_data(label)
-            """)
+        await database_manager.create_table_if_not_exists(training_data_schema)
+
+        # Create indexes
+        await database_manager.create_index_if_not_exists(
+            table_name="training_data",
+            columns=["content_hash"],
+            index_name="idx_content_hash"
+        )
+
+        await database_manager.create_index_if_not_exists(
+            table_name="training_data",
+            columns=["label"],
+            index_name="idx_label"
+        )
 
             conn.execute(""")
                 CREATE TABLE IF NOT EXISTS training_results ()

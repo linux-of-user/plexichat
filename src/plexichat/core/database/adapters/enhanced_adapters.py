@@ -119,7 +119,7 @@ class RedisAdapter(BaseDatabaseAdapter):
             except ImportError:
                 redis = None
 
-            self.redis_client = redis.Redis()
+            self.redis_client = redis.Redis(
                 host=self.config.get('host', 'localhost'),
                 port=self.config.get('port', 6379),
                 password=self.config.get('password'),
@@ -141,7 +141,7 @@ class RedisAdapter(BaseDatabaseAdapter):
         """Disconnect from Redis."""
         try:
             if self.redis_client:
-                await if self.redis_client: self.redis_client.close()
+                await self.redis_client.close()
             self.is_connected = False
             return True
         except Exception as e:
@@ -185,7 +185,7 @@ class RedisAdapter(BaseDatabaseAdapter):
             return {"status": "unhealthy", "error": str(e)}
 
     def _get_capabilities(self) -> DatabaseCapabilities:
-        return DatabaseCapabilities()
+        return DatabaseCapabilities(
             supports_transactions=True,
             supports_acid=False,
             supports_joins=False,
@@ -220,12 +220,12 @@ class CassandraAdapter(BaseDatabaseAdapter):
 
             auth_provider = None
             if self.config.get('username') and self.config.get('password'):
-                auth_provider = PlainTextAuthProvider()
+                auth_provider = PlainTextAuthProvider(
                     username=self.config['username'],
                     password=self.config['password']
                 )
 
-            self.cluster = Cluster()
+            self.cluster = Cluster(
                 contact_points=self.config.get('hosts', ['localhost']),
                 port=self.config.get('port', 9042),
                 auth_provider=auth_provider
@@ -285,7 +285,7 @@ class CassandraAdapter(BaseDatabaseAdapter):
             return {"status": "unhealthy", "error": str(e)}
 
     def _get_capabilities(self) -> DatabaseCapabilities:
-        return DatabaseCapabilities()
+        return DatabaseCapabilities(
             supports_transactions=False,
             supports_acid=False,
             supports_joins=False,
@@ -321,12 +321,12 @@ class ElasticsearchAdapter(BaseDatabaseAdapter):
             # Configure authentication
             auth_config = {}
             if self.config.get('username') and self.config.get('password'):
-                auth_config['basic_auth'] = ()
+                auth_config['basic_auth'] = (
                     self.config['username'],
                     self.config['password']
                 )
 
-            self.es_client = AsyncElasticsearch()
+            self.es_client = AsyncElasticsearch(
                 hosts=hosts,
                 **auth_config
             )
@@ -345,7 +345,7 @@ class ElasticsearchAdapter(BaseDatabaseAdapter):
         """Disconnect from Elasticsearch."""
         try:
             if self.es_client:
-                await if self.es_client: self.es_client.close()
+                await self.es_client.close()
             self.is_connected = False
             return True
         except Exception as e:
@@ -392,7 +392,7 @@ class ElasticsearchAdapter(BaseDatabaseAdapter):
             return {"status": "unhealthy", "error": str(e)}
 
     def _get_capabilities(self) -> DatabaseCapabilities:
-        return DatabaseCapabilities()
+        return DatabaseCapabilities(
             supports_transactions=False,
             supports_acid=False,
             supports_joins=False,

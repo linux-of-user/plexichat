@@ -545,8 +545,7 @@ class EnhancedMessagingService:
     async def _check_rate_limit(self, user_id: int, action: str = "message") -> bool:
         """Check if user is within rate limits."""
         try:
-now = datetime.now()
-datetime.utcnow()
+            now = datetime.now()
             key = f"{user_id}_{action}"
 
             if key not in self.rate_limits:

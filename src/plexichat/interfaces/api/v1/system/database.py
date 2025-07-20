@@ -413,19 +413,12 @@ async def optimize_database():
         optimization_results = []
 
         if manager.config.db_type == DatabaseType.SQLITE:
-            # SQLite optimization
-            with manager.engine.connect() as conn:
-                # Vacuum database
-                conn.execute("VACUUM")
-                optimization_results.append("VACUUM completed")
-
-                # Analyze database
-                conn.execute("ANALYZE")
-                optimization_results.append("ANALYZE completed")
-
-                # Update statistics
-                conn.execute("PRAGMA optimize")
-                optimization_results.append("Statistics updated")
+            # SQLite optimization using abstraction layer
+            try:
+                await manager.optimize_database()
+                optimization_results.append("Database optimization completed")
+            except Exception as e:
+                optimization_results.append(f"Optimization failed: {str(e)}")
 
         elif manager.config.db_type == DatabaseType.POSTGRESQL:
             # PostgreSQL optimization

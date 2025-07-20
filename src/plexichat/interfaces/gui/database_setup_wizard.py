@@ -22,7 +22,7 @@ import threading
 from typing import Any, Dict, List, Optional
 import json
 
-from plexichat.interfaces.web.components.enhanced_database_wizard import ()
+from plexichat.interfaces.web.components.enhanced_database_wizard import (
     EnhancedDatabaseWizard, DatabaseType, WizardStep
 )
 
@@ -72,14 +72,14 @@ class DatabaseSetupGUI:
         header_frame = ttk.Frame(main_frame)
         header_frame.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 20))
 
-        self.title_label = ttk.Label()
+        self.title_label = ttk.Label(
             header_frame,
             text="Database Setup Wizard",
             style='Title.TLabel'
         )
         self.title_label.grid(row=0, column=0, sticky=tk.W)
 
-        self.progress_label = ttk.Label()
+        self.progress_label = ttk.Label(
             header_frame,
             text="Step 1 of 16",
             style='Subtitle.TLabel'
@@ -87,7 +87,7 @@ class DatabaseSetupGUI:
         self.progress_label.grid(row=0, column=1, sticky=tk.E)
 
         # Progress bar
-        self.progress_bar = ttk.Progressbar()
+        self.progress_bar = ttk.Progressbar(
             header_frame,
             length=400,
             mode='determinate'
@@ -134,7 +134,7 @@ class DatabaseSetupGUI:
         nav_frame = ttk.Frame(main_frame)
         nav_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(20, 0))
 
-        self.back_button = ttk.Button()
+        self.back_button = ttk.Button(
             nav_frame,
             text="← Back",
             command=self.go_back,
@@ -142,14 +142,14 @@ class DatabaseSetupGUI:
         )
         self.back_button.grid(row=0, column=0, sticky=tk.W)
 
-        self.next_button = ttk.Button()
+        self.next_button = ttk.Button(
             nav_frame,
             text="Next →",
             command=self.go_next
         )
         self.next_button.grid(row=0, column=2, sticky=tk.E)
 
-        self.cancel_button = ttk.Button()
+        self.cancel_button = ttk.Button(
             nav_frame,
             text="Cancel",
             command=self.cancel_wizard
@@ -182,7 +182,7 @@ class DatabaseSetupGUI:
         welcome_frame.columnconfigure(0, weight=1)
 
         # Title
-        title = ttk.Label()
+        title = ttk.Label(
             welcome_frame,
             text="Welcome to PlexiChat Database Setup",
             style='Title.TLabel'
@@ -228,7 +228,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         selection_frame.columnconfigure(0, weight=1)
 
         # Title
-        title = ttk.Label()
+        title = ttk.Label(
             selection_frame,
             text="Select Database Type",
             style='Title.TLabel'
@@ -288,7 +288,7 @@ Estimated time: 10-30 minutes depending on complexity."""
             notebook.add(tab_frame, text=category)
 
             for i, (db_name, description) in enumerate(databases):
-                radio = ttk.Radiobutton()
+                radio = ttk.Radiobutton(
                     tab_frame,
                     text=f"{db_name} - {description}",
                     variable=self.selected_database,
@@ -300,7 +300,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         info_frame = ttk.LabelFrame(selection_frame, text="Database Information", padding="10")
         info_frame.grid(row=2, column=0, sticky=(tk.W, tk.E))
 
-        self.db_info_text = scrolledtext.ScrolledText()
+        self.db_info_text = scrolledtext.ScrolledText(
             info_frame,
             height=6,
             width=70,
@@ -408,7 +408,7 @@ Estimated time: 10-30 minutes depending on complexity."""
         config_frame.columnconfigure(1, weight=1)
 
         # Title
-        title = ttk.Label()
+        title = ttk.Label(
             config_frame,
             text="Database Connection Configuration",
             style='Title.TLabel'
@@ -442,7 +442,7 @@ Estimated time: 10-30 minutes depending on complexity."""
             row += 1
 
         # Test connection button
-        test_button = ttk.Button()
+        test_button = ttk.Button(
             config_frame,
             text="Test Connection",
             command=self.test_connection

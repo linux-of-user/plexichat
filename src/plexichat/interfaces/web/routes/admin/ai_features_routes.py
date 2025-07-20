@@ -44,7 +44,7 @@ def dashboard():
         service = get_ai_features_service()
         stats = asyncio.run(service.get_feature_statistics())
         health = asyncio.run(service.health_check())
-        return render_template()
+        return render_template(
             'admin/ai_features_management.html',
             stats=stats,
             health=health,
@@ -68,13 +68,13 @@ def api_summarize():
         max_length = data.get('max_length')
         user_id = data.get('user_id', 'admin')
         service = get_ai_features_service()
-        result = asyncio.run(service.create_summary())
+        result = asyncio.run(service.create_summary(
             text=text,
             summary_type=summary_type,
             user_id=user_id,
             max_length=max_length
         ))
-        return jsonify({)
+        return jsonify({
             'success': True,
             'result': {
                 'summary_id': result.summary_id,
@@ -106,7 +106,7 @@ def api_suggest_content():
         max_suggestions = data.get('max_suggestions', 3)
         user_id = data.get('user_id', 'admin')
         service = get_ai_features_service()
-        suggestions = asyncio.run(service.generate_content_suggestions())
+        suggestions = asyncio.run(service.generate_content_suggestions(
             context=context,
             suggestion_type=suggestion_type,
             user_id=user_id,

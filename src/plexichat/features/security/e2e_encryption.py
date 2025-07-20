@@ -24,9 +24,6 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from .distributed_key_manager import DistributedKeyManager, KeyDomain
 from .quantum_encryption import QuantumEncryptionSystem, SecurityTier
 
-from pathlib import Path
-
-from pathlib import Path
 
 """
 import time
@@ -118,7 +115,7 @@ class EndToEndEncryption:
 
     def __init__(self, config_dir: str = "config/security/e2e"):
         from pathlib import Path
-self.config_dir = Path(config_dir)
+        self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Database for E2E sessions
@@ -145,8 +142,8 @@ self.config_dir = Path(config_dir)
     async def _init_database(self):
         """Initialize the E2E sessions database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS e2e_sessions ()
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS e2e_sessions (
                     session_id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
                     endpoint_type TEXT NOT NULL,
@@ -166,8 +163,8 @@ self.config_dir = Path(config_dir)
                 )
             """)
 
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS e2e_messages ()
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS e2e_messages (
                     message_id TEXT PRIMARY KEY,
                     session_id TEXT NOT NULL,
                     sender_id TEXT NOT NULL,
@@ -181,8 +178,8 @@ self.config_dir = Path(config_dir)
                 )
             """)
 
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS endpoint_access_log ()
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS endpoint_access_log (
                     log_id TEXT PRIMARY KEY,
                     session_id TEXT NOT NULL,
                     endpoint_type TEXT NOT NULL,
@@ -198,27 +195,26 @@ self.config_dir = Path(config_dir)
     async def _load_sessions(self):
         """Load active E2E sessions from database."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("SELECT * FROM e2e_sessions WHERE last_used > ?", )
+            async with db.execute("SELECT * FROM e2e_sessions WHERE last_used > ?",
                                  [(datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()]) as cursor:
                 async for row in cursor:
                     session = E2ESession()
-                        session_id=row[0],
-                        user_id=row[1],
-                        endpoint_type=EndpointType(row[2]),
-                        protocol=E2EProtocol(row[3]),
-                        local_private_key=row[4],
-                        local_public_key=row[5],
-                        remote_public_key=row[6],
-                        shared_secret=row[7],
-                        root_key=row[8],
-                        chain_key_send=row[9],
-                        chain_key_recv=row[10],
-                        created_at=datetime.fromisoformat(row[11]),
-                        last_used=datetime.fromisoformat(row[12]),
-                        message_count=row[13],
-                        is_verified=bool(row[14]),
-                        metadata=json.loads(row[15]) if row[15] else {}
-                    )
+                    session.session_id = row[0]
+                    session.user_id = row[1]
+                    session.endpoint_type = EndpointType(row[2])
+                    session.protocol = E2EProtocol(row[3])
+                    session.local_private_key = row[4]
+                    session.local_public_key = row[5]
+                    session.remote_public_key = row[6]
+                    session.shared_secret = row[7]
+                    session.root_key = row[8]
+                    session.chain_key_send = row[9]
+                    session.chain_key_recv = row[10]
+                    session.created_at = datetime.fromisoformat(row[11])
+                    session.last_used = datetime.fromisoformat(row[12])
+                    session.message_count = row[13]
+                    session.is_verified = bool(row[14])
+                    session.metadata = json.loads(row[15]) if row[15] else {}
                     self.active_sessions[session.session_id] = session
 
     async def _setup_endpoint_policies(self):
@@ -288,12 +284,12 @@ self.config_dir = Path(config_dir)
             private_key = x25519.X25519PrivateKey.generate()
             public_key = private_key.public_key()
 
-            private_key_bytes = private_key.private_bytes()
+            private_key_bytes = private_key.private_bytes(
                 encoding=serialization.Encoding.Raw,
                 format=serialization.PrivateFormat.Raw,
                 encryption_algorithm=serialization.NoEncryption()
             )
-            public_key_bytes = public_key.public_bytes()
+            public_key_bytes = public_key.public_bytes(
                 encoding=serialization.Encoding.Raw,
                 format=serialization.PublicFormat.Raw
             )
@@ -303,11 +299,11 @@ self.config_dir = Path(config_dir)
             domain_key = await self.distributed_keys.get_domain_key(KeyDomain.COMMUNICATION)
             if domain_key:
                 # Derive session keys from domain key
-                private_key_bytes = hashlib.blake2b()
+                private_key_bytes = hashlib.blake2b(
                     domain_key + user_id.encode() + session_id.encode(),
                     digest_size=32
                 ).digest()
-                public_key_bytes = hashlib.blake2b()
+                public_key_bytes = hashlib.blake2b(
                     private_key_bytes + b"public",
                     digest_size=32
                 ).digest()
@@ -317,17 +313,16 @@ self.config_dir = Path(config_dir)
                 public_key_bytes = secrets.token_bytes(32)
 
         session = E2ESession()
-            session_id=session_id,
-            user_id=user_id,
-            endpoint_type=endpoint_type,
-            protocol=protocol,
-            local_private_key=private_key_bytes,
-            local_public_key=public_key_bytes,
-            metadata={
-                "policy": policy,
-                "created_by": "e2e_encryption_system"
-            }
-        )
+        session.session_id = session_id
+        session.user_id = user_id
+        session.endpoint_type = endpoint_type
+        session.protocol = protocol
+        session.local_private_key = private_key_bytes
+        session.local_public_key = public_key_bytes
+        session.metadata = {
+            "policy": policy,
+            "created_by": "e2e_encryption_system"
+        }
 
         self.active_sessions[session_id] = session
         await self._save_session(session)
@@ -352,7 +347,7 @@ self.config_dir = Path(config_dir)
                 shared_secret = private_key.exchange(remote_key)
 
                 # Derive root key using HKDF
-                hkdf = HKDF()
+                hkdf = HKDF(
                     algorithm=hashes.SHA256(),
                     length=32,
                     salt=b"PlexiChat-E2E-Root-Key",
@@ -372,12 +367,12 @@ self.config_dir = Path(config_dir)
 
         else:  # Quantum-resistant protocols
             # Use quantum-resistant key agreement
-            session.shared_secret = self._quantum_key_agreement()
+            session.shared_secret = self._quantum_key_agreement(
                 session.local_private_key,
                 remote_public_key,
                 session.session_id
             )
-            session.root_key = hashlib.blake2b()
+            session.root_key = hashlib.blake2b(
                 session.shared_secret + b"root_key",
                 digest_size=32
             ).digest()
@@ -394,38 +389,37 @@ self.config_dir = Path(config_dir)
             raise ValueError("Root key not established")
 
         # Initialize chain keys
-        session.chain_key_send = hashlib.blake2b()
+        session.chain_key_send = hashlib.blake2b(
             session.root_key + b"send_chain",
             digest_size=32
         ).digest()
 
-        session.chain_key_recv = hashlib.blake2b()
+        session.chain_key_recv = hashlib.blake2b(
             session.root_key + b"recv_chain",
             digest_size=32
         ).digest()
 
         # Pre-generate some message keys
         for _ in range(10):
-            message_key = hashlib.blake2b()
+            message_key = hashlib.blake2b(
                 session.chain_key_send + len(session.message_keys_send).to_bytes(4, 'big'),
                 digest_size=32
             ).digest()
             session.message_keys_send.append(message_key)
 
     def _quantum_key_agreement(self, local_private: bytes, remote_public: bytes, context: str) -> bytes:
-        """Quantum-resistant key agreement protocol."""
-        # Simulate quantum-resistant key agreement (replace with real implementation)
+        if local_private is None or remote_public is None:
+            raise ValueError("Quantum key agreement requires non-None key material.")
         combined = local_private + remote_public + context.encode()
         return hashlib.blake2b(combined, digest_size=32).digest()
 
-    async def encrypt_message(self, session_id: str, plaintext: bytes,)
+    async def encrypt_message(self, session_id: str, plaintext: bytes,
                              recipient_id: str = "") -> Optional[E2EMessage]:
-        """Encrypt a message using E2E encryption."""
-        if session_id not in self.active_sessions:
-            logger.error(f"Session not found: {session_id}")
-            return None
-
-        session = self.active_sessions[session_id]
+        session = self.active_sessions.get(session_id)
+        if not session:
+            raise ValueError(f"Session {session_id} not found.")
+        if session.root_key is None:
+            raise ValueError("Session root_key is not initialized.")
 
         if not session.is_verified:
             logger.error(f"Session not verified: {session_id}")
@@ -447,7 +441,7 @@ self.config_dir = Path(config_dir)
 
         else:
             # Generate message key from root key
-            message_key = hashlib.blake2b()
+            message_key = hashlib.blake2b(
                 session.root_key + session.message_count.to_bytes(4, 'big'),
                 digest_size=32
             ).digest()
@@ -461,18 +455,17 @@ self.config_dir = Path(config_dir)
         # Create message
         message_id = f"msg_{session_id}_{message_key_index}_{secrets.token_hex(4)}"
         message = E2EMessage()
-            message_id=message_id,
-            session_id=session_id,
-            sender_id=session.user_id,
-            recipient_id=recipient_id,
-            encrypted_payload=encrypted_payload,
-            message_key_index=message_key_index,
-            timestamp=datetime.now(timezone.utc),
-            metadata={
-                "protocol": session.protocol.value,
-                "endpoint_type": session.endpoint_type.value
-            }
-        )
+        message.message_id = message_id
+        message.session_id = session_id
+        message.sender_id = session.user_id
+        message.recipient_id = recipient_id
+        message.encrypted_payload = encrypted_payload
+        message.message_key_index = message_key_index
+        message.timestamp = datetime.now(timezone.utc)
+        message.metadata = {
+            "protocol": session.protocol.value,
+            "endpoint_type": session.endpoint_type.value
+        }
 
         # Sign message if required
         if session.endpoint_type in [EndpointType.AUTHENTICATION, EndpointType.ADMIN_API]:
@@ -488,14 +481,11 @@ self.config_dir = Path(config_dir)
         return message
 
     async def decrypt_message(self, message: E2EMessage) -> Optional[bytes]:
-        """Decrypt an E2E encrypted message."""
-        session_id = message.session_id
-
-        if session_id not in self.active_sessions:
-            logger.error(f"Session not found for message: {message.message_id}")
-            return None
-
-        session = self.active_sessions[session_id]
+        session = self.active_sessions.get(message.session_id)
+        if not session:
+            raise ValueError(f"Session {message.session_id} not found.")
+        if session.root_key is None:
+            raise ValueError("Session root_key is not initialized.")
 
         # Verify signature if present
         if message.signature and not self._verify_message_signature(message, session):
@@ -508,7 +498,7 @@ self.config_dir = Path(config_dir)
             message_key = await self._get_receive_message_key(session, message.message_key_index)
         else:
             # Generate message key from root key
-            message_key = hashlib.blake2b()
+            message_key = hashlib.blake2b(
                 session.root_key + message.message_key_index.to_bytes(4, 'big'),
                 digest_size=32
             ).digest()
@@ -540,37 +530,43 @@ self.config_dir = Path(config_dir)
     async def _advance_chain_key(self, session: E2ESession, direction: str):
         """Advance chain key and generate new message keys."""
         if direction == "send":
+            if session.chain_key_send is None:
+                raise ValueError("Session chain_key_send is not initialized.")
             # Generate new message keys
             for i in range(10):
-                message_key = hashlib.blake2b()
+                message_key = hashlib.blake2b(
                     session.chain_key_send + (len(session.message_keys_send) + i).to_bytes(4, 'big'),
                     digest_size=32
                 ).digest()
                 session.message_keys_send.append(message_key)
 
             # Advance chain key
-            session.chain_key_send = hashlib.blake2b()
+            session.chain_key_send = hashlib.blake2b(
                 session.chain_key_send + b"advance",
                 digest_size=32
             ).digest()
 
         else:  # receive
+            if session.chain_key_recv is None:
+                raise ValueError("Session chain_key_recv is not initialized.")
             # Generate new message keys
             for i in range(10):
-                message_key = hashlib.blake2b()
+                message_key = hashlib.blake2b(
                     session.chain_key_recv + (len(session.message_keys_recv) + i).to_bytes(4, 'big'),
                     digest_size=32
                 ).digest()
                 session.message_keys_recv.append(message_key)
 
             # Advance chain key
-            session.chain_key_recv = hashlib.blake2b()
+            session.chain_key_recv = hashlib.blake2b(
                 session.chain_key_recv + b"advance",
                 digest_size=32
             ).digest()
 
     async def _get_receive_message_key(self, session: E2ESession, key_index: int) -> Optional[bytes]:
         """Get message key for receiving (handles out-of-order messages)."""
+        if session.chain_key_recv is None:
+            raise ValueError("Session chain_key_recv is not initialized.")
         # Ensure we have enough receive keys
         while len(session.message_keys_recv) <= key_index:
             await self._advance_chain_key(session, "recv")
@@ -583,7 +579,7 @@ self.config_dir = Path(config_dir)
     def _sign_message(self, message: E2EMessage, session: E2ESession) -> bytes:
         """Sign a message for authentication."""
         # Create message hash
-        message_data = ()
+        message_data = (
             message.message_id.encode() +
             message.session_id.encode() +
             message.encrypted_payload +
@@ -593,7 +589,7 @@ self.config_dir = Path(config_dir)
         message_hash = hashlib.blake2b(message_data, digest_size=32).digest()
 
         # Sign with session private key (simplified - use proper signing in production)
-        signature = hashlib.blake2b()
+        signature = hashlib.blake2b(
             session.local_private_key + message_hash,
             digest_size=64
         ).digest()
@@ -606,7 +602,7 @@ self.config_dir = Path(config_dir)
             return False
 
         # Recreate message hash
-        message_data = ()
+        message_data = (
             message.message_id.encode() +
             message.session_id.encode() +
             message.encrypted_payload +
@@ -616,7 +612,7 @@ self.config_dir = Path(config_dir)
         message_hash = hashlib.blake2b(message_data, digest_size=32).digest()
 
         # Verify signature (simplified - use proper verification in production)
-        expected_signature = hashlib.blake2b()
+        expected_signature = hashlib.blake2b(
             session.local_private_key + message_hash,
             digest_size=64
         ).digest()
@@ -648,14 +644,11 @@ self.config_dir = Path(config_dir)
     async def _save_session(self, session: E2ESession):
         """Save session to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(""")
+            await db.execute("""
                 INSERT OR REPLACE INTO e2e_sessions
-                (session_id, user_id, endpoint_type, protocol, local_private_key,)
-                 local_public_key, remote_public_key, shared_secret, root_key,
-                 chain_key_send, chain_key_recv, created_at, last_used,
-                 message_count, is_verified, metadata)
+                (session_id, user_id, endpoint_type, protocol, local_private_key, local_public_key, remote_public_key, shared_secret, root_key, chain_key_send, chain_key_recv, created_at, last_used, message_count, is_verified, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, ()
+            """, (
                 session.session_id,
                 session.user_id,
                 session.endpoint_type.value,
@@ -678,12 +671,11 @@ self.config_dir = Path(config_dir)
     async def _save_message(self, message: E2EMessage):
         """Save message to database."""
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(""")
+            await db.execute("""
                 INSERT INTO e2e_messages
-                (message_id, session_id, sender_id, recipient_id, encrypted_payload,)
-                 message_key_index, timestamp, signature, metadata)
+                (message_id, session_id, sender_id, recipient_id, encrypted_payload, message_key_index, timestamp, signature, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, ()
+            """, (
                 message.message_id,
                 message.session_id,
                 message.sender_id,
@@ -759,10 +751,8 @@ self.config_dir = Path(config_dir)
         # Count messages from today
         today = datetime.now(timezone.utc).date()
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute()
-                "SELECT COUNT(*) FROM e2e_messages WHERE DATE(timestamp) = ?",
-                [today.isoformat()]
-            ) as cursor:
+            async with db.execute("SELECT COUNT(*) FROM e2e_messages WHERE DATE(timestamp) = ?",
+                                 [today.isoformat()]) as cursor:
                 row = await cursor.fetchone()
                 if row:
                     stats["total_messages_today"] = row[0]

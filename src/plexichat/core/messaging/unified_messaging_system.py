@@ -30,16 +30,16 @@ from uuid import uuid4
 
 # Import shared components (NEW ARCHITECTURE)
 from ...shared.models import Message, User, Channel, Event, Priority, Status
-from ...shared.types import ()
+from ...shared.types import (
     UserId, MessageId, ChannelId, JSON,
     MessageHandler, AsyncMessageHandler, WebSocketMessage
 )
-from ...shared.exceptions import ()
+from ...shared.exceptions import (
     ValidationError, AuthorizationError, ResourceNotFoundError,
     QuotaExceededError, RateLimitError
 )
-from ...shared.constants import ()
-    4096, MAX_ATTACHMENT_COUNT, MESSAGE_HISTORY_LIMIT,
+from ...shared.constants import (
+    MAX_MESSAGE_LENGTH, MAX_ATTACHMENT_COUNT, MESSAGE_HISTORY_LIMIT,
     MAX_CHANNEL_MEMBERS
 )
 
@@ -50,7 +50,7 @@ except ImportError:
     database_manager = None
 
 try:
-    from ...core.caching.unified_cache_integration import ()
+    from ...core.caching.unified_cache_integration import (
         cache_get, cache_set, cache_delete, CacheKeyBuilder, cached
     )
 except ImportError:
@@ -174,7 +174,7 @@ class MessageEncryption:
     def __init__(self):
         self.encryption_keys: Dict[str, str] = {}
 
-    async def encrypt_message(self, content: str, level: EncryptionLevel,)
+    async def encrypt_message(self, content: str, level: EncryptionLevel,
                             sender_id: UserId, recipient_ids: List[UserId]) -> str:
         """Encrypt message content."""
         try:
@@ -193,7 +193,7 @@ class MessageEncryption:
             logger.error(f"Error encrypting message: {e}")
             return content
 
-    async def decrypt_message(self, encrypted_content: str, level: EncryptionLevel,)
+    async def decrypt_message(self, encrypted_content: str, level: EncryptionLevel,
                             sender_id: UserId, recipient_id: UserId) -> str:
         """Decrypt message content."""
         try:
@@ -284,7 +284,7 @@ class MessageRouter:
                     continue
 
                 # Create delivery tracking
-                delivery = MessageDelivery()
+                delivery = MessageDelivery(
                     message_id=message.id,
                     recipient_id=recipient_id,
                     status=MessageStatus.PENDING
@@ -328,7 +328,7 @@ class MessageRouter:
         while True:
             try:
                 # Get message and delivery from queue
-                message, delivery = await asyncio.wait_for()
+                message, delivery = await asyncio.wait_for(
                     self.delivery_queue.get(),
                     timeout=1.0
                 )
@@ -381,12 +381,12 @@ class ChannelManager:
         self.channel_members: Dict[ChannelId, Set[UserId]] = {}
         self.channel_settings: Dict[ChannelId, ChannelSettings] = {}
 
-    async def create_channel(self, name: str, channel_type: ChannelType,)
+    async def create_channel(self, name: str, channel_type: ChannelType,
                            creator_id: UserId, description: str = "",
                            settings: Optional[ChannelSettings] = None) -> Channel:
         """Create a new channel."""
         try:
-            channel = Channel()
+            channel = Channel(
                 id=str(uuid4()),
                 name=name,
                 description=description,
@@ -545,7 +545,7 @@ class UnifiedMessagingManager:
         # This would create necessary database tables
         pass
 
-    async def send_message(self, sender_id: UserId, channel_id: ChannelId,)
+    async def send_message(self, sender_id: UserId, channel_id: ChannelId,
                           content: str, message_type: MessageType = MessageType.TEXT,
                           attachments: Optional[List[str]] = None,
                           metadata: Optional[MessageMetadata] = None) -> Message:
@@ -649,7 +649,7 @@ class UnifiedMessagingManager:
         members = self.channel_manager.get_channel_members(message.channel_id)
         return user_id in members
 
-    async def get_channel_messages(self, channel_id: ChannelId, user_id: UserId,)
+    async def get_channel_messages(self, channel_id: ChannelId, user_id: UserId,
                                  limit: int = 50, before: Optional[MessageId] = None) -> List[Message]:
         """Get messages from a channel with caching."""
         try:
@@ -754,7 +754,7 @@ class UnifiedMessagingManager:
 
     # Enhanced messaging features
 
-    def create_message_template(self, template_id: str, name: str, content: str,):
+    def create_message_template(self, template_id: str, name: str, content: str,
                               variables: List[str] = None, category: str = "general") -> bool:
         """Create a message template."""
         try:
@@ -781,7 +781,7 @@ class UnifiedMessagingManager:
         templates = []
         for template_id, template in self.message_templates.items():
             if category is None or template.get("category") == category:
-                templates.append({)
+                templates.append({
                     "id": template_id,
                     **template
                 })
@@ -803,7 +803,7 @@ class UnifiedMessagingManager:
 
         return content
 
-    def search_messages(self, query: str, channel_id: ChannelId = None,):
+    def search_messages(self, query: str, channel_id: ChannelId = None,
                        user_id: UserId = None, limit: int = 50) -> List[Message]:
         """Search messages by content."""
         try:
@@ -912,11 +912,11 @@ class UnifiedMessagingManager:
                 "total_messages": self.analytics_data["total_messages"],
                 "recent_messages": total_recent_messages,
                 "messages_per_hour": total_recent_messages / hours if hours > 0 else 0,
-                "top_users": sorted()
+                "top_users": sorted(
                     self.analytics_data["messages_by_user"].items(),
                     key=lambda x: x[1], reverse=True
                 )[:10],
-                "top_channels": sorted()
+                "top_channels": sorted(
                     self.analytics_data["messages_by_channel"].items(),
                     key=lambda x: x[1], reverse=True
                 )[:10],

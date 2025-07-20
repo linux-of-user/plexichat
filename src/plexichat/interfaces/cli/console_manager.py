@@ -12,7 +12,12 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-import keyboard
+try:
+    import keyboard
+    HAS_KEYBOARD = True
+except ImportError:
+    keyboard = None
+    HAS_KEYBOARD = False
 import psutil
 import logging
 
@@ -541,6 +546,16 @@ class EnhancedSplitScreen:
 
     def _input_handler(self):
         """Handle keyboard input for interactive features."""
+        if not HAS_KEYBOARD:
+            # Keyboard module not available, use basic input
+            while self.active:
+                try:
+                    # This is a simplified version - in practice you'd want better input handling
+                    time.sleep(1)
+                except KeyboardInterrupt:
+                    self.active = False
+            return
+
         try:
             while self.active:
                 try:
@@ -550,12 +565,10 @@ class EnhancedSplitScreen:
                 except Exception:
                     # Fallback if keyboard module not available
                     time.sleep(1)
-
-        except ImportError:
-            # Keyboard module not available, use basic input
+        except Exception:
+            # Fallback for any other errors
             while self.active:
                 try:
-                    # This is a simplified version - in practice you'd want better input handling
                     time.sleep(1)
                 except KeyboardInterrupt:
                     self.active = False

@@ -108,7 +108,7 @@ def setup_logging(debug: bool = False) -> logging.Logger:
         Path("logs").mkdir(exist_ok=True)
 
         # Configure logging
-        logging.basicConfig()
+        logging.basicConfig(
             level=level,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
@@ -169,16 +169,16 @@ def acquire_process_lock() -> bool:
                     try:
                         if sys.platform == "win32":
                             import subprocess
-                            result = subprocess.run(['tasklist', '/FI', f'PID eq {pid}'],)
+                            result = subprocess.run(['tasklist', '/FI', f'PID eq {pid}'],
                                                   capture_output=True, text=True)
                             if str(pid) in result.stdout:
-                                raise ProcessLockError()
+                                raise ProcessLockError(
                                     f"Another PlexiChat instance is already running (PID: {pid}). "
                                     f"Stop it first or remove {PROCESS_LOCK_FILE} if it's stale."
                                 )
                         else:
                             os.kill(pid, 0)  # Unix signal check
-                            raise ProcessLockError()
+                            raise ProcessLockError(
                                 f"Another PlexiChat instance is already running (PID: {pid}). "
                                 f"Stop it first or remove {PROCESS_LOCK_FILE} if it's stale."
                             )
@@ -206,7 +206,7 @@ def acquire_process_lock() -> bool:
         raise ProcessLockError(f"Failed to acquire process lock: {e}")
 
 def release_process_lock():
-    """Release the process lock (cross-platform)."""
+    """Release the process lock (cross-platform) with improved error handling."""
     global _lock_file
 
     if _lock_file:
@@ -216,15 +216,32 @@ def release_process_lock():
             elif HAS_MSVCRT:
                 msvcrt.locking(_lock_file, msvcrt.LK_UNLCK, 1)
             os.close(_lock_file)
-        except:
-            pass
+        except Exception as e:
+            # Log the error but continue cleanup
+            logging.getLogger('plexichat.main').warning(f"Error releasing file lock: {e}")
         _lock_file = None
 
-    # Remove lock file
+    # Remove lock file with better error handling
     try:
-        Path(PROCESS_LOCK_FILE).unlink(missing_ok=True)
-    except:
-        pass
+        lock_path = Path(PROCESS_LOCK_FILE)
+        if lock_path.exists():
+            # Try to change permissions if needed (Unix/Linux)
+            if hasattr(os, 'chmod'):
+                try:
+                    os.chmod(lock_path, 0o666)
+                except:
+                    pass
+            lock_path.unlink(missing_ok=True)
+    except PermissionError:
+        # On Windows, try to force delete
+        if sys.platform == "win32":
+            try:
+                import subprocess
+                subprocess.run(['del', '/f', str(lock_path)], shell=True, capture_output=True)
+            except:
+                pass
+    except Exception as e:
+        logging.getLogger('plexichat.main').warning(f"Error removing lock file: {e}")
 
 def setup_signal_handlers(logger: logging.Logger):
     """Setup signal handlers for graceful shutdown."""
@@ -270,7 +287,7 @@ def cleanup_resources(logger: logging.Logger):
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
         description="PlexiChat - Government-Level Secure Communication Platform",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -283,39 +300,39 @@ Examples:
         """
     )
 
-    parser.add_argument()
+    parser.add_argument(
         '--host',
         default=DEFAULT_HOST,
         help=f'Host to bind to (default: {DEFAULT_HOST})'
     )
 
-    parser.add_argument()
+    parser.add_argument(
         '--port',
         type=int,
         default=DEFAULT_PORT,
         help=f'Port to bind to (default: {DEFAULT_PORT})'
     )
 
-    parser.add_argument()
+    parser.add_argument(
         '--workers',
         type=int,
         default=DEFAULT_WORKERS,
         help=f'Number of worker threads (default: {DEFAULT_WORKERS})'
     )
 
-    parser.add_argument()
+    parser.add_argument(
         '--debug',
         action='store_true',
         help='Enable debug mode'
     )
 
-    parser.add_argument()
+    parser.add_argument(
         '--config',
         type=str,
         help='Path to configuration file'
     )
 
-    parser.add_argument()
+    parser.add_argument(
         '--force',
         action='store_true',
         help='Force start even if lock file exists (dangerous!)'
@@ -397,7 +414,7 @@ def main():
         # Run server with proper configuration
         if args.debug:
             # In debug mode, use import string for reload
-            uvicorn.run()
+            uvicorn.run(
                 "plexichat.main:app",
                 host=args.host,
                 port=args.port,
@@ -407,7 +424,7 @@ def main():
             )
         else:
             # In production mode, use app object directly
-            uvicorn.run()
+            uvicorn.run(
                 app,
                 host=args.host,
                 port=args.port,

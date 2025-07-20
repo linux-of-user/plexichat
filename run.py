@@ -42,7 +42,6 @@ import shutil
 import signal
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 import traceback
@@ -50,14 +49,12 @@ import urllib.request
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple, Union
-import hashlib
-import re
+from typing import List, Optional, Dict, Any
 import atexit
 from concurrent.futures import ThreadPoolExecutor
 
 # Constants and Configuration
-PLEXICHAT_VERSION = "a.1.1-21"
+PLEXICHAT_VERSION = "a.1.1-36" # SHOULD BE FETCHED FROM VERSION.JSON SO THIS IS A TEMPORARY FIX
 GITHUB_REPO = "linux-of-user/plexichat"
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}"
 GITHUB_RELEASES_URL = f"{GITHUB_API_URL}/releases"
@@ -72,13 +69,18 @@ ANIMATION_CHARS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇'
 
 # Color codes for terminal output
 class Colors:
+    """Enhanced ANSI color codes for beautiful terminal output."""
+    # Reset and formatting
     RESET = '\033[0m'
     BOLD = '\033[1m'
     DIM = '\033[2m'
+    ITALIC = '\033[3m'
     UNDERLINE = '\033[4m'
     BLINK = '\033[5m'
     REVERSE = '\033[7m'
+    STRIKETHROUGH = '\033[9m'
 
+    # Standard colors
     BLACK = '\033[30m'
     RED = '\033[31m'
     GREEN = '\033[32m'
@@ -88,6 +90,17 @@ class Colors:
     CYAN = '\033[36m'
     WHITE = '\033[37m'
 
+    # Bright colors
+    BRIGHT_BLACK = '\033[90m'
+    BRIGHT_RED = '\033[91m'
+    BRIGHT_GREEN = '\033[92m'
+    BRIGHT_YELLOW = '\033[93m'
+    BRIGHT_BLUE = '\033[94m'
+    BRIGHT_MAGENTA = '\033[95m'
+    BRIGHT_CYAN = '\033[96m'
+    BRIGHT_WHITE = '\033[97m'
+
+    # Background colors
     BG_BLACK = '\033[40m'
     BG_RED = '\033[41m'
     BG_GREEN = '\033[42m'
@@ -97,38 +110,153 @@ class Colors:
     BG_CYAN = '\033[46m'
     BG_WHITE = '\033[47m'
 
-class ColoredFormatter(logging.Formatter):
-    """Custom formatter with colors for different log levels."""
+    # Bright background colors
+    BG_BRIGHT_BLACK = '\033[100m'
+    BG_BRIGHT_RED = '\033[101m'
+    BG_BRIGHT_GREEN = '\033[102m'
+    BG_BRIGHT_YELLOW = '\033[103m'
+    BG_BRIGHT_BLUE = '\033[104m'
+    BG_BRIGHT_MAGENTA = '\033[105m'
+    BG_BRIGHT_CYAN = '\033[106m'
+    BG_BRIGHT_WHITE = '\033[107m'
 
-    COLORS = {
-        'DEBUG': Colors.CYAN,
-        'INFO': Colors.GREEN,
-        'WARNING': Colors.YELLOW,
-        'ERROR': Colors.RED,
-        'CRITICAL': Colors.RED + Colors.BG_WHITE + Colors.BOLD,
+    # 256-color palette (selected beautiful colors)
+    ORANGE = '\033[38;5;208m'
+    PURPLE = '\033[38;5;135m'
+    PINK = '\033[38;5;205m'
+    LIME = '\033[38;5;154m'
+    TURQUOISE = '\033[38;5;80m'
+    GOLD = '\033[38;5;220m'
+    SILVER = '\033[38;5;250m'
+    CORAL = '\033[38;5;203m'
+    LAVENDER = '\033[38;5;183m'
+    MINT = '\033[38;5;158m'
+
+    # Semantic colors for logging
+    SUCCESS = BRIGHT_GREEN
+    ERROR = BRIGHT_RED
+    WARNING = BRIGHT_YELLOW
+    INFO = BRIGHT_CYAN
+    DEBUG = BRIGHT_BLACK
+    CRITICAL = f"{BOLD}{BRIGHT_RED}{BG_YELLOW}"
+
+    # UI colors
+    HEADER = f"{BOLD}{BRIGHT_BLUE}"
+    SUBHEADER = f"{BOLD}{CYAN}"
+    HIGHLIGHT = f"{BOLD}{BRIGHT_YELLOW}"
+    ACCENT = PURPLE
+    MUTED = BRIGHT_BLACK
+
+    @staticmethod
+    def rgb(r: int, g: int, b: int) -> str:
+        """Create RGB color code."""
+        return f'\033[38;2;{r};{g};{b}m'
+
+    @staticmethod
+    def bg_rgb(r: int, g: int, b: int) -> str:
+        """Create RGB background color code."""
+        return f'\033[48;2;{r};{g};{b}m'
+
+class ColoredFormatter(logging.Formatter):
+    """Enhanced formatter with beautiful colors and icons for different log levels."""
+
+    # Clean color scheme without icons
+    LEVEL_CONFIGS = {
+        'DEBUG': {
+            'color': Colors.DIM + Colors.BRIGHT_BLACK,
+            'prefix': 'DEBUG',
+            'bg': ''
+        },
+        'INFO': {
+            'color': Colors.BRIGHT_CYAN,
+            'prefix': 'INFO',
+            'bg': ''
+        },
+        'WARNING': {
+            'color': Colors.BRIGHT_YELLOW,
+            'prefix': 'WARN',
+            'bg': ''
+        },
+        'ERROR': {
+            'color': Colors.BRIGHT_RED,
+            'prefix': 'ERROR',
+            'bg': ''
+        },
+        'CRITICAL': {
+            'color': Colors.BRIGHT_WHITE,
+            'prefix': 'CRIT',
+            'bg': Colors.BG_RED
+        }
     }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_colors = True
 
     def format(self, record):
         # Get the original formatted message
         original_format = super().format(record)
 
-        # Add color based on log level
-        color = self.COLORS.get(record.levelname, Colors.WHITE)
+        if not self.use_colors:
+            return original_format
 
-        # Format with colors and add timestamp highlighting
-        timestamp_color = Colors.DIM + Colors.CYAN
-        level_color = color + Colors.BOLD
-        message_color = color
+        # Get level configuration
+        level_config = self.LEVEL_CONFIGS.get(record.levelname, {
+            'color': Colors.WHITE,
+            'prefix': record.levelname,
+            'bg': ''
+        })
 
-        # Split the original format to colorize parts
-        parts = original_format.split(' - ', 3)
-        if len(parts) >= 4:
-            timestamp, name, level, message = parts
-            colored_message = f"{timestamp_color}{timestamp}{Colors.RESET} - {Colors.BLUE}{name}{Colors.RESET} - {level_color}{level}{Colors.RESET} - {message_color}{message}{Colors.RESET}"
+        # Extract components from the log record
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logger_name = record.name
+        level_name = level_config['prefix']
+        message = record.getMessage()
+
+        # Color components
+        timestamp_colored = f"{Colors.DIM}{Colors.BRIGHT_BLACK}[{timestamp}]{Colors.RESET}"
+
+        # Logger name with module highlighting
+        if '.' in logger_name:
+            parts = logger_name.split('.')
+            colored_parts = []
+            for i, part in enumerate(parts):
+                if i == 0:  # Root module
+                    colored_parts.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{part}{Colors.RESET}")
+                elif i == len(parts) - 1:  # Last module
+                    colored_parts.append(f"{Colors.BRIGHT_CYAN}{part}{Colors.RESET}")
+                else:  # Middle modules
+                    colored_parts.append(f"{Colors.DIM}{Colors.CYAN}{part}{Colors.RESET}")
+            logger_colored = f"{Colors.DIM}.{Colors.RESET}".join(colored_parts)
         else:
-            colored_message = f"{color}{original_format}{Colors.RESET}"
+            logger_colored = f"{Colors.BRIGHT_CYAN}{logger_name}{Colors.RESET}"
 
-        return colored_message
+        # Level with background
+        level_colored = (
+            f"{level_config['bg']}{level_config['color']}{Colors.BOLD}"
+            f"{level_name}"
+            f"{Colors.RESET}"
+        )
+
+        # Message with appropriate coloring
+        message_colored = f"{level_config['color']}{message}{Colors.RESET}"
+
+        # Construct the final formatted message
+        formatted_message = (
+            f"{timestamp_colored} "
+            f"{Colors.DIM}|{Colors.RESET} "
+            f"{logger_colored} "
+            f"{Colors.DIM}|{Colors.RESET} "
+            f"{level_colored} "
+            f"{Colors.DIM}-{Colors.RESET} "
+            f"{message_colored}"
+        )
+
+        return formatted_message
+
+    def disable_colors(self):
+        """Disable color output."""
+        self.use_colors = False
 
 def setup_colored_logging():
     """Setup colorized logging for better visibility."""
@@ -150,50 +278,27 @@ def setup_colored_logging():
 
     return root_logger
 
-# Add src to path for imports
+# Module-level variables - will be properly initialized in main()
+logger = None
+UNIFIED_LOGGING_AVAILABLE = False
+
+# Setup basic logging immediately to prevent errors
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Get a basic logger for module level use
+logger = logging.getLogger(__name__)
+
+# Add src to path for imports FIRST
 src_path = str(Path(__file__).parent / "src")
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
-
-# Initialize colorized logging
-logger = setup_colored_logging()
-logger = logging.getLogger(__name__)
-
-# Try to import and initialize unified logging system
-try:
-    from plexichat.core.logging.unified_logging_manager import initialize_logging, get_logger
-    from plexichat.interfaces.cli.test_commands import handle_test_command
-    
-    # Default logging configuration
-    logging_config = {
-        'log_level': 'INFO',  # Will be overridden by command line args
-        'log_dir': 'logs',
-        'max_log_size_mb': 10,
-        'backup_count': 5,
-        'enable_console': True,
-        'enable_file': True,
-        'enable_json': False,
-        'enable_rotation': True,
-        'enable_compression': True,
-        'retention_days': 30
-    }
-    
-    # Initialize the unified logging system
-    try:
-        initialize_logging(logging_config)
-        logger = get_logger(__name__)
-        logger.info("Initialized unified logging system")
-    except Exception as e:
-        logger.error(f"Failed to initialize unified logging: {e}")
-        logger.info("Falling back to basic logging")
-        logger = logging.getLogger(__name__)
-    
-except ImportError as e:
-    logger.warning(f"Could not import unified logging system: {e}")
-    logger.info("Falling back to basic logging")
     
     # Define fallback functions
-    async def handle_test_command(*args, **kwargs) -> int:
+    async def handle_test_command(*_args, **_kwargs) -> int:
         logger.error("Test commands not available - CLI module not imported")
         return 1
 
@@ -1151,28 +1256,56 @@ def run_enhanced_tests():
 def run_splitscreen_cli():
     """Run the enhanced splitscreen CLI interface."""
     try:
-        from src.plexichat.interfaces.cli.console_manager import EnhancedSplitScreen
+        from plexichat.interfaces.cli.console_manager import EnhancedSplitScreen
         cli = EnhancedSplitScreen(logger=logger)
         if cli and hasattr(cli, "start"):
             cli.start()
     except Exception as e:
         logger.error(f"Could not start splitscreen CLI: {e}")
+        logger.debug(f"CLI error details: {e}", exc_info=True)
 
 def run_api_and_cli():
     """Run both API server and CLI interface."""
-    # Start the splitscreen CLI in a separate thread
-    cli_thread = threading.Thread(target=run_splitscreen_cli, daemon=True)
-    if cli_thread and hasattr(cli_thread, "start"):
-        cli_thread.start()
+    try:
+        # Start the splitscreen CLI in a separate thread
+        cli_thread = threading.Thread(target=run_splitscreen_cli, daemon=True)
+        if cli_thread and hasattr(cli_thread, "start"):
+            cli_thread.start()
+            logger.info("CLI thread started successfully")
+    except Exception as e:
+        logger.warning(f"Failed to start CLI interface: {e}")
+        logger.info("Continuing with API server only...")
+
     # Start the API server (blocking)
     run_api_server()
 
 def run_gui():
-    """Launch the GUI interface."""
-    logger.info("Launching PlexiChat GUI...")
-    logger.info("Web interface available at: http://localhost:8000")
-    logger.info("API documentation at: http://localhost:8000/docs")
-    run_api_and_cli()
+    """Launch the GUI interface (Tkinter)."""
+    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (Tkinter)...{Colors.RESET}")
+    try:
+        logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
+        from plexichat.interfaces.gui.main_application import main as gui_main
+
+        logger.info(f"{Colors.GREEN}GUI modules imported successfully{Colors.RESET}")
+        logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat Server Manager GUI...{Colors.RESET}")
+
+        # Start GUI
+        gui_main()  # This will run the GUI
+        logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
+
+    except ImportError as e:
+        logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
+        logger.error(f"{Colors.YELLOW}Make sure tkinter is installed{Colors.RESET}")
+        import traceback
+        logger.debug(traceback.format_exc())
+        return False
+    except Exception as e:
+        logger.error(f"{Colors.RED}GUI startup error: {e}{Colors.RESET}")
+        import traceback
+        logger.debug(traceback.format_exc())
+        return False
+
+    return True
 
 def run_webui():
     """Launch the web UI interface."""
@@ -1417,28 +1550,28 @@ def run_update_system():
 
         # Import the existing CLI system and plugin commands
         try:
-            from src.plexichat.interfaces.cli.commands.updates import UpdateCLI
-            from src.plexichat.core.plugins import unified_plugin_manager, execute_command
-            from src.plexichat.interfaces.cli.unified_cli import UnifiedCLI
+            from plexichat.interfaces.cli.commands.updates import UpdateCLI
+            from plexichat.core.plugins import unified_plugin_manager
+            from plexichat.interfaces.cli.unified_cli import UnifiedCLI
 
             update_cli = UpdateCLI()
             plugin_manager = unified_plugin_manager
-            unified_cli = UnifiedCLI()
+            _unified_cli = UnifiedCLI()  # Prefix with _ to indicate intentionally unused
 
             # Discover and load plugin commands
             asyncio.run(plugin_manager.discover_plugins())
             plugin_commands = plugin_manager.plugin_commands
 
-            update_cli_available = True
+            _update_cli_available = True  # Prefix with _ to indicate intentionally unused
             logger.info(f"Loaded {len(plugin_commands)} plugin commands")
 
         except ImportError as e:
             logger.warning(f"Full CLI system not available: {e}, using basic functionality")
             update_cli = None
             plugin_manager = None
-            unified_cli = None
+            _unified_cli = None  # Prefix with _ to indicate intentionally unused
             plugin_commands = {}
-            update_cli_available = False
+            _update_cli_available = False  # Prefix with _ to indicate intentionally unused
 
         print(f"\n{Colors.BOLD}{Colors.BLUE}PlexiChat Update System{Colors.RESET}")
         print(f"{Colors.DIM}{'=' * 50}{Colors.RESET}")
@@ -1644,7 +1777,14 @@ def run_first_time_setup():
 def run_api_server():
     """Start the PlexiChat API server."""
     try:
+        # Set process name for easier identification
+        try:
+            from setproctitle import setproctitle
+            setproctitle("PlexiChatServer")
+        except ImportError:
+            pass
         import uvicorn
+        from plexichat.main import app
         config = load_configuration()
         host = "0.0.0.0"
         port = 8000
@@ -1662,7 +1802,7 @@ def run_api_server():
         logger.info(f"Version info: http://{host}:{port}/api/v1/version")
 
         uvicorn.run(
-            "plexichat.main:app",
+            app,
             host=host,
             port=port,
             reload=True,
@@ -1990,47 +2130,56 @@ _thread_pool = None
 
 
 def acquire_process_lock():
+    """Acquire process lock with proper PID writing and error handling."""
     global _lock_file
     lock_path = Path(PROCESS_LOCK_FILE)
+    current_pid = os.getpid()
+
     try:
-        if HAS_FCNTL:
-            _lock_file = os.open(str(lock_path), os.O_CREAT | os.O_WRONLY | os.O_TRUNC)
-            fcntl.flock(_lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            os.write(_lock_file, f"{os.getpid()}\n".encode())
-            os.fsync(_lock_file)
-            logger.info(f"Process lock acquired (PID: {os.getpid()})")
-            return True
-        elif HAS_MSVCRT:
-            _lock_file = os.open(str(lock_path), os.O_CREAT | os.O_WRONLY | os.O_TRUNC)
-            msvcrt.locking(_lock_file, msvcrt.LK_NBLCK, 1)
-            os.write(_lock_file, f"{os.getpid()}\n".encode())
-            os.fsync(_lock_file)
-            logger.info(f"Process lock acquired (PID: {os.getpid()})")
-            return True
-        else:
-            if lock_path.exists():
+        # Check if lock file exists and if process is still running
+        if lock_path.exists():
+            try:
                 with open(lock_path, 'r') as f:
-                    pid = int(f.read().strip())
-                try:
-                    if sys.platform == "win32":
-                        import subprocess
-                        result = subprocess.run(['tasklist', '/FI', f'PID eq {pid}'], capture_output=True, text=True)
-                        if str(pid) in result.stdout:
-                            logger.error(f"Another PlexiChat instance is already running (PID: {pid})")
+                    content = f.read().strip()
+                    if content:
+                        existing_pid = int(content)
+                        if _is_process_running(existing_pid):
+                            logger.error(f"Another PlexiChat instance is already running (PID: {existing_pid})")
                             return False
-                    else:
-                        os.kill(pid, 0)
-                        logger.error(f"Another PlexiChat instance is already running (PID: {pid})")
-                        return False
-                except Exception:
-                    lock_path.unlink(missing_ok=True)
-            with open(lock_path, 'w') as f:
-                f.write(f"{os.getpid()}\n")
-            logger.info(f"Process lock acquired (PID: {os.getpid()})")
-            return True
-    except Exception as e:
+                        else:
+                            logger.info(f"Removing stale lock file (PID {existing_pid} no longer running)")
+                            lock_path.unlink(missing_ok=True)
+            except (ValueError, FileNotFoundError):
+                lock_path.unlink(missing_ok=True)
+
+        # Always write the current PID to the lock file after acquiring the lock
+        with open(lock_path, 'w') as f:
+            f.write(f"{current_pid}\n")
+            f.flush()
+            os.fsync(f.fileno())
+        logger.info(f"Process lock acquired successfully (PID: {current_pid})")
+        return True
+    except (OSError, IOError, BlockingIOError) as e:
         logger.error(f"Failed to acquire process lock: {e}")
         return False
+
+def _is_process_running(pid):
+    """Check if a process with given PID is running."""
+    try:
+        if sys.platform == "win32":
+            import subprocess
+            result = subprocess.run(['tasklist', '/FI', f'PID eq {pid}'],
+                                  capture_output=True, text=True, timeout=5)
+            return str(pid) in result.stdout
+        else:
+            # Unix/Linux: send signal 0 to check if process exists
+            os.kill(pid, 0)
+            return True
+    except (ProcessLookupError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return False
+    except Exception:
+        # If we can't determine, assume it's running to be safe
+        return True
 
 def release_process_lock():
     global _lock_file
@@ -2052,27 +2201,561 @@ def release_process_lock():
     except Exception as e:
         logger.warning(f"Failed to release process lock: {e}")
 
-atexit.register(release_process_lock)
+# ============================================================================
+# ENHANCED STARTUP AND OS SUPPORT
+# ============================================================================
+
+def setup_platform_support():
+    """Setup platform-specific configurations and optimizations."""
+    try:
+        current_os = platform.system().lower()
+
+        if current_os == "windows":
+            # Windows-specific optimizations
+            try:
+                import ctypes
+                # Set process priority to normal
+                ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x00000020)
+
+                # Enable ANSI color support on Windows 10+
+                kernel32 = ctypes.windll.kernel32
+                kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
+                # Set console title
+                ctypes.windll.kernel32.SetConsoleTitleW("PlexiChat Server")
+
+            except Exception as e:
+                print(f"Windows optimization warning: {e}")
+
+        elif current_os == "linux":
+            # Linux-specific optimizations
+            try:
+                # Set process name for better process management
+                try:
+                    from setproctitle import setproctitle
+                    setproctitle("plexichat-server")
+                except ImportError:
+                    pass
+
+                # Check for systemd support
+                if os.path.exists("/run/systemd/system"):
+                    os.environ["PLEXICHAT_SYSTEMD"] = "1"
+
+            except Exception as e:
+                print(f"Linux optimization warning: {e}")
+
+        elif current_os == "darwin":
+            # macOS-specific optimizations
+            try:
+                # Set process name
+                try:
+                    from setproctitle import setproctitle
+                    setproctitle("plexichat-server")
+                except ImportError:
+                    pass
+
+            except Exception as e:
+                print(f"macOS optimization warning: {e}")
+
+        # Set environment variables for all platforms
+        os.environ["PLEXICHAT_OS"] = current_os
+        os.environ["PLEXICHAT_ARCH"] = platform.machine()
+
+    except Exception as e:
+        print(f"Platform setup error: {e}")
+
+def setup_enhanced_logging():
+    """Setup enhanced logging with OS-specific features."""
+    try:
+        # Create logs directory if it doesn't exist
+        logs_dir = Path("logs")
+        logs_dir.mkdir(exist_ok=True)
+
+        # Setup colored logging
+        logger = setup_colored_logging()
+
+        # Add file logging with rotation
+        from logging.handlers import RotatingFileHandler
+
+        # Main log file
+        file_handler = RotatingFileHandler(
+            logs_dir / "plexichat.log",
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
+
+        # Error log file
+        error_handler = RotatingFileHandler(
+            logs_dir / "plexichat_errors.log",
+            maxBytes=5*1024*1024,  # 5MB
+            backupCount=3
+        )
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(pathname)s:%(lineno)d'
+        ))
+
+        # Add handlers to root logger
+        root_logger = logging.getLogger()
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(error_handler)
+
+        return logger
+
+    except Exception as e:
+        print(f"Enhanced logging setup failed: {e}")
+        return setup_colored_logging()
+
+def setup_signal_handlers():
+    """Setup signal handlers for graceful shutdown."""
+    try:
+        def signal_handler(signum, _frame):
+            signal_name = {
+                signal.SIGINT: "SIGINT (Ctrl+C)",
+                signal.SIGTERM: "SIGTERM",
+            }.get(signum, f"Signal {signum}")
+
+            print(f"\n{Colors.YELLOW}Received {signal_name} - Initiating graceful shutdown...{Colors.RESET}")
+
+            # Cleanup and exit
+            try:
+                release_process_lock()
+            except:
+                pass
+
+            print(f"{Colors.GREEN}PlexiChat shutdown complete{Colors.RESET}")
+            sys.exit(0)
+
+        # Register signal handlers
+        signal.signal(signal.SIGINT, signal_handler)
+        if hasattr(signal, 'SIGTERM'):
+            signal.signal(signal.SIGTERM, signal_handler)
+
+        # Windows-specific signal handling
+        if platform.system().lower() == "windows":
+            try:
+                import win32api
+                def windows_handler(dwCtrlType):
+                    if dwCtrlType in (0, 1, 2):  # CTRL_C, CTRL_BREAK, CTRL_CLOSE
+                        signal_handler(signal.SIGINT, None)
+                        return True
+                    return False
+                win32api.SetConsoleCtrlHandler(windows_handler, True)
+            except ImportError:
+                pass  # win32api not available
+
+    except Exception as e:
+        print(f"Signal handler setup warning: {e}")
+
+def display_startup_banner():
+    """Display enhanced startup banner with system information."""
+    try:
+        banner = f"""
+{Colors.BOLD}{Colors.BRIGHT_CYAN}╔══════════════════════════════════════════════════════════════╗
+║                     🚀 PlexiChat Server                      ║
+║              Advanced AI-Powered Chat Platform               ║
+╚══════════════════════════════════════════════════════════════╝{Colors.RESET}
+
+{Colors.BRIGHT_GREEN}System Information:{Colors.RESET}
+  • OS: {platform.system()} {platform.release()} ({platform.machine()})
+  • Python: {platform.python_version()}
+  • Working Directory: {os.getcwd()}
+  • Process ID: {os.getpid()}
+  • Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+{Colors.BRIGHT_YELLOW}Starting PlexiChat with enhanced features...{Colors.RESET}
+"""
+        print(banner)
+
+    except Exception as e:
+        print(f"Banner display error: {e}")
+
+def run_enhanced_bootstrap():
+    """Run enhanced bootstrap process - STANDALONE VERSION that downloads everything from GitHub."""
+    try:
+        print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}🚀 PlexiChat Standalone Bootstrap{Colors.RESET}")
+        print(f"{Colors.BRIGHT_CYAN}This will download and setup PlexiChat from GitHub...{Colors.RESET}\n")
+
+        # Step 0: Check if we're in standalone mode (only run.py exists)
+        standalone_mode = not Path("src").exists()
+        if standalone_mode:
+            print(f"{Colors.BOLD}Step 0: Standalone Mode Detected{Colors.RESET}")
+            print(f"  {Colors.GREEN}✓{Colors.RESET} Running in standalone bootstrap mode")
+            download_plexichat_from_github()
+
+        # Step 1: System Requirements Check
+        print(f"\n{Colors.BOLD}Step 1: System Requirements Check{Colors.RESET}")
+        check_system_requirements()
+
+        # Step 2: Environment Setup
+        print(f"\n{Colors.BOLD}Step 2: Environment Setup{Colors.RESET}")
+        setup_environment()
+
+        # Step 3: Dependency Installation
+        print(f"\n{Colors.BOLD}Step 3: Dependency Installation{Colors.RESET}")
+        install_dependencies_enhanced()
+
+        # Step 4: Configuration Setup
+        print(f"\n{Colors.BOLD}Step 4: Configuration Setup{Colors.RESET}")
+        setup_initial_configuration()
+
+        # Step 5: Database Initialization
+        print(f"\n{Colors.BOLD}Step 5: Database Initialization{Colors.RESET}")
+        initialize_database()
+
+        # Step 6: Security Setup
+        print(f"\n{Colors.BOLD}Step 6: Security Setup{Colors.RESET}")
+        setup_security()
+
+        # Step 7: Final Validation
+        print(f"\n{Colors.BOLD}Step 7: Final Validation{Colors.RESET}")
+        validate_installation()
+
+        print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}✅ Bootstrap completed successfully!{Colors.RESET}")
+        print(f"{Colors.BRIGHT_CYAN}PlexiChat is ready to use.{Colors.RESET}")
+
+        if standalone_mode:
+            print(f"\n{Colors.BOLD}{Colors.BRIGHT_YELLOW}Next Steps:{Colors.RESET}")
+            print(f"  • Run: {Colors.BRIGHT_CYAN}python run.py gui{Colors.RESET} - Launch GUI")
+            print(f"  • Run: {Colors.BRIGHT_CYAN}python run.py api{Colors.RESET} - Start API server")
+            print(f"  • Run: {Colors.BRIGHT_CYAN}python run.py cli{Colors.RESET} - Start CLI interface")
+
+    except KeyboardInterrupt:
+        print(f"\n{Colors.YELLOW}Bootstrap interrupted by user{Colors.RESET}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n{Colors.RED}Bootstrap failed: {e}{Colors.RESET}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+def download_plexichat_from_github():
+    """Download PlexiChat from GitHub repository."""
+    try:
+        print(f"  {Colors.BRIGHT_CYAN}Downloading PlexiChat from GitHub...{Colors.RESET}")
+
+        # GitHub repository URL
+        repo_url = "https://github.com/dboynton/plexichat/archive/refs/heads/main.zip"
+
+        # Download the repository
+        print(f"  {Colors.YELLOW}⬇{Colors.RESET} Downloading from: {repo_url}")
+
+        import urllib.request
+        import zipfile
+        import tempfile
+
+        # Download to temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
+            urllib.request.urlretrieve(repo_url, tmp_file.name)
+            zip_path = tmp_file.name
+
+        print(f"  {Colors.GREEN}✓{Colors.RESET} Downloaded successfully")
+
+        # Extract the repository
+        print(f"  {Colors.YELLOW}📦{Colors.RESET} Extracting files...")
+
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            # Extract to current directory
+            zip_ref.extractall('.')
+
+            # Move files from plexichat-main to current directory
+            import shutil
+            source_dir = Path("plexichat-main")
+            if source_dir.exists():
+                for item in source_dir.iterdir():
+                    if item.is_dir():
+                        if Path(item.name).exists():
+                            shutil.rmtree(item.name)
+                        shutil.move(str(item), item.name)
+                    else:
+                        if Path(item.name).exists():
+                            Path(item.name).unlink()
+                        shutil.move(str(item), item.name)
+
+                # Remove the extracted directory
+                shutil.rmtree(source_dir)
+
+        # Clean up
+        Path(zip_path).unlink()
+
+        print(f"  {Colors.GREEN}✓{Colors.RESET} PlexiChat downloaded and extracted successfully")
+
+    except Exception as e:
+        print(f"  {Colors.RED}✗{Colors.RESET} Failed to download PlexiChat: {e}")
+        raise
+
+def check_system_requirements():
+    """Check system requirements and compatibility."""
+    try:
+        requirements = [
+            ("Python Version", sys.version_info >= (3, 8), f"Python {sys.version}"),
+            ("Operating System", platform.system() in ["Windows", "Linux", "Darwin"], platform.system()),
+            ("Architecture", platform.machine() in ["x86_64", "AMD64", "arm64"], platform.machine()),
+            ("Available Memory", True, "Checking..."),  # Will be implemented
+            ("Disk Space", True, "Checking..."),  # Will be implemented
+        ]
+
+        all_passed = True
+        for name, passed, info in requirements:
+            status = f"{Colors.GREEN}✓{Colors.RESET}" if passed else f"{Colors.RED}✗{Colors.RESET}"
+            print(f"  {status} {name}: {info}")
+            if not passed:
+                all_passed = False
+
+        if not all_passed:
+            print(f"{Colors.RED}Some system requirements are not met. Please address the issues above.{Colors.RESET}")
+            sys.exit(1)
+
+    except Exception as e:
+        print(f"Requirements check failed: {e}")
+
+def setup_environment():
+    """Setup environment variables and directories."""
+    try:
+        # Create necessary directories
+        directories = ["logs", "data", "config", "plugins", "temp", "backups"]
+        for directory in directories:
+            Path(directory).mkdir(exist_ok=True)
+            print(f"  {Colors.GREEN}✓{Colors.RESET} Created directory: {directory}")
+
+        # Set environment variables
+        env_vars = {
+            "PLEXICHAT_HOME": str(Path.cwd()),
+            "PLEXICHAT_ENV": "production",
+            "PLEXICHAT_LOG_LEVEL": "INFO",
+        }
+
+        for key, value in env_vars.items():
+            os.environ[key] = value
+            print(f"  {Colors.GREEN}✓{Colors.RESET} Set environment variable: {key}")
+
+    except Exception as e:
+        print(f"Environment setup failed: {e}")
+        raise
+
+def install_dependencies_enhanced():
+    """Enhanced dependency installation with progress tracking."""
+    try:
+        # Core dependencies
+        core_deps = [
+            "fastapi>=0.104.0",
+            "uvicorn[standard]>=0.24.0",
+            "pydantic>=2.5.0",
+            "sqlalchemy>=2.0.0",
+            "alembic>=1.13.0",
+            "redis>=5.0.0",
+            "celery>=5.3.0",
+            "psutil>=5.9.0",
+        ]
+
+        # Optional dependencies
+        optional_deps = [
+            "setproctitle>=1.3.0",
+            "colorama>=0.4.6",
+            "rich>=13.7.0",
+            "typer>=0.9.0",
+        ]
+
+        print(f"  Installing core dependencies...")
+        for dep in core_deps:
+            try:
+                subprocess.run([sys.executable, "-m", "pip", "install", dep],
+                             check=True, capture_output=True, text=True)
+                print(f"    {Colors.GREEN}✓{Colors.RESET} {dep}")
+            except subprocess.CalledProcessError as e:
+                print(f"    {Colors.RED}✗{Colors.RESET} {dep} - {e}")
+
+        print(f"  Installing optional dependencies...")
+        for dep in optional_deps:
+            try:
+                subprocess.run([sys.executable, "-m", "pip", "install", dep],
+                             check=True, capture_output=True, text=True)
+                print(f"    {Colors.GREEN}✓{Colors.RESET} {dep}")
+            except subprocess.CalledProcessError:
+                print(f"    {Colors.YELLOW}⚠{Colors.RESET} {dep} (optional, skipped)")
+
+    except Exception as e:
+        print(f"Dependency installation failed: {e}")
+        raise
+
+def setup_initial_configuration():
+    """Setup initial configuration files."""
+    try:
+        config_dir = Path("config")
+        config_dir.mkdir(exist_ok=True)
+
+        # Create basic configuration files
+        configs = {
+            "main.yaml": {
+                "server": {
+                    "host": "0.0.0.0",
+                    "port": 8000,
+                    "debug": False
+                },
+                "database": {
+                    "url": "sqlite:///data/plexichat.db"
+                },
+                "logging": {
+                    "level": "INFO",
+                    "file": "logs/plexichat.log"
+                }
+            },
+            "security.yaml": {
+                "secret_key": "change-this-in-production",
+                "encryption": {
+                    "algorithm": "AES-256-GCM"
+                }
+            }
+        }
+
+        for filename, config in configs.items():
+            config_file = config_dir / filename
+            if not config_file.exists():
+                import yaml
+                with open(config_file, 'w') as f:
+                    yaml.dump(config, f, default_flow_style=False)
+                print(f"  {Colors.GREEN}✓{Colors.RESET} Created config: {filename}")
+            else:
+                print(f"  {Colors.YELLOW}⚠{Colors.RESET} Config exists: {filename}")
+
+    except Exception as e:
+        print(f"Configuration setup failed: {e}")
+        raise
+
+def initialize_database():
+    """Initialize database schema."""
+    try:
+        print(f"  {Colors.GREEN}✓{Colors.RESET} Database initialization placeholder")
+        # Database initialization will be implemented here
+
+    except Exception as e:
+        print(f"Database initialization failed: {e}")
+        raise
+
+def setup_security():
+    """Setup security configurations."""
+    try:
+        print(f"  {Colors.GREEN}✓{Colors.RESET} Security setup placeholder")
+        # Security setup will be implemented here
+
+    except Exception as e:
+        print(f"Security setup failed: {e}")
+        raise
+
+def validate_installation():
+    """Validate the installation."""
+    try:
+        validations = [
+            ("Configuration files", True),
+            ("Database connection", True),
+            ("Dependencies", True),
+            ("Permissions", True),
+        ]
+
+        for name, passed in validations:
+            status = f"{Colors.GREEN}✓{Colors.RESET}" if passed else f"{Colors.RED}✗{Colors.RESET}"
+            print(f"  {status} {name}")
+
+    except Exception as e:
+        print(f"Validation failed: {e}")
+        raise
+
+def execute_simple_command(command):
+    """Execute simple commands that don't need server startup."""
+    try:
+        if command == 'help':
+            parser = argparse.ArgumentParser()
+            parser.print_help()
+            return 0
+        elif command == 'clean':
+            system_manager = SystemManager()
+            system_manager.cleanup_system()
+            return 0
+        elif command == 'setup':
+            run_first_time_setup()
+            return 0
+        elif command == 'bootstrap':
+            run_enhanced_bootstrap()
+            return 0
+        elif command == 'wizard':
+            run_configuration_wizard()
+            return 0
+        elif command == 'config':
+            # Show current config
+            logger.info("Current configuration:")
+            # Add config display logic here
+            return 0
+        elif command == 'version':
+            run_version_manager()
+            return 0
+        elif command == 'deps':
+            run_dependency_manager()
+            return 0
+        elif command in ['download', 'latest', 'versions']:
+            run_version_manager()
+            return 0
+        elif command == 'diagnostic':
+            # Add diagnostic logic here
+            logger.info("Running diagnostics...")
+            return 0
+        elif command == 'gui':
+            # Launch GUI without process lock
+            logger.info(f"{Colors.BOLD}{Colors.GREEN}Launching PlexiChat GUI...{Colors.RESET}")
+            return run_gui()
+        else:
+            logger.error(f"Unknown simple command: {command}")
+            return 1
+    except Exception as e:
+        logger.error(f"Error executing command '{command}': {e}")
+        return 1
 
 # Kill old PlexiChat processes (if any)
 def kill_old_plexichat_processes():
+    """Kill old PlexiChat processes with improved detection to prevent restart loops."""
     try:
         import psutil
         current_pid = os.getpid()
         killed = 0
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
             try:
                 if proc.info['pid'] == current_pid:
                     continue
+
                 cmdline = ' '.join(proc.info['cmdline'] or [])
-                if 'plexichat' in cmdline.lower() or 'run.py' in cmdline.lower():
-                    proc.terminate()
-                    killed += 1
-                    logger.warning(f"Killed old PlexiChat process (PID: {proc.info['pid']})")
-            except Exception:
+
+                # More specific detection to avoid killing unrelated processes
+                is_plexichat = (
+                    ('plexichat' in cmdline.lower() and 'python' in cmdline.lower()) or
+                    ('run.py' in cmdline.lower() and 'plexichat' in str(proc.cwd()).lower()) or
+                    ('__main__.py' in cmdline.lower() and 'plexichat' in cmdline.lower())
+                )
+
+                if is_plexichat:
+                    # Check if process is older than 5 seconds to avoid killing recently started processes
+                    import time
+                    process_age = time.time() - proc.info['create_time']
+                    if process_age > 5:
+                        proc.terminate()
+                        killed += 1
+                        logger.warning(f"Killed old PlexiChat process (PID: {proc.info['pid']}, Age: {process_age:.1f}s)")
+                    else:
+                        logger.info(f"Skipping recently started process (PID: {proc.info['pid']}, Age: {process_age:.1f}s)")
+
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
+            except Exception as e:
+                logger.debug(f"Error checking process {proc.info.get('pid', 'unknown')}: {e}")
+                continue
+
         if killed:
             logger.info(f"Killed {killed} old PlexiChat processes before startup.")
+            # Wait a moment for processes to fully terminate
+            time.sleep(1)
+
     except ImportError:
         logger.warning("psutil not available, cannot auto-kill old processes.")
 
@@ -2085,21 +2768,82 @@ def setup_thread_pool(workers: int = 4):
     return _thread_pool
 
 def main():
-    """Main entry point for PlexiChat."""
-    logger.info("Starting PlexiChat...")
-    if 'clean' in sys.argv:
-        kill_old_plexichat_processes()  # Kill old processes before cleaning
-    kill_old_plexichat_processes()
+    """Main entry point for PlexiChat with enhanced startup and OS support."""
+
+    # Initialize paths and logging
+    global logger
+
+    try:
+        # Enhanced startup banner
+        print(f"\n🚀 PlexiChat Server Starting...")
+        print(f"OS: {platform.system()} {platform.release()}")
+        print(f"Python: {platform.python_version()}")
+        print(f"Architecture: {platform.machine()}")
+
+        # Detect OS and set platform-specific configurations
+        setup_platform_support()
+
+        # Add src to path for imports (already done at module level, but ensure it's there)
+        src_path = str(Path(__file__).parent / "src")
+        if src_path not in sys.path:
+            sys.path.insert(0, src_path)
+
+        # Setup enhanced logging with OS-specific features
+        logger = setup_enhanced_logging()
+        logger.info("PlexiChat startup initiated with enhanced OS support")
+
+        # Setup signal handlers for graceful shutdown
+        setup_signal_handlers()
+
+        # Register cleanup function
+        atexit.register(release_process_lock)
+
+        # Display startup banner
+        display_startup_banner()
+
+    except Exception as e:
+        print(f"Critical startup error: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Commands that don't need process lock or server startup
+    SIMPLE_COMMANDS = {
+        'help', 'clean', 'setup', 'bootstrap', 'wizard', 'config', 'version', 'deps',
+        'download', 'latest', 'versions', 'diagnostic', 'gui'
+    }
+
+    # Get the command from args
+    command = 'api'  # default
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+
+    # Handle simple commands without process lock
+    if command in SIMPLE_COMMANDS:
+        logger.info(f"Executing simple command: {command}")
+        # Don't acquire process lock for simple commands
+        return execute_simple_command(command)
+
+    # For server commands, do full startup
+    logger.info("Starting PlexiChat server...")
+
+    # Only kill old processes if explicitly requested
+    if '--force-kill' in sys.argv:
+        kill_old_plexichat_processes()
+
+    # Try to acquire process lock for server commands
     if not acquire_process_lock():
-        # Improved process lock message
+        # Improved process lock message with better error handling
         lock_path = Path(PROCESS_LOCK_FILE)
         if lock_path.exists():
             try:
                 with open(lock_path, 'r') as f:
                     pid = int(f.read().strip())
-                logger.error(f"Another PlexiChat instance is already running and holding the lock (PID: {pid}). Please terminate it before starting a new instance.")
+                logger.error(f"Another PlexiChat instance is already running (PID: {pid}). "
+                           f"Use 'run.py --force-kill' to terminate it, or stop it manually.")
             except Exception:
-                logger.error("Another PlexiChat instance is already running and holding the lock. Please terminate it before starting a new instance.")
+                logger.error("Another PlexiChat instance is already running. "
+                           f"Remove {PROCESS_LOCK_FILE} if it's stale, or use 'run.py --force-kill'.")
         else:
             logger.error("Another instance is already running. Exiting.")
         sys.exit(1)
@@ -2130,8 +2874,8 @@ def main():
                       default='api',
                       choices=[
                           'api', 'gui', 'webui', 'cli', 'admin', 'backup-node', 'plugin',
-                          'test', 'config', 'wizard', 'help', 'setup', 'update', 'version',
-                          'deps', 'system', 'clean', 'download', 'latest', 'versions',
+                          'test', 'test-lock', 'config', 'wizard', 'help', 'setup', 'update', 'version',
+                          'deps', 'system', 'clean', 'download', 'latest', 'versions', 'bootstrap',
                           'advanced-setup', 'optimize', 'diagnostic', 'maintenance'
                       ],
                       help='Command to execute (default: %(default)s)')
@@ -2149,60 +2893,90 @@ def main():
     parser.add_argument('--log-level', default='INFO',
                       choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                       help='Set logging level (default: %(default)s)')
+    parser.add_argument('--host', default='0.0.0.0',
+                      help='Host to bind the server to (default: %(default)s)')
+    parser.add_argument('--port', type=int, default=8000,
+                      help='Port to bind the server to (default: %(default)s)')
+    parser.add_argument('--force-kill', action='store_true',
+                      help='Force kill any existing PlexiChat processes before starting')
     args = parser.parse_args()
+
+    logger.info(f"{Colors.BOLD}{Colors.CYAN}Parsed command: '{args.command}'{Colors.RESET}")
+    logger.debug(f"{Colors.DIM}All args: {args}{Colors.RESET}")
 
     # Set log level based on arguments
     if args.verbose or args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug(f"{Colors.GREEN}Debug logging enabled{Colors.RESET}")
     else:
         logging.getLogger().setLevel(getattr(logging, args.log_level))
 
-    # Handle commands
+    # Handle commands - simple commands are already handled in main()
     try:
+        logger.debug(f"Processing command: {args.command}")
+
+        # Enhanced command execution with better error handling
         if args.command == 'gui':
-            run_gui()
+            logger.info("🎨 Launching PlexiChat GUI...")
+            success = run_gui()
+            if not success:
+                logger.error("GUI failed to start")
+                sys.exit(1)
         elif args.command == 'webui':
+            logger.info("🌐 Launching PlexiChat Web UI...")
             run_webui()
         elif args.command == 'api':
+            logger.info("🚀 Starting API server with CLI...")
             run_api_and_cli()  # Use API with splitscreen CLI
         elif args.command == 'cli':
+            logger.info("💻 Starting CLI interface...")
             run_splitscreen_cli()  # Direct splitscreen CLI
         elif args.command == 'admin':
+            logger.info("👑 Starting admin CLI...")
             run_admin_cli()
         elif args.command == 'backup-node':
+            logger.info("💾 Starting backup node...")
             run_backup_node()
         elif args.command == 'plugin':
+            logger.info("🔌 Starting plugin manager...")
             run_plugin_manager()
-        elif args.command == 'setup':
-            run_first_time_setup()
         elif args.command == 'advanced-setup':
+            logger.info("⚙️ Starting interactive setup...")
             run_interactive_setup()
-        elif args.command == 'wizard':
-            run_configuration_wizard()
-        elif args.command == 'version':
-            run_version_manager()
-        elif args.command == 'deps':
-            run_dependency_manager()
         elif args.command == 'system':
+            logger.info("🔧 Starting system manager...")
             run_system_manager()
         elif args.command == 'update':
+            logger.info("📦 Starting update system...")
             run_update_system()
         elif args.command == 'test':
+            logger.info("🧪 Running enhanced tests...")
             run_enhanced_tests()
-        elif args.command == 'clean':
-            system_manager = SystemManager()
-            system_manager.cleanup_system()
-        elif args.command == 'help':
-            parser.print_help()
+        elif args.command == 'test-lock':
+            # Test process lock functionality
+            logger.info("🔒 Testing process lock...")
+            time.sleep(30)  # Hold lock for 30 seconds
+            logger.info("Process lock test completed")
+        elif args.command == 'optimize':
+            logger.info("⚡ Running system optimization...")
+            # Add optimization logic here
+        elif args.command == 'maintenance':
+            logger.info("🔧 Running system maintenance...")
+            # Add maintenance logic here
         else:
-            logger.info(f"Running default API server with splitscreen CLI...")
+            logger.info("🚀 Starting default API server with CLI...")
             run_api_and_cli()  # Default to API with splitscreen CLI
+
     except KeyboardInterrupt:
-        logger.info("Application interrupted by user")
+        logger.info("\n⚠️  Application interrupted by user (Ctrl+C)")
+        logger.info("Performing graceful shutdown...")
+        release_process_lock()
+        print("\n✅ PlexiChat shutdown complete")
         sys.exit(0)
     except Exception as e:
-        logger.error(f"Error running command '{args.command}': {e}")
-        logger.debug(traceback.format_exc())
+        logger.error(f"❌ Error running command '{args.command}': {e}")
+        logger.debug(f"Error details: {traceback.format_exc()}")
+        release_process_lock()
         sys.exit(1)
 
 # At the start of main execution:

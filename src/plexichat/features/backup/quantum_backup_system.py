@@ -181,37 +181,49 @@ self.config_dir = Path(config_dir)
                 )
             """)
 
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS quantum_shards ()
-                    shard_id TEXT PRIMARY KEY,
-                    backup_id TEXT NOT NULL,
-                    shard_index INTEGER NOT NULL,
-                    data_hash TEXT NOT NULL,
-                    encrypted_data BLOB NOT NULL,
-                    encryption_metadata TEXT NOT NULL,
-                    size INTEGER NOT NULL,
-                    created_at TEXT NOT NULL,
-                    location TEXT,
-                    node_id TEXT,
-                    verification_hash TEXT,
-                    metadata TEXT,
-                    FOREIGN KEY (backup_id) REFERENCES quantum_backups (backup_id)
-                )
-            """)
+            # Create quantum_shards table using abstraction layer
+            from plexichat.core.database import database_manager
 
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS backup_nodes ()
-                    node_id TEXT PRIMARY KEY,
-                    node_type TEXT NOT NULL,
-                    endpoint TEXT NOT NULL,
-                    capacity INTEGER DEFAULT 0,
-                    used_space INTEGER DEFAULT 0,
-                    status TEXT NOT NULL,
-                    last_seen TEXT NOT NULL,
-                    security_level INTEGER NOT NULL,
-                    metadata TEXT
-                )
-            """)
+            quantum_shards_schema = {
+                "table_name": "quantum_shards",
+                "columns": {
+                    "shard_id": {"type": "TEXT", "primary_key": True},
+                    "backup_id": {"type": "TEXT", "nullable": False},
+                    "shard_index": {"type": "INTEGER", "nullable": False},
+                    "data_hash": {"type": "TEXT", "nullable": False},
+                    "encrypted_data": {"type": "BLOB", "nullable": False},
+                    "encryption_metadata": {"type": "TEXT", "nullable": False},
+                    "size": {"type": "INTEGER", "nullable": False},
+                    "created_at": {"type": "TEXT", "nullable": False},
+                    "location": {"type": "TEXT"},
+                    "node_id": {"type": "TEXT"},
+                    "verification_hash": {"type": "TEXT"},
+                    "metadata": {"type": "TEXT"}
+                },
+                "foreign_keys": [
+                    {"column": "backup_id", "references": "quantum_backups.backup_id"}
+                ]
+            }
+
+            await database_manager.create_table_if_not_exists(quantum_shards_schema)
+
+            # Create backup_nodes table using abstraction layer
+            backup_nodes_schema = {
+                "table_name": "backup_nodes",
+                "columns": {
+                    "node_id": {"type": "TEXT", "primary_key": True},
+                    "node_type": {"type": "TEXT", "nullable": False},
+                    "endpoint": {"type": "TEXT", "nullable": False},
+                    "capacity": {"type": "INTEGER", "default": 0},
+                    "used_space": {"type": "INTEGER", "default": 0},
+                    "status": {"type": "TEXT", "nullable": False},
+                    "last_seen": {"type": "TEXT", "nullable": False},
+                    "security_level": {"type": "INTEGER", "nullable": False},
+                    "metadata": {"type": "TEXT"}
+                }
+            }
+
+            await database_manager.create_table_if_not_exists(backup_nodes_schema)
 
             await db.execute(""")
                 CREATE TABLE IF NOT EXISTS backup_operations ()

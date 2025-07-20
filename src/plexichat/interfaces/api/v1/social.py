@@ -68,7 +68,7 @@ async def create_profile(request: ProfileCreateRequest):
         # In a real implementation, this would get user_id from authentication
         user_id = 1  # Placeholder
 
-        profile = social_service.create_user_profile()
+        profile = social_service.create_user_profile(
             user_id=user_id,
             display_name=request.display_name,
             bio=request.bio,

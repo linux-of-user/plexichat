@@ -16,42 +16,12 @@ from pydantic import BaseModel, EmailStr
 from plexichat.app.db import get_session
 from plexichat.app.models.enhanced_models import EnhancedUser
 from plexichat.app.services.user_management import UserManagementService
-from plexichat.app.utils.auth import ()
-    from plexichat.infrastructure.utils.auth import get_current_user,
+from plexichat.infrastructure.utils.auth import get_current_user
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-
-    from,
-    get_optional_current_user,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
+from plexichat.infrastructure.utils.auth import get_optional_current_user
 
 """
 Enhanced user management API with comprehensive profile and friend system.
@@ -452,10 +422,9 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/friends")
-async def get_friends_list()
+async def get_friends_list(
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get user's friends list."""
     user_service = UserManagementService(session)
@@ -463,11 +432,10 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/friends/requests")
-async def get_friend_requests()
+async def get_friend_requests(
     sent: bool = Query(False, description="Get sent requests instead of received"),
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get pending friend requests."""
     user_service = UserManagementService(session)
@@ -475,11 +443,11 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/search")
-async def search_users()
+async def search_users(
     q: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(20, le=50, description="Maximum number of results"),
     session: Session = Depends(get_session),
-    current_user: Optional[EnhancedUser] = Depends(get_optional_current_user)
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ) -> List[Dict[str, Any]]:
     """Search for users by username or display name."""
     user_service = UserManagementService(session)

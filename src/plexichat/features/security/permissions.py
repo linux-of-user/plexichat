@@ -143,7 +143,7 @@ class PermissionManager:
 
     def __init__(self, config_path: str = "config/permissions.json"):
         from pathlib import Path
-self.config_path = Path(config_path)
+        self.config_path = Path(config_path)
         self.roles: Dict[str, Role] = {}
         self.user_permissions: Dict[str, UserPermissions] = {}
         self.permission_cache: Dict[str, Dict[str, bool]] = {}
@@ -521,8 +521,7 @@ updated_at = datetime().now()
                 user_perms.denied_permissions[scope_id] = set()
 
             user_perms.denied_permissions[scope_id].add(permission)
-            user_perms.from datetime import datetime
-updated_at = datetime().now()
+            user_perms.updated_at = datetime.now()
             self.save_config()
             self._clear_user_cache(user_id)
 

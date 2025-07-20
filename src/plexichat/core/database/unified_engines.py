@@ -118,7 +118,7 @@ class SQLiteEngine(DatabaseEngine):
 
             # For SQLAlchemy async engine
             if create_async_engine:
-                self.connection = create_async_engine()
+                self.connection = create_async_engine(
                     f"sqlite+aiosqlite:///{self.config.database}",
                     poolclass=StaticPool,
                     connect_args={"check_same_thread": False}
@@ -171,10 +171,10 @@ class SQLiteEngine(DatabaseEngine):
             raise
 
     async def health_check(self) -> bool:
-        """Check SQLite health."""
+        """Check SQLite health using abstraction layer."""
         try:
-            await self.execute("SELECT 1")
-            return True
+            from plexichat.core.database import database_manager
+            return await database_manager.health_check()
         except Exception:
             return False
 
@@ -187,11 +187,11 @@ class PostgreSQLEngine(DatabaseEngine):
         try:
             if create_async_engine:
                 # SQLAlchemy async engine
-                connection_string = ()
+                connection_string = (
                     f"postgresql+asyncpg://{self.config.username}:{self.config.password}"
                     f"@{self.config.host}:{self.config.port}/{self.config.database}"
                 )
-                self.connection = create_async_engine()
+                self.connection = create_async_engine(
                     connection_string,
                     pool_size=self.config.pool_size,
                     max_overflow=self.config.max_overflow,
@@ -200,7 +200,7 @@ class PostgreSQLEngine(DatabaseEngine):
                 )
             elif asyncpg:
                 # Direct asyncpg connection
-                self.connection = await asyncpg.connect()
+                self.connection = await asyncpg.connect(
                     host=self.config.host,
                     port=self.config.port,
                     database=self.config.database,
@@ -254,10 +254,10 @@ class PostgreSQLEngine(DatabaseEngine):
             raise
 
     async def health_check(self) -> bool:
-        """Check PostgreSQL health."""
+        """Check PostgreSQL health using abstraction layer."""
         try:
-            await self.execute("SELECT 1")
-            return True
+            from plexichat.core.database import database_manager
+            return await database_manager.health_check()
         except Exception:
             return False
 
@@ -274,7 +274,7 @@ class MongoDBEngine(DatabaseEngine):
 
             connection_string = f"mongodb://{self.config.host}:{self.config.port}"
             if self.config.username and self.config.password:
-                connection_string = ()
+                connection_string = (
                     f"mongodb://{self.config.username}:{self.config.password}"
                     f"@{self.config.host}:{self.config.port}"
                 )

@@ -111,7 +111,7 @@ if ai_router:
 
 if moderation_router:
     try:
-        router.include_router()
+        router.include_router(
             moderation_router, prefix="/moderation", tags=["moderation"]
         )
         logger.info(" Moderation router included")
@@ -120,9 +120,7 @@ if moderation_router:
 
 if monitoring_router:
     try:
-        router.include_router()
-            monitoring_router, prefix="/monitoring", tags=["monitoring"]
-        )
+        router.include_router(monitoring_router, prefix="/monitoring", tags=["monitoring"])
         logger.info(" Monitoring router included")
     except Exception as e:
         logger.warning(f" Failed to include monitoring router: {e}")
@@ -143,15 +141,13 @@ async def health_check():
         "status": "healthy",
         "version": "a.1.0-1",
         "services": {
-            "auth": ()
-                "initialized"
+            "auth": "initialized"
                 if auth_manager
                 and hasattr(auth_manager, "initialized")
                 and auth_manager.initialized
                 else "not_initialized"
             ),
-            "backup": ()
-                "initialized"
+            "backup": "initialized"
                 if backup_manager
                 and hasattr(backup_manager, "initialized")
                 and backup_manager.initialized

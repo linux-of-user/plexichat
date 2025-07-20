@@ -60,7 +60,7 @@ async def require_dev_access(current_user: Dict = Depends(get_current_user)):
     if not ("admin" in user_roles or "developer" in user_roles or "tester" in user_roles):
         # In development mode, allow all authenticated users
         if settings.get("environment") != "development":
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Development/testing privileges required"
             )

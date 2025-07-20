@@ -98,7 +98,7 @@ class EnhancedDatabaseWizard:
         templates = {}
 
         # PostgreSQL
-        templates[DatabaseType.POSTGRESQL] = DatabaseTemplate()
+        templates[DatabaseType.POSTGRESQL] = DatabaseTemplate(
             name="PostgreSQL",
             db_type=DatabaseType.POSTGRESQL,
             category=DatabaseCategory.RELATIONAL,
@@ -130,7 +130,7 @@ class EnhancedDatabaseWizard:
         )
 
         # MongoDB
-        templates[DatabaseType.MONGODB] = DatabaseTemplate()
+        templates[DatabaseType.MONGODB] = DatabaseTemplate(
             name="MongoDB",
             db_type=DatabaseType.MONGODB,
             category=DatabaseCategory.DOCUMENT,
@@ -161,7 +161,7 @@ class EnhancedDatabaseWizard:
         )
 
         # Redis
-        templates[DatabaseType.REDIS] = DatabaseTemplate()
+        templates[DatabaseType.REDIS] = DatabaseTemplate(
             name="Redis",
             db_type=DatabaseType.REDIS,
             category=DatabaseCategory.KEY_VALUE,
@@ -192,7 +192,7 @@ class EnhancedDatabaseWizard:
         )
 
         # Elasticsearch
-        templates[DatabaseType.ELASTICSEARCH] = DatabaseTemplate()
+        templates[DatabaseType.ELASTICSEARCH] = DatabaseTemplate(
             name="Elasticsearch",
             db_type=DatabaseType.ELASTICSEARCH,
             category=DatabaseCategory.SEARCH,
@@ -395,7 +395,7 @@ class EnhancedDatabaseWizard:
 
     def _get_adapter_class(self, db_type: DatabaseType):
         """Get appropriate adapter class for database type."""
-        from plexichat.core.database.adapters.enhanced_adapters import ()
+        from plexichat.core.database.adapters.enhanced_adapters import (
             RedisAdapter, CassandraAdapter, ElasticsearchAdapter
         )
 
@@ -435,12 +435,12 @@ class EnhancedDatabaseWizard:
 
         # Add database-specific tips
         if self.progress.database_type == DatabaseType.POSTGRESQL:
-            tips.extend([)
+            tips.extend([
                 "Check pg_hba.conf for authentication settings",
                 "Verify postgresql.conf allows connections"
             ])
         elif self.progress.database_type == DatabaseType.MONGODB:
-            tips.extend([)
+            tips.extend([
                 "Check MongoDB authentication is enabled",
                 "Verify replica set configuration if using"
             ])

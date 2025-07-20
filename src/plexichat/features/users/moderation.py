@@ -202,7 +202,7 @@ class MessageModerationQueue(SQLModel, table=True):
     message_id: int = Field(foreign_key="messages.id", unique=True, index=True)
 
     # Detection details
-    flagged_by: Optional[str] = Field()
+    flagged_by: Optional[str] = Field(
         max_length=50
     )  # 'auto', 'user_report', 'moderator'
     flag_reason: str = Field(max_length=200)
@@ -216,13 +216,13 @@ class MessageModerationQueue(SQLModel, table=True):
     is_reviewed: bool = Field(default=False, index=True)
     reviewed_by: Optional[int] = Field(foreign_key="users_enhanced.id")
     reviewed_at: Optional[datetime] = Field(sa_column=Column(DateTime))
-    review_decision: Optional[str] = Field()
+    review_decision: Optional[str] = Field(
         max_length=50
     )  # 'approved', 'removed', 'edited'
     review_notes: Optional[str] = Field(sa_column=Column(Text))
 
     # Timestamps
-    flagged_at: datetime = Field()
+    flagged_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), index=True
     )
 
@@ -230,7 +230,7 @@ class MessageModerationQueue(SQLModel, table=True):
     priority: int = Field(default=1, index=True)  # 1=low, 5=critical
 
     # Indexes
-    __table_args__ = ()
+    __table_args__ = (
         Index("idx_moderation_queue_review", "is_reviewed", "priority", "flagged_at"),
     )
 

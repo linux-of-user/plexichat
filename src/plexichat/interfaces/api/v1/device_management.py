@@ -15,15 +15,7 @@ from pydantic import BaseModel
 
 from plexichat.app.db import get_session
 from plexichat.app.logger_config import logger
-from plexichat.app.models.device_management import ()
-    from plexichat.infrastructure.utils.auth import get_current_user,
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
+from plexichat.infrastructure.utils.auth import get_current_user
 from plexichat.features.users.user import User
 import time
 

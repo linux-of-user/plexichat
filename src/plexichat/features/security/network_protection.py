@@ -349,7 +349,7 @@ class ConsolidatedNetworkProtection:
         default_limits = [
             RateLimit(LimitType.REQUESTS_PER_SECOND, 10, 1, ActionType.DELAY),
             RateLimit(LimitType.REQUESTS_PER_MINUTE, 300, 60, ActionType.BLOCK),
-            RateLimit()
+            RateLimit(
                 LimitType.REQUESTS_PER_HOUR, 5000, 3600, ActionType.TEMPORARY_BAN
             ),
             RateLimit(LimitType.LOGIN_ATTEMPTS_PER_MINUTE, 5, 60, ActionType.CAPTCHA),
@@ -360,7 +360,7 @@ class ConsolidatedNetworkProtection:
         for limit in default_limits:
             self.rate_limits[limit.limit_type.value] = limit
 
-    async def check_request()
+    async def check_request(
         self, request: RateLimitRequest
     ) -> Tuple[bool, Optional[SecurityThreat]]:
         """Check if a request should be allowed."""

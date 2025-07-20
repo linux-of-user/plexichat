@@ -1,5 +1,4 @@
 """
-import threading
 PlexiChat Main CLI
 
 Command-line interface with threading and performance optimization.
@@ -8,6 +7,7 @@ Command-line interface with threading and performance optimization.
 import asyncio
 import logging
 import sys
+import threading
 import time
 from typing import Any, Dict, List, Optional
 

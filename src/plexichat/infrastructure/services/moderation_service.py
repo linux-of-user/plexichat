@@ -362,13 +362,13 @@ class ModerationService:
                 required_permission = Permission.DELETE_MESSAGES
 
             if required_permission and not self.has_permission(moderator_id, required_permission, guild_id):
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Missing required permission: {required_permission.value}"
                 )
 
             # Execute the original moderation action
-            log_id = self.moderate_user()
+            log_id = self.moderate_user(
                 moderator_id=moderator_id,
                 target_user_id=target_user_id,
                 action=action,
@@ -635,12 +635,12 @@ class ModerationService:
         """Apply moderation action to a user."""
         try:
             # Check moderator permissions
-            has_permission, moderator_role = await self.check_moderator_permissions()
+            has_permission, moderator_role = await self.check_moderator_permissions(
                 moderator_id, guild_id, channel_id, action
             )
 
             if not has_permission:
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Insufficient moderator permissions"
                 )

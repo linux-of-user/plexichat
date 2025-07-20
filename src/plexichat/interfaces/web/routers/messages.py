@@ -1,9 +1,4 @@
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-# pyright: reportArgumentType=false
+
 """
 import time
 PlexiChat Messages Router
@@ -19,6 +14,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Callable
 from concurrent.futures import ThreadPoolExecutor
 import importlib
+from colorama import Fore, Style
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
@@ -176,10 +172,8 @@ class MessageService:
     async def create_message(self, data: MessageCreate, sender_id: int) -> Message:
         if self.db_manager:
             try:
-                query = ()
-                    "INSERT INTO messages (content, sender_id, recipient_id, timestamp) "
-                    "VALUES (?, ?, ?, ?) RETURNING id, content, sender_id, recipient_id, timestamp"
-                )
+                query = "INSERT INTO messages (content, sender_id, recipient_id, timestamp) " \
+                       "VALUES (?, ?, ?, ?) RETURNING id, content, sender_id, recipient_id, timestamp"
                 params = {
                     "content": data.content,
                     "sender_id": sender_id,
@@ -226,40 +220,25 @@ class MessageService:
 
 message_service = MessageService()
 
-@router.post()
-    "/send",
-    response_model=MessageRead,
-    status_code=status.HTTP_201_CREATED,
-    responses={400: {"model": ValidationErrorResponse}, 429: {"description": "Rate limit exceeded"}}
-)
-async def send_message(
-    request: Request,
-    data: MessageCreate,
-    background_tasks: BackgroundTasks,
-    current_user: Dict[str, Any] = Depends(get_current_user)
-):
+@router.post("/send", response_model=MessageRead, status_code=status.HTTP_201_CREATED, responses={400: {"model": ValidationErrorResponse}, 429: {"description": "Rate limit exceeded"}})
+async def send_message(request: Request, data: MessageCreate, background_tasks: BackgroundTasks, current_user: Dict[str, Any] = Depends(get_current_user)):
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"User {current_user.get('id', 'unknown')} from {client_ip} sending message")
+    logger.info(Fore.CYAN + f"[MSG] User {current_user.get('id', 'unknown')} from {client_ip} sending message" + Style.RESET_ALL)
     operation_id = None
     if optimization_engine:
         operation_id = f"send_message_{current_user.get('id')}_{datetime.now().timestamp()}"
         optimization_engine.start_performance_tracking(operation_id)
+        logger.debug(Fore.GREEN + f"[MSG] Performance tracking started for operation {operation_id}" + Style.RESET_ALL)
     try:
         if not await message_service.validate_recipient(data.recipient_id):
-            raise HTTPException()
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Recipient not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipient not found")
         if not await message_service.check_rate_limit(current_user.get("id", 0)):
-            raise HTTPException()
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded. Please wait before sending another message."
-            )
+            raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded. Please wait before sending another message.")
         message = await message_service.create_message(data, current_user.get("id", 0))
         background_tasks.add_task(_process_message_background, message.id, current_user.get("id", 0), data.recipient_id)
         if optimization_engine and operation_id:
             optimization_engine.end_performance_tracking(operation_id)
-        return MessageRead()
+        return MessageRead(
             id=message.id,
             content=message.content,
             sender_id=message.sender_id,
@@ -278,27 +257,15 @@ def _process_message_sync(message_id: int, sender_id: int, recipient_id: int) ->
     logger.info(f"Processing message {message_id} from {sender_id} to {recipient_id}")
     pass
 
-@router.get()
-    "/list",
-    response_model=List[MessageRead],
-    responses={400: {"model": ValidationErrorResponse}}
-)
-async def list_messages()
-    request: Request,
-    limit: int = Query(50, ge=1, le=100, description="Number of messages to retrieve"),
-    offset: int = Query(0, ge=0, description="Number of messages to skip"),
-    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order for messages"),
-    current_user: Dict[str, Any] = Depends(get_current_user)
-) -> List[MessageRead]:
+@router.get("/list", response_model=List[MessageRead], responses={400: {"model": ValidationErrorResponse}})
+async def list_messages(request: Request, limit: int = Query(50, ge=1, le=100, description="Number of messages to retrieve"), offset: int = Query(0, ge=0, description="Number of messages to skip"), sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order for messages"), current_user: Dict[str, Any] = Depends(get_current_user)) -> List[MessageRead]:
     if not message_service.db_manager:
         return []
     try:
         order = "DESC" if sort_order.lower() == "desc" else "ASC"
-        query = ()
-            "SELECT id, content, sender_id, recipient_id, timestamp FROM messages "
-            "WHERE sender_id = ? OR recipient_id = ? "
-            f"ORDER BY timestamp {order} LIMIT ? OFFSET ?"
-        )
+        query = "SELECT id, content, sender_id, recipient_id, timestamp FROM messages " \
+               "WHERE sender_id = ? OR recipient_id = ? " \
+               f"ORDER BY timestamp {order} LIMIT ? OFFSET ?"
         params = {
             "sender_id": current_user.get("id", 0),
             "recipient_id": current_user.get("id", 0),
@@ -308,8 +275,10 @@ async def list_messages()
         if performance_logger and timer:
             with timer("list_messages_query"):
                 result = await message_service.db_manager.execute_query(query, params)
+            logger.debug(Fore.GREEN + "[MSG] List messages query performance tracked" + Style.RESET_ALL)
         else:
             result = await message_service.db_manager.execute_query(query, params)
+            logger.debug(Fore.GREEN + "[MSG] List messages query executed" + Style.RESET_ALL)
         messages = []
         if result:
             for row in result:
@@ -318,7 +287,7 @@ async def list_messages()
                         id_, content, sender_id_, recipient_id_, timestamp_ = row  # type: ignore
                     except Exception:
                         id_, content, sender_id_, recipient_id_, timestamp_ = 0, "", 0, 0, datetime.now()
-                    messages.append(MessageRead())
+                    messages.append(MessageRead(
                         id=_safe_int(id_),
                         content=str(content),
                         sender_id=_safe_int(sender_id_),
@@ -326,7 +295,7 @@ async def list_messages()
                         timestamp=_safe_datetime(timestamp_)
                     ))
                 elif isinstance(row, dict):
-                    messages.append(MessageRead())
+                    messages.append(MessageRead(
                         id=_safe_int(row.get("id", 0)),
                         content=str(row.get("content", "")),
                         sender_id=_safe_int(row.get("sender_id", 0)),

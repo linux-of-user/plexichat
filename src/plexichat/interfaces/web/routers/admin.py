@@ -22,15 +22,15 @@ except ImportError:
         def get(self, *args, **kwargs): return lambda f: f
         def post(self, *args, **kwargs): return lambda f: f
 
-    class Request: pass:
-    class Depends: pass:
-    class HTTPException: pass:
-    class Form: pass:
-    class HTMLResponse: pass:
-    class JSONResponse: pass:
-    class RedirectResponse: pass:
-    class Jinja2Templates: pass:
-    class BaseModel: pass:
+    class Request: pass
+    class Depends: pass
+    class HTTPException(Exception): pass
+    class Form: pass
+    class HTMLResponse: pass
+    class JSONResponse: pass
+    class RedirectResponse: pass
+    class Jinja2Templates: pass
+    class BaseModel: pass
     status = type('status', (), {'HTTP_401_UNAUTHORIZED': 401})()
 
 try:
@@ -101,7 +101,7 @@ async def require_admin(request: Request) -> Dict[str, Any]:
     """Require admin authentication."""
     admin = await get_current_admin(request)
     if not admin:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Admin authentication required"
         )
@@ -198,7 +198,7 @@ async def admin_login(
 
         # Create response with session cookie
         response = RedirectResponse(url="/admin/", status_code=302)
-        response.set_cookie()
+        response.set_cookie(
             key="admin_session",
             value=token,
             httponly=True,
@@ -277,7 +277,7 @@ async def create_admin_user(
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
     try:
-        success = admin_manager.create_admin()
+        success = admin_manager.create_admin(
             request.username,
             request.email,
             request.password,
@@ -323,7 +323,7 @@ async def admin_system(request: Request, admin: dict = Depends(require_admin)):
 @router.get("/api/status")
 async def api_status(admin: dict = Depends(require_admin)):
     """Get system status via API."""
-    return JSONResponse({)
+    return JSONResponse({
         "status": "ok",
         "timestamp": datetime.now().isoformat(),
         "admin_count": len(admin_manager.admins) if admin_manager else 0,
@@ -337,7 +337,7 @@ async def api_list_admins(admin: dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Admin manager not available")
 
     admins = admin_manager.list_admins()
-    return JSONResponse([)
+    return JSONResponse([
         {
             "username": a.username,
             "email": a.email,

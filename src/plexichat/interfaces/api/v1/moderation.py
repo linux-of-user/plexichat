@@ -27,26 +27,7 @@ from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
 import time
-
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
 
 """
 Comprehensive moderation API for PlexiChat.
@@ -97,11 +78,10 @@ router = APIRouter(prefix="/api/v1/moderation", tags=["Moderation"])
 
 
 @router.post("/users/moderate")
-async def moderate_user()
+async def moderate_user(
     request: UserModerationRequest,
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> JSONResponse:
     """Apply moderation action to a user."""
     moderation_service = ModerationService(session)
@@ -118,23 +98,22 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     )
 
     if success:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
             "message": f"Moderation action {request.action.value} applied successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to apply moderation action"
         )
 
 
 @router.post("/messages/moderate")
-async def moderate_message()
+async def moderate_message(
     request: MessageModerationRequest,
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> JSONResponse:
     """Apply moderation action to a message."""
     moderation_service = ModerationService(session)
@@ -150,23 +129,22 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     )
 
     if success:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
             "message": f"Message moderation action {request.action.value} applied successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to apply message moderation action"
         )
 
 
 @router.get("/users/{user_id}/restrictions")
-async def get_user_restrictions()
+async def get_user_restrictions(
     user_id: int,
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Get current moderation restrictions for a user."""
     moderation_service = ModerationService(session)
@@ -175,7 +153,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     if user_id != current_user.id:
         has_permission, _ = await moderation_service.check_moderator_permissions(current_user.id)
         if not has_permission:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions to view user restrictions"
             )
@@ -184,19 +162,17 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.post("/roles/grant")
-async def grant_moderator_role()
+async def grant_moderator_role(
     request: ModeratorRoleRequest,
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> JSONResponse:
     """Grant moderator role to a user."""
     moderation_service = ModerationService(session)
 
     expires_at = None
     if request.expires_hours:
-expires_at = datetime.now()
-datetime.utcnow() + timedelta(hours=request.expires_hours)
+        expires_at = datetime.utcnow() + timedelta(hours=request.expires_hours)
 
     success = await moderation_service.grant_moderator_role()
         granter_id=current_user.id,
@@ -209,24 +185,23 @@ datetime.utcnow() + timedelta(hours=request.expires_hours)
     )
 
     if success:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
             "message": "Moderator role granted successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to grant moderator role"
         )
 
 
 @router.delete("/roles/{role_id}")
-async def revoke_moderator_role()
+async def revoke_moderator_role(
     role_id: int,
     reason: str = Query(..., description="Reason for revoking the role"),
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> JSONResponse:
     """Revoke a moderator role."""
     moderation_service = ModerationService(session)
@@ -238,23 +213,22 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     )
 
     if success:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
             "message": "Moderator role revoked successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to revoke moderator role"
         )
 
 
 @router.post("/appeals/submit")
-async def submit_appeal()
+async def submit_appeal(
     request: AppealRequest,
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> JSONResponse:
     """Submit an appeal for a moderation action."""
     moderation_service = ModerationService(session)
@@ -266,12 +240,12 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     )
 
     if success:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
             "message": "Appeal submitted successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to submit appeal"
         )
@@ -329,7 +303,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     )
 
     if not has_permission:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions to view moderation logs"
         )
@@ -344,17 +318,16 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/permissions/check")
-async def check_moderator_permissions()
+async def check_moderator_permissions(
     guild_id: Optional[int] = Query(None),
     channel_id: Optional[int] = Query(None),
     session: Session = Depends(get_session),
-    current_user: Enhancedfrom plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Check current user's moderator permissions."""
     moderation_service = ModerationService(session)
 
-    has_permission, moderator_role = await moderation_service.check_moderator_permissions()
+    has_permission, moderator_role = await moderation_service.check_moderator_permissions(
         current_user.id, guild_id, channel_id
     )
 
@@ -396,7 +369,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     if user_id != current_user.id:
         has_permission, _ = await moderation_service.check_moderator_permissions(current_user.id)
         if not has_permission:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions to view user moderation history"
             )

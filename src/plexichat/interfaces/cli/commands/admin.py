@@ -236,7 +236,7 @@ def system_status():
         sys.exit(1)
 
 @admin.command()
-@click.option('--format', 'output_format', default='json', )
+@click.option('--format', 'output_format', default='json',
               type=click.Choice(['json', 'yaml']), help='Output format')
 @click.option('--output', '-o', type=click.Path(), help='Output file path')
 def export_config(output_format: str, output: Optional[str]):
@@ -250,7 +250,7 @@ def export_config(output_format: str, output: Optional[str]):
 
         if admin_manager:
             for admin in admin_manager.list_admins():
-                config_data["admins"].append({)
+                config_data["admins"].append({
                     "username": admin.username,
                     "email": admin.email,
                     "role": admin.role,

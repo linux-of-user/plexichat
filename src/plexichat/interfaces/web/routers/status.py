@@ -3,12 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
 """
-import time
 PlexiChat Status Router
 
 Simple health check and status endpoints for monitoring and load balancing.
@@ -91,7 +86,7 @@ class StatusService:
         if self.performance_logger:
             self.performance_logger.record_metric("health_check_requests", 1, "count")
 
-        return HealthResponse()
+        return HealthResponse(
             status="ok",
             timestamp=datetime.now().isoformat() + "Z"
         )
@@ -106,7 +101,7 @@ class StatusService:
         now = datetime.now(timezone.utc)
         uptime_duration = now - server_start_time
 
-        return UptimeResponse()
+        return UptimeResponse(
             status="ok",
             uptime_seconds=int(uptime_duration.total_seconds()),
             uptime_readable=str(uptime_duration)
@@ -166,7 +161,7 @@ class StatusService:
             if self.performance_logger:
                 self.performance_logger.record_metric("metrics_requests", 1, "count")
 
-            return MetricsResponse()
+            return MetricsResponse(
                 users=user_count,
                 messages=message_count,
                 files=file_count,
@@ -177,7 +172,7 @@ class StatusService:
 
         except Exception as e:
             logger.error(f"Error getting metrics: {e}")
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to fetch metrics"
             )
@@ -185,75 +180,48 @@ class StatusService:
 # Initialize service
 status_service = StatusService()
 
-@router.get()
-    "/health",
-    response_model=HealthResponse,
-    responses={429: {"description": "Rate limit exceeded"}}
-)
+@router.get("/health", response_model=HealthResponse, responses={429: {"description": "Rate limit exceeded"}})
 async def health_check(request: Request):
     """Simple health check endpoint with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.debug(f"Health check endpoint called from {client_ip}")
-
     return await status_service.get_health_status()
 
-@router.get()
-    "/uptime",
-    response_model=UptimeResponse,
-    responses={429: {"description": "Rate limit exceeded"}}
-)
+@router.get("/uptime", response_model=UptimeResponse, responses={429: {"description": "Rate limit exceeded"}})
 async def get_uptime(request: Request):
     """Get system uptime with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.debug(f"Uptime check endpoint called from {client_ip}")
-
     return await status_service.get_uptime()
 
-@router.get()
-    "/metrics",
-    response_model=MetricsResponse,
-    responses={429: {"description": "Rate limit exceeded"}}
-)
+@router.get("/metrics", response_model=MetricsResponse, responses={429: {"description": "Rate limit exceeded"}})
 async def get_metrics(request: Request):
     """Get system metrics with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
     logger.debug(f"Metrics endpoint called from {client_ip}")
-
     return await status_service.get_metrics()
 
-@router.get()
-    "/",
-    response_model=Dict[str, Any],
-    summary="Get comprehensive status"
-)
+@router.get("/", response_model=Dict[str, Any], summary="Get comprehensive status")
 async def get_comprehensive_status(request: Request):
     """Get comprehensive system status including health, uptime, and metrics."""
     client_ip = request.client.host if request.client else "unknown"
     logger.info(f"Comprehensive status requested from {client_ip}")
-
     try:
-        # Get all status information
         health = await status_service.get_health_status()
         uptime = await status_service.get_uptime()
         metrics = await status_service.get_metrics()
-
-        # Combine into comprehensive response
         comprehensive_status = {
             "health": health.model_dump(),
             "uptime": uptime.model_dump(),
             "metrics": metrics.model_dump(),
             "timestamp": datetime.now().isoformat() + "Z"
         }
-
-        # Performance tracking
         if performance_logger:
             performance_logger.record_metric("comprehensive_status_requests", 1, "count")
-
         return comprehensive_status
-
     except Exception as e:
         logger.error(f"Error getting comprehensive status: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to retrieve comprehensive system status"
         )

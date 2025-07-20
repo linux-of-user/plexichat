@@ -402,11 +402,16 @@ class SQLiteClient(AbstractDatabaseClient):  # type: ignore:
             self.connection = await aiosqlite.connect(self.db_path)
             self.connection.row_factory = aiosqlite.Row
 
-            # Enable WAL mode for better concurrency
-            await self.connection.execute("PRAGMA journal_mode=WAL")
-            await self.connection.execute("PRAGMA synchronous=NORMAL")
-            await self.connection.execute("PRAGMA cache_size=10000")
-            await self.connection.execute("PRAGMA temp_store=MEMORY")
+            # Configure SQLite for better performance using abstraction layer
+            from plexichat.core.database import database_manager
+
+            # Set SQLite configuration through abstraction layer
+            await database_manager.configure_database({
+                "journal_mode": "WAL",
+                "synchronous": "NORMAL",
+                "cache_size": 10000,
+                "temp_store": "MEMORY"
+            })
 
             logger.info(f" Connected to SQLite: {self.db_path}")
             return True

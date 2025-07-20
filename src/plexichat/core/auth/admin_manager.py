@@ -134,7 +134,7 @@ class AdminManager:
         try:
             password = secrets.token_urlsafe(16)
 
-            admin = AdminUser()
+            admin = AdminUser(
                 username="admin",
                 email="admin@plexichat.local",
                 role="super_admin",
@@ -173,7 +173,7 @@ class AdminManager:
         if expired_tokens:
             self._save_data()
 
-    async def authenticate(self, username: str, password: str, )
+    async def authenticate(self, username: str, password: str,
                           ip_address: Optional[str] = None,
                           user_agent: Optional[str] = None) -> Optional[str]:
         """Authenticate admin user and create session."""
@@ -259,14 +259,14 @@ class AdminManager:
             logger.error(f"Error logging out admin: {e}")
             return False
 
-    def create_admin(self, username: str, email: str, password: str,):
+    def create_admin(self, username: str, email: str, password: str,
                     role: str = "admin", permissions: Optional[List[str]] = None) -> bool:
         """Create new admin user."""
         try:
             if username in self.admins:
                 return False
 
-            admin = AdminUser()
+            admin = AdminUser(
                 username=username,
                 email=email,
                 role=role,

@@ -114,7 +114,7 @@ class WebUIRenderer:
             logger.error(f"Error creating plugin tab widget: {e}")
             return None
 
-    def create_plugin_window(self, plugin_name: str, page_path: str, ):
+    def create_plugin_window(self, plugin_name: str, page_path: str,
                            width: int = 1200, height: int = 800) -> bool:
         """Create a standalone window for a plugin page."""
         try:
@@ -353,7 +353,7 @@ class WebUIRenderer:
 
                 def on_plugin_selected(self, item):
                     plugin_name = item.text()
-                    plugin_url = urljoin()
+                    plugin_url = urljoin(
                         self.parent().base_url if hasattr(self.parent(), 'base_url') else "http://localhost:8000",
                         f"/plugins/{plugin_name}"
                     )

@@ -282,7 +282,7 @@ class RateLimiter:
         # Check if IP is permanently banned
         if request.ip_address in self.banned_ips:
             self.stats["blocked_requests"] += 1
-            return LimitStatus()
+            return LimitStatus(
                 allowed=False,
                 limit_type=LimitType.REQUESTS_PER_SECOND,
                 current_count=0,
@@ -326,7 +326,7 @@ class RateLimiter:
             # Block if IP is blacklisted
             if request.ip_address in limit.blacklist_ips:
                 self.stats["blocked_requests"] += 1
-                return LimitStatus()
+                return LimitStatus(
                     allowed=False,
                     limit_type=limit.limit_type,
                     current_count=0,
@@ -366,7 +366,7 @@ class RateLimiter:
             return await self._check_upload_limit(request, limit, key, threat_level)
 
         # Default to allowing
-        return LimitStatus()
+        return LimitStatus(
             allowed=True,
             limit_type=limit.limit_type,
             current_count=0,

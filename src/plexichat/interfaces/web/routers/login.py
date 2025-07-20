@@ -122,12 +122,11 @@ class LoginService:
                 if result and len(result) > 0:
                     row = result[0]
                     user = User()
-                        id=row[0],  # pyright: ignore
-                        username=row[1],  # pyright: ignore
-                        email=row[2],  # pyright: ignore
-                        hashed_password=row[3],  # pyright: ignore
-                        is_active=bool(row[4])  # pyright: ignore
-                    )
+                    user.id = row[0]  # pyright: ignore
+                    user.username = row[1]  # pyright: ignore
+                    user.email = row[2]  # pyright: ignore
+                    user.hashed_password = row[3]  # pyright: ignore
+                    user.is_active = bool(row[4])  # pyright: ignore
 
                     # Verify password
                     if verify_password(password, user.hashed_password):
@@ -144,12 +143,12 @@ class LoginService:
         # Fallback for testing
         if username == "admin" and password == "password":
             return User()
-                id=1,  # pyright: ignore
-                username="admin",  # pyright: ignore
-                email="admin@example.com",  # pyright: ignore
-                hashed_password="hashed_password",  # pyright: ignore
-                is_active=True  # pyright: ignore
-            )
+            user.id = 1  # pyright: ignore
+            user.username = "admin"  # pyright: ignore
+            user.email = "admin@example.com"  # pyright: ignore
+            user.hashed_password = "hashed_password"  # pyright: ignore
+            user.is_active = True  # pyright: ignore
+            return user
 
         return None
 
@@ -174,10 +173,6 @@ class LoginService:
 login_service = LoginService()
 
 @router.get()
-    "/",
-    response_class=HTMLResponse,
-    summary="Login page"
-)
 async def login_page(request: Request):
     """Display login page with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
@@ -308,14 +303,14 @@ async def login_page(request: Request):
         </div>
 
         <script>
-            document.getElementById('login-form').addEventListener('submit', async function(e) {)
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
 
                 const formData = new FormData(this);
                 const errorDiv = document.getElementById('error-message');
 
                 try {
-                    const response = await fetch('/login/authenticate', {)
+                    const response = await fetch('/login/authenticate', {
                         method: 'POST',
                         body: formData
                     });
@@ -342,11 +337,7 @@ async def login_page(request: Request):
     return HTMLResponse(content=html_content)
 
 @router.post()
-    "/authenticate",
-    response_model=LoginResponse,
-    summary="Authenticate user"
-)
-async def authenticate()
+async def authenticate(
     request: Request,
     username: str = Form(...),
     password: str = Form(...)
@@ -368,7 +359,7 @@ async def authenticate()
             if performance_logger:
                 performance_logger.record_metric("login_failures", 1, "count")
 
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password"
             )
@@ -389,7 +380,7 @@ async def authenticate()
 
         logger.info(f"User '{user.username}' logged in successfully")
 
-        return LoginResponse()
+        return LoginResponse(
             access_token=access_token,
             token_type="bearer",
             expires_in=int(access_token_expires.total_seconds()),
@@ -405,16 +396,13 @@ async def authenticate()
         raise
     except Exception as e:
         logger.error(f"Unexpected error during login: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 @router.post()
-    "/logout",
-    summary="Logout user"
-)
-async def logout()
+async def logout(
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
@@ -429,10 +417,7 @@ async def logout()
     return {"message": "Successfully logged out"}
 
 @router.get()
-    "/status",
-    summary="Check login status"
-)
-async def login_status()
+async def login_status(
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):

@@ -10,15 +10,15 @@ from typing import List, Optional
 import logging
 from typing import List, Optional
 
-from plexichat.app.security.permissions import ()
 import time
+from plexichat.app.security.permissions import (
     Permission,
     PermissionManager,
     PermissionScope,
     Role,
     UserPermissions,
 )
-from plexichat.app.security.rate_limiter import ()
+from plexichat.app.security.rate_limiter import (
     ComprehensiveRateLimiter,
     RateLimitAction,
     RateLimitRule,
@@ -94,7 +94,7 @@ class SecurityCLI:
             self.print_colored(f" Invalid parameter: {e}", "red")
             return
 
-        rule = RateLimitRule()
+        rule = RateLimitRule(
             name=name,
             limit_type=limit_type_enum,
             max_requests=max_requests_int,
@@ -162,7 +162,7 @@ class SecurityCLI:
                 until_dt = datetime.fromtimestamp(until)
                 logger.info(f"   {ip} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        if not any([self.rate_limiter.tracker.banned_ips,)
+        if not any([self.rate_limiter.tracker.banned_ips,
                    self.rate_limiter.tracker.banned_users,
                    self.rate_limiter.tracker.quarantined_ips]):
             self.print_colored("No banned or quarantined entities.", "green")
@@ -252,7 +252,7 @@ class SecurityCLI:
             self.print_colored(f" Invalid permission: {e}", "red")
             return
 
-        role = Role()
+        role = Role(
             name=name,
             display_name=display_name,
             description=description,

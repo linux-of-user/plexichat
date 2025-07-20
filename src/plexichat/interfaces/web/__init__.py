@@ -63,7 +63,7 @@ def create_app() -> Optional[Any]:
             return None
 
         # Create FastAPI app
-        app = FastAPI()
+        app = FastAPI(
             title=getattr(settings, 'APP_NAME', 'PlexiChat'),
             version=getattr(settings, 'APP_VERSION', '1.0.0'),
             description="Enhanced PlexiChat API with comprehensive functionality",
@@ -72,7 +72,7 @@ def create_app() -> Optional[Any]:
 
         # Add middleware
         if CORSMiddleware:
-            app.add_middleware()
+            app.add_middleware(
                 CORSMiddleware,
                 allow_origins=["*"],  # Configure appropriately for production
                 allow_credentials=True,

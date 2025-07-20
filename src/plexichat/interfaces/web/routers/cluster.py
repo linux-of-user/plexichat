@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
 import typing
+from colorama import Fore, Style
 
 # Use EXISTING database abstraction layer
 try:
@@ -132,7 +133,7 @@ class ClusterService:
                 )
         except Exception as e:
             logger.error(f"Error getting cluster status: {e}")
-            return ClusterStatus()
+            return ClusterStatus(
                 cluster_id="error",
                 total_nodes=0,
                 active_nodes=0,
@@ -151,7 +152,7 @@ class ClusterService:
                 nodes_data = await self.cluster_manager.get_all_nodes()
                 nodes = []
                 for node_data in nodes_data:
-                    nodes.append(NodeInfo())
+                    nodes.append(NodeInfo(
                         node_id=node_data.get("node_id", "unknown"),
                         hostname=node_data.get("hostname", "localhost"),
                         ip_address=node_data.get("ip_address", "127.0.0.1"),
@@ -166,7 +167,7 @@ class ClusterService:
                 return nodes
             else:
                 # Fallback single node
-                return [NodeInfo()
+                return [NodeInfo(
                     node_id="node-1",
                     hostname="localhost",
                     ip_address="127.0.0.1",
@@ -188,7 +189,7 @@ class ClusterService:
         try:
             if self.performance_monitor:
                 metrics_data = await self.performance_monitor.get_cluster_metrics()
-                return ClusterMetrics()
+                return ClusterMetrics(
                     timestamp=datetime.now(),
                     total_cpu_usage=metrics_data.get("cpu_usage", 0.0),
                     total_memory_usage=metrics_data.get("memory_usage", 0.0),
@@ -199,7 +200,7 @@ class ClusterService:
                 )
             else:
                 # Fallback metrics
-                return ClusterMetrics()
+                return ClusterMetrics(
                     timestamp=datetime.now(),
                     total_cpu_usage=0.0,
                     total_memory_usage=0.0,
@@ -210,7 +211,7 @@ class ClusterService:
                 )
         except Exception as e:
             logger.error(f"Error getting cluster metrics: {e}")
-            return ClusterMetrics()
+            return ClusterMetrics(
                 timestamp=datetime.now(),
                 total_cpu_usage=0.0,
                 total_memory_usage=0.0,
@@ -223,79 +224,55 @@ class ClusterService:
 # Initialize service
 cluster_service = ClusterService()
 
-@router.get()
-    "/status",
-    response_model=ClusterStatus,
-    summary="Get cluster status"
-)
-async def get_cluster_status()
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
+@router.get("/status", response_model=ClusterStatus, summary="Get cluster status")
+async def get_cluster_status(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
     """Get comprehensive cluster status (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Cluster status requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(Fore.CYAN + f"[CLUSTER] Status requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("cluster_status_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[CLUSTER] Status performance metric recorded" + Style.RESET_ALL)
 
     return await cluster_service.get_cluster_status()
 
-@router.get()
-    "/nodes",
-    response_model=List[NodeInfo],
-    summary="Get cluster nodes"
-)
-async def get_cluster_nodes()
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
+@router.get("/nodes", response_model=List[NodeInfo], summary="Get cluster nodes")
+async def get_cluster_nodes(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
     """Get all cluster nodes information (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Cluster nodes requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(Fore.CYAN + f"[CLUSTER] Nodes requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("cluster_nodes_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[CLUSTER] Nodes performance metric recorded" + Style.RESET_ALL)
 
     return await cluster_service.get_cluster_nodes()
 
-@router.get()
-    "/metrics",
-    response_model=ClusterMetrics,
-    summary="Get cluster metrics"
-)
-async def get_cluster_metrics()
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
+@router.get("/metrics", response_model=ClusterMetrics, summary="Get cluster metrics")
+async def get_cluster_metrics(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
     """Get cluster performance metrics (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Cluster metrics requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(Fore.CYAN + f"[CLUSTER] Metrics requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("cluster_metrics_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[CLUSTER] Metrics performance metric recorded" + Style.RESET_ALL)
 
     return await cluster_service.get_cluster_metrics()
 
-@router.post()
-    "/scale",
-    summary="Scale cluster"
-)
-async def scale_cluster()
-    request: Request,
-    target_nodes: int,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
+@router.post("/scale", summary="Scale cluster")
+async def scale_cluster(request: Request, target_nodes: int, current_user: Dict[str, Any] = Depends(require_admin)):
     """Scale cluster to target number of nodes (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Cluster scaling to {target_nodes} nodes requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(Fore.CYAN + f"[CLUSTER] Scaling to {target_nodes} nodes requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("cluster_scale_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[CLUSTER] Scale performance metric recorded" + Style.RESET_ALL)
 
     try:
         if cluster_service.cluster_manager:
@@ -313,26 +290,21 @@ async def scale_cluster()
             }
     except Exception as e:
         logger.error(f"Error scaling cluster: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to scale cluster"
         )
 
-@router.post()
-    "/rebalance",
-    summary="Rebalance cluster"
-)
-async def rebalance_cluster()
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
+@router.post("/rebalance", summary="Rebalance cluster")
+async def rebalance_cluster(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
     """Rebalance cluster load (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Cluster rebalancing requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(Fore.CYAN + f"[CLUSTER] Rebalancing requested by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("cluster_rebalance_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[CLUSTER] Rebalance performance metric recorded" + Style.RESET_ALL)
 
     try:
         if cluster_service.cluster_manager:
@@ -348,7 +320,7 @@ async def rebalance_cluster()
             }
     except Exception as e:
         logger.error(f"Error rebalancing cluster: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to rebalance cluster"
         )

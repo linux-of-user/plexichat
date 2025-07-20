@@ -122,7 +122,7 @@ class UserService:
                     exists = result[0][0] > 0 if result else False
 
                 if exists:
-                    raise HTTPException()
+                    raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Username or email already exists"
                     )
@@ -151,7 +151,7 @@ class UserService:
 
                 if result:
                     row = result[0]
-                    return UserResponse()
+                    return UserResponse(
                         id=row[0],
                         username=row[1],
                         email=row[2],
@@ -168,7 +168,7 @@ class UserService:
                 raise HTTPException(status_code=500, detail="Failed to create user")
 
         # Fallback mock user
-        return UserResponse()
+        return UserResponse(
             id=1,
             username=user_data.username,
             email=user_data.email,
@@ -226,7 +226,7 @@ class UserService:
                 users = []
                 if result:
                     for row in result:
-                        users.append(UserResponse())
+                        users.append(UserResponse(
                             id=row[0],
                             username=row[1],
                             email=row[2],
@@ -238,7 +238,7 @@ class UserService:
 
                 total_count = count_result[0][0] if count_result else 0
 
-                return UserListResponse()
+                return UserListResponse(
                     users=users,
                     total_count=total_count,
                     page=(offset // limit) + 1,
@@ -271,7 +271,7 @@ class UserService:
 
                 if result:
                     row = result[0]
-                    return UserResponse()
+                    return UserResponse(
                         id=row[0],
                         username=row[1],
                         email=row[2],
@@ -281,7 +281,7 @@ class UserService:
                         last_login=row[6]
                     )
                 else:
-                    raise HTTPException()
+                    raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail="User not found"
                     )
@@ -294,7 +294,7 @@ class UserService:
 
         # Fallback mock user
         if user_id == 1:
-            return UserResponse()
+            return UserResponse(
                 id=1,
                 username="admin",
                 email="admin@example.com",
@@ -304,7 +304,7 @@ class UserService:
                 last_login=None
             )
         else:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
@@ -312,7 +312,7 @@ class UserService:
 # Initialize service
 user_service = UserService()
 
-@router.post()
+@router.post(
     "/",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
@@ -333,12 +333,12 @@ async def create_user(
 
     return await user_service.create_user(user_data)
 
-@router.get()
+@router.get(
     "/",
     response_model=UserListResponse,
     summary="List users"
 )
-async def list_users()
+async def list_users(
     request: Request,
     limit: int = Query(50, ge=1, le=100, description="Number of users to retrieve"),
     offset: int = Query(0, ge=0, description="Number of users to skip"),
@@ -355,7 +355,7 @@ async def list_users()
 
     return await user_service.list_users(limit, offset, search)
 
-@router.get()
+@router.get(
     "/{user_id}",
     response_model=UserResponse,
     summary="Get user"
@@ -370,7 +370,7 @@ async def get_user(
 
     # Check permissions
     if user_id != current_user.get("id") and not current_user.get("is_admin", False):
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this user"
         )

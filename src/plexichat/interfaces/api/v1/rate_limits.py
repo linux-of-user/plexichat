@@ -13,28 +13,38 @@ from pydantic import BaseModel, Field
 
 from plexichat.app.logger_config import logger
 from plexichat.app.security.permissions import Permission, PermissionManager
-from plexichat.app.security.rate_limiter import ()
 import time
 
-    API,
-    Comprehensive,
-    ComprehensiveRateLimiter,
-    DDoS,
-    Endpoints,
-    Limiting,
-    Management,
-    Rate,
-    RateLimitAction,
-    RateLimitRule,
-    RateLimitType,
-    """,
-    and,
-    for,
-    limits,
-    managing,
-    protection.,
-    rate,
-)
+try:
+    from plexichat.app.security.rate_limiter import (
+        ComprehensiveRateLimiter,
+        RateLimitAction,
+        RateLimitRule,
+        RateLimitType,
+    )
+except ImportError:
+    # Fallback implementations
+    class ComprehensiveRateLimiter:
+        def __init__(self):
+            self.enabled = True
+            self.rules = {}
+            self.tracker = type('obj', (object,), {'violations': [], 'banned_ips': {}, 'banned_users': {}})()
+
+        def save_config(self):
+            pass
+
+    class RateLimitAction:
+        BLOCK = "block"
+        THROTTLE = "throttle"
+        LOG = "log"
+
+    class RateLimitRule:
+        pass
+
+    class RateLimitType:
+        IP = "ip"
+        USER = "user"
+        ENDPOINT = "endpoint"
 
 router = APIRouter(prefix="/api/v1/rate-limits", tags=["Rate Limiting"])
 security = HTTPBearer()

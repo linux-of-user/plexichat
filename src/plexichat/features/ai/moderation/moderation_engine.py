@@ -179,32 +179,39 @@ self.db_path = Path("data/moderation.db")
         """Initialize moderation database."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(""")
-                CREATE TABLE IF NOT EXISTS moderation_results ()
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    content_id TEXT NOT NULL,
-                    content_hash TEXT NOT NULL,
-                    confidence_score REAL NOT NULL,
-                    recommended_action TEXT NOT NULL,
-                    severity TEXT NOT NULL,
-                    categories TEXT NOT NULL,
-                    reasoning TEXT,
-                    metadata TEXT,
-                    processing_time_ms REAL,
-                    model_used TEXT,
-                    requires_human_review BOOLEAN,
-                    timestamp TEXT NOT NULL,
-                    user_feedback TEXT,
-                    human_reviewed BOOLEAN DEFAULT FALSE,
-                    human_decision TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+        # Initialize moderation results database using abstraction layer
+        from plexichat.core.database import database_manager
 
-            conn.execute(""")
-                CREATE INDEX IF NOT EXISTS idx_content_hash ON moderation_results(content_hash)
-            """)
+        moderation_results_schema = {
+            "table_name": "moderation_results",
+            "columns": {
+                "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+                "content_id": {"type": "TEXT", "nullable": False},
+                "content_hash": {"type": "TEXT", "nullable": False},
+                "confidence_score": {"type": "REAL", "nullable": False},
+                "recommended_action": {"type": "TEXT", "nullable": False},
+                "severity": {"type": "TEXT", "nullable": False},
+                "categories": {"type": "TEXT", "nullable": False},
+                "reasoning": {"type": "TEXT"},
+                "metadata": {"type": "TEXT"},
+                "processing_time_ms": {"type": "REAL"},
+                "model_used": {"type": "TEXT"},
+                "requires_human_review": {"type": "BOOLEAN"},
+                "timestamp": {"type": "TEXT", "nullable": False},
+                "user_feedback": {"type": "TEXT"},
+                "human_reviewed": {"type": "BOOLEAN", "default": False},
+                "human_decision": {"type": "TEXT"},
+                "created_at": {"type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP"}
+            }
+        }
+
+        await database_manager.create_table_if_not_exists(moderation_results_schema)
+
+        await database_manager.create_index_if_not_exists(
+            table_name="moderation_results",
+            columns=["content_hash"],
+            index_name="idx_content_hash"
+        )
 
             conn.execute(""")
                 CREATE INDEX IF NOT EXISTS idx_timestamp ON moderation_results(timestamp)

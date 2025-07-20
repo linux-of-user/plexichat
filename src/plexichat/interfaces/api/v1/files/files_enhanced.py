@@ -16,56 +16,42 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from plexichat.app.db import get_session
-from plexichat.app.models.files import ()
-    from plexichat.infrastructure.utils.auth import get_current_user,
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
+try:
+    from plexichat.core.database import get_session
+except ImportError:
+    try:
+        from plexichat.core.database.manager import get_session
+    except ImportError:
+        # Fallback session function
+        def get_session():
+            return None
+from plexichat.infrastructure.utils.auth import get_current_user
 from plexichat.features.users.user import User
 
-    API,
-    Enhanced,
-    FileAccessLevel,
-    FileAccessLog,
-    FilePermission,
-    FilePermissionService,
-    FilePermissionType,
-    FileRecord,
-    Supports,
-    User,
-    """,
-    access,
-    and,
-    comprehensive,
-    control.,
-    embedding,
-    file,
-    from,
-    get_optional_current_user,
-    import,
-    in,
-    management,
-    messages,
-    permission,
-    permissions,
-    plexichat.app.models.files,
-    plexichat.app.models.user,
-    plexichat.app.services.file_permissions,
-    plexichat.app.utils.auth,
-    plexichat.infrastructure.utils.auth,
-    proper,
-    validation.,
-    with,
-)
+# Import file-related models and services
+try:
+    from plexichat.features.files.models import FileRecord, FilePermission, FileAccessLog
+    from plexichat.features.files.services import FilePermissionService
+    from plexichat.features.files.enums import FileAccessLevel, FilePermissionType
+except ImportError:
+    # Fallback classes
+    class FileRecord:
+        pass
+    class FilePermission:
+        pass
+    class FileAccessLog:
+        pass
+    class FilePermissionService:
+        def __init__(self, session):
+            self.session = session
+    class FileAccessLevel:
+        READ = "read"
+        WRITE = "write"
+        ADMIN = "admin"
+    class FilePermissionType:
+        READ = "read"
+        WRITE = "write"
+        ADMIN = "admin"
 
 
 # Pydantic models for API
@@ -418,29 +404,28 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/access-logs/{file_id}")
-async def get_file_access_logs()
+async def get_file_access_logs(
     file_id: int,
     limit: int = Query(100, le=1000),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get access logs for a file (admin only)."""
     permission_service = FilePermissionService(session)
 
     # Check if user has admin access to the file
-    has_access, _, _ = await permission_service.check_file_access()
+    has_access, _, _ = await permission_service.check_file_access(
         file_id, current_user.id, FilePermissionType.ADMIN
     )
 
     if not has_access:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions to view access logs"
         )
 
-    statement = select(FileAccessLog).where()
+    statement = select(FileAccessLog).where(
         FileAccessLog.file_id == file_id
     ).order_by(FileAccessLog.accessed_at.desc()).offset(offset).limit(limit)
 
@@ -449,7 +434,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     result = []
     for log in logs:
         user = session.get(User, log.user_id) if log.user_id else None
-        result.append({)
+        result.append({
             "id": log.id,
             "user_id": log.user_id,
             "username": user.username if user else "Anonymous",

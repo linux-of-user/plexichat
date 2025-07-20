@@ -40,7 +40,7 @@ class TestCLI:
         logger.info("🚀 Running ALL PlexiChat tests...")
 
         try:
-            report = await run_tests()
+            report = await run_tests(
                 categories=None,
                 verbose=verbose,
                 save_report=save_report
@@ -50,7 +50,7 @@ class TestCLI:
             logger.error(f"Error running tests: {e}")
             return {'error': str(e)}
 
-    async def run_category_tests(self, categories: List[str], )
+    async def run_category_tests(self, categories: List[str],
                                 verbose: bool = True,
                                 save_report: bool = True) -> Dict[str, Any]:
         """Run specific test categories."""
@@ -68,7 +68,7 @@ class TestCLI:
         logger.info(f"🚀 Running {', '.join(categories).upper()} tests...")
 
         try:
-            report = await run_tests()
+            report = await run_tests(
                 categories=categories,
                 verbose=verbose,
                 save_report=save_report
@@ -208,12 +208,12 @@ def create_test_parser():
 
     # Run command
     run_parser = subparsers.add_parser('run', help='Run tests')
-    run_parser.add_argument('categories', nargs='*', )
+    run_parser.add_argument('categories', nargs='*',
                            choices=TEST_CATEGORIES + ['all'],
                            help='Test categories to run (default: all)')
-    run_parser.add_argument('--no-save', action='store_true',)
+    run_parser.add_argument('--no-save', action='store_true',
                            help='Do not save test report')
-    run_parser.add_argument('--quiet', action='store_true',)
+    run_parser.add_argument('--quiet', action='store_true',
                            help='Reduce output verbosity')
 
     # Quick command
@@ -237,7 +237,7 @@ async def main():
 
     if args.command == 'run':
         categories = args.categories if args.categories and 'all' not in args.categories else None
-        await test_cli.run_category_tests()
+        await test_cli.run_category_tests(
             categories or TEST_CATEGORIES,
             verbose=not args.quiet,
             save_report=not args.no_save

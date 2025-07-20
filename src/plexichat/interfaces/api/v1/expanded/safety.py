@@ -323,7 +323,7 @@ async def setup_safety_endpoints(router: APIRouter):
     @router.post()
         "/moderate", response_model=ModerationActionRecord, summary="Moderate Content"
     )
-    async def moderate_content()
+    async def moderate_content(
         target_user_id: str,
         action_type: ModerationAction,
         reason: str,
@@ -339,7 +339,7 @@ async def setup_safety_endpoints(router: APIRouter):
                 raise HTTPException(status_code=403, detail="Moderator access required")
 
             moderator_id = "current_user_id"
-            action = await _moderate_content()
+            action = await _moderate_content(
                 moderator_id,
                 target_user_id,
                 target_content_id,

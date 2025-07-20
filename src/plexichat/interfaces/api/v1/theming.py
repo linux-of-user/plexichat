@@ -99,7 +99,7 @@ async def get_theme_css(theme_id: str):
     try:
         css = theming_service.generate_css(theme_id)
 
-        return Response()
+        return Response(
             content=css,
             media_type="text/css",
             headers={

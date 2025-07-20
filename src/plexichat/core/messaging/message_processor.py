@@ -330,7 +330,7 @@ async def queue_message(message_id: str, sender_id: int, content: str, message_t
 
 async def process_message_now(message_id: str, sender_id: int, content: str, message_type: str = "text", **kwargs):
     """Process message immediately."""
-    message = MessageData()
+    message = MessageData(
         message_id=message_id,
         sender_id=sender_id,
         recipient_id=kwargs.get("recipient_id"),

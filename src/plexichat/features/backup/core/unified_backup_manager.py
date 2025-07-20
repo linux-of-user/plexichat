@@ -315,31 +315,36 @@ class UnifiedBackupManager:
     async def _initialize_database(self) -> None:
         """Initialize the backup metadata database."""
         async with aiosqlite.connect(self.db_path) as db:
-            # Backup operations table
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS backup_operations ()
-                    backup_id TEXT PRIMARY KEY,
-                    backup_type TEXT NOT NULL,
-                    priority INTEGER NOT NULL,
-                    security_level INTEGER NOT NULL,
-                    distribution_strategy TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    started_at TEXT,
-                    completed_at TEXT,
-                    total_size INTEGER DEFAULT 0,
-                    compressed_size INTEGER DEFAULT 0,
-                    shard_count INTEGER DEFAULT 0,
-                    redundancy_factor INTEGER DEFAULT 5,
-                    encryption_key_id TEXT,
-                    verification_hash TEXT,
-                    source_path TEXT,
-                    source_type TEXT,
-                    created_by TEXT,
-                    metadata TEXT,
-                    error_message TEXT
-                )
-            """)
+            # Create backup_operations table using abstraction layer
+            from plexichat.core.database import database_manager
+
+            backup_operations_schema = {
+                "table_name": "backup_operations",
+                "columns": {
+                    "backup_id": {"type": "TEXT", "primary_key": True},
+                    "backup_type": {"type": "TEXT", "nullable": False},
+                    "priority": {"type": "INTEGER", "nullable": False},
+                    "security_level": {"type": "INTEGER", "nullable": False},
+                    "distribution_strategy": {"type": "TEXT", "nullable": False},
+                    "status": {"type": "TEXT", "nullable": False},
+                    "created_at": {"type": "TEXT", "nullable": False},
+                    "started_at": {"type": "TEXT"},
+                    "completed_at": {"type": "TEXT"},
+                    "total_size": {"type": "INTEGER", "default": 0},
+                    "compressed_size": {"type": "INTEGER", "default": 0},
+                    "shard_count": {"type": "INTEGER", "default": 0},
+                    "redundancy_factor": {"type": "INTEGER", "default": 5},
+                    "encryption_key_id": {"type": "TEXT"},
+                    "verification_hash": {"type": "TEXT"},
+                    "source_path": {"type": "TEXT"},
+                    "source_type": {"type": "TEXT"},
+                    "created_by": {"type": "TEXT"},
+                    "metadata": {"type": "TEXT"},
+                    "error_message": {"type": "TEXT"}
+                }
+            }
+
+            await database_manager.create_table_if_not_exists(backup_operations_schema)
 
             # Unified shards table
             await db.execute(""")
@@ -407,13 +412,22 @@ class UnifiedBackupManager:
                 )
             """)
 
-            # Create indexes for performance
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_backup_operations_status ON backup_operations(status)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_backup_operations_created_at ON backup_operations(created_at)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_unified_shards_backup_id ON unified_shards(backup_id)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_unified_shards_location ON unified_shards(location)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_system_health_timestamp ON system_health(timestamp)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_performance_metrics_timestamp ON performance_metrics(timestamp)")
+            # Create indexes for performance using abstraction layer
+            indexes = [
+                {"table": "backup_operations", "columns": ["status"], "name": "idx_backup_operations_status"},
+                {"table": "backup_operations", "columns": ["created_at"], "name": "idx_backup_operations_created_at"},
+                {"table": "unified_shards", "columns": ["backup_id"], "name": "idx_unified_shards_backup_id"},
+                {"table": "unified_shards", "columns": ["location"], "name": "idx_unified_shards_location"},
+                {"table": "system_health", "columns": ["timestamp"], "name": "idx_system_health_timestamp"},
+                {"table": "performance_metrics", "columns": ["timestamp"], "name": "idx_performance_metrics_timestamp"}
+            ]
+
+            for index in indexes:
+                await database_manager.create_index_if_not_exists(
+                    table_name=index["table"],
+                    columns=index["columns"],
+                    index_name=index["name"]
+                )
 
             await db.commit()
             logger.info("Database initialized successfully")

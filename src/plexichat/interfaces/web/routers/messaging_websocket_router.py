@@ -3,10 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
+
 import json
 import logging
 from datetime import datetime
@@ -226,28 +223,28 @@ async def get_messaging_stats(current_user: User = Depends(get_current_user_from
     Requires admin access.
     """
     if not getattr(current_user, 'is_admin', False):
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
         )
 
     try:
         stats = await messaging_websocket_manager.get_connection_stats()
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "data": stats
         })
 
     except Exception as e:
         logger.error(f"Error getting messaging stats: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get messaging statistics"
         )
 
 
 @router.post("/messaging/broadcast")
-async def broadcast_admin_message()
+async def broadcast_admin_message(
     message: str,
     channel_id: Optional[int] = None,
     guild_id: Optional[int] = None,
@@ -258,7 +255,7 @@ async def broadcast_admin_message()
     Requires admin access.
     """
     if not getattr(current_user, 'is_admin', False):
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
         )
@@ -298,7 +295,7 @@ async def broadcast_admin_message()
                 # Skip failed connections
                 continue
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "success": True,
             "message": f"Broadcast sent to {sent_count} connections",
             "data": {
@@ -309,7 +306,7 @@ async def broadcast_admin_message()
 
     except Exception as e:
         logger.error(f"Error broadcasting admin message: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to broadcast message"
         )
@@ -322,7 +319,7 @@ async def websocket_health_check():
     try:
         stats = await messaging_websocket_manager.get_connection_stats()
 
-        return JSONResponse(content={)
+        return JSONResponse(content={
             "status": "healthy",
             "service": "WebSocket Messaging",
             "connections": stats.get('total_connections', 0),
@@ -332,7 +329,7 @@ async def websocket_health_check():
 
     except Exception as e:
         logger.error(f"WebSocket health check failed: {e}")
-        return JSONResponse()
+        return JSONResponse(
             status_code=500,
             content={
                 "status": "unhealthy",

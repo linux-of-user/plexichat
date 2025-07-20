@@ -100,25 +100,29 @@ class MigrationRepository:
                 logger.error(f"Engine '{self.engine_name}' not found")
                 return False
 
-            # Create migrations table if it doesn't exist
-            create_table_sql = f"""
-            CREATE TABLE IF NOT EXISTS {self.table_name} ()
-                version VARCHAR(255) PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                description TEXT,
-                checksum VARCHAR(64) NOT NULL,
-                strategy VARCHAR(50) NOT NULL,
-                status VARCHAR(50) NOT NULL,
-                started_at TIMESTAMP NOT NULL,
-                completed_at TIMESTAMP,
-                execution_time_seconds REAL DEFAULT 0.0,
-                error_message TEXT,
-                rollback_available BOOLEAN DEFAULT TRUE,
-                metadata TEXT
-            )
-            """
+            # Create migrations table using abstraction layer
+            from plexichat.core.database import database_manager
 
-            await engine.execute(create_table_sql)
+            # Define table schema using abstraction layer
+            table_schema = {
+                "table_name": self.table_name,
+                "columns": {
+                    "version": {"type": "VARCHAR", "length": 255, "primary_key": True},
+                    "name": {"type": "VARCHAR", "length": 255, "nullable": False},
+                    "description": {"type": "TEXT"},
+                    "checksum": {"type": "VARCHAR", "length": 64, "nullable": False},
+                    "strategy": {"type": "VARCHAR", "length": 50, "nullable": False},
+                    "status": {"type": "VARCHAR", "length": 50, "nullable": False},
+                    "started_at": {"type": "TIMESTAMP", "nullable": False},
+                    "completed_at": {"type": "TIMESTAMP"},
+                    "execution_time_seconds": {"type": "REAL", "default": 0.0},
+                    "error_message": {"type": "TEXT"},
+                    "rollback_available": {"type": "BOOLEAN", "default": True},
+                    "metadata": {"type": "TEXT"}
+                }
+            }
+
+            await database_manager.create_table_if_not_exists(table_schema)
             logger.info("Migration tracking table initialized")
             return True
 

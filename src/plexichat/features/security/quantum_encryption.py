@@ -17,7 +17,16 @@ from typing import Any, Dict, List, Optional, Tuple
 import aiosqlite
 from Crypto.Cipher import AES, ChaCha20_Poly1305
 from Crypto.Hash import BLAKE2b
-from Crypto.Protocol.KDF import PBKDF2, Argon2d
+from Crypto.Protocol.KDF import PBKDF2
+try:
+    from Crypto.Protocol.KDF import Argon2d
+except ImportError:
+    # Use argon2-cffi as fallback
+    try:
+        from argon2 import PasswordHasher
+        Argon2d = PasswordHasher()
+    except ImportError:
+        Argon2d = None
 from Crypto.Random import get_random_bytes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization

@@ -200,10 +200,11 @@ class TokenManager:
                 payload.update(metadata)
 
             # Sign token
-            private_key = self.private_key if self.private_key else b""
+            if not self.private_key:
+                raise ValueError("Private key is not set for signing JWT.")
             token = jwt.encode(
                 payload,
-                private_key,
+                self.private_key,
                 algorithm=self.algorithm,
                 headers={"kid": self.key_id}
             )

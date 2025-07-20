@@ -258,7 +258,7 @@ class AIProvidersPlugin(PluginInterface):
         try:
             # Import AI layer
             try:
-                from plexichat.features.ai.core.ai_abstraction_layer import AIAbstractionLayer
+from plugin_internal import *
             except ImportError:
                 # Use fallback
                 pass

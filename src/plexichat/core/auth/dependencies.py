@@ -84,7 +84,7 @@ def require_permission(permission: str):
     async def permission_dependency(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
         user_permissions = current_user.get("permissions", [])
         if permission not in user_permissions and not current_user.get("is_admin", False):
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Permission '{permission}' required"
             )
@@ -99,7 +99,7 @@ def require_permissions(*permissions):
 
         for permission in permissions:
             if permission not in user_permissions and not is_admin:
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Permission '{permission}' required"
                 )

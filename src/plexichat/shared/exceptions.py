@@ -277,9 +277,7 @@ class StartupError(PlexiChatError):
     pass
 
 
-class ServiceUnavailableError(PlexiChatError):
-    """Raised when a service is unavailable."""
-    pass
+
 
 
 class LoggingError(PlexiChatError):

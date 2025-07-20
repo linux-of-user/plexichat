@@ -16,6 +16,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from colorama import Fore, Style
 
 # Use EXISTING database abstraction layer
 try:
@@ -167,19 +168,16 @@ class WebService:
 # Initialize service
 web_service = WebService()
 
-@router.get()
-    "/",
-    response_class=HTMLResponse,
-    summary="Main web interface"
-)
+@router.get("/")
 async def main_page(request: Request):
     """Main web interface with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Main page accessed from {client_ip}")
+    logger.info(Fore.CYAN + f"[WEB] Main page accessed from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("web_main_page_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[WEB] Main page performance metric recorded" + Style.RESET_ALL)
 
     # Simple HTML response for now
     html_content = """
@@ -187,8 +185,8 @@ async def main_page(request: Request):
     <html>
     <head>
         <title>PlexiChat</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset=\"utf-8\">
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
         <style>
             body { font-family: Arial, sans-serif; margin: 40px; }
             .container { max-width: 800px; margin: 0 auto; }
@@ -199,18 +197,18 @@ async def main_page(request: Request):
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
+        <div class=\"container\">
+            <div class=\"header\">
                 <h1>PlexiChat</h1>
                 <p>Enhanced messaging platform with performance optimization</p>
             </div>
-            <div class="nav">
-                <a href="/web/dashboard">Dashboard</a>
-                <a href="/web/admin">Admin Panel</a>
-                <a href="/docs">API Documentation</a>
-                <a href="/status">System Status</a>
+            <div class=\"nav\">
+                <a href=\"/web/dashboard\">Dashboard</a>
+                <a href=\"/web/admin\">Admin Panel</a>
+                <a href=\"/docs\">API Documentation</a>
+                <a href=\"/status\">System Status</a>
             </div>
-            <div class="content">
+            <div class=\"content\">
                 <h2>Welcome to PlexiChat</h2>
                 <p>A high-performance messaging platform with advanced features.</p>
                 <ul>
@@ -224,25 +222,18 @@ async def main_page(request: Request):
     </body>
     </html>
     """
-
     return HTMLResponse(content=html_content)
 
-@router.get()
-    "/dashboard",
-    response_class=HTMLResponse,
-    summary="User dashboard"
-)
-async def dashboard()
-    request: Request,
-    current_user: Dict[str, Any] = Depends(get_current_user)
-):
+@router.get("/dashboard")
+async def dashboard(request: Request, current_user: Dict[str, Any] = Depends(get_current_user)):
     """User dashboard with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Dashboard accessed by user {current_user.get('username')} from {client_ip}")
+    logger.info(Fore.CYAN + f"[WEB] Dashboard accessed by user {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
         performance_logger.record_metric("web_dashboard_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[WEB] Dashboard performance metric recorded" + Style.RESET_ALL)
 
     # Get dashboard data
     dashboard_data = await web_service.get_dashboard_data(current_user.get("id", 0))
@@ -253,8 +244,8 @@ async def dashboard()
     <html>
     <head>
         <title>PlexiChat Dashboard</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset=\"utf-8\">
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
         <style>
             body {{ font-family: Arial, sans-serif; margin: 40px; }}
             .container {{ max-width: 1000px; margin: 0 auto; }}
@@ -268,31 +259,31 @@ async def dashboard()
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
+        <div class=\"container\">
+            <div class=\"header\">
                 <h1>Dashboard</h1>
                 <p>Welcome, {current_user.get('username', 'User')}!</p>
             </div>
-            <div class="nav">
-                <a href="/web/">Home</a>
-                <a href="/web/admin">Admin Panel</a>
-                <a href="/docs">API Docs</a>
+            <div class=\"nav\">
+                <a href=\"/web/\">Home</a>
+                <a href=\"/web/admin\">Admin Panel</a>
+                <a href=\"/docs\">API Docs</a>
             </div>
-            <div class="stats">
-                <div class="stat-card">
+            <div class=\"stats\">
+                <div class=\"stat-card\">
                     <h3>{dashboard_data['total_messages']}</h3>
                     <p>Messages Sent</p>
                 </div>
-                <div class="stat-card">
+                <div class=\"stat-card\">
                     <h3>{dashboard_data['total_files']}</h3>
                     <p>Files Uploaded</p>
                 </div>
-                <div class="stat-card">
+                <div class=\"stat-card\">
                     <h3>{dashboard_data['system_status']}</h3>
                     <p>System Status</p>
                 </div>
             </div>
-            <div class="recent-activity">
+            <div class=\"recent-activity\">
                 <h3>Recent Activity</h3>
                 {"".join([f'<div class="activity-item">{item["content"]} - {item["timestamp"]}</div>' for item in dashboard_data['recent_activity']])}
             </div>
@@ -300,25 +291,18 @@ async def dashboard()
     </body>
     </html>
     """
-
     return HTMLResponse(content=html_content)
 
-@router.get()
-    "/admin",
-    response_class=HTMLResponse,
-    summary="Admin panel"
-)
-async def admin_panel()
-    request: Request,
-    current_user: Dict[str, Any] = Depends(require_admin)
-):
+@router.get("/admin")
+async def admin_panel(request: Request, current_user: Dict[str, Any] = Depends(require_admin)):
     """Admin panel with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Admin panel accessed by {current_user.get('username')} from {client_ip}")
+    logger.info(Fore.CYAN + f"[WEB] Admin panel accessed by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
 
     # Performance tracking
     if performance_logger:
-        performance_logger.record_metric("web_admin_requests", 1, "count")
+        performance_logger.record_metric("web_admin_panel_requests", 1, "count")
+        logger.debug(Fore.GREEN + "[WEB] Admin panel performance metric recorded" + Style.RESET_ALL)
 
     # Simple admin panel HTML
     html_content = f"""
@@ -326,8 +310,8 @@ async def admin_panel()
     <html>
     <head>
         <title>PlexiChat Admin Panel</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset=\"utf-8\">
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
         <style>
             body {{ font-family: Arial, sans-serif; margin: 40px; }}
             .container {{ max-width: 1000px; margin: 0 auto; }}
@@ -339,29 +323,29 @@ async def admin_panel()
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
+        <div class=\"container\">
+            <div class=\"header\">
                 <h1>Admin Panel</h1>
                 <p>Welcome, Administrator {current_user.get('username', 'Admin')}!</p>
             </div>
-            <div class="nav">
-                <a href="/web/">Home</a>
-                <a href="/web/dashboard">Dashboard</a>
-                <a href="/status">System Status</a>
-                <a href="/system/performance">Performance</a>
+            <div class=\"nav\">
+                <a href=\"/web/\">Home</a>
+                <a href=\"/web/dashboard\">Dashboard</a>
+                <a href=\"/status\">System Status</a>
+                <a href=\"/system/performance\">Performance</a>
             </div>
-            <div class="admin-section">
+            <div class=\"admin-section\">
                 <h3>System Management</h3>
-                <a href="/system/status" class="btn">System Status</a>
-                <a href="/system/analytics" class="btn">Analytics Report</a>
-                <a href="/system/tests/run" class="btn">Run Tests</a>
-                <a href="/system/optimize" class="btn">Optimize System</a>
+                <a href=\"/system/status\" class=\"btn\">System Status</a>
+                <a href=\"/system/analytics\" class=\"btn\">Analytics Report</a>
+                <a href=\"/system/tests/run\" class=\"btn\">Run Tests</a>
+                <a href=\"/system/optimize\" class=\"btn\">Optimize System</a>
             </div>
-            <div class="admin-section">
+            <div class=\"admin-section\">
                 <h3>User Management</h3>
                 <p>User management features would be implemented here.</p>
             </div>
-            <div class="admin-section">
+            <div class=\"admin-section\">
                 <h3>Performance Monitoring</h3>
                 <p>Real-time performance metrics and optimization controls.</p>
             </div>
@@ -369,5 +353,4 @@ async def admin_panel()
     </body>
     </html>
     """
-
     return HTMLResponse(content=html_content)

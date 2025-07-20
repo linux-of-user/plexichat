@@ -208,7 +208,7 @@ class FileService:
                 raise HTTPException(status_code=500, detail="Failed to upload file")
 
         # Fallback mock file record
-        return FileRecord()
+        return FileRecord(
             id=1,
             filename=sanitize_filename(file.filename),
             file_path=f"/uploads/{user_id}/{sanitize_filename(file.filename)}",
@@ -243,7 +243,7 @@ class FileService:
                 files = []
                 if result:
                     for row in result:
-                        files.append(FileRecord())
+                        files.append(FileRecord(
                             id=row[0],
                             filename=row[1],
                             file_path=row[2],
@@ -279,11 +279,7 @@ class FileListResponse(BaseModel):
     page: int
     per_page: int
 
-@router.post()
-    "/upload",
-    response_model=FileUploadResponse,
-    status_code=status.HTTP_201_CREATED
-)
+@router.post("/upload", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_file(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -302,7 +298,7 @@ async def upload_file(
     try:
         # Validate file
         if not file.filename:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No filename provided"
             )
@@ -310,7 +306,7 @@ async def upload_file(
         # Check file extension
         file_ext = '.' + file.filename.split('.')[-1].lower() if '.' in file.filename else ''
         if not validate_file_type(file_ext, ALLOWED_EXTENSIONS):
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"File type {file_ext} not allowed"
             )
@@ -318,14 +314,14 @@ async def upload_file(
         # Check file size
         content = await file.read()
         if len(content) > MAX_FILE_SIZE:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
             )
 
         # Scan file content
         if not scan_file_content(content, file_ext):
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="File content failed security scan"
             )
@@ -337,7 +333,7 @@ async def upload_file(
         file_record = await file_service.upload_file(file, current_user.get("id", 0))
 
         # Schedule background processing
-        background_tasks.add_task()
+        background_tasks.add_task(
             _process_file_background,
             file_record.id,
             current_user.get("id", 0)
@@ -347,7 +343,7 @@ async def upload_file(
         if performance_logger:
             performance_logger.record_metric("file_upload_completed", 1, "count")
 
-        return FileUploadResponse()
+        return FileUploadResponse(
             id=file_record.id,
             filename=file_record.filename,
             file_size=file_record.file_size,
@@ -360,7 +356,7 @@ async def upload_file(
         raise
     except Exception as e:
         logger.error(f"Unexpected error uploading file: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
@@ -372,7 +368,7 @@ async def _process_file_background(file_id: int, user_id: int):
 
         # Use thread pool for CPU-intensive tasks
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor()
+        await loop.run_in_executor(
             executor,
             _process_file_sync,
             file_id,

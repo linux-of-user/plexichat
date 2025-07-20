@@ -202,7 +202,7 @@ class SecurityMonitor:
     def _setup_default_rules(self):
         """Setup default monitoring rules."""
         default_rules = [
-            MonitoringRule()
+            MonitoringRule(
                 rule_id="brute_force_detection",
                 name="Brute Force Attack Detection",
                 description="Detect brute force authentication attempts",
@@ -210,9 +210,9 @@ class SecurityMonitor:
                 conditions={"source_ip": "same", "time_window": 300},
                 severity_threshold=Severity.MEDIUM,
                 alert_threshold=5,
-                time_window=300,
+                time_window=300
             ),
-            MonitoringRule()
+            MonitoringRule(
                 rule_id="ddos_detection",
                 name="DDoS Attack Detection",
                 description="Detect distributed denial of service attacks",
@@ -220,9 +220,9 @@ class SecurityMonitor:
                 conditions={"request_rate": ">100"},
                 severity_threshold=Severity.HIGH,
                 alert_threshold=1,
-                time_window=60,
+                time_window=60
             ),
-            MonitoringRule()
+            MonitoringRule(
                 rule_id="malware_detection",
                 name="Malware Detection",
                 description="Detect malware uploads or execution",
@@ -230,9 +230,9 @@ class SecurityMonitor:
                 conditions={},
                 severity_threshold=Severity.CRITICAL,
                 alert_threshold=1,
-                time_window=1,
+                time_window=1
             ),
-            MonitoringRule()
+            MonitoringRule(
                 rule_id="privilege_escalation",
                 name="Privilege Escalation Detection",
                 description="Detect unauthorized privilege escalation attempts",
@@ -240,8 +240,8 @@ class SecurityMonitor:
                 conditions={},
                 severity_threshold=Severity.HIGH,
                 alert_threshold=1,
-                time_window=1,
-            ),
+                time_window=1
+            )
         ]
 
         for rule in default_rules:
@@ -254,14 +254,10 @@ class SecurityMonitor:
 
         # Update statistics
         event_type_key = event.event_type.value
-        self.stats["events_by_type"][event_type_key] = ()
-            self.stats["events_by_type"].get(event_type_key, 0) + 1
-        )
+        self.stats["events_by_type"][event_type_key] = self.stats["events_by_type"].get(event_type_key, 0) + 1
 
         severity_key = event.severity.value
-        self.stats["events_by_severity"][severity_key] = ()
-            self.stats["events_by_severity"].get(severity_key, 0) + 1
-        )
+        self.stats["events_by_severity"][severity_key] = self.stats["events_by_severity"].get(severity_key, 0) + 1
 
         # Check monitoring rules
         await self._check_monitoring_rules(event)
@@ -274,9 +270,7 @@ class SecurityMonitor:
                 except Exception as e:
                     logger.error(f"Event handler error: {e}")
 
-        logger.info()
-            f"Security event logged: {event.event_type.value} - {event.description}"
-        )
+        logger.info(f"Security event logged: {event.event_type.value} - {event.description}")
 
     async def _check_monitoring_rules(self, event: SecurityEvent):
         """Check if event triggers any monitoring rules."""
@@ -305,12 +299,7 @@ class SecurityMonitor:
                 if len(relevant_events) >= rule.alert_threshold:
                     await self._create_alert(rule, relevant_events)
 
-    def _evaluate_rule_conditions():
-        self,
-        rule: MonitoringRule,
-        events: List[SecurityEvent],
-        current_event: SecurityEvent,
-    ) -> bool:
+    def _evaluate_rule_conditions(self, rule: MonitoringRule, events: List[SecurityEvent], current_event: SecurityEvent) -> bool:
         """Evaluate rule conditions against events."""
         conditions = rule.conditions
 
@@ -339,11 +328,9 @@ class SecurityMonitor:
         alert_id = f"alert_{int(time.time())}_{rule.rule_id}"
 
         # Use the most recent/severe event as the primary event
-        primary_event = max()
-            events, key=lambda e: (e.severity.value, e.timestamp.timestamp())
-        )
+        primary_event = max(events, key=lambda e: (e.severity.value, e.timestamp.timestamp()))
 
-        alert = SecurityAlert()
+        alert = SecurityAlert(
             alert_id=alert_id,
             event=primary_event,
             status=AlertStatus.OPEN,
@@ -403,9 +390,7 @@ Please investigate this security event immediately.
             msg.attach(MIMEText(body, "plain"))
 
             server = smtplib.SMTP()
-                email_config.get("smtp_server", "localhost"),
-                email_config.get("smtp_port", 587),
-            )
+            server.connect(email_config.get("smtp_server", "localhost"), email_config.get("smtp_port", 587))
             if email_config.get("use_tls", True):
                 server.starttls()
 
@@ -445,9 +430,7 @@ Please investigate this security event immediately.
                     if response.status == 200:
                         logger.info(f"Webhook alert sent for {alert.alert_id}")
                     else:
-                        logger.error()
-                            f"Webhook alert failed with status {response.status}"
-                        )
+                        logger.error(f"Webhook alert failed with status {response.status}")
 
         except Exception as e:
             logger.error(f"Failed to send webhook alert: {e}")
@@ -504,81 +487,50 @@ Please investigate this security event immediately.
         """Get all monitoring rules."""
         return [rule.to_dict() for rule in self.rules.values()]
 
-    def update_alert_status():
-        self,
-        alert_id: str,
-        status: AlertStatus,
-        assigned_to: Optional[str] = None,
-        notes: Optional[str] = None,
-    ) -> bool:
+    def update_alert_status(self, alert_id: str, status: AlertStatus, assigned_to: Optional[str] = None, notes: Optional[str] = None) -> bool:
         """Update alert status."""
         if alert_id not in self.alerts:
             return False
-
         alert = self.alerts[alert_id]
         alert.status = status
-        alert.updated_at = datetime.now(timezone.utc)
-
         if assigned_to:
             alert.assigned_to = assigned_to
-
         if notes:
-            alert.notes.append(f"{datetime.now(timezone.utc).isoformat()}: {notes}")
-
-        if status == AlertStatus.RESOLVED:
-            self.stats["alerts_resolved"] += 1
-        elif status == AlertStatus.FALSE_POSITIVE:
-            self.stats["false_positives"] += 1
-
-        logger.info(f"Alert {alert_id} status updated to {status.value}")
+            alert.notes.append(notes)
+        alert.updated_at = datetime.now(timezone.utc)
+        logger.info(f"Alert status updated: {alert_id} -> {status.value}")
         return True
 
-    def get_alerts():
-        self, status: Optional[AlertStatus] = None, limit: int = 100
-    ) -> List[Dict[str, Any]]:
-        """Get alerts with optional status filter."""
+    def get_alerts(self, status: Optional[AlertStatus] = None, limit: int = 100) -> List[Dict[str, Any]]:
+        """Get all monitoring alerts, optionally filtered by status."""
         alerts = list(self.alerts.values())
-
         if status:
-            alerts = [alert for alert in alerts if alert.status == status]
+            alerts = [a for a in alerts if a.status == status]
+        return [a.to_dict() for a in alerts[:limit]]
 
-        # Sort by creation time (newest first)
-        alerts.sort(key=lambda a: a.created_at, reverse=True)
-
-        return [alert.to_dict() for alert in alerts[:limit]]
-
-    def get_events():
-        self, event_type: Optional[EventType] = None, limit: int = 1000
-    ) -> List[Dict[str, Any]]:
-        """Get events with optional type filter."""
+    def get_events(self, event_type: Optional[EventType] = None, limit: int = 1000) -> List[Dict[str, Any]]:
+        """Get all security events, optionally filtered by event type."""
         events = self.events
-
         if event_type:
-            events = [event for event in events if event.event_type == event_type]
-
-        # Sort by timestamp (newest first)
-        events.sort(key=lambda e: e.timestamp, reverse=True)
-
-        return [event.to_dict() for event in events[:limit]]
+            events = [e for e in events if e.event_type == event_type]
+        return [e.to_dict() for e in events[:limit]]
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get monitoring statistics."""
-        open_alerts = len()
-            [
-                alert
-                for alert in self.alerts.values()
-                if alert.status == AlertStatus.OPEN
-            ]
-        )
+        open_alerts = len([
+            alert
+            for alert in self.alerts.values()
+            if alert.status == AlertStatus.OPEN
+        ])
 
         return {
             **self.stats,
             "open_alerts": open_alerts,
             "total_alerts": len(self.alerts),
             "monitoring_rules": len(self.rules),
-            "event_handlers": sum()
+            "event_handlers": sum([
                 len(handlers) for handlers in self.event_handlers.values()
-            ),
+            ]),
         }
 
     def cleanup_old_events(self, max_age_hours: int = 168):  # 7 days default

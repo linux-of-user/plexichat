@@ -11,12 +11,13 @@ from typing import Any, Dict, List, Optional
 from jose import JWTError
 from sqlmodel import Session, select
 
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, field_validator
 
+from plexichat.core.auth import SecurityManager
 from plexichat.core.database import get_session
+from plexichat.core.security import InputSanitizer
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.monitoring import error_handler, monitor_performance
 from plexichat.infrastructure.utils.rate_limiting import RateLimiter
@@ -109,7 +110,7 @@ class TwoFactorSetupRequest(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 @monitor_performance
-async def enhanced_login()
+async def enhanced_login(
     request: LoginRequest,
     http_request: Request,
     background_tasks: BackgroundTasks,
@@ -130,29 +131,29 @@ async def enhanced_login()
     # Rate limiting
     if not rate_limiter.check_rate_limit(f"login:{client_ip}", max_attempts=5, window_minutes=15):
         logger.warning("Login rate limit exceeded for IP: %s", client_ip)
-        raise HTTPException()
+        raise HTTPException(
             status_code=429,
             detail="Too many login attempts. Please try again later."
         )
 
     try:
         # Find user by username or email
-        user = session.exec()
-            select(User).where()
+        user = session.exec(
+            select(User).where(
                 (User.username == request.username) | (User.email == request.username)
             )
         ).first()
 
         if not user:
             # Log failed attempt without revealing user existence
-            logger.warning("Login attempt for non-existent user: %s from IP: %s",)
+            logger.warning("Login attempt for non-existent user: %s from IP: %s",
                          request.username, client_ip)
             rate_limiter.record_attempt(f"login:{client_ip}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         # Verify password
         if not security_manager.verify_password(request.password, user.password_hash):
-            logger.warning("Failed login attempt for user: %s from IP: %s",)
+            logger.warning("Failed login attempt for user: %s from IP: %s",
                          user.username, client_ip)
             rate_limiter.record_attempt(f"login:{client_ip}")
             rate_limiter.record_attempt(f"user_login:{user.id}")
@@ -160,22 +161,22 @@ async def enhanced_login()
 
         # Check if user account is locked
         if security_manager.is_account_locked(user.id):
-            logger.warning("Login attempt for locked account: %s from IP: %s",)
+            logger.warning("Login attempt for locked account: %s from IP: %s",
                          user.username, client_ip)
             raise HTTPException(status_code=423, detail="Account is temporarily locked")
 
         # Generate session
         session_id = secrets.token_urlsafe(32)
-        device_fingerprint = security_manager.generate_device_fingerprint()
+        device_fingerprint = security_manager.generate_device_fingerprint(
             http_request, request.device_info
         )
 
         # Create tokens
-        token_expiry = timedelta()
+        token_expiry = timedelta(
             hours=24 if request.remember_me else 1
         )
 
-        access_token = security_manager.create_access_token()
+        access_token = security_manager.create_access_token(
             data={
                 "sub": str(user.id),
                 "username": user.username,
@@ -185,7 +186,7 @@ async def enhanced_login()
             expires_delta=token_expiry
         )
 
-        refresh_token = security_manager.create_refresh_token()
+        refresh_token = security_manager.create_refresh_token(
             user_id=user.id,
             session_id=session_id
         ) if request.remember_me else None
@@ -194,7 +195,7 @@ async def enhanced_login()
         logger.info("Successful login for user: %s from IP: %s", user.username, client_ip)
 
         # Background tasks
-        background_tasks.add_task()
+        background_tasks.add_task(
             security_manager.log_login_event,
             user.id, client_ip, device_fingerprint, session_id
         )
@@ -203,7 +204,7 @@ async def enhanced_login()
         rate_limiter.reset_attempts(f"login:{client_ip}")
         rate_limiter.reset_attempts(f"user_login:{user.id}")
 
-        return LoginResponse()
+        return LoginResponse(
             access_token=access_token,
             expires_in=int(token_expiry.total_seconds()),
             refresh_token=refresh_token,
@@ -221,7 +222,7 @@ async def enhanced_login()
     except HTTPException:
         raise
     except Exception as e:
-        error_handler.handle_error()
+        error_handler.handle_error(
             e,
             context={
                 "endpoint": "login",
@@ -235,7 +236,7 @@ async def enhanced_login()
 
 @router.post("/refresh", response_model=LoginResponse)
 @monitor_performance
-async def refresh_token()
+async def refresh_token(
     request: RefreshTokenRequest,
     http_request: Request,
     session: Session = Depends(get_session)
@@ -254,7 +255,7 @@ async def refresh_token()
 
         # Generate new access token
         new_session_id = secrets.token_urlsafe(32)
-        access_token = security_manager.create_access_token()
+        access_token = security_manager.create_access_token(
             data={
                 "sub": str(user.id),
                 "username": user.username,
@@ -264,7 +265,7 @@ async def refresh_token()
 
         logger.info("Token refreshed for user: %s from IP: %s", user.username, client_ip)
 
-        return LoginResponse()
+        return LoginResponse(
             access_token=access_token,
             expires_in=3600,  # 1 hour
             refresh_token=request.refresh_token,  # Keep same refresh token
@@ -287,7 +288,7 @@ async def refresh_token()
 
 @router.post("/logout")
 @monitor_performance
-async def logout()
+async def logout(
     http_request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
@@ -320,7 +321,7 @@ async def logout()
 
 @router.post("/change-password")
 @monitor_performance
-async def change_password()
+async def change_password(
     request: PasswordChangeRequest,
     http_request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -340,13 +341,13 @@ async def change_password()
         # Verify current password
         if not security_manager.verify_password(request.current_password, user.password_hash):
             client_ip = security_manager.get_client_ip(http_request)
-            logger.warning("Failed password change attempt for user: %s from IP: %s",)
+            logger.warning("Failed password change attempt for user: %s from IP: %s",
                          user.username, client_ip)
             raise HTTPException(status_code=401, detail="Current password is incorrect")
 
         # Check password history (prevent reuse)
         if security_manager.is_password_recently_used(user_id, request.new_password):
-            raise HTTPException()
+            raise HTTPException(
                 status_code=400,
                 detail="Cannot reuse recent passwords"
             )
@@ -377,7 +378,7 @@ async def change_password()
 
 @router.get("/me")
 @monitor_performance
-async def get_current_user()
+async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
 ):
@@ -413,13 +414,13 @@ async def get_current_user()
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
-        error_handler.handle_error(e, context={"endpoint": "from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user"})
+        error_handler.handle_error(e, context={"endpoint": "get_current_user"})
         raise HTTPException(status_code=500, detail="Failed to get user information")
 
 
 @router.post("/setup-2fa")
 @monitor_performance
-async def setup_two_factor_auth()
+async def setup_two_factor_auth(
     request: TwoFactorSetupRequest,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
@@ -431,7 +432,7 @@ async def setup_two_factor_auth()
         user_id = int(token_data["sub"])
 
         # Setup 2FA
-        setup_result = security_manager.setup_2fa()
+        setup_result = security_manager.setup_2fa(
             user_id, request.method, request.phone_number
         )
 
@@ -448,7 +449,7 @@ async def setup_two_factor_auth()
 
 @router.get("/sessions")
 @monitor_performance
-async def get_active_sessions()
+async def get_active_sessions(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     """Get all active sessions for the current user."""
@@ -471,7 +472,7 @@ async def get_active_sessions()
 
 @router.delete("/sessions/{session_id}")
 @monitor_performance
-async def revoke_session()
+async def revoke_session(
     session_id: str,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):

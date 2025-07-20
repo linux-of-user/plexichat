@@ -66,14 +66,14 @@ class ConfigUpdateRequest(BaseModel):
 async def require_admin(current_user: Dict = Depends(get_current_user)):
     """Require admin permissions."""
     if not current_user.get("is_admin", False):
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
     return current_user
 
 @router.get("/users", response_model=List[UserResponse])
-async def list_users()
+async def list_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     search: Optional[str] = None,
@@ -84,14 +84,14 @@ async def list_users()
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
 
-        users = await auth_manager.list_users()
+        users = await auth_manager.list_users(
             skip=skip,
             limit=limit,
             search=search
         )
 
         return [
-            UserResponse()
+            UserResponse(
                 user_id=user["user_id"],
                 username=user["username"],
                 email=user["email"],
@@ -111,7 +111,7 @@ async def list_users()
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/users", response_model=UserResponse)
-async def create_user()
+async def create_user(
     request: CreateUserRequest,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -120,7 +120,7 @@ async def create_user()
         if not auth_manager:
             raise HTTPException(status_code=503, detail="User service unavailable")
 
-        result = await auth_manager.create_user()
+        result = await auth_manager.create_user(
             username=request.username,
             email=request.email,
             password=request.password,
@@ -131,7 +131,7 @@ async def create_user()
         if not result.success:
             raise HTTPException(status_code=400, detail=result.message)
 
-        return UserResponse()
+        return UserResponse(
             user_id=result.user_id,
             username=request.username,
             email=request.email,
@@ -148,7 +148,7 @@ async def create_user()
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user()
+async def get_user(
     user_id: str,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -162,7 +162,7 @@ async def get_user()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        return UserResponse()
+        return UserResponse(
             user_id=user["user_id"],
             username=user["username"],
             email=user["email"],
@@ -180,7 +180,7 @@ async def get_user()
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/users/{user_id}", response_model=UserResponse)
-async def update_user()
+async def update_user(
     user_id: str,
     request: UpdateUserRequest,
     admin_user: Dict = Depends(require_admin)
@@ -205,7 +205,7 @@ async def update_user()
         # Get updated user data
         updated_user = await auth_manager.get_user_by_id(user_id)
 
-        return UserResponse()
+        return UserResponse(
             user_id=updated_user["user_id"],
             username=updated_user["username"],
             email=updated_user["email"],
@@ -223,7 +223,7 @@ async def update_user()
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.delete("/users/{user_id}")
-async def delete_user()
+async def delete_user(
     user_id: str,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -250,7 +250,7 @@ async def delete_user()
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/users/{user_id}/reset-password")
-async def admin_reset_password()
+async def admin_reset_password(
     user_id: str,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -289,7 +289,7 @@ async def get_system_stats(admin_user: Dict = Depends(require_admin)):
         import psutil
         import time
 
-        stats.update({)
+        stats.update({
             "system_uptime": str(time.time()),
             "memory_usage": {
                 "total": psutil.virtual_memory().total,
@@ -328,7 +328,7 @@ async def get_config(admin_user: Dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/config")
-async def update_config()
+async def update_config(
     request: ConfigUpdateRequest,
     admin_user: Dict = Depends(require_admin)
 ):
@@ -338,7 +338,7 @@ async def update_config()
         allowed_keys = ["max_file_size", "session_timeout", "rate_limits"]
 
         if request.key not in allowed_keys:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=400,
                 detail=f"Configuration key '{request.key}' cannot be updated via API"
             )
@@ -377,7 +377,7 @@ async def stop_maintenance(admin_user: Dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/logs")
-async def get_logs()
+async def get_logs(
     lines: int = Query(100, ge=1, le=10000),
     level: Optional[str] = Query(None),
     admin_user: Dict = Depends(require_admin)
