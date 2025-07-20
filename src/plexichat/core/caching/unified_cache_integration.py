@@ -36,14 +36,14 @@ class UnifiedCacheIntegration:
 
             self.initialized = True
 
-            logger.info("✅ Unified cache integration initialized successfully")
+            logger.info("Unified cache integration initialized successfully")
             logger.info(f"Cache tiers available: {list(init_result.keys())}")
 
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize unified cache integration: {e}")
-            logger.warning("🔄 Falling back to in-memory cache")
+            logger.error(f"Failed to initialize unified cache integration: {e}")
+            logger.warning("Falling back to in-memory cache")
             return False
 
     async def get(self, key: str, default: Any = None) -> Any:
@@ -314,7 +314,7 @@ class CacheMigrationHelper:
     def replace_cache_manager_imports():
         """Log warning about deprecated cache manager usage."""
         logger.warning(
-            "⚠️  Deprecated cache manager detected. Please migrate to unified_cache_integration for optimal performance."
+            "Deprecated cache manager detected. Please migrate to unified_cache_integration for optimal performance."
         )
 
     @staticmethod
@@ -333,9 +333,9 @@ async def _initialize_unified_cache():
     """Initialize unified cache on module import."""
     try:
         await get_unified_cache()
-        logger.info("🚀 Unified cache integration ready")
+        logger.info("Unified cache integration ready")
     except Exception as e:
-        logger.error(f"❌ Failed to initialize unified cache on import: {e}")
+        logger.error(f"Failed to initialize unified cache on import: {e}")
 
 
 # Schedule initialization

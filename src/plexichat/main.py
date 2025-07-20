@@ -171,7 +171,7 @@ except ImportError:
     ai_api_router = None
     ai_webui_router = None
 except Exception as e:
-    logger.warning(f"⚠️ AI Abstraction Layer failed to initialize: {e}")
+    logger.warning(f"AI Abstraction Layer failed to initialize: {e}")
     ai_layer = None
     ai_api_router = None
     ai_webui_router = None
@@ -318,10 +318,10 @@ async def initialize_core_services():
                 "timestamp": current_timestamp()
             })
 
-        logger.info("✅ All core services initialized successfully!")
+        logger.info("All core services initialized successfully!")
 
     except Exception as e:
-        logger.error(f"❌ Failed to initialize core services: {e}")
+        logger.error(f"Failed to initialize core services: {e}")
         raise
 
 async def shutdown_core_services():
@@ -366,7 +366,7 @@ async def shutdown_core_services():
         logger.info("All core services shut down successfully!")
 
     except Exception as e:
-        logger.error(f"❌ Error during shutdown: {e}")
+        logger.error(f"Error during shutdown: {e}")
 
 # SSL Configuration from config
 ssl_config = config.get("network", {})

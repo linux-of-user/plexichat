@@ -8,9 +8,10 @@ This comprehensive guide will help you set up, configure, and start using PlexiC
 2. [Installation Methods](#installation-methods)
 3. [Initial Configuration](#initial-configuration)
 4. [First Run Setup](#first-run-setup)
-5. [Basic Usage](#basic-usage)
-6. [Configuration Options](#configuration-options)
-7. [Troubleshooting](#troubleshooting)
+5. [Interface Options](#interface-options)
+6. [Basic Usage](#basic-usage)
+7. [Configuration Options](#configuration-options)
+8. [Troubleshooting](#troubleshooting)
 
 ## System Requirements
 
@@ -250,6 +251,67 @@ The setup wizard will guide you through:
 4. **AI Integration**: Configure AI providers (optional)
 5. **Email Settings**: Set up email notifications (optional)
 6. **Backup Configuration**: Configure backup settings
+
+## Interface Options
+
+PlexiChat offers multiple interface options to suit different use cases:
+
+### 1. GUI Mode (Recommended)
+```bash
+python run.py gui
+```
+- **Features**: Web interface + Splitscreen CLI
+- **Best for**: General use, development, monitoring
+- **Access**: http://localhost:8000 + terminal interface
+- **Benefits**: Full web UI with real-time CLI monitoring
+
+### 2. Web UI Mode
+```bash
+python run.py webui
+```
+- **Features**: Web interface + Splitscreen CLI
+- **Best for**: Web-focused usage with CLI monitoring
+- **Access**: http://localhost:8000 + terminal interface
+- **Benefits**: Same as GUI mode, optimized for web usage
+
+### 3. API Mode
+```bash
+python run.py api
+```
+- **Features**: API server only
+- **Best for**: Headless deployment, API-only usage
+- **Access**: http://localhost:8000/docs (API documentation)
+- **Benefits**: Lightweight, perfect for integrations
+
+### 4. CLI Mode
+```bash
+python run.py cli
+```
+- **Features**: Splitscreen CLI interface only
+- **Best for**: System administration, debugging, monitoring
+- **Benefits**: Real-time logs, system metrics, operations tracking
+- **Controls**: Press 'q' to quit, arrow keys to navigate
+
+### 5. Other Commands
+```bash
+# Check version
+python run.py version
+
+# System diagnostics
+python run.py system
+
+# Update system
+python run.py update
+
+# Setup wizard
+python run.py wizard
+
+# Clean logs
+python run.py clean
+
+# Run tests
+python run.py test
+```
 
 ## Basic Usage
 

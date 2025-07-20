@@ -34,7 +34,7 @@ class TestCLI:
     async def run_all_tests(self, verbose: bool = True, save_report: bool = True) -> Dict[str, Any]:
         """Run all test suites."""
         if not TESTS_AVAILABLE:
-            logger.error("❌ Test system not available. Check test dependencies.")
+            logger.error("Test system not available. Check test dependencies.")
             return {'error': 'Test system not available'}
 
         logger.info("🚀 Running ALL PlexiChat tests...")
@@ -47,7 +47,7 @@ class TestCLI:
             )
             return report
         except Exception as e:
-            logger.error(f"❌ Error running tests: {e}")
+            logger.error(f"Error running tests: {e}")
             return {'error': str(e)}
 
     async def run_category_tests(self, categories: List[str], )
@@ -55,13 +55,13 @@ class TestCLI:
                                 save_report: bool = True) -> Dict[str, Any]:
         """Run specific test categories."""
         if not TESTS_AVAILABLE:
-            logger.error("❌ Test system not available. Check test dependencies.")
+            logger.error("Test system not available. Check test dependencies.")
             return {'error': 'Test system not available'}
 
         # Validate categories
         invalid_categories = [cat for cat in categories if cat not in TEST_CATEGORIES]
         if invalid_categories:
-            logger.error(f"❌ Invalid test categories: {invalid_categories}")
+            logger.error(f"Invalid test categories: {invalid_categories}")
             logger.info(f"Available categories: {', '.join(TEST_CATEGORIES)}")
             return {'error': f'Invalid categories: {invalid_categories}'}
 
@@ -75,16 +75,16 @@ class TestCLI:
             )
             return report
         except Exception as e:
-            logger.error(f"❌ Error running tests: {e}")
+            logger.error(f"Error running tests: {e}")
             return {'error': str(e)}
 
     async def run_quick_tests(self) -> Dict[str, Any]:
         """Run quick smoke tests."""
         if not TESTS_AVAILABLE:
-            logger.error("❌ Test system not available. Check test dependencies.")
+            logger.error("Test system not available. Check test dependencies.")
             return {'error': 'Test system not available'}
 
-        logger.info("⚡ Running quick smoke tests...")
+        logger.info("Running quick smoke tests...")
 
         # Run only API tests for quick validation
         return await self.run_category_tests(['api'], verbose=False, save_report=False)
@@ -114,10 +114,10 @@ class TestCLI:
     def show_test_config(self):
         """Show current test configuration."""
         if not TESTS_AVAILABLE:
-            logger.error("❌ Test system not available.")
+            logger.error("Test system not available.")
             return
 
-        logger.info("⚙️  Test Configuration:")
+        logger.info("Test Configuration:")
         logger.info("-" * 25)
         logger.info(f"Base URL: {TEST_CONFIG.get('base_url', 'Not set')}")
         logger.info(f"Timeout: {TEST_CONFIG.get('timeout', 'Not set')} seconds")
@@ -128,7 +128,7 @@ class TestCLI:
     async def validate_test_environment(self) -> bool:
         """Validate that the test environment is ready."""
         if not TESTS_AVAILABLE:
-            logger.error("❌ Test system not available.")
+            logger.error("Test system not available.")
             return False
 
         logger.info("🔍 Validating test environment...")
@@ -140,17 +140,17 @@ class TestCLI:
             response = requests.get(f"{base_url}/health", timeout=5)
 
             if response.status_code == 200:
-                logger.info("✅ Server is running and accessible")
+                logger.info("Server is running and accessible")
                 return True
             else:
-                logger.warning(f"⚠️ Server returned status {response.status_code}")
+                logger.warning(f"Server returned status {response.status_code}")
                 return False
 
         except requests.exceptions.ConnectionError:
-            logger.error("❌ Cannot connect to server. Make sure PlexiChat is running.")
+            logger.error("Cannot connect to server. Make sure PlexiChat is running.")
             return False
         except Exception as e:
-            logger.error(f"❌ Error checking server: {e}")
+            logger.error(f"Error checking server: {e}")
             return False
 
 # Global test CLI instance
@@ -191,9 +191,9 @@ async def handle_test_command(args: List[str]) -> None:
     elif command == 'validate':
         is_valid = await test_cli.validate_test_environment()
         if is_valid:
-            logger.info("✅ Test environment is ready")
+            logger.info("Test environment is ready")
         else:
-            logger.error("❌ Test environment validation failed")
+            logger.error("Test environment validation failed")
 
     else:
         logger.error(f"Unknown test command: {command}")

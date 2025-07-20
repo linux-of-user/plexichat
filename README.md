@@ -1,6 +1,6 @@
 # PlexiChat - Government-Level Secure Communication Platform
 
-[![Version](https://img.shields.io/badge/version-a.1.1--1-blue.svg)](https://github.com/linux-of-user/plexichat)
+[![Version](https://img.shields.io/badge/version-a.1.1--34-blue.svg)](https://github.com/linux-of-user/plexichat)
 [![License](https://img.shields.io/badge/license-CC0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
 [![Security](https://img.shields.io/badge/security-quantum--resistant-green.svg)](docs/SECURITY.md)
@@ -26,11 +26,14 @@ cd plexichat
 # Install dependencies
 pip install -r requirements.txt
 
-# Initialize the application
-python -m plexichat setup
+# Initialize the application (optional - auto-setup on first run)
+python run.py setup
 
-# Start the server
-python run.py
+# Start the server (choose interface)
+python run.py gui      # GUI with splitscreen CLI
+python run.py webui    # Web UI with splitscreen CLI
+python run.py api      # API server only
+python run.py cli      # Splitscreen CLI only
 ```
 
 ### Docker Installation
@@ -72,7 +75,7 @@ PlexiChat/
 ├── Interfaces/           # User-facing interfaces
 │   ├── API              # RESTful API with versioning
 │   ├── Web              # Modern responsive web interface
-│   └── CLI              # Command-line administration
+│   └── CLI              # Splitscreen CLI with real-time monitoring
 └── Infrastructure/       # Supporting services
     ├── Services         # Microservices architecture
     ├── Modules          # Plugin system
@@ -232,7 +235,7 @@ This project is licensed under the CC0 License - see the [LICENSE](LICENSE) file
 - ✅ **Multi-Database Support** - PostgreSQL, MySQL, SQLite
 - ✅ **Comprehensive API** - RESTful API with versioning
 - ✅ **Modern Web Interface** - Responsive and accessible
-- ✅ **Command-Line Tools** - Full CLI administration
+- ✅ **Splitscreen CLI** - Enhanced CLI with real-time monitoring
 - ✅ **Distributed Backup** - Quantum-encrypted backups
 
 ---

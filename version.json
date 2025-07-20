@@ -1,9 +1,9 @@
 {
-  "current_version": "a.1.1-33",
+  "current_version": "a.1.1-34",
   "version_type": "alpha",
   "major_version": 1,
   "minor_version": 1,
-  "build_number": 33,
+  "build_number": 34,
   "release_date": "2025-07-20",
   "api_version": "v1",
   "compatibility": {
@@ -20,9 +20,29 @@
     "colorized_logging": true,
     "refresh_system": true,
     "cli_integration": true,
-    "plugin_commands": true
+    "plugin_commands": true,
+    "splitscreen_cli": true,
+    "unified_interfaces": true
   },
   "changelog": {
+    "a.1.1-34": {
+      "date": "2025-07-20",
+      "type": "feat",
+      "changes": [
+        "Implemented functional splitscreen CLI with rich terminal interface",
+        "Unified GUI and WebUI to both use the same CLI system (run_api_and_cli)",
+        "Fixed all syntax errors in splitscreen CLI console_manager.py",
+        "Fixed syntax errors in ai_abstraction_layer_simple.py, security_api.py, certificate_manager.py",
+        "Fixed ConfigManager method calls (load_config instead of reload_configuration)",
+        "Enhanced CLI with real-time logs, system metrics, operations tracking",
+        "Both GUI and WebUI now provide consistent CLI experience with splitscreen interface",
+        "All syntax compilation errors resolved - system now starts successfully",
+        "Fixed GUI startup issues - GUI now runs properly with python run.py gui",
+        "Updated documentation with comprehensive admin guide and interface options",
+        "Added Admin Update & Push Guide for system administrators",
+        "Enhanced Getting Started guide with detailed interface options"
+      ]
+    },
     "a.1.1-33": {
       "date": "2025-07-20",
       "type": "feat",
