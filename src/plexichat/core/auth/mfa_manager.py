@@ -110,7 +110,7 @@ class Advanced2FASystem:
 
     def generate_qr_code(self, secret: str, user_email: str, issuer: str = "PlexiChat") -> bytes:
         """Generate QR code for TOTP setup."""
-        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri()
+        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
             name=user_email,
             issuer_name=issuer
         )
@@ -155,7 +155,7 @@ class Advanced2FASystem:
             encrypted_secret = self.cipher.encrypt(secret.encode()).decode()
             setup_data["totp_secret"] = encrypted_secret
             setup_data["totp_secret_plain"] = secret  # For QR code generation
-            setup_data["qr_code"] = base64.b64encode()
+            setup_data["qr_code"] = base64.b64encode(
                 self.generate_qr_code(secret, user_email)
             ).decode()
 
@@ -196,13 +196,12 @@ class Advanced2FASystem:
             if totp.verify(verification_code, valid_window=self.totp_window):
                 # Setup verified, create user config
                 user_config = TwoFactorConfig()
-                    user_id=setup_data["user_id"],
-                    enabled=True,
-                    enabled_methods=setup_data["methods"],
-                    totp_secret=setup_data.get("totp_secret"),
-                    backup_codes=setup_data.get("backup_codes_hashed", []),
-                    created_at=datetime.now(timezone.utc)
-                )
+                user_config.user_id = setup_data["user_id"]
+                user_config.enabled = True
+                user_config.enabled_methods = setup_data["methods"]
+                user_config.totp_secret = setup_data.get("totp_secret")
+                user_config.backup_codes = setup_data.get("backup_codes_hashed", [])
+                user_config.created_at = datetime.now(timezone.utc)
 
                 self.user_configs[setup_data["user_id"]] = user_config
                 del self.pending_setups[setup_token]
