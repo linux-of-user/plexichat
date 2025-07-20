@@ -167,8 +167,8 @@ class UnifiedInputValidator:
             r"<meta[^>]*>",
             r"<link[^>]*>",
             r"<style[^>]*>.*?</style>",
-            r"expression\s*\(",)
-            r"url\s*\(",)
+            r"expression\s*\(",
+            r"url\s*\(",
             r"@import"
         ]
 
@@ -264,11 +264,7 @@ class UnifiedInputValidator:
             logger.error(f" Input Validator initialization failed: {e}")
             return False
 
-    def validate(self,):
-                value: Any,
-                input_type: InputType,
-                level: ValidationLevel = ValidationLevel.STANDARD,
-                context: Optional[Dict[str, Any]] = None) -> ValidationResult:
+    def validate(self, value: Any, input_type: InputType, level: ValidationLevel = ValidationLevel.STANDARD, context: Optional[Dict[str, Any]] = None) -> ValidationResult:
         """
         Validate and sanitize input with comprehensive threat detection.
 
@@ -403,7 +399,7 @@ class UnifiedInputValidator:
 
         processing_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
-        return ValidationResult()
+        return ValidationResult(
             original_value=original_value,
             sanitized_value=sanitized_value,
             is_valid=is_valid,
@@ -435,7 +431,7 @@ class UnifiedInputValidator:
             # Basic validation
             if not password:
                 errors.append("Password cannot be empty")
-                return PasswordValidationResult()
+                return PasswordValidationResult(
                     original_value=original_value,
                     sanitized_value=sanitized_value,
                     is_valid=False,
@@ -488,14 +484,14 @@ class UnifiedInputValidator:
                     strength_score += 15
 
             # Common password check
-            word_lower = password.lower()
-                requirements_met["not_common"] = password_lower not in self.common_passwords
-                if not requirements_met["not_common"]:
-                    errors.append("Password is too common")
-                    suggestions.append("Use a more unique password")
-                    threats.append(ThreatType.SUSPICIOUS_PATTERN)
-                else:
-                    strength_score += 10
+            password_lower = password.lower()
+            requirements_met["not_common"] = password_lower not in self.common_passwords
+            if not requirements_met["not_common"]:
+                errors.append("Password is too common")
+                suggestions.append("Use a more unique password")
+                threats.append(ThreatType.SUSPICIOUS_PATTERN)
+            else:
+                strength_score += 10
 
             # Personal information check
             if self.password_config["prevent_personal"] and username:
@@ -544,7 +540,7 @@ class UnifiedInputValidator:
 
         processing_time = (time.time() - start_time) * 1000
 
-        return PasswordValidationResult()
+        return PasswordValidationResult(
             original_value=original_value,
             sanitized_value=sanitized_value,
             is_valid=is_valid,
@@ -560,10 +556,7 @@ class UnifiedInputValidator:
             suggestions=suggestions
         )
 
-    def validate_dict(self,):
-                     data: Dict[str, Any],
-                     field_types: Dict[str, InputType],
-                     level: ValidationLevel = ValidationLevel.STANDARD) -> Dict[str, ValidationResult]:
+    def validate_dict(self, data: Dict[str, Any], field_types: Dict[str, InputType], level: ValidationLevel = ValidationLevel.STANDARD) -> Dict[str, ValidationResult]:
         """Validate all fields in a dictionary."""
         results = {}
 
@@ -615,8 +608,7 @@ class UnifiedInputValidator:
 
             # Normalize path
             from pathlib import Path
-normalized_path = Path
-Path(path).resolve()
+            normalized_path = Path(path).resolve()
             return str(normalized_path), True
         except (OSError, ValueError):
             return path, False

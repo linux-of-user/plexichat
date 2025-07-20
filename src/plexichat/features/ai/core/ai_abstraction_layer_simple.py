@@ -297,10 +297,10 @@ class AIAbstractionLayer:
         """Process an AI request."""
         try:
             # Check permissions
-            if not self.access_control.check_user_permission()
+            if not self.access_control.check_user_permission(
                 request.user_id, request.model_id, ModelCapability.CHAT_COMPLETION
             ):
-                return AIResponse()
+                return AIResponse(
                     request_id=request.request_id or "error",
                     model_id=request.model_id,
                     content="",
@@ -315,7 +315,7 @@ class AIAbstractionLayer:
 
             # Check rate limits
             if not self.access_control.check_rate_limit(request.user_id, request.model_id):
-                return AIResponse()
+                return AIResponse(
                     request_id=request.request_id or "error",
                     model_id=request.model_id,
                     content="",
@@ -335,7 +335,7 @@ class AIAbstractionLayer:
             response_content = f"AI response to: {request.prompt[:50]}..."
             latency_ms = int((time.time() - start_time) * 1000)
 
-            response = AIResponse()
+            response = AIResponse(
                 request_id=request.request_id or "success",
                 model_id=request.model_id,
                 content=response_content,
@@ -347,7 +347,7 @@ class AIAbstractionLayer:
             )
 
             # Record usage
-            self.access_control.record_usage()
+            self.access_control.record_usage(
                 request.user_id,
                 request.model_id,
                 response.usage.get("prompt_tokens", 0) + response.usage.get("completion_tokens", 0),
@@ -358,7 +358,7 @@ class AIAbstractionLayer:
 
         except Exception as e:
             logger.error(f"Failed to process AI request: {e}")
-            return AIResponse()
+            return AIResponse(
                 request_id=request.request_id or "error",
                 model_id=request.model_id,
                 content="",

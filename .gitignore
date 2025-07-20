@@ -80,11 +80,6 @@ Thumbs.db
 
 # OS Generated Files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # Testing
@@ -242,4 +237,9 @@ desktop.ini
 *~
 .#*
 #*#
+
+# Removed/cleaned directories
+plexichat_testing/
+src/plexichat/app/
+src/config/
 

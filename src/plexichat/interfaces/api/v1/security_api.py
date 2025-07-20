@@ -15,10 +15,10 @@ from pydantic import BaseModel
 
 from plexichat.core.logging import get_logger
 from plexichat.core.security.certificate_manager import get_certificate_manager
-from plexichat.core.security.unified_security_manager import ()
-import time
+from plexichat.core.security.unified_security_manager import (
     get_unified_security_manager,
 )
+import time
 from plexichat.features.security.network_protection import get_network_protection
 
 """
@@ -87,7 +87,7 @@ async def scan_uploaded_file(file: UploadFile = File(...)):
         file_content = await file.read()
 
         # Perform security scan
-        scan_result = await security_manager.scan_file_content()
+        scan_result = await security_manager.scan_file_content(
             file_content, file.filename or "unknown"
         )
 
@@ -101,15 +101,13 @@ async def scan_uploaded_file(file: UploadFile = File(...)):
         if not scan_result.get("safe"):
             threat = scan_result.get("threat")
             if threat:
-                response_data.update()
-                    {
-                        "threat_id": threat.get("threat_id"),
-                        "threat_type": threat.get("threat_type"),
-                        "threat_level": threat.get("threat_level"),
-                        "description": threat.get("description"),
-                        "mitigation": threat.get("mitigation_action"),
-                    }
-                )
+                response_data.update({
+                    "threat_id": threat.get("threat_id"),
+                    "threat_type": threat.get("threat_type"),
+                    "threat_level": threat.get("threat_level"),
+                    "description": threat.get("description"),
+                    "mitigation": threat.get("mitigation_action"),
+                })
 
         return response_data
 
@@ -128,7 +126,7 @@ async def scan_base64_file(filename: str, file_data: str, encoding: str = "base6
         if encoding == "base64":
             file_content = base64.b64decode(file_data)
         else:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=400, detail="Only base64 encoding is supported"
             )
 
@@ -145,14 +143,12 @@ async def scan_base64_file(filename: str, file_data: str, encoding: str = "base6
         if not scan_result.get("safe"):
             threat = scan_result.get("threat")
             if threat:
-                response_data.update()
-                    {
-                        "threat_id": threat.get("threat_id"),
-                        "threat_type": threat.get("threat_type"),
-                        "threat_level": threat.get("threat_level"),
-                        "description": threat.get("description"),
-                    }
-                )
+                response_data.update({
+                    "threat_id": threat.get("threat_id"),
+                    "threat_type": threat.get("threat_type"),
+                    "threat_level": threat.get("threat_level"),
+                    "description": threat.get("description"),
+                })
 
         return response_data
 
@@ -179,15 +175,13 @@ async def check_link_safety(request: LinkCheckRequest):
         if not safety_result.get("safe"):
             threat = safety_result.get("threat")
             if threat:
-                response_data.update()
-                    {
-                        "threat_id": threat.get("threat_id"),
-                        "threat_type": threat.get("threat_type"),
-                        "threat_level": threat.get("threat_level"),
-                        "description": threat.get("description"),
-                        "categories": threat.get("categories", []),
-                    }
-                )
+                response_data.update({
+                    "threat_id": threat.get("threat_id"),
+                    "threat_type": threat.get("threat_type"),
+                    "threat_level": threat.get("threat_level"),
+                    "description": threat.get("description"),
+                    "categories": threat.get("categories", []),
+                })
 
         return response_data
 
@@ -203,7 +197,7 @@ async def sanitize_input(request: InputSanitizeRequest):
     try:
         security_manager = get_unified_security_manager()
 
-        sanitized_text = await security_manager.sanitize_input()
+        sanitized_text = await security_manager.sanitize_input(
             request.input_text, allow_html=request.allow_html
         )
 
@@ -225,7 +219,7 @@ async def check_sql_injection(request: SqlInjectionCheckRequest):
     try:
         security_manager = get_unified_security_manager()
 
-        injection_result = await security_manager.detect_sql_injection()
+        injection_result = await security_manager.detect_sql_injection(
             request.input_text, request.source
         )
 
@@ -237,13 +231,11 @@ async def check_sql_injection(request: SqlInjectionCheckRequest):
         }
 
         if injection_result.get("is_injection"):
-            response_data.update()
-                {
-                    "patterns_detected": injection_result.get("patterns", []),
-                    "severity": injection_result.get("severity", "medium"),
-                    "mitigation": "Input blocked and logged",
-                }
-            )
+            response_data.update({
+                "patterns_detected": injection_result.get("patterns", []),
+                "severity": injection_result.get("severity", "medium"),
+                "mitigation": "Input blocked and logged",
+            })
 
         return response_data
 
@@ -294,7 +286,7 @@ async def add_ip_to_blacklist(request: IPManagementRequest):
     """Add IP address to blacklist."""
     try:
         network_protection = get_network_protection()
-        network_protection.add_to_blacklist()
+        network_protection.add_to_blacklist(
             request.ip_address, request.reason or "Manual blacklist"
         )
 
@@ -374,7 +366,7 @@ async def report_threat(request: ThreatReportRequest):
     try:
         security_manager = get_unified_security_manager()
 
-        threat_id = await security_manager.report_threat()
+        threat_id = await security_manager.report_threat(
             threat_type=request.threat_type,
             description=request.description,
             source_ip=request.source_ip,

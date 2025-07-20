@@ -16,11 +16,11 @@ import bcrypt
 # Import shared components (NEW ARCHITECTURE)
 from ...shared.models import User, Session, Role, Permission, Priority, Status
 from ...shared.types import UserId, Token, HashedPassword, Salt, Permissions, SecurityContext
-from ...shared.exceptions import ()
+from ...shared.exceptions import (
     AuthenticationError, AuthorizationError, ValidationError,
     SecurityError, RateLimitError
 )
-from ...shared.constants import ()
+from ...shared.constants import (
     TOKEN_EXPIRY_HOURS, PASSWORD_MIN_LENGTH, MAX_LOGIN_ATTEMPTS,
     LOCKOUT_DURATION_MINUTES, DEFAULT_SECRET_KEY
 )
@@ -28,24 +28,7 @@ from ...shared.constants import ()
 # Core imports
 from ...core.config import get_config
 from ...core.logging_advanced import get_logger
-
-try:
-    from ...core.security.input_validation import InputType, ValidationLevel, get_input_validator
-except ImportError:
-    class InputType:
-        USERNAME = "username"
-        PASSWORD = "password"
-        EMAIL = "email"
-
-    class ValidationLevel:
-        STANDARD = "standard"
-        STRICT = "strict"
-
-    def get_input_validator():
-        class MockValidator:
-            def validate(self, value, input_type, level):
-                return True
-        return MockValidator()
+from ...core.security.input_validation import InputType, ValidationLevel, get_input_validator, ValidationResult
 
 """
 PlexiChat Unified Authentication Manager - SINGLE SOURCE OF TRUTH
@@ -307,11 +290,11 @@ class UnifiedAuthManager:
         try:
             # Input validation
             if request.username:
-                validation_result = self.input_validator.validate()
+                validation_result: ValidationResult = self.input_validator.validate(
                     request.username, InputType.USERNAME, ValidationLevel.STANDARD
                 )
                 if not validation_result.is_valid:
-                    return AuthenticationResponse()
+                    return AuthenticationResponse(
                         result=AuthenticationResult.INVALID_CREDENTIALS,
                         success=False,
                         error_message="Invalid username format",
@@ -321,7 +304,7 @@ class UnifiedAuthManager:
 
             # Check rate limiting
             if await self._is_rate_limited(request):
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.RATE_LIMITED,
                     success=False,
                     error_message="Too many failed attempts",
@@ -332,7 +315,7 @@ class UnifiedAuthManager:
 
             # Check account lockout
             if request.username and await self._is_account_locked(request.username):
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.ACCOUNT_LOCKED,
                     success=False,
                     error_message="Account is temporarily locked",
@@ -360,7 +343,7 @@ class UnifiedAuthManager:
                 required_level = user_required_level
 
             # Check if MFA is required
-            mfa_required = ()
+            mfa_required = (
                 required_level in self.mfa_required_levels or
                 risk_score > 0.7 or
                 not await self._is_device_trusted(request)
@@ -368,7 +351,7 @@ class UnifiedAuthManager:
 
             if mfa_required and not request.mfa_code:
                 await self._get_available_mfa_methods(user_id or "unknown")
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.MFA_REQUIRED,
                     success=False,
                     user_id=user_id,
@@ -383,7 +366,7 @@ class UnifiedAuthManager:
                 mfa_valid = await self._verify_mfa(request)
                 if not mfa_valid:
                     await self._record_failed_attempt(request)
-                    return AuthenticationResponse()
+                    return AuthenticationResponse(
                         result=AuthenticationResult.INVALID_CREDENTIALS,
                         success=False,
                         error_message="Invalid MFA code",
@@ -408,7 +391,7 @@ class UnifiedAuthManager:
             # Log successful authentication
             await self._log_auth_success(user_id or "unknown", session_id, request)
 
-            return AuthenticationResponse()
+            return AuthenticationResponse(
                 result=AuthenticationResult.SUCCESS,
                 success=True,
                 user_id=user_id,
@@ -432,7 +415,7 @@ class UnifiedAuthManager:
             logger.error(f" Authentication error: {e}")
             await self._log_auth_error(audit_id, request, str(e))
 
-            return AuthenticationResponse()
+            return AuthenticationResponse(
                 result=AuthenticationResult.SYSTEM_ERROR,
                 success=False,
                 error_message="Authentication system error",
@@ -493,7 +476,7 @@ class UnifiedAuthManager:
             # Validate refresh token
             token_validation = await self.validate_token(refresh_token)
             if not token_validation["valid"]:
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.INVALID_CREDENTIALS,
                     success=False,
                     error_message="Invalid refresh token"
@@ -501,7 +484,7 @@ class UnifiedAuthManager:
 
             token_data = token_validation["token"]
             if token_data.token_type != "refresh":
-                return AuthenticationResponse()
+                return AuthenticationResponse(
                     result=AuthenticationResult.INVALID_CREDENTIALS,
                     success=False,
                     error_message="Not a refresh token"
@@ -511,20 +494,20 @@ class UnifiedAuthManager:
             if token_data.session_id:
                 session_validation = await self.validate_session(token_data.session_id)
                 if not session_validation["valid"]:
-                    return AuthenticationResponse()
+                    return AuthenticationResponse(
                         result=AuthenticationResult.INVALID_CREDENTIALS,
                         success=False,
                         error_message="Associated session invalid"
                     )
 
             # Generate new access token
-            new_access_token = await self._generate_access_token()
+            new_access_token = await self._generate_access_token(
                 token_data.user_id,
                 token_data.session_id,
                 token_data.security_level
             )
 
-            return AuthenticationResponse()
+            return AuthenticationResponse(
                 result=AuthenticationResult.SUCCESS,
                 success=True,
                 user_id=token_data.user_id,
@@ -539,7 +522,7 @@ class UnifiedAuthManager:
 
         except Exception as e:
             logger.error(f"Token refresh error: {e}")
-            return AuthenticationResponse()
+            return AuthenticationResponse(
                 result=AuthenticationResult.SYSTEM_ERROR,
                 success=False,
                 error_message="Token refresh failed"
@@ -564,9 +547,7 @@ class UnifiedAuthManager:
             logger.error(f"Logout error: {e}")
             return False
 
-    async def require_authentication(self,)
-                                   token: str,
-                                   required_level: SecurityLevel = SecurityLevel.BASIC) -> Dict[str, Any]:
+    async def require_authentication(self, token: str, required_level: SecurityLevel = SecurityLevel.BASIC) -> Dict[str, Any]:
         """Require authentication with minimum security level."""
         try:
             # Validate token
@@ -676,7 +657,7 @@ class UnifiedAuthManager:
         password = ''.join(random.choice(chars) for _ in range(16))
 
         # Ensure it meets requirements
-        if (any(c.isupper() for c in password) and)
+        if (any(c.isupper() for c in password) and
             any(c.islower() for c in password) and
             any(c.isdigit() for c in password) and
             any(c in "!@#$%^&*" for c in password)):
@@ -736,7 +717,7 @@ class UnifiedAuthManager:
 
     async def _authenticate_primary(self, request: AuthenticationRequest) -> AuthenticationResponse:
         """Perform primary authentication."""
-        return AuthenticationResponse()
+        return AuthenticationResponse(
             result=AuthenticationResult.INVALID_CREDENTIALS,
             success=False,
             error_message="Not implemented",

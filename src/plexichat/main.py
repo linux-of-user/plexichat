@@ -264,7 +264,7 @@ async def initialize_core_services():
         # Initialize configuration manager
         if config_manager:
             logger.info("Loading configuration...")
-            config_manager.reload_configuration()
+            await config_manager.load_config()
 
         # Initialize threading system
         if thread_manager:

@@ -119,7 +119,7 @@ class EnhancedSplitScreen:
         self.active = True
         self.layout = self._create_enhanced_layout()
 
-        self.live_display = Live()
+        self.live_display = Live(
             self.layout,
             console=self.console,
             refresh_per_second=self.config['refresh_rate'],
@@ -128,7 +128,8 @@ class EnhancedSplitScreen:
 
         # Start update thread
         self.update_thread = threading.Thread(target=self._update_loop, daemon=True)
-        self.if update_thread and hasattr(update_thread, "start"): update_thread.start()
+        if self.update_thread and hasattr(self.update_thread, "start"):
+            self.update_thread.start()
 
         # Start input handler
         input_thread = threading.Thread(target=self._input_handler, daemon=True)
@@ -141,7 +142,8 @@ class EnhancedSplitScreen:
         """Stop the split-screen interface."""
         self.active = False
         if self.live_display:
-            self.if live_display and hasattr(live_display, "stop"): live_display.stop()
+            if self.live_display and hasattr(self.live_display, "stop"):
+                self.live_display.stop()
         if self.logger:
             self.logger.info("Enhanced split-screen interface stopped")
 
@@ -153,26 +155,26 @@ class EnhancedSplitScreen:
         layout = Layout()
 
         # Main structure
-        layout.split_column()
+        layout.split_column(
             Layout(name="header", size=4),
             Layout(name="main"),
             Layout(name="input", size=3)
         )
 
         # Main area split
-        layout["main"].split_row()
+        layout["main"].split_row(
             Layout(name="left_panel", ratio=2),
             Layout(name="right_panel", ratio=1)
         )
 
         # Left panel split
-        layout["left_panel"].split_column()
+        layout["left_panel"].split_column(
             Layout(name="logs", ratio=3),
             Layout(name="operations", ratio=1)
         )
 
         # Right panel split
-        layout["right_panel"].split_column()
+        layout["right_panel"].split_column(
             Layout(name="metrics", ratio=1),
             Layout(name="system", ratio=1),
             Layout(name="commands", ratio=1)
@@ -235,7 +237,7 @@ class EnhancedSplitScreen:
         uptime = datetime.now() - self.stats['start_time']
         uptime_str = str(uptime).split('.')[0]  # Remove microseconds
 
-        status_text = ()
+        status_text = (
             f"[bold blue]PlexiChat Enhanced Console[/bold blue] | "
             f"Uptime: {uptime_str} | "
             f"Logs: {self.stats['total_logs']} | "
@@ -246,7 +248,7 @@ class EnhancedSplitScreen:
         if self.current_filter:
             status_text += f" | Filter: {self.current_filter}"
 
-        self.layout["header"].update(Panel())
+        self.layout["header"].update(Panel(
             Align.center(status_text),
             style="blue",
             title="System Status"
@@ -278,14 +280,14 @@ class EnhancedSplitScreen:
             if entry.level.upper() in ['ERROR', 'CRITICAL'] and self.config['highlight_errors']:
                 message = f"[bold red]{message}[/bold red]"
 
-            log_table.add_row()
+            log_table.add_row(
                 entry.timestamp.strftime('%H:%M:%S'),
                 f"[{level_style}]{entry.level}[/{level_style}]",
                 entry.module,
                 message
             )
 
-        self.layout["logs"].update(Panel())
+        self.layout["logs"].update(Panel(
             log_table,
             title="Recent Logs",
             border_style="green"
@@ -308,14 +310,14 @@ class EnhancedSplitScreen:
                 duration = str(datetime.now() - operation['start_time']).split('.')[0]
 
             status_style = "green" if operation.get('success') else "yellow"
-            operations_table.add_row()
+            operations_table.add_row(
                 op_id[:8],
                 operation.get('type', 'unknown'),
                 f"[{status_style}]{operation.get('status', 'running')}[/{status_style}]",
                 duration
             )
 
-        self.layout["operations"].update(Panel())
+        self.layout["operations"].update(Panel(
             operations_table,
             title="Active Operations",
             border_style="cyan"
@@ -334,7 +336,7 @@ class EnhancedSplitScreen:
 
     def add_log_entry(self, level: str, module: str, message: str, **kwargs):
         """Add a log entry to the display."""
-        entry = LogEntry()
+        entry = LogEntry(
             timestamp=datetime.now(),
             level=level,
             module=module,
@@ -437,14 +439,14 @@ class EnhancedSplitScreen:
             metrics_table.add_row("Peak Memory", f"{self.stats['peak_memory']:.1f}%")
             metrics_table.add_row("Active Operations", str(len(self.active_operations)))
 
-            self.layout["metrics"].update(Panel())
+            self.layout["metrics"].update(Panel(
                 metrics_table,
                 title="System Metrics",
                 border_style="green"
             ))
 
         except Exception:
-            self.layout["metrics"].update(Panel())
+            self.layout["metrics"].update(Panel(
                 "[dim]psutil not available\nInstall with: pip install psutil[/dim]",
                 title="System Metrics",
                 border_style="dim"
@@ -474,14 +476,14 @@ class EnhancedSplitScreen:
             system_table.add_row("Process PID", str(process.pid))
             system_table.add_row("Threads", str(process.num_threads()))
 
-            self.layout["system"].update(Panel())
+            self.layout["system"].update(Panel(
                 system_table,
                 title="System Info",
                 border_style="blue"
             ))
 
         except Exception:
-            self.layout["system"].update(Panel())
+            self.layout["system"].update(Panel(
                 "[dim]System info unavailable[/dim]",
                 title="System Info",
                 border_style="dim"
@@ -515,7 +517,7 @@ class EnhancedSplitScreen:
             for cmd in list(self.command_history)[-3:]:
                 commands_text.append(f" {cmd}\n", style="dim cyan")
 
-        self.layout["commands"].update(Panel())
+        self.layout["commands"].update(Panel(
             commands_text,
             title="Commands",
             border_style="magenta"
@@ -531,7 +533,7 @@ class EnhancedSplitScreen:
         else:
             input_text = "[dim]Press any key for commands, 'q' to quit[/dim]"
 
-        self.layout["input"].update(Panel())
+        self.layout["input"].update(Panel(
             Align.center(input_text),
             style="yellow" if self.input_mode else "dim",
             title="Input"

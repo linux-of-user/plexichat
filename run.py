@@ -1178,7 +1178,9 @@ def run_webui():
     """Launch the web UI interface."""
     logger.info("Launching PlexiChat Web UI...")
     logger.info("Starting web server with enhanced UI...")
-    run_api_server()
+    logger.info("Web interface available at: http://localhost:8000")
+    logger.info("API documentation at: http://localhost:8000/docs")
+    run_api_and_cli()  # Use same CLI system as GUI
 
 def run_configuration_wizard():
     """Run the configuration wizard."""
@@ -1904,9 +1906,6 @@ def parse_arguments():
                           type=str,
                           default='./downloads',
                           help='Target directory for downloads (default: %(default)s)')
-        parser.add_argument('--help', '-h',
-                          action='store_true',
-                          help='Show this help message and exit')
 
         # Parse and return arguments
         return parser.parse_args()
@@ -2085,13 +2084,127 @@ def setup_thread_pool(workers: int = 4):
         logger.info(f"Thread pool initialized with {workers} workers.")
     return _thread_pool
 
-# At the start of main execution:
-if __name__ == "__main__":
+def main():
+    """Main entry point for PlexiChat."""
     logger.info("Starting PlexiChat...")
+    if 'clean' in sys.argv:
+        kill_old_plexichat_processes()  # Kill old processes before cleaning
     kill_old_plexichat_processes()
     if not acquire_process_lock():
-        logger.error("Another instance is already running. Exiting.")
+        # Improved process lock message
+        lock_path = Path(PROCESS_LOCK_FILE)
+        if lock_path.exists():
+            try:
+                with open(lock_path, 'r') as f:
+                    pid = int(f.read().strip())
+                logger.error(f"Another PlexiChat instance is already running and holding the lock (PID: {pid}). Please terminate it before starting a new instance.")
+            except Exception:
+                logger.error("Another PlexiChat instance is already running and holding the lock. Please terminate it before starting a new instance.")
+        else:
+            logger.error("Another instance is already running. Exiting.")
         sys.exit(1)
     setup_thread_pool()
     logger.info("Startup complete. Running main application...")
-    # ... existing main logic ...
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="PlexiChat - Advanced Chat Platform",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=f"""
+{Colors.BOLD}Examples:{Colors.RESET}
+  run.py                    # Start API server with splitscreen CLI (default)
+  run.py setup              # Run first-time setup wizard
+  run.py gui                # Launch GUI interface
+  run.py cli                # Run splitscreen CLI interface
+  run.py version            # Manage versions and downloads
+  run.py update             # Check for and install updates
+  run.py deps               # Manage dependencies
+  run.py clean              # Clean system cache
+  run.py wizard             # Configure PlexiChat
+"""
+    )
+
+    # Command argument with expanded choices
+    parser.add_argument('command',
+                      nargs='?',
+                      default='api',
+                      choices=[
+                          'api', 'gui', 'webui', 'cli', 'admin', 'backup-node', 'plugin',
+                          'test', 'config', 'wizard', 'help', 'setup', 'update', 'version',
+                          'deps', 'system', 'clean', 'download', 'latest', 'versions',
+                          'advanced-setup', 'optimize', 'diagnostic', 'maintenance'
+                      ],
+                      help='Command to execute (default: %(default)s)')
+
+    # Additional positional arguments for some commands
+    parser.add_argument('args',
+                      nargs='*',
+                      help='Additional arguments for specific commands')
+
+    # Optional arguments
+    parser.add_argument('--verbose', '-v', action='store_true',
+                      help='Enable verbose logging')
+    parser.add_argument('--debug', '-d', action='store_true',
+                      help='Enable debug logging')
+    parser.add_argument('--log-level', default='INFO',
+                      choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                      help='Set logging level (default: %(default)s)')
+    args = parser.parse_args()
+
+    # Set log level based on arguments
+    if args.verbose or args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(getattr(logging, args.log_level))
+
+    # Handle commands
+    try:
+        if args.command == 'gui':
+            run_gui()
+        elif args.command == 'webui':
+            run_webui()
+        elif args.command == 'api':
+            run_api_and_cli()  # Use API with splitscreen CLI
+        elif args.command == 'cli':
+            run_splitscreen_cli()  # Direct splitscreen CLI
+        elif args.command == 'admin':
+            run_admin_cli()
+        elif args.command == 'backup-node':
+            run_backup_node()
+        elif args.command == 'plugin':
+            run_plugin_manager()
+        elif args.command == 'setup':
+            run_first_time_setup()
+        elif args.command == 'advanced-setup':
+            run_interactive_setup()
+        elif args.command == 'wizard':
+            run_configuration_wizard()
+        elif args.command == 'version':
+            run_version_manager()
+        elif args.command == 'deps':
+            run_dependency_manager()
+        elif args.command == 'system':
+            run_system_manager()
+        elif args.command == 'update':
+            run_update_system()
+        elif args.command == 'test':
+            run_enhanced_tests()
+        elif args.command == 'clean':
+            system_manager = SystemManager()
+            system_manager.cleanup_system()
+        elif args.command == 'help':
+            parser.print_help()
+        else:
+            logger.info(f"Running default API server with splitscreen CLI...")
+            run_api_and_cli()  # Default to API with splitscreen CLI
+    except KeyboardInterrupt:
+        logger.info("Application interrupted by user")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Error running command '{args.command}': {e}")
+        logger.debug(traceback.format_exc())
+        sys.exit(1)
+
+# At the start of main execution:
+if __name__ == "__main__":
+    main()
