@@ -1,9 +1,9 @@
 {
-  "current_version": "a.1.1-31",
+  "current_version": "a.1.1-33",
   "version_type": "alpha",
   "major_version": 1,
   "minor_version": 1,
-  "build_number": 31,
+  "build_number": 33,
   "release_date": "2025-07-20",
   "api_version": "v1",
   "compatibility": {
@@ -18,9 +18,43 @@
     "real_time_messaging": true,
     "plugin_system": true,
     "colorized_logging": true,
-    "refresh_system": true
+    "refresh_system": true,
+    "cli_integration": true,
+    "plugin_commands": true
   },
   "changelog": {
+    "a.1.1-33": {
+      "date": "2025-07-20",
+      "type": "feat",
+      "changes": [
+        "Enhanced update system to use existing CLI from interfaces/cli instead of standalone system",
+        "Added bootstrap mode detection for standalone operation when src directory unavailable",
+        "Integrated unified plugin manager to auto-discover and load plugin commands",
+        "Added plugin command execution directly from update system menu",
+        "Enhanced update system menu to show available plugin commands dynamically",
+        "Added fallback functionality when full CLI system is not available",
+        "Improved error handling and user feedback for plugin command execution",
+        "Update system now properly uses existing UpdateCLI from interfaces/cli/commands/updates",
+        "Added support for custom plugin command execution by name",
+        "All plugin commands are now accessible through the update system interface"
+      ]
+    },
+    "a.1.1-32": {
+      "date": "2025-07-20",
+      "type": "feat",
+      "changes": [
+        "Added refresh command to update system for redownloading and verifying current version files",
+        "Created version.json with comprehensive version information and feature tracking",
+        "Added CHANGELOG.md for proper version history documentation",
+        "Implemented file integrity checking with backup creation before refresh",
+        "Enhanced update system with GitHub download capability and ZIP extraction",
+        "Fixed syntax errors in versioning/__init__.py with proper import fallbacks",
+        "Added test_refresh.py for testing update system components",
+        "Improved error handling and user feedback in refresh process",
+        "All critical files are backed up before refresh operations",
+        "Refresh command verifies file sizes and checksums for integrity"
+      ]
+    },
     "a.1.1-31": {
       "date": "2025-07-20",
       "type": "fix",
