@@ -183,6 +183,40 @@
                 <span id="login-spinner" class="loading-spinner" style="display: none;"></span>
             </button>
         </form>
+
+        <div class="text-center mt-3">
+            <a href="#" id="forgot-password-link">Forgot password?</a>
+        </div>
+
+        <!-- Password Reset Modal -->
+        <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="resetPasswordModalLabel">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="reset-password-form">
+                  <div class="mb-3">
+                    <label for="reset-username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="reset-username" name="username" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="reset-current-password" class="form-label">Current Password</label>
+                    <input type="password" class="form-control" id="reset-current-password" name="current_password" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="reset-new-password" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="reset-new-password" name="new_password" required>
+                  </div>
+                  <div id="reset-password-message" class="alert" style="display:none;"></div>
+                  <button type="submit" class="btn btn-login w-100">Reset Password</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
         
         <div class="security-notice">
             <i class="fas fa-info-circle me-1"></i>
@@ -331,8 +365,44 @@
         }
         
         // Initialize admin login
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             new AdminLogin();
+            var forgotLink = document.getElementById('forgot-password-link');
+            var resetModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+            forgotLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                resetModal.show();
+            });
+            document.getElementById('reset-password-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var username = document.getElementById('reset-username').value;
+                var currentPassword = document.getElementById('reset-current-password').value;
+                var newPassword = document.getElementById('reset-new-password').value;
+                var msgDiv = document.getElementById('reset-password-message');
+                msgDiv.style.display = 'none';
+                msgDiv.className = 'alert';
+                try {
+                    const resp = await fetch('/admin/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, current_password: currentPassword, new_password: newPassword })
+                    });
+                    const data = await resp.json();
+                    if (resp.ok && data.success) {
+                        msgDiv.textContent = 'Password reset successful. You may now log in.';
+                        msgDiv.classList.add('alert-success');
+                        msgDiv.style.display = 'block';
+                    } else {
+                        msgDiv.textContent = data.detail || data.message || 'Password reset failed.';
+                        msgDiv.classList.add('alert-danger');
+                        msgDiv.style.display = 'block';
+                    }
+                } catch (err) {
+                    msgDiv.textContent = 'Error connecting to server.';
+                    msgDiv.classList.add('alert-danger');
+                    msgDiv.style.display = 'block';
+                }
+            });
         });
         
         // Security: Clear sensitive data on page unload

@@ -764,6 +764,33 @@
         </div>
     </div>
 
+    <!-- Password Reset Modal -->
+    <div class="modal fade" id="adminResetPasswordModal" tabindex="-1" aria-labelledby="adminResetPasswordModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="adminResetPasswordModalLabel">Reset Admin Password</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="admin-reset-password-form">
+              <input type="hidden" id="reset-admin-username" name="username">
+              <div class="mb-3">
+                <label for="reset-admin-new-password" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="reset-admin-new-password" name="new_password" required>
+              </div>
+              <div class="mb-3" id="reset-admin-current-password-group" style="display:none;">
+                <label for="reset-admin-current-password" class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="reset-admin-current-password" name="current_password">
+              </div>
+              <div id="admin-reset-password-message" class="alert" style="display:none;"></div>
+              <button type="submit" class="btn btn-admin w-100">Reset Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.js"></script>
@@ -901,8 +928,8 @@
                             <button class="btn btn-sm btn-outline-primary" onclick="editUser(${user.id})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-warning" onclick="moderateUser(${user.id})">
-                                <i class="fas fa-gavel"></i>
+                            <button class="btn btn-sm btn-outline-warning" onclick="openResetPasswordModal(user.username)">
+                                <i class="fas fa-key"></i> Reset Password
                             </button>
                         </td>
                     </tr>
@@ -1182,6 +1209,20 @@
         function searchUsers() { console.log('Search users'); }
         function addBackupNode() { console.log('Add backup node'); }
         function runSecurityScan() { console.log('Run security scan'); }
+
+        function openResetPasswordModal(username) {
+            document.getElementById('reset-admin-username').value = username;
+            // If self, show current password field
+            const currentUser = window.currentAdminUsername || '';
+            if (username === currentUser) {
+                document.getElementById('reset-admin-current-password-group').style.display = '';
+            } else {
+                document.getElementById('reset-admin-current-password-group').style.display = 'none';
+            }
+            document.getElementById('admin-reset-password-message').style.display = 'none';
+            var modal = new bootstrap.Modal(document.getElementById('adminResetPasswordModal'));
+            modal.show();
+        }
     </script>
 </body>
 </html>

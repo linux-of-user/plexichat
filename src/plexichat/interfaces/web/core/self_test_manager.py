@@ -160,6 +160,13 @@ class SelfTestManager:
         self.register_test("plugins", "plugin_system_test", self._test_plugin_system)
         self.register_test("plugins", "ai_providers_plugin_test", self._test_ai_providers_plugin)
 
+        # Compliance tests
+        self.register_test("compliance", "gdpr_compliance_test", self._test_gdpr_compliance)
+        self.register_test("compliance", "hipaa_compliance_test", self._test_hipaa_compliance)
+        self.register_test("compliance", "sox_compliance_test", self._test_sox_compliance)
+        self.register_test("compliance", "iso27001_compliance_test", self._test_iso27001_compliance)
+        self.register_test("compliance", "fedramp_compliance_test", self._test_fedramp_compliance)
+
     def register_test(self, category: str, test_name: str, test_function: Callable):
         """Register a test function."""
         if category not in self.test_registry:
@@ -1332,6 +1339,90 @@ class SelfTestManager:
             'status': TestStatus.SKIPPED,
             'message': 'API rate limiting test not implemented',
             'details': {}
+        }
+
+    async def _test_gdpr_compliance(self) -> Dict[str, Any]:
+        """Test GDPR compliance controls."""
+        # Example checks: data encryption, data subject rights, breach notification, data minimization
+        checks = {
+            "data_encryption": self.config.is_encryption_enabled(),
+            "audit_logging": self.config.is_audit_logging_enabled(),
+            "data_retention_policy": self.config.has_data_retention_policy(),
+            "breach_notification": self.config.has_breach_notification_procedure(),
+            "subject_access_request": self.config.supports_subject_access_request(),
+        }
+        passed = all(checks.values())
+        return {
+            "status": TestStatus.PASSED if passed else TestStatus.FAILED,
+            "message": "GDPR compliance checks {}".format("passed" if passed else "failed"),
+            "details": checks
+        }
+
+    async def _test_hipaa_compliance(self) -> Dict[str, Any]:
+        """Test HIPAA compliance controls."""
+        # Example checks: data encryption, audit logging, access control, data retention, breach notification
+        checks = {
+            "data_encryption": self.config.is_encryption_enabled(),
+            "audit_logging": self.config.is_audit_logging_enabled(),
+            "access_control": self.config.has_proper_access_control(),
+            "data_retention": self.config.has_data_retention_policy(),
+            "breach_notification": self.config.has_breach_notification_procedure(),
+        }
+        passed = all(checks.values())
+        return {
+            "status": TestStatus.PASSED if passed else TestStatus.FAILED,
+            "message": "HIPAA compliance checks {}".format("passed" if passed else "failed"),
+            "details": checks
+        }
+
+    async def _test_sox_compliance(self) -> Dict[str, Any]:
+        """Test SOX compliance controls."""
+        # Example checks: audit logging, access control, data integrity, financial reporting
+        checks = {
+            "audit_logging": self.config.is_audit_logging_enabled(),
+            "access_control": self.config.has_proper_access_control(),
+            "data_integrity": self.config.has_data_integrity_checks(),
+            "financial_reporting": self.config.has_accurate_financial_reporting(),
+        }
+        passed = all(checks.values())
+        return {
+            "status": TestStatus.PASSED if passed else TestStatus.FAILED,
+            "message": "SOX compliance checks {}".format("passed" if passed else "failed"),
+            "details": checks
+        }
+
+    async def _test_iso27001_compliance(self) -> Dict[str, Any]:
+        """Test ISO 27001 compliance controls."""
+        # Example checks: encryption, access control, audit logging, incident response, data integrity
+        checks = {
+            "encryption": self.config.is_encryption_enabled(),
+            "access_control": self.config.has_proper_access_control(),
+            "audit_logging": self.config.is_audit_logging_enabled(),
+            "incident_response": self.config.has_incident_response_plan(),
+            "data_integrity": self.config.has_data_integrity_checks(),
+        }
+        passed = all(checks.values())
+        return {
+            "status": TestStatus.PASSED if passed else TestStatus.FAILED,
+            "message": "ISO 27001 compliance checks {}".format("passed" if passed else "failed"),
+            "details": checks
+        }
+
+    async def _test_fedramp_compliance(self) -> Dict[str, Any]:
+        """Test FedRAMP compliance controls."""
+        # Example checks: encryption, access control, audit logging, incident response, data integrity
+        checks = {
+            "encryption": self.config.is_encryption_enabled(),
+            "access_control": self.config.has_proper_access_control(),
+            "audit_logging": self.config.is_audit_logging_enabled(),
+            "incident_response": self.config.has_incident_response_plan(),
+            "data_integrity": self.config.has_data_integrity_checks(),
+        }
+        passed = all(checks.values())
+        return {
+            "status": TestStatus.PASSED if passed else TestStatus.FAILED,
+            "message": "FedRAMP compliance checks {}".format("passed" if passed else "failed"),
+            "details": checks
         }
 
     async def _export_test_results(self, suite: TestSuite):
