@@ -124,7 +124,7 @@ def debug_trace(level: DebugLevel = DebugLevel.DEBUG, ):
     return decorator
 
 
-def async_debug_trace(level: DebugLevel = DebugLevel.DEBUG,):
+def async_debug_trace(level: DebugLevel = DebugLevel.DEBUG,
                      include_args: bool = True,
                      include_result: bool = True,
                      profile: bool = False):
@@ -256,7 +256,7 @@ def debug_context(name: str, metadata: Optional[Dict[str, Any]] = None):
             debug_manager.debug_sessions[session_id].end_session()
 
 
-def log_debug(message: str, context: Optional[Dict[str, Any]] = None, ):
+def log_debug(message: str, context: Optional[Dict[str, Any]] = None,
               level: DebugLevel = DebugLevel.DEBUG):
     """Quick debug logging function."""
     debug_manager = get_debug_manager()
@@ -420,12 +420,12 @@ def debug_plugin_operation(plugin_name: str, operation: str):
                 duration = time.time() - start_time
 
                 result_context = context.copy()
-                result_context.update({)
+                result_context.update({
                     "duration": duration,
                     "success": True
                 })
 
-                debug_manager.log_event()
+                debug_manager.log_event(
                     DebugLevel.DEBUG,
                     f"plugin.{plugin_name}",
                     f"Plugin operation completed: {operation} ({duration:.4f}s)",
@@ -438,7 +438,7 @@ def debug_plugin_operation(plugin_name: str, operation: str):
                 duration = time.time() - start_time
 
                 error_context = context.copy()
-                error_context.update({)
+                error_context.update({
                     "duration": duration,
                     "success": False
                 })
@@ -486,7 +486,7 @@ def analyze_performance_bottlenecks() -> Dict[str, Any]:
         slow_functions = []
         for func_name, stats in performance_summary.items():
             if stats["avg_duration"] > 1.0:  # Functions taking more than 1 second on average
-                slow_functions.append({)
+                slow_functions.append({
                     "function": func_name,
                     "avg_duration": stats["avg_duration"],
                     "max_duration": stats["max_duration"],

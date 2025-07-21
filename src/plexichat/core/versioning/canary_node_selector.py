@@ -253,7 +253,7 @@ class CanaryNodeSelector:
         target_count = config.get("node_count", max(1, len(nodes) // 10))
 
         # Sort by load score (ascending - lowest load first)
-        sorted_nodes = sorted()
+        sorted_nodes = sorted(
             nodes,
             key=lambda n: self.node_metrics.get(n["node_id"], NodeMetrics()).load_score,
         )
@@ -261,7 +261,7 @@ class CanaryNodeSelector:
         selected = sorted_nodes[:target_count]
         return [self._create_canary_node(node) for node in selected]
 
-    async def _risk_balanced_selection()
+    async def _risk_balanced_selection(
         self, nodes: List[Dict[str, Any]], target_count: int
     ) -> List[Dict[str, Any]]:
         """Select nodes with balanced risk distribution."""
@@ -307,7 +307,7 @@ class CanaryNodeSelector:
 
         # Look at recent deployments (last 10)
         recent_deployments = history[-10:]
-        failures = sum()
+        failures = sum(
             1
             for deployment in recent_deployments
             if not deployment.get("success", True)

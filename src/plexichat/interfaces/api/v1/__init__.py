@@ -375,6 +375,14 @@ def register_v1_endpoints():
         # v1_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
         # v1_router.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
 
+        # Custom fields endpoints
+        try:
+            from .custom_fields import router as custom_fields_router
+            v1_router.include_router(custom_fields_router, tags=["custom-fields"])
+            logger.info("Custom fields endpoints registered successfully")
+        except ImportError as e:
+            logger.warning(f"Custom fields endpoints not available: {e}")
+
         logger.info(" API v1 endpoints registered successfully")
 
     except ImportError as e:

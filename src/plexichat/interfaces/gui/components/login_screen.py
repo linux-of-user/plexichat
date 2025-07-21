@@ -987,63 +987,18 @@ class LoginScreen(ttk.Frame):
 
         except ImportError:
             # Fallback to direct SQLite if abstraction layer not available
-            import sqlite3
-
-            db_file = config_path / "plexichat.db"
-            conn = sqlite3.connect(db_file)
-            cursor = conn.cursor()
-
-            # Create users table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    password_hash TEXT NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    role TEXT DEFAULT 'user',
-                    active BOOLEAN DEFAULT 1,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_login TIMESTAMP
-                )
-            ''')
-            conn.commit()
-            conn.close()
-
-            # Create sessions table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS sessions (
-                    id TEXT PRIMARY KEY,
-                    user_id INTEGER,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    expires_at TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id)
-                )
-            ''')
-
-            # Create settings table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-
-            conn.commit()
-            conn.close()
-
-            logger.info(f"SQLite database initialized at {db_file}")
+            # (Removed: use abstraction layer only)
+            raise RuntimeError("Database abstraction layer is required.")
 
         except Exception as e:
             logger.error(f"SQLite initialization failed: {e}")
             raise
 
     def create_admin_account(self, config_path, username, password, email):
-        """Create admin account."""
+        """Create admin account using abstraction layer only."""
         try:
             # Hash password
             password_hash = hashlib.sha256(password.encode()).hexdigest()
-
             # Create credentials structure
             credentials = {
                 "admin": {
@@ -1055,12 +1010,10 @@ class LoginScreen(ttk.Frame):
                     "active": True
                 }
             }
-
             # Save credentials
             creds_file = config_path / "default-creds.json"
             with open(creds_file, 'w') as f:
                 json.dump(credentials, f, indent=2)
-
             # Also create a readable credentials file
             readable_creds = config_path / "admin-credentials.txt"
             with open(readable_creds, 'w') as f:
@@ -1072,26 +1025,24 @@ class LoginScreen(ttk.Frame):
                 f.write(f"Role: admin\n\n")
                 f.write(f"Created: {datetime.now()}\n\n")
                 f.write(f"IMPORTANT: Keep this file secure and delete it after noting the credentials!\n")
-
-            # Add to database if it exists
-            db_file = config_path / "plexichat.db"
-            if db_file.exists():
-                import sqlite3
-                conn = sqlite3.connect(db_file)
-                cursor = conn.cursor()
-
-                cursor.execute('''
-                    INSERT OR REPLACE INTO users (username, password_hash, email, role, active)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (username, password_hash, email, "admin", True))
-
-                conn.commit()
-                conn.close()
-
-            logger.info(f"Admin account created: {username}")
-
+            # Add to database using abstraction layer
+            from plexichat.features.users.models import User, UserRole, UserStatus, UserModelService
+            user_service = UserModelService()
+            admin_user = User(
+                id=None,
+                username=username,
+                email=email,
+                hashed_password=password_hash,
+                role=UserRole.ADMIN,
+                status=UserStatus.ACTIVE,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                custom_fields={},
+            )
+            import asyncio
+            asyncio.run(user_service.create_user(admin_user))
         except Exception as e:
-            logger.error(f"Failed to create admin account: {e}")
+            logger.error(f"Admin account creation failed: {e}")
             raise
 
     def open_documentation(self):

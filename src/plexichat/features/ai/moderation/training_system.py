@@ -7,7 +7,6 @@
 import hashlib
 import json
 import logging
-import sqlite3
 import time
 import uuid
 from dataclasses import dataclass
@@ -23,11 +22,6 @@ from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 
 from .moderation_engine import ModerationAction, ModerationCategory, ModerationSeverity
-
-from pathlib import Path
-from datetime import datetime
-
-from pathlib import Path
 
 """
 AI Moderation Training System
@@ -97,8 +91,7 @@ class ModerationTrainingSystem:
     """AI moderation training system with progressive learning."""
 
     def __init__(self, data_path: str = "data/moderation_training"):
-        from pathlib import Path
-self.data_path = Path(data_path)
+        self.data_path = Path(data_path)
         self.data_path.mkdir(parents=True, exist_ok=True)
 
         self.db_path = self.data_path / "training.db"
@@ -112,78 +105,16 @@ self.data_path = Path(data_path)
         self._init_database()
         self._load_latest_model()
 
-    async def _init_database(self):
+    def _init_database(self):
         """Initialize training database using abstraction layer."""
-        from plexichat.core.database import database_manager
+        # Use TrainingDataService for all DB initialization and CRUD
+        from src.plexichat.features.ai.moderation.training_data_service import TrainingDataService
+        self.training_service = TrainingDataService()
+        # Replace any direct DB/table creation with service-based initialization
+        # (If needed, add an async initialization method)
+        pass
 
-        # Define training_data table schema
-        training_data_schema = {
-            "table_name": "training_data",
-            "columns": {
-                "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
-                "content": {"type": "TEXT", "nullable": False},
-                "content_hash": {"type": "TEXT", "nullable": False},
-                "label": {"type": "TEXT", "nullable": False},
-                "confidence": {"type": "REAL", "nullable": False},
-                "categories": {"type": "TEXT", "nullable": False},
-                "severity": {"type": "TEXT", "nullable": False},
-                "source": {"type": "TEXT", "nullable": False},
-                "metadata": {"type": "TEXT"},
-                "created_at": {"type": "TEXT", "nullable": False},
-                "used_in_training": {"type": "BOOLEAN", "default": False}
-            }
-        }
-
-        await database_manager.create_table_if_not_exists(training_data_schema)
-
-        # Create indexes
-        await database_manager.create_index_if_not_exists(
-            table_name="training_data",
-            columns=["content_hash"],
-            index_name="idx_content_hash"
-        )
-
-        await database_manager.create_index_if_not_exists(
-            table_name="training_data",
-            columns=["label"],
-            index_name="idx_label"
-        )
-
-            conn.execute(""")
-                CREATE TABLE IF NOT EXISTS training_results ()
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    model_version TEXT NOT NULL,
-                    accuracy REAL NOT NULL,
-                    training_samples INTEGER NOT NULL,
-                    validation_samples INTEGER NOT NULL,
-                    feature_count INTEGER NOT NULL,
-                    training_time_seconds REAL NOT NULL,
-                    metrics TEXT,
-                    created_at TEXT NOT NULL,
-                    is_active BOOLEAN DEFAULT FALSE
-                )
-            """)
-
-            conn.execute(""")
-                CREATE TABLE IF NOT EXISTS feedback_data ()
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    content_id TEXT NOT NULL,
-                    original_prediction TEXT NOT NULL,
-                    user_correction TEXT NOT NULL,
-                    user_id TEXT,
-                    confidence REAL,
-                    reasoning TEXT,
-                    created_at TEXT NOT NULL,
-                    processed BOOLEAN DEFAULT FALSE
-                )
-            """)
-
-            conn.commit()
-
-        logger.info("Training database initialized")
-
-    def add_training_data():
-        self,
+    def add_training_data(self,
         content: str,
         label: ModerationAction,
         confidence: float,
@@ -197,34 +128,18 @@ self.data_path = Path(data_path)
             content_hash = hashlib.sha256(content.encode()).hexdigest()
 
             training_data = TrainingData()
-                content=content,
-                label=label,
-                confidence=confidence,
-                categories=categories,
-                severity=severity,
-                source=source,
-                metadata=metadata or {},
-                created_at=datetime.now(timezone.utc)
-            )
+            training_data.content = content
+            training_data.label = label
+            training_data.confidence = confidence
+            training_data.categories = categories
+            training_data.severity = severity
+            training_data.source = source
+            training_data.metadata = metadata or {}
+            training_data.created_at = datetime.now(timezone.utc)
 
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(""")
-                    INSERT OR REPLACE INTO training_data ()
-                        content, content_hash, label, confidence, categories,
-                        severity, source, metadata, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, ()
-                    training_data.content,
-                    content_hash,
-                    training_data.label.value,
-                    training_data.confidence,
-                    json.dumps([cat.value for cat in training_data.categories]),
-                    training_data.severity.value,
-                    training_data.source.value,
-                    json.dumps(training_data.metadata),
-                    training_data.created_at.isoformat()
-                ))
-                conn.commit()
+            from plexichat.features.ai.moderation.training_data_service import TrainingDataService
+            training_data_service = TrainingDataService(self.db_path)
+            training_data_service.add_training_data(training_data)
 
             logger.info(f"Added training data: {label.value} (confidence: {confidence:.2f})")
             return True
@@ -233,8 +148,7 @@ self.data_path = Path(data_path)
             logger.error(f"Failed to add training data: {e}")
             return False
 
-    def add_user_feedback():
-        self,
+    def add_user_feedback(self,
         content_id: str,
         original_prediction: ModerationAction,
         user_correction: ModerationAction,
@@ -244,22 +158,9 @@ self.data_path = Path(data_path)
     ) -> bool:
         """Add user feedback for training."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(""")
-                    INSERT INTO feedback_data ()
-                        content_id, original_prediction, user_correction,
-                        user_id, confidence, reasoning, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, ()
-                    content_id,
-                    original_prediction.value,
-                    user_correction.value,
-                    user_id,
-                    confidence,
-                    reasoning,
-                    datetime.now(timezone.utc).isoformat()
-                ))
-                conn.commit()
+            from plexichat.features.ai.moderation.feedback_data_service import FeedbackDataService
+            feedback_data_service = FeedbackDataService(self.db_path)
+            feedback_data_service.add_feedback_data(content_id, original_prediction, user_correction, user_id, confidence, reasoning)
 
             logger.info(f"Added user feedback: {original_prediction.value} -> {user_correction.value}")
             return True
@@ -273,8 +174,10 @@ self.data_path = Path(data_path)
         start_time = time.time()
 
         try:
-            # Get training data
-            training_data = self._get_training_data(min_samples)
+            from plexichat.features.ai.moderation.training_data_service import TrainingDataService
+            training_data_service = TrainingDataService(self.db_path)
+            training_data = training_data_service.get_training_data(min_samples)
+
             if len(training_data) < min_samples:
                 logger.warning(f"Insufficient training data: {len(training_data)} < {min_samples}")
                 return None
@@ -284,28 +187,26 @@ self.data_path = Path(data_path)
             labels = [item["label"] for item in training_data]
 
             # Split data
-            X_train, X_test, y_train, y_test = train_test_split()
+            X_train, X_test, y_train, y_test = train_test_split(
                 texts, labels, test_size=0.2, random_state=42, stratify=labels
             )
 
             # Vectorize text
             self.vectorizer = TfidfVectorizer()
-                max_features=10000,
-                stop_words='english',
-                ngram_range=(1, 2),
-                min_df=2,
-                max_df=0.95
-            )
+            self.vectorizer.max_features = 10000
+            self.vectorizer.stop_words = 'english'
+            self.vectorizer.ngram_range = (1, 2)
+            self.vectorizer.min_df = 2
+            self.vectorizer.max_df = 0.95
 
             X_train_vec = self.vectorizer.fit_transform(X_train)
             X_test_vec = self.vectorizer.transform(X_test)
 
             # Train classifier
             self.classifier = LogisticRegression()
-                max_iter=1000,
-                class_weight='balanced',
-                random_state=42
-            )
+            self.classifier.max_iter = 1000
+            self.classifier.class_weight = 'balanced'
+            self.classifier.random_state = 42
 
             self.classifier.fit(X_train_vec, y_train)
 
@@ -317,8 +218,7 @@ self.data_path = Path(data_path)
             report = classification_report(y_test, y_pred, output_dict=True)
 
             # Create new model version
-            model_version = f"v{from datetime import datetime
-datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}"
+            model_version = f"v{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}"
 
             # Save model
             model_file = self.models_path / f"{model_version}.joblib"
@@ -331,21 +231,22 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}"
 
             # Create training result
             result = TrainingResult()
-                model_version=model_version,
-                accuracy=accuracy,
-                training_samples=len(X_train),
-                validation_samples=len(X_test),
-                feature_count=X_train_vec.shape[1],
-                training_time_seconds=training_time,
-                metrics=report,
-                created_at=datetime.now(timezone.utc)
-            )
+            result.model_version = model_version
+            result.accuracy = accuracy
+            result.training_samples = len(X_train)
+            result.validation_samples = len(X_test)
+            result.feature_count = X_train_vec.shape[1]
+            result.training_time_seconds = training_time
+            result.metrics = report
+            result.created_at = datetime.now(timezone.utc)
 
             # Store result
-            self._store_training_result(result)
+            from plexichat.features.ai.moderation.training_result_service import TrainingResultService
+            training_result_service = TrainingResultService(self.db_path)
+            training_result_service.add_training_result(result)
 
             # Mark data as used
-            self._mark_data_as_used([item["id"] for item in training_data])
+            training_data_service.mark_data_as_used([item["id"] for item in training_data])
 
             # Update current model
             self.current_model_version = model_version

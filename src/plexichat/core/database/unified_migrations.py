@@ -122,7 +122,19 @@ class MigrationRepository:
                 }
             }
 
-            await database_manager.create_table_if_not_exists(table_schema)
+            # Create migration tracking table using execute_query
+            create_table_sql = """
+                CREATE TABLE IF NOT EXISTS migration_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    version TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    execution_time REAL,
+                    success BOOLEAN DEFAULT TRUE,
+                    error_message TEXT
+                )
+            """
+            await database_manager.execute_query(create_table_sql)
             logger.info("Migration tracking table initialized")
             return True
 
@@ -360,13 +372,12 @@ class UnifiedMigrationManager:
 
     async def apply_migration(self, migration: Migration) -> bool:
         """Apply a single migration."""
+        start_time = datetime.now()  # Define start_time before try block
         try:
             logger.info(f"Applying migration {migration.version}: {migration.name}")
 
             # Record migration start
             await self.repository.record_migration_start(migration)
-
-            start_time = datetime.now()
 
             # Get database engine
             engine = await unified_engine_manager.get_engine(self.engine_name)

@@ -225,8 +225,12 @@ class PostgreSQLEngine(DatabaseEngine):
             if self.connection:
                 if hasattr(self.connection, 'dispose'):
                     await self.connection.dispose()
-                elif hasattr(self.connection, 'close'):
-                    await self.connection.close()
+                elif hasattr(self.connection, 'close') and callable(getattr(self.connection, 'close')):
+                    close_method = getattr(self.connection, 'close')
+                    if asyncio.iscoroutinefunction(close_method):
+                        await close_method()
+                    else:
+                        close_method()
                 self.connection = None
             self.is_connected = False
             return True
@@ -254,10 +258,13 @@ class PostgreSQLEngine(DatabaseEngine):
             raise
 
     async def health_check(self) -> bool:
-        """Check PostgreSQL health using abstraction layer."""
+        """Check PostgreSQL health."""
         try:
-            from plexichat.core.database import database_manager
-            return await database_manager.health_check()
+            if not self.is_connected:
+                return False
+            # Simple health check - execute a basic query
+            await self.execute("SELECT 1")
+            return True
         except Exception:
             return False
 
@@ -322,6 +329,8 @@ class MongoDBEngine(DatabaseEngine):
     async def health_check(self) -> bool:
         """Check MongoDB health."""
         try:
+            if not self.is_connected or not self.connection:
+                return False
             await self.connection.admin.command('ping')
             return True
         except Exception:

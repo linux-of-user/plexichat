@@ -186,7 +186,7 @@ class UserModerationStatus(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Indexes
-    __table_args__ = ()
+    __table_args__ = (
         Index("idx_user_moderation_muted", "is_muted", "mute_expires_at"),
         Index("idx_user_moderation_banned", "is_banned", "ban_expires_at"),
         Index("idx_user_moderation_timeout", "is_timed_out", "timeout_expires_at"),

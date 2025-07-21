@@ -248,7 +248,7 @@ class AdvancedORM:
         @event.listens_for(self.sync_engine, "after_cursor_execute")
         def on_after_execute(conn, cursor, statement, parameters, context, executemany):
             if hasattr(context, "_query_start_time"):
-                execution_time = ()
+                execution_time = (
                     datetime.now(timezone.utc) - context._query_start_time
                 ).total_seconds()
                 self._update_query_metrics(execution_time)

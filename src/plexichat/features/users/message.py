@@ -16,6 +16,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from enum import Enum
+from sqlalchemy import Column, JSON
 
 # SQLModel imports
 try:
@@ -105,6 +106,7 @@ class Message(SQLModel, table=True):
     mentions: Optional[str] = Field(None, description="JSON string of user mentions")
     reactions: Optional[str] = Field(None, description="JSON string of reactions")
     extra_metadata: Optional[str] = Field(None, description="Additional metadata as JSON")
+    custom_fields: Dict[str, Any] = Field(default={}, sa_column=Column(JSON))  # Dynamic custom fields (persisted as JSON)
 
     # Search and indexing
     search_vector: Optional[str] = Field(None, description="Search vector for full-text search")
@@ -168,8 +170,21 @@ class MessageService:
     """Enhanced message service using EXISTING database abstraction."""
 
     def __init__(self):
-        self.db_manager = database_manager
-        self.performance_logger = performance_logger
+        try:
+            from plexichat.core.database.manager import database_manager
+            self.db_manager = database_manager
+        except ImportError:
+            self.db_manager = None
+
+    async def get_message_by_id(self, message_id: int):
+        if self.db_manager:
+            result = await self.db_manager.get_message_by_id(message_id)
+            return result
+        return None
+
+    async def update_message(self, message):
+        if self.db_manager:
+            await self.db_manager.update_message(message)
 
     @async_track_performance("message_creation") if async_track_performance else lambda f: f
     async def create_message(self, sender_id: int, message_data: MessageCreate) -> Optional[Message]:

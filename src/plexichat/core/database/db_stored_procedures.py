@@ -597,7 +597,7 @@ class StoredProcedureManager:
 
         return procedures
 
-    async def _create_procedure(self, client: AbstractDatabaseClient,)
+    async def _create_procedure(self, client: AbstractDatabaseClient,
                               procedure: StoredProcedure) -> bool:
         """Create a stored procedure in the database."""
         try:

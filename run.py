@@ -3179,75 +3179,18 @@ def generate_secure_password():
     return password
 
 def initialize_database_interactive(config_path):
-    """Initialize database with interactive setup."""
+    """Initialize database with interactive setup using abstraction layer only."""
     try:
         print(f"  {Colors.BRIGHT_CYAN}Initializing database...{Colors.RESET}")
-
         # Create database directory
         db_dir = config_path / "database"
         db_dir.mkdir(parents=True, exist_ok=True)
-
-        # Create basic database schema
-        db_file = db_dir / "plexichat.db"
-
-        import sqlite3
-        conn = sqlite3.connect(db_file)
-        cursor = conn.cursor()
-
-        # Create users table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                role TEXT DEFAULT 'user',
-                active BOOLEAN DEFAULT 1,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP
-            )
-        ''')
-
-        # Create sessions table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS sessions (
-                id TEXT PRIMARY KEY,
-                user_id INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        ''')
-
-        # Create settings table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS settings (
-                key TEXT PRIMARY KEY,
-                value TEXT,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-
-        # Insert default settings
-        default_settings = [
-            ('app_name', 'PlexiChat'),
-            ('app_version', '1.0.0'),
-            ('setup_completed', 'true'),
-            ('database_initialized', 'true')
-        ]
-
-        cursor.executemany(
-            'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
-            default_settings
-        )
-
-        conn.commit()
-        conn.close()
-
-        print(f"  {Colors.GREEN}✓ Database initialized at {db_file}")
-
+        # Use abstraction layer for schema creation
+        from plexichat.core.database.manager import database_manager
+        asyncio.run(database_manager.initialize_schema())
+        print(f"  {Colors.GREEN}\u2713 Database initialized at {db_dir / 'plexichat.db'}")
     except Exception as e:
-        print(f"  {Colors.RED}✗ Database initialization failed: {e}")
+        print(f"  {Colors.RED}\u2717 Database initialization failed: {e}")
         raise
 
 def setup_security_interactive(config_path):

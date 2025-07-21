@@ -158,7 +158,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
                         click.echo("\n Schema Recommendations:")
                         schema_data = []
                         for rec in report.schema_recommendations[:5]:  # Show top 5
-                            schema_data.append([)
+                            schema_data.append([
                                 f"{rec.table_name}.{rec.column_name}",
                                 rec.current_type,
                                 rec.recommended_type,

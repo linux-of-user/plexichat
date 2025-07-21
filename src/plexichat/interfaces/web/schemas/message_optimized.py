@@ -1,8 +1,3 @@
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
 """
 Message schemas for PlexiChat API.
 Enhanced with comprehensive validation and security.
@@ -10,7 +5,7 @@ Enhanced with comprehensive validation and security.
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
 
@@ -37,7 +32,8 @@ class MessageBase(BaseModel):
     message_type: MessageType = Field(default=MessageType.TEXT, description="Message type")
     priority: MessagePriority = Field(default=MessagePriority.NORMAL, description="Message priority")
 
-    @validator('content')
+    @field_validator('content')
+    @classmethod
     def validate_content(cls, v):
         if not v.strip():
             raise ValueError('Message content cannot be empty')
@@ -57,7 +53,8 @@ class MessageUpdate(BaseModel):
     priority: Optional[MessagePriority] = Field(None, description="Updated priority")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Updated metadata")
 
-    @validator('content')
+    @field_validator('content')
+    @classmethod
     def validate_content(cls, v):
         if v is not None and not v.strip():
             raise ValueError('Message content cannot be empty')
@@ -121,7 +118,8 @@ class MessageSearch(BaseModel):
     start_date: Optional[datetime] = Field(None, description="Start date filter")
     end_date: Optional[datetime] = Field(None, description="End date filter")
 
-    @validator('query')
+    @field_validator('query')
+    @classmethod
     def validate_query(cls, v):
         if not v.strip():
             raise ValueError('Search query cannot be empty')

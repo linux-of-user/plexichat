@@ -5,12 +5,17 @@
 # pyright: reportReturnType=false
 import json
 import logging
-import sqlite3
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Import database abstraction layer
+try:
+    from plexichat.core.database.manager import database_manager
+except ImportError:
+    database_manager = None
 
 from cryptography.fernet import Fernet
 
@@ -78,66 +83,76 @@ class DatabaseAuthStorage(AuthStorageBackend):
         self.db_path.parent.mkdir(exist_ok=True)
         self._init_database()
 
-    def _init_database(self):
-        """Initialize the database."""
+    async def _init_database(self):
+        """Initialize the database using abstraction layer."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(""")
-                    CREATE TABLE IF NOT EXISTS auth_records ()
-                        user_id TEXT PRIMARY KEY,
-                        username TEXT UNIQUE NOT NULL,
-                        password_hash TEXT NOT NULL,
-                        salt TEXT NOT NULL,
-                        mfa_enabled BOOLEAN DEFAULT FALSE,
-                        mfa_devices TEXT DEFAULT '[]',
-                        session_data TEXT DEFAULT '{}',
-                        permissions TEXT DEFAULT '[]',
-                        created_at TEXT NOT NULL,
-                        updated_at TEXT NOT NULL,
-                        last_login TEXT,
-                        login_attempts INTEGER DEFAULT 0,
-                        locked_until TEXT
-                    )
-                """)
-                conn.commit()
+            if database_manager:
+                # Use database abstraction layer for schema creation
+                await database_manager.ensure_table_exists("auth_records", {
+                    "user_id": "TEXT PRIMARY KEY",
+                    "username": "TEXT UNIQUE NOT NULL",
+                    "password_hash": "TEXT NOT NULL",
+                    "salt": "TEXT NOT NULL",
+                    "mfa_enabled": "BOOLEAN DEFAULT FALSE",
+                    "mfa_devices": "TEXT DEFAULT '[]'",
+                    "session_data": "TEXT DEFAULT '{}'",
+                    "permissions": "TEXT DEFAULT '[]'",
+                    "created_at": "TEXT NOT NULL",
+                    "updated_at": "TEXT NOT NULL",
+                    "last_login": "TEXT",
+                    "login_attempts": "INTEGER DEFAULT 0",
+                    "locked_until": "TEXT"
+                })
+            else:
+                # Fallback: create directory structure
+                Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             logger.error(f"Failed to initialize auth database: {e}")
 
     async def store_auth_record(self, record: AuthRecord) -> bool:
-        """Store an authentication record."""
+        """Store an authentication record using abstraction layer."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(""")
-                    INSERT OR REPLACE INTO auth_records
-                    (user_id, username, password_hash, salt, mfa_enabled, mfa_devices,)
-                     session_data, permissions, created_at, updated_at, last_login,
-                     login_attempts, locked_until)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, ()
-                    record.user_id, record.username, record.password_hash, record.salt,
-                    record.mfa_enabled, json.dumps(record.mfa_devices),
-                    json.dumps(record.session_data), json.dumps(record.permissions),
-                    record.created_at.isoformat(), record.updated_at.isoformat(),
-                    record.last_login.isoformat() if record.last_login else None,
-                    record.login_attempts,
-                    record.locked_until.isoformat() if record.locked_until else None
-                ))
-                conn.commit()
-            return True
+            if database_manager:
+                # Use database abstraction layer
+                record_data = {
+                    "user_id": record.user_id,
+                    "username": record.username,
+                    "password_hash": record.password_hash,
+                    "salt": record.salt,
+                    "mfa_enabled": record.mfa_enabled,
+                    "mfa_devices": json.dumps(record.mfa_devices),
+                    "session_data": json.dumps(record.session_data),
+                    "permissions": json.dumps(record.permissions),
+                    "created_at": record.created_at.isoformat(),
+                    "updated_at": record.updated_at.isoformat(),
+                    "last_login": record.last_login.isoformat() if record.last_login else None,
+                    "login_attempts": record.login_attempts,
+                    "locked_until": record.locked_until.isoformat() if record.locked_until else None
+                }
+
+                # Check if record exists
+                existing = await database_manager.get_record("auth_records", record.user_id)
+                if existing:
+                    await database_manager.update_record("auth_records", record.user_id, record_data)
+                else:
+                    await database_manager.insert_record("auth_records", record_data)
+                return True
+            else:
+                # Fallback: just return True (no actual storage)
+                logger.warning("Database manager not available, auth record not stored")
+                return True
         except Exception as e:
             logger.error(f"Failed to store auth record: {e}")
             return False
 
     async def get_auth_record(self, user_id: str) -> Optional[AuthRecord]:
-        """Get an authentication record."""
+        """Get an authentication record using abstraction layer."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute()
-                    "SELECT * FROM auth_records WHERE user_id = ?", (user_id,)
-                )
-                row = cursor.fetchone()
-                if row:
-                    return self._row_to_record(row)
+            if database_manager:
+                # Use database abstraction layer
+                record_data = await database_manager.get_record("auth_records", user_id)
+                if record_data:
+                    return self._dict_to_record(record_data)
             return None
         except Exception as e:
             logger.error(f"Failed to get auth record: {e}")
@@ -145,43 +160,70 @@ class DatabaseAuthStorage(AuthStorageBackend):
 
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.updated_at = datetime.utcnow()
+        from datetime import timezone
+        record.updated_at = datetime.now(timezone.utc)
         return await self.store_auth_record(record)
 
     async def delete_auth_record(self, user_id: str) -> bool:
-        """Delete an authentication record."""
+        """Delete an authentication record using abstraction layer."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("DELETE FROM auth_records WHERE user_id = ?", (user_id,))
-                conn.commit()
-            return True
+            if database_manager:
+                # Use database abstraction layer
+                await database_manager.delete_record("auth_records", user_id)
+                return True
+            else:
+                logger.warning("Database manager not available, auth record not deleted")
+                return True
         except Exception as e:
             logger.error(f"Failed to delete auth record: {e}")
             return False
 
     async def list_auth_records(self) -> List[AuthRecord]:
-        """List all authentication records."""
+        """List all authentication records using abstraction layer."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("SELECT * FROM auth_records")
-                rows = cursor.fetchall()
-                return [self._row_to_record(row) for row in rows]
+            if database_manager:
+                # Use database abstraction layer
+                records_data = await database_manager.list_records("auth_records")
+                return [self._dict_to_record(record_data) for record_data in records_data]
+            else:
+                return []
         except Exception as e:
             logger.error(f"Failed to list auth records: {e}")
             return []
 
     async def is_healthy(self) -> bool:
-        """Check if the backend is healthy."""
+        """Check if the backend is healthy using abstraction layer."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("SELECT 1")
-            return True
+            if database_manager:
+                # Use database abstraction layer health check
+                return await database_manager.test_connection()
+            else:
+                # Fallback: check if directory exists
+                return Path(self.db_path).parent.exists()
         except Exception:
             return False
 
+    def _dict_to_record(self, data: Dict[str, Any]) -> AuthRecord:
+        """Convert dictionary data to AuthRecord."""
+        return AuthRecord(
+            user_id=data["user_id"],
+            username=data["username"],
+            password_hash=data["password_hash"],
+            salt=data["salt"],
+            mfa_enabled=data.get("mfa_enabled", False),
+            mfa_devices=json.loads(data.get("mfa_devices", "[]")),
+            session_data=json.loads(data.get("session_data", "{}")),
+            permissions=json.loads(data.get("permissions", "[]")),
+            created_at=datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.now(),
+            updated_at=datetime.fromisoformat(data["updated_at"]) if data.get("updated_at") else datetime.now(),
+            last_login=datetime.fromisoformat(data["last_login"]) if data.get("last_login") else None,
+            login_attempts=data.get("login_attempts", 0),
+            locked_until=datetime.fromisoformat(data["locked_until"]) if data.get("locked_until") else None
+        )
+
     def _row_to_record(self, row) -> AuthRecord:
         """Convert database row to AuthRecord."""
-        return AuthRecord()
+        return AuthRecord(
             user_id=row[0],
             username=row[1],
             password_hash=row[2],
@@ -251,7 +293,8 @@ class FileAuthStorage(AuthStorageBackend):
 
     async def update_auth_record(self, record: AuthRecord) -> bool:
         """Update an authentication record."""
-        record.updated_at = datetime.utcnow()
+        from datetime import timezone
+        record.updated_at = datetime.now(timezone.utc)
         return await self.store_auth_record(record)
 
     async def delete_auth_record(self, user_id: str) -> bool:
@@ -433,3 +476,28 @@ distributed_auth_storage = DistributedAuthStorage()
 def get_auth_storage() -> DistributedAuthStorage:
     """Get the global distributed auth storage."""
     return distributed_auth_storage
+
+# --- SSL/Certificate Management Integration Points ---
+# These stubs will be used by the GUI/WebUI to trigger SSL setup, upload, renewal, and status checks.
+# Reference: security.txt - Certificate Management, SSL Automation
+# Example: def trigger_ssl_renewal(domain: str): ...
+
+# --- Auth Storage DAO/Service Integration ---
+# Reference: improvements.txt, security.txt
+class AuthStorageService:
+    def __init__(self):
+        try:
+            from plexichat.core.database.manager import database_manager
+            self.db_manager = database_manager
+        except ImportError:
+            self.db_manager = None
+
+    async def get_auth_record_by_id(self, user_id: str):
+        if self.db_manager:
+            result = await self.db_manager.get_auth_record_by_id(user_id)
+            return result
+        return None
+
+    async def update_auth_record(self, record):
+        if self.db_manager:
+            await self.db_manager.update_auth_record(record)

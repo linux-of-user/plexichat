@@ -9,23 +9,21 @@ from pathlib import Path
 from typing import List
 
 
-from ..core.ai_abstraction_layer import ()
-from pathlib import Path
-
-
 from pathlib import Path
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from typing import Optional
 
+from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIModel,
     AIProvider,
     AIRequest,
     ModelCapability,
     ModelStatus,
-, Optional)
+)
 
 """
 AI Management WebUI Components
@@ -103,7 +101,7 @@ async def models_management(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/models/add")
-async def add_model_form()
+async def add_model_form(
     request: Request,
     model_id: str = Form(...),
     model_name: str = Form(...),
@@ -118,7 +116,7 @@ async def add_model_form()
 ):
     """Add new AI model via form."""
     try:
-        model = AIModel()
+        model = AIModel(
             id=model_id,
             name=model_name,
             provider=AIProvider(provider),
@@ -188,7 +186,7 @@ async def providers_management(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/providers/configure")
-async def configure_provider_form()
+async def configure_provider_form(
     request: Request,
     provider: str = Form(...),
     api_key: str = Form(""),
@@ -246,7 +244,7 @@ async def permissions_management(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/permissions/add")
-async def add_permission_form()
+async def add_permission_form(
     request: Request,
     user_id: str = Form(...),
     model_id: str = Form(...),
@@ -254,7 +252,7 @@ async def add_permission_form()
 ):
     """Add user permission via form."""
     try:
-        ai_layer.access_control.add_user_permission()
+        ai_layer.access_control.add_user_permission(
             user_id,
             model_id,
             [ModelCapability(cap) for cap in capabilities]

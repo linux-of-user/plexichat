@@ -344,11 +344,22 @@ class UnifiedBackupManager:
                 }
             }
 
-            await database_manager.create_table_if_not_exists(backup_operations_schema)
+            # Create backup operations table using execute_query
+            backup_operations_sql = """
+                CREATE TABLE IF NOT EXISTS backup_operations (
+                    backup_id TEXT PRIMARY KEY,
+                    operation_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    completed_at TEXT,
+                    metadata TEXT
+                )
+            """
+            await database_manager.execute_query(backup_operations_sql)
 
             # Unified shards table
-            await db.execute(""")
-                CREATE TABLE IF NOT EXISTS unified_shards ()
+            unified_shards_sql = """
+                CREATE TABLE IF NOT EXISTS unified_shards (
                     shard_id TEXT PRIMARY KEY,
                     backup_id TEXT NOT NULL,
                     shard_index INTEGER NOT NULL,
@@ -365,7 +376,8 @@ class UnifiedBackupManager:
                     metadata TEXT,
                     FOREIGN KEY (backup_id) REFERENCES backup_operations (backup_id)
                 )
-            """)
+            """
+            await database_manager.execute_query(unified_shards_sql)
 
             # System health metrics table
             await db.execute(""")

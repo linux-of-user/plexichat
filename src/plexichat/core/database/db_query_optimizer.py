@@ -354,22 +354,22 @@ class SQLQueryAnalyzer:
             )
 
         if not analysis.has_limit and analysis.query_type == QueryType.SELECT:
-            suggestions.append()
+            suggestions.append(
                 "Add LIMIT clause to restrict the number of rows returned"
             )
 
         if self.anti_patterns["function_in_where"].search(query):
-            suggestions.append()
+            suggestions.append(
                 "Avoid using functions in WHERE clauses; consider computed columns or indexes"
             )
 
         if self.anti_patterns["or_conditions"].search(query):
-            suggestions.append()
+            suggestions.append(
                 "Consider rewriting OR conditions as separate queries with UNION for better index usage"
             )
 
         if analysis.complexity_score > 5.0:
-            suggestions.append()
+            suggestions.append(
                 "Query complexity is high; consider breaking into smaller queries or using stored procedures"
             )
 

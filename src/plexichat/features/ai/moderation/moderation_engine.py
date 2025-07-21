@@ -7,7 +7,6 @@
 import json
 import logging
 import re
-import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -122,12 +121,10 @@ class ModerationEngine:
     """Advanced AI moderation engine with multiple provider support."""
 
     def __init__(self, config_path: str = "config/moderation_config.json"):
-        from pathlib import Path
-self.config_path = Path(config_path)
+        self.config_path = Path(config_path)
         self.configs: Dict[str, ModerationConfig] = {}
         self.session: Optional[aiohttp.ClientSession] = None
-        from pathlib import Path
-self.db_path = Path("data/moderation.db")
+        self.db_path = Path("data/moderation.db")
         self.load_config()
         self._init_database()
 
@@ -179,62 +176,14 @@ self.db_path = Path("data/moderation.db")
         """Initialize moderation database."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Initialize moderation results database using abstraction layer
-        from plexichat.core.database import database_manager
+        # Use ModerationDataService for all DB initialization and CRUD
+        from src.plexichat.features.ai.moderation.moderation_data_service import ModerationDataService
+        self.moderation_service = ModerationDataService()
+        # Replace any direct DB/table creation with service-based initialization
+        # (If needed, add an async initialization method)
+        pass
 
-        moderation_results_schema = {
-            "table_name": "moderation_results",
-            "columns": {
-                "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
-                "content_id": {"type": "TEXT", "nullable": False},
-                "content_hash": {"type": "TEXT", "nullable": False},
-                "confidence_score": {"type": "REAL", "nullable": False},
-                "recommended_action": {"type": "TEXT", "nullable": False},
-                "severity": {"type": "TEXT", "nullable": False},
-                "categories": {"type": "TEXT", "nullable": False},
-                "reasoning": {"type": "TEXT"},
-                "metadata": {"type": "TEXT"},
-                "processing_time_ms": {"type": "REAL"},
-                "model_used": {"type": "TEXT"},
-                "requires_human_review": {"type": "BOOLEAN"},
-                "timestamp": {"type": "TEXT", "nullable": False},
-                "user_feedback": {"type": "TEXT"},
-                "human_reviewed": {"type": "BOOLEAN", "default": False},
-                "human_decision": {"type": "TEXT"},
-                "created_at": {"type": "TIMESTAMP", "default": "CURRENT_TIMESTAMP"}
-            }
-        }
-
-        await database_manager.create_table_if_not_exists(moderation_results_schema)
-
-        await database_manager.create_index_if_not_exists(
-            table_name="moderation_results",
-            columns=["content_hash"],
-            index_name="idx_content_hash"
-        )
-
-            conn.execute(""")
-                CREATE INDEX IF NOT EXISTS idx_timestamp ON moderation_results(timestamp)
-            """)
-
-            conn.execute(""")
-                CREATE TABLE IF NOT EXISTS training_data ()
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    content TEXT NOT NULL,
-                    content_hash TEXT NOT NULL UNIQUE,
-                    label TEXT NOT NULL,
-                    confidence REAL,
-                    source TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-            conn.commit()
-
-        logger.info("Moderation database initialized")
-
-    async def moderate_content()
+    async def moderate_content(
         self,
         content: str,
         content_id: str,
@@ -277,7 +226,7 @@ self.db_path = Path("data/moderation.db")
         except Exception as e:
             logger.error(f"Moderation failed for content {content_id}: {e}")
             # Return safe default
-            return ModerationResult()
+            return ModerationResult(
                 content_id=content_id,
                 confidence_score=0.5,
                 recommended_action=ModerationAction.FLAG,
@@ -291,7 +240,7 @@ self.db_path = Path("data/moderation.db")
                 timestamp=datetime.now(timezone.utc)
             )
 
-    async def _moderate_with_openai()
+    async def _moderate_with_openai(
         self,
         content: str,
         content_id: str,
@@ -319,7 +268,7 @@ self.db_path = Path("data/moderation.db")
             "Content-Type": "application/json"
         }
 
-        async with self.session.post()
+        async with self.session.post(
             config.endpoint_url,
             json=payload,
             headers=headers,
@@ -332,7 +281,7 @@ self.db_path = Path("data/moderation.db")
             else:
                 raise Exception(f"OpenAI API error: {response.status}")
 
-    async def _moderate_with_local_model()
+    async def _moderate_with_local_model(
         self,
         content: str,
         content_id: str,
@@ -349,14 +298,14 @@ self.db_path = Path("data/moderation.db")
             "metadata": metadata or {}
         }
 
-        async with self.session.post()
+        async with self.session.post(
             config.endpoint_url,
             json=payload,
             timeout=aiohttp.ClientTimeout(total=config.timeout_seconds)
         ) as response:
             if response.status == 200:
                 data = await response.json()
-                return ModerationResult()
+                return ModerationResult(
                     content_id=content_id,
                     confidence_score=data.get("confidence", 0.5),
                     recommended_action=ModerationAction(data.get("action", "flag")),
@@ -404,7 +353,7 @@ self.db_path = Path("data/moderation.db")
                     "requires_human_review": True
                 }
 
-            return ModerationResult()
+            return ModerationResult(
                 content_id=content_id,
                 confidence_score=float(data.get("confidence", 0.5)),
                 recommended_action=ModerationAction(data.get("action", "flag")),
@@ -420,7 +369,7 @@ self.db_path = Path("data/moderation.db")
 
         except Exception as e:
             logger.error(f"Failed to parse moderation response: {e}")
-            return ModerationResult()
+            return ModerationResult(
                 content_id=content_id,
                 confidence_score=0.5,
                 recommended_action=ModerationAction.FLAG,
@@ -437,14 +386,12 @@ self.db_path = Path("data/moderation.db")
     def _get_cached_result(self, content_hash: str) -> Optional[ModerationResult]:
         """Get cached moderation result."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute()
-                    "SELECT * FROM moderation_results WHERE content_hash = ? ORDER BY created_at DESC LIMIT 1",
-                    (content_hash,)
-                )
-                row = cursor.fetchone()
-                if row:
-                    return self._row_to_result(row)
+            # Use ModerationDataService for caching
+            from src.plexichat.features.ai.moderation.moderation_data_service import ModerationDataService
+            moderation_service = ModerationDataService()
+            result = moderation_service.get_latest_moderation_result_by_hash(content_hash)
+            if result:
+                return ModerationResult(**result)
         except Exception as e:
             logger.error(f"Failed to get cached result: {e}")
         return None
@@ -452,34 +399,16 @@ self.db_path = Path("data/moderation.db")
     def _store_result(self, result: ModerationResult, content_hash: str):
         """Store moderation result in database."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(""")
-                    INSERT INTO moderation_results ()
-                        content_id, content_hash, confidence_score, recommended_action,
-                        severity, categories, reasoning, metadata, processing_time_ms,
-                        model_used, requires_human_review, timestamp
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, ()
-                    result.content_id,
-                    content_hash,
-                    result.confidence_score,
-                    result.recommended_action.value,
-                    result.severity.value,
-                    json.dumps([cat.value for cat in result.categories]),
-                    result.reasoning,
-                    json.dumps(result.metadata),
-                    result.processing_time_ms,
-                    result.model_used,
-                    result.requires_human_review,
-                    result.timestamp.isoformat()
-                ))
-                conn.commit()
+            # Use ModerationDataService for storing results
+            from src.plexichat.features.ai.moderation.moderation_data_service import ModerationDataService
+            moderation_service = ModerationDataService()
+            moderation_service.add_moderation_result(result.to_dict())
         except Exception as e:
             logger.error(f"Failed to store moderation result: {e}")
 
     def _row_to_result(self, row) -> ModerationResult:
         """Convert database row to ModerationResult."""
-        return ModerationResult()
+        return ModerationResult(
             content_id=row[1],
             confidence_score=row[3],
             recommended_action=ModerationAction(row[4]),
@@ -496,38 +425,11 @@ self.db_path = Path("data/moderation.db")
     async def get_moderation_stats(self, days: int = 7) -> Dict[str, Any]:
         """Get moderation statistics."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute(""")
-                    SELECT
-                        COUNT(*) as total_moderations,
-                        AVG(confidence_score) as avg_confidence,
-                        COUNT(CASE WHEN requires_human_review THEN 1 END) as human_reviews_needed,
-                        COUNT(CASE WHEN human_reviewed THEN 1 END) as human_reviewed,
-                        recommended_action,
-                        COUNT(*) as action_count
-                    FROM moderation_results
-                    WHERE datetime(timestamp) >= datetime('now', '-{} days')
-                    GROUP BY recommended_action
-                """.format(days))
-
-                results = cursor.fetchall()
-
-                stats = {
-                    "total_moderations": 0,
-                    "avg_confidence": 0.0,
-                    "human_reviews_needed": 0,
-                    "human_reviewed": 0,
-                    "actions": {}
-                }
-
-                for row in results:
-                    stats["total_moderations"] += row[5]
-                    stats["avg_confidence"] = row[1] if row[1] else 0.0
-                    stats["human_reviews_needed"] += row[2]
-                    stats["human_reviewed"] += row[3]
-                    stats["actions"][row[4]] = row[5]
-
-                return stats
+            # Use ModerationDataService for stats
+            from src.plexichat.features.ai.moderation.moderation_data_service import ModerationDataService
+            moderation_service = ModerationDataService()
+            stats = moderation_service.get_moderation_stats(days)
+            return stats
 
         except Exception as e:
             logger.error(f"Failed to get moderation stats: {e}")
@@ -536,4 +438,4 @@ self.db_path = Path("data/moderation.db")
     async def cleanup(self):
         """Cleanup resources."""
         if self.session:
-            await if self.session: self.session.close()
+            await self.session.close()

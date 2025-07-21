@@ -87,6 +87,7 @@ class User:
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = None
     last_login: datetime = None
+    custom_fields: Dict[str, Any] = field(default_factory=dict)  # Dynamic custom fields (persisted as JSON)
 
 # User Profile Model
 @dataclass
@@ -240,6 +241,20 @@ class UserModelService:
                 return None
 
         return None
+
+    async def get_user_by_id(self, user_id: int):
+        # Use DAO/abstraction layer to fetch user by ID
+        # Reference: improvements.txt
+        if self.db_manager:
+            result = await self.db_manager.get_user_by_id(user_id)
+            return result
+        return None
+
+    async def update_user(self, user):
+        # Use DAO/abstraction layer to update user
+        # Reference: improvements.txt
+        if self.db_manager:
+            await self.db_manager.update_user(user)
 
 # Global service instance
 user_model_service = UserModelService()

@@ -278,7 +278,7 @@ class TokenValidator:
 class BiometricValidator:
     """Biometric data validator."""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
 
     def validate_biometric_data(self, biometric_data: bytes, biometric_type: str) -> ValidationResult:
