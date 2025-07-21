@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - PlexiChat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .setup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 50%;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .step.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .step.completed {
+            color: #28a745;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .db-options {
+            display: none;
+            margin-top: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .db-options.active {
+            display: block;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="logo">🗄️ Database Setup</div>
+        <div class="subtitle">Configure your PlexiChat database</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step completed">Welcome</div>
+            <div class="step active">Database</div>
+            <div class="step">Admin</div>
+            <div class="step">Complete</div>
+        </div>
+        
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <div class="info">
+            Choose your database type. SQLite is recommended for most installations as it requires no additional setup.
+        </div>
+        
+        <form method="post" action="/setup/database">
+            <div class="form-group">
+                <label for="db_type">Database Type:</label>
+                <select name="db_type" id="db_type" onchange="toggleDbOptions()" required>
+                    <option value="sqlite">SQLite (Recommended)</option>
+                    <option value="postgresql">PostgreSQL</option>
+                    <option value="mysql">MySQL</option>
+                </select>
+            </div>
+            
+            <div id="sqlite-info" class="db-options active">
+                <p><strong>SQLite Configuration:</strong></p>
+                <p>SQLite will create a local database file. No additional configuration required.</p>
+                <p>Database will be stored in: <code>~/.plexichat/plexichat.db</code></p>
+            </div>
+            
+            <div id="postgresql-options" class="db-options">
+                <div class="form-group">
+                    <label for="db_host">Host:</label>
+                    <input type="text" name="db_host" id="db_host" placeholder="localhost">
+                </div>
+                <div class="form-group">
+                    <label for="db_port">Port:</label>
+                    <input type="number" name="db_port" id="db_port" placeholder="5432">
+                </div>
+                <div class="form-group">
+                    <label for="db_name">Database Name:</label>
+                    <input type="text" name="db_name" id="db_name" placeholder="plexichat">
+                </div>
+                <div class="form-group">
+                    <label for="db_username">Username:</label>
+                    <input type="text" name="db_username" id="db_username">
+                </div>
+                <div class="form-group">
+                    <label for="db_password">Password:</label>
+                    <input type="password" name="db_password" id="db_password">
+                </div>
+            </div>
+            
+            <div id="mysql-options" class="db-options">
+                <div class="form-group">
+                    <label for="db_host_mysql">Host:</label>
+                    <input type="text" name="db_host" id="db_host_mysql" placeholder="localhost">
+                </div>
+                <div class="form-group">
+                    <label for="db_port_mysql">Port:</label>
+                    <input type="number" name="db_port" id="db_port_mysql" placeholder="3306">
+                </div>
+                <div class="form-group">
+                    <label for="db_name_mysql">Database Name:</label>
+                    <input type="text" name="db_name" id="db_name_mysql" placeholder="plexichat">
+                </div>
+                <div class="form-group">
+                    <label for="db_username_mysql">Username:</label>
+                    <input type="text" name="db_username" id="db_username_mysql">
+                </div>
+                <div class="form-group">
+                    <label for="db_password_mysql">Password:</label>
+                    <input type="password" name="db_password" id="db_password_mysql">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Configure Database</button>
+        </form>
+    </div>
+    
+    <script>
+        function toggleDbOptions() {
+            const dbType = document.getElementById('db_type').value;
+            const options = document.querySelectorAll('.db-options');
+            
+            options.forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            if (dbType === 'sqlite') {
+                document.getElementById('sqlite-info').classList.add('active');
+            } else if (dbType === 'postgresql') {
+                document.getElementById('postgresql-options').classList.add('active');
+            } else if (dbType === 'mysql') {
+                document.getElementById('mysql-options').classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

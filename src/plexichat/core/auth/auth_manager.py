@@ -175,7 +175,7 @@ class AuthManager:
             logger.error(f" Failed to initialize Authentication Manager: {e}")
             raise
 
-    async def authenticate()
+    async def authenticate(
         self, request: AuthenticationRequest
     ) -> AuthenticationResponse:
         """
@@ -192,7 +192,7 @@ class AuthManager:
 
         try:
             # Log authentication attempt
-            await self.audit_manager.log_auth_attempt()
+            await self.audit_manager.log_auth_attempt(
                 audit_id=audit_id,
                 username=request.username,
                 ip_address=request.ip_address or "unknown",
@@ -232,8 +232,10 @@ class AuthManager:
             user_id = auth_result.user_id
 
             # Check if MFA is required
-            mfa_required = await self._is_mfa_required()
-                user_id or "unknown", request.security_level, risk_score
+            mfa_required = await self._is_mfa_required(
+                user_id=user_id or "unknown",
+                security_level=request.security_level,
+                risk_score=risk_score
             )
 
             if mfa_required and not request.mfa_code:
@@ -254,7 +256,7 @@ class AuthManager:
 
             # Verify MFA if provided
             if request.mfa_code and user_id:
-                mfa_result = self.mfa_manager.verify_2fa_login()
+                mfa_result = self.mfa_manager.verify_2fa_login(
                     user_id=int(user_id),
                     code=request.mfa_code,
                     method=request.mfa_method or "totp",
@@ -271,13 +273,13 @@ class AuthManager:
 
             # Check device trust
             if user_id and request.device_info:
-                device_trusted = await self.device_manager.is_device_trusted()
+                device_trusted = await self.device_manager.is_device_trusted(
                     user_id=user_id, device_info=request.device_info
                 )
 
                 # Register device if requested
                 if request.remember_device and not device_trusted:
-                    await self.device_manager.register_device()
+                    await self.device_manager.register_device(
                         user_id=user_id, device_info=request.device_info
                     )
                     device_trusted = True
@@ -288,7 +290,7 @@ class AuthManager:
             if not user_id:
                 raise AuthenticationError("User ID is required for session creation")
 
-            session_id = await self.session_manager.create_session()
+            session_id = await self.session_manager.create_session(
                 user_id=user_id,
                 device_info=request.device_info or {},
                 security_level=request.security_level,
@@ -296,13 +298,13 @@ class AuthManager:
             )
 
             # Create tokens
-            access_token = await self.token_manager.create_access_token()
+            access_token = await self.token_manager.create_access_token(
                 user_id=user_id,
                 session_id=session_id,
                 security_level=request.security_level,
             )
 
-            refresh_token = await self.token_manager.create_refresh_token()
+            refresh_token = await self.token_manager.create_refresh_token(
                 user_id=user_id, session_id=session_id
             )
 
@@ -310,7 +312,7 @@ class AuthManager:
             await self._clear_failed_attempts(request.username)
 
             # Log successful authentication
-            await self.audit_manager.log_auth_success()
+            await self.audit_manager.log_auth_success(
                 audit_id=audit_id,
                 user_id=user_id,
                 session_id=session_id,
@@ -338,7 +340,7 @@ class AuthManager:
         except Exception as e:
             logger.error(f" Authentication error: {e}")
 
-            await self.audit_manager.log_auth_error()
+            await self.audit_manager.log_auth_error(
                 audit_id=audit_id,
                 username=request.username,
                 error=str(e),
@@ -371,7 +373,7 @@ class AuthManager:
         """Refresh an access token."""
         return await self.token_manager.refresh_token(refresh_token)
 
-    async def logout()
+    async def logout(
         self, session_id: Optional[str] = None, token: Optional[str] = None
     ) -> bool:
         """Logout user and invalidate session/token."""
@@ -388,7 +390,7 @@ class AuthManager:
             logger.error(f" Logout error: {e}")
             return False
 
-    async def require_authentication()
+    async def require_authentication(
         self, token: str, required_level: str = "BASIC"
     ) -> Dict[str, Any]:
         """Require authentication with minimum security level."""
@@ -401,7 +403,7 @@ class AuthManager:
             # Check security level
             current_level = token_data.get("security_level", "BASIC")
             if not await self._meets_security_level(current_level, required_level):
-                raise AuthorizationError()
+                raise AuthorizationError(
                     f"Insufficient security level: {current_level} < {required_level}"
                 )
 
@@ -444,7 +446,7 @@ class AuthManager:
             logger.error(f" Error during Authentication Manager shutdown: {e}")
 
     # Private helper methods
-    async def _authenticate_primary()
+    async def _authenticate_primary(
         self, request: AuthenticationRequest
     ) -> AuthenticationResponse:
         """Perform primary authentication."""
@@ -457,7 +459,7 @@ class AuthManager:
         else:
             return await self._authenticate_password(request)
 
-    async def _authenticate_password()
+    async def _authenticate_password(
         self, request: AuthenticationRequest
     ) -> AuthenticationResponse:
         """Authenticate with username/password."""
@@ -465,7 +467,7 @@ class AuthManager:
             if not request.password:
                 raise AuthenticationError("Password is required")
 
-            result = await self.password_manager.verify_password()
+            result = await self.password_manager.verify_password(
                 username=request.username, password=request.password
             )
 
@@ -491,7 +493,7 @@ class AuthManager:
                 error_message="Authentication failed",
             )
 
-    async def _authenticate_oauth()
+    async def _authenticate_oauth(
         self, request: AuthenticationRequest
     ) -> AuthenticationResponse:
         """Authenticate with OAuth provider."""
@@ -503,7 +505,7 @@ class AuthManager:
             error_message="OAuth authentication not implemented",
         )
 
-    async def _authenticate_biometric()
+    async def _authenticate_biometric(
         self, request: AuthenticationRequest
     ) -> AuthenticationResponse:
         """Authenticate with biometric data."""
@@ -515,7 +517,7 @@ class AuthManager:
             error_message="Biometric authentication not implemented",
         )
 
-    async def _authenticate_hardware_key()
+    async def _authenticate_hardware_key(
         self, request: AuthenticationRequest
     ) -> AuthenticationResponse:
         """Authenticate with hardware security key."""
@@ -529,7 +531,6 @@ class AuthManager:
 
     async def _is_rate_limited(self, request: AuthenticationRequest) -> bool:
         """Check if request is rate limited."""
-        # Rate limiting logic here - using request for future implementation
         _ = request  # Mark as used
         return False
 
@@ -540,17 +541,15 @@ class AuthManager:
 
     async def _is_account_locked(self, username: str) -> bool:
         """Check if account is locked."""
-        # Account locking logic here - using username for future implementation
         _ = username  # Mark as used
         return False
 
     async def _assess_risk(self, request: AuthenticationRequest) -> float:
         """Assess authentication risk."""
-        # Risk assessment logic here - using request for future implementation
         _ = request  # Mark as used
         return 0.1
 
-    async def _is_mfa_required()
+    async def _is_mfa_required(
         self, user_id: str, security_level: str, risk_score: float
     ) -> bool:
         """Check if MFA is required."""

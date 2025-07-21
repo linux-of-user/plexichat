@@ -81,7 +81,7 @@ class PlexiChatManager:
         """Check if module is available."""
         return self.modules.get(name, False)
 
-    def initialize(self):
+    async def initialize(self):
         """Initialize PlexiChat system."""
         try:
             if self.initialized:
@@ -93,7 +93,7 @@ class PlexiChatManager:
             self._register_core_modules()
 
             # Initialize core systems
-            self._initialize_core_systems()
+            await self._initialize_core_systems()
 
             self.initialized = True
             logger.info("PlexiChat system initialized successfully")
@@ -138,14 +138,14 @@ class PlexiChatManager:
         except Exception as e:
             logger.error(f"Error registering core modules: {e}")
 
-    def _initialize_core_systems(self):
+    async def _initialize_core_systems(self):
         """Initialize core systems."""
         try:
             # Initialize database if available
             if self.is_available("core"):
                 try:
                     from plexichat.core.database import initialize_database_system
-                    initialize_database_system()
+                    await initialize_database_system()
                     logger.info("Database system initialized")
                 except ImportError:
                     logger.warning("Database system not available")
@@ -234,10 +234,10 @@ def import_plexichat_modules():
         logger.error(f"Error importing PlexiChat modules: {e}")
 
 # Initialize PlexiChat
-def initialize_plexichat():
+async def initialize_plexichat():
     """Initialize PlexiChat system."""
     try:
-        plexichat_manager.initialize()
+        await plexichat_manager.initialize()
         import_plexichat_modules()
     except Exception as e:
         logger.error(f"Error during PlexiChat initialization: {e}")

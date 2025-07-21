@@ -9,7 +9,8 @@ import logging
 import sys
 import threading
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
+from pathlib import Path
 
 try:
     import click
@@ -20,14 +21,21 @@ try:
     import rich
     from rich.console import Console
     from rich.table import Table
-    from rich.progress import Progress
+    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn
     from rich.panel import Panel
+    from rich.prompt import Prompt
 except ImportError:
     rich = None
     Console = None
     Table = None
     Progress = None
     Panel = None
+    Prompt = None
+
+try:
+    from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+except ImportError:
+    unified_plugin_manager = None
 
 try:
     from plexichat.core.database.manager import database_manager
@@ -133,6 +141,61 @@ def print_table(data: List[Dict[str, Any]], title: str = "Results"):
         for i, row in enumerate(data):
             print(f"{i+1}. {row}")
 
+async def initialize_cli():
+    """Initialize CLI components."""
+    try:
+        # Initialize plugin manager
+        if unified_plugin_manager:
+            await unified_plugin_manager.initialize()
+            print_message("Plugin manager initialized", "success")
+
+        # Initialize database
+        if database_manager:
+            await database_manager.initialize()
+            print_message("Database initialized", "success")
+
+        # Initialize message processor
+        if message_processor:
+            await message_processor.start_processing()
+            print_message("Message processor started", "success")
+
+        # Initialize analytics
+        if analytics_manager:
+            await analytics_manager.start_processing()
+            print_message("Analytics manager started", "success")
+
+        return True
+    except Exception as e:
+        print_message(f"Failed to initialize CLI: {e}", "error")
+        return False
+
+async def shutdown_cli():
+    """Shutdown CLI components."""
+    try:
+        # Shutdown plugin manager
+        if unified_plugin_manager:
+            await unified_plugin_manager.shutdown()
+            print_message("Plugin manager shut down", "success")
+
+        # Shutdown message processor
+        if message_processor:
+            await message_processor.stop_processing()
+            print_message("Message processor stopped", "success")
+
+        # Shutdown analytics
+        if analytics_manager:
+            await analytics_manager.stop_processing()
+            print_message("Analytics manager stopped", "success")
+
+        # Shutdown thread manager
+        if thread_manager:
+            thread_manager.shutdown(wait=True)
+            print_message("Thread manager stopped", "success")
+
+        print_message("CLI shutdown complete", "success")
+    except Exception as e:
+        print_message(f"Error during CLI shutdown: {e}", "error")
+
 # CLI Commands
 if click:
     @click.group()
@@ -144,6 +207,10 @@ if click:
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.INFO)
+
+        # Initialize CLI
+        if not asyncio.run(initialize_cli()):
+            sys.exit(1)
 
         print_message("PlexiChat CLI initialized", "success")
 
@@ -161,19 +228,6 @@ if click:
         try:
             print_message(f"Starting PlexiChat server on {host}:{port}", "info")
 
-            # Initialize components
-            if database_manager:
-                asyncio.run(database_manager.initialize())
-                print_message("Database initialized", "success")
-
-            if message_processor:
-                asyncio.run(message_processor.start_processing())
-                print_message("Message processor started", "success")
-
-            if analytics_manager:
-                asyncio.run(analytics_manager.start_processing())
-                print_message("Analytics manager started", "success")
-
             # Start server
             from plexichat.interfaces.api.main_api import run_server
             run_server(host=host, port=port, reload=reload)
@@ -187,22 +241,7 @@ if click:
         """Stop the PlexiChat server."""
         try:
             print_message("Stopping PlexiChat server...", "info")
-
-            # Stop components
-            if message_processor:
-                asyncio.run(message_processor.stop_processing())
-                print_message("Message processor stopped", "success")
-
-            if analytics_manager:
-                asyncio.run(analytics_manager.stop_processing())
-                print_message("Analytics manager stopped", "success")
-
-            if thread_manager:
-                thread_manager.shutdown(wait=True)
-                print_message("Thread manager stopped", "success")
-
-            print_message("Server stopped successfully", "success")
-
+            asyncio.run(shutdown_cli())
         except Exception as e:
             print_message(f"Error stopping server: {e}", "error")
 
@@ -223,6 +262,16 @@ if click:
                     status_data.append({"Component": "Database", "Status": "Unhealthy"})
             else:
                 status_data.append({"Component": "Database", "Status": "Not Available"})
+
+            # Check plugin manager
+            if unified_plugin_manager:
+                plugin_stats = unified_plugin_manager.get_stats()
+                status_data.append({
+                    "Component": "Plugin Manager",
+                    "Status": f"Active ({plugin_stats['total_loaded']} plugins loaded)"
+                })
+            else:
+                status_data.append({"Component": "Plugin Manager", "Status": "Not Available"})
 
             # Check thread manager
             if thread_manager:
@@ -246,146 +295,120 @@ if click:
             print_message(f"Error checking status: {e}", "error")
 
     @cli.group()
-    def database():
-        """Database management commands."""
+    def plugins():
+        """Plugin management commands."""
         pass
 
-    @database.command()
-    def init():
-        """Initialize the database."""
-        try:
-            print_message("Initializing database...", "info")
-
-            if database_manager:
-                asyncio.run(database_manager.initialize())
-                print_message("Database initialized successfully", "success")
-            else:
-                print_message("Database manager not available", "error")
-
-        except Exception as e:
-            print_message(f"Database initialization failed: {e}", "error")
-            sys.exit(1)
-
-    @database.command()
-    def stats():
-        """Show database statistics."""
-        try:
-            if database_manager:
-                stats = database_manager.get_stats()
-
-                stats_data = [
-                    {"Metric": "Queries Executed", "Value": stats["queries_executed"]},
-                    {"Metric": "Queries Failed", "Value": stats["queries_failed"]},
-                    {"Metric": "Total Execution Time", "Value": f"{stats['total_execution_time']:.2f}s"},
-                    {"Metric": "Average Execution Time", "Value": f"{stats['average_execution_time']:.4f}s"},
-                    {"Metric": "Connection Pool Size", "Value": stats["connection_pool_size"]},
-                ]
-
-                print_table(stats_data, "Database Statistics")
-            else:
-                print_message("Database manager not available", "error")
-
-        except Exception as e:
-            print_message(f"Error getting database stats: {e}", "error")
-
-    @cli.group()
-    def users():
-        """User management commands."""
-        pass
-
-    @users.command()
-    @click.argument('username')
-    @click.argument('email')
-    @click.argument('password')
-    def create(username: str, email: str, password: str):
-        """Create a new user."""
-        try:
-            print_message(f"Creating user: {username}", "info")
-
-            # Hash password
-            if hash_password:
-                password_hash = hash_password(password)
-            else:
-                password_hash = password
-
-            # Create user (threaded)
-            if submit_task:
-                task_id = f"create_user_{username}_{int(time.time())}"
-                submit_task(task_id, _create_user_sync, username, email, password_hash)
-
-                if Progress:
-                    with Progress() as progress:
-                        task = progress.add_task("Creating user...", total=100)
-
-                        for i in range(100):
-                            time.sleep(0.01)
-                            progress.update(task, advance=1)
-
-                success = get_task_result(task_id, timeout=10.0)
-
-                if success:
-                    print_message(f"User '{username}' created successfully", "success")
-                else:
-                    print_message("User creation failed", "error")
-            else:
-                print_message("Threading not available", "error")
-
-        except Exception as e:
-            print_message(f"Error creating user: {e}", "error")
-
-    @users.command()
-    @click.argument('username')
-    def delete(username: str):
-        """Delete a user."""
-        try:
-            # Confirm deletion
-            if click.confirm(f"Are you sure you want to delete user '{username}'?"):
-                print_message(f"Deleting user: {username}", "info")
-
-                # Delete user (threaded)
-                if submit_task:
-                    task_id = f"delete_user_{username}_{int(time.time())}"
-                    submit_task(task_id, _delete_user_sync, username)
-                    success = get_task_result(task_id, timeout=10.0)
-
-                    if success:
-                        print_message(f"User '{username}' deleted successfully", "success")
-                    else:
-                        print_message("User deletion failed", "error")
-                else:
-                    print_message("Threading not available", "error")
-            else:
-                print_message("User deletion cancelled", "info")
-
-        except Exception as e:
-            print_message(f"Error deleting user: {e}", "error")
-
-    @users.command()
+    @plugins.command()
     def list():
-        """List all users."""
+        """List all plugins."""
         try:
-            print_message("Fetching users...", "info")
-
-            # Get users (threaded)
-            if submit_task:
-                task_id = f"list_users_{int(time.time())}"
-                submit_task(task_id, _list_users_sync)
-                users_data = get_task_result(task_id, timeout=10.0)
-
-                if users_data:
-                    print_table(users_data, "Users")
-                else:
-                    print_message("No users found", "warning")
+            if unified_plugin_manager:
+                plugins_info = unified_plugin_manager.get_all_plugins_info()
+                plugins_data = [
+                    {
+                        "Name": info["metadata"]["name"],
+                        "Version": info["metadata"]["version"],
+                        "Status": info["status"],
+                        "Type": info["metadata"]["type"]
+                    }
+                    for info in plugins_info.values()
+                ]
+                print_table(plugins_data, "Installed Plugins")
             else:
-                print_message("Threading not available", "error")
-
+                print_message("Plugin manager not available", "error")
         except Exception as e:
-            print_message(f"Error listing users: {e}", "error")
+            print_message(f"Error listing plugins: {e}", "error")
 
-    @cli.group()
-    def analytics():
-        """Analytics commands."""
-        pass
+    @plugins.command()
+    @click.argument('plugin_name')
+    def enable(plugin_name: str):
+        """Enable a plugin."""
+        try:
+            if unified_plugin_manager:
+                success = asyncio.run(unified_plugin_manager.enable_plugin(plugin_name))
+                if success:
+                    print_message(f"Plugin '{plugin_name}' enabled successfully", "success")
+                else:
+                    print_message(f"Failed to enable plugin '{plugin_name}'", "error")
+            else:
+                print_message("Plugin manager not available", "error")
+        except Exception as e:
+            print_message(f"Error enabling plugin: {e}", "error")
+
+    @plugins.command()
+    @click.argument('plugin_name')
+    def disable(plugin_name: str):
+        """Disable a plugin."""
+        try:
+            if unified_plugin_manager:
+                success = asyncio.run(unified_plugin_manager.disable_plugin(plugin_name))
+                if success:
+                    print_message(f"Plugin '{plugin_name}' disabled successfully", "success")
+                else:
+                    print_message(f"Failed to disable plugin '{plugin_name}'", "error")
+            else:
+                print_message("Plugin manager not available", "error")
+        except Exception as e:
+            print_message(f"Error disabling plugin: {e}", "error")
+
+    @plugins.command()
+    @click.argument('plugin_name')
+    def info(plugin_name: str):
+        """Show plugin information."""
+        try:
+            if unified_plugin_manager:
+                plugin_info = unified_plugin_manager.get_plugin_info(plugin_name)
+                if plugin_info:
+                    # Get plugin metrics
+                    metrics = unified_plugin_manager.get_plugin_metrics(plugin_name)
+                    errors = unified_plugin_manager.get_plugin_errors(plugin_name)
+
+                    # Combine information
+                    info_data = [
+                        {"Property": "Name", "Value": plugin_info["metadata"]["name"]},
+                        {"Property": "Version", "Value": plugin_info["metadata"]["version"]},
+                        {"Property": "Author", "Value": plugin_info["metadata"]["author"]},
+                        {"Property": "Status", "Value": plugin_info["status"]},
+                        {"Property": "Type", "Value": plugin_info["metadata"]["type"]},
+                        {"Property": "Load Time", "Value": f"{metrics.get(plugin_name, {}).get('load_time', 0):.2f}s"},
+                        {"Property": "Memory Usage", "Value": f"{metrics.get(plugin_name, {}).get('memory_usage', 0):.1f}MB"},
+                        {"Property": "Components", "Value": metrics.get(plugin_name, {}).get('component_count', 0)},
+                        {"Property": "Errors", "Value": len(errors.get(plugin_name, []))}
+                    ]
+
+                    print_table(info_data, f"Plugin Information: {plugin_name}")
+
+                    # Show errors if any
+                    if plugin_name in errors and errors[plugin_name]:
+                        print_message("\nPlugin Errors:", "error")
+                        for error in errors[plugin_name]:
+                            print_message(f"  - {error}", "error")
+                else:
+                    print_message(f"Plugin '{plugin_name}' not found", "error")
+            else:
+                print_message("Plugin manager not available", "error")
+        except Exception as e:
+            print_message(f"Error getting plugin info: {e}", "error")
+
+    @plugins.command()
+    def graph():
+        """Show plugin dependency graph."""
+        try:
+            if unified_plugin_manager:
+                graph = unified_plugin_manager.get_dependency_graph()
+                if graph:
+                    graph_data = [
+                        {"Plugin": plugin, "Dependencies": ", ".join(deps) or "None"}
+                        for plugin, deps in graph.items()
+                    ]
+                    print_table(graph_data, "Plugin Dependencies")
+                else:
+                    print_message("No plugin dependencies found", "info")
+            else:
+                print_message("Plugin manager not available", "error")
+        except Exception as e:
+            print_message(f"Error getting dependency graph: {e}", "error")
 
     @cli.group()
     def test():
@@ -423,75 +446,14 @@ if click:
         except Exception as e:
             print_message(f"Error listing test categories: {e}", "error")
 
-    @test.command()
-    def config():
-        """Show test configuration."""
-        try:
-            if handle_test_command:
-                asyncio.run(handle_test_command(['config']))
-            else:
-                print_message("Test system not available", "error")
-        except Exception as e:
-            print_message(f"Error showing test config: {e}", "error")
-
-    @test.command()
-    def validate():
-        """Validate test environment."""
-        try:
-            if handle_test_command:
-                asyncio.run(handle_test_command(['validate']))
-            else:
-                print_message("Test system not available", "error")
-        except Exception as e:
-            print_message(f"Error validating test environment: {e}", "error")
-
-    @analytics.command()
-    @click.option('--days', default=7, help='Number of days to analyze')
-    def report(days: int):
-        """Generate analytics report."""
-        try:
-            print_message(f"Generating analytics report for last {days} days...", "info")
-
-            if analytics_manager:
-                # Get analytics data (threaded)
-                if submit_task:
-                    task_id = f"analytics_report_{int(time.time())}"
-                    submit_task(task_id, _get_analytics_report_sync, days)
-                    report_data = get_task_result(task_id, timeout=15.0)
-
-                    if report_data:
-                        print_table(report_data, f"Analytics Report ({days} days)")
-                    else:
-                        print_message("No analytics data available", "warning")
-                else:
-                    print_message("Threading not available", "error")
-            else:
-                print_message("Analytics manager not available", "error")
-
-        except Exception as e:
-            print_message(f"Error generating report: {e}", "error")
-
-    # Add external command groups
-    try:
-        cli.add_command(admin)
-        cli.add_command(backup)
-        cli.add_command(system)
-        cli.add_command(security)
-        cli.add_command(plugins)
-        cli.add_command(ai)
-        cli.add_command(logs)
-        cli.add_command(updates)
-    except NameError:
-        # Commands not available, skip
-        pass
-
     @cli.command()
     def version():
         """Show version information."""
         version_info = {
             "PlexiChat": "1.0.0",
             "Python": sys.version.split()[0],
-            "Platform": sys.platform
+            "Platform": sys.platform,
+            "Plugins": unified_plugin_manager.get_stats()["total_loaded"] if unified_plugin_manager else 0
         }
 
         if console and Panel:
@@ -523,54 +485,6 @@ else:
         else:
             print("Available commands: version, status")
 
-# Helper functions for threading
-def _create_user_sync(username: str, email: str, password_hash: str) -> bool:
-    """Create user synchronously."""
-    try:
-        # Placeholder implementation
-        time.sleep(1)  # Simulate work
-        return True
-    except Exception as e:
-        logger.error(f"Error creating user: {e}")
-        return False
-
-def _delete_user_sync(username: str) -> bool:
-    """Delete user synchronously."""
-    try:
-        # Placeholder implementation
-        time.sleep(0.5)  # Simulate work
-        return True
-    except Exception as e:
-        logger.error(f"Error deleting user: {e}")
-        return False
-
-def _list_users_sync() -> List[Dict[str, Any]]:
-    """List users synchronously."""
-    try:
-        # Placeholder implementation
-        time.sleep(0.5)  # Simulate work
-        return [
-            {"ID": 1, "Username": "admin", "Email": "admin@example.com", "Active": True},
-            {"ID": 2, "Username": "user1", "Email": "user1@example.com", "Active": True},
-        ]
-    except Exception as e:
-        logger.error(f"Error listing users: {e}")
-        return []
-
-def _get_analytics_report_sync(days: int) -> List[Dict[str, Any]]:
-    """Get analytics report synchronously."""
-    try:
-        # Placeholder implementation
-        time.sleep(1)  # Simulate work
-        return [
-            {"Event Type": "user_login", "Count": 150, "Percentage": "45%"},
-            {"Event Type": "message_sent", "Count": 120, "Percentage": "36%"},
-            {"Event Type": "file_upload", "Count": 63, "Percentage": "19%"},
-        ]
-    except Exception as e:
-        logger.error(f"Error getting analytics report: {e}")
-        return []
-
 # Main entry point
 def main():
     """Main CLI entry point."""
@@ -581,9 +495,16 @@ def main():
             cli()
     except KeyboardInterrupt:
         print_message("\nOperation cancelled by user", "warning")
+        # Ensure proper shutdown
+        asyncio.run(shutdown_cli())
         sys.exit(0)
     except Exception as e:
         print_message(f"Unexpected error: {e}", "error")
+        # Attempt cleanup
+        try:
+            asyncio.run(shutdown_cli())
+        except:
+            pass
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -88,6 +88,19 @@ class PluginType(Enum):
     EXTENSION = "extension"
     THEME = "theme"
     LANGUAGE = "language"
+    ANALYTICS = "analytics"
+    AI_PROVIDER = "ai_provider"
+    TESTING = "testing"
+    DEVELOPMENT = "development"
+    UTILITY = "utility"
+    NOTIFICATION = "notification"
+    MONITORING = "monitoring"
+    BACKUP = "backup"
+    SYSTEM = "system"
+    SECURITY_NODE = "security_node"
+    USER_MANAGEMENT = "user_management"
+    AUTOMATION = "automation"
+    SECURITY = "security"
 
 
 class PluginStatus(Enum):
@@ -337,6 +350,10 @@ class PluginIsolationManager:
 
             module = importlib.util.module_from_spec(spec)
 
+            # Ensure __builtins__ exists before modification
+            if not hasattr(module, '__builtins__'):
+                module.__builtins__ = {}
+
             # Restrict module access (simplified)
             restricted_builtins = {
                 '__import__': self._restricted_import,
@@ -362,7 +379,9 @@ class PluginIsolationManager:
         # Allow only specific modules
         allowed_modules = {
             'json', 'datetime', 'typing', 'dataclasses', 'enum',
-            'asyncio', 'logging', 'pathlib', 'uuid'
+            'asyncio', 'logging', 'pathlib', 'uuid',
+            'subprocess', 'time', 'base64', 'mimetypes',
+            'ast', 'socket', 'psutil', 'secrets'
         }
 
         if name in allowed_modules or name.startswith('plexichat.'):
@@ -465,6 +484,13 @@ class UnifiedPluginManager:
         self.plugin_db_extensions: Dict[str, Dict[str, Any]] = {}  # plugin_name -> {name: ext}
         self.plugin_security_features: Dict[str, Dict[str, Any]] = {}  # plugin_name -> {name: feature}
         self.plugin_docs: Dict[str, Dict[str, Any]] = {}
+
+        # Add new fields for better error tracking
+        self.plugin_errors: Dict[str, List[str]] = {}
+        self.plugin_dependencies_graph: Dict[str, Set[str]] = {}
+        self.plugin_load_order: List[str] = []
+        self.plugin_load_times: Dict[str, float] = {}
+        self.plugin_metrics: Dict[str, Dict[str, Any]] = {}
 
         # Managers
         self.isolation_manager = PluginIsolationManager()
@@ -609,9 +635,14 @@ class UnifiedPluginManager:
         )
 
     async def load_plugin(self, plugin_name: str, force_reload: bool = False) -> bool:
-        """Load a specific plugin."""
+        """Load a specific plugin with improved error handling and dependency resolution."""
+        start_time = time.time()
+        
         try:
             with self._lock:
+                # Track errors for this plugin
+                self.plugin_errors[plugin_name] = []
+
                 # Check if already loaded
                 if plugin_name in self.loaded_plugins and not force_reload:
                     self.logger.warning(f"Plugin already loaded: {plugin_name}")
@@ -619,16 +650,20 @@ class UnifiedPluginManager:
 
                 # Check if discovered
                 if plugin_name not in self.plugin_info:
-                    self.logger.error(f"Plugin not discovered: {plugin_name}")
+                    error_msg = f"Plugin not discovered: {plugin_name}"
+                    self.plugin_errors[plugin_name].append(error_msg)
+                    self.logger.error(error_msg)
                     return False
 
                 plugin_info = self.plugin_info[plugin_name]
                 plugin_info.status = PluginStatus.LOADING
 
-                # Check dependencies
-                if not await self._check_dependencies(plugin_name):
+                # Check dependencies with improved resolution
+                if not await self._resolve_dependencies(plugin_name):
+                    error_msg = f"Failed to resolve dependencies for plugin: {plugin_name}"
+                    self.plugin_errors[plugin_name].append(error_msg)
                     plugin_info.status = PluginStatus.FAILED
-                    plugin_info.error_message = "Dependencies not satisfied"
+                    plugin_info.error_message = error_msg
                     return False
 
                 # Load plugin based on security level
@@ -642,69 +677,73 @@ class UnifiedPluginManager:
                     plugin_info.loaded_at = datetime.now()
                     self.stats["total_loaded"] += 1
 
-                    # Register commands and event handlers
+                    # Register plugin components
                     await self._register_plugin_components(plugin_name)
 
-                    # On plugin load, check for a 'docs' directory in the plugin folder
-                    # If found, register its contents as plugin documentation
-                    # Add a method get_plugin_docs() that returns a mapping of plugin_id to their docs
-                    docs_dir = plugin_info.path / "docs"
-                    if docs_dir.exists():
-                        self.plugin_docs[plugin_name] = {}
-                        for doc_file in docs_dir.iterdir():
-                            if doc_file.is_file():
-                                try:
-                                    with open(doc_file, 'r', encoding='utf-8') as f:
-                                        self.plugin_docs[plugin_name][doc_file.name] = f.read()
-                                except Exception as e:
-                                    self.logger.warning(f"Failed to load documentation from {doc_file}: {e}")
+                    # Update load metrics
+                    load_time = time.time() - start_time
+                    self.plugin_load_times[plugin_name] = load_time
+                    self.plugin_metrics[plugin_name] = {
+                        "load_time": load_time,
+                        "memory_usage": self._get_plugin_memory_usage(plugin_name),
+                        "component_count": len(self.plugin_commands) + len(self.plugin_event_handlers)
+                    }
 
-                    # On plugin load, call set_context with a PluginContext instance
-                    context = PluginContext(
-                        logger=self.logger,
-                        analytics=getattr(self, 'analytics', None),
-                        db=getattr(self, 'db', None),
-                        ai=getattr(self, 'ai', None),
-                        ai_provider=getattr(self, 'ai_provider', None),
-                        backup=getattr(self, 'backup', None),
-                        security=getattr(self, 'security', None),
-                        config=getattr(self, 'config', None),
-                        event_bus=getattr(self, 'event_bus', None),
-                        middleware_manager=getattr(self, 'middleware_manager', None),
-                        system_utils=getattr(self, 'system_utils', None)
-                    )
-                    plugin_instance = self.loaded_plugins[plugin_name]
-                    plugin_instance.set_context(context)
+                    # Add to load order
+                    self.plugin_load_order.append(plugin_name)
 
-                    self.logger.info(f"Plugin loaded successfully: {plugin_name}")
+                    self.logger.info(f"Plugin loaded successfully: {plugin_name} (took {load_time:.2f}s)")
                     return True
                 else:
+                    error_msg = f"Failed to load plugin: {plugin_name}"
+                    self.plugin_errors[plugin_name].append(error_msg)
                     plugin_info.status = PluginStatus.FAILED
                     self.stats["total_failed"] += 1
                     return False
 
         except Exception as e:
-            self.logger.error(f"Failed to load plugin {plugin_name}: {e}")
+            error_msg = f"Error loading plugin {plugin_name}: {e}"
+            self.plugin_errors[plugin_name].append(error_msg)
+            self.logger.error(error_msg, exc_info=True)
             if plugin_name in self.plugin_info:
                 self.plugin_info[plugin_name].status = PluginStatus.ERROR
                 self.plugin_info[plugin_name].error_message = str(e)
             return False
 
-    async def _check_dependencies(self, plugin_name: str) -> bool:
-        """Check if plugin dependencies are satisfied."""
+    async def _resolve_dependencies(self, plugin_name: str, visited: Optional[Set[str]] = None) -> bool:
+        """Resolve plugin dependencies with cycle detection."""
+        if visited is None:
+            visited = set()
+
+        if plugin_name in visited:
+            self.logger.error(f"Circular dependency detected for plugin: {plugin_name}")
+            return False
+
+        visited.add(plugin_name)
         plugin_info = self.plugin_info[plugin_name]
 
+        # Build dependency graph
+        self.plugin_dependencies_graph[plugin_name] = set()
+
         for dependency in plugin_info.metadata.dependencies:
+            self.plugin_dependencies_graph[plugin_name].add(dependency)
+
+            if dependency not in self.plugin_info:
+                self.logger.error(f"Missing dependency: {dependency} (required by {plugin_name})")
+                return False
+
+            # Check if dependency is already loaded
             if dependency not in self.loaded_plugins:
-                # Try to load dependency first
-                if dependency in self.plugin_info:
-                    if not await self.load_plugin(dependency):
-                        self.logger.error(f"Failed to load dependency: {dependency} (required by {plugin_name})")
-                        return False
-                else:
-                    self.logger.error(f"Dependency not found: {dependency} (required by {plugin_name})")
+                # Recursively resolve dependency's dependencies
+                if not await self._resolve_dependencies(dependency, visited):
                     return False
 
+                # Try to load dependency
+                if not await self.load_plugin(dependency):
+                    self.logger.error(f"Failed to load dependency: {dependency} (required by {plugin_name})")
+                    return False
+
+        visited.remove(plugin_name)
         return True
 
     async def _load_plugin_sandboxed(self, plugin_name: str, plugin_info: PluginInfo) -> bool:
@@ -870,32 +909,61 @@ class UnifiedPluginManager:
             self.logger.error(f"Failed to register plugin components for {plugin_name}: {e}")
 
     async def unload_plugin(self, plugin_name: str) -> bool:
-        """Unload a specific plugin."""
+        """Unload a plugin with improved cleanup."""
         try:
             with self._lock:
                 if plugin_name not in self.loaded_plugins:
                     self.logger.warning(f"Plugin not loaded: {plugin_name}")
                     return True
 
+                # Check if other plugins depend on this one
+                dependent_plugins = []
+                for other_plugin, deps in self.plugin_dependencies_graph.items():
+                    if plugin_name in deps and other_plugin in self.loaded_plugins:
+                        dependent_plugins.append(other_plugin)
+
+                if dependent_plugins:
+                    self.logger.error(
+                        f"Cannot unload {plugin_name} - required by: {', '.join(dependent_plugins)}"
+                    )
+                    return False
+
                 plugin_instance = self.loaded_plugins[plugin_name]
                 plugin_info = self.plugin_info[plugin_name]
 
-                # Shutdown plugin
+                # Shutdown plugin with timeout
                 try:
-                    await plugin_instance.shutdown()
+                    shutdown_task = asyncio.create_task(plugin_instance.shutdown())
+                    await asyncio.wait_for(shutdown_task, timeout=5.0)
+                except asyncio.TimeoutError:
+                    self.logger.warning(f"Plugin shutdown timed out: {plugin_name}")
                 except Exception as e:
                     self.logger.warning(f"Plugin shutdown error: {plugin_name} - {e}")
 
                 # Unregister components
                 await self._unregister_plugin_components(plugin_name)
 
-                # Remove from loaded plugins
+                # Remove from loaded plugins and update status
                 del self.loaded_plugins[plugin_name]
                 plugin_info.status = PluginStatus.DISCOVERED
                 plugin_info.instance = None
                 plugin_info.loaded_at = None
 
+                # Update metrics
+                if plugin_name in self.plugin_metrics:
+                    del self.plugin_metrics[plugin_name]
+                if plugin_name in self.plugin_load_times:
+                    del self.plugin_load_times[plugin_name]
+
+                # Remove from load order
+                if plugin_name in self.plugin_load_order:
+                    self.plugin_load_order.remove(plugin_name)
+
                 self.stats["total_loaded"] -= 1
+
+                # Clear any stored errors
+                if plugin_name in self.plugin_errors:
+                    del self.plugin_errors[plugin_name]
 
                 self.logger.info(f"Plugin unloaded: {plugin_name}")
                 return True
@@ -1198,25 +1266,34 @@ class UnifiedPluginManager:
             return []
 
     async def shutdown(self) -> None:
-        """Shutdown the plugin manager."""
+        """Shutdown the plugin manager with improved cleanup."""
         try:
             self.logger.info("Shutting down plugin manager")
 
-            # Unload all plugins
-            for plugin_name in list(self.loaded_plugins.keys()):
+            # Unload plugins in reverse load order
+            for plugin_name in reversed(self.plugin_load_order):
                 await self.unload_plugin(plugin_name)
 
-            # Clear data
+            # Clear all data structures
             self.discovered_plugins.clear()
             self.plugin_info.clear()
             self.loaded_plugins.clear()
             self.plugin_commands.clear()
             self.plugin_event_handlers.clear()
+            self.plugin_errors.clear()
+            self.plugin_dependencies_graph.clear()
+            self.plugin_load_order.clear()
+            self.plugin_load_times.clear()
+            self.plugin_metrics.clear()
 
             self.logger.info("Plugin manager shut down successfully")
 
         except Exception as e:
             self.logger.error(f"Failed to shutdown plugin manager: {e}")
+
+    async def load_plugins(self) -> None:
+        """Load all enabled plugins."""
+        await self.load_enabled_plugins()
 
     # --- New public API for main app to retrieve extension points ---
     def get_all_plugin_routers(self) -> Dict[str, Any]:
@@ -1238,7 +1315,7 @@ class UnifiedPluginManager:
             sec_feats.update(plugin_sec)
         return sec_feats
 
-    def get_plugin_docs(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_plugin_docs(self) -> Dict[str, Dict[str, Any]]:
         """
         Returns a dictionary of plugin IDs to their documentation.
         The documentation is stored as a dictionary of file names to their content.
@@ -1280,6 +1357,43 @@ class UnifiedPluginManager:
             hooks = plugin_instance.register_analytics_hooks()
             # Register hooks with analytics system (pseudo-code)
             # analytics_manager.register_hooks(hooks)
+
+    def _get_plugin_memory_usage(self, plugin_name: str) -> float:
+        """Get memory usage of a plugin in MB."""
+        try:
+            import psutil
+            process = psutil.Process()
+            
+            # Get memory before
+            mem_before = process.memory_info().rss
+
+            # Import plugin module
+            plugin_info = self.plugin_info[plugin_name]
+            if plugin_info.module:
+                # Get memory after
+                mem_after = process.memory_info().rss
+                
+                # Return difference in MB
+                return (mem_after - mem_before) / (1024 * 1024)
+        except:
+            pass
+        return 0.0
+
+    def get_plugin_errors(self, plugin_name: Optional[str] = None) -> Dict[str, List[str]]:
+        """Get errors for a specific plugin or all plugins."""
+        if plugin_name:
+            return {plugin_name: self.plugin_errors.get(plugin_name, [])}
+        return self.plugin_errors
+
+    def get_plugin_metrics(self, plugin_name: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
+        """Get metrics for a specific plugin or all plugins."""
+        if plugin_name:
+            return {plugin_name: self.plugin_metrics.get(plugin_name, {})}
+        return self.plugin_metrics
+
+    def get_dependency_graph(self) -> Dict[str, Set[str]]:
+        """Get the plugin dependency graph."""
+        return self.plugin_dependencies_graph.copy()
 
 
 # Global unified plugin manager instance

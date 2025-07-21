@@ -179,8 +179,12 @@ def import_feature_modules():
         # Security features
         if security_enabled():
             try:
-                from . import security
-                logger.info("Security module imported successfully")
+                import platform
+                if platform.system() != "Windows":
+                    from . import security
+                    logger.info("Security module imported successfully")
+                else:
+                    logger.warning("Security module not loaded on Windows due to syslog dependency.")
             except ImportError as e:
                 logger.warning(f"Could not import security module: {e}")
         # AI features

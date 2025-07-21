@@ -88,13 +88,13 @@ class WebService:
                     # Get user's message count
                     if self.performance_logger and timer:
                         with timer("user_message_count"):
-                            result = await self.db_manager.execute_query()
+                            result = await self.db_manager.execute_query(
                                 "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
                                 {"sender_id": user_id}
                             )
                             dashboard_data["total_messages"] = result[0][0] if result else 0
                     else:
-                        result = await self.db_manager.execute_query()
+                        result = await self.db_manager.execute_query(
                             "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
                             {"sender_id": user_id}
                         )
@@ -103,13 +103,13 @@ class WebService:
                     # Get user's file count
                     if self.performance_logger and timer:
                         with timer("user_file_count"):
-                            result = await self.db_manager.execute_query()
+                            result = await self.db_manager.execute_query(
                                 "SELECT COUNT(*) FROM files WHERE user_id = ?",
                                 {"user_id": user_id}
                             )
                             dashboard_data["total_files"] = result[0][0] if result else 0
                     else:
-                        result = await self.db_manager.execute_query()
+                        result = await self.db_manager.execute_query(
                             "SELECT COUNT(*) FROM files WHERE user_id = ?",
                             {"user_id": user_id}
                         )
@@ -118,7 +118,7 @@ class WebService:
                     # Get recent activity
                     if self.performance_logger and timer:
                         with timer("recent_activity"):
-                            result = await self.db_manager.execute_query()
+                            result = await self.db_manager.execute_query(
                                 """
                                 SELECT content, timestamp FROM messages
                                 WHERE sender_id = ?
@@ -134,7 +134,7 @@ class WebService:
                                     for row in result
                                 ]
                     else:
-                        result = await self.db_manager.execute_query()
+                        result = await self.db_manager.execute_query(
                             """
                             SELECT content, timestamp FROM messages
                             WHERE sender_id = ?

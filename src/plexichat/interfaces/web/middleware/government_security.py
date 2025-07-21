@@ -216,7 +216,7 @@ class ThreatDetector:
             r'vbscript:',
             r'onload\s*=',
             r'onerror\s*=',
-            r'eval\s*\(',)
+            r'eval\s*\)',
             r'document\.cookie',
             r'window\.location',
             r'\.\./',
@@ -286,7 +286,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
             if await self.rate_limiter.is_rate_limited(client_ip, endpoint):
                 self.security_metrics.rate_limit_violations += 1
 
-                await self.security_auditor.log_security_event()
+                await self.security_auditor.log_security_event(
                     "rate_limit_violation",
                     client_ip,
                     endpoint,
@@ -296,7 +296,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
                 if self.performance_logger:
                     self.performance_logger.record_metric("security_rate_limit_blocks", 1, "count")
 
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail="Rate limit exceeded"
                 )
@@ -306,7 +306,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
             if threats:
                 self.security_metrics.suspicious_activities += 1
 
-                await self.security_auditor.log_security_event()
+                await self.security_auditor.log_security_event(
                     "threat_detected",
                     client_ip,
                     endpoint,
@@ -321,7 +321,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
                 if any(pattern in threat.lower() for threat in threats for pattern in high_risk_patterns):
                     self.security_metrics.blocked_requests += 1
 
-                    raise HTTPException()
+                    raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="Request blocked by security policy"
                     )
@@ -344,7 +344,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
             self._add_security_headers(response)
 
             # 7. Log successful request
-            await self.security_auditor.log_security_event()
+            await self.security_auditor.log_security_event(
                 "request_processed",
                 client_ip,
                 endpoint,
@@ -357,7 +357,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
 
             # Performance tracking
             if self.performance_logger:
-                self.performance_logger.record_metric()
+                self.performance_logger.record_metric(
                     "security_middleware_processing_time",
                     time.time() - start_time,
                     "seconds"
@@ -370,7 +370,7 @@ class GovernmentSecurityMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.error(f"Security middleware error: {e}")
 
-            await self.security_auditor.log_security_event()
+            await self.security_auditor.log_security_event(
                 "middleware_error",
                 client_ip,
                 endpoint,

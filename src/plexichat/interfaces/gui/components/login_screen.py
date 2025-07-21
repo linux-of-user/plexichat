@@ -751,3 +751,267 @@ class LoginScreen(ttk.Frame):
         """Show biometric login dialog."""
         # This will be implemented in the next part
         messagebox.showinfo("Biometric Login", "Biometric authentication will be implemented.")
+
+    def is_setup_completed(self):
+        """Check if PlexiChat setup is completed."""
+        try:
+            config_path = Path.home() / ".plexichat"
+            setup_file = config_path / "setup_completed"
+            return setup_file.exists()
+        except Exception:
+            return False
+
+    def get_default_credentials_info(self):
+        """Get default credentials information."""
+        try:
+            config_path = Path.home() / ".plexichat"
+            creds_file = config_path / "default-creds.json"
+
+            if creds_file.exists():
+                with open(creds_file, 'r') as f:
+                    creds = json.load(f)
+                    admin_creds = creds.get('admin', {})
+                    return {
+                        'username': admin_creds.get('username', 'admin'),
+                        'password': 'See admin-credentials.txt'
+                    }
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get default credentials: {e}")
+            return None
+
+    def show_database_setup(self):
+        """Show database setup dialog."""
+        try:
+            # Create database setup window
+            setup_window = tk.Toplevel(self)
+            setup_window.title("Database Setup")
+            setup_window.geometry("600x500")
+            setup_window.configure(bg='#2c3e50')
+            setup_window.transient(self)
+            setup_window.grab_set()
+
+            # Center the window
+            setup_window.update_idletasks()
+            x = (setup_window.winfo_screenwidth() // 2) - (600 // 2)
+            y = (setup_window.winfo_screenheight() // 2) - (500 // 2)
+            setup_window.geometry(f"600x500+{x}+{y}")
+
+            # Main frame
+            main_frame = tk.Frame(setup_window, bg='#34495e', relief='raised', bd=2)
+            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = tk.Label(main_frame, text="🗄️ Database Setup",
+                                 font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
+            title_label.pack(pady=20)
+
+            # Database type selection
+            db_frame = tk.Frame(main_frame, bg='#34495e')
+            db_frame.pack(pady=10, fill='x', padx=20)
+
+            tk.Label(db_frame, text="Database Type:", font=("Arial", 12),
+                    bg='#34495e', fg='#ecf0f1').pack(anchor='w')
+
+            self.db_type_var = tk.StringVar(value="sqlite")
+            db_types = [("SQLite (Recommended)", "sqlite"), ("PostgreSQL", "postgresql"), ("MySQL", "mysql")]
+
+            for text, value in db_types:
+                rb = tk.Radiobutton(db_frame, text=text, variable=self.db_type_var, value=value,
+                                  bg='#34495e', fg='#ecf0f1', selectcolor='#2c3e50',
+                                  font=("Arial", 10))
+                rb.pack(anchor='w', pady=2)
+
+            # Admin account section
+            admin_frame = tk.LabelFrame(main_frame, text="Admin Account", font=("Arial", 12),
+                                      bg='#34495e', fg='#ecf0f1', relief='groove', bd=2)
+            admin_frame.pack(pady=20, fill='x', padx=20)
+
+            # Username
+            tk.Label(admin_frame, text="Username:", font=("Arial", 10),
+                    bg='#34495e', fg='#ecf0f1').grid(row=0, column=0, sticky='w', padx=10, pady=5)
+            self.admin_username_entry = tk.Entry(admin_frame, font=("Arial", 10), width=20)
+            self.admin_username_entry.grid(row=0, column=1, padx=10, pady=5)
+            self.admin_username_entry.insert(0, "admin")
+
+            # Password
+            tk.Label(admin_frame, text="Password:", font=("Arial", 10),
+                    bg='#34495e', fg='#ecf0f1').grid(row=1, column=0, sticky='w', padx=10, pady=5)
+            self.admin_password_entry = tk.Entry(admin_frame, font=("Arial", 10), width=20, show="*")
+            self.admin_password_entry.grid(row=1, column=1, padx=10, pady=5)
+
+            # Email
+            tk.Label(admin_frame, text="Email:", font=("Arial", 10),
+                    bg='#34495e', fg='#ecf0f1').grid(row=2, column=0, sticky='w', padx=10, pady=5)
+            self.admin_email_entry = tk.Entry(admin_frame, font=("Arial", 10), width=20)
+            self.admin_email_entry.grid(row=2, column=1, padx=10, pady=5)
+
+            # Buttons
+            button_frame = tk.Frame(main_frame, bg='#34495e')
+            button_frame.pack(pady=20)
+
+            setup_btn = tk.Button(button_frame, text="Setup Database", font=("Arial", 12, "bold"),
+                                bg='#27ae60', fg='white', relief='flat', bd=0,
+                                command=lambda: self.perform_database_setup(setup_window), cursor='hand2')
+            setup_btn.pack(side='left', padx=10, ipadx=15, ipady=8)
+
+            cancel_btn = tk.Button(button_frame, text="Cancel", font=("Arial", 12),
+                                 bg='#e74c3c', fg='white', relief='flat', bd=0,
+                                 command=setup_window.destroy, cursor='hand2')
+            cancel_btn.pack(side='left', padx=10, ipadx=15, ipady=8)
+
+        except Exception as e:
+            logger.error(f"Failed to show database setup: {e}")
+
+    def perform_database_setup(self, setup_window):
+        """Perform the actual database setup."""
+        try:
+            # Get form data
+            db_type = self.db_type_var.get()
+            username = self.admin_username_entry.get().strip()
+            password = self.admin_password_entry.get().strip()
+            email = self.admin_email_entry.get().strip()
+
+            # Validate input
+            if not username or not password or not email:
+                messagebox.showerror("Error", "Please fill in all fields")
+                return
+
+            if len(password) < 8:
+                messagebox.showerror("Error", "Password must be at least 8 characters long")
+                return
+
+            # Create config directory
+            config_path = Path.home() / ".plexichat"
+            config_path.mkdir(parents=True, exist_ok=True)
+
+            # Initialize database
+            if db_type == "sqlite":
+                self.initialize_sqlite_database(config_path)
+
+            # Create admin account
+            self.create_admin_account(config_path, username, password, email)
+
+            # Mark setup as completed
+            setup_file = config_path / "setup_completed"
+            setup_file.write_text(str(datetime.now()))
+
+            # Close setup window
+            setup_window.destroy()
+
+            # Refresh login screen
+            self.create_login_interface()
+
+            messagebox.showinfo("Success", "Database setup completed successfully!\nYou can now log in with your admin credentials.")
+
+        except Exception as e:
+            logger.error(f"Database setup failed: {e}")
+            messagebox.showerror("Error", f"Database setup failed: {str(e)}")
+
+    def initialize_sqlite_database(self, config_path):
+        """Initialize SQLite database."""
+        try:
+            import sqlite3
+
+            db_file = config_path / "plexichat.db"
+            conn = sqlite3.connect(db_file)
+            cursor = conn.cursor()
+
+            # Create users table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    role TEXT DEFAULT 'user',
+                    active BOOLEAN DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP
+                )
+            ''')
+
+            # Create sessions table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    user_id INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            ''')
+
+            # Create settings table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            conn.commit()
+            conn.close()
+
+            logger.info(f"SQLite database initialized at {db_file}")
+
+        except Exception as e:
+            logger.error(f"SQLite initialization failed: {e}")
+            raise
+
+    def create_admin_account(self, config_path, username, password, email):
+        """Create admin account."""
+        try:
+            # Hash password
+            password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+            # Create credentials structure
+            credentials = {
+                "admin": {
+                    "username": username,
+                    "password_hash": password_hash,
+                    "email": email,
+                    "role": "admin",
+                    "created_at": str(datetime.now()),
+                    "active": True
+                }
+            }
+
+            # Save credentials
+            creds_file = config_path / "default-creds.json"
+            with open(creds_file, 'w') as f:
+                json.dump(credentials, f, indent=2)
+
+            # Also create a readable credentials file
+            readable_creds = config_path / "admin-credentials.txt"
+            with open(readable_creds, 'w') as f:
+                f.write(f"PlexiChat Admin Credentials\n")
+                f.write(f"==========================\n\n")
+                f.write(f"Username: {username}\n")
+                f.write(f"Password: {password}\n")
+                f.write(f"Email: {email}\n")
+                f.write(f"Role: admin\n\n")
+                f.write(f"Created: {datetime.now()}\n\n")
+                f.write(f"IMPORTANT: Keep this file secure and delete it after noting the credentials!\n")
+
+            # Add to database if it exists
+            db_file = config_path / "plexichat.db"
+            if db_file.exists():
+                import sqlite3
+                conn = sqlite3.connect(db_file)
+                cursor = conn.cursor()
+
+                cursor.execute('''
+                    INSERT OR REPLACE INTO users (username, password_hash, email, role, active)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (username, password_hash, email, "admin", True))
+
+                conn.commit()
+                conn.close()
+
+            logger.info(f"Admin account created: {username}")
+
+        except Exception as e:
+            logger.error(f"Failed to create admin account: {e}")
+            raise

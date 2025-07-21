@@ -24,7 +24,7 @@ class UserUpdate:
 """User business logic service."""
 logger = logging.getLogger(__name__)
 
-class UserService:
+class UserManagementService:
     """User management service."""
 
     def __init__(self):
@@ -85,4 +85,4 @@ class UserService:
         return users_list[offset:offset + limit]
 
 # Global service instance
-user_service = UserService()
+user_service = UserManagementService()

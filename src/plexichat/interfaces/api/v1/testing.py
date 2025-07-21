@@ -14,6 +14,7 @@ import random
 try:
     from plexichat.interfaces.api.v1.auth import get_current_user
     from plexichat.app.logger_config import get_logger
+    from plexichat.app.database_manager import database_manager
 except ImportError:
     get_current_user = lambda: {}
     get_logger = lambda name: print
@@ -98,7 +99,7 @@ async def delay_test(delay_seconds: float = Query(1.0, ge=0, le=30)):
     }
 
 @router.get("/random")
-async def random_data()
+async def random_data(
     size: int = Query(100, ge=1, le=10000),
     data_type: str = Query("string", pattern="^(string|number|boolean|mixed)$")
 ):
@@ -129,7 +130,7 @@ async def random_data()
     }
 
 @router.post("/error")
-async def error_test()
+async def error_test(
     error_code: int = Query(500, ge=400, le=599),
     error_message: str = Query("Test error message")
 ):
@@ -137,7 +138,7 @@ async def error_test()
     raise HTTPException(status_code=error_code, detail=error_message)
 
 @router.post("/test", response_model=TestResponse)
-async def run_test()
+async def run_test(
     request: TestRequest,
     current_user: Dict = Depends(require_dev_access)
 ):
@@ -163,7 +164,7 @@ async def run_test()
 
         duration = time.time() - start_time
 
-        return TestResponse()
+        return TestResponse(
             test_id=test_id,
             test_type=request.test_type,
             status="completed",
@@ -176,7 +177,7 @@ async def run_test()
         duration = time.time() - start_time
         logger.error(f"Test {test_id} failed: {e}")
 
-        return TestResponse()
+        return TestResponse(
             test_id=test_id,
             test_type=request.test_type,
             status="failed",
@@ -186,11 +187,11 @@ async def run_test()
         )
 
 @router.post("/load-test", response_model=LoadTestResponse)
-async def load_test()
+async def load_test(
     request: LoadTestRequest,
     current_user: Dict = Depends(require_dev_access)
 ):
-    """Run load test on specified endpoint."""
+    """Run a load test."""
     test_id = f"load_test_{int(time.time())}_{random.randint(1000, 9999)}"
 
     try:
@@ -199,7 +200,7 @@ async def load_test()
         successful_requests = int(total_requests * random.uniform(0.85, 0.99))
         failed_requests = total_requests - successful_requests
 
-        return LoadTestResponse()
+        return LoadTestResponse(
             test_id=test_id,
             status="completed",
             total_requests=total_requests,
@@ -237,11 +238,12 @@ async def get_system_info(current_user: Dict = Depends(require_dev_access)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/logs/test")
-async def test_logging()
-    level: str = Query("info", pattern="^(debug|info|warning|error|critical)$"),
-    message: str = Query("Test log message")
+async def test_logging(
+    count: int = Query(10, ge=1, le=100),
+    level: str = Query("INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
 ):
-    """Test logging functionality."""
+    """Generate test log entries."""
+    logger.info(f"Generating {count} test log entries at level {level}")
     try:
         if level == "debug":
             logger.debug(message)
@@ -266,19 +268,29 @@ async def test_logging()
 
 # Helper functions for test cases
 async def _test_database_connection():
-    """Test database connectivity."""
+    """Test database connection and query."""
     try:
-        # Simulate database test
-        await asyncio.sleep(0.1)
-        return {
-            "database_connected": True,
-            "connection_time": 0.1,
-            "test_query_success": True
-        }
+        # Use database abstraction layer
+        start_time = time.time()
+        result = await database_manager.execute_query("SELECT 1")
+        duration = time.time() - start_time
+
+        if result and result[0][0] == 1:
+            return {
+                "status": "success",
+                "message": "Database connection and query successful",
+                "duration": duration
+            }
+        else:
+            return {
+                "status": "failure",
+                "message": "Database query failed",
+                "duration": duration
+            }
     except Exception as e:
         return {
-            "database_connected": False,
-            "error": str(e)
+            "status": "failure",
+            "message": str(e)
         }
 
 async def _test_authentication():

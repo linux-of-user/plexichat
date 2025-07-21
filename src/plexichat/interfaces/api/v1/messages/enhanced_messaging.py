@@ -37,6 +37,8 @@ from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
 from plexichat.features.users.user import User
+from plexichat.features.users.user import User
+from plexichat.features.users.user import User
 
     API,
     Comprehensive,
@@ -142,14 +144,13 @@ router = APIRouter(prefix="/api/v1/messaging", tags=["Enhanced Messaging"])
 
 
 @router.post("/send", response_model=MessageResponse)
-async def send_message()
+async def send_message(
     request: MessageCreateRequest,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Send a message with emoji support and processing."""
     try:
-        message = await enhanced_messaging_service.send_message()
+        message = await enhanced_messaging_service.send_message(
             sender_id=current_user.id,
             content=request.content,
             recipient_id=request.recipient_id,
@@ -161,7 +162,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         )
 
         if not message:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to send message"
             )
@@ -170,7 +171,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         emoji_count = len(EmojiService.extract_emojis(message.content or ""))
         has_emoji = EmojiService.has_emoji(message.content or "")
 
-        return MessageResponse()
+        return MessageResponse(
             id=message.id,
             sender_id=message.sender_id,
             recipient_id=message.recipient_id,
@@ -190,21 +191,20 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to send message: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.post("/reply", response_model=MessageResponse)
-async def send_reply()
+async def send_reply(
     request: ReplyCreateRequest,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Send a reply to a message."""
     try:
-        reply = await enhanced_messaging_service.send_reply()
+        reply = await enhanced_messaging_service.send_reply(
             sender_id=current_user.id,
             original_message_id=request.original_message_id,
             content=request.content,
@@ -214,7 +214,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         )
 
         if not reply:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to send reply"
             )
@@ -223,7 +223,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         emoji_count = len(EmojiService.extract_emojis(reply.content or ""))
         has_emoji = EmojiService.has_emoji(reply.content or "")
 
-        return MessageResponse()
+        return MessageResponse(
             id=reply.id,
             sender_id=reply.sender_id,
             recipient_id=reply.recipient_id,
@@ -243,29 +243,28 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to send reply: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.post("/messages/{message_id}/reactions")
-async def add_reaction()
+async def add_reaction(
     message_id: int,
     request: ReactionRequest,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Add a reaction to a message."""
     try:
-        success = await enhanced_messaging_service.add_reaction()
+        success = await enhanced_messaging_service.add_reaction(
             message_id=message_id,
             user_id=current_user.id,
             emoji=request.emoji
         )
 
         if not success:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to add reaction (already exists or rate limited)"
             )
@@ -274,29 +273,28 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to add reaction: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.delete("/messages/{message_id}/reactions")
-async def remove_reaction()
+async def remove_reaction(
     message_id: int,
     emoji: str = Query(..., description="Emoji to remove"),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Remove a reaction from a message."""
     try:
-        success = await enhanced_messaging_service.remove_reaction()
+        success = await enhanced_messaging_service.remove_reaction(
             message_id=message_id,
             user_id=current_user.id,
             emoji=emoji
         )
 
         if not success:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Reaction not found"
             )
@@ -305,25 +303,24 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to remove reaction: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.get("/messages", response_model=List[MessageResponse])
-async def get_messages()
+async def get_messages(
     channel_id: Optional[int] = Query(None, description="Filter by channel"),
     guild_id: Optional[int] = Query(None, description="Filter by guild"),
     sender_id: Optional[int] = Query(None, description="Filter by sender"),
     recipient_id: Optional[int] = Query(None, description="Filter by recipient"),
     limit: int = Query(50, ge=1, le=100, description="Number of messages to return"),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get messages with filters."""
     try:
-        messages = await enhanced_messaging_service.get_messages()
+        messages = await enhanced_messaging_service.get_messages(
             channel_id=channel_id,
             guild_id=guild_id,
             sender_id=sender_id,
@@ -336,7 +333,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             emoji_count = len(EmojiService.extract_emojis(message.content or ""))
             has_emoji = EmojiService.has_emoji(message.content or "")
 
-            response_messages.append(MessageResponse())
+            response_messages.append(MessageResponse(
                 id=message.id,
                 sender_id=message.sender_id,
                 recipient_id=message.recipient_id,
@@ -358,24 +355,23 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to get messages: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.get("/messages/{message_id}", response_model=MessageContextResponse)
-async def get_message_context()
+async def get_message_context(
     message_id: int,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get a message with its full context (reactions, replies, referenced message)."""
     try:
         context = await enhanced_messaging_service.get_message_with_context(message_id)
 
         if not context or not context.get('message'):
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Message not found"
             )
@@ -383,7 +379,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         message = context['message']
 
         # Convert message to response format
-        message_response = MessageResponse()
+        message_response = MessageResponse(
             id=message.id,
             sender_id=message.sender_id,
             recipient_id=message.recipient_id,
@@ -402,7 +398,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         # Convert replies to response format
         reply_responses = []
         for reply in context.get('replies', []):
-            reply_responses.append(MessageResponse())
+            reply_responses.append(MessageResponse(
                 id=reply.id,
                 sender_id=reply.sender_id,
                 recipient_id=reply.recipient_id,
@@ -422,7 +418,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         referenced_response = None
         if context.get('referenced_message'):
             ref_msg = context['referenced_message']
-            referenced_response = MessageResponse()
+            referenced_response = MessageResponse(
                 id=ref_msg.id,
                 sender_id=ref_msg.sender_id,
                 recipient_id=ref_msg.recipient_id,
@@ -438,7 +434,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
                 referenced_message_id=ref_msg.referenced_message_id
             )
 
-        return MessageContextResponse()
+        return MessageContextResponse(
             message=message_response,
             reactions=context.get('reactions', []),
             replies=reply_responses,
@@ -451,29 +447,28 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise
     except Exception as e:
         logger.error(f"Failed to get message context: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.put("/messages/{message_id}", response_model=MessageResponse)
-async def edit_message()
+async def edit_message(
     message_id: int,
     request: MessageEditRequest,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Edit a message."""
     try:
-        message = await enhanced_messaging_service.edit_message()
+        message = await enhanced_messaging_service.edit_message(
             message_id=message_id,
             user_id=current_user.id,
             new_content=request.content
         )
 
         if not message:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Message not found or permission denied"
             )
@@ -482,7 +477,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         emoji_count = len(EmojiService.extract_emojis(message.content or ""))
         has_emoji = EmojiService.has_emoji(message.content or "")
 
-        return MessageResponse()
+        return MessageResponse(
             id=message.id,
             sender_id=message.sender_id,
             recipient_id=message.recipient_id,
@@ -504,36 +499,35 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise
     except Exception as e:
         logger.error(f"Failed to edit message: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.delete("/messages/{message_id}")
-async def delete_message()
+async def delete_message(
     message_id: int,
     force: bool = Query(False, description="Force hard delete (admin only)"),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Delete a message."""
     try:
         # Check admin permission for force delete
         if force and not current_user.is_admin:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Admin permission required for force delete"
             )
 
-        success = await enhanced_messaging_service.delete_message()
+        success = await enhanced_messaging_service.delete_message(
             message_id=message_id,
             user_id=current_user.id,
             force=force
         )
 
         if not success:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Message not found or permission denied"
             )
@@ -544,21 +538,20 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise
     except Exception as e:
         logger.error(f"Failed to delete message: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.post("/search", response_model=List[MessageResponse])
-async def search_messages()
+async def search_messages(
     request: MessageSearchRequest,
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Search messages with text and emoji filtering."""
     try:
-        messages = await enhanced_messaging_service.search_messages()
+        messages = await enhanced_messaging_service.search_messages(
             query=request.query,
             channel_id=request.channel_id,
             guild_id=request.guild_id,
@@ -572,7 +565,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             emoji_count = len(EmojiService.extract_emojis(message.content or ""))
             has_emoji = EmojiService.has_emoji(message.content or "")
 
-            response_messages.append(MessageResponse())
+            response_messages.append(MessageResponse(
                 id=message.id,
                 sender_id=message.sender_id,
                 recipient_id=message.recipient_id,
@@ -594,17 +587,16 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to search messages: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.get("/emojis/custom")
-async def get_custom_emojis()
+async def get_custom_emojis(
     guild_id: Optional[int] = Query(None, description="Filter by guild"),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get custom emojis."""
     try:
@@ -613,7 +605,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to get custom emojis: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
@@ -630,30 +622,29 @@ async def get_emoji_shortcodes():
 
     except Exception as e:
         logger.error(f"Failed to get emoji shortcodes: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
 @router.get("/statistics/emojis", response_model=EmojiStatsResponse)
-async def get_emoji_statistics()
+async def get_emoji_statistics(
     channel_id: Optional[int] = Query(None, description="Filter by channel"),
     guild_id: Optional[int] = Query(None, description="Filter by guild"),
     days: Optional[int] = Query(30, ge=1, le=365, description="Days to analyze"),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get emoji usage statistics."""
     try:
-        stats = await enhanced_messaging_service.get_emoji_statistics()
+        stats = await enhanced_messaging_service.get_emoji_statistics(
             channel_id=channel_id,
             guild_id=guild_id,
             days=days
         )
 
         if not stats:
-            return EmojiStatsResponse()
+            return EmojiStatsResponse(
                 total_messages=0,
                 messages_with_emoji=0,
                 emoji_usage_rate=0.0,
@@ -666,7 +657,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     except Exception as e:
         logger.error(f"Failed to get emoji statistics: {e}")
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )

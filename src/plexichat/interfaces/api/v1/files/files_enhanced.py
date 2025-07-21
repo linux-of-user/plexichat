@@ -103,7 +103,7 @@ router = APIRouter(prefix="/api/v1/files", tags=["Enhanced Files"])
 
 
 @router.get("/check-access/{file_id}")
-async def check_file_access()
+async def check_file_access(
     file_id: int,
     request: Request,
     permission_type: FilePermissionType = Query(FilePermissionType.READ),
@@ -115,22 +115,21 @@ async def check_file_access()
     Used by message system to validate file embeds.
     """
     permission_service = FilePermissionService(session)
-
     user_id = current_user.id if current_user else None
     ip_address = request.client.host
     user_agent = request.headers.get("user-agent")
 
-    has_access, error_message, access_context = await permission_service.check_file_access()
+    has_access, error_message, access_context = await permission_service.check_file_access(
         file_id, user_id, permission_type, ip_address, user_agent
     )
 
-    if not has_access:
-        # Still return file info but mark as not accessible
-        file_record = session.get(FileRecord, file_id)
-        if not file_record:
-            raise HTTPException(status_code=404, detail="File not found")
+    # Use the database abstraction layer to get the file record
+    file_record = await database_manager.get_file_record(file_id)
+    if not file_record:
+        raise HTTPException(status_code=404, detail="File not found")
 
-        return FileAccessResponse()
+    if not has_access:
+        return FileAccessResponse(
             has_access=False,
             file_id=file_id,
             file_uuid=file_record.uuid,
@@ -140,14 +139,9 @@ async def check_file_access()
             access_level=file_record.access_level.value
         )
 
-    # Get file details
-    file_record = session.get(FileRecord, file_id)
-    if not file_record:
-        raise HTTPException(status_code=404, detail="File not found")
-
     download_url = f"/api/v1/files/download/{file_record.uuid}" if has_access else None
 
-    return FileAccessResponse()
+    return FileAccessResponse(
         has_access=True,
         file_id=file_id,
         file_uuid=file_record.uuid,
@@ -162,7 +156,7 @@ async def check_file_access()
 
 
 @router.get("/embed-info/{file_id}")
-async def get_file_embed_info()
+async def get_file_embed_info(
     file_id: int,
     request: Request,
     session: Session = Depends(get_session),
@@ -172,14 +166,15 @@ async def get_file_embed_info()
     Get file information for embedding in messages.
     Returns basic info regardless of access, but marks accessibility.
     """
-    file_record = session.get(FileRecord, file_id)
+    # Use the database abstraction layer to get the file record
+    file_record = await database_manager.get_file_record(file_id)
     if not file_record:
         raise HTTPException(status_code=404, detail="File not found")
 
     permission_service = FilePermissionService(session)
     user_id = current_user.id if current_user else None
 
-    has_access, _, _ = await permission_service.check_file_access()
+    has_access, _, _ = await permission_service.check_file_access(
         file_id, user_id, FilePermissionType.READ,
         request.client.host, request.headers.get("user-agent")
     )
@@ -189,7 +184,7 @@ async def get_file_embed_info()
     if file_record.mime_type and file_record.mime_type.startswith('image/'):
         thumbnail_url = f"/api/v1/files/thumbnail/{file_record.uuid}"
 
-    return FileEmbedInfo()
+    return FileEmbedInfo(
         file_id=file_id,
         file_uuid=file_record.uuid,
         filename=file_record.filename,
@@ -202,89 +197,83 @@ async def get_file_embed_info()
 
 
 @router.post("/permissions/{file_id}")
-async def grant_file_permission()
+async def grant_file_permission(
     file_id: int,
-    permission_request: FilePermissionRequest,
+    request: Request,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> JSONResponse:
-    """Grant permissions to a user for a file."""
+    """Grant file permission to a user."""
+    # Use the database abstraction layer for permission management
     permission_service = FilePermissionService(session)
-
-    success = await permission_service.grant_permission()
-        file_id=file_id,
-        target_user_id=permission_request.user_id,
-        granted_by_user_id=current_user.id,
-        permissions=permission_request.permissions,
-        expires_at=permission_request.expires_at,
-        max_downloads=permission_request.max_downloads
+    data = await request.json()
+    target_user_id = data.get("user_id")
+    permission_type = data.get("permission_type")
+    expires_at = data.get("expires_at")
+    success = await permission_service.grant_permission(
+        file_id, target_user_id, permission_type, current_user.id, expires_at
     )
-
     if success:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
-            "message": "Permissions granted successfully"
+            "message": "Permission granted successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to grant permissions"
+            detail="Failed to grant permission"
         )
 
 
-@router.delete("/permissions/{file_id}/{user_id}")
-async def revoke_file_permission()
+@router.delete("/permissions/{file_id}")
+async def revoke_file_permission(
     file_id: int,
-    user_id: int,
+    request: Request,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> JSONResponse:
-    """Revoke permissions for a user on a file."""
+    """Revoke file permission from a user."""
     permission_service = FilePermissionService(session)
-
-    success = await permission_service.revoke_permission()
-        file_id=file_id,
-        target_user_id=user_id,
-        revoked_by_user_id=current_user.id
+    data = await request.json()
+    target_user_id = data.get("user_id")
+    permission_type = data.get("permission_type")
+    success = await permission_service.revoke_permission(
+        file_id, target_user_id, permission_type, current_user.id
     )
-
     if success:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
-            "message": "Permissions revoked successfully"
+            "message": "Permission revoked successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to revoke permissions"
+            detail="Failed to revoke permission"
         )
 
 
 @router.get("/permissions/{file_id}")
-async def list_file_permissions()
+async def list_file_permissions(
     file_id: int,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ) -> List[Dict[str, Any]]:
     """List all permissions for a file."""
     permission_service = FilePermissionService(session)
 
     # Check if user has admin access to the file
-    has_access, _, _ = await permission_service.check_file_access()
+    has_access, _, _ = await permission_service.check_file_access(
         file_id, current_user.id, FilePermissionType.ADMIN
     )
 
     if not has_access:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions to view file permissions"
         )
 
     # Get all active permissions for the file
-    statement = select(FilePermission).where()
+    statement = select(FilePermission).where(
         FilePermission.file_id == file_id,
         FilePermission.is_active
     )
@@ -293,7 +282,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     result = []
     for perm in permissions:
         user = session.get(User, perm.user_id)
-        result.append({)
+        result.append({
             "permission_id": perm.id,
             "user_id": perm.user_id,
             "username": user.username if user else "Unknown",
@@ -315,12 +304,11 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.post("/share/{file_id}")
-async def create_file_share()
+async def create_file_share(
     file_id: int,
     share_request: FileShareRequest,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ) -> JSONResponse:
     """Create a share link for a file."""
     permission_service = FilePermissionService(session)
@@ -332,7 +320,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         "can_comment": share_request.can_comment
     }
 
-    share_uuid = await permission_service.create_share_link()
+    share_uuid = await permission_service.create_share_link(
         file_id=file_id,
         shared_by_user_id=current_user.id,
         shared_with_user_id=share_request.shared_with_user_id,
@@ -344,39 +332,38 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     )
 
     if share_uuid:
-        return JSONResponse({)
+        return JSONResponse({
             "success": True,
             "share_uuid": share_uuid,
             "share_url": f"/api/v1/files/shared/{share_uuid}",
             "message": "Share link created successfully"
         })
     else:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create share link"
         )
 
 
 @router.put("/access-level/{file_id}")
-async def update_file_access_level()
+async def update_file_access_level(
     file_id: int,
     access_level: FileAccessLevel,
     allow_public_read: bool = False,
     allow_public_download: bool = False,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ) -> JSONResponse:
     """Update file access level and public permissions."""
     permission_service = FilePermissionService(session)
 
     # Check if user has admin access to the file
-    has_access, _, _ = await permission_service.check_file_access()
+    has_access, _, _ = await permission_service.check_file_access(
         file_id, current_user.id, FilePermissionType.ADMIN
     )
 
     if not has_access:
-        raise HTTPException()
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions to modify file access level"
         )
@@ -394,7 +381,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     session.commit()
 
-    return JSONResponse({)
+    return JSONResponse({
         "success": True,
         "message": "File access level updated successfully",
         "access_level": access_level.value,
@@ -409,7 +396,7 @@ async def get_file_access_logs(
     limit: int = Query(100, le=1000),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ) -> List[Dict[str, Any]]:
     """Get access logs for a file (admin only)."""
     permission_service = FilePermissionService(session)

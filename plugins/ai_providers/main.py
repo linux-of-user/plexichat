@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 # Plugin interface imports with fallbacks
 try:
     from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
+    pass
 except ImportError:
     class PluginInterface:
         def __init__(self, name, version):
@@ -258,7 +259,8 @@ class AIProvidersPlugin(PluginInterface):
         try:
             # Import AI layer
             try:
-from plugin_internal import *
+                from plugin_internal import AIAbstractionLayer
+                pass
             except ImportError:
                 # Use fallback
                 pass

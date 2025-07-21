@@ -145,14 +145,12 @@ async def health_check():
                 if auth_manager
                 and hasattr(auth_manager, "initialized")
                 and auth_manager.initialized
-                else "not_initialized"
-            ),
+                else "not_initialized",
             "backup": "initialized"
                 if backup_manager
                 and hasattr(backup_manager, "initialized")
                 and backup_manager.initialized
-                else "not_initialized"
-            ),
+                else "not_initialized",
             "clustering": "available" if cluster_manager else "not_available",
             "ai": "available" if ai_router else "not_available",
             "plugins": "available" if plugins_router else "not_available",

@@ -172,7 +172,7 @@ class LoginService:
 # Initialize service
 login_service = LoginService()
 
-@router.get()
+@router.get("/")
 async def login_page(request: Request):
     """Display login page with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
@@ -336,7 +336,7 @@ async def login_page(request: Request):
 
     return HTMLResponse(content=html_content)
 
-@router.post()
+@router.post("/")
 async def authenticate(
     request: Request,
     username: str = Form(...),
@@ -401,7 +401,7 @@ async def authenticate(
             detail="Internal server error"
         )
 
-@router.post()
+@router.post("/logout")
 async def logout(
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)
@@ -416,7 +416,7 @@ async def logout(
 
     return {"message": "Successfully logged out"}
 
-@router.get()
+@router.get("/status")
 async def login_status(
     request: Request,
     current_user: Dict[str, Any] = Depends(get_current_user)

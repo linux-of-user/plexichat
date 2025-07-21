@@ -73,6 +73,21 @@ class OnlineStatus(str, Enum):
     INVISIBLE = "invisible"
     OFFLINE = "offline"
 
+# User Model
+@dataclass
+class User:
+    """Core user model. All persistent storage and API models must use the database abstraction layer or pure dataclasses, not Pydantic/SQLModel directly."""
+    id: int
+    username: str
+    email: str
+    hashed_password: str
+    role: UserRole = UserRole.USER
+    status: UserStatus = UserStatus.PENDING
+    is_verified: bool = False
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = None
+    last_login: datetime = None
+
 # User Profile Model
 @dataclass
 class UserProfile:
@@ -171,10 +186,10 @@ class UserModelService:
         if self.db_manager:
             try:
                 create_query = """
-                    INSERT INTO user_profiles ()
+                    INSERT INTO user_profiles (
                         user_id, display_name, bio, location, website,
                         theme, language, timezone, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (:user_id, :display_name, :bio, :location, :website, :theme, :language, :timezone, :created_at)
                     RETURNING *
                 """
                 create_params = {
@@ -183,9 +198,9 @@ class UserModelService:
                     "bio": profile_data.bio,
                     "location": profile_data.location,
                     "website": profile_data.website,
-                    "theme": profile_data.theme,
-                    "language": profile_data.language,
-                    "timezone": profile_data.timezone,
+                    "theme": "light",  # Default value
+                    "language": "en",  # Default value
+                    "timezone": "",  # Default value
                     "created_at": datetime.now()
                 }
 
@@ -202,8 +217,22 @@ class UserModelService:
                         id=row[0],
                         user_id=row[1],
                         display_name=row[2],
-                        # ... map other fields
-                        created_at=row[-1]
+                        bio=row[3],
+                        location=row[4],
+                        website=row[5],
+                        avatar_url=row[6],
+                        banner_url=row[7],
+                        twitter_handle=row[8],
+                        github_username=row[9],
+                        linkedin_url=row[10],
+                        theme=row[11],
+                        language=row[12],
+                        timezone=row[13],
+                        show_email=row[14],
+                        show_online_status=row[15],
+                        allow_direct_messages=row[16],
+                        created_at=row[17],
+                        updated_at=row[18]
                     )
 
             except Exception as e:

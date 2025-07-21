@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - PlexiChat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .setup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .welcome-content {
+            margin: 30px 0;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .feature-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            color: #555;
+        }
+        
+        .feature-list li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 25%;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .step.completed {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="logo">🚀 PlexiChat</div>
+        <div class="subtitle">Advanced AI-Powered Chat Platform</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step active">Welcome</div>
+            <div class="step">Database</div>
+            <div class="step">Admin</div>
+            <div class="step">Complete</div>
+        </div>
+        
+        <div class="welcome-content">
+            <h2>Welcome to PlexiChat Setup</h2>
+            <p>Let's get your PlexiChat installation configured and ready to use.</p>
+            
+            <div class="feature-list">
+                <h3>What you'll get:</h3>
+                <ul>
+                    <li>Advanced AI-powered chat interface</li>
+                    <li>Beautiful GUI with CLI integration</li>
+                    <li>Comprehensive plugin system</li>
+                    <li>Government-level security</li>
+                    <li>Real-time collaboration tools</li>
+                    <li>Extensive customization options</li>
+                </ul>
+            </div>
+            
+            <p>This setup wizard will guide you through:</p>
+            <div class="feature-list">
+                <ul>
+                    <li>Database configuration</li>
+                    <li>Admin account creation</li>
+                    <li>Security settings</li>
+                    <li>Initial system configuration</li>
+                </ul>
+            </div>
+        </div>
+        
+        <a href="/setup/database" class="btn">Start Setup</a>
+    </div>
+</body>
+</html>
