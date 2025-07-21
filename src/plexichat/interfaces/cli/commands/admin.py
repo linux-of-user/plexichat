@@ -17,6 +17,7 @@ try:
     from plexichat.core.auth.admin_manager import admin_manager
     from plexichat.app.logger_config import get_logger
     from plexichat.core.config import settings
+    from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
 except ImportError:
     admin_manager = None
     get_logger = lambda x: print
@@ -207,6 +208,36 @@ def revoke_session(token: Optional[str], username: Optional[str], revoke_all: bo
     except Exception as e:
         click.echo(f"❌ Error revoking session: {e}", err=True)
         sys.exit(1)
+
+@admin.command()
+def plugin_module_requests():
+    """List all plugin module import requests from plugins."""
+    isolation_manager = unified_plugin_manager.isolation_manager
+    requests = isolation_manager.get_plugin_module_requests()
+    if not requests:
+        click.echo("No pending plugin module requests.")
+        return
+    for plugin, modules in requests.items():
+        for module in modules:
+            click.echo(f"Plugin: {plugin} | Module: {module}")
+
+@admin.command()
+@click.argument('plugin_name')
+@click.argument('module_name')
+def grant_plugin_module(plugin_name, module_name):
+    """Grant a plugin permission to import a module."""
+    isolation_manager = unified_plugin_manager.isolation_manager
+    isolation_manager.grant_plugin_module_permission(plugin_name, module_name)
+    click.echo(f"Granted {module_name} to {plugin_name}")
+
+@admin.command()
+@click.argument('plugin_name')
+@click.argument('module_name')
+def revoke_plugin_module(plugin_name, module_name):
+    """Revoke a plugin's permission to import a module."""
+    isolation_manager = unified_plugin_manager.isolation_manager
+    isolation_manager.revoke_plugin_module_permission(plugin_name, module_name)
+    click.echo(f"Revoked {module_name} from {plugin_name}")
 
 @admin.command()
 def system_status():

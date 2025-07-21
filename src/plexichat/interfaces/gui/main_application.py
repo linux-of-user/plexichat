@@ -372,6 +372,10 @@ class PlexiChatGUI:
             # Setup settings panel
             self.settings_panel = SettingsPanel(self.main_dashboard, self)
 
+            # Setup plugin marketplace
+            from .components.plugin_marketplace import PluginMarketplace
+            self.plugin_marketplace = PluginMarketplace(self.main_dashboard, self)
+
             # Register theme callback
             self.theme_manager.register_theme_callback(self.on_theme_changed)
 

@@ -6,6 +6,7 @@
 import tempfile
 from pathlib import Path
 from typing import Optional
+from datetime import datetime
 
 
 from pathlib import Path
@@ -17,33 +18,7 @@ from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Uploa
 from pydantic import BaseModel
 
 from plexichat.app.logger_config import logger
-from plexichat.app.plugins.enhanced_plugin_manager import ()
-
-    API,
-    Enhanced,
-    Management,
-    PlexiChat.,
-    Plugin,
-    PluginSource,
-    PluginStatus,
-    Provides,
-    """,
-    and,
-    auto-updates,
-    comprehensive,
-    dashboard,
-    endpoints,
-    for,
-    functionality.,
-    get_enhanced_plugin_manager,
-    installation,
-    management,
-    plugin,
-    scanning,
-    security,
-    with,
-    zip,
-)
+from plexichat.app.plugins.enhanced_plugin_manager import get_enhanced_plugin_manager, PluginStatus
 
 
 # Pydantic models for API
@@ -69,11 +44,15 @@ class PluginSecurityScanRequest(BaseModel):
 router = APIRouter(prefix="/api/v1/plugins/enhanced", tags=["Enhanced Plugin Management"])
 
 @router.get("/dashboard")
-async def get_plugin_dashboard():
-    """Get comprehensive plugin dashboard data."""
+async def get_dashboard():
+    """Get plugin dashboard overview."""
     try:
         plugin_manager = get_enhanced_plugin_manager()
         dashboard_data = plugin_manager.get_plugin_dashboard_data()
+
+        # Add additional data if needed
+        dashboard_data["server_time"] = datetime.now().isoformat()
+        dashboard_data["plexichat_version"] = "3.0.0"
 
         return {
             "success": True,
@@ -81,54 +60,27 @@ async def get_plugin_dashboard():
         }
 
     except Exception as e:
-        logger.error(f"Failed to get plugin dashboard: {e}")
+        logger.error(f"Failed to get dashboard data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/install")
-async def install_plugin_from_zip()
-    background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-    source: str = Form(default="local"),
-    auto_enable: bool = Form(default=True)
+async def install_plugin(
+    source: str,
+    source_type: PluginSource,
+    force: bool = False,
+    auto_enable: bool = True
 ):
-    """Install plugin from uploaded ZIP file."""
+    """Install a plugin from various sources."""
     try:
         plugin_manager = get_enhanced_plugin_manager()
-
-        # Validate file type
-        if not file.filename.lower().endswith('.zip'):
-            raise HTTPException(status_code=400, detail="Only ZIP files are supported")
-
-        # Save uploaded file to temporary location
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_file:
-            content = await file.read()
-            temp_file.write(content)
-            from pathlib import Path
-temp_path = Path
-Path(temp_file.name)
-
-        try:
-            # Parse source
-            plugin_source = PluginSource(source.lower())
-        except ValueError:
-            plugin_source = PluginSource.LOCAL
-
-        # Install plugin
-        result = await plugin_manager.install_plugin_from_zip(temp_path, plugin_source)
-
-        # Clean up temp file
-        temp_path.unlink(missing_ok=True)
+        result = await plugin_manager.install_plugin(
+            source=source,
+            source_type=source_type,
+            force=force,
+            auto_enable=auto_enable
+        )
 
         if result["success"]:
-            # Auto-enable if requested
-            if auto_enable and "plugin_name" in result:
-                enable_result = plugin_manager.enable_plugin(result["plugin_name"])
-                if enable_result:
-                    result["auto_enabled"] = True
-                else:
-                    result["auto_enabled"] = False
-                    result["enable_warning"] = "Plugin installed but failed to auto-enable"
-
             return {
                 "success": True,
                 "data": result
@@ -143,11 +95,14 @@ Path(temp_file.name)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/uninstall")
-async def uninstall_plugin(request: PluginUninstallRequest):
-    """Uninstall plugin with optional data removal."""
+async def uninstall_plugin(plugin_name: str, keep_data: bool = False):
+    """Uninstall a plugin."""
     try:
         plugin_manager = get_enhanced_plugin_manager()
-        result = await plugin_manager.uninstall_plugin(request.plugin_name, request.remove_data)
+        result = await plugin_manager.uninstall_plugin(
+            plugin_name=plugin_name,
+            keep_data=keep_data
+        )
 
         if result["success"]:
             return {
@@ -185,25 +140,24 @@ async def check_plugin_updates(plugin_name: Optional[str] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update")
-async def update_plugin(request: PluginUpdateRequest, background_tasks: BackgroundTasks):
-    """Update plugin to latest version."""
+async def update_plugin(plugin_name: str, force: bool = False):
+    """Update a plugin."""
     try:
         plugin_manager = get_enhanced_plugin_manager()
+        result = await plugin_manager.update_plugin(plugin_name, force)
 
-        # Run update in background for large plugins
-        background_tasks.add_task()
-            plugin_manager.update_plugin,
-            request.plugin_name,
-            request.auto_update
-        )
+        if result["success"]:
+            return {
+                "success": True,
+                "data": result
+            }
+        else:
+            raise HTTPException(status_code=400, detail=result["error"])
 
-        return {
-            "success": True,
-            "message": f"Plugin '{request.plugin_name}' update started in background"
-        }
-
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to start plugin update: {e}")
+        logger.error(f"Failed to update plugin: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/auto-update")
@@ -285,21 +239,21 @@ async def get_security_overview():
             security = plugin.get("security", {})
 
             if security.get("risk_level") in ["high", "critical"]:
-                security_data["high_risk_plugins"].append({)
+                security_data["high_risk_plugins"].append({
                     "name": plugin["name"],
                     "risk_level": security["risk_level"],
                     "reason": security.get("quarantine_reason")
                 })
 
             if plugin["status"] == "quarantined":
-                security_data["quarantined_plugins"].append({)
+                security_data["quarantined_plugins"].append({
                     "name": plugin["name"],
                     "reason": security.get("quarantine_reason"),
                     "scan_date": security.get("scan_date")
                 })
 
             if not security.get("signature_valid", True):
-                security_data["unsigned_plugins"].append({)
+                security_data["unsigned_plugins"].append({
                     "name": plugin["name"],
                     "source": plugin["source"]
                 })

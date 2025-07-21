@@ -328,6 +328,8 @@ class PluginIsolationManager:
     def __init__(self):
         self.isolated_modules: Dict[str, Any] = {}
         self.resource_limits: Dict[str, Dict[str, Any]] = {}
+        self.plugin_module_permissions: Dict[str, Set[str]] = {} # New: track allowed modules per plugin
+        self.plugin_module_requests: Dict[str, Set[str]] = {} # New: track requested modules per plugin
 
     async def load_module_isolated(self, plugin_name: str, plugin_path: Path, config: Optional[Dict[str, Any]] = None) -> bool:
         """Load a module in isolation."""
@@ -375,19 +377,53 @@ class PluginIsolationManager:
             return False
 
     def _restricted_import(self, name, *args, **kwargs):
-        """Restricted import function."""
-        # Allow only specific modules
+        """Restricted import function with dynamic permission system."""
+        # Vastly expanded default allowlist (standard lib + common third-party)
         allowed_modules = {
-            'json', 'datetime', 'typing', 'dataclasses', 'enum',
-            'asyncio', 'logging', 'pathlib', 'uuid',
-            'subprocess', 'time', 'base64', 'mimetypes',
-            'ast', 'socket', 'psutil', 'secrets'
+            # Standard library (partial, can be expanded further)
+            'json', 'datetime', 'typing', 'dataclasses', 'enum', 'asyncio', 'logging', 'pathlib', 'uuid',
+            'subprocess', 'time', 'base64', 'mimetypes', 'ast', 'socket', 'psutil', 'secrets', 'io', 'os',
+            're', 'ssl', 'sys', 'urllib.parse', 'hashlib', 'shutil', 'concurrent.futures', 'threading',
+            'queue', 'copy', 'functools', 'itertools', 'collections', 'math', 'random', 'decimal', 'fractions',
+            'statistics', 'heapq', 'bisect', 'array', 'weakref', 'types', 'inspect', 'traceback', 'pprint',
+            'pickle', 'marshal', 'struct', 'zlib', 'gzip', 'bz2', 'lzma', 'tarfile', 'zipfile', 'csv', 'configparser',
+            'fileinput', 'glob', 'tempfile', 'getopt', 'argparse', 'logging.config', 'logging.handlers',
+            'platform', 'resource', 'signal', 'ctypes', 'cProfile', 'pstats', 'timeit', 'sched', 'calendar',
+            'gettext', 'locale', 'uuid', 'base64', 'binascii', 'hmac', 'secrets', 'hashlib', 'ssl', 'socketserver',
+            'http', 'http.server', 'http.client', 'urllib', 'urllib.request', 'urllib.parse', 'xml', 'xml.etree.ElementTree',
+            'xml.dom', 'xml.sax', 'html', 'html.parser', 'html.entities', 'json', 'plistlib', 'csv', 'sqlite3',
+            'dbm', 'shelve', 'pickle', 'marshal', 'copyreg', 'codecs', 'gettext', 'locale', 'calendar', 'zoneinfo',
+            'email', 'mailbox', 'mimetypes', 'mailcap', 'netrc', 'nntplib', 'smtplib', 'ssl', 'imaplib', 'poplib',
+            'uuid', 'ipaddress', 'pdb', 'doctest', 'unittest', 'unittest.mock', 'difflib', 'filecmp', 'tempfile',
+            'glob', 'fnmatch', 'linecache', 'shlex', 'subprocess', 'signal', 'faulthandler', 'trace', 'tracemalloc',
+            'gc', 'atexit', 'warnings', 'contextlib', 'contextvars', 'dataclasses', 'enum', 'types', 'typing',
+            'numbers', 'abc', 'collections.abc', 'reprlib', 'string', 'stringprep', 'textwrap', 'unicodedata',
+            'sysconfig', 'site', 'ensurepip', 'venv', 'zipapp', 'importlib', 'importlib.util', 'importlib.machinery',
+            'importlib.abc', 'importlib.resources', 'pkgutil', 'pkg_resources', 'runpy', 'builtins', 'dis', 'opcode',
+            'ast', 'symtable', 'token', 'tokenize', 'tabnanny', 'pyclbr', 'py_compile', 'compileall', 'code', 'codeop',
+            # Common third-party
+            'fastapi', 'fastapi.responses', 'aiohttp', 'requests', 'matplotlib', 'matplotlib.pyplot', 'pandas',
+            'numpy', 'scipy', 'sklearn', 'cryptography', 'cryptography.fernet', 'jinja2', 'jinja2.ext', 'jinja2.sandbox',
+            'websockets', 'sqlalchemy', 'sqlalchemy.orm', 'sqlalchemy.ext', 'sqlalchemy.sql', 'sqlalchemy.engine',
+            'psycopg2', 'pymongo', 'redis', 'celery', 'pytest', 'pytest_asyncio', 'pytest_mock', 'pytest_cov',
+            'colorama', 'rich', 'uvicorn', 'starlette', 'starlette.responses', 'starlette.requests', 'starlette.routing',
+            'starlette.datastructures', 'starlette.background', 'starlette.concurrency', 'starlette.templating',
+            'starlette.staticfiles', 'starlette.websockets', 'starlette.middleware', 'starlette.exceptions',
+            'starlette.endpoints', 'starlette.status', 'starlette.types', 'starlette.testclient',
         }
-
-        if name in allowed_modules or name.startswith('plexichat.'):
+        # Dynamic per-plugin allowlist (populated by admin/cli approval)
+        plugin_name = getattr(threading.current_thread(), 'plugin_name', None)
+        extra_allowed = set()
+        if plugin_name and hasattr(self, 'plugin_module_permissions'):
+            extra_allowed = self.plugin_module_permissions.get(plugin_name, set())
+        if name in allowed_modules or name in extra_allowed or name.startswith('plexichat.'):
             return __import__(name, *args, **kwargs)
-        else:
-            raise ImportError(f"Import of '{name}' not allowed in sandboxed plugin")
+        # If not allowed, record the request and skip loading
+        if plugin_name:
+            if not hasattr(self, 'plugin_module_requests'):
+                self.plugin_module_requests = {}
+            self.plugin_module_requests.setdefault(plugin_name, set()).add(name)
+        raise ImportError(f"Import of '{name}' not allowed in sandboxed plugin. Admin approval required.")
 
     def _restricted_open(self, *args, **kwargs):
         """Restricted file open function."""
@@ -400,6 +436,23 @@ class PluginIsolationManager:
     def _restricted_eval(self, *args, **kwargs):
         """Restricted eval function."""
         raise PermissionError("Dynamic code evaluation not allowed in sandboxed plugin")
+
+    # --- Admin/CLI permission management stubs ---
+    def grant_plugin_module_permission(self, plugin_name: str, module_name: str):
+        if not hasattr(self, 'plugin_module_permissions'):
+            self.plugin_module_permissions = {}
+        self.plugin_module_permissions.setdefault(plugin_name, set()).add(module_name)
+
+    def revoke_plugin_module_permission(self, plugin_name: str, module_name: str):
+        if hasattr(self, 'plugin_module_permissions'):
+            self.plugin_module_permissions.get(plugin_name, set()).discard(module_name)
+
+    def get_plugin_module_requests(self, plugin_name: str = None):
+        if not hasattr(self, 'plugin_module_requests'):
+            return {}
+        if plugin_name:
+            return {plugin_name: list(self.plugin_module_requests.get(plugin_name, set()))}
+        return {k: list(v) for k, v in self.plugin_module_requests.items()}
 
 
 class PluginTestManager:
@@ -512,6 +565,9 @@ class UnifiedPluginManager:
 
         # Thread safety
         self._lock = threading.Lock()
+
+        # Auto-generate plugin SDK
+        self._generate_plugin_sdk()
 
     async def initialize(self) -> bool:
         """Initialize the plugin manager."""
@@ -1069,6 +1125,338 @@ class UnifiedPluginManager:
         except Exception as e:
             self.logger.error(f"Failed to load enabled plugins: {e}")
             return {}
+
+    def _generate_plugin_sdk(self):
+        """Auto-generate the plugin SDK (plugins_internal.py)."""
+        try:
+            sdk_content = self._create_plugin_sdk_content()
+            sdk_file = self.plugins_dir / "plugins_internal.py"
+
+            with open(sdk_file, 'w') as f:
+                f.write(sdk_content)
+
+            self.logger.info(f"Generated plugin SDK: {sdk_file}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to generate plugin SDK: {e}")
+
+    def _create_plugin_sdk_content(self) -> str:
+        """Create the content for the auto-generated plugin SDK."""
+        return '''"""
+PlexiChat Plugin SDK - Auto-Generated
+=====================================
+
+This file is automatically generated by the PlexiChat Plugin Manager.
+DO NOT EDIT MANUALLY - Changes will be overwritten.
+
+This SDK provides the core interfaces and utilities for developing PlexiChat plugins.
+"""
+
+import asyncio
+import logging
+import json
+from abc import ABC, abstractmethod
+from typing import Dict, Any, List, Optional, Callable
+from pathlib import Path
+from datetime import datetime
+
+# Plugin Base Classes
+class BasePlugin(ABC):
+    """Base class for all PlexiChat plugins."""
+
+    def __init__(self):
+        self.name = "Unknown Plugin"
+        self.version = "1.0.0"
+        self.description = "A PlexiChat plugin"
+        self.author = "Unknown"
+        self.type = "utility"
+        self.enabled = True
+        self.logger = logging.getLogger(f"plugin.{self.name}")
+        self.config = {}
+        self.dependencies = []
+
+    @abstractmethod
+    async def initialize(self) -> bool:
+        """Initialize the plugin. Return True if successful."""
+        pass
+
+    @abstractmethod
+    async def cleanup(self):
+        """Cleanup plugin resources."""
+        pass
+
+    def get_config_schema(self) -> Dict[str, Any]:
+        """Return the configuration schema for this plugin."""
+        return {}
+
+    def get_config(self) -> Dict[str, Any]:
+        """Get plugin configuration."""
+        return self.config
+
+    def set_config(self, config: Dict[str, Any]):
+        """Set plugin configuration."""
+        self.config = config
+
+    async def handle_event(self, event_type: str, data: Dict[str, Any]):
+        """Handle system events."""
+        pass
+
+class AIProviderPlugin(BasePlugin):
+    """Base class for AI provider plugins."""
+
+    def __init__(self):
+        super().__init__()
+        self.type = "ai_provider"
+
+    @abstractmethod
+    async def generate_response(self, prompt: str, context: Dict[str, Any] = None) -> str:
+        """Generate AI response."""
+        pass
+
+    async def stream_response(self, prompt: str, context: Dict[str, Any] = None):
+        """Stream AI response (optional)."""
+        response = await self.generate_response(prompt, context)
+        yield response
+
+class SecurityPlugin(BasePlugin):
+    """Base class for security plugins."""
+
+    def __init__(self):
+        super().__init__()
+        self.type = "security"
+
+    async def scan_file(self, file_path: str) -> Dict[str, Any]:
+        """Scan file for threats."""
+        return {"safe": True, "threats": []}
+
+    async def scan_message(self, message: str) -> Dict[str, Any]:
+        """Scan message content."""
+        return {"safe": True, "threats": []}
+
+class InterfacePlugin(BasePlugin):
+    """Base class for interface plugins."""
+
+    def __init__(self):
+        super().__init__()
+        self.type = "interface"
+
+    def register_routes(self, app):
+        """Register web routes."""
+        pass
+
+    def register_gui_components(self, gui):
+        """Register GUI components."""
+        pass
+
+class AutomationPlugin(BasePlugin):
+    """Base class for automation plugins."""
+
+    def __init__(self):
+        super().__init__()
+        self.type = "automation"
+
+    async def execute_workflow(self, workflow_id: str, data: Dict[str, Any]):
+        """Execute automation workflow."""
+        pass
+
+    def register_triggers(self) -> List[Dict[str, Any]]:
+        """Register event triggers."""
+        return []
+
+# Plugin Utilities
+class PluginConfig:
+    """Plugin configuration helper."""
+
+    def __init__(self, plugin_name: str):
+        self.plugin_name = plugin_name
+        self.config_file = Path(f"plugins/{plugin_name}/config.json")
+
+    def load(self) -> Dict[str, Any]:
+        """Load plugin configuration."""
+        try:
+            if self.config_file.exists():
+                with open(self.config_file, 'r') as f:
+                    return json.load(f)
+            return {}
+        except Exception as e:
+            logging.error(f"Failed to load config for {self.plugin_name}: {e}")
+            return {}
+
+    def save(self, config: Dict[str, Any]):
+        """Save plugin configuration."""
+        try:
+            self.config_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.config_file, 'w') as f:
+                json.dump(config, f, indent=2)
+        except Exception as e:
+            logging.error(f"Failed to save config for {self.plugin_name}: {e}")
+
+class PluginLogger:
+    """Plugin logging helper."""
+
+    def __init__(self, plugin_name: str):
+        self.logger = logging.getLogger(f"plugin.{plugin_name}")
+
+    def info(self, message: str):
+        self.logger.info(message)
+
+    def warning(self, message: str):
+        self.logger.warning(message)
+
+    def error(self, message: str):
+        self.logger.error(message)
+
+    def debug(self, message: str):
+        self.logger.debug(message)
+
+class PluginAPI:
+    """Plugin API helper for interacting with PlexiChat core."""
+
+    @staticmethod
+    async def send_message(content: str, channel: str = "general"):
+        """Send a message through PlexiChat."""
+        # This would integrate with the actual messaging system
+        pass
+
+    @staticmethod
+    async def get_user_info(user_id: str) -> Dict[str, Any]:
+        """Get user information."""
+        # This would integrate with the user management system
+        return {}
+
+    @staticmethod
+    async def store_data(key: str, value: Any, plugin_name: str):
+        """Store plugin data."""
+        # This would integrate with the data storage system
+        pass
+
+    @staticmethod
+    async def retrieve_data(key: str, plugin_name: str) -> Any:
+        """Retrieve plugin data."""
+        # This would integrate with the data storage system
+        return None
+
+# Plugin Decorators
+def plugin_command(name: str, description: str = ""):
+    """Decorator for plugin commands."""
+    def decorator(func):
+        func._plugin_command = True
+        func._command_name = name
+        func._command_description = description
+        return func
+    return decorator
+
+def event_handler(event_type: str):
+    """Decorator for event handlers."""
+    def decorator(func):
+        func._event_handler = True
+        func._event_type = event_type
+        return func
+    return decorator
+
+def api_route(path: str, method: str = "GET"):
+    """Decorator for API routes."""
+    def decorator(func):
+        func._api_route = True
+        func._route_path = path
+        func._route_method = method
+        return func
+    return decorator
+
+# Plugin Registration
+def register_plugin(plugin_class):
+    """Register a plugin class."""
+    # This would integrate with the plugin manager
+    pass
+
+# Plugin Marketplace
+class PluginMarketplace:
+    """Plugin marketplace interface."""
+
+    def __init__(self, repo_url: str = "https://github.com/linux-of-user/plexichat-plugins"):
+        self.repo_url = repo_url
+        self.custom_repos = []
+
+    def add_repository(self, name: str, url: str):
+        """Add a custom plugin repository."""
+        self.custom_repos.append({"name": name, "url": url})
+
+    async def list_available_plugins(self, repo: str = "official") -> List[Dict[str, Any]]:
+        """List available plugins from repository."""
+        # This would fetch from the actual repository
+        return []
+
+    async def install_plugin(self, plugin_name: str, repo: str = "official") -> bool:
+        """Install a plugin from repository."""
+        # This would handle the actual installation
+        return False
+
+    async def update_plugin(self, plugin_name: str) -> bool:
+        """Update an installed plugin."""
+        # This would handle plugin updates
+        return False
+
+# Default Plugin Repositories
+DEFAULT_REPOSITORIES = [
+    {
+        "name": "official",
+        "url": "https://github.com/linux-of-user/plexichat-plugins",
+        "enabled": True
+    },
+    {
+        "name": "community",
+        "url": "https://github.com/plexichat-community/plugins",
+        "enabled": False
+    }
+]
+
+# Plugin Manager Interface
+class PluginManagerInterface:
+    """Interface to the plugin manager."""
+
+    @staticmethod
+    async def get_loaded_plugins() -> List[str]:
+        """Get list of loaded plugins."""
+        return []
+
+    @staticmethod
+    async def enable_plugin(plugin_name: str) -> bool:
+        """Enable a plugin."""
+        return False
+
+    @staticmethod
+    async def disable_plugin(plugin_name: str) -> bool:
+        """Disable a plugin."""
+        return False
+
+    @staticmethod
+    async def reload_plugin(plugin_name: str) -> bool:
+        """Reload a plugin."""
+        return False
+
+# Export main classes and functions
+__all__ = [
+    'BasePlugin',
+    'AIProviderPlugin',
+    'SecurityPlugin',
+    'InterfacePlugin',
+    'AutomationPlugin',
+    'PluginConfig',
+    'PluginLogger',
+    'PluginAPI',
+    'PluginMarketplace',
+    'PluginManagerInterface',
+    'plugin_command',
+    'event_handler',
+    'api_route',
+    'register_plugin',
+    'DEFAULT_REPOSITORIES'
+]
+
+# Auto-generated on: {datetime.now().isoformat()}
+# PlexiChat Version: 1.0.0
+# SDK Version: 1.0.0
+'''
 
     def _sort_plugins_by_dependencies_and_priority(self, plugin_names: List[str]) -> List[str]:
         """Sort plugins by dependencies and priority."""

@@ -320,6 +320,68 @@
                             </div>
                         </div>
 
+                        <!-- Plugin Module Permission Management -->
+                        <div class="row g-4 mt-4">
+                            <div class="col-12">
+                                <h5>Plugin Module Permission Requests</h5>
+                                <div id="plugin-module-requests-section">
+                                    <table class="table table-modern" id="plugin-module-requests-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Plugin</th>
+                                                <th>Requested Module</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Requests will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                    <div id="plugin-module-requests-empty" class="text-muted" style="display:none;">No pending module requests.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                        async function fetchPluginModuleRequests() {
+                            const res = await fetch('/admin/plugin-module-requests');
+                            const data = await res.json();
+                            const table = document.getElementById('plugin-module-requests-table').getElementsByTagName('tbody')[0];
+                            table.innerHTML = '';
+                            let hasRequests = false;
+                            for (const [plugin, modules] of Object.entries(data.requests)) {
+                                for (const moduleName of modules) {
+                                    hasRequests = true;
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${plugin}</td>
+                                        <td>${moduleName}</td>
+                                        <td>
+                                            <button class="btn btn-success btn-sm" onclick="grantPluginModule('${plugin}','${moduleName}')">Grant</button>
+                                            <button class="btn btn-danger btn-sm" onclick="revokePluginModule('${plugin}','${moduleName}')">Revoke</button>
+                                        </td>
+                                    `;
+                                    table.appendChild(row);
+                                }
+                            }
+                            document.getElementById('plugin-module-requests-empty').style.display = hasRequests ? 'none' : '';
+                        }
+                        async function grantPluginModule(plugin, moduleName) {
+                            await fetch('/admin/grant-plugin-module', {
+                                method: 'POST',
+                                body: new URLSearchParams({plugin_name: plugin, module_name: moduleName})
+                            });
+                            fetchPluginModuleRequests();
+                        }
+                        async function revokePluginModule(plugin, moduleName) {
+                            await fetch('/admin/revoke-plugin-module', {
+                                method: 'POST',
+                                body: new URLSearchParams({plugin_name: plugin, module_name: moduleName})
+                            });
+                            fetchPluginModuleRequests();
+                        }
+                        document.addEventListener('DOMContentLoaded', fetchPluginModuleRequests);
+                        </script>
+
                         <!-- Quick Actions -->
                         <div class="row g-4">
                             <div class="col-md-6">

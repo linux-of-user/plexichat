@@ -1412,6 +1412,37 @@ def run_gui():
 
     return True
 
+def run_gui_standalone():
+    """Launch the GUI interface in standalone mode (without server integration)."""
+    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (Standalone Mode)...{Colors.RESET}")
+    try:
+        logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
+        from plexichat.interfaces.gui.main_application import PlexiChatGUI
+
+        logger.info(f"{Colors.GREEN}GUI modules imported successfully{Colors.RESET}")
+        logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat GUI in Standalone Mode...{Colors.RESET}")
+
+        # Create and run GUI in standalone mode
+        app = PlexiChatGUI()
+        app.standalone_mode = True  # Set standalone flag
+        app.run()
+
+        logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
+
+    except ImportError as e:
+        logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
+        logger.error(f"{Colors.YELLOW}Make sure tkinter is installed{Colors.RESET}")
+        import traceback
+        logger.debug(traceback.format_exc())
+        return False
+    except Exception as e:
+        logger.error(f"{Colors.RED}GUI startup error: {e}{Colors.RESET}")
+        import traceback
+        logger.debug(traceback.format_exc())
+        return False
+
+    return True
+
 def run_webui():
     """Launch the web UI interface."""
     logger.info("Launching PlexiChat Web UI...")
@@ -2140,7 +2171,7 @@ def parse_arguments():
                           nargs='?',
                           default='api',
                           choices=[
-                              'api', 'gui', 'webui', 'cli', 'admin', 'backup-node', 'plugin',
+                              'api', 'gui', 'gui-standalone', 'webui', 'cli', 'admin', 'backup-node', 'plugin',
                               'test', 'config', 'wizard', 'help', 'setup', 'update', 'version',
                               'deps', 'system', 'clean', 'download', 'latest', 'versions', 'install',
                               'advanced-setup', 'optimize', 'diagnostic', 'maintenance'
@@ -3841,6 +3872,9 @@ def main():
 
     elif args.command == 'gui':
         run_gui()
+
+    elif args.command == 'gui-standalone':
+        run_gui_standalone()
 
     elif args.command == 'webui':
         run_webui()

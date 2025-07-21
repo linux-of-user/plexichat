@@ -13,30 +13,7 @@ from pydantic import BaseModel, Field
 from plexichat.app.logger_config import logger
 from plexichat.app.models.message import MessageType
 from plexichat.app.models.user import User
-from plexichat.app.services.enhanced_messaging_service import (
-    API,
-    Comprehensive,
-    EmojiService,
-    Endpoints,
-    Enhanced,
-    Messaging,
-    """,
-    and,
-    emoji,
-    enhanced_messaging_service,
-    features.,
-    from,
-    import,
-    messaging,
-    plexichat.app.utils.auth,
-    plexichat.infrastructure.utils.auth,
-    reactions,
-    replies,
-    resilience,
-    support,
-    with,
-)
-
+from plexichat.app.services.enhanced_messaging_service import EnhancedMessagingService
 from plexichat.features.users.models import User
 from plexichat.infrastructure.utils.auth import get_current_user
 
@@ -127,7 +104,7 @@ async def send_message(
 ):
     """Send a message with emoji support and processing."""
     try:
-        message = await enhanced_messaging_service.send_message(
+        message = await EnhancedMessagingService.send_message(
             sender_id=current_user.id,
             content=request.content,
             recipient_id=request.recipient_id,
@@ -181,7 +158,7 @@ async def send_reply(
 ):
     """Send a reply to a message."""
     try:
-        reply = await enhanced_messaging_service.send_reply(
+        reply = await EnhancedMessagingService.send_reply(
             sender_id=current_user.id,
             original_message_id=request.original_message_id,
             content=request.content,
@@ -234,7 +211,7 @@ async def add_reaction(
 ):
     """Add a reaction to a message."""
     try:
-        success = await enhanced_messaging_service.add_reaction(
+        success = await EnhancedMessagingService.add_reaction(
             message_id=message_id,
             user_id=current_user.id,
             emoji=request.emoji
@@ -264,7 +241,7 @@ async def remove_reaction(
 ):
     """Remove a reaction from a message."""
     try:
-        success = await enhanced_messaging_service.remove_reaction(
+        success = await EnhancedMessagingService.remove_reaction(
             message_id=message_id,
             user_id=current_user.id,
             emoji=emoji
@@ -297,7 +274,7 @@ async def get_messages(
 ):
     """Get messages with filters."""
     try:
-        messages = await enhanced_messaging_service.get_messages(
+        messages = await EnhancedMessagingService.get_messages(
             channel_id=channel_id,
             guild_id=guild_id,
             sender_id=sender_id,
@@ -346,7 +323,7 @@ async def get_message_context(
 ):
     """Get a message with its full context (reactions, replies, referenced message)."""
     try:
-        context = await enhanced_messaging_service.get_message_with_context(message_id)
+        context = await EnhancedMessagingService.get_message_with_context(message_id)
 
         if not context or not context.get('message'):
             raise HTTPException(
@@ -439,7 +416,7 @@ async def edit_message(
 ):
     """Edit a message."""
     try:
-        message = await enhanced_messaging_service.edit_message(
+        message = await EnhancedMessagingService.edit_message(
             message_id=message_id,
             user_id=current_user.id,
             new_content=request.content
@@ -498,7 +475,7 @@ async def delete_message(
                 detail="Admin permission required for force delete"
             )
 
-        success = await enhanced_messaging_service.delete_message(
+        success = await EnhancedMessagingService.delete_message(
             message_id=message_id,
             user_id=current_user.id,
             force=force
@@ -529,7 +506,7 @@ async def search_messages(
 ):
     """Search messages with text and emoji filtering."""
     try:
-        messages = await enhanced_messaging_service.search_messages(
+        messages = await EnhancedMessagingService.search_messages(
             query=request.query,
             channel_id=request.channel_id,
             guild_id=request.guild_id,
@@ -615,7 +592,7 @@ async def get_emoji_statistics(
 ):
     """Get emoji usage statistics."""
     try:
-        stats = await enhanced_messaging_service.get_emoji_statistics(
+        stats = await EnhancedMessagingService.get_emoji_statistics(
             channel_id=channel_id,
             guild_id=guild_id,
             days=days

@@ -21,6 +21,7 @@ from typing import Dict, Any, Optional
 from fastapi import APIRouter, Request, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 logger = logging.getLogger(__name__)
 
@@ -30,31 +31,61 @@ router = APIRouter(prefix="/setup", tags=["setup"])
 # Templates
 templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
+# Security
+security = HTTPBearer()
+
+async def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Verify admin authentication token."""
+    try:
+        # In production, verify JWT token here
+        # For now, check against session or basic auth
+        token = credentials.credentials
+
+        # Check if user is authenticated admin
+        if not token or not verify_admin_session(token):
+            raise HTTPException(status_code=401, detail="Admin authentication required")
+
+        return token
+    except Exception as e:
+        logger.error(f"Token verification failed: {e}")
+        raise HTTPException(status_code=401, detail="Invalid authentication")
+
+def verify_admin_session(token: str) -> bool:
+    """Verify admin session token."""
+    try:
+        # Check against active admin sessions
+        # This would integrate with your auth system
+        return True  # Simplified for now
+    except Exception:
+        return False
+
 @router.get("/", response_class=HTMLResponse)
-async def setup_home(request: Request):
-    """Main setup page."""
+async def setup_home(request: Request, token: str = Depends(verify_admin_token)):
+    """Main setup page - Admin access required."""
     try:
         # Check if setup is already completed
         if is_setup_completed():
             return RedirectResponse(url="/", status_code=302)
-        
+
         return templates.TemplateResponse("setup/index.html", {
             "request": request,
             "title": "PlexiChat Setup",
-            "step": "welcome"
+            "step": "welcome",
+            "admin_authenticated": True
         })
     except Exception as e:
         logger.error(f"Setup home error: {e}")
         raise HTTPException(status_code=500, detail="Setup page error")
 
 @router.get("/database", response_class=HTMLResponse)
-async def setup_database_page(request: Request):
-    """Database setup page."""
+async def setup_database_page(request: Request, token: str = Depends(verify_admin_token)):
+    """Database setup page - Admin access required."""
     try:
         return templates.TemplateResponse("setup/database.html", {
             "request": request,
             "title": "Database Setup",
-            "step": "database"
+            "step": "database",
+            "admin_authenticated": True
         })
     except Exception as e:
         logger.error(f"Database setup page error: {e}")

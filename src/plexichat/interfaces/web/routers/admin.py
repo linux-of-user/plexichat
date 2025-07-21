@@ -37,6 +37,7 @@ try:
     from plexichat.core.auth.admin_manager import admin_manager
     from plexichat.app.logger_config import get_logger
     from plexichat.core.config import settings
+    from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
 except ImportError:
     admin_manager = None
     get_logger = lambda x: print
@@ -348,5 +349,33 @@ async def api_list_admins(admin: dict = Depends(require_admin)):
         }
         for a in admins
     ])
+
+@router.get("/plugin-module-requests", response_class=JSONResponse)
+async def list_plugin_module_requests(admin: dict = Depends(require_admin)):
+    """List all plugin module import requests from plugins."""
+    isolation_manager = unified_plugin_manager.isolation_manager
+    return {"requests": isolation_manager.get_plugin_module_requests()}
+
+@router.post("/grant-plugin-module", response_class=JSONResponse)
+async def grant_plugin_module(
+    plugin_name: str = Form(...),
+    module_name: str = Form(...),
+    admin: dict = Depends(require_admin)
+):
+    """Grant a plugin permission to import a module."""
+    isolation_manager = unified_plugin_manager.isolation_manager
+    isolation_manager.grant_plugin_module_permission(plugin_name, module_name)
+    return {"success": True, "plugin": plugin_name, "module": module_name}
+
+@router.post("/revoke-plugin-module", response_class=JSONResponse)
+async def revoke_plugin_module(
+    plugin_name: str = Form(...),
+    module_name: str = Form(...),
+    admin: dict = Depends(require_admin)
+):
+    """Revoke a plugin's permission to import a module."""
+    isolation_manager = unified_plugin_manager.isolation_manager
+    isolation_manager.revoke_plugin_module_permission(plugin_name, module_name)
+    return {"success": True, "plugin": plugin_name, "module": module_name}
 
 __all__ = ["router"]

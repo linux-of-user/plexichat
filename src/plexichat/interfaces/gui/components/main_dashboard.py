@@ -898,6 +898,11 @@ Drops Out: {stats.dropout}"""
             plugin_notebook.add(settings_frame, text="⚙️ Plugin Settings")
             self.create_plugin_settings_view(settings_frame)
 
+            # Plugin Module Permissions tab
+            permissions_frame = ttk.Frame(plugin_notebook, style="Modern.TFrame")
+            plugin_notebook.add(permissions_frame, text="🔑 Module Permissions")
+            self.create_plugin_module_permissions_view(permissions_frame)
+
             return plugin_frame
 
         except Exception as e:
@@ -3219,3 +3224,53 @@ Documentation: https://docs.plexichat.com/plugins/{plugin_name.lower().replace('
                 
         except Exception as e:
             logger.error(f"Failed to remove plugin tab {plugin_name}: {e}")
+
+    def create_plugin_module_permissions_view(self, parent):
+        """Create plugin module permission management view."""
+        from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+        isolation_manager = unified_plugin_manager.isolation_manager
+
+        # Header
+        header_frame = ttk.Frame(parent, style="Modern.TFrame")
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        ttk.Label(header_frame, text="🔑 Plugin Module Permission Requests", font=("Segoe UI", 14, "bold"), style="Modern.TLabel").pack(side=tk.LEFT)
+        ttk.Button(header_frame, text="🔄 Refresh", command=lambda: self.refresh_plugin_module_requests(table), style="Modern.TButton").pack(side=tk.RIGHT)
+
+        # Table
+        table_frame = ttk.Frame(parent, style="Modern.TFrame")
+        table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+        columns = ("Plugin", "Module", "Actions")
+        table = ttk.Treeview(table_frame, columns=columns, show="headings", style="Modern.Treeview")
+        for col in columns:
+            table.heading(col, text=col)
+            table.column(col, width=180 if col != "Actions" else 120)
+        table.pack(fill=tk.BOTH, expand=True)
+        self.refresh_plugin_module_requests(table)
+
+    def refresh_plugin_module_requests(self, table):
+        from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+        isolation_manager = unified_plugin_manager.isolation_manager
+        table.delete(*table.get_children())
+        requests = isolation_manager.get_plugin_module_requests()
+        for plugin, modules in requests.items():
+            for module in modules:
+                row_id = table.insert("", "end", values=(plugin, module, ""))
+                # Add grant/revoke buttons
+                btn_frame = ttk.Frame(table)
+                grant_btn = ttk.Button(btn_frame, text="Grant", width=7, command=lambda p=plugin, m=module: self.grant_plugin_module_permission(p, m, table))
+                revoke_btn = ttk.Button(btn_frame, text="Revoke", width=7, command=lambda p=plugin, m=module: self.revoke_plugin_module_permission(p, m, table))
+                grant_btn.pack(side=tk.LEFT, padx=2)
+                revoke_btn.pack(side=tk.LEFT, padx=2)
+                table.set(row_id, "Actions", btn_frame)
+
+    def grant_plugin_module_permission(self, plugin, module, table):
+        from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+        isolation_manager = unified_plugin_manager.isolation_manager
+        isolation_manager.grant_plugin_module_permission(plugin, module)
+        self.refresh_plugin_module_requests(table)
+
+    def revoke_plugin_module_permission(self, plugin, module, table):
+        from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+        isolation_manager = unified_plugin_manager.isolation_manager
+        isolation_manager.revoke_plugin_module_permission(plugin, module)
+        self.refresh_plugin_module_requests(table)

@@ -38,6 +38,7 @@ class MenuSystem:
             self.menubar.add_cascade(label="Tools", menu=self.tools_menu)
             self.tools_menu.add_command(label="CLI Terminal", command=self.open_cli_terminal)
             self.tools_menu.add_command(label="Plugin Manager", command=self.open_plugin_manager)
+            self.tools_menu.add_command(label="Plugin Marketplace", command=self.open_plugin_marketplace)
             self.tools_menu.add_command(label="System Monitor", command=self.open_system_monitor)
             self.tools_menu.add_separator()
             self.tools_menu.add_command(label="Run Tests", command=self.run_tests)
@@ -94,6 +95,30 @@ class MenuSystem:
                 self.app.plugin_manager.show()
         except Exception as e:
             logger.error(f"Failed to open plugin manager: {e}")
+
+    def open_plugin_marketplace(self):
+        """Open plugin marketplace."""
+        try:
+            # Create new window for marketplace
+            marketplace_window = tk.Toplevel(self.root)
+            marketplace_window.title("Plugin Marketplace")
+            marketplace_window.geometry("1000x700")
+            marketplace_window.configure(bg='#2c3e50')
+
+            # Center the window
+            marketplace_window.update_idletasks()
+            x = (marketplace_window.winfo_screenwidth() // 2) - (1000 // 2)
+            y = (marketplace_window.winfo_screenheight() // 2) - (700 // 2)
+            marketplace_window.geometry(f"1000x700+{x}+{y}")
+
+            # Create marketplace instance
+            from .plugin_marketplace import PluginMarketplace
+            marketplace = PluginMarketplace(marketplace_window, self.app)
+            marketplace.pack(fill=tk.BOTH, expand=True)
+
+            logger.info("Plugin marketplace opened")
+        except Exception as e:
+            logger.error(f"Failed to open plugin marketplace: {e}")
 
     def open_system_monitor(self):
         """Open system monitor."""
