@@ -13,33 +13,7 @@ from pydantic import BaseModel, Field
 from plexichat.app.logger_config import logger
 from plexichat.app.models.message import MessageType
 from plexichat.app.models.user import User
-from plexichat.app.services.enhanced_messaging_service import ()
-    from plexichat.infrastructure.utils.auth import get_current_user,
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-from plexichat.features.users.user import User
-
+from plexichat.app.services.enhanced_messaging_service import (
     API,
     Comprehensive,
     EmojiService,
@@ -62,6 +36,9 @@ from plexichat.features.users.user import User
     support,
     with,
 )
+
+from plexichat.features.users.models import User
+from plexichat.infrastructure.utils.auth import get_current_user
 
 
 # Pydantic models for API requests/responses
@@ -325,12 +302,13 @@ async def get_messages(
             guild_id=guild_id,
             sender_id=sender_id,
             recipient_id=recipient_id,
-            limit=limit
+            limit=limit,
+            user_id=current_user.id
         )
 
         response_messages = []
         for message in messages:
-            emoji_count = len(EmojiService.extract_emojis(message.content or ""))
+            emoji_count = EmojiService.count_emojis(message.content or "")
             has_emoji = EmojiService.has_emoji(message.content or "")
 
             response_messages.append(MessageResponse(
