@@ -2867,31 +2867,36 @@ def download_and_install_to_path(repo, version_tag, install_path):
         return False
 
 def compare_versions_with_github(repo):
-    """Compare current version with GitHub repository."""
+    """Compare current version with GitHub repository and show more details."""
     try:
         print(f"  {Colors.BRIGHT_CYAN}Analyzing repository versions...{Colors.RESET}")
-
-        # Get current version
         current_version = get_current_version()
         print(f"  Current version: {Colors.BRIGHT_YELLOW}{current_version}{Colors.RESET}")
-
-        # Get GitHub versions
-        github_versions = get_github_versions(repo)
-        if github_versions:
-            latest_version = github_versions[0]
-            print(f"  Latest version: {Colors.BRIGHT_GREEN}{latest_version}{Colors.RESET}")
-
-            # Compare versions
-            comparison = compare_version_strings(current_version, latest_version)
+        # Get GitHub releases for more info
+        import urllib.request, json
+        api_url = f"https://api.github.com/repos/{repo}/releases"
+        try:
+            with urllib.request.urlopen(api_url) as response:
+                releases = json.loads(response.read().decode())
+        except Exception:
+            releases = []
+        if releases:
+            latest = releases[0]
+            print(f"  Latest version: {Colors.BRIGHT_GREEN}{latest['tag_name']}{Colors.RESET}")
+            print(f"    Published: {latest.get('published_at', 'unknown')}")
+            print(f"    Prerelease: {latest.get('prerelease', False)}")
+            desc = latest.get('body', '').split('\n')[0]
+            if desc:
+                print(f"    Description: {desc}")
+            comparison = compare_version_strings(current_version, latest['tag_name'])
             if comparison < 0:
-                print(f"  {Colors.BRIGHT_YELLOW}⚠ Your version is behind by {abs(comparison)} versions")
+                print(f"  {Colors.BRIGHT_YELLOW}⚠ Your version is behind by {abs(comparison)} builds")
             elif comparison > 0:
-                print(f"  {Colors.BRIGHT_CYAN}ℹ Your version is ahead by {comparison} versions")
+                print(f"  {Colors.BRIGHT_CYAN}ℹ Your version is ahead by {comparison} builds")
             else:
                 print(f"  {Colors.BRIGHT_GREEN}✓ You have the latest version")
         else:
-            print(f"  {Colors.YELLOW}⚠ Could not fetch GitHub versions")
-
+            print(f"  {Colors.YELLOW}⚠ Could not fetch GitHub releases")
     except Exception as e:
         print(f"  {Colors.YELLOW}⚠ Version comparison failed: {e}")
 
@@ -2916,28 +2921,31 @@ def get_current_version():
         return "unknown"
 
 def get_github_versions(repo):
-    """Get available versions from GitHub repository."""
+    """Get available versions from GitHub repository, showing all tags and warning about irregular ones."""
     try:
         import urllib.request
         import json
 
-        # Get tags from GitHub API
         api_url = f"https://api.github.com/repos/{repo}/tags"
-
         with urllib.request.urlopen(api_url) as response:
             data = json.loads(response.read().decode())
 
-        # Filter and sort versions in the correct format (a.x.x-build)
         versions = []
+        irregular_tags = []
         for tag in data:
             tag_name = tag['name']
             if is_valid_version_format(tag_name):
                 versions.append(tag_name)
+            else:
+                irregular_tags.append(tag_name)
 
         # Sort versions by build number
         versions.sort(key=lambda v: extract_build_number(v), reverse=True)
-        return versions[:10]  # Return top 10 versions
-
+        if irregular_tags:
+            print(f"  {Colors.WARNING}Warning: The following tags do not match the expected version format and will be skipped:{Colors.RESET}")
+            for t in irregular_tags:
+                print(f"    {Colors.MUTED}{t}{Colors.RESET}")
+        return versions[:50]  # Allow up to 50 for user selection
     except Exception as e:
         print(f"  {Colors.YELLOW}⚠ Failed to fetch GitHub versions: {e}")
         return []
@@ -2965,38 +2973,55 @@ def compare_version_strings(version1, version2):
         return 0
 
 def select_version_to_install(repo):
-    """Allow user to select which version to install."""
+    """Allow user to select which version to install, showing more info and more versions if desired."""
     try:
         print(f"\n{Colors.BOLD}Available Versions:{Colors.RESET}")
-
         versions = get_github_versions(repo)
         if not versions:
             print(f"  {Colors.YELLOW}No versions found, using 'main' branch{Colors.RESET}")
             return "main"
 
-        # Display versions
-        for i, version in enumerate(versions, 1):
-            build_num = extract_build_number(version)
-            print(f"  {Colors.BRIGHT_CYAN}{i:2d}.{Colors.RESET} {version} (build {build_num})")
+        # Fetch additional info for each version (date, prerelease, description)
+        import urllib.request, json
+        api_url = f"https://api.github.com/repos/{repo}/releases"
+        try:
+            with urllib.request.urlopen(api_url) as response:
+                releases = json.loads(response.read().decode())
+        except Exception:
+            releases = []
+        release_map = {r['tag_name']: r for r in releases}
 
-        print(f"  {Colors.BRIGHT_CYAN}{len(versions) + 1:2d}.{Colors.RESET} main (latest development)")
+        def show_versions(start=0, count=10):
+            for i, version in enumerate(versions[start:start+count], start+1):
+                rel = release_map.get(version)
+                date = rel['published_at'][:10] if rel and 'published_at' in rel else 'unknown'
+                prerelease = rel['prerelease'] if rel and 'prerelease' in rel else False
+                desc = rel['body'].split('\n')[0] if rel and 'body' in rel and rel['body'] else ''
+                build_num = extract_build_number(version)
+                print(f"  {Colors.BRIGHT_CYAN}{i:2d}.{Colors.RESET} {version} (build {build_num})  {Colors.MUTED}[{date}{', prerelease' if prerelease else ''}]{Colors.RESET}")
+                if desc:
+                    print(f"      {Colors.DIM}{desc}{Colors.RESET}")
+            print(f"  {Colors.BRIGHT_CYAN}{start+count+1:2d}.{Colors.RESET} main (latest development)")
 
-        # Get user choice
+        start = 0
+        count = 10
         while True:
+            show_versions(start, count)
+            choice = input(f"\n{Colors.BOLD}Select version to install (1-{min(len(versions), start+count)+1}) or 'm' for more: {Colors.RESET}").strip()
+            if choice.lower() == 'm' and start+count < len(versions):
+                start += count
+                continue
             try:
-                choice = input(f"\n{Colors.BOLD}Select version to install (1-{len(versions) + 1}): {Colors.RESET}")
                 choice_num = int(choice)
-
-                if 1 <= choice_num <= len(versions):
-                    return versions[choice_num - 1]
-                elif choice_num == len(versions) + 1:
+                if 1 <= choice_num <= min(len(versions), start+count):
+                    return versions[choice_num-1]
+                elif choice_num == min(len(versions), start+count)+1:
                     return "main"
                 else:
-                    print(f"{Colors.RED}Invalid choice. Please select 1-{len(versions) + 1}{Colors.RESET}")
+                    print(f"{Colors.RED}Invalid choice. Please select 1-{min(len(versions), start+count)+1}{Colors.RESET}")
             except (ValueError, KeyboardInterrupt):
                 print(f"\n{Colors.YELLOW}Using latest version{Colors.RESET}")
                 return versions[0] if versions else "main"
-
     except Exception as e:
         print(f"  {Colors.YELLOW}⚠ Version selection failed: {e}")
         return "main"

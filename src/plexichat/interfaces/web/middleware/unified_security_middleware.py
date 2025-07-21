@@ -397,8 +397,19 @@ class UnifiedSecurityMiddleware(BaseHTTPMiddleware):
         }, status_code=status_code)
 
     def _add_security_headers(self, response: Response):
-        for k, v in self.security_headers.items():
-            response.headers[k] = v
+        # Set all required security headers from security.txt
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()"
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expect-CT"] = "max-age=86400, enforce"
+        # Remove deprecated X-XSS-Protection if present
+        if "X-XSS-Protection" in response.headers:
+            del response.headers["X-XSS-Protection"]
 
     async def _log_security_event(self, event_type, description, severity, threat_level, request_info, details=None):
         # Use UnifiedAuditSystem's log_security_event
