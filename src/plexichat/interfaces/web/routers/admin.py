@@ -176,28 +176,37 @@ async def admin_login_page(request: Request):
     except:
         return HTMLResponse("<h1>Admin Login</h1><form method='post'><input name='username' placeholder='Username'><input name='password' type='password' placeholder='Password'><button>Login</button></form>")
 
+# --- Import rate_limit decorator ---
+from plexichat.infrastructure.utils.rate_limiting import rate_limit
+
+# Helper to get client IP from request
+
+def get_client_ip(request: Request) -> str:
+    if hasattr(request, 'client') and request.client:
+        return request.client.host
+    return 'unknown'
+
+# --- Apply rate limiting to admin endpoints ---
+
+# --- Audit logging for all admin actions ---
+
 @router.post("/login")
+@rate_limit(max_attempts=10, window_minutes=1, key_func=lambda request, **kwargs: f"admin_login:{get_client_ip(request)}")
 async def admin_login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...)
 ):
-    """Admin login endpoint."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-
     try:
-        # Get client info
         ip_address = request.client.host if hasattr(request, 'client') else None
         user_agent = request.headers.get("User-Agent")
-
-        # Authenticate
         token = await admin_manager.authenticate(username, password, ip_address, user_agent)
-
         if not token:
+            logger.warning(f"Admin login failed for {username} from {ip_address}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Create response with session cookie
+        logger.info(f"Admin login: {username} from {ip_address}")
         response = RedirectResponse(url="/admin/", status_code=302)
         response.set_cookie(
             key="admin_session",
@@ -205,78 +214,67 @@ async def admin_login(
             httponly=True,
             secure=True,
             samesite="strict",
-            max_age=28800  # 8 hours
+            max_age=28800
         )
-
         return response
-
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error during admin login: {e}")
+        logger.error(f"Error during admin login for {username}: {e}")
         raise HTTPException(status_code=500, detail="Login failed")
 
 @router.post("/logout")
+@rate_limit(max_attempts=30, window_minutes=1, key_func=lambda request, **kwargs: f"admin_logout:{get_client_ip(request)}")
 async def admin_logout(request: Request, admin: dict = Depends(require_admin)):
-    """Admin logout endpoint."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-
     try:
         token = admin["token"]
         admin_manager.logout(token)
-
+        logger.info(f"Admin logout: {admin['username']} from {get_client_ip(request)}")
         response = RedirectResponse(url="/admin/login", status_code=302)
         response.delete_cookie("admin_session")
-
         return response
-
     except Exception as e:
-        logger.error(f"Error during admin logout: {e}")
+        logger.error(f"Error during admin logout for {admin['username']}: {e}")
         raise HTTPException(status_code=500, detail="Logout failed")
 
 @router.get("/users")
+@rate_limit(max_attempts=30, window_minutes=1, key_func=lambda request, **kwargs: f"admin_users:{get_client_ip(request)}")
 async def admin_users(request: Request, admin: dict = Depends(require_admin)):
-    """Admin user management page."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-
     try:
         admins = admin_manager.list_admins()
-
+        logger.info(f"Admin user management page accessed by {admin['username']} from {get_client_ip(request)}")
         context = {
             "request": request,
             "admin": admin,
             "admins": admins
         }
-
         if templates:
             return templates.TemplateResponse("admin/users.html", context)
         else:
-            # Simple HTML fallback
             html = "<h1>Admin Users</h1><ul>"
             for a in admins:
                 html += f"<li>{a.username} ({a.role}) - {a.email}</li>"
             html += "</ul>"
             return HTMLResponse(html)
-
     except Exception as e:
-        logger.error(f"Error loading admin users: {e}")
+        logger.error(f"Error loading admin users for {admin['username']}: {e}")
         raise HTTPException(status_code=500, detail="Failed to load users")
 
 @router.post("/users")
+@rate_limit(max_attempts=20, window_minutes=1, key_func=lambda request, **kwargs: f"admin_create_user:{get_client_ip(request)}")
 async def create_admin_user(
     request: AdminCreateRequest,
     admin: dict = Depends(require_admin)
 ):
-    """Create new admin user."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
-
-    # Check permissions
     if not admin_manager.has_permission(admin["username"], "user_management"):
+        logger.warning(f"Permission denied: {admin['username']} tried to create admin user {request.username} from {get_client_ip(request)}")
         raise HTTPException(status_code=403, detail="Insufficient permissions")
-
     try:
         success = admin_manager.create_admin(
             request.username,
@@ -284,14 +282,14 @@ async def create_admin_user(
             request.password,
             request.role
         )
-
         if success:
+            logger.info(f"Admin user {request.username} created by {admin['username']} from {get_client_ip(request)}")
             return JSONResponse({"success": True, "message": "Admin user created"})
         else:
+            logger.warning(f"Failed to create admin user {request.username} by {admin['username']} from {get_client_ip(request)}")
             raise HTTPException(status_code=400, detail="Failed to create admin user")
-
     except Exception as e:
-        logger.error(f"Error creating admin user: {e}")
+        logger.error(f"Error creating admin user {request.username} by {admin['username']}: {e}")
         raise HTTPException(status_code=500, detail="Failed to create user")
 
 # --- Secure password reset endpoints ---
@@ -303,41 +301,47 @@ class PasswordResetRequest(BaseModel):
     current_password: Optional[str] = None  # Only for self-service
 
 @router.post("/users/reset-password")
+@rate_limit(max_attempts=10, window_minutes=5, key_func=lambda request, **kwargs: f"admin_reset_password:{get_client_ip(request)}")
 async def admin_reset_password(
     request: PasswordResetRequest,
     admin: dict = Depends(require_admin)
 ):
-    """Admin-initiated password reset for another admin (requires user_management permission)."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
     if not admin_manager.has_permission(admin["username"], "user_management"):
+        logger.warning(f"Permission denied: {admin['username']} tried to reset password for {request.username} from {get_client_ip(request)}")
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     if request.username == "admin" and admin["username"] != "admin":
+        logger.warning(f"Permission denied: {admin['username']} tried to reset super_admin password from {get_client_ip(request)}")
         raise HTTPException(status_code=403, detail="Only super_admin can reset their own password")
     success = admin_manager.reset_password(request.username, request.new_password, by_admin=admin["username"])
     if success:
-        logger.info(f"Admin {admin['username']} reset password for {request.username}")
+        logger.info(f"Password for {request.username} reset by {admin['username']} from {get_client_ip(request)}")
         return JSONResponse({"success": True, "message": f"Password for {request.username} reset"})
     else:
+        logger.warning(f"Failed password reset for {request.username} by {admin['username']} from {get_client_ip(request)}")
         raise HTTPException(status_code=400, detail="Failed to reset password")
 
 @router.post("/reset-password")
+@rate_limit(max_attempts=5, window_minutes=5, key_func=lambda request, **kwargs: f"self_reset_password:{get_client_ip(request)}")
 async def self_reset_password(
     request: PasswordResetRequest,
     admin: dict = Depends(require_admin)
 ):
-    """Self-service password reset (requires current password)."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
     if request.username != admin["username"]:
+        logger.warning(f"Permission denied: {admin['username']} tried to self-reset password for {request.username} from {get_client_ip(request)}")
         raise HTTPException(status_code=403, detail="Can only reset your own password here")
     if not request.current_password:
+        logger.warning(f"Password reset denied: {admin['username']} did not provide current password from {get_client_ip(request)}")
         raise HTTPException(status_code=400, detail="Current password required")
     success = admin_manager.reset_password(request.username, request.new_password, by_admin=admin["username"], current_password=request.current_password)
     if success:
-        logger.info(f"Admin {admin['username']} reset their own password")
+        logger.info(f"Admin {admin['username']} reset their own password from {get_client_ip(request)}")
         return JSONResponse({"success": True, "message": "Password reset successful"})
     else:
+        logger.warning(f"Failed self password reset for {admin['username']} from {get_client_ip(request)}")
         raise HTTPException(status_code=400, detail="Failed to reset password")
 
 @router.get("/system")

@@ -683,13 +683,13 @@ class UnifiedShardManager:
     async def _find_corrupted_shards(self) -> List[str]:
         """Find shards that need repair."""
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute()
+            async with db.execute(
                 """
                 SELECT shard_id FROM shard_metadata
                 WHERE state IN ('corrupted', 'missing')
                 ORDER BY verification_failures ASC
                 LIMIT 10
-            """
+                """
             ) as cursor:
                 return [row[0] async for row in cursor]
 
