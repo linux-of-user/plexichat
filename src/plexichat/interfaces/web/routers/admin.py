@@ -294,6 +294,52 @@ async def create_admin_user(
         logger.error(f"Error creating admin user: {e}")
         raise HTTPException(status_code=500, detail="Failed to create user")
 
+# --- Secure password reset endpoints ---
+from fastapi import Body
+
+class PasswordResetRequest(BaseModel):
+    username: str
+    new_password: str
+    current_password: Optional[str] = None  # Only for self-service
+
+@router.post("/users/reset-password")
+async def admin_reset_password(
+    request: PasswordResetRequest,
+    admin: dict = Depends(require_admin)
+):
+    """Admin-initiated password reset for another admin (requires user_management permission)."""
+    if not admin_manager:
+        raise HTTPException(status_code=500, detail="Admin manager not available")
+    if not admin_manager.has_permission(admin["username"], "user_management"):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    if request.username == "admin" and admin["username"] != "admin":
+        raise HTTPException(status_code=403, detail="Only super_admin can reset their own password")
+    success = admin_manager.reset_password(request.username, request.new_password, by_admin=admin["username"])
+    if success:
+        logger.info(f"Admin {admin['username']} reset password for {request.username}")
+        return JSONResponse({"success": True, "message": f"Password for {request.username} reset"})
+    else:
+        raise HTTPException(status_code=400, detail="Failed to reset password")
+
+@router.post("/reset-password")
+async def self_reset_password(
+    request: PasswordResetRequest,
+    admin: dict = Depends(require_admin)
+):
+    """Self-service password reset (requires current password)."""
+    if not admin_manager:
+        raise HTTPException(status_code=500, detail="Admin manager not available")
+    if request.username != admin["username"]:
+        raise HTTPException(status_code=403, detail="Can only reset your own password here")
+    if not request.current_password:
+        raise HTTPException(status_code=400, detail="Current password required")
+    success = admin_manager.reset_password(request.username, request.new_password, by_admin=admin["username"], current_password=request.current_password)
+    if success:
+        logger.info(f"Admin {admin['username']} reset their own password")
+        return JSONResponse({"success": True, "message": "Password reset successful"})
+    else:
+        raise HTTPException(status_code=400, detail="Failed to reset password")
+
 @router.get("/system")
 async def admin_system(request: Request, admin: dict = Depends(require_admin)):
     """Admin system status page."""

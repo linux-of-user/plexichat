@@ -19,13 +19,6 @@ from .auth_storage import get_auth_storage
 from .config_manager import get_webui_config
 from .mfa_manager import get_mfa_manager
 
-from pathlib import Path
-
-
-from pathlib import Path
-
-import psutil
-import = psutil psutil
 import psutil
 
 """
@@ -83,8 +76,8 @@ class SelfTestManager:
         self.test_config = self.config.self_test_config
 
         # Test results storage
-        self.test_results = {}  # suite_id -> TestSuite
-        self.test_history = []  # List of completed test suites
+        self.test_results: Dict[str, TestSuite] = {}  # suite_id -> TestSuite
+        self.test_history: List[TestSuite] = []  # List of completed test suites
 
         # Test registry
         self.test_registry = {}  # category -> List[test_function]
@@ -172,7 +165,7 @@ class SelfTestManager:
         if category not in self.test_registry:
             self.test_registry[category] = []
 
-        self.test_registry[category].append({)
+        self.test_registry[category].append({
             'name': test_name,
             'function': test_function
         })
@@ -180,7 +173,7 @@ class SelfTestManager:
     async def run_all_tests(self) -> TestSuite:
         """Run all registered tests."""
         suite_id = f"full_test_{int(time.time())}"
-        suite = TestSuite()
+        suite = TestSuite(
             suite_id=suite_id,
             suite_name="Full System Test",
             category="all",
@@ -191,12 +184,12 @@ class SelfTestManager:
             warning_tests=0,
             skipped_tests=0,
             total_duration=0.0,
-started_at = datetime.now()
-datetime.utcnow()
+            started_at=datetime.utcnow()
         )
 
         # Run tests by category
-        for category in self.test_config.test_categories:
+        test_categories = self.test_config.test_categories if isinstance(self.test_config.test_categories, list) else []
+        for category in test_categories:
             if category in self.test_registry:
                 category_results = await self._run_category_tests(category)
                 suite.tests.extend(category_results)
@@ -208,9 +201,7 @@ datetime.utcnow()
         suite.warning_tests = len([t for t in suite.tests if t.status == TestStatus.WARNING])
         suite.skipped_tests = len([t for t in suite.tests if t.status == TestStatus.SKIPPED])
         suite.total_duration = sum(t.duration for t in suite.tests)
-        suite.from datetime import datetime
-completed_at = datetime.now()
-datetime.utcnow()
+        suite.completed_at = datetime.utcnow()
 
         # Store results
         self.test_results[suite_id] = suite
@@ -226,7 +217,7 @@ datetime.utcnow()
     async def run_category_tests(self, category: str) -> TestSuite:
         """Run tests for a specific category."""
         suite_id = f"{category}_test_{int(time.time())}"
-        suite = TestSuite()
+        suite = TestSuite(
             suite_id=suite_id,
             suite_name=f"{category.title()} Tests",
             category=category,
@@ -237,8 +228,7 @@ datetime.utcnow()
             warning_tests=0,
             skipped_tests=0,
             total_duration=0.0,
-started_at = datetime.now()
-datetime.utcnow()
+            started_at=datetime.utcnow()
         )
 
         if category in self.test_registry:
@@ -252,9 +242,7 @@ datetime.utcnow()
             suite.skipped_tests = len([t for t in suite.tests if t.status == TestStatus.SKIPPED])
             suite.total_duration = sum(t.duration for t in suite.tests)
 
-        suite.from datetime import datetime
-completed_at = datetime.now()
-datetime.utcnow()
+        suite.completed_at = datetime.utcnow()
         self.test_results[suite_id] = suite
 
         return suite
@@ -275,7 +263,7 @@ datetime.utcnow()
                 result = await test_function()
                 duration = time.time() - start_time
 
-                test_result = TestResult()
+                test_result = TestResult(
                     test_id=f"{category}_{test_name}_{int(time.time())}",
                     test_name=test_name,
                     category=category,
@@ -283,14 +271,13 @@ datetime.utcnow()
                     message=result.get('message', ''),
                     details=result.get('details', {}),
                     duration=duration,
-timestamp = datetime.now()
-datetime.utcnow(),
+                    timestamp=datetime.utcnow(),
                     error=result.get('error')
                 )
 
             except Exception as e:
                 duration = time.time() - start_time
-                test_result = TestResult()
+                test_result = TestResult(
                     test_id=f"{category}_{test_name}_{int(time.time())}",
                     test_name=test_name,
                     category=category,
@@ -298,8 +285,7 @@ datetime.utcnow(),
                     message=f"Test execution failed: {str(e)}",
                     details={},
                     duration=duration,
-timestamp = datetime.now()
-datetime.utcnow(),
+                    timestamp=datetime.utcnow(),
                     error=str(e)
                 )
 
@@ -314,7 +300,14 @@ datetime.utcnow(),
             auth_storage = get_auth_storage()
             health_status = await auth_storage.health_check()
 
-            if all(health_status.values()):
+            if not health_status:
+                return {
+                    'status': TestStatus.FAILED,
+                    'message': 'No authentication backends available',
+                    'details': {}
+                }
+
+            if health_status and all(health_status.values()):
                 return {
                     'status': TestStatus.PASSED,
                     'message': 'Authentication system is healthy',
@@ -455,8 +448,7 @@ datetime.utcnow(),
     async def _test_memory_usage(self) -> Dict[str, Any]:
         """Test memory usage."""
         try:
-            process = import psutil
-psutil = psutil.Process()
+            process = psutil.Process()
             memory_info = process.memory_info()
             memory_mb = memory_info.rss / 1024 / 1024
 
@@ -553,7 +545,14 @@ psutil = psutil.Process()
             auth_storage = get_auth_storage()
             health_status = await auth_storage.health_check()
 
-            if health_status.get('primary', False):
+            if not health_status:
+                return {
+                    'status': TestStatus.FAILED,
+                    'message': 'No database backends available',
+                    'details': {}
+                }
+
+            if health_status and health_status.get('primary', False):
                 return {
                     'status': TestStatus.PASSED,
                     'message': 'Database connection healthy',
@@ -774,7 +773,7 @@ psutil = psutil.Process()
 
     def _simulate_xss_block(self, pattern: str) -> bool:
         """Simulate XSS pattern blocking."""
-        dangerous_patterns = ['<script', 'javascript:', 'onerror=', 'onload=', 'alert('])
+        dangerous_patterns = ['<script', 'javascript:', 'onerror=', 'onload=', 'alert(']
         return any(dangerous in pattern.lower() for dangerous in dangerous_patterns)
 
     async def _test_password_policy(self) -> Dict[str, Any]:
@@ -1058,7 +1057,7 @@ psutil = psutil.Process()
             }
 
             # Performance thresholds
-            if (performance_metrics['average_response_time_ms'] < 500 and)
+            if (performance_metrics['average_response_time_ms'] < 500 and
                 performance_metrics['error_rate_percent'] < 5 and
                 performance_metrics['cache_hit_rate'] > 0.7):
 
@@ -1152,7 +1151,7 @@ psutil = psutil.Process()
                 'data_consistency': True
             }
 
-            if (replication_status['master_slave_sync'] and)
+            if (replication_status['master_slave_sync'] and
                 replication_status['replication_lag_ms'] < 1000):
                 return {
                     'status': TestStatus.PASSED,
@@ -1339,8 +1338,7 @@ psutil = psutil.Process()
         """Export test results to file."""
         try:
             from pathlib import Path
-results_dir = Path
-Path("test_results")
+            results_dir = Path("test_results")
             results_dir.mkdir(exist_ok=True)
 
             filename = f"test_results_{suite.started_at.strftime('%Y%m%d_%H%M%S')}.json"
@@ -1355,16 +1353,20 @@ Path("test_results")
 
     def get_test_results(self, suite_id: str) -> Optional[TestSuite]:
         """Get test results by suite ID."""
-        return self.test_results.get(suite_id)
+        if not isinstance(self.test_results, dict):
+            return None
+        return dict(self.test_results).get(suite_id)
 
     def get_latest_test_results(self) -> Optional[TestSuite]:
         """Get the latest test results."""
-        if self.test_history:
-            return self.test_history[-1]
-        return None
+        if not isinstance(self.test_history, list) or not self.test_history:
+            return None
+        return self.test_history[-1]
 
     def get_test_history(self, limit: int = 10) -> List[TestSuite]:
         """Get test history."""
+        if not isinstance(self.test_history, list):
+            return []
         return self.test_history[-limit:]
 
     async def schedule_tests(self):

@@ -26,10 +26,8 @@ except ImportError:
     async_thread_manager = None
     submit_task = None
 
-try:
-    from plexichat.core.analytics.analytics_manager import track_event
-except ImportError:
-    track_event = None
+# Analytics manager is optional
+track_event = None
 
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
@@ -202,19 +200,19 @@ class EventManager:
                 self.performance_logger.record_metric("events_processed", 1, "count")
                 self.performance_logger.record_metric("event_handlers_executed", len(all_handlers), "count")
 
-            # Track analytics
-            if track_event:
-                await track_event(
-                    "event_processed",
-                    properties={
-                        "event_type": event.event_type,
-                        "event_source": event.source,
-                        "event_priority": event.priority.value,
-                        "handlers_count": len(all_handlers),
-                        "processing_time": processing_time,
-                        "processor": processor_name
-                    }
-                )
+            # Track analytics (currently not available)
+            # if track_event and hasattr(track_event, '__call__'):
+            #     await track_event(
+            #         "event_processed",
+            #         properties={
+            #             "event_type": event.event_type,
+            #             "event_source": event.source,
+            #             "event_priority": event.priority.value,
+            #             "handlers_count": len(all_handlers),
+            #             "processing_time": processing_time,
+            #             "processor": processor_name
+            #         }
+            #     )
 
             logger.debug(f"Event processed: {event.event_id} by {processor_name} in {processing_time:.3f}s")
 
@@ -243,7 +241,7 @@ class EventManager:
 
     async def emit_event(self, event_type: str, source: str, data: Dict[str, Any],
                         priority: EventPriority = EventPriority.NORMAL,
-                        metadata: Dict[str, Any] = None) -> str:
+                        metadata: Optional[Dict[str, Any]] = None) -> str:
         """Emit an event."""
         try:
             event_id = str(uuid4())
@@ -392,7 +390,7 @@ class EventManager:
                     "event_id": row[0],
                     "event_type": row[1],
                     "source": row[2],
-                    "timestamp": row[3].isoformat() if row[3] else None,
+                    "timestamp": self._format_timestamp(row[3]),
                     "priority": row[4],
                     "data": json.loads(row[5]) if row[5] else {},
                     "metadata": json.loads(row[6]) if row[6] else {},
@@ -405,6 +403,16 @@ class EventManager:
         except Exception as e:
             logger.error(f"Error getting events: {e}")
             return []
+
+    def _format_timestamp(self, timestamp_value: Any) -> Optional[str]:
+        """Format timestamp value safely."""
+        if not timestamp_value:
+            return None
+
+        if hasattr(timestamp_value, 'isoformat'):
+            return timestamp_value.isoformat()
+
+        return str(timestamp_value)
 
     def get_handlers(self) -> Dict[str, List[Dict[str, Any]]]:
         """Get all registered handlers."""

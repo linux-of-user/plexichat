@@ -13,26 +13,39 @@ PlexiChat is a next-generation, modular, and extensible chat platform designed f
 - **Cluster & Scaling**: Built-in clustering, load balancing, and failover management.
 - **Testing**: Integrated plugin-based test suite, with web/GUI/CLI triggers.
 
-## Setup
-1. **Clone the repository**
-   ```sh
-   git clone https://github.com/plexichat/plexichat.git
-   cd plexichat
-   ```
-2. **Install dependencies**
+## Quick Start (No Git Required)
+
+1. **Download `run.py`**
+   - [Right-click here and save as `run.py`](https://raw.githubusercontent.com/plexichat/plexichat/main/run.py)
+   - Or download from the [latest release page](https://github.com/plexichat/plexichat/releases)
+
+2. **Run the installer**
    ```sh
    python run.py setup
-   # or manually:
-   pip install -r requirements.txt
    ```
-3. **Run PlexiChat**
+   - This will automatically download all required files and dependencies for you.
+   - If prompted, allow the script to download and install additional files.
+
+3. **Start PlexiChat**
    ```sh
-   python run.py cli
-   # or
-   python run.py web
-   # or
-   python run.py gui
+   python run.py cli   # Command-line interface
+   python run.py web   # Web interface
+   python run.py gui   # Desktop GUI
    ```
+
+## Alternative: Manual Download (Advanced)
+If you cannot use the installer, you may manually download the full source from the [GitHub releases](https://github.com/plexichat/plexichat/releases) or as a ZIP. Extract all files to a folder, then run:
+```sh
+python run.py setup
+```
+
+## Troubleshooting
+- If you have issues running `run.py`, ensure you have Python 3.8+ installed.
+- If dependencies fail to install, try running:
+  ```sh
+  pip install -r requirements.txt
+  ```
+- For network/firewall issues, manually download the ZIP and extract all files.
 
 ## Admin Interfaces
 ### Web Admin

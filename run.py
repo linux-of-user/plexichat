@@ -53,6 +53,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 import atexit
 from concurrent.futures import ThreadPoolExecutor
+import ctypes
 
 # Constants and Configuration
 PLEXICHAT_VERSION = "a.1.1-36" # SHOULD BE FETCHED FROM VERSION.JSON SO THIS IS A TEMPORARY FIX
@@ -1327,7 +1328,7 @@ def run_enhanced_tests():
             logger.error("Test runner not available")
             return False
 
-        logger.info("🚀 Running PlexiChat comprehensive test suite...")
+        logger.info("Running PlexiChat comprehensive test suite...")
 
         # Run all tests
         report = asyncio.run(run_tests(
@@ -1338,12 +1339,12 @@ def run_enhanced_tests():
 
         # Check results
         if report.get('summary', {}).get('failed', 0) == 0:
-            logger.info("✅ All tests passed!")
+            logger.info("All tests passed!")
             return True
         else:
             failed_count = report['summary']['failed']
             total_count = report['summary']['total_tests']
-            logger.error(f"❌ {failed_count}/{total_count} tests failed")
+            logger.error(f"{failed_count}/{total_count} tests failed")
             return False
 
     except ImportError as e:
@@ -2148,10 +2149,10 @@ def parse_arguments():
     try:
         parser = argparse.ArgumentParser(
             description="PlexiChat - Government-Level Secure Communication Platform",
-            add_help=False,
+            add_help=True,  # Ensure --help is always available
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog=f"""
-{Colors.BOLD}Examples:{Colors.RESET}
+Examples:
   run.py                    # Start API server with splitscreen CLI (default)
   run.py setup              # Run first-time setup wizard
   run.py gui                # Launch GUI interface
@@ -2228,7 +2229,14 @@ def parse_arguments():
                           help='Install from configuration file')
 
         # Parse and return arguments
-        return parser.parse_args()
+        args = parser.parse_args()
+
+        # If help is requested as a command or --help is present, show help
+        if args.command == 'help' or '--help' in sys.argv or '-h' in sys.argv:
+            show_help()
+            sys.exit(0)
+
+        return args
 
     except Exception as e:
         logger.error(f"Error parsing command line arguments: {e}")
@@ -2304,7 +2312,12 @@ except ImportError:
         HAS_FCNTL = False
         HAS_MSVCRT = False
 
-PROCESS_LOCK_FILE = "plexichat.lock"
+# Global install path for all runtime modes
+INSTALL_PATH = Path(os.environ.get('PLEXICHAT_HOME', Path.cwd()))
+
+# Update process lock file to be in INSTALL_PATH for all runtime modes
+PROCESS_LOCK_FILE = str(INSTALL_PATH / "plexichat.lock")
+
 _lock_file = None
 _thread_pool = None
 
@@ -2432,70 +2445,47 @@ def release_process_lock():
 # ============================================================================
 
 def setup_platform_support():
-    """Setup platform-specific configurations and optimizations."""
+    """Setup platform-specific configurations and optimizations, including process naming."""
     try:
         current_os = platform.system().lower()
 
         if current_os == "windows":
-            # Windows-specific optimizations
             try:
                 import ctypes
                 # Set process priority to normal
                 ctypes.windll.kernel32.SetPriorityClass(ctypes.windll.kernel32.GetCurrentProcess(), 0x00000020)
-
                 # Enable ANSI color support on Windows 10+
                 kernel32 = ctypes.windll.kernel32
                 kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-
                 # Set console title
-                ctypes.windll.kernel32.SetConsoleTitleW("PlexiChat Server")
-
+                ctypes.windll.kernel32.SetConsoleTitleW("PlexiChat Installer")
             except Exception as e:
                 print(f"Windows optimization warning: {e}")
-
         elif current_os == "linux":
-            # Linux-specific optimizations
             try:
-                # Set process name for better process management
-                try:
-                    from setproctitle import setproctitle
-                    setproctitle("plexichat-server")
-                except ImportError:
-                    pass
-
-                # Check for systemd support
+                from setproctitle import setproctitle
+                setproctitle("plexichat-installer")
                 if os.path.exists("/run/systemd/system"):
                     os.environ["PLEXICHAT_SYSTEMD"] = "1"
-
             except Exception as e:
                 print(f"Linux optimization warning: {e}")
-
         elif current_os == "darwin":
-            # macOS-specific optimizations
             try:
-                # Set process name
-                try:
-                    from setproctitle import setproctitle
-                    setproctitle("plexichat-server")
-                except ImportError:
-                    pass
-
+                from setproctitle import setproctitle
+                setproctitle("plexichat-installer")
             except Exception as e:
                 print(f"macOS optimization warning: {e}")
-
-        # Set environment variables for all platforms
         os.environ["PLEXICHAT_OS"] = current_os
         os.environ["PLEXICHAT_ARCH"] = platform.machine()
-
     except Exception as e:
         print(f"Platform setup error: {e}")
 
 def setup_enhanced_logging():
     """Setup enhanced logging with OS-specific features."""
     try:
-        # Create logs directory if it doesn't exist
-        logs_dir = Path("logs")
-        logs_dir.mkdir(exist_ok=True)
+        # Create logs directory in INSTALL_PATH if it doesn't exist
+        logs_dir = INSTALL_PATH / "logs"
+        logs_dir.mkdir(exist_ok=True, parents=True)
 
         # Setup colored logging
         logger = setup_colored_logging()
@@ -2537,45 +2527,27 @@ def setup_enhanced_logging():
 
 def setup_signal_handlers():
     """Setup signal handlers for graceful shutdown."""
+    import signal
     def signal_handler(signum, _frame):
-        """Handle shutdown signals."""
-        signal_name = signal.Signals(signum).name
-        logger.info(f"Received signal {signal_name}, initiating graceful shutdown...")
-        
-        # Release process lock
-        release_process_lock()
-        
-        # Stop all running threads
-        if thread_pool:
-            logger.info("Shutting down thread pool...")
-            thread_pool.shutdown(wait=True)
-        
-        # Stop all running processes
-        kill_old_plexichat_processes()
-        
-        # Exit
-        sys.exit(0)
-
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
-    signal.signal(signal.SIGTERM, signal_handler)  # Termination request
-    
-    if sys.platform != "win32":
-        # Unix-specific signals
-        signal.signal(signal.SIGHUP, signal_handler)   # Terminal closed
-        signal.signal(signal.SIGQUIT, signal_handler)  # Quit program
-    else:
-        # Windows-specific handlers
+        logging.getLogger().info(f"Received signal {signal.Signals(signum).name}, initiating graceful shutdown...")
         try:
-            import win32api
-            def windows_handler(dwCtrlType):
-                if dwCtrlType in (win32api.CTRL_C_EVENT, win32api.CTRL_BREAK_EVENT):
-                    signal_handler(signal.SIGINT, None)
-                    return True
-                return False
-            win32api.SetConsoleCtrlHandler(windows_handler, True)
-        except ImportError:
+            # Only shutdown thread pool if it exists
+            global _thread_pool
+            if '_thread_pool' in globals() and _thread_pool:
+                _thread_pool.shutdown(wait=False)
+        except Exception:
             pass
+        try:
+            release_process_lock()
+        except Exception:
+            pass
+        sys.exit(0)
+    if sys.platform == "win32":
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+    else:
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
 
 def display_startup_banner():
     """Display enhanced startup banner with system information."""
@@ -2668,7 +2640,7 @@ def download_plexichat_from_github():
         repo_url = "https://github.com/dboynton/plexichat/archive/refs/heads/main.zip"
 
         # Download the repository
-        print(f"  {Colors.YELLOW}⬇{Colors.RESET} Downloading from: {repo_url}")
+        print(f"  {Colors.YELLOW}⬇ Downloading from: {repo_url}")
 
         import urllib.request
         import zipfile
@@ -2679,10 +2651,10 @@ def download_plexichat_from_github():
             urllib.request.urlretrieve(repo_url, tmp_file.name)
             zip_path = tmp_file.name
 
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Downloaded successfully")
+        print(f"  {Colors.GREEN}✓ Downloaded successfully")
 
         # Extract the repository
-        print(f"  {Colors.YELLOW}📦{Colors.RESET} Extracting files...")
+        print(f"  {Colors.YELLOW}📦 Extracting files...")
 
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             # Extract to current directory
@@ -2708,10 +2680,10 @@ def download_plexichat_from_github():
         # Clean up
         Path(zip_path).unlink()
 
-        print(f"  {Colors.GREEN}✓{Colors.RESET} PlexiChat downloaded and extracted successfully")
+        print(f"  {Colors.GREEN}✓ PlexiChat downloaded and extracted successfully")
 
     except Exception as e:
-        print(f"  {Colors.RED}✗{Colors.RESET} Failed to download PlexiChat: {e}")
+        print(f"  {Colors.RED}✗ Failed to download PlexiChat: {e}")
         raise
 
 def run_install_command(args=None):
@@ -2722,7 +2694,7 @@ def run_install_command(args=None):
             install_from_config_file(args.config_file)
             return
 
-        print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}📦 PlexiChat Advanced Installer{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}PlexiChat Advanced Installer{Colors.RESET}")
         print(f"{Colors.BRIGHT_CYAN}Interactive installation with platform-specific setup{Colors.RESET}\n")
 
         # Step 1: Installation Type Selection
@@ -2756,39 +2728,9 @@ def run_install_command(args=None):
         print(f"\n{Colors.BOLD}Step 2: Download and Install{Colors.RESET}")
         download_and_install_to_path(repo, version_tag, install_path)
 
-        # Step 8: Configuration Setup
-        print(f"\n{Colors.BOLD}Step 3: Configuration Setup{Colors.RESET}")
-        config = setup_interactive_configuration(config_path)
-
-        # Step 9: Admin Credentials Setup
-        print(f"\n{Colors.BOLD}Step 4: Admin Account Setup{Colors.RESET}")
-        credentials = setup_admin_credentials(config_path)
-
-        # Step 10: Database Initialization
-        print(f"\n{Colors.BOLD}Step 5: Database Initialization{Colors.RESET}")
-        initialize_database_interactive(config_path)
-
-        # Step 11: Security Setup
-        print(f"\n{Colors.BOLD}Step 6: Security Configuration{Colors.RESET}")
-        setup_security_interactive(config_path)
-
-        # Step 12: Validation
-        print(f"\n{Colors.BOLD}Step 7: Installation Validation{Colors.RESET}")
-        if validate_installation_complete(install_path, config_path):
-            print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}✅ Installation completed successfully!{Colors.RESET}")
-            print(f"{Colors.BRIGHT_CYAN}PlexiChat is ready to use.{Colors.RESET}")
-
-            # Show next steps
-            print(f"\n{Colors.BOLD}Next Steps:{Colors.RESET}")
-            print(f"  1. {Colors.BRIGHT_GREEN}python run.py gui{Colors.RESET} - Launch GUI interface")
-            print(f"  2. {Colors.BRIGHT_GREEN}python run.py api{Colors.RESET} - Start API server")
-            print(f"  3. {Colors.BRIGHT_GREEN}python run.py cli{Colors.RESET} - Use CLI interface")
-            print(f"\n{Colors.BOLD}Admin Credentials:{Colors.RESET}")
-            print(f"  Username: {Colors.BRIGHT_YELLOW}{credentials['admin']['username']}{Colors.RESET}")
-            print(f"  Password: See {Colors.BRIGHT_CYAN}{config_path}/admin-credentials.txt{Colors.RESET}")
-        else:
-            print(f"\n{Colors.BOLD}{Colors.RED}⚠ Installation validation failed!{Colors.RESET}")
-            print(f"{Colors.YELLOW}Please check the installation and try again.{Colors.RESET}")
+        print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}✅ Installation completed!{Colors.RESET}")
+        print(f"{Colors.BRIGHT_CYAN}To complete setup, run:{Colors.RESET} {Colors.BRIGHT_YELLOW}python run.py setup{Colors.RESET}")
+        print(f"You can also complete setup in the GUI or WebUI after launching the server.")
 
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}Installation interrupted by user{Colors.RESET}")
@@ -2800,45 +2742,41 @@ def run_install_command(args=None):
         sys.exit(1)
 
 def select_installation_type():
-    """Select installation type: portable or system-wide."""
-    print(f"{Colors.BOLD}Installation Type Selection:{Colors.RESET}")
-    print(f"  {Colors.BRIGHT_CYAN}1.{Colors.RESET} Portable Installation (current directory)")
-    print(f"  {Colors.BRIGHT_CYAN}2.{Colors.RESET} System Installation (platform-specific location)")
-
+    """Prompt user to select installation type with more options."""
+    print("Installation Type Selection:")
+    print("  1. Portable Installation (current directory)")
+    print("  2. System Installation (platform-specific location)")
+    print("  3. Custom Installation Path")
     while True:
-        choice = input(f"\n{Colors.BOLD}Select installation type (1-2): {Colors.RESET}").strip()
-        if choice == "1":
-            return "portable"
-        elif choice == "2":
-            return "system"
-        else:
-            print(f"{Colors.RED}Invalid choice. Please select 1 or 2.{Colors.RESET}")
+        choice = input("Select installation type (1-3): ").strip()
+        if choice in ('1', '2', '3'):
+            return int(choice)
+        print("Invalid choice. Please enter 1, 2, or 3.")
 
 def select_installation_path(install_type):
-    """Select installation path based on type."""
-    if install_type == "portable":
-        return Path.cwd()
-
-    # System installation - platform specific
-    import platform
-    system = platform.system().lower()
-
-    if system == "windows":
-        default_path = Path("C:/Program Files/PlexiChat")
-    elif system == "darwin":  # macOS
-        default_path = Path("/Applications/PlexiChat")
-    else:  # Linux and others
-        default_path = Path("/opt/plexichat")
-
-    print(f"{Colors.BOLD}System Installation Path:{Colors.RESET}")
-    print(f"  Default: {Colors.BRIGHT_CYAN}{default_path}{Colors.RESET}")
-
-    custom = input(f"\n{Colors.BOLD}Use default path? (Y/n): {Colors.RESET}").strip().lower()
-    if custom in ['n', 'no']:
-        custom_path = input(f"{Colors.BOLD}Enter custom path: {Colors.RESET}").strip()
-        return Path(custom_path)
-
-    return default_path
+    """Prompt user to select or enter installation path based on type."""
+    global INSTALL_PATH
+    if install_type == 1:
+        INSTALL_PATH = Path(os.getcwd())
+        return INSTALL_PATH
+    elif install_type == 2:
+        default_path = Path("C:/Program Files/PlexiChat") if sys.platform == 'win32' else Path("/opt/plexichat")
+        INSTALL_PATH = default_path
+        print(f"System Installation Path:\n  Default: {default_path}")
+        use_default = input("Use default path? (Y/n): ").strip().lower()
+        if use_default in ('', 'y', 'yes'):
+            return INSTALL_PATH
+        else:
+            custom_path = input("Enter custom system install path: ").strip()
+            INSTALL_PATH = Path(custom_path)
+            return INSTALL_PATH
+    elif install_type == 3:
+        custom_path = input("Enter custom installation path: ").strip()
+        INSTALL_PATH = Path(custom_path)
+        return INSTALL_PATH
+    else:
+        INSTALL_PATH = Path(os.getcwd())
+        return INSTALL_PATH
 
 def setup_configuration_path(install_type):
     """Setup configuration path based on installation type."""
@@ -2863,8 +2801,8 @@ def get_default_repository():
     """Get the default repository from configuration or use fallback."""
     try:
         # Try to get from existing update system configuration
-        from plexichat.core.versioning.update_system import GITHUB_REPO
-        return GITHUB_REPO
+        # Using fallback since simplified update system doesn't have GITHUB_REPO
+        return "linux-of-user/plexichat"
     except ImportError:
         # Fallback to default
         return "linux-of-user/plexichat"
@@ -2891,12 +2829,10 @@ def select_requirements_group():
             print(f"{Colors.RED}Invalid choice. Please select 1-4.{Colors.RESET}")
 
 def download_and_install_to_path(repo, version_tag, install_path):
-    """Download and install PlexiChat to specified path."""
+    """Download and install PlexiChat to the specified path."""
     try:
-        print(f"  {Colors.BRIGHT_CYAN}Installing to: {install_path}{Colors.RESET}")
-
-        # Create installation directory
         install_path.mkdir(parents=True, exist_ok=True)
+        print(f"  {Colors.BRIGHT_CYAN}Installing to: {install_path}{Colors.RESET}")
 
         # Change to installation directory
         original_cwd = Path.cwd()
@@ -2905,14 +2841,30 @@ def download_and_install_to_path(repo, version_tag, install_path):
         try:
             # Download PlexiChat
             download_plexichat_from_github(repo, version_tag)
-            print(f"  {Colors.GREEN}✓{Colors.RESET} Installation completed to {install_path}")
+            print(f"  {Colors.GREEN}✓ Installation completed to {install_path}")
         finally:
             # Return to original directory
             os.chdir(original_cwd)
 
+    except PermissionError as e:
+        print(f"ERROR: Access is denied to '{install_path}'.")
+        if sys.platform == 'win32' and str(install_path).lower().startswith('c:\\program files'):
+            print("Attempting to request administrator permissions...")
+            # Relaunch with admin rights using UAC
+            try:
+                params = ' '.join([f'"{arg}"' for arg in sys.argv])
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, params, None, 1)
+                print("If the UAC prompt was accepted, the installer will continue with elevated permissions.")
+                sys.exit(0)
+            except Exception as uac_e:
+                print(f"Failed to request administrator permissions: {uac_e}")
+                print("Please run this installer as administrator or choose a different install path (e.g., your user directory or a portable location).")
+        else:
+            print("You do not have permission to install to this directory. Please choose a different install path or check your permissions.")
+        return False
     except Exception as e:
-        print(f"  {Colors.RED}✗{Colors.RESET} Installation failed: {e}")
-        raise
+        print(f"Installation failed: {e}")
+        return False
 
 def compare_versions_with_github(repo):
     """Compare current version with GitHub repository."""
@@ -2932,16 +2884,16 @@ def compare_versions_with_github(repo):
             # Compare versions
             comparison = compare_version_strings(current_version, latest_version)
             if comparison < 0:
-                print(f"  {Colors.BRIGHT_YELLOW}⚠{Colors.RESET} Your version is behind by {abs(comparison)} versions")
+                print(f"  {Colors.BRIGHT_YELLOW}⚠ Your version is behind by {abs(comparison)} versions")
             elif comparison > 0:
-                print(f"  {Colors.BRIGHT_CYAN}ℹ{Colors.RESET} Your version is ahead by {comparison} versions")
+                print(f"  {Colors.BRIGHT_CYAN}ℹ Your version is ahead by {comparison} versions")
             else:
-                print(f"  {Colors.BRIGHT_GREEN}✓{Colors.RESET} You have the latest version")
+                print(f"  {Colors.BRIGHT_GREEN}✓ You have the latest version")
         else:
-            print(f"  {Colors.YELLOW}⚠{Colors.RESET} Could not fetch GitHub versions")
+            print(f"  {Colors.YELLOW}⚠ Could not fetch GitHub versions")
 
     except Exception as e:
-        print(f"  {Colors.YELLOW}⚠{Colors.RESET} Version comparison failed: {e}")
+        print(f"  {Colors.YELLOW}⚠ Version comparison failed: {e}")
 
 def get_current_version():
     """Get current PlexiChat version."""
@@ -2987,7 +2939,7 @@ def get_github_versions(repo):
         return versions[:10]  # Return top 10 versions
 
     except Exception as e:
-        print(f"  {Colors.YELLOW}⚠{Colors.RESET} Failed to fetch GitHub versions: {e}")
+        print(f"  {Colors.YELLOW}⚠ Failed to fetch GitHub versions: {e}")
         return []
 
 def is_valid_version_format(version):
@@ -3046,7 +2998,7 @@ def select_version_to_install(repo):
                 return versions[0] if versions else "main"
 
     except Exception as e:
-        print(f"  {Colors.YELLOW}⚠{Colors.RESET} Version selection failed: {e}")
+        print(f"  {Colors.YELLOW}⚠ Version selection failed: {e}")
         return "main"
 
 def setup_interactive_configuration(config_path):
@@ -3111,11 +3063,11 @@ def setup_interactive_configuration(config_path):
             import json
             json.dump(config, f, indent=2)
 
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Configuration saved to {config_file}")
+        print(f"  {Colors.GREEN}✓ Configuration saved to {config_file}")
         return config
 
     except Exception as e:
-        print(f"  {Colors.RED}✗{Colors.RESET} Configuration setup failed: {e}")
+        print(f"  {Colors.RED}✗ Configuration setup failed: {e}")
         raise
 
 def setup_admin_credentials(config_path):
@@ -3123,7 +3075,6 @@ def setup_admin_credentials(config_path):
     try:
         print(f"  {Colors.BRIGHT_CYAN}Setting up admin credentials...{Colors.RESET}")
 
-        # Create default credentials
         import secrets
         import hashlib
         from datetime import datetime
@@ -3131,23 +3082,19 @@ def setup_admin_credentials(config_path):
         print(f"\n{Colors.BOLD}Admin Account Setup:{Colors.RESET}")
         username = input(f"  Admin username (default: admin): ").strip() or "admin"
 
-        # Generate secure password or use provided one
         use_generated = input(f"  Generate secure password? (Y/n): ").strip().lower()
         if use_generated not in ['n', 'no']:
             password = generate_secure_password()
             print(f"  {Colors.BRIGHT_YELLOW}Generated password: {password}{Colors.RESET}")
             print(f"  {Colors.YELLOW}⚠ Please save this password securely!{Colors.RESET}")
+            input(f"  Press Enter to continue after saving the password...")
         else:
             password = input(f"  Admin password: ").strip()
             if len(password) < 8:
                 print(f"  {Colors.YELLOW}⚠ Warning: Password is less than 8 characters{Colors.RESET}")
 
         email = input(f"  Admin email: ").strip()
-
-        # Hash password
         password_hash = hashlib.sha256(password.encode()).hexdigest()
-
-        # Create credentials structure
         credentials = {
             "admin": {
                 "username": username,
@@ -3158,14 +3105,10 @@ def setup_admin_credentials(config_path):
                 "active": True
             }
         }
-
-        # Write default credentials file
         creds_file = config_path / "default-creds.json"
         with open(creds_file, 'w') as f:
             import json
             json.dump(credentials, f, indent=2)
-
-        # Also create a readable credentials file for user reference
         readable_creds = config_path / "admin-credentials.txt"
         with open(readable_creds, 'w') as f:
             f.write(f"PlexiChat Admin Credentials\n")
@@ -3176,14 +3119,11 @@ def setup_admin_credentials(config_path):
             f.write(f"Role: admin\n\n")
             f.write(f"Created: {datetime.now()}\n\n")
             f.write(f"IMPORTANT: Keep this file secure and delete it after noting the credentials!\n")
-
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Admin credentials saved to {creds_file}")
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Readable credentials saved to {readable_creds}")
-
+        print(f"  {Colors.GREEN}✓ Admin credentials saved to {creds_file}")
+        print(f"  {Colors.GREEN}✓ Readable credentials saved to {readable_creds}")
         return credentials
-
     except Exception as e:
-        print(f"  {Colors.RED}✗{Colors.RESET} Admin credentials setup failed: {e}")
+        print(f"  {Colors.RED}✗ Admin credentials setup failed: {e}")
         raise
 
 def generate_secret_key():
@@ -3267,10 +3207,10 @@ def initialize_database_interactive(config_path):
         conn.commit()
         conn.close()
 
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Database initialized at {db_file}")
+        print(f"  {Colors.GREEN}✓ Database initialized at {db_file}")
 
     except Exception as e:
-        print(f"  {Colors.RED}✗{Colors.RESET} Database initialization failed: {e}")
+        print(f"  {Colors.RED}✗ Database initialization failed: {e}")
         raise
 
 def setup_security_interactive(config_path):
@@ -3283,7 +3223,7 @@ def setup_security_interactive(config_path):
         security_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate SSL certificates for development
-        print(f"  {Colors.YELLOW}ℹ{Colors.RESET} Generating self-signed SSL certificates for development...")
+        print(f"  {Colors.YELLOW}ℹ Generating self-signed SSL certificates for development...")
 
         # Create a simple security config
         security_config = {
@@ -3304,10 +3244,10 @@ def setup_security_interactive(config_path):
             import json
             json.dump(security_config, f, indent=2)
 
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Security configuration saved to {security_file}")
+        print(f"  {Colors.GREEN}✓ Security configuration saved to {security_file}")
 
     except Exception as e:
-        print(f"  {Colors.RED}✗{Colors.RESET} Security setup failed: {e}")
+        print(f"  {Colors.RED}✗ Security setup failed: {e}")
         raise
 
 def validate_installation_complete(install_path, config_path):
@@ -3324,16 +3264,16 @@ def validate_installation_complete(install_path, config_path):
 
         for file_path in required_files:
             if file_path.exists():
-                print(f"  {Colors.GREEN}✓{Colors.RESET} {file_path.name}")
+                print(f"  {Colors.GREEN}✓ {file_path.name}")
             else:
-                print(f"  {Colors.RED}✗{Colors.RESET} {file_path.name} missing")
+                print(f"  {Colors.RED}✗ {file_path.name} missing")
                 return False
 
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Installation validation completed")
+        print(f"  {Colors.GREEN}✓ Installation validation completed")
         return True
 
     except Exception as e:
-        print(f"  {Colors.RED}✗{Colors.RESET} Validation failed: {e}")
+        print(f"  {Colors.RED}✗ Validation failed: {e}")
         return False
 
 def install_from_config_file(config_file_path):
@@ -3407,19 +3347,20 @@ def setup_environment():
         # Create necessary directories
         directories = ["logs", "data", "config", "plugins", "temp", "backups"]
         for directory in directories:
-            Path(directory).mkdir(exist_ok=True)
-            print(f"  {Colors.GREEN}✓{Colors.RESET} Created directory: {directory}")
+            dir_path = (INSTALL_PATH / directory) if INSTALL_PATH else Path(directory)
+            dir_path.mkdir(exist_ok=True, parents=True)
+            print(f"  {Colors.GREEN}✓ Created directory: {dir_path}")
 
         # Set environment variables
         env_vars = {
-            "PLEXICHAT_HOME": str(Path.cwd()),
+            "PLEXICHAT_HOME": str(INSTALL_PATH),
             "PLEXICHAT_ENV": "production",
             "PLEXICHAT_LOG_LEVEL": "INFO",
         }
 
         for key, value in env_vars.items():
             os.environ[key] = value
-            print(f"  {Colors.GREEN}✓{Colors.RESET} Set environment variable: {key}")
+            print(f"  {Colors.GREEN}✓ Set environment variable: {key}")
 
     except Exception as e:
         print(f"Environment setup failed: {e}")
@@ -3453,18 +3394,18 @@ def install_dependencies_enhanced():
             try:
                 subprocess.run([sys.executable, "-m", "pip", "install", dep],
                              check=True, capture_output=True, text=True)
-                print(f"    {Colors.GREEN}✓{Colors.RESET} {dep}")
+                print(f"    {Colors.GREEN}✓ {dep}")
             except subprocess.CalledProcessError as e:
-                print(f"    {Colors.RED}✗{Colors.RESET} {dep} - {e}")
+                print(f"    {Colors.RED}✗ {dep} - {e}")
 
         print(f"  Installing optional dependencies...")
         for dep in optional_deps:
             try:
                 subprocess.run([sys.executable, "-m", "pip", "install", dep],
                              check=True, capture_output=True, text=True)
-                print(f"    {Colors.GREEN}✓{Colors.RESET} {dep}")
+                print(f"    {Colors.GREEN}✓ {dep}")
             except subprocess.CalledProcessError:
-                print(f"    {Colors.YELLOW}⚠{Colors.RESET} {dep} (optional, skipped)")
+                print(f"    {Colors.YELLOW}⚠ {dep} (optional, skipped)")
 
     except Exception as e:
         print(f"Dependency installation failed: {e}")
@@ -3489,7 +3430,7 @@ def setup_initial_configuration():
             if not config_file.exists():
                 with open(config_file, 'w') as f:
                     json.dump(content, f, indent=2)
-                print(f"  {Colors.GREEN}✓{Colors.RESET} Created configuration file: {config_file}")
+                print(f"  {Colors.GREEN}✓ Created configuration file: {config_file}")
 
     except Exception as e:
         print(f"Configuration setup failed: {e}")
@@ -3501,7 +3442,7 @@ def initialize_database():
         from plexichat.core.database.manager import database_manager
         print(f"  {Colors.YELLOW}Initializing database...{Colors.RESET}")
         asyncio.run(database_manager.initialize())
-        print(f"  {Colors.GREEN}✓{Colors.RESET} Database initialized successfully")
+        print(f"  {Colors.GREEN}✓ Database initialized successfully")
     except Exception as e:
         print(f"Database initialization failed: {e}")
         raise
@@ -3523,9 +3464,9 @@ def setup_security():
         if not cert_manager.are_certificates_valid():
             print(f"  {Colors.YELLOW}Generating self-signed SSL certificates...{Colors.RESET}")
             cert_manager.generate_self_signed_cert()
-            print(f"  {Colors.GREEN}✓{Colors.RESET} SSL certificates generated")
+            print(f"  {Colors.GREEN}✓ SSL certificates generated")
         else:
-            print(f"  {Colors.GREEN}✓{Colors.RESET} SSL certificates are valid")
+            print(f"  {Colors.GREEN}✓ SSL certificates are valid")
             
     except Exception as e:
         print(f"Security setup failed: {e}")
@@ -3543,9 +3484,9 @@ def validate_installation():
         for module in imports_to_check:
             try:
                 __import__(module)
-                print(f"    {Colors.GREEN}✓{Colors.RESET} {module}")
+                print(f"    {Colors.GREEN}✓ {module}")
             except ImportError:
-                print(f"    {Colors.RED}✗{Colors.RESET} {module} - NOT FOUND")
+                print(f"    {Colors.RED}✗ {module} - NOT FOUND")
                 raise
                 
     except Exception as e:
@@ -3571,6 +3512,12 @@ def show_detailed_help():
                              • Built-in CLI terminal integration
                              • Plugin manager and admin tools
                              • Login screen with authentication
+
+    {Colors.BRIGHT_CYAN}gui-standalone{Colors.RESET}           Launch GUI in standalone mode
+                             • Independent GUI without server integration
+                             • Direct plugin marketplace access
+                             • Enhanced login with quick access buttons
+                             • System status and documentation links
 
     {Colors.BRIGHT_CYAN}cli{Colors.RESET}                      Run beautiful split-screen CLI interface
                              • Real-time logs and system metrics
@@ -3736,7 +3683,8 @@ def kill_old_plexichat_processes():
                 )
                 
                 if is_plexichat:
-                    logger.info(f"Terminating old PlexiChat process: {proc_info['pid']}")
+                    if logger:
+                        logger.info(f"Terminating old PlexiChat process: {proc_info['pid']}")
                     try:
                         proc.terminate()
                         # Wait for process to terminate
@@ -3746,24 +3694,29 @@ def kill_old_plexichat_processes():
                             # Force kill if it doesn't terminate
                             proc.kill()
                     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired):
-                        logger.warning(f"Could not terminate process {proc_info['pid']}")
-                        
+                        if logger:
+                            logger.warning(f"Could not terminate process {proc_info['pid']}")
+
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
             except Exception as e:
-                logger.warning(f"Error processing PID {proc_info['pid']}: {e}")
-                
+                if logger:
+                    logger.warning(f"Error processing PID {proc_info['pid']}: {e}")
+
     except ImportError:
-        logger.warning("psutil not available, cannot kill old processes")
+        if logger:
+            logger.warning("psutil not available, cannot kill old processes")
     except Exception as e:
-        logger.error(f"Error killing old processes: {e}")
+        if logger:
+            logger.error(f"Error killing old processes: {e}")
 
 def setup_thread_pool(workers: int = 4):
     """Setup the global thread pool for background tasks."""
     global _thread_pool
     if _thread_pool is None:
         _thread_pool = ThreadPoolExecutor(max_workers=workers)
-        logger.debug(f"Thread pool started with {workers} workers")
+        if logger:
+            logger.debug(f"Thread pool started with {workers} workers")
 
 def main():
     """Main application entry point."""
@@ -3820,7 +3773,11 @@ def main():
             asyncio.run(unified_plugin_manager.discover_plugins())
             asyncio.run(unified_plugin_manager.load_plugins())
         if event_manager:
-            event_manager.emit('system.startup', args=vars(args))
+            try:
+                asyncio.run(event_manager.emit_event('system.startup', 'run.py', vars(args)))
+            except Exception as e:
+                if logger:
+                    logger.debug(f"Failed to emit startup event: {e}")
 
     except ImportError as e:
         logger.error(f"Failed to import core modules: {e}")

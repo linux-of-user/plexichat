@@ -321,7 +321,7 @@ class CanaryNodeSelector:
         node_id = node_data["node_id"]
         metrics = self.node_metrics.get(node_id, NodeMetrics())
 
-        return CanaryNode()
+        return CanaryNode(
             node_id=node_id,
             node_type=node_data.get("node_type", "unknown"),
             region=node_data.get("region", "unknown"),

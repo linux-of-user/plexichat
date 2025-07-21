@@ -229,37 +229,75 @@ class TwoFactorAuthPlugin(PluginInterface):
             return False
     
     async def _init_database(self):
-        """Initialize plugin database."""
-        import sqlite3
-        
-        conn = sqlite3.connect(str(self.db_path))
-        cursor = conn.cursor()
-        
-        # Create tables
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS user_2fa (
-                user_id TEXT PRIMARY KEY,
-                enabled BOOLEAN DEFAULT FALSE,
-                method TEXT DEFAULT 'totp',
-                secret TEXT,
-                backup_codes TEXT,
-                devices TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS verification_attempts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT,
-                method TEXT,
-                success BOOLEAN,
-                ip_address TEXT,
-                user_agent TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        """Initialize plugin database using abstraction layer for security compliance."""
+        try:
+            # Use database abstraction layer for security compliance
+            from plexichat.core.database import database_manager
+
+            # Initialize database with security settings
+            await database_manager.initialize_database(str(self.db_path))
+
+            # Create tables with encryption support
+            await database_manager.execute_query("""
+                CREATE TABLE IF NOT EXISTS user_2fa (
+                    user_id TEXT PRIMARY KEY,
+                    enabled BOOLEAN DEFAULT FALSE,
+                    method TEXT DEFAULT 'totp',
+                    secret TEXT,
+                    backup_codes TEXT,
+                    devices TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            await database_manager.execute_query("""
+                CREATE TABLE IF NOT EXISTS verification_attempts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT,
+                    method TEXT,
+                    success BOOLEAN,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+        except ImportError:
+            # Fallback to direct SQLite if abstraction layer not available
+            import sqlite3
+
+            conn = sqlite3.connect(str(self.db_path))
+            cursor = conn.cursor()
+
+            # Create tables
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_2fa (
+                    user_id TEXT PRIMARY KEY,
+                    enabled BOOLEAN DEFAULT FALSE,
+                    method TEXT DEFAULT 'totp',
+                    secret TEXT,
+                    backup_codes TEXT,
+                    devices TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS verification_attempts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT,
+                    method TEXT,
+                    success BOOLEAN,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            conn.commit()
+            conn.close()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS backup_codes (

@@ -12,23 +12,22 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-from ..core_system.database.abstraction.db_phase4_integration import phase4_database
-from ..features.ai.phase3_integration import phase3_ai
-from ..features.security.phase1_integration import phase1_security
-from ..infrastructure.scalability.phase2_integration import phase2_scalability
+from ..core.database.coordinator import database_coordinator
+from ..features.ai.ai_coordinator import ai_coordinator
+from ..core.security.unified_security_system import unified_security_manager
+from ..infrastructure.scalability.coordinator import scalability_coordinator
 from ..core_system.resilience.manager import get_system_resilience
 
 
 """
-import time
 PlexiChat Master Integration Coordinator
-Orchestrates all phases and provides unified system management
+Orchestrates all system components and provides unified system management including:
+- Security management
+- Scalability coordination
+- AI coordination
+- Database abstraction
+- System resilience
 """
-
-# Phase IV: Database
-# Phase III: AI
-# Phase I: Security
-# Phase II: Scalability
 logger = logging.getLogger(__name__)
 
 
@@ -66,11 +65,11 @@ class PlexiChatMasterCoordinator:
         self.initialized = False
         self.running = False
 
-        # Phase coordinators
-        self.phase1_security = phase1_security
-        self.phase2_scalability = phase2_scalability
-        self.phase3_ai = phase3_ai
-        self.phase4_database = phase4_database
+        # System coordinators
+        self.security_manager = unified_security_manager
+        self.scalability_coordinator = scalability_coordinator
+        self.ai_coordinator = ai_coordinator
+        self.database_coordinator = database_coordinator
 
         # System resilience manager
         self.resilience_manager = get_system_resilience()
@@ -81,10 +80,10 @@ class PlexiChatMasterCoordinator:
 
         # System configuration
         self.config = {
-            "enable_phase1_security": True,
-            "enable_phase2_scalability": True,
-            "enable_phase3_ai": True,
-            "enable_phase4_database": True,
+            "enable_security": True,
+            "enable_scalability": True,
+            "enable_ai": True,
+            "enable_database": True,
             "monitoring_interval": 30,  # seconds
             "health_check_interval": 60,  # seconds
             "auto_recovery": True,
@@ -98,11 +97,11 @@ class PlexiChatMasterCoordinator:
             "restart_count": 0,
             "error_count": 0,
             "last_health_check": None,
-            "phase_status": {
-                "phase1": "not_initialized",
-                "phase2": "not_initialized",
-                "phase3": "not_initialized",
-                "phase4": "not_initialized",
+            "component_status": {
+                "security": "not_initialized",
+                "scalability": "not_initialized",
+                "ai": "not_initialized",
+                "database": "not_initialized",
             },
         }
 

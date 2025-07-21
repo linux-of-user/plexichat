@@ -18,17 +18,18 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+# Standard library imports
+import base64
+
 # Cryptography imports
 try:
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    import base64
 except ImportError:
     Fernet = None
     hashes = None
     PBKDF2HMAC = None
-    base64 = None
 
 # Password hashing
 try:

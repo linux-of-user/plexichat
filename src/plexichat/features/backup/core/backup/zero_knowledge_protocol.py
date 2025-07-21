@@ -902,7 +902,7 @@ class ZeroKnowledgeBackupProtocol:
             logger.error(f" Failed to create privacy-preserving hash: {e}")
             raise
 
-    async def _check_deduplication()
+    async def _check_deduplication(
         self, privacy_hash: PrivacyPreservingHash
     ) -> Optional[BackupChunk]:
         """Check if chunk can be deduplicated."""
@@ -914,7 +914,7 @@ class ZeroKnowledgeBackupProtocol:
                 existing_chunk = self.dedup_database[hash_key]
 
                 # Verify similarity threshold
-                similarity = await self._calculate_similarity()
+                similarity = await self._calculate_similarity(
                     privacy_hash, existing_chunk.privacy_hash
                 )
 

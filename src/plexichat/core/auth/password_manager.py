@@ -38,17 +38,17 @@ class PasswordManager:
         self.initialized = True
         logger.info(" Password Manager initialized")
 
-    async def verify_password()
+    async def verify_password(
         self, username: str, password: str
     ) -> PasswordVerificationResult:
         """Verify user password."""
         # Mock implementation
         if username == "admin" and password == "admin123":
-            return PasswordVerificationResult()
+            return PasswordVerificationResult(
                 success=True, user_id="admin", password_expired=False
             )
 
-        return PasswordVerificationResult()
+        return PasswordVerificationResult(
             success=False, error_message="Invalid credentials"
         )
 

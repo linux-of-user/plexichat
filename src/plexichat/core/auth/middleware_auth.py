@@ -132,7 +132,7 @@ class FlaskAuthMiddleware:
         if token:
             try:
                 loop = asyncio.get_event_loop()
-                g.auth_context = loop.run_until_complete()
+                g.auth_context = loop.run_until_complete(
                     auth_manager.require_authentication(token, "BASIC")
                 )
                 g.authenticated = True

@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ...core.versioning.update_system import UpdateStatus, UpdateSystem, UpdateType
+from ...core.versioning.simple_update_system import UpdateStatus, SimpleUpdateSystem as UpdateSystem, UpdateType
 from ...core.versioning.version_manager import Version
 from .encrypted_communication import EncryptedCommunication, MessageType
 

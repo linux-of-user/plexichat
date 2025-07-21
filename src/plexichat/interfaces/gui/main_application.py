@@ -51,23 +51,23 @@ class PlexiChatGUI:
     """
 
     def __init__(self):
-        self.root = None
-        self.current_user = None
-        self.is_authenticated = False
-        self.theme_manager = None
-        self.notification_system = None
-        self.plugin_manager = None
-        self.webui_renderer = None
-        
+        self.root: Optional[tk.Tk] = None
+        self.current_user: Optional[Dict[str, Any]] = None
+        self.is_authenticated: bool = False
+        self.theme_manager: Optional[Any] = None
+        self.notification_system: Optional[Any] = None
+        self.plugin_manager: Optional[Any] = None
+        self.webui_renderer: Optional[Any] = None
+
         # Component references
-        self.login_screen = None
-        self.main_dashboard = None
-        self.chat_interface = None
-        self.settings_panel = None
-        self.status_bar = None
-        self.menu_system = None
-        self.toolbar = None
-        self.sidebar = None
+        self.login_screen: Optional[Any] = None
+        self.main_dashboard: Optional[Any] = None
+        self.chat_interface: Optional[Any] = None
+        self.settings_panel: Optional[Any] = None
+        self.status_bar: Optional[Any] = None
+        self.menu_system: Optional[Any] = None
+        self.toolbar: Optional[Any] = None
+        self.sidebar: Optional[Any] = None
         
         # State management
         self.windows = {}
@@ -131,12 +131,13 @@ class PlexiChatGUI:
         """Set the application icon."""
         try:
             # Try to load custom icon
-            icon_path = Path(__file__).parent / "assets" / "plexichat_icon.ico"
-            if icon_path.exists():
-                self.root.iconbitmap(str(icon_path))
-            else:
-                # Use default icon or create one programmatically
-                self.create_default_icon()
+            if self.root:
+                icon_path = Path(__file__).parent / "assets" / "plexichat_icon.ico"
+                if icon_path.exists():
+                    self.root.iconbitmap(str(icon_path))
+                else:
+                    # Use default icon or create one programmatically
+                    self.create_default_icon()
         except Exception as e:
             logger.warning(f"Could not set application icon: {e}")
 
@@ -158,23 +159,29 @@ class PlexiChatGUI:
 
     def configure_window(self):
         """Configure main window properties."""
+        if not self.root:
+            return
+
         # Center window on screen
         self.center_window()
-        
+
         # Configure window closing behavior
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        
+
         # Configure window state change handling
         self.root.bind("<Configure>", self.on_window_configure)
-        
+
         # Set window properties
         self.root.resizable(True, True)
-        
+
         # Configure styles
         self.configure_styles()
 
     def center_window(self):
         """Center the window on the screen."""
+        if not self.root:
+            return
+
         self.root.update_idletasks()
         width = self.root.winfo_width()
         height = self.root.winfo_height()
@@ -209,7 +216,8 @@ class PlexiChatGUI:
             
             def run_async_loop():
                 asyncio.set_event_loop(self.async_loop)
-                self.async_loop.run_forever()
+                if self.async_loop:
+                    self.async_loop.run_forever()
             
             async_thread = threading.Thread(target=run_async_loop, daemon=True)
             async_thread.start()
@@ -221,14 +229,17 @@ class PlexiChatGUI:
     def show_login_screen(self):
         """Display the login screen."""
         try:
+            if not self.root:
+                return
+
             # Clear any existing content
             for widget in self.root.winfo_children():
                 widget.destroy()
-            
+
             # Create and show login screen
             self.login_screen = LoginScreen(self.root, self)
             self.login_screen.pack(fill=tk.BOTH, expand=True)
-            
+
             logger.info("Login screen displayed")
         except Exception as e:
             logger.error(f"Failed to show login screen: {e}")
@@ -255,11 +266,12 @@ class PlexiChatGUI:
             self.show_main_dashboard()
             
             # Send welcome notification
-            self.notification_system.show_notification(
-                "Welcome to PlexiChat!",
-                f"Welcome back, {user_data.get('username')}!",
-                "success"
-            )
+            if self.notification_system:
+                self.notification_system.show_notification(
+                    "Welcome to PlexiChat!",
+                    f"Welcome back, {user_data.get('username')}!",
+                    "success"
+                )
             
         except Exception as e:
             logger.error(f"Login success handling failed: {e}")
@@ -269,7 +281,10 @@ class PlexiChatGUI:
         """Load user preferences and settings."""
         try:
             # Load preferences from file or database
-            prefs_file = Path.home() / ".plexichat" / f"{self.current_user['username']}_preferences.json"
+            if self.current_user:
+                prefs_file = Path.home() / ".plexichat" / f"{self.current_user['username']}_preferences.json"
+            else:
+                prefs_file = Path.home() / ".plexichat" / "default_preferences.json"
             
             if prefs_file.exists():
                 with open(prefs_file, 'r') as f:
@@ -295,11 +310,13 @@ class PlexiChatGUI:
         try:
             # Apply theme
             theme = self.user_preferences.get("theme", "dark_modern")
-            self.theme_manager.apply_theme(theme)
-            
+            if self.theme_manager:
+                self.theme_manager.apply_theme(theme)
+
             # Configure notifications
             notifications_enabled = self.user_preferences.get("notifications", True)
-            self.notification_system.set_enabled(notifications_enabled)
+            if self.notification_system:
+                self.notification_system.set_enabled(notifications_enabled)
             
             logger.info("User preferences applied")
         except Exception as e:
@@ -364,7 +381,8 @@ class PlexiChatGUI:
         """Initialize main application components."""
         try:
             # Load plugins
-            self.plugin_manager.load_plugins()
+            if self.plugin_manager:
+                self.plugin_manager.load_plugins()
 
             # Setup chat interface
             self.chat_interface = ChatInterface(self.main_dashboard, self)
@@ -377,7 +395,8 @@ class PlexiChatGUI:
             self.plugin_marketplace = PluginMarketplace(self.main_dashboard, self)
 
             # Register theme callback
-            self.theme_manager.register_theme_callback(self.on_theme_changed)
+            if self.theme_manager:
+                self.theme_manager.register_theme_callback(self.on_theme_changed)
 
             # Start background services
             self.start_background_services()
@@ -406,16 +425,19 @@ class PlexiChatGUI:
             def update_status():
                 if self.status_bar:
                     self.status_bar.update_status()
-                self.root.after(30000, update_status)
+                if self.root:
+                    self.root.after(30000, update_status)
 
             # Check for updates every 5 minutes
             def check_updates():
                 # Implementation for update checking
-                self.root.after(300000, check_updates)
+                if self.root:
+                    self.root.after(300000, check_updates)
 
             # Start tasks
-            self.root.after(1000, update_status)
-            self.root.after(5000, check_updates)
+            if self.root:
+                self.root.after(1000, update_status)
+                self.root.after(5000, check_updates)
 
         except Exception as e:
             logger.error(f"Failed to schedule periodic tasks: {e}")
@@ -450,7 +472,8 @@ class PlexiChatGUI:
                 self.status_bar.apply_theme(theme_data)
 
             # Notify plugins of theme change
-            self.plugin_manager.notify_theme_change(theme_name, theme_data)
+            if self.plugin_manager:
+                self.plugin_manager.notify_theme_change(theme_name, theme_data)
 
         except Exception as e:
             logger.error(f"Failed to handle theme change: {e}")
@@ -496,14 +519,16 @@ class PlexiChatGUI:
         """Minimize application to system tray."""
         try:
             # Hide the window
-            self.root.withdraw()
+            if self.root:
+                self.root.withdraw()
 
             # Show notification
-            self.notification_system.show_notification(
-                "Server Manager",
-                "PlexiChat Server Manager minimized to system tray. Server continues running.",
-                "info"
-            )
+            if self.notification_system:
+                self.notification_system.show_notification(
+                    "Server Manager",
+                    "PlexiChat Server Manager minimized to system tray. Server continues running.",
+                    "info"
+                )
 
             # Create system tray icon (simplified implementation)
             self.create_system_tray_icon()
@@ -533,16 +558,18 @@ class PlexiChatGUI:
             self.cleanup_gui_only()
 
             # Close the GUI window
-            self.root.quit()
-            self.root.destroy()
+            if self.root:
+                self.root.quit()
+                self.root.destroy()
 
             logger.info("GUI closed, server continues running")
 
         except Exception as e:
             logger.error(f"Error closing GUI: {e}")
             try:
-                self.root.quit()
-                self.root.destroy()
+                if self.root:
+                    self.root.quit()
+                    self.root.destroy()
             except:
                 pass
 
@@ -614,38 +641,36 @@ class PlexiChatGUI:
         except Exception as e:
             logger.error(f"Error during cleanup: {e}")
         finally:
-            self.root.quit()
-            self.root.destroy()
+            if self.root:
+                self.root.quit()
+                self.root.destroy()
 
     def run(self):
         """Start the GUI application."""
         try:
             logger.info("Starting PlexiChat GUI application...")
-            self.root.mainloop()
+            if self.root:
+                self.root.mainloop()
         except Exception as e:
             logger.error(f"GUI application error: {e}")
             messagebox.showerror("Application Error", f"An error occurred: {e}")
 
     def setup_cli_integration(self):
-        """Setup CLI integration for running commands from GUI."""
+        """Setup CLI integration for running commands from GUI using UnifiedCLI."""
         try:
-            # Import CLI modules
-            from ..cli.main_cli import main as cli_main
-
-            # Store CLI main function for later use
-            self.cli_main = cli_main
-
-            logger.info("CLI integration initialized successfully")
-
+            # Import UnifiedCLI
+            from ..cli.unified_cli import UnifiedCLI
+            self.unified_cli = UnifiedCLI()
+            logger.info("UnifiedCLI integration initialized successfully")
         except ImportError as e:
-            logger.warning(f"CLI integration not available: {e}")
-            self.cli_main = None
+            logger.warning(f"UnifiedCLI integration not available: {e}")
+            self.unified_cli = None
         except Exception as e:
-            logger.error(f"Failed to setup CLI integration: {e}")
-            self.cli_main = None
+            logger.error(f"Failed to setup UnifiedCLI integration: {e}")
+            self.unified_cli = None
 
     def open_cli_terminal(self):
-        """Open a CLI terminal window within the GUI."""
+        """Open a CLI terminal window within the GUI using UnifiedCLI."""
         try:
             # Create CLI terminal window
             cli_window = tk.Toplevel(self.root)
@@ -690,11 +715,8 @@ class PlexiChatGUI:
             def execute_command():
                 command = command_entry.get().strip()
                 if command:
-                    # Display command
                     output_text.insert(tk.END, f"plexichat> {command}\n", "command")
                     output_text.tag_config("command", foreground="#ffff00")
-
-                    # Execute command
                     try:
                         if command.lower() in ['exit', 'quit']:
                             cli_window.destroy()
@@ -704,71 +726,36 @@ class PlexiChatGUI:
                             command_entry.delete(0, tk.END)
                             return
                         elif command.lower() == 'help':
-                            help_text = """
-Available Commands:
-  admin          - Admin commands
-  test           - Run tests
-  system         - System commands
-  backup         - Backup operations
-  plugin         - Plugin management
-  status         - Show status
-  clean          - System cleanup
-  clear          - Clear terminal
-  exit/quit      - Close terminal
-  help           - Show this help
-
-Examples:
-  admin users    - Manage users
-  test all       - Run all tests
-  system status  - Show system status
-"""
+                            help_text = self.unified_cli.create_cli_group().get_help() if self.unified_cli else "Help not available."
                             output_text.insert(tk.END, help_text + "\n", "help")
                             output_text.tag_config("help", foreground="#00ffff")
                         else:
-                            # Try to execute via CLI integration
-                            if self.cli_main:
-                                import sys
+                            if self.unified_cli:
+                                # Simulate CLI execution and capture output
                                 import io
+                                import sys
                                 from contextlib import redirect_stdout, redirect_stderr
-
-                                # Capture output
                                 stdout_capture = io.StringIO()
                                 stderr_capture = io.StringIO()
-
-                                # Save original argv
-                                original_argv = sys.argv.copy()
-
                                 try:
-                                    # Set command arguments
-                                    sys.argv = ['plexichat'] + command.split()
-
-                                    # Redirect output
                                     with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
-                                        self.cli_main()
-
-                                    # Get output
+                                        self.unified_cli.execute_system_command(command, {"source": "gui"})
                                     stdout_result = stdout_capture.getvalue()
                                     stderr_result = stderr_capture.getvalue()
-
                                     if stdout_result:
                                         output_text.insert(tk.END, stdout_result + "\n", "output")
                                         output_text.tag_config("output", foreground="#ffffff")
                                     if stderr_result:
                                         output_text.insert(tk.END, f"Error: {stderr_result}\n", "error")
                                         output_text.tag_config("error", foreground="#ff0000")
-
                                 finally:
-                                    # Restore original argv
-                                    sys.argv = original_argv
+                                    pass
                             else:
-                                output_text.insert(tk.END, "CLI integration not available\n", "error")
+                                output_text.insert(tk.END, "UnifiedCLI integration not available\n", "error")
                                 output_text.tag_config("error", foreground="#ff0000")
-
                     except Exception as e:
                         output_text.insert(tk.END, f"Error: {str(e)}\n", "error")
                         output_text.tag_config("error", foreground="#ff0000")
-
-                    # Scroll to end and clear input
                     output_text.see(tk.END)
                     command_entry.delete(0, tk.END)
 
@@ -796,49 +783,31 @@ Type 'help' for available commands or 'exit' to close.
             messagebox.showerror("Error", f"Failed to open CLI terminal: {e}")
 
     def run_gui_command(self, command):
-        """Run a command from GUI context."""
+        """Run a command from GUI context using UnifiedCLI."""
         try:
-            if self.cli_main:
-                import sys
+            if self.unified_cli:
                 import io
+                import sys
                 from contextlib import redirect_stdout, redirect_stderr
-
-                # Capture output
                 stdout_capture = io.StringIO()
                 stderr_capture = io.StringIO()
-
-                # Save original argv
-                original_argv = sys.argv.copy()
-
                 try:
-                    # Set command arguments
-                    sys.argv = ['plexichat'] + command.split()
-
-                    # Redirect output
                     with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
-                        self.cli_main()
-
-                    # Get output
+                        self.unified_cli.execute_system_command(command, {"source": "gui"})
                     stdout_result = stdout_capture.getvalue()
                     stderr_result = stderr_capture.getvalue()
-
-                    # Show result in message box
                     if stdout_result:
                         messagebox.showinfo("Command Result", stdout_result)
                     elif stderr_result:
                         messagebox.showerror("Command Error", stderr_result)
                     else:
                         messagebox.showinfo("Command Result", "Command executed successfully")
-
                     return True
-
                 finally:
-                    # Restore original argv
-                    sys.argv = original_argv
+                    pass
             else:
-                messagebox.showerror("Error", "CLI integration not available")
+                messagebox.showerror("Error", "UnifiedCLI integration not available")
                 return False
-
         except Exception as e:
             logger.error(f"Error running GUI command: {e}")
             messagebox.showerror("Error", f"Failed to run command: {e}")

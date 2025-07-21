@@ -18,8 +18,6 @@ from cryptography.fernet import Fernet
 
 from .config_manager import get_webui_config
 
-from datetime import datetime
-
 
 """
 import time
@@ -47,8 +45,7 @@ class MFADevice:
 
     def __post_init__(self):
         if self.created_at is None:
-created_at = datetime.now()
-datetime.utcnow()
+            self.created_at = datetime.now()
 
 @dataclass
 class MFASession:
@@ -112,11 +109,6 @@ class MFAManager:
             # Create TOTP URI
             totp = pyotp.TOTP(secret_key)
             provisioning_uri = totp.provisioning_uri()
-                name=username,
-                issuer_name=self.mfa_config.totp_issuer
-            )
-
-            # Generate QR code
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(provisioning_uri)
             qr.make(fit=True)
@@ -128,7 +120,7 @@ class MFAManager:
 
             # Create device
             device_id = secrets.token_hex(16)
-            device = MFADevice()
+            device = MFADevice(
                 device_id=device_id,
                 device_type="totp",
                 device_name=device_name,
@@ -167,9 +159,7 @@ class MFAManager:
             if totp.verify(verification_code, valid_window=2):
                 # Activate the device
                 device.is_active = True
-                device.from datetime import datetime
-last_used = datetime.now()
-datetime.utcnow()
+                device.last_used = datetime.now()
                 self._update_device(user_id, device)
 
                 logger.info(f"TOTP device {device_id} activated for user {user_id}")
@@ -190,9 +180,7 @@ datetime.utcnow()
 
             totp = pyotp.TOTP(device.secret_key)
             if totp.verify(code, valid_window=2):
-                device.from datetime import datetime
-last_used = datetime.now()
-datetime.utcnow()
+                device.last_used = datetime.now()
                 self._update_device(user_id, device)
                 return True
 
@@ -256,23 +244,21 @@ datetime.utcnow()
 
         return [d for d in devices if d.is_active]
 
-    def create_mfa_session(self, user_id: str, username: str, ip_address: str,):
-                          user_agent: str, user_role: str = "user") -> MFASession:
+    def create_mfa_session(self, user_id: str, username: str, ip_address: str, user_agent: str, user_role: str = "user") -> MFASession:
         """Create a new MFA session."""
         session_id = secrets.token_hex(32)
         mfa_required = self.is_mfa_required_for_user(user_id, user_role)
 
-        session = MFASession()
+        now = datetime.now()
+        session = MFASession(
             session_id=session_id,
             user_id=user_id,
             username=username,
             mfa_required=mfa_required,
             mfa_completed=not mfa_required,  # If MFA not required, mark as completed
             mfa_methods_completed=[],
-created_at = datetime.now()
-datetime.utcnow(),
-expires_at = datetime.now()
-datetime.utcnow() + timedelta(seconds=self.config.get_session_timeout(False)),
+            created_at=now,
+            expires_at=now + timedelta(seconds=self.config.get_session_timeout(False)),
             ip_address=ip_address,
             user_agent=user_agent
         )
@@ -293,12 +279,7 @@ datetime.utcnow() + timedelta(seconds=self.config.get_session_timeout(False)),
         required_methods = self.get_available_mfa_methods()
         if any(method in session.mfa_methods_completed for method in required_methods):
             session.mfa_completed = True
-            # Extend session timeout for MFA-completed sessions
-            session.from datetime import datetime
-expires_at = datetime.now()
-datetime.utcnow() + timedelta()
-                seconds=self.config.get_session_timeout(True)
-            )
+            session.expires_at = datetime.now() + timedelta(seconds=self.config.get_session_timeout(True))
 
         return session.mfa_completed
 
@@ -310,8 +291,7 @@ datetime.utcnow() + timedelta()
         session = self.sessions_storage[session_id]
 
         # Check expiration
-        if from datetime import datetime
-datetime.utcnow() > session.expires_at:
+        if datetime.utcnow() > session.expires_at:
             del self.sessions_storage[session_id]
             return False
 

@@ -165,102 +165,100 @@ class UnifiedCLI:
 
     def create_cli_group(self):
         """Create the main CLI group."""
-        @click.group()
+        @click.group(help="PlexiChat Unified CLI System - 300+ Commands. Use --help on any command or group for details.")
         @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
         @click.option('--json', '-j', is_flag=True, help='Output in JSON format')
         @click.option('--quiet', '-q', is_flag=True, help='Suppress output')
         @click.pass_context
         def cli(ctx, verbose: bool, json: bool, quiet: bool):
-            """PlexiChat Unified CLI System - 300+ Commands"""
+            """Unified CLI entrypoint. Use subcommands for system, user, messaging, ai, security, admin, dev, data, network, integration. Use --help for details."""
             ctx.ensure_object(dict)
             ctx.obj['verbose'] = verbose
             ctx.obj['json'] = json
             ctx.obj['quiet'] = quiet
-
             if verbose:
                 logging.getLogger().setLevel(logging.DEBUG)
-
         return cli
 
     def add_command_groups(self, cli_group):
         """Add all command groups to the CLI."""
 
         # System commands
-        @cli_group.group()
+        @cli_group.group(help="System management commands. Use --help for available commands.")
         def system():
-            """System management commands"""
+            """System management commands."""
             pass
 
         self.add_system_commands(system)
 
         # User management commands
-        @cli_group.group()
+        @cli_group.group(help="User management commands. Use --help for available commands.")
         def user():
-            """User management commands"""
+            """User management commands."""
             pass
 
         self.add_user_commands(user)
 
         # Messaging commands
-        @cli_group.group()
+        @cli_group.group(help="Messaging commands. Use --help for available commands.")
         def messaging():
-            """Messaging commands"""
+            """Messaging and communication commands."""
             pass
 
         self.add_messaging_commands(messaging)
 
         # AI commands
-        @cli_group.group()
+        @cli_group.group(help="AI feature commands. Use --help for available commands.")
         def ai():
-            """AI feature commands"""
+            """AI and machine learning commands."""
             pass
 
         self.add_ai_commands(ai)
 
         # Security commands
-        @cli_group.group()
+        @cli_group.group(help="Security commands. Use --help for available commands. [Some commands admin-only]")
         def security():
-            """Security commands"""
+            """Security and protection commands. [Some commands admin-only]"""
             pass
 
         self.add_security_commands(security)
 
         # Admin commands
-        @cli_group.group()
+        @cli_group.group(help="Administrative commands. Use --help for available commands. [Admin only]")
         def admin():
-            """Administrative commands"""
+            """Administrative commands. [Admin only]"""
             pass
 
         self.add_admin_commands(admin)
 
         # Development commands
-        @cli_group.group()
+        @cli_group.group(help="Development and debugging commands. Use --help for available commands.")
         def dev():
-            """Development commands"""
+            """Development and debugging commands."""
             pass
 
         self.add_dev_commands(dev)
 
         # Data commands
-        @cli_group.group()
+        @cli_group.group(help="Data management commands. Use --help for available commands.")
         def data():
-            """Data management commands"""
+            """Data management commands."""
             pass
 
         self.add_data_commands(data)
 
         # Network commands
-        @cli_group.group()
+        @cli_group.group(help="Network and connectivity commands. Use --help for available commands.")
         def network():
-            """Network commands"""
+            """Network and connectivity commands."""
             pass
 
         self.add_network_commands(network)
 
         # Integration commands
-        @cli_group.group()
+        @cli_group.group(help="Integration and API commands. Use --help for available commands.")
         def integration():
-            """Integration commands"""
+            """Integration and API commands."""
             pass
 
         self.add_integration_commands(integration)

@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from .distributed_key_manager import DistributedKeyManager, KeyDomain
-from .quantum_encryption import QuantumEncryptionSystem, SecurityTier
+# from .quantum_encryption import QuantumEncryptionSystem, SecurityTier  # REMOVED: file deleted
 
 
 """
@@ -126,7 +126,7 @@ class EndToEndEncryption:
         self.endpoint_policies: Dict[EndpointType, Dict[str, Any]] = {}
 
         # Encryption systems
-        self.quantum_encryption = QuantumEncryptionSystem()
+        self.quantum_encryption = None # REMOVED: file deleted
         self.distributed_keys = DistributedKeyManager()
 
         # Initialize system (will be called manually during app startup)
@@ -222,49 +222,49 @@ class EndToEndEncryption:
         self.endpoint_policies = {
             EndpointType.AUTHENTICATION: {
                 "protocol": E2EProtocol.QUANTUM_RESISTANT_E2E,
-                "security_tier": SecurityTier.QUANTUM_PROOF,
+                "security_tier": None, # REMOVED: file deleted
                 "require_verification": True,
                 "session_timeout": timedelta(minutes=15),
                 "max_messages": 100
             },
             EndpointType.MESSAGING: {
                 "protocol": E2EProtocol.DOUBLE_RATCHET,
-                "security_tier": SecurityTier.GOVERNMENT,
+                "security_tier": None, # REMOVED: file deleted
                 "require_verification": True,
                 "session_timeout": timedelta(hours=24),
                 "max_messages": 10000
             },
             EndpointType.FILE_TRANSFER: {
                 "protocol": E2EProtocol.HYBRID_CLASSICAL_QUANTUM,
-                "security_tier": SecurityTier.QUANTUM_PROOF,
+                "security_tier": None, # REMOVED: file deleted
                 "require_verification": True,
                 "session_timeout": timedelta(hours=1),
                 "max_messages": 1000
             },
             EndpointType.DATABASE_API: {
                 "protocol": E2EProtocol.QUANTUM_RESISTANT_E2E,
-                "security_tier": SecurityTier.QUANTUM_PROOF,
+                "security_tier": None, # REMOVED: file deleted
                 "require_verification": True,
                 "session_timeout": timedelta(minutes=30),
                 "max_messages": 500
             },
             EndpointType.BACKUP_API: {
                 "protocol": E2EProtocol.QUANTUM_RESISTANT_E2E,
-                "security_tier": SecurityTier.QUANTUM_PROOF,
+                "security_tier": None, # REMOVED: file deleted
                 "require_verification": True,
                 "session_timeout": timedelta(hours=2),
                 "max_messages": 100
             },
             EndpointType.ADMIN_API: {
                 "protocol": E2EProtocol.QUANTUM_RESISTANT_E2E,
-                "security_tier": SecurityTier.QUANTUM_PROOF,
+                "security_tier": None, # REMOVED: file deleted
                 "require_verification": True,
                 "session_timeout": timedelta(minutes=10),
                 "max_messages": 50
             },
             EndpointType.PUBLIC_API: {
                 "protocol": E2EProtocol.SIGNAL_PROTOCOL,
-                "security_tier": SecurityTier.ENHANCED,
+                "security_tier": None, # REMOVED: file deleted
                 "require_verification": False,
                 "session_timeout": timedelta(hours=1),
                 "max_messages": 1000

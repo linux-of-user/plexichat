@@ -9,7 +9,7 @@ import logging
 import sys
 import threading
 import time
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 from pathlib import Path
 
 try:
@@ -55,11 +55,9 @@ except ImportError:
     message_processor = None
     queue_message = None
 
-try:
-    from plexichat.core.analytics.analytics_manager import analytics_manager, track_event
-except ImportError:
-    analytics_manager = None
-    track_event = None
+# Analytics manager is optional
+analytics_manager = None
+track_event = None
 
 try:
     from plexichat.interfaces.cli.commands.tests import handle_test_command
@@ -67,25 +65,35 @@ except ImportError:
     handle_test_command = None
 
 # Import CLI command groups
+# Import CLI commands with fallbacks
+admin_cmd: Optional[Any] = None
+backup_cmd: Optional[Any] = None
+system_cmd: Optional[Any] = None
+security_cmd: Optional[Any] = None
+database_cmd: Optional[Any] = None
+plugins_cmd: Optional[Any] = None
+ai_cmd: Optional[Any] = None
+logs_cmd: Optional[Any] = None
+updates_cmd: Optional[Any] = None
+
 try:
-    from plexichat.interfaces.cli.commands.admin import admin
-    from plexichat.interfaces.cli.commands.backup import backup
-    from plexichat.interfaces.cli.commands.system import system
-    from plexichat.interfaces.cli.commands.security import security
-    from plexichat.interfaces.cli.commands.database import database
-    from plexichat.interfaces.cli.commands.plugins import plugins
-    from plexichat.interfaces.cli.commands.ai import ai
-    from plexichat.interfaces.cli.commands.logs import logs
-    from plexichat.interfaces.cli.commands.updates import updates
-except ImportError as e:
-    # Individual command imports may fail, that's ok
+    from plexichat.interfaces.cli.commands.admin import admin as admin_cmd
+except ImportError:
     pass
 
 try:
-    from plexichat.core.security.security_manager import security_manager, hash_password
+    from plexichat.interfaces.cli.commands.backup import backup as backup_cmd
 except ImportError:
-    security_manager = None
-    hash_password = None
+    pass
+
+try:
+    from plexichat.interfaces.cli.commands.system import system as system_cmd
+except ImportError:
+    pass
+
+# Security manager is optional
+security_manager = None
+hash_password = None
 
 try:
     from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
@@ -159,10 +167,10 @@ async def initialize_cli():
             await message_processor.start_processing()
             print_message("Message processor started", "success")
 
-        # Initialize analytics
-        if analytics_manager:
-            await analytics_manager.start_processing()
-            print_message("Analytics manager started", "success")
+        # Initialize analytics (currently not available)
+        # if analytics_manager and hasattr(analytics_manager, 'start_processing'):
+        #     await analytics_manager.start_processing()
+        #     print_message("Analytics manager started", "success")
 
         return True
     except Exception as e:
@@ -182,10 +190,10 @@ async def shutdown_cli():
             await message_processor.stop_processing()
             print_message("Message processor stopped", "success")
 
-        # Shutdown analytics
-        if analytics_manager:
-            await analytics_manager.stop_processing()
-            print_message("Analytics manager stopped", "success")
+        # Shutdown analytics (currently not available)
+        # if analytics_manager and hasattr(analytics_manager, 'stop_processing'):
+        #     await analytics_manager.stop_processing()
+        #     print_message("Analytics manager stopped", "success")
 
         # Shutdown thread manager
         if thread_manager:
@@ -300,7 +308,7 @@ if click:
         pass
 
     @plugins.command()
-    def list():
+    def list_plugins():
         """List all plugins."""
         try:
             if unified_plugin_manager:
@@ -436,7 +444,7 @@ if click:
             print_message(f"Error running tests: {e}", "error")
 
     @test.command()
-    def list():
+    def list_tests():
         """List available test categories."""
         try:
             if handle_test_command:
@@ -467,7 +475,7 @@ if click:
 
 else:
     # Fallback CLI without click
-    def cli():
+    def cli_fallback():
         """Fallback CLI without click."""
         print("PlexiChat CLI")
         print("Click library not available - limited functionality")

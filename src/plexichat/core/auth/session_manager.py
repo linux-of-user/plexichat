@@ -46,7 +46,7 @@ class SessionManager:
         self.initialized = True
         logger.info(" Session Manager initialized")
 
-    async def create_session()
+    async def create_session(
         self,
         user_id: str,
         device_info: Optional[Dict[str, Any]] = None,
@@ -57,7 +57,7 @@ class SessionManager:
         session_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc)
 
-        session_data = SessionData()
+        session_data = SessionData(
             session_id=session_id,
             user_id=user_id,
             created_at=now,

@@ -240,14 +240,13 @@ class SecurityService:
         try:
             # Check file size (basic protection)
             if len(file_content) > 100 * 1024 * 1024:  # 100MB limit
-                threat = SecurityThreat()
+                threat = SecurityThreat(
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.SUSPICIOUS_FILE,
                     threat_level=ThreatLevel.MEDIUM,
                     source=filename,
                     description=f"File too large: {len(file_content)} bytes",
-detected_at = datetime.now()
-datetime = datetime.now(),
+                    detected_at=datetime.now(),
                     witty_response="File rejected! That's bigger than my attention span! "
                 )
                 return False, threat
@@ -255,14 +254,13 @@ datetime = datetime.now(),
             # Check against known signatures
             for signature in self.file_signatures.values():
                 if re.search(signature.pattern, file_content, re.IGNORECASE | re.DOTALL):
-                    threat = SecurityThreat()
+                    threat = SecurityThreat(
                         threat_id=self._generate_threat_id(),
                         threat_type=signature.threat_type,
                         threat_level=signature.threat_level,
                         source=filename,
                         description=f"Matched signature: {signature.name}",
-detected_at = datetime.now()
-datetime = datetime.now(),
+                        detected_at=datetime.now(),
                         metadata={"signature_id": signature.signature_id},
                         witty_response=self._get_witty_response(signature.threat_type)
                     )
@@ -276,14 +274,13 @@ datetime = datetime.now(),
             file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
 
             if f'.{file_ext}' in dangerous_extensions:
-                threat = SecurityThreat()
+                threat = SecurityThreat(
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.SUSPICIOUS_FILE,
                     threat_level=ThreatLevel.MEDIUM,
                     source=filename,
                     description=f"Potentially dangerous file extension: .{file_ext}",
-detected_at = datetime.now()
-datetime = datetime.now(),
+                    detected_at=datetime.now(),
                     witty_response="Executable file blocked! We don't run random programs here! "
                 )
 
@@ -297,14 +294,13 @@ datetime = datetime.now(),
 
         except Exception as e:
             logger.error(f"Error scanning file {filename}: {e}")
-            threat = SecurityThreat()
+            threat = SecurityThreat(
                 threat_id=self._generate_threat_id(),
                 threat_type=ThreatType.SUSPICIOUS_FILE,
                 threat_level=ThreatLevel.MEDIUM,
                 source=filename,
                 description=f"Scan error: {str(e)}",
-detected_at = datetime.now()
-datetime = datetime.now(),
+                detected_at=datetime.now(),
                 witty_response="File scan failed! When in doubt, block it out! "
             )
             return False, threat
@@ -321,14 +317,13 @@ datetime = datetime.now(),
 
             # Check against blocked domains
             if domain in self.blocked_domains:
-                threat = SecurityThreat()
+                threat = SecurityThreat(
                     threat_id=self._generate_threat_id(),
                     threat_type=ThreatType.MALICIOUS_LINK,
                     threat_level=ThreatLevel.HIGH,
                     source=url,
                     description=f"Known malicious domain: {domain}",
-detected_at = datetime.now()
-datetime = datetime.now(),
+                    detected_at=datetime.now(),
                     witty_response=self._get_witty_response(ThreatType.PHISHING)
                 )
 
@@ -449,12 +444,12 @@ datetime = datetime.now(),
                 r"(\b(INFORMATION_SCHEMA|SYSOBJECTS|SYSCOLUMNS)\b)",
                 # Additional dangerous patterns
                 r"(\b(LOAD_FILE|INTO\s+OUTFILE|INTO\s+DUMPFILE)\b)",
-                r"(\b(BENCHMARK|SLEEP)\s*\()",)
-                r"(\b(HEX|UNHEX|MD5|SHA1)\s*\()",)
+                r"(\b(BENCHMARK|SLEEP)\s*\()",
+                r"(\b(HEX|UNHEX|MD5|SHA1)\s*\()",
                 # Blind injection patterns
                 r"(\b(IF|CASE|WHEN)\s*\(.*?=.*?\))",
                 # Error-based injection
-                r"(\b(EXTRACTVALUE|UPDATEXML)\s*\()",)
+                r"(\b(EXTRACTVALUE|UPDATEXML)\s*\()",
             ]
 
             detected_patterns = []

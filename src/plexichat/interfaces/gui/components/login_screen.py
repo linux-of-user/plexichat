@@ -61,7 +61,10 @@ class LoginScreen(ttk.Frame):
         
         # Animation variables
         self.animation_running = False
-        
+
+        # Configure custom styles
+        self.configure_custom_styles()
+
         self.create_login_interface()
 
     def create_login_interface(self):
@@ -385,7 +388,55 @@ class LoginScreen(ttk.Frame):
                 width=12
             )
             bio_btn.pack(side=tk.LEFT, padx=5)
-            
+
+            # Setup button (only show if setup is needed)
+            if not self.is_setup_completed():
+                setup_frame = ttk.Frame(button_frame)
+                setup_frame.pack(pady=(10, 0))
+
+                setup_btn = ttk.Button(
+                    setup_frame,
+                    text="🔧 Run Setup",
+                    command=self.show_database_setup,
+                    style="SetupButton.TButton",
+                    width=20
+                )
+                setup_btn.pack()
+
+            # Quick access frame
+            quick_frame = ttk.Frame(button_frame)
+            quick_frame.pack(pady=(15, 0))
+
+            # Documentation button
+            docs_btn = ttk.Button(
+                quick_frame,
+                text="📚 Docs",
+                command=self.open_documentation,
+                style="QuickButton.TButton",
+                width=8
+            )
+            docs_btn.pack(side=tk.LEFT, padx=(0, 5))
+
+            # Plugin marketplace button
+            plugins_btn = ttk.Button(
+                quick_frame,
+                text="🔌 Plugins",
+                command=self.open_plugin_marketplace,
+                style="QuickButton.TButton",
+                width=8
+            )
+            plugins_btn.pack(side=tk.LEFT, padx=(0, 5))
+
+            # System status button
+            status_btn = ttk.Button(
+                quick_frame,
+                text="📊 Status",
+                command=self.show_system_status,
+                style="QuickButton.TButton",
+                width=8
+            )
+            status_btn.pack(side=tk.LEFT)
+
         except Exception as e:
             logger.error(f"Failed to create action buttons: {e}")
 
@@ -788,7 +839,7 @@ class LoginScreen(ttk.Frame):
             setup_window.title("Database Setup")
             setup_window.geometry("600x500")
             setup_window.configure(bg='#2c3e50')
-            setup_window.transient(self)
+            setup_window.transient(self.winfo_toplevel())
             setup_window.grab_set()
 
             # Center the window
@@ -909,8 +960,33 @@ class LoginScreen(ttk.Frame):
             messagebox.showerror("Error", f"Database setup failed: {str(e)}")
 
     def initialize_sqlite_database(self, config_path):
-        """Initialize SQLite database."""
+        """Initialize SQLite database using abstraction layer for security compliance."""
         try:
+            # Use database abstraction layer for security compliance
+            from plexichat.core.database import database_manager
+
+            db_file = config_path / "plexichat.db"
+
+            # Initialize database with security settings
+            database_manager.initialize_database(str(db_file))
+
+            # Create users table with encryption support
+            create_users_sql = '''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    role TEXT DEFAULT 'user',
+                    active BOOLEAN DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP
+                )
+            '''
+            database_manager.execute_query(create_users_sql)
+
+        except ImportError:
+            # Fallback to direct SQLite if abstraction layer not available
             import sqlite3
 
             db_file = config_path / "plexichat.db"
@@ -930,6 +1006,8 @@ class LoginScreen(ttk.Frame):
                     last_login TIMESTAMP
                 )
             ''')
+            conn.commit()
+            conn.close()
 
             # Create sessions table
             cursor.execute('''
@@ -1015,3 +1093,183 @@ class LoginScreen(ttk.Frame):
         except Exception as e:
             logger.error(f"Failed to create admin account: {e}")
             raise
+
+    def open_documentation(self):
+        """Open PlexiChat documentation."""
+        try:
+            import webbrowser
+            webbrowser.open("https://docs.plexichat.com")
+        except Exception as e:
+            logger.error(f"Failed to open documentation: {e}")
+            messagebox.showerror("Error", "Failed to open documentation")
+
+    def open_plugin_marketplace(self):
+        """Open plugin marketplace."""
+        try:
+            # Create marketplace window
+            marketplace_window = tk.Toplevel(self)
+            marketplace_window.title("Plugin Marketplace")
+            marketplace_window.geometry("1000x700")
+            marketplace_window.configure(bg='#2c3e50')
+            marketplace_window.transient(self.winfo_toplevel())
+
+            # Center the window
+            marketplace_window.update_idletasks()
+            x = (marketplace_window.winfo_screenwidth() // 2) - (1000 // 2)
+            y = (marketplace_window.winfo_screenheight() // 2) - (700 // 2)
+            marketplace_window.geometry(f"1000x700+{x}+{y}")
+
+            # Create marketplace instance
+            from .plugin_marketplace import PluginMarketplace
+            marketplace = PluginMarketplace(marketplace_window, self.app)
+            marketplace.pack(fill=tk.BOTH, expand=True)
+
+        except Exception as e:
+            logger.error(f"Failed to open plugin marketplace: {e}")
+            messagebox.showerror("Error", "Failed to open plugin marketplace")
+
+    def show_system_status(self):
+        """Show system status dialog."""
+        try:
+            # Create status window
+            status_window = tk.Toplevel(self)
+            status_window.title("System Status")
+            status_window.geometry("600x400")
+            status_window.configure(bg='#2c3e50')
+            status_window.transient(self.winfo_toplevel())
+            status_window.grab_set()
+
+            # Center the window
+            status_window.update_idletasks()
+            x = (status_window.winfo_screenwidth() // 2) - (600 // 2)
+            y = (status_window.winfo_screenheight() // 2) - (400 // 2)
+            status_window.geometry(f"600x400+{x}+{y}")
+
+            # Main frame
+            main_frame = tk.Frame(status_window, bg='#34495e', relief='raised', bd=2)
+            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+
+            # Title
+            title_label = tk.Label(main_frame, text="📊 System Status",
+                                 font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
+            title_label.pack(pady=20)
+
+            # Status information
+            status_text = tk.Text(main_frame, bg='#2c3e50', fg='#ecf0f1',
+                                font=("Consolas", 10), relief='flat', bd=5)
+            status_text.pack(fill='both', expand=True, padx=20, pady=(0, 20))
+
+            # Get system status
+            status_info = self.get_system_status()
+            status_text.insert(tk.END, status_info)
+            status_text.config(state='disabled')
+
+            # Close button
+            close_btn = tk.Button(main_frame, text="Close", font=("Arial", 12),
+                                bg='#95a5a6', fg='white', relief='flat', bd=0,
+                                command=status_window.destroy, cursor='hand2')
+            close_btn.pack(pady=(0, 10), ipadx=20, ipady=5)
+
+        except Exception as e:
+            logger.error(f"Failed to show system status: {e}")
+            messagebox.showerror("Error", "Failed to show system status")
+
+    def get_system_status(self) -> str:
+        """Get current system status information."""
+        try:
+            import platform
+            from datetime import datetime
+
+            # Try to import psutil, fallback if not available
+            psutil = None
+            try:
+                import psutil
+                psutil_available = True
+            except ImportError:
+                psutil_available = False
+
+            status = []
+            status.append("PlexiChat System Status")
+            status.append("=" * 50)
+            status.append("")
+
+            # System information
+            status.append("System Information:")
+            status.append(f"  OS: {platform.system()} {platform.release()}")
+            status.append(f"  Python: {platform.python_version()}")
+            status.append(f"  Architecture: {platform.machine()}")
+            status.append("")
+
+            # Resource usage
+            status.append("Resource Usage:")
+            if psutil_available and psutil:
+                status.append(f"  CPU Usage: {psutil.cpu_percent()}%")
+                status.append(f"  Memory Usage: {psutil.virtual_memory().percent}%")
+                try:
+                    status.append(f"  Disk Usage: {psutil.disk_usage('/').percent}%")
+                except:
+                    status.append(f"  Disk Usage: {psutil.disk_usage('C:').percent}%")
+            else:
+                status.append("  Resource monitoring unavailable (psutil not installed)")
+            status.append("")
+
+            # PlexiChat status
+            status.append("PlexiChat Status:")
+            status.append(f"  Setup Completed: {'Yes' if self.is_setup_completed() else 'No'}")
+            status.append(f"  Config Path: {Path.home() / '.plexichat'}")
+            status.append(f"  Plugins Directory: {Path('plugins')}")
+            status.append("")
+
+            # Database status
+            config_path = Path.home() / ".plexichat"
+            db_file = config_path / "plexichat.db"
+            status.append("Database Status:")
+            status.append(f"  Database File: {'Exists' if db_file.exists() else 'Not Found'}")
+            if db_file.exists():
+                status.append(f"  Database Size: {db_file.stat().st_size} bytes")
+            status.append("")
+
+            # Plugin status
+            plugins_dir = Path("plugins")
+            if plugins_dir.exists():
+                plugin_count = len([p for p in plugins_dir.iterdir() if p.is_dir() and not p.name.startswith('_')])
+                status.append(f"Plugins: {plugin_count} installed")
+            else:
+                status.append("Plugins: Directory not found")
+
+            status.append("")
+            status.append(f"Status generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+            return "\n".join(status)
+
+        except Exception as e:
+            logger.error(f"Failed to get system status: {e}")
+            return f"Error getting system status: {e}"
+
+    def configure_custom_styles(self):
+        """Configure custom button styles for enhanced login screen."""
+        try:
+            style = ttk.Style()
+
+            # Setup button style
+            style.configure("SetupButton.TButton",
+                          background='#e74c3c',
+                          foreground='white',
+                          font=('Arial', 10, 'bold'),
+                          borderwidth=0,
+                          focuscolor='none')
+            style.map("SetupButton.TButton",
+                     background=[('active', '#c0392b')])
+
+            # Quick access button style
+            style.configure("QuickButton.TButton",
+                          background='#3498db',
+                          foreground='white',
+                          font=('Arial', 9),
+                          borderwidth=0,
+                          focuscolor='none')
+            style.map("QuickButton.TButton",
+                     background=[('active', '#2980b9')])
+
+        except Exception as e:
+            logger.error(f"Failed to configure custom styles: {e}")

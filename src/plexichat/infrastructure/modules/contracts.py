@@ -330,7 +330,7 @@ class ModuleContractValidator:
 
         for method in module_methods:
             if any(sensitive in method.lower() for sensitive in sensitive_methods):
-                result.add_violation()
+                result.add_violation(
                     "warning",
                     "security",
                     f"Method name '{method}' suggests potentially unsafe operations",

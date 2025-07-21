@@ -16,6 +16,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Dict, Any
+import os
 
 try:
     from plexichat.features.backup.core.backup_node_server import BackupNodeServer, BackupNodeConfig
@@ -69,26 +70,27 @@ class BackupNodeMain:
             "geographic_location": "unknown"
         }
 
-        if self.config_path and Path(self.config_path).exists():
-            try:
-                with open(self.config_path, 'r') as f:
-                    file_config = json.load(f)
-                default_config.update(file_config)
-                logger.info(f"Loaded configuration from {self.config_path}")
-            except Exception as e:
-                logger.error(f"Error loading config file: {e}")
-                logger.info("Using default configuration")
-        else:
-            # Save default config
-            config_file = Path("backup_node_config.json")
-            try:
-                with open(config_file, 'w') as f:
-                    json.dump(default_config, f, indent=2)
-                logger.info(f"Created default configuration: {config_file}")
-            except Exception as e:
-                logger.error(f"Error saving default config: {e}")
+        # Prefer config in ./data/backup_nodes/ or user home
+        config_dir = os.path.join(os.getcwd(), 'data', 'backup_nodes')
+        os.makedirs(config_dir, exist_ok=True)
+        default_config_path = os.path.join(config_dir, 'config.json')
+        config_path = self.config_path or default_config_path
 
-        return default_config
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.error(f"Failed to load backup node config: {e}")
+                return default_config
+        else:
+            try:
+                with open(config_path, 'w') as f:
+                    json.dump(default_config, f, indent=2)
+                logger.info(f"Generated default backup node config at {config_path}")
+            except Exception as e:
+                logger.error(f"Failed to write default backup node config: {e}")
+            return default_config
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals."""
@@ -222,55 +224,29 @@ class BackupNodeMain:
 async def main():
     """Main entry point."""
     parser = argparse.ArgumentParser()
-        description="PlexiChat Backup Node",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+    parser.description = "PlexiChat Backup Node"
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.epilog = """
 Examples:
   python backup_node_main.py start                    # Start with default config
   python backup_node_main.py start --config config.json  # Start with custom config
   python backup_node_main.py status                   # Check status
   python backup_node_main.py stop                     # Stop the node
-        """
-    )
+    """
 
-    parser.add_argument()
-        "command",
-        choices=["start", "stop", "status", "restart"],
-        help="Command to execute"
-    )
+    parser.add_argument("command", choices=["start", "stop", "status", "restart"], help="Command to execute")
 
-    parser.add_argument()
-        "--config", "-c",
-        help="Configuration file path"
-    )
+    parser.add_argument("--config", "-c", help="Configuration file path")
 
-    parser.add_argument()
-        "--port", "-p",
-        type=int,
-        help="Override port number"
-    )
+    parser.add_argument("--port", "-p", type=int, help="Override port number")
 
-    parser.add_argument()
-        "--storage-path", "-s",
-        help="Override storage path"
-    )
+    parser.add_argument("--storage-path", "-s", help="Override storage path")
 
-    parser.add_argument()
-        "--max-storage-gb", "-m",
-        type=int,
-        help="Override maximum storage in GB"
-    )
+    parser.add_argument("--max-storage-gb", "-m", type=int, help="Override maximum storage in GB")
 
-    parser.add_argument()
-        "--node-id", "-n",
-        help="Override node ID"
-    )
+    parser.add_argument("--node-id", "-n", help="Override node ID")
 
-    parser.add_argument()
-        "--daemon", "-d",
-        action="store_true",
-        help="Run as daemon (background process)"
-    )
+    parser.add_argument("--daemon", "-d", action="store_true", help="Run as daemon (background process)")
 
     args = parser.parse_args()
 

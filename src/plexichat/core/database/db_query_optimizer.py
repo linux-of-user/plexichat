@@ -110,13 +110,13 @@ class SQLQueryAnalyzer:
     def __init__(self):
         self.query_patterns = {
             "select_star": re.compile(r"\bSELECT\s+\*\s+FROM\b", re.IGNORECASE),
-            "like_wildcard": re.compile()
+            "like_wildcard": re.compile(
                 r'\bLIKE\s+[\'"][%_].*[%_][\'"]', re.IGNORECASE
             ),
-            "subquery": re.compile(r"\(\s*SELECT\b", re.IGNORECASE),)
-            "in_subquery": re.compile(r"\bIN\s*\(\s*SELECT\b", re.IGNORECASE),)
-            "exists_subquery": re.compile(r"\bEXISTS\s*\(\s*SELECT\b", re.IGNORECASE),)
-            "join": re.compile()
+            "subquery": re.compile(r"\(\s*SELECT\b", re.IGNORECASE),
+            "in_subquery": re.compile(r"\bIN\s*\(\s*SELECT\b", re.IGNORECASE),
+            "exists_subquery": re.compile(r"\bEXISTS\s*\(\s*SELECT\b", re.IGNORECASE),
+            "join": re.compile(
                 r"\b(INNER|LEFT|RIGHT|FULL|CROSS)\s+JOIN\b", re.IGNORECASE
             ),
             "limit": re.compile(r"\bLIMIT\s+\d+", re.IGNORECASE),

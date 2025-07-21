@@ -132,75 +132,7 @@ from typing import Optional
 # Note: advanced_authentication.py removed - functionality consolidated into core_system/auth/
 __version__ = "4.0.0"
 __all__ = [
-    # Core security management
-    "SecurityManager",
-    "security_manager",
-
-    # Quantum encryption
-    "QuantumEncryptionSystem",
-    "quantum_encryption",
-
-    # Key management
-    "DistributedKeyManager",
-    "distributed_key_manager",
-    "KeyDomain",
-
-    # End-to-end encryption
-    "EndToEndEncryption",
-    "e2e_encryption",
-    "EndpointType",
-
-    # Database encryption
-    "DatabaseEncryption",
-    "database_encryption",
-    "DataClassification",
-
-    # Security monitoring
-    "DistributedSecurityMonitor",
-    "SecurityEvent",
-    "SecurityMetrics",
-    "ThreatPattern",
-    "ThreatLevel",
-    "MonitoringScope",
-    "SecurityEventType",
-    "SecurityMonitor",
-    "security_monitor_enhanced",
-
-    # Advanced authentication
-    "AdvancedAuthenticationSystem",
-    "advanced_auth",
-
-    # DDoS protection
-    "EnhancedDDoSProtection",
-    "ddos_protection",
-
-    # Penetration testing
-    "PenetrationTestingSystem",
-    "penetration_tester",
-
-    # SSL management
-    "SSLCertificateManager",
-    "ssl_manager",
-
-    # OAuth provider
-    "OAuthProvider",
-    "oauth_provider",
-
-    # Input sanitization
-    "InputSanitizer",
-    "input_sanitizer",
-
-    # Rate limiting
-    "RateLimiter",
-    "rate_limiter",
-
-    # Behavioral analysis
-    "BehavioralAnalyzer",
-    "behavioral_analyzer",
-
-    # Vulnerability scanning
-    "VulnerabilityScanner",
-    "vulnerability_scanner"
+    # Only valid, existing symbols should be listed here
 ]
 
 # Security system constants

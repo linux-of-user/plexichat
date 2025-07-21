@@ -22,6 +22,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+# Import the new CLI router
+from src.plexichat.interfaces.web.routers.cli import router as cli_router
+
 """
 import time
 PlexiChat Enhanced WebUI Router
@@ -45,7 +48,7 @@ class EnhancedWebUIRouter:
         self.self_test_manager = get_self_test_manager()
 
         # Create FastAPI app
-        self.app = FastAPI()
+        self.app = FastAPI(
             title="PlexiChat WebUI",
             description="Enhanced PlexiChat Web User Interface",
             version="2.0.0",
@@ -67,7 +70,7 @@ class EnhancedWebUIRouter:
     def _setup_middleware(self):
         """Setup middleware for the WebUI."""
         # CORS middleware
-        self.app.add_middleware()
+        self.app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],  # Configure appropriately for production
             allow_credentials=True,
@@ -78,9 +81,7 @@ class EnhancedWebUIRouter:
         # Custom middleware for security and logging
         @self.app.middleware("http")
         async def security_middleware(request: Request, call_next):
-start_time = datetime.now()
-datetime.utcnow()
-
+            start_time = datetime.utcnow()
             # Security headers
             response = await call_next(request)
 
@@ -93,8 +94,7 @@ datetime.utcnow()
 
             # Add custom headers
             response.headers["X-WebUI-Version"] = "2.0.0"
-            response.headers["X-Process-Time"] = str((from datetime import datetime))
-datetime.utcnow() - start_time).total_seconds())
+            response.headers["X-Process-Time"] = str((datetime.utcnow() - start_time).total_seconds())
 
             return response
 
@@ -118,6 +118,9 @@ datetime.utcnow() - start_time).total_seconds())
         # API proxy routes
         self._setup_api_routes()
 
+        # Register CLI router
+        self.app.include_router(cli_router)
+
     def _setup_static_files(self):
         """Setup static files and templates."""
         # Mount static files
@@ -136,10 +139,10 @@ datetime.utcnow() - start_time).total_seconds())
                 data = await request.json()
                 username = data.get("username")
                 password = data.get("password")
-                data.get("mfa_code")
+                # mfa_code = data.get("mfa_code")
 
                 if not username or not password:
-                    raise HTTPException()
+                    raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Username and password required"
                     )
@@ -149,7 +152,7 @@ datetime.utcnow() - start_time).total_seconds())
                 # In production, implement proper password hashing and verification
 
                 # Create MFA session
-                session = self.mfa_manager.create_mfa_session()
+                session = self.mfa_manager.create_mfa_session(
                     user_id=username,  # Simplified - use actual user ID
                     username=username,
                     ip_address=request.client.host,
@@ -170,7 +173,7 @@ datetime.utcnow() - start_time).total_seconds())
 
             except Exception as e:
                 logger.error(f"Login error: {e}")
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Login failed"
                 )
@@ -185,14 +188,14 @@ datetime.utcnow() - start_time).total_seconds())
                 device_id = data.get("device_id")
 
                 if not session_id or not mfa_code:
-                    raise HTTPException()
+                    raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Session ID and MFA code required"
                     )
 
                 session = self.mfa_manager.get_session(session_id)
                 if not session:
-                    raise HTTPException()
+                    raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Invalid session"
                     )
@@ -207,7 +210,7 @@ datetime.utcnow() - start_time).total_seconds())
                     self.mfa_manager.complete_mfa_for_session(session_id, "totp")
                     return JSONResponse(content={"success": True, "mfa_completed": True})
                 else:
-                    raise HTTPException()
+                    raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Invalid MFA code"
                     )
@@ -216,7 +219,7 @@ datetime.utcnow() - start_time).total_seconds())
                 raise
             except Exception as e:
                 logger.error(f"MFA verification error: {e}")
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="MFA verification failed"
                 )
@@ -231,7 +234,7 @@ datetime.utcnow() - start_time).total_seconds())
                 data = await request.json()
                 device_name = data.get("device_name", "Default Device")
 
-                setup_data = self.mfa_manager.setup_totp_device()
+                setup_data = self.mfa_manager.setup_totp_device(
                     session.user_id,
                     session.username,
                     device_name
@@ -241,7 +244,7 @@ datetime.utcnow() - start_time).total_seconds())
 
             except Exception as e:
                 logger.error(f"MFA setup error: {e}")
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="MFA setup failed"
                 )
@@ -255,7 +258,7 @@ datetime.utcnow() - start_time).total_seconds())
             if not self.config.is_feature_enabled("dashboard"):
                 raise HTTPException(status_code=404, detail="Dashboard disabled")
 
-            return self.templates.TemplateResponse("dashboard.html", {)
+            return self.templates.TemplateResponse("dashboard.html", {
                 "request": request,
                 "features": self._get_enabled_features(),
                 "system_status": await self._get_system_status()
@@ -266,12 +269,11 @@ datetime.utcnow() - start_time).total_seconds())
             """Get dashboard status."""
             session = self._verify_session(credentials.credentials)
 
-            return JSONResponse(content={)
+            return JSONResponse(content={
                 "user": session.username,
                 "features": self._get_enabled_features(),
                 "system_status": await self._get_system_status(),
-                "timestamp": from datetime import datetime
-datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat()
             })
 
     def _setup_admin_routes(self):
@@ -285,7 +287,7 @@ datetime.utcnow().isoformat()
             if not self.config.is_feature_enabled("admin_panel", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")
 
-            return self.templates.TemplateResponse("admin.html", {)
+            return self.templates.TemplateResponse("admin.html", {
                 "request": request,
                 "admin_features": self._get_admin_features(),
                 "system_config": self._get_system_config()
@@ -327,7 +329,7 @@ datetime.utcnow().isoformat()
 
             except Exception as e:
                 logger.error(f"Config update error: {e}")
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Configuration update failed"
                 )
@@ -343,7 +345,7 @@ datetime.utcnow().isoformat()
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
                 raise HTTPException(status_code=403, detail="Admin access required")
 
-            return self.templates.TemplateResponse("self_tests.html", {)
+            return self.templates.TemplateResponse("self_tests.html", {
                 "request": request,
                 "test_categories": self.self_test_manager.test_registry.keys(),
                 "latest_results": self.self_test_manager.get_latest_test_results()
@@ -366,7 +368,7 @@ datetime.utcnow().isoformat()
                 else:
                     results = await self.self_test_manager.run_category_tests(category)
 
-                return JSONResponse(content={)
+                return JSONResponse(content={
                     "suite_id": results.suite_id,
                     "status": "completed",
                     "summary": {
@@ -379,7 +381,7 @@ datetime.utcnow().isoformat()
 
             except Exception as e:
                 logger.error(f"Self-test error: {e}")
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Self-test execution failed"
                 )
@@ -403,7 +405,7 @@ datetime.utcnow().isoformat()
             """Get feature configuration."""
             self._verify_session(credentials.credentials)
 
-            return JSONResponse(content={)
+            return JSONResponse(content={
                 "enabled_features": self.config.feature_toggle_config.enabled_features,
                 "disabled_features": self.config.feature_toggle_config.disabled_features,
                 "beta_features": self.config.feature_toggle_config.beta_features,
@@ -429,7 +431,7 @@ datetime.utcnow().isoformat()
 
             except Exception as e:
                 logger.error(f"Feature toggle error: {e}")
-                raise HTTPException()
+                raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Feature toggle failed"
                 )
@@ -449,7 +451,7 @@ datetime.utcnow().isoformat()
     def _verify_session(self, session_id: str):
         """Verify session and return session object."""
         if not self.mfa_manager.is_session_valid(session_id):
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired session"
             )
@@ -472,8 +474,7 @@ datetime.utcnow().isoformat()
             "auth_storage": auth_health,
             "mfa_enabled": self.mfa_manager.is_mfa_enabled(),
             "self_tests_enabled": self.config.is_self_test_enabled(),
-            "timestamp": from datetime import datetime
-datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat()
         }
 
     def _get_system_config(self) -> Dict[str, Any]:
@@ -498,7 +499,7 @@ datetime.utcnow().isoformat()
 
     async def start_server(self):
         """Start the WebUI server."""
-        config = uvicorn.Config()
+        config = uvicorn.Config(
             app=self.app,
             host="0.0.0.0",
             port=self.config.port_config.primary_port,

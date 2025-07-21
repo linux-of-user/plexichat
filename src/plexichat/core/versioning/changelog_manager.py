@@ -14,14 +14,10 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import tempfile
+import shutil
 
 from .version_manager import Version
-
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
 
 """
 import time
@@ -75,7 +71,7 @@ class ChangeEntry:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ChangeEntry':
         """Create from dictionary."""
-        return cls()
+        return cls(
             type=ChangeType(data["type"]),
             description=data["description"],
             component=data.get("component"),
@@ -156,20 +152,18 @@ class VersionChangelog:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'VersionChangelog':
         """Create from dictionary."""
-        changelog = cls()
+        changelog = cls(
             version=Version.parse(data["version"]),
             release_date=datetime.fromisoformat(data["release_date"]),
             summary=data.get("summary"),
             migration_notes=data.get("migration_notes", [])
         )
-
         # Parse changes
         for change_type_str, changes_data in data.get("changes", {}).items():
             change_type = ChangeType(change_type_str)
             changelog.changes[change_type] = [
                 ChangeEntry.from_dict(change_data) for change_data in changes_data
             ]
-
         return changelog
 
 
@@ -178,12 +172,9 @@ class ChangelogManager:
 
     def __init__(self, changelog_file: Optional[Path] = None):
         """Initialize changelog manager."""
-        self.changelog_file = changelog_file or from pathlib import Path
-Path("CHANGELOG.md")
-        from pathlib import Path
-self.changelog_data_file = Path("changelog.json")
+        self.changelog_file = changelog_file or Path("CHANGELOG.md")
+        self.changelog_data_file = Path("changelog.json")
         self.version_changelogs: Dict[str, VersionChangelog] = {}
-
         # Load existing changelog
         self._load_changelog()
 
@@ -205,15 +196,17 @@ self.changelog_data_file = Path("changelog.json")
             logger.error(f"Failed to load changelog: {e}")
 
     def _save_changelog(self):
-        """Save changelog to files."""
+        """Save changelog to files atomically."""
         try:
             # Save JSON data
             data = {
                 version_str: changelog.to_dict()
                 for version_str, changelog in self.version_changelogs.items()
             }
-            with open(self.changelog_data_file, 'w') as f:
+            temp_json = str(self.changelog_data_file) + ".tmp"
+            with open(temp_json, 'w') as f:
                 json.dump(data, f, indent=2)
+            shutil.move(temp_json, self.changelog_data_file)
 
             # Generate markdown
             self._generate_markdown_changelog()
@@ -243,38 +236,37 @@ self.changelog_data_file = Path("changelog.json")
             logger.error(f"Failed to parse markdown changelog: {e}")
 
     def _generate_markdown_changelog(self):
-        """Generate markdown changelog file."""
+        """Generate markdown changelog file atomically, no emoji or non-standard formatting."""
         try:
             lines = [
                 "# Changelog",
                 "",
                 "All notable changes to PlexiChat will be documented in this file.",
                 "",
-                "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),",
-                "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).",
+                "The format is based on Keep a Changelog (https://keepachangelog.com/en/1.0.0/),",
+                "and this project adheres to Semantic Versioning (https://semver.org/spec/v2.0.0.html).",
                 "",
                 "## Version Format",
                 "",
-                "PlexiChat uses a custom versioning scheme: `{major}{type}{minor}`",
-                "- Types: `a` (alpha), `b` (beta), `r` (release)",
-                "- Examples: `0a1`, `0b1`, `0r1`, `0a2`, `1r1`",
+                "PlexiChat uses a custom versioning scheme: {major}{type}{minor}",
+                "- Types: a (alpha), b (beta), r (release)",
+                "- Examples: 0a1, 0b1, 0r1, 0a2, 1r1",
                 "",
                 "---",
                 ""
             ]
-
             # Sort versions in descending order
-            sorted_versions = sorted()
+            sorted_versions = sorted(
                 self.version_changelogs.values(),
                 key=lambda x: x.version,
                 reverse=True
             )
-
             for changelog in sorted_versions:
                 lines.append(changelog.to_markdown())
-
-            with open(self.changelog_file, 'w', encoding='utf-8') as f:
+            temp_md = str(self.changelog_file) + ".tmp"
+            with open(temp_md, 'w', encoding='utf-8') as f:
                 f.write("\n".join(lines))
+            shutil.move(temp_md, self.changelog_file)
         except Exception as e:
             logger.error(f"Failed to generate markdown changelog: {e}")
 
@@ -291,7 +283,7 @@ self.changelog_data_file = Path("changelog.json")
 
     def create_version_changelog(self, version: Version, summary: Optional[str] = None) -> VersionChangelog:
         """Create new version changelog."""
-        changelog = VersionChangelog()
+        changelog = VersionChangelog(
             version=version,
             release_date=datetime.now(timezone.utc),
             summary=summary
@@ -330,21 +322,18 @@ self.changelog_data_file = Path("changelog.json")
         changelog = self.get_version_changelog(version)
         if not changelog:
             return f"No changelog found for version {version}"
-
         lines = [
             f"# PlexiChat {version} Release Notes",
             "",
             f"Released: {changelog.release_date.strftime('%Y-%m-%d')}",
             ""
         ]
-
         if changelog.summary:
             lines.extend([changelog.summary, ""])
-
         # Highlight breaking changes
         breaking_changes = changelog.get_changes_by_type(ChangeType.BREAKING)
         if breaking_changes:
-            lines.extend([)
+            lines.extend([
                 "##  Breaking Changes",
                 "",
                 "**Important**: This version contains breaking changes that may require manual intervention.",
@@ -353,30 +342,26 @@ self.changelog_data_file = Path("changelog.json")
             for change in breaking_changes:
                 lines.append(f"- {change.description}")
             lines.append("")
-
         # Add other changes
         for change_type in [ChangeType.ADDED, ChangeType.CHANGED, ChangeType.FIXED, ChangeType.SECURITY]:
             changes = changelog.get_changes_by_type(change_type)
             if changes:
-                icon = {"Added": "", "Changed": "", "Fixed": "", "Security": ""}.get(change_type.value, "")
-                lines.extend([)
-                    f"## {icon} {change_type.value}",
+                lines.extend([
+                    f"## {change_type.value}",
                     ""
                 ])
                 for change in changes:
                     lines.append(change.to_markdown())
                 lines.append("")
-
         # Migration notes
         if changelog.migration_notes:
-            lines.extend([)
+            lines.extend([
                 "##  Migration Notes",
                 ""
             ])
             for note in changelog.migration_notes:
                 lines.append(f"- {note}")
             lines.append("")
-
         return "\n".join(lines)
 
     def auto_generate_changelog_from_commits(self, version: Version, commits: List[Dict[str, Any]]) -> VersionChangelog:
@@ -401,12 +386,9 @@ self.changelog_data_file = Path("changelog.json")
         # Conventional commit pattern: type(scope): description
         pattern = r'^(feat|fix|docs|style|refactor|test|chore|security|breaking)(?:\(([^)]+)\))?: (.+)$'
         match = re.match(pattern, message.strip(), re.IGNORECASE)
-
         if not match:
             return None
-
         commit_type, scope, description = match.groups()
-
         # Map commit types to change types
         type_mapping = {
             "feat": ChangeType.ADDED,
@@ -419,10 +401,8 @@ self.changelog_data_file = Path("changelog.json")
             "security": ChangeType.SECURITY,
             "breaking": ChangeType.BREAKING
         }
-
         change_type = type_mapping.get(commit_type.lower(), ChangeType.CHANGED)
-
-        return ChangeEntry()
+        return ChangeEntry(
             type=change_type,
             description=description,
             component=scope,

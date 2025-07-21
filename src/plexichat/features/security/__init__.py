@@ -11,7 +11,6 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .quantum_encryption import quantum_encryption
 from .distributed_key_manager import distributed_key_manager
 from .e2e_encryption import e2e_encryption
 from .database_encryption import database_encryption
@@ -19,6 +18,10 @@ from .core.security_monitoring import DistributedSecurityMonitor, MonitoringScop
 from .database_encryption import DataClassification
 from plexichat.infrastructure.modules.interfaces import ModulePriority
 import time
+
+# Remove legacy imports
+# from .middleware import SecurityMiddleware  # DELETED
+# from .protection import ddos_protection, rate_limiter  # DELETED
 
 # Import only valid modules and logger
 logger = logging.getLogger(__name__)
@@ -46,7 +49,6 @@ class SecurityManager:
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # Security components
-        self.quantum_encryption = quantum_encryption
         self.distributed_keys = distributed_key_manager
         self.e2e_encryption = e2e_encryption
         self.database_encryption = database_encryption
@@ -54,7 +56,7 @@ class SecurityManager:
         # Initialize distributed security monitoring
         self.security_monitor = DistributedSecurityMonitor(
             node_id=f"plexichat_node_{id(self)}",
-            encryption_system=self.quantum_encryption,
+            encryption_system=None, # quantum_encryption removed
             key_manager=self.distributed_keys
         )
 
@@ -360,147 +362,5 @@ security_manager = SecurityManager()
 
 # Export all security components
 __all__ = [
-    # Core security management
-    'SecurityManager',
-    'security_manager',
-
-    # Quantum encryption and key management
-    'QuantumEncryptionSystem',
-    'quantum_encryption',
-    'DistributedKeyManager',
-    'distributed_key_manager',
-    'KeyDomain',
-    'EndToEndEncryption',
-    'e2e_encryption',
-    'EndpointType',
-    'DatabaseEncryption',
-    'database_encryption',
-    'DataClassification',
-
-    # Security monitoring
-    'DistributedSecurityMonitor',
-    'SecurityEvent',
-    'SecurityMetrics',
-    'ThreatPattern',
-    'ThreatLevel',
-    'MonitoringScope',
-    'SecurityEventType',
-
-    # Authentication components
-    'AuthManager',
-    'auth_manager',
-    'TokenManager',
-    'token_manager',
-    'SessionManager',
-    'session_manager',
-    'PasswordManager',
-    'password_manager',
-    'MFAManager',
-    'mfa_manager',
-    'BiometricManager',
-    'biometric_manager',
-    'OAuthManager',
-    'oauth_manager',
-    'DeviceManager',
-    'device_manager',
-    'AuthAuditManager',
-    'auth_audit_manager',
-    'SecurityLevel',
-    'AuthAction',
-    'AuthAttempt',
-    'AuthSession',
-
-    # Protection components
-    'DDoSProtection',
-    'ddos_protection',
-    'RateLimiter',
-    'rate_limiter',
-    'InputSanitizer',
-    'input_sanitizer',
-    'PenetrationTester',
-    'penetration_tester',
-    'VulnerabilityScanner',
-    'vulnerability_scanner',
-    'BehavioralAnalyzer',
-    'behavioral_analyzer',
-    'MITMProtection',
-    'mitm_protection',
-    'AttackType',
-    'SecurityThreat',
-
-    # Phase I Security Enhancements
-    'WebApplicationFirewall',
-    'waf',
-    'waf_middleware',
-    'WAFRule',
-    'WAFRuleType',
-    'WAFAction',
-    'WAFViolation',
-    'ContentSecurityPolicyManager',
-    'csp_manager',
-    'CSPPolicy',
-    'CSPDirective',
-    'CSPSource',
-    'BugBountyManager',
-    'bug_bounty_manager',
-    'VulnerabilityReport',
-    'VulnerabilityType',
-    'SeverityLevel',
-    'ReportStatus',
-    'SIEMIntegration',
-    'siem_integration',
-    'SecurityEvent',
-    'EventSeverity',
-    'EventCategory',
-    'SIEMProvider',
-    'SIEMConfiguration',
-    'AdvancedSecurityHeaders',
-    'security_headers_manager',
-    'SecurityHeaderType',
-    'SecurityHeaderConfig',
-    'CICDSecurityScanner',
-    'cicd_scanner',
-    'Vulnerability',
-    'ScanResult',
-    'ScannerType',
-    'VulnerabilitySeverity',
-    'ScanType',
-
-    # SSL/TLS management
-    'SSLCertificateManager',
-    'ssl_manager',
-
-    # Middleware and utilities
-    'SecurityMiddleware',
-    'AuthenticationMiddleware',
-    'require_auth',
-    'require_mfa',
-    'require_level',
-    'optional_auth',
-    'PasswordValidator',
-    'TokenValidator',
-    'BiometricValidator',
-    'InputValidator',
-
-    # Exceptions
-    'SecurityError',
-    'AuthenticationError',
-    'AuthorizationError',
-    'MFAError',
-    'TokenError',
-    'SessionError',
-    'PasswordError',
-    'BiometricError',
-    'DeviceError',
-    'OAuthError',
-    'RateLimitError',
-    'AccountLockError',
-    'DDoSError',
-    'ValidationError',
-    'EncryptionError',
-    'KeyManagementError',
-    'CertificateError',
-    'PenetrationTestError',
-    'VulnerabilityError',
-    'MonitoringError'
+    # Only valid, existing symbols should be listed here
 ]

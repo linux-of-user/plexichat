@@ -118,13 +118,13 @@ class AuthManager:
 
     def __init__(self):
         # Core components
-        self.token_manager = TokenManager()
-        self.session_manager = SessionManager()
-        self.password_manager = PasswordManager()
-        self.mfa_manager = MFAManager()
-        self.biometric_manager = BiometricManager()
-        self.device_manager = DeviceManager()
-        self.audit_manager = AuthAuditManager()
+        self.token_manager: TokenManager = TokenManager()
+        self.session_manager: SessionManager = SessionManager()
+        self.password_manager: PasswordManager = PasswordManager()
+        self.mfa_manager: MFAManager = MFAManager()
+        self.biometric_manager: BiometricManager = BiometricManager()
+        self.device_manager: DeviceManager = DeviceManager()
+        self.audit_manager: AuthAuditManager = AuthAuditManager()
 
         # Advanced authentication system (placeholder - functionality integrated into this manager)
         self.advanced_auth = None
@@ -433,11 +433,13 @@ class AuthManager:
             await self.audit_manager.shutdown()
             await self.device_manager.shutdown()
             await self.biometric_manager.shutdown()
-            # mfa_manager (Advanced2FASystem) doesn't have shutdown method
-            # await self.mfa_manager.shutdown()
-            await self.password_manager.shutdown()
-            await self.session_manager.shutdown()
-            await self.token_manager.shutdown()
+            # Shutdown managers if they have shutdown methods
+            if hasattr(self.password_manager, 'shutdown'):
+                await self.password_manager.shutdown()
+            if hasattr(self.session_manager, 'shutdown'):
+                await self.session_manager.shutdown()
+            if hasattr(self.token_manager, 'shutdown'):
+                await self.token_manager.shutdown()
             # Advanced authentication functionality is integrated - no separate shutdown needed
 
             logger.info(" Authentication Manager shutdown complete")

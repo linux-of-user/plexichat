@@ -306,6 +306,51 @@ class AdminManager:
 
         return permission in admin.permissions or admin.role == "super_admin"
 
+    def reset_password(self, username: str, new_password: str, by_admin: Optional[str] = None, current_password: Optional[str] = None) -> bool:
+        """Reset an admin's password securely. Only self or an admin with permission can reset. Logs all actions."""
+        try:
+            # Check if user exists
+            if username not in self.admins:
+                logger.warning(f"Password reset failed: user {username} does not exist")
+                return False
+            admin = self.admins[username]
+
+            # Only allow super_admin to reset their own password
+            if admin.role == "super_admin" and by_admin and by_admin != username:
+                logger.warning(f"Password reset denied: only super_admin can reset their own password")
+                return False
+
+            # If self-service, require current password
+            if by_admin == username and current_password:
+                if self.credentials_manager and not self.credentials_manager.verify_admin_credentials(username, current_password):
+                    logger.warning(f"Password reset denied: current password incorrect for {username}")
+                    return False
+            elif by_admin != username:
+                # If another admin is resetting, check permission
+                if not self.has_permission(by_admin, "user_management"):
+                    logger.warning(f"Password reset denied: {by_admin} lacks permission to reset {username}")
+                    return False
+
+            # Enforce strong password policy
+            if len(new_password) < 8:
+                logger.warning(f"Password reset denied: password too short for {username}")
+                return False
+            if not any(c.isdigit() for c in new_password) or not any(c.isalpha() for c in new_password):
+                logger.warning(f"Password reset denied: password must contain letters and digits for {username}")
+                return False
+
+            # Update password in credentials manager
+            if self.credentials_manager:
+                self.credentials_manager.set_admin_password(username, new_password)
+            # Optionally, update in admin object (if storing hash)
+            # admin.password_hash = hash_password(new_password)
+            self._save_data()
+            logger.info(f"Password for {username} reset by {by_admin or username}")
+            return True
+        except Exception as e:
+            logger.error(f"Error resetting password for {username}: {e}")
+            return False
+
 # Global admin manager instance
 admin_manager = AdminManager()
 

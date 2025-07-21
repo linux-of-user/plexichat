@@ -37,10 +37,10 @@ class PluginMarketplace(tk.Frame):
         self.current_repo = "official"
         
         # UI components
-        self.notebook = None
-        self.installed_frame = None
-        self.available_frame = None
-        self.repositories_frame = None
+        self.notebook: Optional[ttk.Notebook] = None
+        self.installed_frame: Optional[tk.Frame] = None
+        self.available_frame: Optional[tk.Frame] = None
+        self.repositories_frame: Optional[tk.Frame] = None
         
         # Create the interface
         self.create_marketplace_interface()
@@ -88,9 +88,10 @@ class PluginMarketplace(tk.Frame):
             self.create_installed_tab()
             self.create_available_tab()
             self.create_repositories_tab()
-            
+
             # Bind tab change event
-            self.notebook.bind('<<NotebookTabChanged>>', self.on_tab_changed)
+            if self.notebook:
+                self.notebook.bind('<<NotebookTabChanged>>', self.on_tab_changed)
             
         except Exception as e:
             logger.error(f"Failed to create marketplace interface: {e}")
@@ -98,6 +99,8 @@ class PluginMarketplace(tk.Frame):
     def create_installed_tab(self):
         """Create the installed plugins tab."""
         try:
+            if not self.notebook:
+                return
             self.installed_frame = tk.Frame(self.notebook, bg='#34495e')
             self.notebook.add(self.installed_frame, text='Installed Plugins')
             
@@ -124,6 +127,8 @@ class PluginMarketplace(tk.Frame):
     def create_available_tab(self):
         """Create the available plugins tab."""
         try:
+            if not self.notebook:
+                return
             self.available_frame = tk.Frame(self.notebook, bg='#34495e')
             self.notebook.add(self.available_frame, text='Available Plugins')
             
@@ -163,6 +168,8 @@ class PluginMarketplace(tk.Frame):
     def create_repositories_tab(self):
         """Create the repositories management tab."""
         try:
+            if not self.notebook:
+                return
             self.repositories_frame = tk.Frame(self.notebook, bg='#34495e')
             self.notebook.add(self.repositories_frame, text='Repositories')
             
@@ -443,6 +450,8 @@ class PluginMarketplace(tk.Frame):
     def on_tab_changed(self, event):
         """Handle tab change event."""
         try:
+            if not self.notebook:
+                return
             selected_tab = self.notebook.index(self.notebook.select())
             if selected_tab == 1:  # Available plugins tab
                 self.load_available_plugins()

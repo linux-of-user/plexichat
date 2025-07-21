@@ -51,11 +51,11 @@ except ImportError:
     changelog_manager = None
 
 try:
-    from .update_system import (
+    from .simple_update_system import (
         UpdatePlan,
         UpdateResult,
         UpdateStatus,
-        UpdateSystem,
+        SimpleUpdateSystem as UpdateSystem,
         UpdateType,
         update_system,
     )

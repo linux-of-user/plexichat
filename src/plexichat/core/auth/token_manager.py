@@ -202,6 +202,8 @@ class TokenManager:
             # Sign token
             if not self.private_key:
                 raise ValueError("Private key is not set for signing JWT.")
+            if not jwt:
+                raise ValueError("JWT library not available")
             token = jwt.encode(
                 payload,
                 self.private_key,
@@ -259,6 +261,8 @@ class TokenManager:
                 payload.update(metadata)
 
             # Sign token
+            if not jwt:
+                raise ValueError("JWT library not available")
             private_key = self.private_key if self.private_key else b""
             token = jwt.encode(
                 payload,
@@ -286,6 +290,8 @@ class TokenManager:
     async def validate_token(self, token: str) -> TokenValidationResult:
         """Validate a JWT token."""
         try:
+            if not jwt:
+                return TokenValidationResult(valid=False, error="JWT library not available")
             # Decode token without verification first to get token ID
             unverified_payload = jwt.decode(token, options={"verify_signature": False})
             token_id = unverified_payload.get("jti")

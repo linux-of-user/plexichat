@@ -10,30 +10,30 @@ import uvicorn
 try:
     from plexichat.core.auth import initialize_auth_system
 except ImportError:
-    def initialize_auth_system():
+    async def initialize_auth_system():
         pass
 
 try:
-    from plexichat.core.database import ()
+    from plexichat.core.database import (
         initialize_database_system_legacy,
         shutdown_database_system,
     )
 except ImportError:
-    def initialize_database_system_legacy():
+    async def initialize_database_system_legacy():
         pass
-    def shutdown_database_system():
+    async def shutdown_database_system():
         pass
 
 try:
     from plexichat.features.backup import initialize_backup_system
 except ImportError:
-    def initialize_backup_system():
+    async def initialize_backup_system():
         pass
 
 try:
     from plexichat.features.security import initialize_security_features
 except ImportError:
-    def initialize_security_features():
+    async def initialize_security_features():
         pass
 
 try:
@@ -144,13 +144,18 @@ class PlexiChatLauncher:
         """Start the application."""
         try:
             if not self._initialized:
-                if not await if self and hasattr(self, "initialize"): self.initialize():
-                    return False
+                if self and hasattr(self, "initialize"):
+                    if not await self.initialize():
+                        return False
 
             logger.info(f" Starting PlexiChat on {self.config.host}:{self.config.port}")
 
             # Start the server
-            config = uvicorn.Config()
+            if not self.app:
+                logger.error("No application available to start")
+                return False
+
+            config = uvicorn.Config(
                 self.app,
                 host=self.config.host,
                 port=self.config.port,

@@ -15,6 +15,8 @@ from enum import Enum
 # from pathlib import Path  # Unused import
 from typing import Any, Dict, List, Optional  # , Tuple  # Unused import
 import os
+import tempfile
+import shutil
 
 """
 import string
@@ -71,6 +73,15 @@ class Version:
     @classmethod
     def parse(cls, version_string: str) -> 'Version':
         """Parse version string into Version object."""
+        # Accept 'main' and other branch/tag names as special versions
+        if version_string.strip().lower() in ("main", "master", "latest"):
+            return cls(major=0, type=VersionType.ALPHA, minor=0, build="main")
+        # Accept v1.2.3 or v1.2.3-4 as valid tags
+        vtag_pattern = r'^v(\d+)\.(\d+)\.(\d+)(?:-(\d+))?$'
+        vtag_match = re.match(vtag_pattern, version_string.strip())
+        if vtag_match:
+            major, minor, patch, build = vtag_match.groups()
+            return cls(major=int(major), type=VersionType.RELEASE, minor=int(minor), build=build or patch)
         # Pattern: letter.major.minor-build (e.g., a.1.1-1)
         pattern = r'^([abr])\.(\d+)\.(\d+)-(\d+)$'
         match = re.match(pattern, version_string.strip())
@@ -392,7 +403,7 @@ class VersionManager:
         }
 
     def _write_version_file(self):
-        """Write the current version to version.json in the repo root."""
+        """Write the current version to version.json in the repo root atomically."""
         version_data = {
             "current_version": self.current_version,
             "version_type": self.version_type,
@@ -404,9 +415,10 @@ class VersionManager:
         }
         root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
         version_file = os.path.join(root_dir, "version.json")
-        with open(version_file, "w", encoding="utf-8") as f:
-            import json
+        temp_file = version_file + ".tmp"
+        with open(temp_file, "w", encoding="utf-8") as f:
             json.dump(version_data, f, indent=2)
+        shutil.move(temp_file, version_file)
 
     def update_version(self, new_version: str):
         """Update to a new version."""
@@ -444,18 +456,22 @@ class VersionManager:
         self._write_version_file()
 
     def auto_generate_files(self):
-        """Auto-generate version.json and changelog.json files."""
+        """Auto-generate version.json and changelog.json files atomically."""
         try:
             # Generate version.json
             version_data = self.generate_version_json()
-            with open("version.json", "w") as f:
-                json.dump(version_data, f, indent=2)
+            with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json", prefix="version-") as tf:
+                json.dump(version_data, tf, indent=2)
+                temp_version_path = tf.name
+            shutil.move(temp_version_path, "version.json")
             logger.info("Auto-generated version.json")
 
             # Generate changelog.json
             changelog_data = self.generate_changelog_json()
-            with open("changelog.json", "w") as f:
-                json.dump(changelog_data, f, indent=2)
+            with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json", prefix="changelog-") as tf:
+                json.dump(changelog_data, tf, indent=2)
+                temp_changelog_path = tf.name
+            shutil.move(temp_changelog_path, "changelog.json")
             logger.info("Auto-generated changelog.json")
 
         except Exception as e:

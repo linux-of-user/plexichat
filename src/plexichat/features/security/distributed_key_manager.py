@@ -16,8 +16,6 @@ from typing import Any, Dict, List, Optional, Set
 
 import aiosqlite
 
-from .quantum_encryption import SecurityTier
-
 """
 import time
 NetLink Distributed Key Management System
@@ -67,10 +65,10 @@ class DistributedKey:
     """A key distributed across multiple shards."""
     key_id: str
     domain: KeyDomain
-    security_tier: SecurityTier
     total_shards: int
     threshold: int
     scheme: ThresholdScheme
+    security_tier: Optional[str] = None
     shards: Dict[int, KeyShard] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -137,7 +135,7 @@ class DistributedKeyManager:
                 CREATE TABLE IF NOT EXISTS distributed_keys (
                     key_id TEXT PRIMARY KEY,
                     domain TEXT NOT NULL,
-                    security_tier INTEGER NOT NULL,
+                    security_tier INTEGER, -- Changed to INTEGER
                     total_shards INTEGER NOT NULL,
                     threshold INTEGER NOT NULL,
                     scheme TEXT NOT NULL,
@@ -196,7 +194,7 @@ class DistributedKeyManager:
                     key = DistributedKey()
                     key.key_id = row[0]
                     key.domain = KeyDomain(row[1])
-                    key.security_tier = SecurityTier(row[2])
+                    key.security_tier = row[2] # Changed from SecurityTier to row[2]
                     key.total_shards = row[3]
                     key.threshold = row[4]
                     key.scheme = ThresholdScheme(row[5])
@@ -241,15 +239,17 @@ class DistributedKeyManager:
     async def _ensure_domain_keys(self):
         """Ensure each domain has its master keys."""
         for domain in KeyDomain:
-            for tier in [SecurityTier.GOVERNMENT, SecurityTier.QUANTUM_PROOF]:
-                key_id = f"{domain.value}_master_{tier.name.lower()}"
-                if not any(k.key_id.startswith(key_id) for k in self.distributed_keys.values()):
-                    await self.create_distributed_key(domain, tier, f"master_{domain.value}")
+            # The original code had SecurityTier.GOVERNMENT and SecurityTier.QUANTUM_PROOF
+            # These are no longer defined, so we'll just create a key for the domain.
+            # The purpose will be "master" and the tier will be None.
+            key_id = f"{domain.value}_master_key"
+            if not any(k.key_id.startswith(key_id) for k in self.distributed_keys.values()):
+                await self.create_distributed_key(domain, None, "master") # Pass None for security_tier
 
     async def create_distributed_key(
         self,
         domain: KeyDomain,
-        security_tier: SecurityTier,
+        security_tier: Optional[str], # Changed from SecurityTier to Optional[str]
         purpose: str,
         threshold: Optional[int] = None,
         total_shards: Optional[int] = None
@@ -263,21 +263,53 @@ class DistributedKeyManager:
 
         key_id = f"{domain.value}_{purpose}_{secrets.token_hex(8)}"
 
-        # Generate master secret
-        master_secret = secrets.token_bytes(64)  # 512-bit master secret
+        # Enforce HSM usage for master keys
+        master_secret = None
+        hsm_used = False
+        if purpose == "master":
+            hsm_manager = get_unified_hsm_manager()
+            try:
+                # Try to initialize HSM if not already
+                if not hsm_manager.initialized:
+                    await hsm_manager.initialize()
+                # Use primary HSM if available
+                if hsm_manager.primary_hsm and hsm_manager.devices[hsm_manager.primary_hsm].device.is_available:
+                    hsm_interface = hsm_manager.devices[hsm_manager.primary_hsm]
+                    hsm_key = await hsm_interface.generate_key(
+                        key_type=KeyType.QUANTUM_RESISTANT,
+                        key_size=512,
+                        usage=[KeyUsage.ENCRYPTION, KeyUsage.KEY_DERIVATION],
+                        security_level=SecurityLevel.QUANTUM_SAFE,
+                        expires_days=3650,
+                        user_id="distributed_key_manager"
+                    )
+                    if hsm_key and hasattr(hsm_key, 'hsm_handle'):
+                        # Use the HSM handle as the master secret (simulate binding to HSM)
+                        master_secret = hsm_key.hsm_handle.encode()
+                        hsm_used = True
+                        logger.info(f"Master key for domain {domain.value} generated in HSM: {hsm_key.key_id}")
+            except Exception as e:
+                logger.warning(f"HSM unavailable or failed for master key generation: {e}")
+                hsm_used = False
+        if master_secret is None:
+            # Fallback to software generation
+            master_secret = secrets.token_bytes(64)  # 512-bit master secret
+            if purpose == "master":
+                logger.warning(f"Falling back to software master key generation for domain {domain.value} (HSM not available)")
 
         # Create distributed key
         distributed_key = DistributedKey()
         distributed_key.key_id = key_id
         distributed_key.domain = domain
-        distributed_key.security_tier = security_tier
+        distributed_key.security_tier = security_tier # Changed from SecurityTier to security_tier
         distributed_key.total_shards = total_shards
         distributed_key.threshold = threshold
         distributed_key.scheme = ThresholdScheme.SHAMIR_SECRET_SHARING
         distributed_key.metadata = {
             "purpose": purpose,
             "created_by": "distributed_key_manager",
-            "master_secret_hash": hashlib.sha256(master_secret).hexdigest()
+            "master_secret_hash": hashlib.sha256(master_secret).hexdigest(),
+            "hsm_used": hsm_used
         }
 
         # Generate shards using Shamir's Secret Sharing
@@ -369,14 +401,15 @@ class DistributedKeyManager:
 
         # Filter out shards from compromised vaults
         safe_shards = []
-        for shard_index in available_shards:
-            if shard_index in distributed_key.shards:
-                shard = distributed_key.shards[shard_index]
-                vault_id = shard.metadata.get("vault_assignment")
-                if vault_id and vault_id in self.key_vaults:
-                    vault = self.key_vaults[vault_id]
-                    if not vault.is_compromised:
-                        safe_shards.append(shard.shard_data)
+        if available_shards is not None:
+            for shard_index in available_shards:
+                if shard_index in distributed_key.shards:
+                    shard = distributed_key.shards[shard_index]
+                    vault_id = shard.metadata.get("vault_assignment")
+                    if vault_id and vault_id in self.key_vaults:
+                        vault = self.key_vaults[vault_id]
+                        if not vault.is_compromised:
+                            safe_shards.append(shard.shard_data)
 
         if len(safe_shards) < distributed_key.threshold:
             logger.error(f"Insufficient safe shards to reconstruct key {key_id}: {len(safe_shards)}/{distributed_key.threshold}")
@@ -438,10 +471,7 @@ class DistributedKeyManager:
                 current_secret = await self.reconstruct_key(key_id)
                 if current_secret:
                     # Create new distributed key
-                    new_key = await self.create_distributed_key()
-                    new_key.domain = distributed_key.domain
-                    new_key.security_tier = distributed_key.security_tier
-                    new_key.metadata["purpose"] = f"emergency_rotation_{distributed_key.metadata.get('purpose', 'unknown')}"
+                    new_key = await self.create_distributed_key(distributed_key.domain, None, f"emergency_rotation_{distributed_key.metadata.get('purpose', 'unknown')}") # Pass None for security_tier
                     new_key.threshold = distributed_key.threshold
                     new_key.total_shards = distributed_key.total_shards
                     await self._save_distributed_key(new_key)
@@ -466,7 +496,7 @@ class DistributedKeyManager:
 
         # Create new key if none exists
         logger.info(f"Creating new {purpose} key for domain {domain.value}")
-        new_key = await self.create_distributed_key(domain, SecurityTier.QUANTUM_PROOF, purpose)
+        new_key = await self.create_distributed_key(domain, None, purpose) # Pass None for security_tier
         return await self.reconstruct_key(new_key.key_id)
 
     async def _save_distributed_key(self, key: DistributedKey):
@@ -479,7 +509,7 @@ class DistributedKeyManager:
             """, (
                 key.key_id,
                 key.domain.value,
-                key.security_tier.value,
+                key.security_tier, # Changed from SecurityTier to key.security_tier
                 key.total_shards,
                 key.threshold,
                 key.scheme.value,

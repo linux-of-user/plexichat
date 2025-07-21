@@ -58,6 +58,8 @@ quantum_encryption = None
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine  # type: ignore
 from sqlalchemy.pool import StaticPool  # type: ignore
 from sqlalchemy import text  # type: ignore
+from plexichat.features.security.database_encryption import setup_database_encryption, encryption_manager
+import sqlalchemy
 
 """
 Consolidated Database Manager - Single Source of Truth
@@ -297,7 +299,7 @@ class ConsolidatedDatabaseManager:
         """Initialize security and encryption components."""
         try:
             # Initialize encryption manager
-            self.encryption_manager = quantum_encryption
+            self.encryption_manager = encryption_manager
             if hasattr(self.encryption_manager, 'initialize'):
                 await self.encryption_manager.initialize()  # type: ignore
 
@@ -404,6 +406,11 @@ class ConsolidatedDatabaseManager:
                     connect_args={"check_same_thread": False}
                 )
                 self.engines[name] = engine
+                # Enforce encryption hooks only for sync engines
+                if isinstance(engine, sqlalchemy.engine.Engine):
+                    setup_database_encryption(engine)
+                else:
+                    logger.warning(f"Encryption hooks not applied: {name} is not a sync SQLAlchemy engine.")
 
             elif config.type == DatabaseType.POSTGRESQL:
                 connection_string = f"postgresql+asyncpg://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
@@ -415,6 +422,11 @@ class ConsolidatedDatabaseManager:
                     pool_recycle=config.pool_recycle
                 )
                 self.engines[name] = engine
+                # Enforce encryption hooks only for sync engines
+                if isinstance(engine, sqlalchemy.engine.Engine):
+                    setup_database_encryption(engine)
+                else:
+                    logger.warning(f"Encryption hooks not applied: {name} is not a sync SQLAlchemy engine.")
 
             elif config.type == DatabaseType.MONGODB:
                 if AsyncIOMotorClient is not None:
