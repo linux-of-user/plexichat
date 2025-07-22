@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """
-import logging
 Advanced Database Features
 
 Implements advanced database capabilities:

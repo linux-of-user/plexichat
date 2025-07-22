@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 """
-import logging
-import time
-import warnings
 Password Policy Manager
 
 Implements comprehensive password policies including:

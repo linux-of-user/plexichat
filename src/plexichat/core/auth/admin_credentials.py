@@ -8,14 +8,7 @@ from typing import Any, Dict, Optional
 
 import bcrypt
 
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
-
 """
-import time
 PlexiChat Admin Credentials Manager
 Handles secure storage and management of admin passwords separately from user passwords.
 """
@@ -28,7 +21,6 @@ class AdminCredentialsManager:
 
     def __init__(self):
         """Initialize the admin credentials manager."""
-        from pathlib import Path
         self.config_dir = Path.home() / ".plexichat"
         self.admin_creds_file = self.config_dir / "admin_credentials.json"
         self.default_creds_file = self.config_dir / "default_creds.txt"

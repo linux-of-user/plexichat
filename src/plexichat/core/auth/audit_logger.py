@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-import logging
-import time
 Authentication Audit Logger
 
 Comprehensive audit logging for authentication events:
