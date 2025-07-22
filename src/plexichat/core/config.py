@@ -19,16 +19,16 @@ from pathlib import Path
 
 # Pydantic imports for settings validation
 try:
-    from pydantic import BaseSettings, Field, validator
+    from pydantic import BaseSettings, Field, field_validator
 except ImportError:
     class BaseSettings:
         def __init__(self):
             pass
-        def dict(self):
+        def model_dump(self):
             return {}
     def Field(default=None, **kwargs):
         return default
-    validator = lambda *args, **kwargs: lambda f: f
+    field_validator = lambda *args, **kwargs: lambda f: f
 
 # Performance optimization imports removed as they're not used
 
@@ -124,7 +124,8 @@ class Settings(BaseSettings):
     BACKUP_RETENTION_DAYS: int = Field(default=30, description="Backup retention in days")
     BACKUP_DIR: str = Field(default="backups", description="Backup directory")
 
-    @validator('JWT_SECRET')
+    @field_validator('JWT_SECRET')
+    @classmethod
     def validate_jwt_secret(cls, v):
         if v == "your-secret-key-change-this":
             logger.warning("Using default JWT secret key - change this in production!")
@@ -132,21 +133,24 @@ class Settings(BaseSettings):
             raise ValueError("JWT secret key must be at least 32 characters long")
         return v
 
-    @validator('LOG_LEVEL')
+    @field_validator('LOG_LEVEL')
+    @classmethod
     def validate_log_level(cls, v):
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if v.upper() not in valid_levels:
             raise ValueError(f"Log level must be one of: {valid_levels}")
         return v.upper()
 
-    @validator('SECURITY_LEVEL')
+    @field_validator('SECURITY_LEVEL')
+    @classmethod
     def validate_security_level(cls, v):
         valid_levels = ["BASIC", "STANDARD", "HIGH", "GOVERNMENT"]
         if v.upper() not in valid_levels:
             raise ValueError(f"Security level must be one of: {valid_levels}")
         return v.upper()
 
-    @validator('DATABASE_URL')
+    @field_validator('DATABASE_URL')
+    @classmethod
     def validate_database_url(cls, v):
         if not v:
             raise ValueError("Database URL cannot be empty")

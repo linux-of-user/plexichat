@@ -496,7 +496,7 @@ class Result(Generic[T]):
         return self._error is not None
 
     @property
-    def value(self -> T:
+    def value(self) -> T:
         if self._error:
             raise self._error
         return self._value
@@ -523,45 +523,7 @@ class Page(Generic[T]):
         return self.page > 1
 
 
-# Generic container types
-class Result(Generic[T]):
-    """Result container that can hold success value or error."""
-
-    def __init__(self, value: Optional[T] = None, error: Optional[Exception] = None):
-        self._value = value
-        self._error = error
-
-    @property
-    def is_success(self) -> bool:
-        """Check if result is successful."""
-        return self._error is None
-
-    @property
-    def is_error(self) -> bool:
-        """Check if result is an error."""
-        return self._error is not None
-
-    @property
-    def value(self) -> T:
-        """Get the success value."""
-        if self._error:
-            raise self._error
-        return self._value
-
-    @property
-    def error(self) -> Optional[Exception]:
-        """Get the error."""
-        return self._error
-
-    @classmethod
-    def success(cls, value: T) -> 'Result[T]':
-        """Create successful result."""
-        return cls(value=value)
-
-    @classmethod
-    def failure(cls, error: Exception) -> 'Result[T]':
-        """Create error result."""
-        return cls(error=error)
+# Additional utility types and functions
 
 
 class Optional(Generic[T]):

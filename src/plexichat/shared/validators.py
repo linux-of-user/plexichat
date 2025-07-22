@@ -514,22 +514,19 @@ def validate_json(value: str, field_name: str) -> None:
         raise ValidationError(f"Invalid JSON in {field_name}: {str(e)}", field=field_name, value=value)
 
 
-# Export all validators
+# Export enhanced validators and classes
 __all__ = [
-    'validate_required',
-    'validate_string_length',
-    'validate_email',
-    'validate_username',
-    'validate_password',
-    'validate_uuid',
-    'validate_url',
-    'validate_integer',
-    'validate_float',
-    'validate_choice',
-    'validate_list',
-    'validate_dict',
-    'validate_datetime',
-    'validate_file_extension',
-    'validate_message_content',
-    'validate_json',
+    'EnhancedValidator',
+    'enhanced_validator',
+    'ValidationError',
+    'SecurityError',
+    'MAX_USERNAME_LENGTH',
+    'MAX_EMAIL_LENGTH',
+    'PASSWORD_MIN_LENGTH',
+    'MAX_FILE_SIZE',
+    'MAX_UPLOAD_SIZE',
+    'ALLOWED_IMAGE_TYPES',
+    'ALLOWED_DOCUMENT_TYPES',
+    'SUSPICIOUS_PATTERNS',
+    'validate_json'  # Keep this legacy function for compatibility
 ]
