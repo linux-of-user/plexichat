@@ -14,12 +14,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-from datetime import datetime
-
-
 """
-import string
-import time
 PlexiChat Decentralized Identity & Self-Sovereign Identity (SSI) System
 
 Implements verifiable credentials, decentralized identifiers (DIDs),

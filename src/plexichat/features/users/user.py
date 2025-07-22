@@ -7,12 +7,12 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat User Model
 
 Enhanced user model with comprehensive functionality and performance optimization.
 Uses EXISTING database abstraction and optimization systems.
 """
+import time
 
 import logging
 from datetime import datetime
