@@ -23,17 +23,7 @@ from cryptography.x509.oid import NameOID
 from ...core.config import get_config
 from ...core.logging import get_logger
 
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
 """
-import subprocess
-import time
 PlexiChat Certificate Manager - SINGLE SOURCE OF TRUTH
 
 CONSOLIDATED from multiple certificate management systems:
@@ -344,7 +334,7 @@ class ConsolidatedCertificateManager:
                 stderr=asyncio.subprocess.PIPE
             )
 
-            stdout, stderr = await process.communicate()
+            _stdout, stderr = await process.communicate()
 
             if process.returncode == 0:
                 # Find certificate files
@@ -415,7 +405,7 @@ class ConsolidatedCertificateManager:
                 stderr=asyncio.subprocess.PIPE
             )
 
-            stdout, stderr = await process.communicate()
+            _stdout, stderr = await process.communicate()
 
             if process.returncode == 0:
                 # Update certificate info
