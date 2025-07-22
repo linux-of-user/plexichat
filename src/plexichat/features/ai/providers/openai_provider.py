@@ -21,7 +21,7 @@ except ImportError:
         async def models_list(self):
             return {"data": []}
 
-from .base_provider import ()
+from .base_provider import (
     AIRequest,
     AIResponse,
     BaseAIProvider,
@@ -35,12 +35,7 @@ OpenAI Provider for PlexiChat AI Abstraction Layer
 Enhanced OpenAI integration with advanced features and error handling.
 """
 
-try:
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    openai = None
-    AsyncOpenAI = None
+OPENAI_AVAILABLE = openai is not None
 
 logger = logging.getLogger(__name__)
 

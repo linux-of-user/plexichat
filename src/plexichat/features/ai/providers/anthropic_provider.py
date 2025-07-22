@@ -22,7 +22,7 @@ except ImportError:
         async def models_list(self):
             return {"data": []}
 
-from .base_provider import ()
+from .base_provider import (
     AIRequest,
     AIResponse,
     BaseAIProvider,
@@ -36,12 +36,7 @@ Anthropic Provider for PlexiChat AI Abstraction Layer
 Enhanced Anthropic Claude integration with advanced features.
 """
 
-try:
-    ANTHROPIC_AVAILABLE = True
-except ImportError:
-    ANTHROPIC_AVAILABLE = False
-    anthropic = None
-    AsyncAnthropic = None
+ANTHROPIC_AVAILABLE = anthropic is not None
 
 logger = logging.getLogger(__name__)
 
