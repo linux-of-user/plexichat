@@ -14,7 +14,6 @@ from typing import Any, Dict, List, Optional
 
 
 """
-import time
 PlexiChat Advanced User System
 
 Comprehensive user management with Discord/Telegram/WhatsApp Business feature parity:

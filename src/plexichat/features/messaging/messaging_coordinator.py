@@ -11,9 +11,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from datetime import datetime
 from plexichat.core.config import settings
-import time
 
 try:
     from .advanced_user_system import advanced_user_manager
@@ -35,47 +33,16 @@ try:
 except ImportError:
     business_automation_manager = None
 
-    Advanced,
-    BadgeType,
-    Business,
-    Central,
-    Coordinator,
-    Group,
-    Messaging,
-    Permission,
-    PlexiChat,
-    Real-time,
-    RichUserProfile,
-    User,
-    UserStatus,
-    UserTier,
-    Voice/video,
-    """,
-    -,
-    .business_automation,
-    .group_management,
-    .voice_video_channels,
-    advanced,
-    advanced_user_manager,
-    all,
-    automation,
-    business_automation_manager,
-    channel,
-    collaboration,
-    coordination,
-    coordinator,
-    features,
-    features:,
-    for,
-    from,
-    group_manager,
-    import,
-    integration,
-    management,
-    messaging,
-    orchestration,
-    voice_video_manager,
-)
+"""
+PlexiChat Messaging Coordinator
+
+Central coordinator for all messaging features including:
+- Advanced user management
+- Group management and permissions
+- Voice/video channels
+- Business automation
+- Real-time messaging coordination
+"""
 
 logger = logging.getLogger(__name__)
 
