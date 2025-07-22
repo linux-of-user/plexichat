@@ -12,18 +12,12 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from ...core.config import get_config
 from ...core.logging import get_logger
 
-from pathlib import Path
-
-from pathlib import Path
-
 """
-import warnings
 PlexiChat Unified Input Validation Framework - SINGLE SOURCE OF TRUTH
 
 CONSOLIDATED from multiple input validation systems:
@@ -264,7 +258,7 @@ class UnifiedInputValidator:
             logger.error(f" Input Validator initialization failed: {e}")
             return False
 
-    def validate(self, value: Any, input_type: InputType, level: ValidationLevel = ValidationLevel.STANDARD, context: Optional[Dict[str, Any]] = None) -> ValidationResult:
+    def validate(self, value: Any, input_type: InputType, level: ValidationLevel = ValidationLevel.STANDARD, _context: Optional[Dict[str, Any]] = None) -> ValidationResult:
         """
         Validate and sanitize input with comprehensive threat detection.
 

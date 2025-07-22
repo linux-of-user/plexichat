@@ -15,29 +15,11 @@ from typing import Any, Dict, List, Optional
 
 from ...core.config import get_config
 from ...core.logging import get_logger
-from .unified_audit_system import ()
-import logging
-import time
 
+"""
+PlexiChat Unified HSM Manager - SINGLE SOURCE OF TRUTH
 
-    CONSOLIDATED,
-    ENHANCED,
-    HSM,
-    OF,
-    SINGLE,
-    SOURCE,
-    TRUTH,
-    Hardware,
-    Manager,
-    Module,
-    PlexiChat,
-    Security,
-    Unified,
-    """,
-    -,
-    and,
-    from:,
-)
+CONSOLIDATED from multiple HSM systems:
 - features/security/hardware_security.py - INTEGRATED AND ENHANCED
 
 Features:
@@ -51,11 +33,7 @@ Features:
 - Post-quantum cryptography readiness
 """
 
-    SecurityEventType,
-    SecuritySeverity,
-    ThreatLevel,
-    get_unified_audit_system,
-)
+# Import from unified audit system would go here when available
 
 logger = get_logger(__name__)
 

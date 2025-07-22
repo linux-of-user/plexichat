@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """
-import logging
 Zero Trust Security Model
 
 Implements comprehensive zero-trust security including:

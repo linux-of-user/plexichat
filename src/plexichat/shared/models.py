@@ -12,7 +12,6 @@ PlexiChat Shared Models
 Common data models and schemas used across the application.
 """
 
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
