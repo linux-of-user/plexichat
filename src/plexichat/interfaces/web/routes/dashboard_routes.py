@@ -16,12 +16,12 @@ from fastapi.templating import Jinja2Templates
 # from typing import Optional  # Unused import
 
 """
-import time
 PlexiChat Main Dashboard Web Routes
 
 Main dashboard web routes providing overview of system status, quick access
 to key features, and navigation to specialized dashboards.
 """
+import time
 
 # Initialize router and templates
 router = APIRouter(prefix="/dashboard", tags=["Main Dashboard"])
