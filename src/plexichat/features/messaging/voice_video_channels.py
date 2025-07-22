@@ -14,22 +14,8 @@ from typing import Any, Dict, List, Optional
 
 
 from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-from plexichat.core.config import settings
 
 """
-import time
 PlexiChat Voice/Video Channel System
 
 Advanced voice and video communication with Discord-like features:

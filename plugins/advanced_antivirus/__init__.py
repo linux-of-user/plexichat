@@ -10,7 +10,6 @@ from .core.filename_analyzer import FilenameAnalyzer
 from .core.hash_scanner import HashBasedScanner
 from .core.link_scanner import LinkSafetyScanner
 from .core.threat_intelligence import ThreatIntelligenceEngine
-from typing import Optional
 
 
 """

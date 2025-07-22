@@ -18,44 +18,17 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import aiohttp
-import http.client
+import psutil
 try:
     import redis
 except ImportError:
     redis = None
 
-from pathlib import Path
-from datetime import datetime
-
-
-from pathlib import Path
-
-import psutil
-from = psutil fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
 
 """
 Multi-Node Clustering System for PlexiChat
@@ -304,7 +277,7 @@ Path("config/cluster.json")
             self.status = NodeStatus.JOINING
 
             # Create node info
-            node_info = NodeInfo()
+            node_info = NodeInfo(
                 node_id=self.node_id,
                 hostname=self.server_info["hostname"],
                 ip_address=self.server_info["ip_address"],
@@ -319,10 +292,8 @@ Path("config/cluster.json")
                 disk_usage=0.0,
                 network_latency=0.0,
                 active_connections=0,
-last_heartbeat = datetime.now()
-datetime = datetime.now(),
-joined_at = datetime.now()
-datetime = datetime.now(),
+                last_heartbeat=datetime.now(),
+                joined_at=datetime.now(),
                 metadata={}
             )
 
@@ -441,7 +412,7 @@ datetime = datetime.now(),
             connection_score = min(node.active_connections / 1000.0, 1.0)
             latency_score = min(node.network_latency / 1000.0, 1.0)
 
-            return (cpu_score * cpu_weight +)
+            return (cpu_score * cpu_weight +
                    memory_score * memory_weight +
                    connection_score * connections_weight +
                    latency_score * latency_weight)
@@ -473,8 +444,7 @@ datetime = datetime.now(),
         self._weighted_counters[best_index] += 1
         return nodes[best_index]
 
-    async def forward_request(self, target_node: NodeInfo, request: Request,)
-                            path: str, method: str = "GET") -> Dict[str, Any]:
+    async def forward_request(self, target_node: NodeInfo, request: Request, path: str, method: str = "GET") -> Dict[str, Any]:
         """Forward request to target node."""
         try:
             url = f"http://{target_node.ip_address}:{target_node.port}{path}"
@@ -494,7 +464,7 @@ datetime = datetime.now(),
             async with aiohttp.ClientSession() as session:
                 start_time = time.time()
 
-                async with session.request()
+                async with session.request(
                     method=method,
                     url=url,
                     headers=headers,
@@ -555,9 +525,7 @@ psutil = psutil.cpu_percent()
 psutil = psutil.virtual_memory().percent
                 node_info.disk_usage = import psutil
 psutil = psutil.disk_usage('/').percent
-                node_info.from datetime import datetime
-last_heartbeat = datetime.now()
-datetime = datetime.now()
+                node_info.last_heartbeat = datetime.now()
                 node_info.active_connections = len(self.connection_counts)
 
             # Update cluster state
@@ -577,7 +545,7 @@ psutil = psutil.disk_usage('/').percent,
                     }
                 }
 
-                self.redis_client.setex()
+                self.redis_client.setex(
                     f"heartbeat:{self.node_id}",
                     self.config.heartbeat_interval * 2,
                     json.dumps(heartbeat_data)
@@ -605,8 +573,7 @@ psutil = psutil.disk_usage('/').percent,
         if not self.redis_client:
             return
 
-current_time = datetime.now()
-datetime = datetime.now()
+        current_time = datetime.now()
         timeout_threshold = timedelta(seconds=self.config.failure_timeout)
 
         for node_id in list(self.cluster_nodes.keys()):
@@ -861,7 +828,7 @@ async def proxy_request(path: str, request: Request, node_mgr: NodeManager = Dep
         # Forward request
         result = await node_mgr.forward_request(target_node, request, f"/{path}", request.method)
 
-        return JSONResponse()
+        return JSONResponse(
             content=json.loads(result["body"]) if result["body"] else {},
             status_code=result["status_code"],
             headers=dict(result["headers"])
@@ -903,7 +870,7 @@ class LoadBalancingMiddleware:
                 target_node = await self.node_manager.select_target_node(request, "api")
                 if target_node and target_node.node_id != self.node_manager.node_id:
                     # Proxy the request
-                    result = await self.node_manager.forward_request()
+                    result = await self.node_manager.forward_request(
                         target_node, request, request.url.path, request.method
                     )
 

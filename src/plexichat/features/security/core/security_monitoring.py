@@ -20,7 +20,6 @@ import aiohttp
 
 
 """
-import http.client
 PlexiChat Security Monitoring System
 
 Real-time security monitoring with alerting, incident response,

@@ -18,7 +18,6 @@ from plexichat.core.resilience.manager import get_system_resilience
 
 
 """
-import time
 PlexiChat Base Service
 
 Base class for all PlexiChat services providing common functionality

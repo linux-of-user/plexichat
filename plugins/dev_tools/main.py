@@ -20,8 +20,7 @@ from pydantic import BaseModel
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from plugin_internal import *
-from plugin_internal import *
+from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
 
 logger = logging.getLogger(__name__)
 

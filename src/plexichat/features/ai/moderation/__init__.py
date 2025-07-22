@@ -6,7 +6,6 @@
 # pyright: reportReturnType=false
 from .feedback_collector import FeedbackCollector, FeedbackSource, FeedbackType, ModerationFeedback
 from .moderation_engine import *
-from typing import Optional
 
 __all__ = [
     "ModerationEngine",

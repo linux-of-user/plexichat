@@ -12,24 +12,11 @@ from enum import Enum
 from typing import Any, Callable, Dict, Optional
 
 import aiohttp
+import psutil
 
 from ...core.database import database_manager
 
-
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-import = psutil psutil
-import psutil
-
 """
-import http.client
 PlexiChat Health Check Service
 
 Comprehensive health monitoring service for application health and dependencies

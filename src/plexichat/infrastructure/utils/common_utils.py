@@ -15,7 +15,6 @@ import string
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,6 @@ class ValidationUtils:
     @staticmethod
     def validate_email(email: str) -> bool:
         """Validate email format."""
-        import re
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return bool(re.match(pattern, email))
 
@@ -357,7 +355,7 @@ def monitor_performance(logger: Optional[logging.Logger] = None):
                 duration = (datetime.now() - start_time).total_seconds()
                 LoggingUtils.log_performance(func.__name__, duration, logger)
                 return result
-            except Exception as e:
+            except Exception:
                 duration = (datetime.now() - start_time).total_seconds()
                 LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
                 raise
@@ -369,7 +367,7 @@ def monitor_performance(logger: Optional[logging.Logger] = None):
                 duration = (datetime.now() - start_time).total_seconds()
                 LoggingUtils.log_performance(func.__name__, duration, logger)
                 return result
-            except Exception as e:
+            except Exception:
                 duration = (datetime.now() - start_time).total_seconds()
                 LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
                 raise

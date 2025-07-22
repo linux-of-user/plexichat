@@ -1,5 +1,4 @@
 """
-import time
 PlexiChat Background Tasks Service
 
 Background task management and execution system.

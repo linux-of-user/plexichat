@@ -9,27 +9,16 @@ Plugin Tests WebUI Routes
 Web interface for plugin testing with scheduling and management features.
 """
 
-import asyncio
-import json
 import logging
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Optional
 
-from fastapi import APIRouter, Request, HTTPException, Form, Query
+from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-# from plexichat.infrastructure.modules.plugin_test_manager import (
-#     get_test_manager, TestStatus, TestPriority, TestSchedule
-# )
-# from plexichat.infrastructure.modules.plugin_manager import get_plugin_manager
-
-# Remove old test manager code and direct test imports
-# Use plugin manager to run tests:
-# from plexichat.core.plugins.unified_plugin_manager import run_all_tests
-# results = run_all_tests()
+# Plugin testing functionality will be implemented through the unified plugin manager
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +153,7 @@ async def run_test(request: TestRunRequest):
 
 
 @router.post("/schedule")
-async def schedule_test(request: TestScheduleRequest):
+async def schedule_test(_request: TestScheduleRequest):
     """Schedule a test to run automatically."""
     try:
         # test_manager = get_test_manager() # This line is removed
@@ -199,7 +188,7 @@ async def schedule_test(request: TestScheduleRequest):
 
 
 @router.delete("/schedule/{schedule_id}")
-async def unschedule_test(schedule_id: str):
+async def unschedule_test(_schedule_id: str):
     """Remove a scheduled test."""
     try:
         # test_manager = get_test_manager() # This line is removed
@@ -229,9 +218,9 @@ async def unschedule_test(schedule_id: str):
 
 @router.get("/results")
 async def get_test_results(
-    plugin_name: Optional[str] = Query(None),
-    limit: int = Query(50, ge=1, le=1000),
-    status: Optional[str] = Query(None)
+    _plugin_name: Optional[str] = Query(None),
+    _limit: int = Query(50, ge=1, le=1000),
+    _status: Optional[str] = Query(None)
 ):
     """Get test results with optional filtering."""
     try:

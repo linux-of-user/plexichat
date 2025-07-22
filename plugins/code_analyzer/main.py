@@ -5,14 +5,12 @@ Advanced code analysis with syntax highlighting, dependency tracking, and qualit
 """
 
 import ast
-import asyncio
 import json
 import logging
 import re
-import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
@@ -23,10 +21,6 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from plugin_internal import PluginInterface, PluginMetadata, PluginType, ModulePermissions, ModuleCapability
-from typing import Optional
-
-from plugin_internal import *
-from plugin_internal import *
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +292,7 @@ class CodeAnalysisCore:
         
         return classes
     
-    async def _check_python_quality(self, content: str, file_path: str) -> List[Dict[str, Any]]:
+    async def _check_python_quality(self, content: str, _file_path: str) -> List[Dict[str, Any]]:
         """Check Python code quality issues."""
         issues = []
         
@@ -325,7 +319,7 @@ class CodeAnalysisCore:
         
         return issues
     
-    async def _analyze_javascript(self, content: str, file_path: str) -> Dict[str, Any]:
+    async def _analyze_javascript(self, content: str, _file_path: str) -> Dict[str, Any]:
         """Analyze JavaScript/TypeScript code."""
         result = {
             "metrics": self._calculate_basic_metrics(content),
@@ -356,7 +350,7 @@ class CodeAnalysisCore:
             "internal_dependencies": list(set(internal_deps))
         }
     
-    async def _analyze_generic(self, content: str, file_path: str, language: str) -> Dict[str, Any]:
+    async def _analyze_generic(self, content: str, _file_path: str, _language: str) -> Dict[str, Any]:
         """Generic analysis for unsupported languages."""
         return {
             "metrics": self._calculate_basic_metrics(content),

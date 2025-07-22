@@ -5,7 +5,6 @@ Error response schemas for PlexiChat API.
 Enhanced with comprehensive error handling and validation.
 """
 
-import time
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field  # type: ignore
@@ -34,19 +33,19 @@ class ValidationErrorResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Generic error response with comprehensive details."""
-error: str = Field(..., description="Error type", example="INTERNAL_ERROR")
-message: str = Field(..., description="Error message", example="An unexpected error occurred")
-details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
-timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Error timestamp")
-request_id: Optional[str] = Field(None, description="Request ID for tracking")
+    error: str = Field(..., description="Error type", example="INTERNAL_ERROR")
+    message: str = Field(..., description="Error message", example="An unexpected error occurred")
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Error timestamp")
+    request_id: Optional[str] = Field(None, description="Request ID for tracking")
 
 
 class NotFoundResponse(BaseModel):
     """Not found error response."""
-detail: str = Field(default="Resource not found", description="Error message")
-resource_type: Optional[str] = Field(None, description="Type of resource not found")
-resource_id: Optional[str] = Field(None, description="ID of resource not found")
-timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Error timestamp")
+    detail: str = Field(default="Resource not found", description="Error message")
+    resource_type: Optional[str] = Field(None, description="Type of resource not found")
+    resource_id: Optional[str] = Field(None, description="ID of resource not found")
+    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Error timestamp")
 
 
 class UnauthorizedResponse(BaseModel):
