@@ -1,27 +1,24 @@
 """
-import time
 PlexiChat CLI Admin Commands
 
 Command-line interface for administrative operations.
 """
-
-import asyncio
 import click
 import json
 import sys
 from datetime import datetime
-from pathlib import Path
 from typing import Optional
 
 try:
     from plexichat.core.auth.admin_manager import admin_manager
-    from plexichat.app.logger_config import get_logger
+    from plexichat.core.logging_advanced import get_logger
     from plexichat.core.config import settings
     from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
 except ImportError:
     admin_manager = None
     get_logger = lambda x: print
     settings = {}
+    unified_plugin_manager = None
 
 logger = get_logger(__name__)
 

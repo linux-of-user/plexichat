@@ -16,8 +16,8 @@ PlexiChat is a next-generation, modular, and extensible chat platform designed f
 ## Quick Start (No Git Required)
 
 1. **Download `run.py`**
-   - [Right-click here and save as `run.py`](https://raw.githubusercontent.com/plexichat/plexichat/main/run.py)
-   - Or download from the [latest release page](https://github.com/plexichat/plexichat/releases)
+   - [Right-click here and save as `run.py`](https://raw.githubusercontent.com/linux-of-user/plexichat/main/run.py)
+   - Or download from the [latest release page](https://github.com/linux-of-user/plexichat/releases)
 
 2. **Run the installer**
    ```sh
@@ -34,7 +34,7 @@ PlexiChat is a next-generation, modular, and extensible chat platform designed f
    ```
 
 ## Alternative: Manual Download (Advanced)
-If you cannot use the installer, you may manually download the full source from the [GitHub releases](https://github.com/plexichat/plexichat/releases) or as a ZIP. Extract all files to a folder, then run:
+If you cannot use the installer, you may manually download the full source from the [GitHub releases](https://github.com/linux-of-user/plexichat/releases) or as a ZIP. Extract all files to a folder, then run:
 ```sh
 python run.py setup
 ```

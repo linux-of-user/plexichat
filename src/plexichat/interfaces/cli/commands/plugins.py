@@ -1,29 +1,26 @@
+"""
+Enhanced Plugin CLI Interface for PlexiChat
+Command-line interface for comprehensive plugin management.
+"""
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
+import logging
 from pathlib import Path
 from typing import List
 
+try:
+    from plexichat.app.plugins.enhanced_plugin_manager import PluginSource, get_enhanced_plugin_manager
+    from plexichat.core.config import settings
+except ImportError:
+    PluginSource = None
+    get_enhanced_plugin_manager = None
+    settings = {}
 
-from pathlib import Path
-
-
-from pathlib import Path
-
-from plexichat.app.plugins.enhanced_plugin_manager import PluginSource, get_enhanced_plugin_manager
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-import logging
-
-
-"""
-Enhanced Plugin CLI Interface for PlexiChat
-Command-line interface for comprehensive plugin management.
-"""
-
-logger = logging.getLogger(__name__, Optional)
+logger = logging.getLogger(__name__)
 class PluginCLI:
     """Command-line interface for plugin management."""
 

@@ -1,34 +1,30 @@
+"""
+Advanced CLI log management commands.
+Provides comprehensive log viewing, filtering, and management from command line.
+"""
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
 import argparse
 import json
+import logging
 import sys
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-from services.log_management import LogEntry, log_manager
-
-from pathlib import Path
-
-from pathlib import Path
-import logging
-
-
-"""
-import string
-import time
-Advanced CLI log management commands.
-Provides comprehensive log viewing, filtering, and management from command line.
-"""
+try:
+    from services.log_management import LogEntry, log_manager
+except ImportError:
+    LogEntry = None
+    log_manager = None
 
 # Add parent directory to path for imports
-sys.path.append(str(from pathlib import Path))
-Path(__file__, Optional).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent))
 
 logger = logging.getLogger(__name__)
 class LogCLI:
