@@ -15,11 +15,7 @@ from ...core.versioning.simple_update_system import UpdateStatus, SimpleUpdateSy
 from ...core.versioning.version_manager import Version
 from .encrypted_communication import EncryptedCommunication, MessageType
 
-from datetime import datetime
-
-
 """
-import time
 PlexiChat Cluster Update Manager
 
 Manages coordinated updates across cluster nodes with:

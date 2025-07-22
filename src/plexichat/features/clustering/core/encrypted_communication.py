@@ -21,33 +21,25 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa, x25519
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
 from cryptography.x509.oid import NameOID
 
-from ....core_system.security.certificate_manager import get_certificate_manager
-from ....core_system.security.hardware_security import get_hsm_manager
-from ....core_system.security.unified_audit_system import ()
-from pathlib import Path
+try:
+    from ....core_system.security.certificate_manager import get_certificate_manager
+    from ....core_system.security.hardware_security import get_hsm_manager
+    from ....core_system.security.unified_audit_system import get_unified_audit_system
+except ImportError:
+    # Fallback definitions
+    get_certificate_manager = lambda: None
+    get_hsm_manager = lambda: None
+    get_unified_audit_system = lambda: None
 
-from pathlib import Path
-import time
+"""
+Enhanced Inter-Node Encrypted Communication Manager
 
-    HEARTBEAT_ENCRYPTION,
-    HOT_UPDATE_SUPPORT,
-    INTER_NODE_ENCRYPTION,
-    OF,
-    SINGLE,
-    SOURCE,
-    TRUTH,
-    Communication,
-    Encrypted,
-    Enhanced,
-    Inter-Node,
-    Kyber/Dilithium,
-    Manager,
-    Post-quantum,
-    Provides,
-    """,
-    -,
-    .,
-    between,
+Provides secure communication between cluster nodes with:
+- Post-quantum Kyber/Dilithium encryption
+- Hot update support
+- Heartbeat encryption
+- Single source of truth
+"""
     cluster,
     communication,
     cryptography,
