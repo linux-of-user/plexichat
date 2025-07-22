@@ -571,7 +571,8 @@ class SetupWizard:
             return False
 
         self.ui.add_log("Checking required directories...", "INFO")
-        required_dirs = ['logs', 'data', 'config', 'temp', 'backups', 'uploads']
+        # Only create essential directories - others created by components that need them
+        required_dirs = ['config']
         for dir_name in required_dirs:
             Path(dir_name).mkdir(exist_ok=True)
 
@@ -995,25 +996,14 @@ def setup_environment():
     """Set up the runtime environment including required directories and environment variables."""
     logger.debug("Setting up environment...")
 
-    # Define required directories
-    directories = {
-        'logs': 'Log files',
-        'data': 'Application data',
-        'config': 'Configuration files',
-        'temp': 'Temporary files',
-        'backups': 'Backup files',
-        'uploads': 'User uploads'
-    }
-
-    # Create directories if they don't exist
-    for directory, desc in directories.items():
-        try:
-            dir_path = Path(directory)
-            dir_path.mkdir(exist_ok=True, parents=True)
-            logger.debug(f"Directory ready: {dir_path.absolute()} ({desc})")
-        except Exception as e:
-            logger.error(f"Failed to create directory {directory}: {e}")
-            raise
+    # Only create essential config directory - others created by components that need them
+    config_dir = Path('config')
+    try:
+        config_dir.mkdir(exist_ok=True, parents=True)
+        logger.debug(f"Config directory ready: {config_dir.absolute()}")
+    except Exception as e:
+        logger.error(f"Failed to create config directory: {e}")
+        raise
 
     # Set environment variables with defaults if not already set
     env_vars = {
@@ -3448,9 +3438,9 @@ def check_system_requirements():
 def setup_environment():
     """Setup environment variables and directories."""
     try:
-        # Create necessary directories
-        directories = ["logs", "data", "config", "plugins", "temp", "backups"]
-        for directory in directories:
+        # Create only essential directories - others created by components that need them
+        essential_dirs = ["config"]
+        for directory in essential_dirs:
             dir_path = (INSTALL_PATH / directory) if INSTALL_PATH else Path(directory)
             dir_path.mkdir(exist_ok=True, parents=True)
             print(f"  {Colors.GREEN}✓ Created directory: {dir_path}")
