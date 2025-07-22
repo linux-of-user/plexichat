@@ -189,33 +189,58 @@ class UnifiedHSMInterface:
         }
 
     async def authenticate(self, pin: str, admin_pin: Optional[str] = None, user_id: str = "system") -> bool:
-        """Authenticate with HSM with comprehensive audit logging."""
+        """Enhanced HSM authentication with comprehensive security and audit logging."""
         try:
-            # Log authentication attempt
-            self.audit_system.log_security_event()
-                SecurityEventType.AUTHENTICATION_SUCCESS if len(pin) >= 6 else SecurityEventType.AUTHENTICATION_FAILURE,
-                f"HSM authentication attempt for device {self.device.device_id}",
-                SecuritySeverity.INFO if len(pin) >= 6 else SecuritySeverity.WARNING,
-                ThreatLevel.LOW if len(pin) >= 6 else ThreatLevel.MEDIUM,
+            # Enhanced input validation
+            if not pin or len(pin) < 4:
+                await self.audit_system.log_security_event(
+                    event_type="HSM_AUTH_INVALID_PIN",
+                    message=f"Invalid PIN provided for HSM {self.device.device_id}",
+                    user_id=user_id,
+                    resource=f"hsm://{self.device.device_id}",
+                    metadata={"reason": "PIN too short or empty"}
+                )
+                return False
+
+            # Rate limiting check
+            if not await self._check_rate_limit(user_id):
+                await self.audit_system.log_security_event(
+                    event_type="HSM_AUTH_RATE_LIMITED",
+                    message=f"Rate limit exceeded for HSM authentication by user {user_id}",
+                    user_id=user_id,
+                    resource=f"hsm://{self.device.device_id}",
+                    metadata={"security_action": "blocked"}
+                )
+                return False
+
+            # Enhanced authentication logic with multiple factors
+            auth_success = await self._perform_enhanced_authentication(pin, admin_pin, user_id)
+
+            # Log authentication result with comprehensive details
+            await self.audit_system.log_security_event(
+                event_type="HSM_AUTH_SUCCESS" if auth_success else "HSM_AUTH_FAILURE",
+                message=f"HSM authentication {'successful' if auth_success else 'failed'} for device {self.device.device_id}",
                 user_id=user_id,
                 resource=f"hsm://{self.device.device_id}",
-                action="authenticate",
-                details={
-                    "device_type": self.device.device_type.value,
-                    "security_level": self.device.security_level.value,
-                    "admin_auth": admin_pin is not None
+                metadata={
+                    "device_type": getattr(self.device, 'device_type', 'unknown'),
+                    "security_level": getattr(self.device, 'security_level', 'standard'),
+                    "admin_auth": admin_pin is not None,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "session_id": str(uuid4())
                 }
             )
 
-            # Simulated authentication (in production, use actual HSM API)
-            if len(pin) >= 6:
+            if auth_success:
                 self.device.is_authenticated = True
                 self.session_active = True
-                logger.info(f"Authenticated with HSM {self.device.device_id}")
-                return True
+                self.last_activity = datetime.now(timezone.utc)
+                logger.info(f"Enhanced HSM authentication successful for {self.device.device_id}")
 
-            logger.error(f"Authentication failed for HSM {self.device.device_id}")
-            return False
+                # Initialize security session
+                await self._initialize_security_session(user_id)
+
+            return auth_success
 
         except Exception as e:
             logger.error(f"HSM authentication error: {e}")
