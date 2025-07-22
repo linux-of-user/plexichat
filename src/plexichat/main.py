@@ -12,12 +12,11 @@ import inspect
 import logging
 import types
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 import json
-import time
 
 # Core system imports
 try:
@@ -811,7 +810,7 @@ def create_app() -> FastAPI:
         response = await call_next(request)
         # Only add headers for /api/v1 endpoints
         if request.url.path.startswith("/api/v1"):
-            process_time = (datetime.utcnow() - start_time).total_seconds()
+            process_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             response.headers["X-API-Version"] = "v1"
             response.headers["X-Process-Time"] = str(process_time)
             response.headers["X-Server-Time"] = datetime.now().isoformat()
@@ -1171,7 +1170,7 @@ def create_app() -> FastAPI:
                     "code": exc.status_code,
                     "message": exc.detail,
                     "api_version": "v1",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "path": str(request.url.path)
                 }
             },

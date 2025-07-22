@@ -12,27 +12,21 @@ RESTful API endpoints for authentication, authorization, and user management.
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
-from typing import Optional, Dict, Any, List
-import asyncio
+from typing import Optional, Dict, List
 
 try:
     from plexichat.core.auth.auth_manager import auth_manager
     from plexichat.core.auth.admin_manager import admin_manager
     from plexichat.core.auth.token_manager import token_manager
     from plexichat.core.auth.mfa_manager import Advanced2FASystem
-    from plexichat.app.logger_config import get_logger
+    from plexichat.core.logging import get_logger
 except ImportError:
     auth_manager = None
     admin_manager = None
     token_manager = None
     Advanced2FASystem = None
-    get_logger = lambda name: print
-except ImportError:
-    auth_manager = None
-    admin_manager = None
-    token_manager = None
-    Advanced2FASystem = None
-    get_logger = lambda name: print
+    import logging
+    get_logger = lambda name: logging.getLogger(name)
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
@@ -280,7 +274,7 @@ async def reset_password(request: ResetPasswordRequest):
         if not auth_manager:
             raise HTTPException(status_code=503, detail="Authentication service unavailable")
 
-        result = await auth_manager.request_password_reset(request.email)
+        await auth_manager.request_password_reset(request.email)
 
         # Always return success for security (don't reveal if email exists)
         return {"message": "If the email exists, a reset link has been sent"}
