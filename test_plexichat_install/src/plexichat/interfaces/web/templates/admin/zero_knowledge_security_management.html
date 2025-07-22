@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero-Knowledge Security Management - PlexiChat Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .config-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .config-tabs .nav-link {
+            border-radius: 8px 8px 0 0;
+            margin-right: 5px;
+        }
+        .config-tabs .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .privacy-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .privacy-high { background-color: #28a745; }
+        .privacy-medium { background-color: #ffc107; }
+        .privacy-low { background-color: #dc3545; }
+        .audit-entry {
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 5px 5px 0;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .test-success { background-color: #d4edda; color: #155724; }
+        .test-error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-shield-alt"></i> Zero-Knowledge Security Management</h1>
+                    <div>
+                        <button class="btn btn-outline-primary" onclick="refreshStats()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-success" onclick="testAllSystems()">
+                            <i class="fas fa-check-circle"></i> Test All Systems
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Service Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalMessages">{{ stats.messages.total }}</div>
+                        <div class="stat-label">Total Encrypted Messages</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="disappearingMessages">{{ stats.messages.disappearing }}</div>
+                        <div class="stat-label">Disappearing Messages</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="anonymousMessages">{{ stats.messages.anonymous }}</div>
+                        <div class="stat-label">Anonymous Messages</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="activeAnonymousSessions">{{ stats.anonymous_sessions.active }}</div>
+                        <div class="stat-label">Active Anonymous Sessions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="auditEntries">{{ stats.audit_trail.total_entries }}</div>
+                        <div class="stat-label">Audit Trail Entries</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="integrityScore">{{ "%.1f"|format(stats.audit_trail.integrity_score * 100) }}%</div>
+                        <div class="stat-label">Audit Integrity Score</div>
+                    </div>
+                </div>
+
+                <!-- Configuration Tabs -->
+                <ul class="nav nav-tabs config-tabs" id="configTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="encryption-tab" data-bs-toggle="tab" data-bs-target="#encryption-config" type="button" role="tab">
+                            <i class="fas fa-lock"></i> Client-Side Encryption
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="disappearing-tab" data-bs-toggle="tab" data-bs-target="#disappearing-config" type="button" role="tab">
+                            <i class="fas fa-clock"></i> Disappearing Messages
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="anonymous-tab" data-bs-toggle="tab" data-bs-target="#anonymous-config" type="button" role="tab">
+                            <i class="fas fa-user-secret"></i> Anonymous Messaging
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="biometric-tab" data-bs-toggle="tab" data-bs-target="#biometric-config" type="button" role="tab">
+                            <i class="fas fa-fingerprint"></i> Biometric Auth
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit-config" type="button" role="tab">
+                            <i class="fas fa-clipboard-list"></i> Audit Trails
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="privacy-tab" data-bs-toggle="tab" data-bs-target="#privacy-config" type="button" role="tab">
+                            <i class="fas fa-eye-slash"></i> Privacy Settings
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Configuration Content -->
+                <div class="tab-content" id="configTabContent">
+                    <!-- Client-Side Encryption Configuration -->
+                    <div class="tab-pane fade show active" id="encryption-config" role="tabpanel">
+                        <div class="config-section">
+                            <h4><i class="fas fa-lock"></i> Client-Side Encryption Settings</h4>
+                            <form id="encryptionConfigForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Encryption Enabled</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="encryptionEnabled" 
+                                                       {{ 'checked' if config.client_side_encryption.enabled else '' }}>
+                                                <label class="form-check-label" for="encryptionEnabled">Enable client-side encryption</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="encryptionAlgorithm" class="form-label">Encryption Algorithm</label>
+                                            <select class="form-select" id="encryptionAlgorithm">
+                                                <option value="AES-256-GCM" {{ 'selected' if config.client_side_encryption.algorithm == 'AES-256-GCM' else '' }}>AES-256-GCM</option>
+                                                <option value="ChaCha20-Poly1305" {{ 'selected' if config.client_side_encryption.algorithm == 'ChaCha20-Poly1305' else '' }}>ChaCha20-Poly1305</option>
+                                                <option value="Quantum-Resistant" {{ 'selected' if config.client_side_encryption.algorithm == 'Quantum-Resistant' else '' }}>Quantum-Resistant</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="keyDerivation" class="form-label">Key Derivation</label>
+                                            <select class="form-select" id="keyDerivation">
+                                                <option value="PBKDF2-SHA256" {{ 'selected' if config.client_side_encryption.key_derivation == 'PBKDF2-SHA256' else '' }}>PBKDF2-SHA256</option>
+                                                <option value="PBKDF2-SHA512" {{ 'selected' if config.client_side_encryption.key_derivation == 'PBKDF2-SHA512' else '' }}>PBKDF2-SHA512</option>
+                                                <option value="Argon2" {{ 'selected' if config.client_side_encryption.key_derivation == 'Argon2' else '' }}>Argon2</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="keyRotationHours" class="form-label">Key Rotation (Hours)</label>
+                                            <input type="number" class="form-control" id="keyRotationHours" 
+                                                   value="{{ config.client_side_encryption.key_rotation_hours }}" min="1" max="168">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Quantum Resistant</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="quantumResistant" 
+                                                       {{ 'checked' if config.client_side_encryption.quantum_resistant else '' }}>
+                                                <label class="form-check-label" for="quantumResistant">Enable quantum-resistant encryption</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-primary" onclick="testEncryption()">
+                                                <i class="fas fa-vial"></i> Test Encryption
+                                            </button>
+                                            <button type="button" class="btn btn-warning" onclick="rotateKeys()">
+                                                <i class="fas fa-sync-alt"></i> Rotate Keys
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" onclick="resetSection('client_side_encryption')">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Disappearing Messages Configuration -->
+                    <div class="tab-pane fade" id="disappearing-config" role="tabpanel">
+                        <div class="config-section">
+                            <h4><i class="fas fa-clock"></i> Disappearing Messages Settings</h4>
+                            <form id="disappearingConfigForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Disappearing Messages Enabled</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="disappearingEnabled" 
+                                                       {{ 'checked' if config.disappearing_messages.enabled else '' }}>
+                                                <label class="form-check-label" for="disappearingEnabled">Enable disappearing messages</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="defaultTtlHours" class="form-label">Default TTL (Hours)</label>
+                                            <input type="number" class="form-control" id="defaultTtlHours" 
+                                                   value="{{ config.disappearing_messages.default_ttl_hours }}" min="1" max="168">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="maxTtlHours" class="form-label">Maximum TTL (Hours)</label>
+                                            <input type="number" class="form-control" id="maxTtlHours" 
+                                                   value="{{ config.disappearing_messages.max_ttl_hours }}" min="1" max="8760">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Secure Deletion</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="secureDeletion" 
+                                                       {{ 'checked' if config.disappearing_messages.secure_deletion else '' }}>
+                                                <label class="form-check-label" for="secureDeletion">Enable cryptographic erasure</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cleanupIntervalMinutes" class="form-label">Cleanup Interval (Minutes)</label>
+                                            <input type="number" class="form-control" id="cleanupIntervalMinutes" 
+                                                   value="{{ config.disappearing_messages.cleanup_interval_minutes }}" min="1" max="1440">
+                                        </div>
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-primary" onclick="testDisappearingMessages()">
+                                                <i class="fas fa-vial"></i> Test Disappearing Messages
+                                            </button>
+                                            <button type="button" class="btn btn-warning" onclick="cleanupExpiredMessages()">
+                                                <i class="fas fa-trash"></i> Cleanup Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" onclick="resetSection('disappearing_messages')">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Anonymous Messaging Configuration -->
+                    <div class="tab-pane fade" id="anonymous-config" role="tabpanel">
+                        <div class="config-section">
+                            <h4><i class="fas fa-user-secret"></i> Anonymous Messaging Settings</h4>
+                            <form id="anonymousConfigForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Anonymous Messaging Enabled</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="anonymousEnabled" 
+                                                       {{ 'checked' if config.anonymous_messaging.enabled else '' }}>
+                                                <label class="form-check-label" for="anonymousEnabled">Enable anonymous messaging</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="anonymousSessionDuration" class="form-label">Session Duration (Hours)</label>
+                                            <input type="number" class="form-control" id="anonymousSessionDuration" 
+                                                   value="{{ config.anonymous_messaging.anonymous_session_duration_hours }}" min="1" max="24">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="maxAnonymousMessages" class="form-label">Max Messages per Session</label>
+                                            <input type="number" class="form-control" id="maxAnonymousMessages" 
+                                                   value="{{ config.anonymous_messaging.max_anonymous_messages }}" min="1" max="1000">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Routing Obfuscation</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="routingObfuscation" 
+                                                       {{ 'checked' if config.anonymous_messaging.routing_obfuscation else '' }}>
+                                                <label class="form-check-label" for="routingObfuscation">Enable routing obfuscation</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Metadata Stripping</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="metadataStripping" 
+                                                       {{ 'checked' if config.anonymous_messaging.metadata_stripping else '' }}>
+                                                <label class="form-check-label" for="metadataStripping">Strip identifying metadata</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-primary" onclick="testAnonymousMessaging()">
+                                                <i class="fas fa-vial"></i> Test Anonymous Messaging
+                                            </button>
+                                            <button type="button" class="btn btn-info" onclick="viewAnonymousSessions()">
+                                                <i class="fas fa-eye"></i> View Sessions
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" onclick="resetSection('anonymous_messaging')">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Biometric Authentication Configuration -->
+                    <div class="tab-pane fade" id="biometric-config" role="tabpanel">
+                        <div class="config-section">
+                            <h4><i class="fas fa-fingerprint"></i> Biometric Authentication Settings</h4>
+                            <form id="biometricConfigForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Biometric Authentication Enabled</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="biometricEnabled"
+                                                       {{ 'checked' if config.biometric_authentication.enabled else '' }}>
+                                                <label class="form-check-label" for="biometricEnabled">Enable biometric authentication</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Privacy Preserving</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="biometricPrivacyPreserving"
+                                                       {{ 'checked' if config.biometric_authentication.privacy_preserving else '' }}>
+                                                <label class="form-check-label" for="biometricPrivacyPreserving">Use privacy-preserving templates</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Template Encryption</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="templateEncryption"
+                                                       {{ 'checked' if config.biometric_authentication.template_encryption else '' }}>
+                                                <label class="form-check-label" for="templateEncryption">Encrypt biometric templates</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="confidenceThreshold" class="form-label">Confidence Threshold</label>
+                                            <input type="range" class="form-range" id="confidenceThreshold"
+                                                   min="0.5" max="1.0" step="0.05" value="{{ config.biometric_authentication.confidence_threshold }}">
+                                            <div class="d-flex justify-content-between">
+                                                <small>0.5 (Low)</small>
+                                                <small id="confidenceValue">{{ config.biometric_authentication.confidence_threshold }}</small>
+                                                <small>1.0 (High)</small>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="maxAttempts" class="form-label">Max Authentication Attempts</label>
+                                            <input type="number" class="form-control" id="maxAttempts"
+                                                   value="{{ config.biometric_authentication.max_attempts }}" min="1" max="10">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Supported Biometric Types</label>
+                                            <div class="row">
+                                                {% for biometric_type in ['fingerprint', 'face', 'voice', 'iris'] %}
+                                                <div class="col-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="biometric_{{ biometric_type }}"
+                                                               {{ 'checked' if biometric_type in config.biometric_authentication.supported_types else '' }}>
+                                                        <label class="form-check-label" for="biometric_{{ biometric_type }}">
+                                                            {{ biometric_type.title() }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" onclick="resetSection('biometric_authentication')">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trails Configuration -->
+                    <div class="tab-pane fade" id="audit-config" role="tabpanel">
+                        <div class="config-section">
+                            <h4><i class="fas fa-clipboard-list"></i> Audit Trails Settings</h4>
+                            <form id="auditConfigForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Audit Trails Enabled</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="auditEnabled"
+                                                       {{ 'checked' if config.audit_trails.enabled else '' }}>
+                                                <label class="form-check-label" for="auditEnabled">Enable audit trails</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Zero-Knowledge Proofs</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="zeroKnowledgeProofs"
+                                                       {{ 'checked' if config.audit_trails.zero_knowledge_proofs else '' }}>
+                                                <label class="form-check-label" for="zeroKnowledgeProofs">Use zero-knowledge proofs</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Privacy Preserving</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="auditPrivacyPreserving"
+                                                       {{ 'checked' if config.audit_trails.privacy_preserving else '' }}>
+                                                <label class="form-check-label" for="auditPrivacyPreserving">Preserve user privacy</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="retentionDays" class="form-label">Retention Period (Days)</label>
+                                            <input type="number" class="form-control" id="retentionDays"
+                                                   value="{{ config.audit_trails.retention_days }}" min="1" max="3650">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="hashAlgorithm" class="form-label">Hash Algorithm</label>
+                                            <select class="form-select" id="hashAlgorithm">
+                                                <option value="SHA-256" {{ 'selected' if config.audit_trails.hash_algorithm == 'SHA-256' else '' }}>SHA-256</option>
+                                                <option value="SHA-512" {{ 'selected' if config.audit_trails.hash_algorithm == 'SHA-512' else '' }}>SHA-512</option>
+                                                <option value="Blake2b" {{ 'selected' if config.audit_trails.hash_algorithm == 'Blake2b' else '' }}>Blake2b</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-primary" onclick="verifyAuditIntegrity()">
+                                                <i class="fas fa-check-circle"></i> Verify Integrity
+                                            </button>
+                                            <button type="button" class="btn btn-info" onclick="exportAuditTrail()">
+                                                <i class="fas fa-download"></i> Export Audit Trail
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" onclick="resetSection('audit_trails')">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Recent Audit Events -->
+                        <div class="config-section">
+                            <h5><i class="fas fa-history"></i> Recent Audit Events</h5>
+                            <div id="recentAuditEvents">
+                                <!-- Audit events will be loaded here -->
+                            </div>
+                            <button type="button" class="btn btn-outline-primary" onclick="loadAuditEvents()">
+                                <i class="fas fa-refresh"></i> Load Recent Events
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Settings Configuration -->
+                    <div class="tab-pane fade" id="privacy-config" role="tabpanel">
+                        <div class="config-section">
+                            <h4><i class="fas fa-eye-slash"></i> Privacy Settings</h4>
+                            <form id="privacyConfigForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="defaultPrivacyLevel" class="form-label">Default Privacy Level</label>
+                                            <select class="form-select" id="defaultPrivacyLevel">
+                                                <option value="standard" {{ 'selected' if config.privacy_settings.default_privacy_level == 'standard' else '' }}>Standard</option>
+                                                <option value="enhanced" {{ 'selected' if config.privacy_settings.default_privacy_level == 'enhanced' else '' }}>Enhanced</option>
+                                                <option value="anonymous" {{ 'selected' if config.privacy_settings.default_privacy_level == 'anonymous' else '' }}>Anonymous</option>
+                                                <option value="quantum_proof" {{ 'selected' if config.privacy_settings.default_privacy_level == 'quantum_proof' else '' }}>Quantum Proof</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Allow Anonymous Users</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="allowAnonymousUsers"
+                                                       {{ 'checked' if config.privacy_settings.allow_anonymous_users else '' }}>
+                                                <label class="form-check-label" for="allowAnonymousUsers">Allow anonymous user access</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Metadata Minimization</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="metadataMinimization"
+                                                       {{ 'checked' if config.privacy_settings.metadata_minimization else '' }}>
+                                                <label class="form-check-label" for="metadataMinimization">Minimize metadata collection</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Perfect Forward Secrecy</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="perfectForwardSecrecy"
+                                                       {{ 'checked' if config.privacy_settings.perfect_forward_secrecy else '' }}>
+                                                <label class="form-check-label" for="perfectForwardSecrecy">Enable perfect forward secrecy</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Zero-Knowledge Proofs</label>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="privacyZeroKnowledgeProofs"
+                                                       {{ 'checked' if config.privacy_settings.zero_knowledge_proofs else '' }}>
+                                                <label class="form-check-label" for="privacyZeroKnowledgeProofs">Use zero-knowledge proofs</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">Privacy Level Indicators</h6>
+                                                    <div class="mb-2">
+                                                        <span class="privacy-indicator privacy-high"></span>
+                                                        <small>High Privacy (Quantum Proof, Anonymous)</small>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <span class="privacy-indicator privacy-medium"></span>
+                                                        <small>Medium Privacy (Enhanced)</small>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <span class="privacy-indicator privacy-low"></span>
+                                                        <small>Standard Privacy</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" onclick="resetSection('privacy_settings')">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Results Modal -->
+    <div class="modal fade" id="testResultsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="testResultsContent">
+                    <!-- Test results will be populated here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh statistics every 30 seconds
+        setInterval(refreshStats, 30000);
+
+        function refreshStats() {
+            fetch('/admin/zero-knowledge-security/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateStatsDisplay(data.stats);
+                    }
+                })
+                .catch(error => console.error('Error refreshing stats:', error));
+        }
+
+        function updateStatsDisplay(stats) {
+            document.getElementById('totalMessages').textContent = stats.messages.total;
+            document.getElementById('disappearingMessages').textContent = stats.messages.disappearing;
+            document.getElementById('anonymousMessages').textContent = stats.messages.anonymous;
+            document.getElementById('activeAnonymousSessions').textContent = stats.anonymous_sessions.active;
+            document.getElementById('auditEntries').textContent = stats.audit_trail.total_entries;
+            document.getElementById('integrityScore').textContent = (stats.audit_trail.integrity_score * 100).toFixed(1) + '%';
+        }
+
+        // Configuration form handlers
+        document.getElementById('encryptionConfigForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveConfiguration('client_side_encryption', getEncryptionConfig());
+        });
+
+        document.getElementById('disappearingConfigForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveConfiguration('disappearing_messages', getDisappearingConfig());
+        });
+
+        document.getElementById('anonymousConfigForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveConfiguration('anonymous_messaging', getAnonymousConfig());
+        });
+
+        function getEncryptionConfig() {
+            return {
+                enabled: document.getElementById('encryptionEnabled').checked,
+                algorithm: document.getElementById('encryptionAlgorithm').value,
+                key_derivation: document.getElementById('keyDerivation').value,
+                key_rotation_hours: parseInt(document.getElementById('keyRotationHours').value),
+                quantum_resistant: document.getElementById('quantumResistant').checked
+            };
+        }
+
+        function getDisappearingConfig() {
+            return {
+                enabled: document.getElementById('disappearingEnabled').checked,
+                default_ttl_hours: parseInt(document.getElementById('defaultTtlHours').value),
+                max_ttl_hours: parseInt(document.getElementById('maxTtlHours').value),
+                secure_deletion: document.getElementById('secureDeletion').checked,
+                cleanup_interval_minutes: parseInt(document.getElementById('cleanupIntervalMinutes').value)
+            };
+        }
+
+        function getAnonymousConfig() {
+            return {
+                enabled: document.getElementById('anonymousEnabled').checked,
+                anonymous_session_duration_hours: parseInt(document.getElementById('anonymousSessionDuration').value),
+                max_anonymous_messages: parseInt(document.getElementById('maxAnonymousMessages').value),
+                routing_obfuscation: document.getElementById('routingObfuscation').checked,
+                metadata_stripping: document.getElementById('metadataStripping').checked
+            };
+        }
+
+        function saveConfiguration(section, config) {
+            const payload = {};
+            payload[section] = config;
+
+            fetch('/admin/zero-knowledge-security/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Configuration saved successfully', 'success');
+                } else {
+                    showAlert('Failed to save configuration: ' + data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving configuration:', error);
+                showAlert('Error saving configuration', 'danger');
+            });
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.container-fluid').firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Additional form handlers
+        document.getElementById('biometricConfigForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveConfiguration('biometric_authentication', getBiometricConfig());
+        });
+
+        document.getElementById('auditConfigForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveConfiguration('audit_trails', getAuditConfig());
+        });
+
+        document.getElementById('privacyConfigForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveConfiguration('privacy_settings', getPrivacyConfig());
+        });
+
+        // Configuration getters
+        function getBiometricConfig() {
+            const supportedTypes = [];
+            ['fingerprint', 'face', 'voice', 'iris'].forEach(type => {
+                if (document.getElementById(`biometric_${type}`).checked) {
+                    supportedTypes.push(type);
+                }
+            });
+
+            return {
+                enabled: document.getElementById('biometricEnabled').checked,
+                privacy_preserving: document.getElementById('biometricPrivacyPreserving').checked,
+                template_encryption: document.getElementById('templateEncryption').checked,
+                confidence_threshold: parseFloat(document.getElementById('confidenceThreshold').value),
+                max_attempts: parseInt(document.getElementById('maxAttempts').value),
+                supported_types: supportedTypes
+            };
+        }
+
+        function getAuditConfig() {
+            return {
+                enabled: document.getElementById('auditEnabled').checked,
+                zero_knowledge_proofs: document.getElementById('zeroKnowledgeProofs').checked,
+                privacy_preserving: document.getElementById('auditPrivacyPreserving').checked,
+                retention_days: parseInt(document.getElementById('retentionDays').value),
+                hash_algorithm: document.getElementById('hashAlgorithm').value
+            };
+        }
+
+        function getPrivacyConfig() {
+            return {
+                default_privacy_level: document.getElementById('defaultPrivacyLevel').value,
+                allow_anonymous_users: document.getElementById('allowAnonymousUsers').checked,
+                metadata_minimization: document.getElementById('metadataMinimization').checked,
+                perfect_forward_secrecy: document.getElementById('perfectForwardSecrecy').checked,
+                zero_knowledge_proofs: document.getElementById('privacyZeroKnowledgeProofs').checked
+            };
+        }
+
+        // Test functions
+        function testAllSystems() {
+            showTestResults('Running comprehensive zero-knowledge security tests...');
+
+            fetch('/admin/zero-knowledge-security/test-all', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayTestResults(data);
+            })
+            .catch(error => {
+                console.error('Error running tests:', error);
+                showTestResults('Error running tests: ' + error.message, 'error');
+            });
+        }
+
+        function testEncryption() {
+            fetch('/admin/zero-knowledge-security/test-encryption', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayTestResults(data);
+            })
+            .catch(error => {
+                console.error('Error testing encryption:', error);
+                showTestResults('Error testing encryption: ' + error.message, 'error');
+            });
+        }
+
+        function testDisappearingMessages() {
+            fetch('/admin/zero-knowledge-security/test-disappearing', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayTestResults(data);
+            })
+            .catch(error => {
+                console.error('Error testing disappearing messages:', error);
+                showTestResults('Error testing disappearing messages: ' + error.message, 'error');
+            });
+        }
+
+        function testAnonymousMessaging() {
+            fetch('/admin/zero-knowledge-security/test-anonymous', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayTestResults(data);
+            })
+            .catch(error => {
+                console.error('Error testing anonymous messaging:', error);
+                showTestResults('Error testing anonymous messaging: ' + error.message, 'error');
+            });
+        }
+
+        function rotateKeys() {
+            if (confirm('Are you sure you want to rotate all encryption keys? This will require users to re-authenticate.')) {
+                fetch('/admin/zero-knowledge-security/rotate-keys', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Keys rotated successfully', 'success');
+                    } else {
+                        showAlert('Failed to rotate keys: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error rotating keys:', error);
+                    showAlert('Error rotating keys', 'danger');
+                });
+            }
+        }
+
+        function cleanupExpiredMessages() {
+            fetch('/admin/zero-knowledge-security/cleanup-expired', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Cleaned up ${data.cleaned_count} expired messages`, 'success');
+                    refreshStats();
+                } else {
+                    showAlert('Failed to cleanup messages: ' + data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error cleaning up messages:', error);
+                showAlert('Error cleaning up messages', 'danger');
+            });
+        }
+
+        function verifyAuditIntegrity() {
+            fetch('/admin/zero-knowledge-security/verify-audit', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const result = data.integrity_result;
+                    const message = `Audit integrity verification: ${result.audit_status}\n` +
+                                  `Verified entries: ${result.verified_entries}/${result.total_entries}\n` +
+                                  `Integrity score: ${(result.integrity_score * 100).toFixed(1)}%`;
+
+                    showTestResults(message, result.audit_status === 'PASSED' ? 'success' : 'error');
+                } else {
+                    showAlert('Failed to verify audit integrity: ' + data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error verifying audit integrity:', error);
+                showAlert('Error verifying audit integrity', 'danger');
+            });
+        }
+
+        function exportAuditTrail() {
+            window.open('/admin/zero-knowledge-security/export-audit', '_blank');
+        }
+
+        function viewAnonymousSessions() {
+            fetch('/admin/zero-knowledge-security/anonymous-sessions')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayAnonymousSessions(data.sessions);
+                    } else {
+                        showAlert('Failed to load anonymous sessions: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading anonymous sessions:', error);
+                    showAlert('Error loading anonymous sessions', 'danger');
+                });
+        }
+
+        function loadAuditEvents() {
+            fetch('/admin/zero-knowledge-security/audit-events?limit=10')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayAuditEvents(data.events);
+                    } else {
+                        showAlert('Failed to load audit events: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading audit events:', error);
+                    showAlert('Error loading audit events', 'danger');
+                });
+        }
+
+        function displayTestResults(data) {
+            let content = '<div class="test-results">';
+
+            if (data.success) {
+                content += '<div class="test-result test-success">';
+                content += '<h6><i class="fas fa-check-circle"></i> Tests Passed</h6>';
+
+                if (data.results) {
+                    for (const [test, result] of Object.entries(data.results)) {
+                        content += `<div><strong>${test}:</strong> ${result.status}`;
+                        if (result.details) {
+                            content += ` - ${result.details}`;
+                        }
+                        content += '</div>';
+                    }
+                }
+            } else {
+                content += '<div class="test-result test-error">';
+                content += '<h6><i class="fas fa-exclamation-circle"></i> Tests Failed</h6>';
+                content += `<div>${data.message || 'Unknown error occurred'}</div>`;
+            }
+
+            content += '</div></div>';
+
+            document.getElementById('testResultsContent').innerHTML = content;
+            new bootstrap.Modal(document.getElementById('testResultsModal')).show();
+        }
+
+        function displayAnonymousSessions(sessions) {
+            let content = '<div class="anonymous-sessions">';
+            content += '<h6>Active Anonymous Sessions</h6>';
+
+            if (sessions.length === 0) {
+                content += '<p class="text-muted">No active anonymous sessions</p>';
+            } else {
+                content += '<div class="table-responsive">';
+                content += '<table class="table table-sm">';
+                content += '<thead><tr><th>Session ID</th><th>Created</th><th>Expires</th><th>Messages</th></tr></thead>';
+                content += '<tbody>';
+
+                sessions.forEach(session => {
+                    content += '<tr>';
+                    content += `<td><code>${session.anonymous_id.substring(0, 16)}...</code></td>`;
+                    content += `<td>${new Date(session.created_at).toLocaleString()}</td>`;
+                    content += `<td>${new Date(session.expires_at).toLocaleString()}</td>`;
+                    content += `<td>${session.message_count}/${session.max_messages}</td>`;
+                    content += '</tr>';
+                });
+
+                content += '</tbody></table></div>';
+            }
+
+            content += '</div>';
+
+            document.getElementById('testResultsContent').innerHTML = content;
+            new bootstrap.Modal(document.getElementById('testResultsModal')).show();
+        }
+
+        function displayAuditEvents(events) {
+            const container = document.getElementById('recentAuditEvents');
+
+            if (events.length === 0) {
+                container.innerHTML = '<p class="text-muted">No recent audit events</p>';
+                return;
+            }
+
+            let content = '';
+            events.forEach(event => {
+                content += '<div class="audit-entry">';
+                content += `<div class="d-flex justify-content-between align-items-start">`;
+                content += `<div>`;
+                content += `<strong>${event.event_type.replace('_', ' ').toUpperCase()}</strong>`;
+                if (event.user_id) {
+                    content += ` - User: ${event.user_id}`;
+                }
+                content += `</div>`;
+                content += `<small class="text-muted">${new Date(event.timestamp).toLocaleString()}</small>`;
+                content += `</div>`;
+
+                if (event.metadata && Object.keys(event.metadata).length > 0) {
+                    content += '<div class="mt-2">';
+                    for (const [key, value] of Object.entries(event.metadata)) {
+                        content += `<span class="badge bg-secondary me-1">${key}: ${value}</span>`;
+                    }
+                    content += '</div>';
+                }
+
+                content += '</div>';
+            });
+
+            container.innerHTML = content;
+        }
+
+        function showTestResults(message, type = 'info') {
+            const content = `<div class="test-result test-${type}">${message}</div>`;
+            document.getElementById('testResultsContent').innerHTML = content;
+            new bootstrap.Modal(document.getElementById('testResultsModal')).show();
+        }
+
+        function resetSection(section) {
+            if (confirm(`Are you sure you want to reset ${section.replace('_', ' ')} settings to defaults?`)) {
+                fetch(`/admin/zero-knowledge-security/reset-section/${section}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Section reset to defaults', 'success');
+                        location.reload(); // Reload to show default values
+                    } else {
+                        showAlert('Failed to reset section: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error resetting section:', error);
+                    showAlert('Error resetting section', 'danger');
+                });
+            }
+        }
+
+        // Update confidence threshold display
+        document.getElementById('confidenceThreshold').addEventListener('input', function() {
+            document.getElementById('confidenceValue').textContent = this.value;
+        });
+
+        // Load initial audit events
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAuditEvents();
+        });
+    </script>
+</body>
+</html>

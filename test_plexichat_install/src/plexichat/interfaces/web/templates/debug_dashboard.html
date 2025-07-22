@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - PlexiChat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .debug-level-trace { color: #6c757d; }
+        .debug-level-debug { color: #0dcaf0; }
+        .debug-level-info { color: #0d6efd; }
+        .debug-level-warning { color: #fd7e14; }
+        .debug-level-error { color: #dc3545; }
+        .debug-level-critical { color: #6f42c1; background-color: #f8d7da; }
+        
+        .debug-event {
+            border-left: 4px solid #dee2e6;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .debug-event.trace { border-left-color: #6c757d; }
+        .debug-event.debug { border-left-color: #0dcaf0; }
+        .debug-event.info { border-left-color: #0d6efd; }
+        .debug-event.warning { border-left-color: #fd7e14; }
+        .debug-event.error { border-left-color: #dc3545; }
+        .debug-event.critical { border-left-color: #6f42c1; background-color: #f8d7da; }
+        
+        .performance-metric {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .error-summary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .session-card {
+            transition: transform 0.2s;
+        }
+        
+        .session-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .live-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #28a745;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+        
+        .filter-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-comments"></i> PlexiChat
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/tests">Tests</a>
+                <a class="nav-link" href="/plugins">Plugins</a>
+                <a class="nav-link active" href="/debug">Debug</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1><i class="fas fa-bug"></i> Debug Dashboard</h1>
+                <p class="text-muted">
+                    <span class="live-indicator"></span>
+                    Real-time debugging and monitoring interface
+                </p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" onclick="takeMemorySnapshot()">
+                    <i class="fas fa-camera"></i> Memory Snapshot
+                </button>
+                <button class="btn btn-success" onclick="exportDebugData()">
+                    <i class="fas fa-download"></i> Export Data
+                </button>
+                <button class="btn btn-warning" onclick="clearDebugData()">
+                    <i class="fas fa-trash"></i> Clear Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="performance-metric">
+                    <h4>{{ recent_events|length }}</h4>
+                    <p class="mb-0">Recent Events</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="error-summary">
+                    <h4>{{ error_summary.total_errors or 0 }}</h4>
+                    <p class="mb-0">Total Errors</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ active_sessions|length }}</h4>
+                        <p class="mb-0">Active Sessions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ performance_summary|length }}</h4>
+                        <p class="mb-0">Tracked Functions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Debug Events -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Debug Events</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="refreshEvents()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Panel -->
+                    <div class="collapse" id="filterPanel">
+                        <div class="card-body">
+                            <div class="filter-panel">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Level</label>
+                                        <select class="form-select" id="levelFilter">
+                                            <option value="">All Levels</option>
+                                            <option value="trace">Trace</option>
+                                            <option value="debug">Debug</option>
+                                            <option value="info">Info</option>
+                                            <option value="warning">Warning</option>
+                                            <option value="error">Error</option>
+                                            <option value="critical">Critical</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Source</label>
+                                        <input type="text" class="form-control" id="sourceFilter" placeholder="Filter by source...">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Search</label>
+                                        <input type="text" class="form-control" id="searchFilter" placeholder="Search messages...">
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col">
+                                        <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                                        <button class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;" id="eventsContainer">
+                        {% if recent_events %}
+                            {% for event in recent_events %}
+                            <div class="debug-event {{ event.level.value }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="badge bg-{{ 'danger' if event.level.value == 'error' else 'warning' if event.level.value == 'warning' else 'info' }} me-2">
+                                                {{ event.level.value.upper() }}
+                                            </span>
+                                            <strong>{{ event.source }}</strong>
+                                        </div>
+                                        <div class="mb-1">{{ event.message }}</div>
+                                        {% if event.context %}
+                                        <details class="mt-2">
+                                            <summary class="text-muted" style="cursor: pointer;">Context</summary>
+                                            <div class="code-block mt-2">
+                                                {{ event.context | tojson(indent=2) }}
+                                            </div>
+                                        </details>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">{{ event.timestamp }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No debug events available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <!-- Error Summary -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Error Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if error_summary.top_errors %}
+                            {% for error_type, count in error_summary.top_errors %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-truncate">{{ error_type }}</span>
+                                <span class="badge bg-danger">{{ count }}</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No errors recorded</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Performance Summary -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Performance Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if performance_summary %}
+                            {% for func_name, stats in performance_summary.items() %}
+                            {% if loop.index <= 5 %}
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-truncate" title="{{ func_name }}">{{ func_name.split('.')[-1] }}</span>
+                                    <small class="text-muted">{{ "%.3f"|format(stats.avg_duration) }}s</small>
+                                </div>
+                                <div class="progress" style="height: 4px;">
+                                    <div class="progress-bar" style="width: {{ (stats.avg_duration / 1.0 * 100)|min(100) }}%"></div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No performance data available</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Active Sessions -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Debug Sessions</h6>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createSessionModal">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if active_sessions %}
+                            {% for session in active_sessions %}
+                            <div class="session-card card mb-2">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ session.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ session.event_count }} events</small>
+                                            {% if session.active %}
+                                            <span class="badge bg-success">Active</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#" onclick="viewSession('{{ session.session_id }}')">View</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="exportSession('{{ session.session_id }}')">Export</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteSession('{{ session.session_id }}')">Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No active sessions</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Session Modal -->
+    <div class="modal fade" id="createSessionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Debug Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createSessionForm">
+                        <div class="mb-3">
+                            <label class="form-label">Session Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Metadata (JSON)</label>
+                            <textarea class="form-control" name="metadata" rows="3" placeholder='{"key": "value"}'></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createSession()">Create Session</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh every 10 seconds
+        setInterval(() => {
+            refreshEvents();
+        }, 10000);
+
+        async function refreshEvents() {
+            try {
+                const response = await fetch('/debug/live-events');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateEventsDisplay(data.recent_events);
+                }
+            } catch (error) {
+                console.error('Error refreshing events:', error);
+            }
+        }
+
+        function updateEventsDisplay(events) {
+            const container = document.getElementById('eventsContainer');
+            
+            // Add new events to the top
+            events.forEach(event => {
+                const eventElement = createEventElement(event);
+                container.insertBefore(eventElement, container.firstChild);
+            });
+            
+            // Limit to 50 events
+            while (container.children.length > 50) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        function createEventElement(event) {
+            const div = document.createElement('div');
+            div.className = `debug-event ${event.level}`;
+            
+            const badgeClass = event.level === 'error' ? 'danger' : 
+                              event.level === 'warning' ? 'warning' : 'info';
+            
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="badge bg-${badgeClass} me-2">${event.level.toUpperCase()}</span>
+                            <strong>${event.source}</strong>
+                        </div>
+                        <div class="mb-1">${event.message}</div>
+                    </div>
+                    <small class="text-muted">${event.timestamp}</small>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        async function takeMemorySnapshot() {
+            try {
+                const label = prompt('Enter snapshot label (optional):') || '';
+                
+                const formData = new FormData();
+                formData.append('label', label);
+                
+                const response = await fetch('/debug/memory/snapshot', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Memory snapshot taken successfully');
+                } else {
+                    alert('Failed to take memory snapshot');
+                }
+            } catch (error) {
+                alert('Error taking memory snapshot: ' + error.message);
+            }
+        }
+
+        async function exportDebugData() {
+            try {
+                window.open('/debug/export', '_blank');
+            } catch (error) {
+                alert('Error exporting debug data: ' + error.message);
+            }
+        }
+
+        async function clearDebugData() {
+            if (!confirm('Clear all debug data? This cannot be undone.')) return;
+            
+            try {
+                const response = await fetch('/debug/clear', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Debug data cleared successfully');
+                    location.reload();
+                } else {
+                    alert('Failed to clear debug data');
+                }
+            } catch (error) {
+                alert('Error clearing debug data: ' + error.message);
+            }
+        }
+
+        async function createSession() {
+            try {
+                const form = document.getElementById('createSessionForm');
+                const formData = new FormData(form);
+                
+                const response = await fetch('/debug/sessions', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Debug session created successfully');
+                    location.reload();
+                } else {
+                    alert('Failed to create debug session');
+                }
+            } catch (error) {
+                alert('Error creating debug session: ' + error.message);
+            }
+        }
+
+        async function viewSession(sessionId) {
+            window.open(`/debug/sessions/${sessionId}`, '_blank');
+        }
+
+        async function exportSession(sessionId) {
+            window.open(`/debug/export?session_id=${sessionId}`, '_blank');
+        }
+
+        async function deleteSession(sessionId) {
+            if (!confirm('Delete this debug session?')) return;
+            
+            try {
+                const response = await fetch(`/debug/sessions/${sessionId}`, { method: 'DELETE' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Debug session deleted successfully');
+                    location.reload();
+                } else {
+                    alert('Failed to delete debug session');
+                }
+            } catch (error) {
+                alert('Error deleting debug session: ' + error.message);
+            }
+        }
+
+        async function applyFilters() {
+            const level = document.getElementById('levelFilter').value;
+            const source = document.getElementById('sourceFilter').value;
+            const search = document.getElementById('searchFilter').value;
+            
+            let url = '/debug/events?limit=100';
+            if (level) url += `&level=${level}`;
+            if (source) url += `&source=${encodeURIComponent(source)}`;
+            
+            try {
+                let response;
+                if (search) {
+                    response = await fetch(`/debug/search?query=${encodeURIComponent(search)}&level=${level}&source=${encodeURIComponent(source)}`);
+                } else {
+                    response = await fetch(url);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayFilteredEvents(data.events);
+                }
+            } catch (error) {
+                console.error('Error applying filters:', error);
+            }
+        }
+
+        function displayFilteredEvents(events) {
+            const container = document.getElementById('eventsContainer');
+            container.innerHTML = '';
+            
+            events.forEach(event => {
+                const eventElement = createEventElement(event);
+                container.appendChild(eventElement);
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('levelFilter').value = '';
+            document.getElementById('sourceFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            location.reload();
+        }
+    </script>
+</body>
+</html>

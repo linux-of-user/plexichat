@@ -18,7 +18,7 @@ import asyncio
 import json
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Callable, Union
@@ -56,6 +56,7 @@ class PluginConfig:
     min_plexichat_version: str = "1.0.0"
     api_version: str = "v1"
     enabled: bool = True
+    requires: List[str] = None
 
     def __post_init__(self):
         if self.tags is None:
@@ -64,6 +65,8 @@ class PluginConfig:
             self.permissions = []
         if self.dependencies is None:
             self.dependencies = []
+        if self.requires is None:
+            self.requires = []
 
 class PluginAPI:
     """High-level API for plugin operations."""
@@ -71,8 +74,9 @@ class PluginAPI:
     def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         self.logger = get_logger(f"plugin.{plugin_name}.api")
-        self._config = {}
-        self._event_handlers = {}
+        self._config: Dict[str, Any] = {}
+        self._event_handlers: Dict[str, List[Callable[..., Any]]] = {}
+        self._state: Dict[str, Any] = {}
 
     # Configuration Management
     def get_config(self, key: str, default: Any = None) -> Any:
@@ -112,7 +116,7 @@ class PluginAPI:
             return False
 
     # Event System
-    def on(self, event: str, handler: Callable) -> None:
+    def on(self, event: str, handler: Callable[..., Any]) -> None:
         """Register event handler."""
         if event not in self._event_handlers:
             self._event_handlers[event] = []
@@ -131,11 +135,9 @@ class PluginAPI:
                     self.logger.error(f"Error in event handler for {event}: {e}")
 
     # Messaging API
-    async def send_message(self, channel_id: str, content: str, )
-                          message_type: str = "text") -> Optional[str]:
+    async def send_message(self, channel_id: str, content: str, message_type: str = "text") -> Optional[str]:
         """Send a message to a channel."""
         try:
-            # This would integrate with the actual messaging system
             message_data = {
                 "channel_id": channel_id,
                 "content": content,
@@ -143,11 +145,9 @@ class PluginAPI:
                 "timestamp": datetime.now().isoformat(),
                 "plugin": self.plugin_name
             }
-
             self.logger.info(f"Sending message to channel {channel_id}: {content[:50]}...")
             # Return mock message ID for now
             return f"msg_{datetime.now().timestamp()}"
-
         except Exception as e:
             self.logger.error(f"Error sending message: {e}")
             return None
@@ -187,7 +187,7 @@ class PluginAPI:
             return None
 
     # Database Operations (if permitted)
-    async def query_database(self, query: str, params: Optional[Dict] = None) -> List[Dict]:
+    async def query_database(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Execute database query."""
         try:
             self.logger.info(f"Executing database query: {query[:100]}...")
@@ -198,9 +198,7 @@ class PluginAPI:
             return []
 
     # HTTP Requests
-    async def make_request(self, method: str, url: str, )
-                          headers: Optional[Dict] = None,
-                          data: Optional[Dict] = None) -> Optional[Dict]:
+    async def make_request(self, method: str, url: str, headers: Optional[Dict[str, Any]] = None, data: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """Make HTTP request."""
         try:
             self.logger.info(f"Making {method} request to {url}")
@@ -209,6 +207,83 @@ class PluginAPI:
         except Exception as e:
             self.logger.error(f"Error making HTTP request: {e}")
             return None
+
+    # --- Plugin-to-Plugin Communication ---
+    def send_plugin_event(self, target_plugin: str, event: str, data: Any = None) -> None:
+        """Send an event to another plugin (stub; real implementation would use plugin manager)."""
+        self.logger.info(f"Sending event '{event}' to plugin '{target_plugin}' with data: {data}")
+        # TODO: Integrate with plugin manager for real delivery
+
+    def on_plugin_event(self, event: str, handler: Callable[..., Any]) -> None:
+        """Register a handler for plugin-to-plugin events."""
+        self.on(f"plugin_event:{event}", handler)
+
+    # --- Background Tasks & Scheduling ---
+    def schedule_task(self, coro: Callable[..., Any], interval: float) -> None:
+        """Schedule a coroutine to run periodically in the background."""
+        async def periodic():
+            while True:
+                await coro()
+                await asyncio.sleep(interval)
+        asyncio.create_task(periodic())
+
+    def run_in_background(self, coro: Callable[..., Any]) -> None:
+        """Run a coroutine in the background."""
+        asyncio.create_task(coro())
+
+    # --- Plugin State Storage ---
+    def set_state(self, key: str, value: Any) -> None:
+        """Set persistent plugin state (stub; real implementation should persist to disk/db)."""
+        self._state[key] = value
+
+    def get_state(self, key: str, default: Any = None) -> Any:
+        """Get persistent plugin state."""
+        return self._state.get(key, default)
+
+    # --- Plugin Metrics & Telemetry ---
+    def emit_metric(self, name: str, value: float, tags: Optional[Dict[str, Any]] = None) -> None:
+        """Emit a custom metric for monitoring (stub; real implementation would send to metrics system)."""
+        self.logger.info(f"Metric: {name}={value} tags={tags}")
+
+    # --- Webhook Registration ---
+    def register_webhook(self, path: str, handler: Callable[..., Any]) -> None:
+        """Register a webhook/HTTP endpoint (stub; real implementation would register with web server)."""
+        self.logger.info(f"Registering webhook at {path}")
+        # TODO: Integrate with web server
+
+    # --- Permission/Capability Checks ---
+    def has_permission(self, permission: str) -> bool:
+        """Check if the plugin has a given permission (stub)."""
+        return permission in getattr(self, 'permissions', [])
+
+    def require_capability(self, capability: str) -> bool:
+        """Check if the plugin has a given capability (stub)."""
+        return capability in getattr(self, 'capabilities', [])
+
+    # --- Dependency Injection/Service Discovery ---
+    def get_service(self, name: str) -> Any:
+        """Get another plugin's API/service (stub; real implementation would use plugin manager)."""
+        self.logger.info(f"Requesting service: {name}")
+        return None
+
+    # --- Config Validation ---
+    def validate_config(self) -> bool:
+        """Validate config against schema if available (stub)."""
+        schema = getattr(self, 'config_schema', None)
+        if not isinstance(schema, dict):
+            return True
+        # TODO: Implement real validation
+        self.logger.info("Validating config against schema (stub)")
+        return True
+
+    # --- Advanced UI Integration ---
+    def register_ui_panel(self, name: str, html_path: str) -> None:
+        """Register a custom UI panel (stub)."""
+        self.logger.info(f"Registering UI panel: {name} at {html_path}")
+
+    def register_settings_page(self, schema: Dict[str, Any]) -> None:
+        """Register a settings page with a config schema (stub)."""
+        self.logger.info(f"Registering settings page with schema: {schema}")
 
 class SDKPlugin(PluginInterface):
     """Enhanced plugin base class using the SDK."""
@@ -272,20 +347,39 @@ class SDKPlugin(PluginInterface):
         """Get UI pages provided by this plugin."""
         return []
 
+    # --- SDKPlugin lifecycle hooks ---
+    async def on_reload(self) -> bool:
+        """Called when plugin is reloaded."""
+        return True
+
+    async def on_config_change(self, new_config: Dict[str, Any]) -> bool:
+        """Called when plugin config changes."""
+        return True
+
+    async def on_upgrade(self, old_version: str, new_version: str) -> bool:
+        """Called when plugin is upgraded."""
+        return True
+
+    async def on_downgrade(self, old_version: str, new_version: str) -> bool:
+        """Called when plugin is downgraded."""
+        return True
+
+# Add requires to PluginConfig for dependency injection
+PluginConfig.requires = []
+
 class PluginBuilder:
     """Builder class for creating plugins."""
 
     def __init__(self, name: str):
         self.config = PluginConfig()
-            name=name,
-            version="1.0.0",
-            description="",
-            author=""
-        )
-        self._handlers = {}
-        self._commands = {}
-        self._routes = []
-        self._ui_pages = []
+        self.config.name = name
+        self.config.version = "1.0.0"
+        self.config.description = ""
+        self.config.author = ""
+        self._handlers: Dict[str, Callable[..., Any]] = {}
+        self._commands: Dict[str, Callable[..., Any]] = {}
+        self._routes: List[Dict[str, Any]] = []
+        self._ui_pages: List[Dict[str, Any]] = []
 
     def version(self, version: str) -> 'PluginBuilder':
         """Set plugin version."""
@@ -324,33 +418,29 @@ class PluginBuilder:
         self.config.dependencies = list(dependencies)
         return self
 
-    def on_message(self, handler: Callable) -> 'PluginBuilder':
+    def on_message(self, handler: Callable[..., Any]) -> 'PluginBuilder':
         """Set message handler."""
         self._handlers['message'] = handler
         return self
 
-    def on_user_join(self, handler: Callable) -> 'PluginBuilder':
+    def on_user_join(self, handler: Callable[..., Any]) -> 'PluginBuilder':
         """Set user join handler."""
         self._handlers['user_join'] = handler
         return self
 
-    def command(self, name: str, handler: Callable) -> 'PluginBuilder':
+    def command(self, name: str, handler: Callable[..., Any]) -> 'PluginBuilder':
         """Add command handler."""
         self._commands[name] = handler
         return self
 
-    def api_route(self, path: str, method: str, handler: Callable) -> 'PluginBuilder':
+    def api_route(self, path: str, method: str, handler: Callable[..., Any]) -> 'PluginBuilder':
         """Add API route."""
-        self._routes.append({)
-            "path": path,
-            "method": method,
-            "handler": handler
-        })
+        self._routes.append({"path": path, "method": method, "handler": handler})
         return self
 
     def ui_page(self, name: str, path: str, title: str) -> 'PluginBuilder':
         """Add UI page."""
-        self._ui_pages.append({)
+        self._ui_pages.append({
             "name": name,
             "path": path,
             "title": title

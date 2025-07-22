@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlexiChat - Secure Login</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --dark-color: #1a252f;
+            --light-color: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 40px 30px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .login-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            background: white;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login.loading {
+            pointer-events: none;
+        }
+
+        .btn-login .spinner {
+            display: none;
+        }
+
+        .btn-login.loading .spinner {
+            display: inline-block;
+        }
+
+        .btn-login.loading .btn-text {
+            display: none;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .password-reset-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .password-reset-link:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .security-info {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .attempt-counter {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--accent-color);
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .version-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        @media (max-width: 576px) {
+            .login-card {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .login-header {
+                padding: 30px 20px 20px;
+            }
+            
+            .login-header h1 {
+                font-size: 2rem;
+            }
+            
+            .login-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Background Shapes -->
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1><i class="fas fa-shield-alt"></i> PlexiChat</h1>
+                <p>Secure Administrative Access</p>
+            </div>
+            
+            <div class="login-body">
+                <!-- Alert Messages -->
+                <div id="alert-container"></div>
+                
+                <!-- Attempt Counter -->
+                <div id="attempt-counter" class="attempt-counter" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="attempt-text"></span>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Username" required autocomplete="username">
+                        <label for="username"><i class="fas fa-user"></i> Username</label>
+                    </div>
+                    
+                    <div class="form-floating">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+                        <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="remember-me" name="remember_me">
+                        <label class="form-check-label" for="remember-me">
+                            Remember me for 30 days
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-login">
+                        <span class="btn-text">
+                            <i class="fas fa-sign-in-alt"></i> Sign In Securely
+                        </span>
+                        <span class="spinner">
+                            <i class="fas fa-spinner fa-spin"></i> Authenticating...
+                        </span>
+                    </button>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <a href="#" class="password-reset-link" onclick="showPasswordReset()">
+                        <i class="fas fa-key"></i> Forgot your password?
+                    </a>
+                </div>
+                
+                <div class="security-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Security Notice:</strong> This is a secure administrative interface. 
+                    All login attempts are monitored and logged. Password reset codes are sent to the CLI terminal.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div class="modal fade" id="passwordResetModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-key"></i> Password Reset
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reset-step-1">
+                        <p>Enter your username and email address. A reset code will be sent to the CLI terminal.</p>
+                        <form id="reset-request-form">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="reset-username" required>
+                                <label for="reset-username">Username</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="reset-email" required>
+                                <label for="reset-email">Email Address</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-paper-plane"></i> Send Reset Code
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div id="reset-step-2" style="display: none;">
+                        <div class="alert alert-info">
+                            <i class="fas fa-terminal"></i>
+                            <strong>Check CLI Terminal:</strong> A reset code has been sent to the CLI terminal. 
+                            Enter it below along with your new password.
+                        </div>
+                        <form id="reset-confirm-form">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="reset-code" required placeholder="Reset Code">
+                                <label for="reset-code">Reset Code from CLI</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="new-password" required>
+                                <label for="new-password">New Password</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="confirm-password" required>
+                                <label for="confirm-password">Confirm New Password</label>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-check"></i> Reset Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version Info -->
+    <div class="version-info">
+        PlexiChat v2.0 - Enhanced Security
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let loginAttempts = 0;
+        const maxAttempts = 5;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLoginAttempts();
+            setupFormHandlers();
+        });
+        
+        function setupFormHandlers() {
+            // Login form handler
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            
+            // Password reset forms
+            document.getElementById('reset-request-form').addEventListener('submit', handleResetRequest);
+            document.getElementById('reset-confirm-form').addEventListener('submit', handleResetConfirm);
+            
+            // Enter key handlers
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    const activeForm = document.querySelector('form:not([style*="display: none"])');
+                    if (activeForm) {
+                        e.preventDefault();
+                        activeForm.dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const button = form.querySelector('button[type="submit"]');
+            
+            // Show loading state
+            button.classList.add('loading');
+            
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: formData.get('username'),
+                        password: formData.get('password'),
+                        remember_me: formData.get('remember_me') === 'on'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('success', 'Login successful! Redirecting...', 'fas fa-check-circle');
+                    
+                    // Store session info
+                    if (result.data.session_id) {
+                        localStorage.setItem('plexichat_session', result.data.session_id);
+                    }
+                    
+                    // Reset attempts counter
+                    loginAttempts = 0;
+                    localStorage.removeItem('plexichat_login_attempts');
+                    
+                    // Redirect to admin dashboard
+                    setTimeout(() => {
+                        window.location.href = '/admin/';
+                    }, 1500);
+                } else {
+                    loginAttempts++;
+                    localStorage.setItem('plexichat_login_attempts', loginAttempts.toString());
+                    updateAttemptCounter();
+                    
+                    showAlert('danger', result.message || 'Login failed', 'fas fa-exclamation-triangle');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('danger', 'Connection error. Please try again.', 'fas fa-exclamation-triangle');
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+        
+        async function handleResetRequest(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const button = form.querySelector('button[type="submit"]');
+            
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            try {
+                const response = await fetch('/auth/password-reset-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: formData.get('username'),
+                        email: formData.get('email')
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('reset-step-1').style.display = 'none';
+                    document.getElementById('reset-step-2').style.display = 'block';
+                } else {
+                    showAlert('warning', result.message || 'Reset request failed', 'fas fa-exclamation-triangle');
+                }
+            } catch (error) {
+                console.error('Reset request error:', error);
+                showAlert('danger', 'Connection error. Please try again.', 'fas fa-exclamation-triangle');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Code';
+            }
+        }
+        
+        async function handleResetConfirm(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const newPassword = formData.get('new_password');
+            const confirmPassword = formData.get('confirm_password');
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('warning', 'Passwords do not match', 'fas fa-exclamation-triangle');
+                return;
+            }
+            
+            const button = form.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Resetting...';
+            
+            try {
+                const response = await fetch('/auth/password-reset-confirm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('reset-username').value,
+                        reset_code: formData.get('reset_code'),
+                        new_password: newPassword
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('success', 'Password reset successful! You can now login.', 'fas fa-check-circle');
+                    bootstrap.Modal.getInstance(document.getElementById('passwordResetModal')).hide();
+                    
+                    // Reset the modal
+                    setTimeout(() => {
+                        document.getElementById('reset-step-1').style.display = 'block';
+                        document.getElementById('reset-step-2').style.display = 'none';
+                        form.reset();
+                        document.getElementById('reset-request-form').reset();
+                    }, 500);
+                } else {
+                    showAlert('danger', result.message || 'Password reset failed', 'fas fa-exclamation-triangle');
+                }
+            } catch (error) {
+                console.error('Reset confirm error:', error);
+                showAlert('danger', 'Connection error. Please try again.', 'fas fa-exclamation-triangle');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-check"></i> Reset Password';
+            }
+        }
+        
+        function showPasswordReset() {
+            const modal = new bootstrap.Modal(document.getElementById('passwordResetModal'));
+            modal.show();
+        }
+        
+        function showAlert(type, message, icon = '') {
+            const alertContainer = document.getElementById('alert-container');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHtml = `
+                <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${icon ? `<i class="${icon}"></i> ` : ''}
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            alertContainer.innerHTML = alertHtml;
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+        
+        function loadLoginAttempts() {
+            const stored = localStorage.getItem('plexichat_login_attempts');
+            if (stored) {
+                loginAttempts = parseInt(stored);
+                updateAttemptCounter();
+            }
+        }
+        
+        function updateAttemptCounter() {
+            const counter = document.getElementById('attempt-counter');
+            const text = document.getElementById('attempt-text');
+            
+            if (loginAttempts > 0) {
+                const remaining = maxAttempts - loginAttempts;
+                text.textContent = `${loginAttempts} failed attempt${loginAttempts > 1 ? 's' : ''}. ${remaining} attempt${remaining > 1 ? 's' : ''} remaining before account lockout.`;
+                counter.style.display = 'block';
+            } else {
+                counter.style.display = 'none';
+            }
+        }
+        
+        // Check for existing session on page load
+        window.addEventListener('load', function() {
+            const sessionId = localStorage.getItem('plexichat_session');
+            if (sessionId) {
+                // Verify session is still valid
+                fetch('/auth/verify-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ session_id: sessionId })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        window.location.href = '/admin/';
+                    } else {
+                        localStorage.removeItem('plexichat_session');
+                    }
+                })
+                .catch(() => {
+                    localStorage.removeItem('plexichat_session');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

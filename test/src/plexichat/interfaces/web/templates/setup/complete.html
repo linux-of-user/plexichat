@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - PlexiChat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .setup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 0.9em;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .success-content {
+            margin: 30px 0;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin: 20px 0;
+            padding: 20px;
+            background: #d4edda;
+            border-radius: 10px;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .feature-list h3 {
+            color: #155724;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            color: #155724;
+        }
+        
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .next-steps {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .next-steps h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .next-steps ol {
+            margin-left: 20px;
+        }
+        
+        .next-steps li {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .credentials-info {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .credentials-info h4 {
+            margin-bottom: 10px;
+        }
+        
+        .animation {
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="logo animation">🎉</div>
+        <div class="title">Setup Complete!</div>
+        <div class="subtitle">PlexiChat is ready to use</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step">Welcome ✓</div>
+            <div class="step">Database ✓</div>
+            <div class="step">Admin ✓</div>
+            <div class="step">Complete ✓</div>
+        </div>
+        
+        <div class="success-content">
+            <div class="feature-list">
+                <h3>✅ Successfully Configured:</h3>
+                <ul>
+                    <li>Database connection established</li>
+                    <li>Admin account created</li>
+                    <li>Security settings configured</li>
+                    <li>System initialized and ready</li>
+                </ul>
+            </div>
+            
+            <div class="credentials-info">
+                <h4>🔐 Important:</h4>
+                <p>Your admin credentials have been saved securely. You can find them in:</p>
+                <code>~/.plexichat/admin-credentials.txt</code>
+                <p><strong>Please save these credentials and delete the file for security!</strong></p>
+            </div>
+            
+            <div class="next-steps">
+                <h3>🚀 Next Steps:</h3>
+                <ol>
+                    <li>Click "Launch PlexiChat" to start using the platform</li>
+                    <li>Log in with your admin credentials</li>
+                    <li>Explore the dashboard and configure additional settings</li>
+                    <li>Install plugins from the plugin manager</li>
+                    <li>Invite users and start collaborating</li>
+                </ol>
+            </div>
+        </div>
+        
+        <a href="/" class="btn">Launch PlexiChat</a>
+        <a href="/docs" class="btn btn-secondary">View Documentation</a>
+    </div>
+    
+    <script>
+        // Auto-redirect after 10 seconds
+        setTimeout(function() {
+            if (confirm("Setup complete! Would you like to launch PlexiChat now?")) {
+                window.location.href = "/";
+            }
+        }, 10000);
+        
+        // Confetti animation
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.top = '-10px';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.backgroundColor = ['#667eea', '#764ba2', '#28a745', '#ffc107'][Math.floor(Math.random() * 4)];
+            confetti.style.animation = 'fall 3s linear forwards';
+            confetti.style.zIndex = '1000';
+            
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => {
+                confetti.remove();
+            }, 3000);
+        }
+        
+        // Add CSS for falling animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Create confetti every 500ms for 5 seconds
+        let confettiInterval = setInterval(createConfetti, 500);
+        setTimeout(() => {
+            clearInterval(confettiInterval);
+        }, 5000);
+    </script>
+</body>
+</html>

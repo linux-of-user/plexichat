@@ -67,7 +67,7 @@ class SessionError(Exception):
 class PasswordError(Exception):
     """Password-related error."""
 
-    def __init__():
+    def __init__(
         self, message: str, error_code: Optional[str] = None, requirements: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message)
@@ -79,7 +79,7 @@ class PasswordError(Exception):
 class BiometricError(Exception):
     """Biometric authentication error."""
 
-    def __init__():
+    def __init__(
         self, message: str, error_code: Optional[str] = None, biometric_type: Optional[str] = None
     ):
         super().__init__(message)

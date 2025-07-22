@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlexiChat Management Console</title>
+    
+    <!-- CSS -->
+    <link href="/static/css/main.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .management-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background-color: #28a745; }
+        .status-offline { background-color: #dc3545; }
+        .status-warning { background-color: #ffc107; }
+        
+        .node-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 4px;
+        }
+        
+        .rate-limit-config {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .security-score {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        
+        .security-score.high { color: #28a745; }
+        .security-score.medium { color: #ffc107; }
+        .security-score.low { color: #dc3545; }
+        
+        .vulnerability-item {
+            border-left: 4px solid #dc3545;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: #fff5f5;
+        }
+        
+        .vulnerability-item.medium {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+        
+        .vulnerability-item.low {
+            border-left-color: #17a2b8;
+            background: #f0f9ff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="management-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1><i class="fas fa-cogs"></i> Management Console</h1>
+                    <p class="mb-0">Comprehensive system management and monitoring</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex justify-content-md-end gap-2">
+                        <button class="btn btn-light" onclick="refreshAllData()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-warning" onclick="runSecurityAudit()">
+                            <i class="fas fa-shield-alt"></i> Security Audit
+                        </button>
+                        <button class="btn btn-danger" onclick="emergencyMode()">
+                            <i class="fas fa-exclamation-triangle"></i> Emergency
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- System Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2><i class="fas fa-tachometer-alt"></i> System Overview</h2>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="cluster-nodes">-</div>
+                    <div class="metric-label">Cluster Nodes</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="active-users">-</div>
+                    <div class="metric-label">Active Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="api-requests">-</div>
+                    <div class="metric-label">API Requests/min</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="security-score">-</div>
+                    <div class="metric-label">Security Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs for different management sections -->
+        <ul class="nav nav-tabs" id="managementTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="cluster-tab" data-bs-toggle="tab" data-bs-target="#cluster" type="button">
+                    <i class="fas fa-network-wired"></i> Cluster Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rate-limits-tab" data-bs-toggle="tab" data-bs-target="#rate-limits" type="button">
+                    <i class="fas fa-tachometer-alt"></i> Rate Limits
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button">
+                    <i class="fas fa-shield-alt"></i> Security
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="backups-tab" data-bs-toggle="tab" data-bs-target="#backups" type="button">
+                    <i class="fas fa-database"></i> Backups
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button">
+                    <i class="fas fa-chart-line"></i> Monitoring
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="managementTabContent">
+            <!-- Cluster Management Tab -->
+            <div class="tab-pane fade show active" id="cluster" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-md-8">
+                        <h4>Cluster Nodes</h4>
+                        <div id="cluster-nodes-list">
+                            <!-- Nodes will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Cluster Configuration</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Load Balance Strategy</label>
+                                    <select class="form-select" id="load-balance-strategy">
+                                        <option value="round_robin">Round Robin</option>
+                                        <option value="least_connections">Least Connections</option>
+                                        <option value="resource_based">Resource Based</option>
+                                        <option value="weighted_round_robin">Weighted Round Robin</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="updateLoadBalanceStrategy()">
+                                    Update Strategy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rate Limits Tab -->
+            <div class="tab-pane fade" id="rate-limits" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h4>User Rate Limits</h4>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="user-search" placeholder="Search users...">
+                        </div>
+                        <div id="user-rate-limits-list">
+                            <!-- User rate limits will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Rate Limit Configuration</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <form id="rate-limit-form">
+                                    <div class="mb-3">
+                                        <label class="form-label">User ID</label>
+                                        <input type="text" class="form-control" id="rate-limit-user-id" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="rate-limit-username" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">User Tier</label>
+                                        <select class="form-select" id="rate-limit-tier">
+                                            <option value="standard">Standard</option>
+                                            <option value="premium">Premium</option>
+                                            <option value="enterprise">Enterprise</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Create/Update Limits</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tab -->
+            <div class="tab-pane fade" id="security" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-md-8">
+                        <h4>Security Status</h4>
+                        <div id="security-status">
+                            <!-- Security status will be loaded here -->
+                        </div>
+                        
+                        <h4 class="mt-4">Recent Vulnerabilities</h4>
+                        <div id="vulnerabilities-list">
+                            <!-- Vulnerabilities will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Security Actions</h4>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning" onclick="runSecurityAudit()">
+                                <i class="fas fa-shield-alt"></i> Run Full Security Audit
+                            </button>
+                            <button class="btn btn-info" onclick="runQuickScan()">
+                                <i class="fas fa-search"></i> Quick Security Scan
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportSecurityReport()">
+                                <i class="fas fa-download"></i> Export Security Report
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5>Security Score</h5>
+                            <div class="text-center">
+                                <div class="security-score" id="security-score-display">-</div>
+                                <div class="text-muted">Overall Security Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backups Tab -->
+            <div class="tab-pane fade" id="backups" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-md-8">
+                        <h4>Backup Status</h4>
+                        <div id="backup-status">
+                            <!-- Backup status will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Backup Actions</h4>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="createBackup()">
+                                <i class="fas fa-plus"></i> Create New Backup
+                            </button>
+                            <button class="btn btn-info" onclick="listBackups()">
+                                <i class="fas fa-list"></i> List All Backups
+                            </button>
+                            <button class="btn btn-warning" onclick="cleanupBackups()">
+                                <i class="fas fa-trash"></i> Cleanup Old Backups
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Tab -->
+            <div class="tab-pane fade" id="monitoring" role="tabpanel">
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h4>System Monitoring</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="cpu-chart" width="400" height="200"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="memory-chart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <canvas id="network-chart" width="400" height="200"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="requests-chart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/main.js"></script>
+    
+    <script>
+        // Management Console JavaScript
+        class ManagementConsole {
+            constructor() {
+                this.refreshInterval = 30000; // 30 seconds
+                this.charts = {};
+                this.init();
+            }
+            
+            async init() {
+                await this.loadInitialData();
+                this.setupEventListeners();
+                this.startAutoRefresh();
+                this.initializeCharts();
+            }
+            
+            async loadInitialData() {
+                await Promise.all([
+                    this.loadClusterStatus(),
+                    this.loadSecurityStatus(),
+                    this.loadBackupStatus(),
+                    this.loadSystemMetrics()
+                ]);
+            }
+            
+            async loadClusterStatus() {
+                try {
+                    const response = await fetch('/api/v1/cluster/status');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updateClusterDisplay(data.cluster_status);
+                    }
+                } catch (error) {
+                    console.error('Failed to load cluster status:', error);
+                }
+            }
+            
+            async loadSecurityStatus() {
+                try {
+                    // Load last security audit results
+                    const response = await fetch('/api/v1/security/audit?categories=quick');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updateSecurityDisplay(data.audit_result);
+                    }
+                } catch (error) {
+                    console.error('Failed to load security status:', error);
+                }
+            }
+            
+            async loadBackupStatus() {
+                try {
+                    const response = await fetch('/api/v1/backup/stats');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updateBackupDisplay(data.stats);
+                    }
+                } catch (error) {
+                    console.error('Failed to load backup status:', error);
+                }
+            }
+            
+            async loadSystemMetrics() {
+                try {
+                    const response = await fetch('/api/v1/cluster/metrics');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updateSystemMetrics(data.metrics);
+                    }
+                } catch (error) {
+                    console.error('Failed to load system metrics:', error);
+                }
+            }
+            
+            updateClusterDisplay(clusterStatus) {
+                document.getElementById('cluster-nodes').textContent = clusterStatus.total_nodes;
+                
+                const nodesList = document.getElementById('cluster-nodes-list');
+                nodesList.innerHTML = '';
+                
+                Object.values(clusterStatus.nodes).forEach(node => {
+                    const nodeCard = document.createElement('div');
+                    nodeCard.className = 'node-card';
+                    nodeCard.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6><span class="status-indicator status-${node.status}"></span>${node.hostname}</h6>
+                                <small class="text-muted">${node.ip_address}:${node.port} | ${node.role}</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="small">CPU: ${node.cpu_usage.toFixed(1)}%</div>
+                                <div class="small">Memory: ${node.memory_usage.toFixed(1)}%</div>
+                                <div class="small">Connections: ${node.active_connections}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="progress progress-bar-custom">
+                                <div class="progress-bar" style="width: ${node.cpu_usage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    nodesList.appendChild(nodeCard);
+                });
+            }
+            
+            updateSecurityDisplay(auditResult) {
+                const score = auditResult.audit_summary.security_score;
+                const scoreElement = document.getElementById('security-score');
+                const scoreDisplay = document.getElementById('security-score-display');
+                
+                scoreElement.textContent = score;
+                scoreDisplay.textContent = score;
+                
+                // Update score color
+                const scoreClass = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low';
+                scoreDisplay.className = `security-score ${scoreClass}`;
+                
+                // Update vulnerabilities list
+                const vulnList = document.getElementById('vulnerabilities-list');
+                vulnList.innerHTML = '';
+                
+                auditResult.vulnerabilities.forEach(vuln => {
+                    const vulnItem = document.createElement('div');
+                    vulnItem.className = `vulnerability-item ${vuln.severity}`;
+                    vulnItem.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${vuln.test_name}</strong>
+                                <span class="badge bg-${vuln.severity === 'critical' ? 'danger' : vuln.severity === 'high' ? 'warning' : 'info'}">${vuln.severity}</span>
+                            </div>
+                            <small class="text-muted">${vuln.endpoint}</small>
+                        </div>
+                        <div class="mt-1">
+                            <small>${vuln.details}</small>
+                        </div>
+                        <div class="mt-1">
+                            <small class="text-success"><strong>Fix:</strong> ${vuln.recommendation}</small>
+                        </div>
+                    `;
+                    vulnList.appendChild(vulnItem);
+                });
+            }
+            
+            updateBackupDisplay(backupStats) {
+                const backupStatus = document.getElementById('backup-status');
+                backupStatus.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value">${backupStats.total_backups}</div>
+                                <div class="metric-label">Total Backups</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value">${backupStats.total_shards}</div>
+                                <div class="metric-label">Total Shards</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value">${(backupStats.total_size_bytes / (1024*1024*1024)).toFixed(2)} GB</div>
+                                <div class="metric-label">Total Size</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value">${backupStats.active_nodes}</div>
+                                <div class="metric-label">Active Nodes</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            updateSystemMetrics(metrics) {
+                document.getElementById('api-requests').textContent = metrics.total_requests || 0;
+                // Update other metrics as needed
+            }
+            
+            setupEventListeners() {
+                // Rate limit form
+                document.getElementById('rate-limit-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.createUserRateLimit();
+                });
+            }
+            
+            async createUserRateLimit() {
+                const userId = document.getElementById('rate-limit-user-id').value;
+                const username = document.getElementById('rate-limit-username').value;
+                const tier = document.getElementById('rate-limit-tier').value;
+                
+                try {
+                    const response = await fetch(`/api/v1/rate-limits/user/${userId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, user_tier: tier })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Rate limits updated successfully');
+                        document.getElementById('rate-limit-form').reset();
+                    } else {
+                        alert('Failed to update rate limits');
+                    }
+                } catch (error) {
+                    console.error('Failed to create rate limit:', error);
+                    alert('Error creating rate limits');
+                }
+            }
+            
+            initializeCharts() {
+                // Initialize monitoring charts
+                // This would be expanded with real chart implementations
+            }
+            
+            startAutoRefresh() {
+                setInterval(() => {
+                    this.loadInitialData();
+                }, this.refreshInterval);
+            }
+        }
+        
+        // Global functions for button actions
+        async function refreshAllData() {
+            await managementConsole.loadInitialData();
+        }
+        
+        async function runSecurityAudit() {
+            try {
+                const response = await fetch('/api/v1/security/audit');
+                const data = await response.json();
+                if (data.success) {
+                    managementConsole.updateSecurityDisplay(data.audit_result);
+                    alert('Security audit completed');
+                }
+            } catch (error) {
+                alert('Security audit failed');
+            }
+        }
+        
+        async function updateLoadBalanceStrategy() {
+            const strategy = document.getElementById('load-balance-strategy').value;
+            try {
+                const response = await fetch('/api/v1/cluster/load-balance/strategy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ strategy })
+                });
+                
+                if (response.ok) {
+                    alert('Load balance strategy updated');
+                }
+            } catch (error) {
+                alert('Failed to update strategy');
+            }
+        }
+        
+        function emergencyMode() {
+            if (confirm('Enable emergency mode? This will restrict access and enable enhanced security.')) {
+                // Implement emergency mode
+                alert('Emergency mode would be activated here');
+            }
+        }
+        
+        // Initialize management console
+        const managementConsole = new ManagementConsole();
+    </script>
+</body>
+</html>

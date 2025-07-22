@@ -1,9 +1,9 @@
 """
-import logging
 PlexiChat Core Authentication System - SINGLE SOURCE OF TRUTH
 
 Consolidates ALL authentication components into a unified system.
 """
+import logging
 
 from typing import Any, Dict, Optional
 

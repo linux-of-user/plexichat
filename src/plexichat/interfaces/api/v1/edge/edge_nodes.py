@@ -6,43 +6,33 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+
+from ....core.auth import require_auth
 from ....core.logging import get_logger
-from ....core.performance.edge_computing_manager import ()
+from ....core.performance.edge_computing_manager import get_edge_computing_manager
 
 
-    from plexichat.infrastructure.utils.auth import require_admin,
-import time
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
-    API,
-    Advanced,
-    APIRouter,
-    BaseModel,
-    Depends,
-    Edge,
-    EdgeNode,
-    Field,
-    HTTPException,
-    Management,
-    Nodes,
-    NodeType,
-    PlexiChat,
-    Query,
-    """,
-    ....core.auth,
-    and,
-    deployment,
-    edge,
-    fastapi,
-    from,
-    get_edge_computing_manager,
-    import,
-    management,
-    node,
-    orchestration.,
-    plexichat.infrastructure.utils.auth,
-    pydantic,
-    require_auth,
-)
+from plexichat.interfaces.api.v1.auth import get_current_user
+
+from plexichat.core.auth.dependencies import require_admin
+
+try:
+    from plexichat.infrastructure.performance.edge_computing_manager import (
+        EdgeNode,
+        NodeType,
+    )
+except ImportError:
+    # Fallback definitions
+    class EdgeNode:
+        pass
+
+    class NodeType:
+        COMPUTE = "compute"
+        STORAGE = "storage"
+        NETWORK = "network"
 
 logger = get_logger(__name__)
 
@@ -93,16 +83,16 @@ class NodeDeploymentConfig(BaseModel):
     auto_scale: bool = Field(True, description="Enable auto-scaling")
 
 @router.post("/")
-async def create_edge_node()
+async def create_edge_node(
     node_data: EdgeNodeCreate,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(require_admin)
 ) -> Dict[str, Any]:
     """Create and register a new edge node."""
     try:
         manager = get_edge_computing_manager()
 
         # Create EdgeNode instance
-        edge_node = EdgeNode()
+        edge_node = EdgeNode(
             node_id=node_data.node_id,
             node_type=node_data.node_type,
             location=node_data.location,
@@ -140,12 +130,12 @@ async def create_edge_node()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/")
-async def list_edge_nodes()
+async def list_edge_nodes(
     node_type: Optional[NodeType] = Query(None, description="Filter by node type"),
     region: Optional[str] = Query(None, description="Filter by region"),
     active_only: bool = Query(True, description="Show only active nodes"),
     include_metrics: bool = Query(False, description="Include performance metrics"),
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(require_admin)
 ) -> Dict[str, Any]:
     """List all edge nodes with advanced filtering and metrics."""
     try:
@@ -222,10 +212,10 @@ async def list_edge_nodes()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{node_id}")
-async def get_edge_node()
+async def get_edge_node(
     node_id: str,
     include_detailed_metrics: bool = Query(False, description="Include detailed performance metrics"),
-    current_user: Dict = Depends(require_auth)
+    current_user: Dict = Depends(require_admin)
 ) -> Dict[str, Any]:
     """Get detailed information about a specific edge node."""
     try:
@@ -275,10 +265,10 @@ async def get_edge_node()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{node_id}")
-async def update_edge_node()
+async def update_edge_node(
     node_id: str,
     update_data: EdgeNodeUpdate,
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(require_admin)
 ) -> Dict[str, Any]:
     """Update edge node configuration."""
     try:
@@ -290,7 +280,11 @@ async def update_edge_node()
         node = manager.edge_nodes[node_id]
 
         # Update node properties
-        update_dict = update_data.dict(exclude_unset=True)
+        try:
+            update_dict = update_data.model_dump(exclude_unset=True)
+        except AttributeError:
+            # Fallback for older pydantic versions
+            update_dict = update_data.dict(exclude_unset=True)
         for key, value in update_dict.items():
             if hasattr(node, key):
                 setattr(node, key, value)
@@ -315,10 +309,10 @@ async def update_edge_node()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{node_id}")
-async def remove_edge_node()
+async def remove_edge_node(
     node_id: str,
     force: bool = Query(False, description="Force removal even if node is active"),
-    current_user: Dict = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import require_admin)
+    current_user: Dict = Depends(require_admin)
 ) -> Dict[str, Any]:
     """Remove an edge node from the system."""
     try:
@@ -331,7 +325,7 @@ async def remove_edge_node()
 
         # Check if node is active and force is not set
         if node.is_active and not force:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=400,
                 detail="Cannot remove active node. Use force=true to override."
             )

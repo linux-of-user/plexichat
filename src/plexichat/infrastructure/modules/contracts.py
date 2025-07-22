@@ -239,7 +239,7 @@ class ModuleContractValidator:
 
         for method_name, requirements in required_methods.items():
             if not hasattr(module, method_name):
-                result.add_violation()
+                result.add_violation(
                     "error",
                     "interface",
                     f"Missing required method: {method_name}"
@@ -250,7 +250,7 @@ class ModuleContractValidator:
 
             # Check if method is callable
             if not callable(method):
-                result.add_violation()
+                result.add_violation(
                     "error",
                     "interface",
                     f"Method {method_name} is not callable"
@@ -259,7 +259,7 @@ class ModuleContractValidator:
 
             # Check if method is async when required
             if requirements["async"] and not inspect.iscoroutinefunction(method):
-                result.add_violation()
+                result.add_violation(
                     "error",
                     "interface",
                     f"Method {method_name} must be async"

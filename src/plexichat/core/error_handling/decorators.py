@@ -125,7 +125,7 @@ def crash_handler():
                     return func(*args, **kwargs)
             except Exception as e:
                 # Report crash
-                crash_context = crash_reporter.report_crash()
+                crash_context = crash_reporter.report_crash(
                     exception=e,
                     severity=severity,
                     category=category,

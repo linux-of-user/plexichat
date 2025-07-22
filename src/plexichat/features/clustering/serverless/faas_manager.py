@@ -423,8 +423,8 @@ datetime = datetime.now()
     async def _validate_function_config(self, config: FunctionConfig) -> bool:
         """Validate function configuration."""
         # Check if code path exists
-        if not from pathlib import Path
-Path(config.code_path).exists():
+        from pathlib import Path
+        if not Path(config.code_path).exists():
             logger.error(f"Function code path not found: {config.code_path}")
             return False
 

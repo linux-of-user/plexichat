@@ -1,0 +1,17 @@
+{
+  "name": "Test Plugin",
+  "id": "test_plugin",
+  "version": "1.0.0",
+  "description": "Unified test suite plugin for PlexiChat. Runs all core, integration, and performance tests.",
+  "entry_point": "main.py",
+  "commands": [
+    {
+      "name": "run_tests",
+      "description": "Run all core, integration, and performance tests via the plugin manager.",
+      "type": "test"
+    }
+  ],
+  "dependencies": [],
+  "author": "PlexiChat Team",
+  "license": "CC0"
+} 

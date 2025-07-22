@@ -33,7 +33,6 @@ __description__ = "Shared components for PlexiChat"
 # Import shared components
 try:
     from . import models
-    from . import constants
     from . import types
     from . import exceptions
     from . import validators
@@ -45,7 +44,6 @@ except ImportError as e:
 
 __all__ = [
     "models",
-    "constants",
     "types",
     "exceptions",
     "validators",

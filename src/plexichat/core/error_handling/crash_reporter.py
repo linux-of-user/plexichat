@@ -140,7 +140,7 @@ self.crash_log_dir = Path(config.get('crash_log_dir', self.crash_log_dir))
 
         # Get recovery suggestions
         exception_type = type(exception).__name__
-        suggestions = self.recovery_suggestions.get(exception_type, [)
+        suggestions = self.recovery_suggestions.get(exception_type, [
             "Check application logs for more details",
             "Restart the affected component",
             "Contact system administrator if issue persists"

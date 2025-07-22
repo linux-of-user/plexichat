@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlexiChat Plugin Manager</title>
+    <link rel="stylesheet" href="plugin-manager.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="plugin-manager">
+        <div class="plugin-header">
+            <h1 class="plugin-title">Plugin Manager</h1>
+            <div class="plugin-actions">
+                <button id="refresh-plugins" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button id="install-zip" class="btn btn-success">
+                    <i class="fas fa-download"></i> Install ZIP
+                </button>
+                <button id="marketplace-btn" class="btn btn-primary">
+                    <i class="fas fa-store"></i> Marketplace
+                </button>
+            </div>
+        </div>
+        
+        <div class="plugin-filters">
+            <div class="filter-group">
+                <label class="filter-label">Status</label>
+                <select id="status-filter" class="filter-input">
+                    <option value="all">All Status</option>
+                    <option value="loaded">Loaded</option>
+                    <option value="enabled">Enabled</option>
+                    <option value="disabled">Disabled</option>
+                    <option value="error">Error</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Category</label>
+                <select id="category-filter" class="filter-input">
+                    <option value="all">All Categories</option>
+                    <option value="security">Security</option>
+                    <option value="utility">Utility</option>
+                    <option value="feature">Feature</option>
+                    <option value="demo">Demo</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Search</label>
+                <input type="text" id="search-input" class="filter-input" placeholder="Search plugins...">
+            </div>
+        </div>
+        
+        <div class="plugin-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="stat-total">0</div>
+                <div class="stat-label">Total Plugins</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-loaded">0</div>
+                <div class="stat-label">Loaded</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-enabled">0</div>
+                <div class="stat-label">Enabled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-disabled">0</div>
+                <div class="stat-label">Disabled</div>
+            </div>
+        </div>
+        
+        <div id="plugin-grid" class="plugin-grid">
+            <!-- Plugin cards will be rendered here -->
+        </div>
+    </div>
+    
+    <!-- Install Modal -->
+    <div id="install-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Install Plugin from ZIP</h2>
+                <span class="close" onclick="document.getElementById('install-modal').style.display='none'">&times;</span>
+            </div>
+            <div class="config-form">
+                <div class="form-group">
+                    <label class="form-label">Select ZIP File</label>
+                    <input type="file" id="zip-file" class="form-input" accept=".zip">
+                </div>
+                <div class="plugin-actions">
+                    <button onclick="pluginManager.installFromZip()" class="btn btn-primary">Install</button>
+                    <button onclick="document.getElementById('install-modal').style.display='none'" class="btn btn-warning">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Config Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <div id="config-content">
+                <!-- Configuration form will be rendered here -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="plugin-manager.js"></script>
+</body>
+</html>

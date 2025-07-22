@@ -61,7 +61,7 @@ except ImportError:
             self.initialized = True
 
         async def get_cluster_overview(self):
-            return type('Overview', (), {)
+            return type('Overview', (), {
                 'total_nodes': 3,
                 'active_nodes': 2,
                 'cluster_load_percentage': 45.5,
@@ -71,9 +71,9 @@ except ImportError:
             })()
 
         async def get_cluster_health(self):
-            return type('Health', (), {)
+            return type('Health', (), {
                 'node_health_status': [
-                    type('Node', (), {)
+                    type('Node', (), {
                         'node_id': 'node-001',
                         'status': type('Status', (), {'value': 'ONLINE'})(),
                         'health_score': 95.5,
@@ -81,7 +81,7 @@ except ImportError:
                         'memory_usage_percentage': 42.1,
                         'current_connections': 150
                     })(),
-                    type('Node', (), {)
+                    type('Node', (), {
                         'node_id': 'node-002',
                         'status': type('Status', (), {'value': 'ONLINE'})(),
                         'health_score': 88.3,
@@ -93,7 +93,7 @@ except ImportError:
             })()
 
         async def get_load_balancer_stats(self):
-            return type('Stats', (), {)
+            return type('Stats', (), {
                 'total_requests': 15420,
                 'current_rps': 23.5,
                 'average_response_time_ms': 145.2,
@@ -110,6 +110,21 @@ except ImportError:
             return True
 
     cluster_manager = MockClusterManager()
+
+try:
+    import tkinter as tk
+    from tkinter import ttk, messagebox, filedialog, simpledialog
+except ImportError:
+    tk = ttk = messagebox = filedialog = simpledialog = None
+
+# Helper to check GUI availability before using any GUI class
+if tk is None or ttk is None:
+    def _raise_gui_import_error(*args, **kwargs):
+        raise ImportError("Required GUI libraries (tkinter) are not installed.")
+    class _Dummy:
+        def __getattr__(self, name):
+            return _raise_gui_import_error
+    tk = ttk = messagebox = filedialog = simpledialog = _Dummy()
 
 logger = logging.getLogger(__name__)
 
@@ -258,20 +273,11 @@ class EnhancedClusteringManagementWidget:
             header_frame.pack(fill=tk.X, pady=(0, 10))
 
             # Title
-            title_label = ttk.Label()
-                header_frame,
-                text=" Enhanced Clustering Management",
-                font=("Arial", 18, "bold")
-            )
+            title_label = ttk.Label(header_frame, text=" Enhanced Clustering Management", font=("Arial", 18, "bold"))
             title_label.pack(side=tk.LEFT)
 
             # Status indicator
-            self.status_indicator = ttk.Label()
-                header_frame,
-                text=" Connecting...",
-                foreground="orange",
-                font=("Arial", 10, "bold")
-            )
+            self.status_indicator = ttk.Label(header_frame, text=" Connecting...", foreground="orange", font=("Arial", 10, "bold"))
             self.status_indicator.pack(side=tk.RIGHT)
 
             # Create notebook for tabs
@@ -349,18 +355,17 @@ class EnhancedClusteringManagementWidget:
             node_health = []
             for node in health.node_health_status:
                 node_info = NodeHealthInfo()
-                    node_id=node.node_id,
-                    name=node.node_id,
-                    status=node.status.value,
-                    health_score=node.health_score,
-                    cpu_usage=node.cpu_usage_percentage,
-                    memory_usage=node.memory_usage_percentage,
-                    connections=node.current_connections,
-                    address=f"{node.node_id}:8080"
-                )
+                node_info.node_id = node.node_id
+                node_info.name = node.node_id
+                node_info.status = node.status.value
+                node_info.health_score = node.health_score
+                node_info.cpu_usage = node.cpu_usage_percentage
+                node_info.memory_usage = node.memory_usage_percentage
+                node_info.connections = node.current_connections
+                node_info.address = f"{node.node_id}:8080"
                 node_health.append(node_info)
 
-            return ClusterSystemStatus()
+            return ClusterSystemStatus(
                 total_nodes=overview.total_nodes,
                 active_nodes=overview.active_nodes,
                 offline_nodes=overview.total_nodes - overview.active_nodes,
@@ -381,7 +386,7 @@ class EnhancedClusteringManagementWidget:
         except Exception as e:
             logger.error(f"Error loading cluster status: {e}")
             # Return default status
-            return ClusterSystemStatus()
+            return ClusterSystemStatus(
                 total_nodes=0,
                 active_nodes=0,
                 offline_nodes=0
@@ -451,7 +456,7 @@ class EnhancedClusteringManagementWidget:
 
             # Add nodes
             for node in self.status_data.node_health:
-                values = ()
+                values = (
                     node.node_id,
                     node.name,
                     node.node_type,
@@ -567,40 +572,24 @@ class EnhancedClusteringManagementWidget:
             control_frame = ttk.Frame(self.nodes_frame)
             control_frame.pack(fill=tk.X, padx=10, pady=5)
 
-            ttk.Button()
-                control_frame,
-                text=" Add Node",
-                command=self.add_cluster_node_dialog
-            ).pack(side=tk.LEFT, padx=(0, 10))
+            ttk.Button(control_frame, text=" Add Node", command=self.add_cluster_node_dialog).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button()
-                control_frame,
-                text=" Remove Node",
-                command=self.remove_cluster_node_dialog
-            ).pack(side=tk.LEFT, padx=(0, 10))
+            ttk.Button(control_frame, text=" Remove Node", command=self.remove_cluster_node_dialog).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button()
-                control_frame,
-                text=" Refresh",
-                command=self.refresh_nodes
-            ).pack(side=tk.LEFT, padx=(0, 10))
+            ttk.Button(control_frame, text=" Refresh", command=self.refresh_nodes).pack(side=tk.LEFT, padx=(0, 10))
 
-            ttk.Button()
-                control_frame,
-                text=" Maintenance",
-                command=self.toggle_maintenance_mode
-            ).pack(side=tk.LEFT)
+            ttk.Button(control_frame, text=" Maintenance", command=self.toggle_maintenance_mode).pack(side=tk.LEFT)
 
             # Nodes list
             nodes_list_frame = ttk.LabelFrame(self.nodes_frame, text="Cluster Nodes", padding=10)
             nodes_list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
             # Create treeview for nodes
-            node_columns = ("ID", "Name", Type, "Address", "Status", "CPU", "Memory", "Health")
+            node_columns = ("ID", "Name", "Type", "Address", "Status", "CPU", "Memory", "Health")
             self.nodes_tree = ttk.Treeview(nodes_list_frame, columns=node_columns, show="headings", height=12)
 
             # Configure columns with better widths
-            column_widths = {"ID": 80, "Name": 100, Type: 80, "Address": 120,
+            column_widths = {"ID": 80, "Name": 100, "Type": 80, "Address": 120,
                            "Status": 80, "CPU": 60, "Memory": 60, "Health": 60}
 
             for col in node_columns:
@@ -696,27 +685,14 @@ class EnhancedClusteringManagementWidget:
 
             # Auto refresh checkbox
             if self.auto_refresh_var:
-                auto_refresh_cb = ttk.Checkbutton()
-                    control_frame,
-                    text="Auto Refresh",
-                    variable=self.auto_refresh_var,
-                    command=self.toggle_auto_refresh
-                )
+                auto_refresh_cb = ttk.Checkbutton(control_frame, text="Auto Refresh", variable=self.auto_refresh_var, command=self.toggle_auto_refresh)
                 auto_refresh_cb.pack(side=tk.LEFT, padx=(0, 10))
 
             # Manual refresh button
-            ttk.Button()
-                control_frame,
-                text=" Refresh Now",
-                command=self.manual_refresh
-            ).pack(side=tk.LEFT, padx=(0, 10))
+            ttk.Button(control_frame, text=" Refresh Now", command=self.manual_refresh).pack(side=tk.LEFT, padx=(0, 10))
 
             # Export button
-            ttk.Button()
-                control_frame,
-                text=" Export Data",
-                command=self.export_cluster_data
-            ).pack(side=tk.LEFT)
+            ttk.Button(control_frame, text=" Export Data", command=self.export_cluster_data).pack(side=tk.LEFT)
 
         except Exception as e:
             logger.error(f"Error setting up control panel: {e}")
@@ -890,10 +866,6 @@ class EnhancedClusteringManagementWidget:
                 return
 
             filename = filedialog.asksaveasfilename()
-                defaultextension=".json",
-                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
-            )
-
             if filename:
                 export_data = {
                     'timestamp': datetime.now().isoformat(),

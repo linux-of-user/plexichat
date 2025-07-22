@@ -182,7 +182,7 @@ class CanaryNodeSelector:
                 continue
 
             if metrics.load_score > self.max_load_threshold:
-                logger.debug()
+                logger.debug(
                     f"Skipping overloaded node: {node_id} (load: {metrics.load_score:.2f})"
                 )
                 continue
@@ -192,7 +192,7 @@ class CanaryNodeSelector:
         logger.info(f"Filtered {len(filtered)} suitable nodes from {len(nodes)} total")
         return filtered
 
-    async def _select_by_percentage()
+    async def _select_by_percentage(
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes by percentage."""
@@ -200,9 +200,9 @@ class CanaryNodeSelector:
         target_count = max(1, int(len(nodes) * percentage / 100))
 
         # Sort by health score and select top nodes
-        sorted_nodes = sorted()
+        sorted_nodes = sorted(
             nodes,
-            key=lambda n: self.node_metrics.get()
+            key=lambda n: self.node_metrics.get(
                 n["node_id"], NodeMetrics()
             ).health_score,
             reverse=True,
@@ -211,7 +211,7 @@ class CanaryNodeSelector:
         selected = sorted_nodes[:target_count]
         return [self._create_canary_node(node) for node in selected]
 
-    async def _select_by_count()
+    async def _select_by_count(
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select specific number of nodes."""
@@ -221,7 +221,7 @@ class CanaryNodeSelector:
         selected = await self._risk_balanced_selection(nodes, target_count)
         return [self._create_canary_node(node) for node in selected]
 
-    async def _select_by_geography()
+    async def _select_by_geography(
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes by geographic regions."""
@@ -236,9 +236,9 @@ class CanaryNodeSelector:
             region_nodes = [n for n in nodes if n.get("region") == region]
             if region_nodes:
                 # Select best node from each region
-                best_node = max()
+                best_node = max(
                     region_nodes,
-                    key=lambda n: self.node_metrics.get()
+                    key=lambda n: self.node_metrics.get(
                         n["node_id"], NodeMetrics()
                     ).health_score,
                 )
@@ -246,7 +246,7 @@ class CanaryNodeSelector:
 
         return [self._create_canary_node(node) for node in selected]
 
-    async def _select_by_load()
+    async def _select_by_load(
         self, nodes: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> List[CanaryNode]:
         """Select nodes with lowest load."""

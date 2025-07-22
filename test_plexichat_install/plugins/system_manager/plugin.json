@@ -1,0 +1,142 @@
+{
+  "name": "system_manager",
+  "version": "1.0.0",
+  "description": "Comprehensive system management with backup automation, health monitoring, maintenance scheduling, and system optimization",
+  "author": "PlexiChat Team",
+  "type": "system",
+  "enabled": true,
+  "priority": 2,
+  "dependencies": ["api_integration_layer"],
+  "permissions": [
+    "api_access",
+    "system_access",
+    "network_access",
+    "file_system_access",
+    "webui_access",
+    "gui_access",
+    "database_access",
+    "backup_access"
+  ],
+  "capabilities": [
+    "backup_automation",
+    "health_monitoring",
+    "maintenance_scheduling",
+    "system_optimization",
+    "resource_management",
+    "automated_cleanup",
+    "disaster_recovery",
+    "system_diagnostics",
+    "performance_tuning",
+    "security_monitoring"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "backup_schedule": {
+      "type": "object",
+      "default": {
+        "full_backup": "0 2 * * 0",
+        "incremental_backup": "0 2 * * 1-6",
+        "retention_days": 30
+      },
+      "description": "Backup scheduling configuration"
+    },
+    "health_check_interval": {
+      "type": "integer",
+      "default": 300,
+      "description": "Health check interval in seconds"
+    },
+    "maintenance_window": {
+      "type": "object",
+      "default": {
+        "start_time": "02:00",
+        "end_time": "04:00",
+        "timezone": "UTC",
+        "days": ["Sunday"]
+      },
+      "description": "Maintenance window configuration"
+    },
+    "cleanup_rules": {
+      "type": "object",
+      "default": {
+        "temp_files_days": 7,
+        "log_files_days": 30,
+        "cache_size_mb": 1000
+      },
+      "description": "Automated cleanup rules"
+    },
+    "alert_channels": {
+      "type": "array",
+      "default": ["email", "webhook"],
+      "description": "Alert notification channels"
+    },
+    "optimization_settings": {
+      "type": "object",
+      "default": {
+        "auto_optimize": true,
+        "cpu_threshold": 80,
+        "memory_threshold": 85,
+        "disk_threshold": 90
+      },
+      "description": "System optimization settings"
+    }
+  },
+  "webui": {
+    "enabled": true,
+    "routes": [
+      {
+        "path": "/system-manager",
+        "component": "SystemManagerPanel",
+        "title": "System Manager",
+        "icon": "cogs"
+      },
+      {
+        "path": "/system/backups",
+        "component": "BackupManagerPanel",
+        "title": "Backup Manager",
+        "icon": "save"
+      },
+      {
+        "path": "/system/health",
+        "component": "HealthMonitorPanel",
+        "title": "Health Monitor",
+        "icon": "heartbeat"
+      },
+      {
+        "path": "/system/maintenance",
+        "component": "MaintenancePanel",
+        "title": "Maintenance",
+        "icon": "tools"
+      }
+    ]
+  },
+  "scheduled_tasks": [
+    {
+      "name": "health_check",
+      "schedule": "*/5 * * * *",
+      "function": "run_health_check"
+    },
+    {
+      "name": "backup_check",
+      "schedule": "0 */6 * * *",
+      "function": "check_backup_status"
+    },
+    {
+      "name": "cleanup_task",
+      "schedule": "0 3 * * *",
+      "function": "run_cleanup"
+    }
+  ],
+  "self_tests": [
+    "test_backup_creation",
+    "test_health_monitoring",
+    "test_maintenance_scheduling",
+    "test_cleanup_operations",
+    "test_system_optimization",
+    "test_alert_system",
+    "test_disaster_recovery"
+  ],
+  "requirements": [
+    "schedule>=1.1.0",
+    "psutil>=5.8.0"
+  ]
+}

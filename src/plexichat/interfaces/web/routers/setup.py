@@ -5,18 +5,22 @@ Web interface for initial setup, database configuration, and admin account creat
 Provides a complete setup wizard accessible via web browser.
 """
 
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
+
 import json
 import logging
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, List
 
 # Import database abstraction layer
 from plexichat.core.database.manager import database_manager
 from plexichat.features.users.models import User, UserRole, UserStatus
 from plexichat.features.users.user import UserService, UserCreate
 from plexichat.features.users.models import UserModelService
+from plexichat.features.users.message import MessageUpdate
 
 from fastapi import APIRouter, Request, Form, HTTPException, Depends, status, Body, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -112,13 +116,13 @@ USER_RANK_LIMITS = {
     'guest': {'max_attempts': 20, 'window': 1},
 }
 
-def get_user_rank(user: dict) -> str:
+def get_user_rank(user: Optional[dict[str, Any]]) -> str:
     # Example: extract rank from user dict, default to 'user'
     if not user:
         return 'guest'
     return user.get('role', 'user')
 
-async def enforce_rate_limits(request: Request, user: dict = None):
+async def enforce_rate_limits(request: Request, user: Optional[dict[str, Any]] = None):
     # --- Global adaptive rate limiting ---
     stats = rate_limiter.get_stats()
     total_attempts = stats.get('total_attempts', 0)
@@ -486,7 +490,7 @@ MAX_CUSTOM_FIELDS = 32
 async def add_user_custom_field(
     user_id: int,
     field_name: str = Body(...),
-    field_value: Union[str, int, float, bool, list, dict] = Body(...),
+    field_value: Union[str, int, float, bool, List[Any], Dict[str, Any]] = Body(...),
     field_type: str = Body(...),
     _: None = Depends(enforce_global_rate_limit)
 ):
@@ -522,7 +526,7 @@ async def get_user_custom_fields(user_id: int, _: None = Depends(enforce_global_
 async def add_message_custom_field(
     message_id: int,
     field_name: str = Body(...),
-    field_value: Union[str, int, float, bool, list, dict] = Body(...),
+    field_value: Union[str, int, float, bool, List[Any], Dict[str, Any]] = Body(...),
     field_type: str = Body(...),
     _: None = Depends(enforce_global_rate_limit)
 ):
@@ -533,7 +537,8 @@ async def add_message_custom_field(
     if not message:
         raise HTTPException(status_code=404, detail="Message not found.")
     message.custom_fields[field_name] = {"value": value, "type": field_type}
-    await message_service.update_message(message)
+    # Provide required arguments for update_message (message_id, sender_id, message_data)
+    await message_service.update_message(message.id, message.sender_id, MessageUpdate())
     return {"success": True, "custom_fields": message.custom_fields}
 
 @router.get("/message/{message_id}/custom_fields", response_class=JSONResponse)
@@ -546,7 +551,7 @@ async def get_message_custom_fields(message_id: int, _: None = Depends(enforce_g
     return {"custom_fields": message.custom_fields}
 
 # --- Type-safe retrieval utility for custom fields (improvements.txt) ---
-def cast_custom_field_value(field: dict) -> Any:
+def cast_custom_field_value(field: dict[str, Any]) -> Any:
     value, type_str = field.get('value'), field.get('type')
     if value is None:
         return None
@@ -694,7 +699,8 @@ async def remove_message_custom_field(
     if field_name not in message.custom_fields:
         raise HTTPException(status_code=404, detail="Custom field not found.")
     del message.custom_fields[field_name]
-    await message_service.update_message(message)
+    # Provide required arguments for update_message (message_id, sender_id, message_data)
+    await message_service.update_message(message.id, message.sender_id, MessageUpdate())
     import logging
     logging.getLogger(__name__).info(f"Custom field removed for message {message_id}: {field_name}")
     return {"success": True, "custom_fields": message.custom_fields}

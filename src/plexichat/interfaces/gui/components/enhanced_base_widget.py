@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Any, Callable, Union
 from dataclasses import dataclass, field
 from pathlib import Path
 
+try:
     import customtkinter as ctk
     import tkinter as tk
     from tkinter import ttk, messagebox, filedialog
@@ -23,26 +24,19 @@ from pathlib import Path
         import numpy as np
     except ImportError:
         np = None
+    GUI_AVAILABLE = True
+    CHART_AVAILABLE = True
+except ImportError:
+    ctk = tk = ttk = messagebox = filedialog = plt = FigureCanvasTkAgg = Figure = None
+    np = None
+    GUI_AVAILABLE = False
+    CHART_AVAILABLE = False
 
 
 """
 Enhanced Base Widget for PlexiChat GUI
 Modern, responsive base widget with advanced styling and features
 """
-
-# GUI imports with proper fallbacks
-GUI_AVAILABLE = False
-try:
-    GUI_AVAILABLE = True
-except ImportError:
-    pass
-
-# Chart imports
-CHART_AVAILABLE = False
-try:
-    CHART_AVAILABLE = True
-except ImportError:
-    pass
 
 logger = logging.getLogger(__name__)
 
@@ -139,11 +133,7 @@ class EnhancedBaseWidget(ABC):
         self.header_frame.pack(fill="x", padx=10, pady=(10, 5))
 
         # Title and controls
-        self.title_label = ctk.CTkLabel()
-            self.header_frame,
-            text=self.config.title,
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
+        self.title_label = ctk.CTkLabel(self.header_frame, text=self.config.title, font=ctk.CTkFont(size=18, weight="bold"))
         self.title_label.pack(side="left", padx=10, pady=10)
 
         # Header controls
@@ -151,35 +141,18 @@ class EnhancedBaseWidget(ABC):
         self.controls_frame.pack(side="right", padx=10, pady=5)
 
         # Refresh button
-        self.refresh_btn = ctk.CTkButton()
-            self.controls_frame,
-            text="",
-            width=30,
-            height=30,
-            command=self.manual_refresh
-        )
+        self.refresh_btn = ctk.CTkButton(self.controls_frame, text="", width=30, height=30, command=self.manual_refresh)
         self.refresh_btn.pack(side="right", padx=2)
 
         # Settings button
-        self.settings_btn = ctk.CTkButton()
-            self.controls_frame,
-            text="",
-            width=30,
-            height=30,
-            command=self.show_settings
-        )
+        self.settings_btn = ctk.CTkButton(self.controls_frame, text="", width=30, height=30, command=self.show_settings)
         self.settings_btn.pack(side="right", padx=2)
 
         # Status indicator
         self.status_frame = ctk.CTkFrame(self.header_frame)
         self.status_frame.pack(side="right", padx=(0, 10))
 
-        self.status_indicator = ctk.CTkLabel()
-            self.status_frame,
-            text="",
-            text_color="green",
-            font=ctk.CTkFont(size=16)
-        )
+        self.status_indicator = ctk.CTkLabel(self.status_frame, text="", text_color="green", font=ctk.CTkFont(size=16))
         self.status_indicator.pack(padx=5, pady=5)
 
         # Content area
@@ -188,11 +161,7 @@ class EnhancedBaseWidget(ABC):
 
         # Loading overlay
         self.loading_frame = ctk.CTkFrame(self.content_frame)
-        self.loading_label = ctk.CTkLabel()
-            self.loading_frame,
-            text="Loading...",
-            font=ctk.CTkFont(size=14)
-        )
+        self.loading_label = ctk.CTkLabel(self.loading_frame, text="Loading...", font=ctk.CTkFont(size=14))
         self.loading_label.pack(pady=20)
 
         # Setup content
@@ -330,7 +299,7 @@ class EnhancedBaseWidget(ABC):
                     time.sleep(5)  # Wait before retrying
 
         self.refresh_thread = threading.Thread(target=auto_refresh_loop, daemon=True)
-        self.if refresh_thread and hasattr(refresh_thread, "start"): refresh_thread.start()
+        if self.refresh_thread and hasattr(self.refresh_thread, "start"): self.refresh_thread.start()
 
     def stop_auto_refresh(self):
         """Stop automatic refresh."""
@@ -348,11 +317,7 @@ class EnhancedBaseWidget(ABC):
 
         # Auto refresh setting
         auto_refresh_var = ctk.BooleanVar(value=self.config.auto_refresh)
-        auto_refresh_check = ctk.CTkCheckBox()
-            settings_window,
-            text="Auto Refresh",
-            variable=auto_refresh_var
-        )
+        auto_refresh_check = ctk.CTkCheckBox(settings_window, text="Auto Refresh", variable=auto_refresh_var)
         auto_refresh_check.pack(pady=10)
 
         # Refresh interval
@@ -406,3 +371,13 @@ class EnhancedBaseWidget(ABC):
         """Place the widget."""
         self.main_frame.place(**kwargs)
         self.is_visible = True
+
+# Helper to check GUI availability before using any GUI class
+if not GUI_AVAILABLE:
+    def _raise_gui_import_error(*args, **kwargs):
+        raise ImportError("Required GUI libraries (customtkinter, tkinter, matplotlib) are not installed.")
+    class _Dummy:
+        def __getattr__(self, name):
+            return _raise_gui_import_error
+    ctk = tk = ttk = messagebox = filedialog = plt = FigureCanvasTkAgg = Figure = _Dummy()
+    np = None

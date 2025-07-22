@@ -23,7 +23,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     try:
         # Import here to avoid circular imports
         if not credentials:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required",
                 headers={"WWW-Authenticate": "Bearer"},
@@ -32,7 +32,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         # Validate token
         user_data = await auth_manager.validate_token(credentials.credentials)
         if not user_data:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},

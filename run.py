@@ -39,11 +39,10 @@ import logging
 import os
 import platform
 import shutil
-import signal
 import subprocess
 import sys
-import tempfile
 import threading
+import time
 import time
 import traceback
 import urllib.request
@@ -162,7 +161,7 @@ class Colors:
 try:
     from rich.console import Console as RichConsole
     from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn
+
     from rich.prompt import Prompt
     RICH_AVAILABLE = True
 except ImportError:
@@ -292,6 +291,7 @@ def setup_colored_logging():
 # Module-level variables - will be properly initialized in main()
 logger = None
 UNIFIED_LOGGING_AVAILABLE = False
+get_logger = None
 
 # Setup basic logging immediately to prevent errors
 logging.basicConfig(
@@ -352,6 +352,16 @@ class TerminalUI:
         self.progress_bars = {}
         self.logs = []
         self.max_logs = 20
+        # Setup detailed setup logger
+        self.setup_logger = logging.getLogger('plexichat.setup')
+        self.setup_log_file = 'logs/setup_debug.log'
+        file_handler = logging.FileHandler(self.setup_log_file, mode='a', encoding='utf-8')
+        file_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        file_handler.setFormatter(formatter)
+        if not any(isinstance(h, logging.FileHandler) and h.baseFilename == file_handler.baseFilename for h in self.setup_logger.handlers):
+            self.setup_logger.addHandler(file_handler)
+        self.setup_logger.setLevel(logging.DEBUG)
 
     def clear_screen(self):
         """Clear the terminal screen."""
@@ -370,24 +380,19 @@ class TerminalUI:
         print("\033[?25h", end='')
 
     def draw_box(self, x: int, y: int, width: int, height: int, title: str = ""):
-        """Draw a box with optional title."""
+        """Draw a box with optional title (ASCII only)."""
         # Top border
-        self.move_cursor(y, x)
         if title:
-            title_text = f"┌─ {title} "
+            title_text = f"+-- {title} "
             remaining = width - len(title_text) - 1
-            print(f"{title_text}{'─' * remaining}┐")
+            print(f"{title_text}{'-' * remaining}+")
         else:
-            print(f"┌{'─' * (width - 2)}┐")
-
+            print(f"+{'-' * (width - 2)}+")
         # Side borders
-        for i in range(1, height - 1):
-            self.move_cursor(y + i, x)
-            print(f"│{' ' * (width - 2)}│")
-
+        for _ in range(height - 2):
+            print(f"|{' ' * (width - 2)}|")
         # Bottom border
-        self.move_cursor(y + height - 1, x)
-        print(f"└{'─' * (width - 2)}┘")
+        print(f"+{'-' * (width - 2)}+")
 
     def draw_progress_bar(self, x: int, y: int, width: int, progress: float, label: str = ""):
         """Draw a progress bar."""
@@ -413,6 +418,8 @@ class TerminalUI:
         if len(self.logs) > self.max_logs:
             self.logs.pop(0)
 
+        self.setup_logger.log(getattr(logging, level.upper(), logging.INFO), message)
+
     def get_animation_char(self) -> str:
         """Get current animation character."""
         char = ANIMATION_CHARS[self.animation_frame % len(ANIMATION_CHARS)]
@@ -420,57 +427,81 @@ class TerminalUI:
         return char
 
     def draw_header(self):
-        """Draw the main header."""
-        self.move_cursor(1, 1)
-        header = f"{Colors.BOLD}{Colors.BLUE}PlexiChat Setup & Management System{Colors.RESET}"
-        version = f"{Colors.DIM}v{PLEXICHAT_VERSION}{Colors.RESET}"
-        padding = self.width - len("PlexiChat Setup & Management System") - len(f"v{PLEXICHAT_VERSION}") - 4
+        """Draw the main header (ASCII only)."""
+        header = "PlexiChat Setup & Management System"
+        version = f"v{PLEXICHAT_VERSION}"
+        padding = self.width - len(header) - len(version) - 4
         print(f"  {header}{' ' * padding}{version}  ")
-
         # Draw separator
-        self.move_cursor(2, 1)
-        print(f"  {Colors.DIM}{'═' * (self.width - 4)}{Colors.RESET}  ")
+        print(f"  {'-' * (self.width - 4)}  ")
 
     def draw_status_panel(self, y_start: int):
-        """Draw the status panel."""
+        """Draw the status panel (ASCII only)."""
         self.draw_box(2, y_start, self.width - 4, 8, "System Status")
-
-        # System info
-        self.move_cursor(y_start + 2, 4)
         print(f"Platform: {platform.system()} {platform.release()}")
-        self.move_cursor(y_start + 3, 4)
         print(f"Python: {sys.version.split()[0]}")
-        self.move_cursor(y_start + 4, 4)
         print(f"Working Directory: {os.getcwd()}")
-        self.move_cursor(y_start + 5, 4)
         print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     def draw_logs_panel(self, y_start: int):
-        """Draw the logs panel."""
+        """Draw the logs panel (ASCII only)."""
         self.draw_box(2, y_start, self.width - 4, 12, "Activity Log")
-
-        for i, log in enumerate(self.logs[-10:]):  # Show last 10 logs
-            self.move_cursor(y_start + 2 + i, 4)
+        for log in self.logs[-10:]:
             print(log[:self.width - 8])  # Truncate if too long
 
     def refresh_display(self):
-        """Refresh the entire display."""
+        """Refresh the entire display with a clean, consistent, and functional layout."""
         self.clear_screen()
         self.hide_cursor()
 
         # Draw header
         self.draw_header()
 
-        # Draw status panel
-        self.draw_status_panel(4)
+        # Draw progress bar (spans width)
+        # For demo: show 50% progress and label. Replace with real progress if available.
+        progress = getattr(self, 'current_progress', 0.5)
+        label = getattr(self, 'progress_label', "Installing dependencies...")
+        bar_width = self.width - 4
+        print()
+        print(f"+{'-' * (bar_width)}+")
+        filled = int(progress * (bar_width))
+        bar = f"{'#' * filled}{'.' * (bar_width - filled)}"
+        print(f"|{bar}| {int(progress*100)}% {label}")
+        print(f"+{'-' * (bar_width)}+")
+        print()
 
-        # Draw logs panel
-        self.draw_logs_panel(13)
+        # Draw two side-by-side panels: System Status (left), Activity Log (right)
+        panel_width = (self.width - 6) // 2
+        panel_height = 14
+        # Top borders
+        print(f"+{'-' * panel_width}+{'-' * panel_width}+")
+        # Titles
+        print(f"|{' System Status':<{panel_width}}|{' Activity Log':<{panel_width}}|")
+        # Separator
+        print(f"+{'-' * panel_width}+{'-' * panel_width}+")
+        # Content rows
+        status_lines = [
+            f"Platform: {platform.system()} {platform.release()}",
+            f"Python: {sys.version.split()[0]}",
+            f"Working Directory: {os.getcwd()}",
+            f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        ]
+        # Pad status lines to panel_height
+        status_lines = status_lines[:panel_height]
+        status_lines += ["" for _ in range(panel_height - len(status_lines))]
+        log_lines = self.logs[-panel_height:] if self.logs else []
+        log_lines = log_lines[:panel_height]
+        log_lines += ["" for _ in range(panel_height - len(log_lines))]
+        for i in range(panel_height):
+            left = status_lines[i][:panel_width]
+            right = log_lines[i][:panel_width]
+            print(f"|{left:<{panel_width}}|{right:<{panel_width}}|")
+        # Bottom borders
+        print(f"+{'-' * panel_width}+{'-' * panel_width}+")
 
-        # Draw footer
-        self.move_cursor(self.height - 2, 1)
+        # Footer
+        print()
         print(f"  {Colors.DIM}Press Ctrl+C to exit{Colors.RESET}")
-
         sys.stdout.flush()
 
 class SetupWizard:
@@ -685,9 +716,10 @@ class GitHubVersionManager:
 class DependencyManager:
     """Manages Python dependencies and environment setup."""
 
-    def __init__(self):
+    def __init__(self, ui=None):
         self.requirements_file = Path("requirements.txt")
         self.venv_dir = Path("venv")
+        self.ui = ui
 
     def _parse_requirements(self) -> Dict[str, List[str]]:
         """Parse requirements.txt into sections."""
@@ -745,13 +777,17 @@ class DependencyManager:
         return results
 
     def install_dependencies(self, level: str = 'full', upgrade: bool = False) -> bool:
-        """Install dependencies for a specific level with progress."""
+        """Install dependencies for a specific level with progress. Now with timeout and hang protection."""
+        import threading
         try:
             logger.info(f"Installing '{level}' dependencies...")
-            
+            if self.ui and hasattr(self.ui, 'setup_logger'):
+                self.ui.setup_logger.debug(f"Installing '{level}' dependencies...")
             sections = self._parse_requirements()
             if not sections:
                 logger.error("Could not parse requirements.txt")
+                if self.ui and hasattr(self.ui, 'setup_logger'):
+                    self.ui.setup_logger.error("Could not parse requirements.txt")
                 return False
 
             deps_to_install = []
@@ -760,7 +796,7 @@ class DependencyManager:
             elif level == 'standard':
                 deps_to_install.extend(sections.get('minimal', []))
                 deps_to_install.extend(sections.get('full', []))
-            elif level == 'full': # Same as standard
+            elif level == 'full':
                 deps_to_install.extend(sections.get('minimal', []))
                 deps_to_install.extend(sections.get('full', []))
             elif level == 'developer':
@@ -769,64 +805,153 @@ class DependencyManager:
                 deps_to_install.extend(sections.get('developer', []))
             else:
                 logger.error(f"Unknown installation level: {level}")
+                if self.ui and hasattr(self.ui, 'setup_logger'):
+                    self.ui.setup_logger.error(f"Unknown installation level: {level}")
                 return False
 
             deps_to_install = [d for d in deps_to_install if d and not d.startswith('#')]
             if not deps_to_install:
                 logger.info("No dependencies to install for this level.")
+                if self.ui and hasattr(self.ui, 'setup_logger'):
+                    self.ui.setup_logger.info("No dependencies to install for this level.")
                 return True
 
+            import tempfile, time
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt', prefix='plexichat-reqs-') as temp_reqs:
                 temp_reqs.write('\n'.join(deps_to_install))
                 temp_reqs_path = temp_reqs.name
-            
+            if self.ui and hasattr(self.ui, 'setup_logger'):
+                self.ui.setup_logger.debug(f"Temporary requirements file: {temp_reqs_path}")
             cmd = [sys.executable, "-m", "pip", "install", "-r", temp_reqs_path]
             if upgrade:
                 cmd.append("--upgrade")
-
+            if self.ui and hasattr(self.ui, 'setup_logger'):
+                self.ui.setup_logger.debug(f"Running pip command: {' '.join(cmd)}")
+            timeout_seconds = 600
+            process = None
             try:
-                if RICH_AVAILABLE:
-                    with Progress(
-                        SpinnerColumn(),
-                        TextColumn("[progress.description]{task.description}"),
-                        BarColumn(),
-                        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-                        TimeElapsedColumn(),
-                        transient=True,
-                    ) as progress:
-                        task = progress.add_task(f"[cyan]Installing dependencies...", total=len(deps_to_install))
-                        
-                        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', bufsize=1)
-                        
-                        for line in iter(process.stdout.readline, ''):
-                            stripped_line = line.strip()
-                            logger.debug(stripped_line)
-                            if "Collecting " in stripped_line:
-                                package_name = stripped_line.split("Collecting ")[1].split('==')[0].split('>=')[0].split('<')[0]
-                                progress.update(task, description=f"[cyan]Collecting {package_name}...")
-                            elif "Installing collected packages" in stripped_line:
-                                progress.update(task, description="[cyan]Installing packages...")
-                            elif "Requirement already satisfied" in stripped_line:
-                                progress.advance(task)
+                # Simple progress tracking without Rich to avoid UI issues
+                print(f"Installing {len(deps_to_install)} dependencies...")
+                if self.ui and hasattr(self.ui, 'add_log'):
+                    self.ui.add_log(f"Installing {len(deps_to_install)} dependencies...", "INFO")
 
-                        stdout, stderr = process.communicate()
-                        if process.returncode != 0:
-                            logger.error(f"Failed to install dependencies:\n{stderr}")
-                            logger.error(f"Pip stdout:\n{stdout}")
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', bufsize=1)
+
+                def kill_proc_after_timeout(proc, timeout):
+                    time.sleep(timeout)
+                    if proc.poll() is None:
+                        proc.kill()
+
+                killer = threading.Thread(target=kill_proc_after_timeout, args=(process, timeout_seconds))
+                killer.daemon = True
+                killer.start()
+
+                current_package = ""
+                package_start_time = time.time()
+
+                for line in iter(process.stdout.readline, ''):
+                    stripped_line = line.strip()
+                    logger.debug(stripped_line)
+                    if self.ui and hasattr(self.ui, 'setup_logger'):
+                        self.ui.setup_logger.debug(stripped_line)
+
+                    if "Collecting " in stripped_line:
+                        package_name = stripped_line.split("Collecting ")[1].split('==')[0].split('>=')[0].split('<')[0].split('(')[0].strip()
+                        current_package = package_name
+                        package_start_time = time.time()
+                        print(f"  Collecting {package_name}...")
+                        if self.ui and hasattr(self.ui, 'add_log'):
+                            self.ui.add_log(f"Collecting {package_name}...", "INFO")
+
+                    elif "Installing collected packages" in stripped_line:
+                        print("  Installing collected packages...")
+                        if self.ui and hasattr(self.ui, 'add_log'):
+                            self.ui.add_log("Installing collected packages...", "INFO")
+
+                    elif "Installing " in stripped_line and current_package:
+                        elapsed = time.time() - package_start_time
+                        if elapsed > 30:  # If taking more than 30 seconds
+                            print(f"  Installing {current_package}... (this may take a while)")
+                            if self.ui and hasattr(self.ui, 'add_log'):
+                                self.ui.add_log(f"Installing {current_package}... (this may take a while)", "INFO")
+                        elif elapsed > 10:  # If taking more than 10 seconds
+                            print(f"  Installing {current_package}...")
+                            if self.ui and hasattr(self.ui, 'add_log'):
+                                self.ui.add_log(f"Installing {current_package}...", "INFO")
+
+                    elif "Requirement already satisfied" in stripped_line:
+                        package_name = stripped_line.split("Requirement already satisfied: ")[1].split(' ')[0] if "Requirement already satisfied: " in stripped_line else "package"
+                        print(f"  Already installed: {package_name}")
+                        if self.ui and hasattr(self.ui, 'add_log'):
+                            self.ui.add_log(f"Already installed: {package_name}", "INFO")
+
+                stdout, stderr = process.communicate()
+                if self.ui and hasattr(self.ui, 'setup_logger'):
+                    self.ui.setup_logger.debug(f"pip stdout:\n{stdout}")
+                    self.ui.setup_logger.debug(f"pip stderr:\n{stderr}")
+
+                if process.returncode is None:
+                    logger.error(f"Dependency installation timed out after {timeout_seconds} seconds. Killing process.")
+                    if self.ui and hasattr(self.ui, 'setup_logger'):
+                        self.ui.setup_logger.error(f"Dependency installation timed out after {timeout_seconds} seconds. Killing process.")
+                    process.kill()
+                    if self.ui and hasattr(self.ui, 'add_log'):
+                        self.ui.add_log(f"Dependency installation timed out after {timeout_seconds} seconds.", "ERROR")
+                    return False
+
+                if process.returncode != 0:
+                    logger.error(f"Failed to install dependencies:\n{stderr}")
+                    logger.error(f"Pip stdout:\n{stdout}")
+                    if self.ui and hasattr(self.ui, 'setup_logger'):
+                        self.ui.setup_logger.error(f"Failed to install dependencies:\n{stderr}")
+                        self.ui.setup_logger.error(f"Pip stdout:\n{stdout}")
+                    if self.ui and hasattr(self.ui, 'add_log'):
+                        self.ui.add_log("Failed to install dependencies. See logs for details.", "ERROR")
+                        if hasattr(self.ui, 'setup_log_file'):
+                            self.ui.add_log(f"See {self.ui.setup_log_file} for full pip output.", "ERROR")
+                    return False
+                else:
+                    try:
+                        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_seconds)
+                        if self.ui and hasattr(self.ui, 'setup_logger'):
+                            self.ui.setup_logger.debug(f"pip stdout:\n{result.stdout}")
+                            self.ui.setup_logger.debug(f"pip stderr:\n{result.stderr}")
+                        if result.returncode != 0:
+                            logger.error(f"Failed to install dependencies: {result.stderr}")
+                            if self.ui and hasattr(self.ui, 'setup_logger'):
+                                self.ui.setup_logger.error(f"Failed to install dependencies: {result.stderr}")
+                            if self.ui and hasattr(self.ui, 'add_log'):
+                                self.ui.add_log("Failed to install dependencies. See logs for details.", "ERROR")
+                                if hasattr(self.ui, 'setup_log_file'):
+                                    self.ui.add_log(f"See {self.ui.setup_log_file} for full pip output.", "ERROR")
                             return False
-                else: # Fallback for when rich is not available
-                    result = subprocess.run(cmd, capture_output=True, text=True)
-                    if result.returncode != 0:
-                        logger.error(f"Failed to install dependencies: {result.stderr}")
+                    except subprocess.TimeoutExpired:
+                        logger.error(f"Dependency installation timed out after {timeout_seconds} seconds.")
+                        if self.ui and hasattr(self.ui, 'setup_logger'):
+                            self.ui.setup_logger.error(f"Dependency installation timed out after {timeout_seconds} seconds.")
+                        if self.ui and hasattr(self.ui, 'add_log'):
+                            self.ui.add_log(f"Dependency installation timed out after {timeout_seconds} seconds.", "ERROR")
+                            if hasattr(self.ui, 'setup_log_file'):
+                                self.ui.add_log(f"See {self.ui.setup_log_file} for full pip output.", "ERROR")
                         return False
-
                 logger.info("Dependencies installed successfully.")
+                if self.ui and hasattr(self.ui, 'setup_logger'):
+                    self.ui.setup_logger.info("Dependencies installed successfully.")
+                if self.ui and hasattr(self.ui, 'add_log'):
+                    self.ui.add_log("Dependencies installed successfully.", "INFO")
                 return True
             finally:
                 os.remove(temp_reqs_path)
-
+                if process and process.poll() is None:
+                    process.kill()
         except Exception as e:
             logger.error(f"Error installing dependencies: {e}", exc_info=True)
+            if self.ui and hasattr(self.ui, 'setup_logger'):
+                self.ui.setup_logger.error(f"Error installing dependencies: {e}", exc_info=True)
+            if self.ui and hasattr(self.ui, 'add_log'):
+                self.ui.add_log(f"Error installing dependencies: {e}", "ERROR")
+                if hasattr(self.ui, 'setup_log_file'):
+                    self.ui.add_log(f"See {self.ui.setup_log_file} for full details.", "ERROR")
             return False
 
     def create_virtual_environment(self) -> bool:
@@ -1008,9 +1133,9 @@ class ConfigurationManager:
 class SystemManager:
     """Manages system operations and maintenance."""
 
-    def __init__(self):
+    def __init__(self, ui=None):
         self.github_manager = GitHubVersionManager()
-        self.dependency_manager = DependencyManager()
+        self.dependency_manager = DependencyManager(ui)
         self.config_manager = ConfigurationManager()
 
     def check_system_health(self) -> Dict[str, Any]:
@@ -1937,7 +2062,7 @@ def run_first_time_setup(level: Optional[str] = None):
         ui.add_log("Installing dependencies...", "INFO")
         ui.refresh_display()
 
-        dep_manager = DependencyManager()
+        dep_manager = DependencyManager(ui)
         if dep_manager.install_dependencies(level=level):
             ui.add_log("Dependencies installed successfully", "SUCCESS")
         else:
@@ -1957,7 +2082,7 @@ def run_first_time_setup(level: Optional[str] = None):
         print(f"\n{Colors.YELLOW}Setup cancelled by user{Colors.RESET}")
         return False
     except Exception as e:
-        logger.error(f"First-time setup failed: {e}")
+        logging.getLogger(__name__).error(f"First-time setup failed: {e}")
         return False
 
 def run_api_server():
@@ -2573,20 +2698,20 @@ def setup_signal_handlers():
         signal.signal(signal.SIGTERM, signal_handler)
 
 def display_startup_banner():
-    """Display enhanced startup banner with system information."""
+    """Display enhanced startup banner with system information (ASCII only, no emojis or Unicode boxes)."""
     try:
         banner = f"""
-{Colors.BOLD}{Colors.BRIGHT_CYAN}╔══════════════════════════════════════════════════════════════╗
-║                     🚀 PlexiChat Server                      ║
-║              Advanced AI-Powered Chat Platform               ║
-╚══════════════════════════════════════════════════════════════╝{Colors.RESET}
+{Colors.BOLD}{Colors.BRIGHT_CYAN}+{'-'*58}+
+|                     PlexiChat Server                      |
+|              Advanced AI-Powered Chat Platform           |
++{'-'*58}+{Colors.RESET}
 
 {Colors.BRIGHT_GREEN}System Information:{Colors.RESET}
-  • OS: {platform.system()} {platform.release()} ({platform.machine()})
-  • Python: {platform.python_version()}
-  • Working Directory: {os.getcwd()}
-  • Process ID: {os.getpid()}
-  • Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+  - OS: {platform.system()} {platform.release()} ({platform.machine()})
+  - Python: {platform.python_version()}
+  - Working Directory: {os.getcwd()}
+  - Process ID: {os.getpid()}
+  - Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 {Colors.BRIGHT_YELLOW}Starting PlexiChat with enhanced features...{Colors.RESET}
 """
@@ -2654,15 +2779,17 @@ def run_enhanced_bootstrap():
         traceback.print_exc()
         sys.exit(1)
 
-def download_plexichat_from_github():
-    """Download PlexiChat from GitHub repository."""
+def download_plexichat_from_github(repo, version_tag):
+    """Download PlexiChat from GitHub repository for a specific version."""
     try:
         print(f"  {Colors.BRIGHT_CYAN}Downloading PlexiChat from GitHub...{Colors.RESET}")
 
-        # GitHub repository URL
-        repo_url = "https://github.com/dboynton/plexichat/archive/refs/heads/main.zip"
+        # Construct the correct download URL for the selected version
+        if version_tag:
+            repo_url = f"https://github.com/{repo}/archive/refs/tags/{version_tag}.zip"
+        else:
+            repo_url = f"https://github.com/{repo}/archive/refs/heads/main.zip"
 
-        # Download the repository
         print(f"  {Colors.YELLOW}⬇ Downloading from: {repo_url}")
 
         import urllib.request
@@ -2683,9 +2810,10 @@ def download_plexichat_from_github():
             # Extract to current directory
             zip_ref.extractall('.')
 
-            # Move files from plexichat-main to current directory
+            # Move files from <repo>-<version_tag> or <repo>-main to current directory
             import shutil
-            source_dir = Path("plexichat-main")
+            main_dir = f"{repo.split('/')[-1]}-{version_tag if version_tag else 'main'}"
+            source_dir = Path(main_dir)
             if source_dir.exists():
                 for item in source_dir.iterdir():
                     if item.is_dir():
@@ -2696,13 +2824,9 @@ def download_plexichat_from_github():
                         if Path(item.name).exists():
                             Path(item.name).unlink()
                         shutil.move(str(item), item.name)
-
-                # Remove the extracted directory
                 shutil.rmtree(source_dir)
 
-        # Clean up
         Path(zip_path).unlink()
-
         print(f"  {Colors.GREEN}✓ PlexiChat downloaded and extracted successfully")
 
     except Exception as e:
@@ -3736,17 +3860,13 @@ def main():
             logger.error(f"Command failed: {e}")
             sys.exit(1)
 
-    # Display startup banner for server commands
-    if args.command in ['api', 'gui', 'webui']:
-        display_startup_banner()
-
-    # Import core modules after logging is set up
+    # Import core modules after logging is set up and only if not in bootstrap/install mode
     try:
-        from plexichat.core.config import get_config
-        from plexichat.main import app as web_app
-        from plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
-        from plexichat.core.events.event_manager import event_manager
-        
+        from src.plexichat.core.logging_advanced import get_logger, setup_module_logging
+        from src.plexichat.core.config import get_config
+        from src.plexichat.main import app as web_app
+        from src.plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
+        from src.plexichat.core.events.event_manager import event_manager
         # Initialize core components that are always needed
         config = get_config()
         if unified_plugin_manager:
@@ -3758,7 +3878,6 @@ def main():
             except Exception as e:
                 if logger:
                     logger.debug(f"Failed to emit startup event: {e}")
-
     except ImportError as e:
         logger.error(f"Failed to import core modules: {e}")
         logger.error("Please run 'python run.py setup' to install dependencies.")
@@ -3766,7 +3885,6 @@ def main():
     except Exception as e:
         logger.error(f"Core component initialization failed: {e}")
         sys.exit(1)
-
 
     # --- Command Dispatch ---
     if args.command == 'help':

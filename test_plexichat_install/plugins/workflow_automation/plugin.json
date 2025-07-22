@@ -1,0 +1,165 @@
+{
+  "name": "workflow_automation",
+  "version": "1.0.0",
+  "description": "Advanced Workflow Automation plugin with visual workflow builder, triggers, actions, and integration capabilities",
+  "author": "PlexiChat Automation Team",
+  "type": "automation",
+  "entry_point": "main",
+  "dependencies": ["core_system", "database_manager", "api_manager"],
+  "permissions": ["automation:read", "automation:write", "workflow:execute", "integration:access"],
+  "api_version": "1.0",
+  "min_plexichat_version": "3.0.0",
+  "enabled": true,
+  "category": "automation",
+  "tags": ["automation", "workflow", "integration", "triggers", "actions", "visual-builder"],
+  "homepage": "https://github.com/plexichat/plugins/workflow-automation",
+  "repository": "https://github.com/plexichat/plugins/workflow-automation",
+  "license": "MIT",
+  "icon": "workflow",
+  "screenshots": [
+    "workflow_builder.png",
+    "triggers.png",
+    "actions.png",
+    "integrations.png"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": ["Initial release", "Visual workflow builder", "Trigger system", "Action library", "Integration framework"]
+    }
+  ],
+  "download_count": 1560,
+  "rating": 4.9,
+  "last_updated": "2024-01-15T10:30:00Z",
+  "size_bytes": 8388608,
+  "checksum": "sha256:ghi789jkl012...",
+  "ui_pages": [
+    {
+      "name": "builder",
+      "path": "ui/builder",
+      "title": "Workflow Builder",
+      "description": "Visual workflow builder with drag-and-drop interface"
+    },
+    {
+      "name": "workflows",
+      "path": "ui/workflows",
+      "title": "Workflow Management",
+      "description": "Manage and monitor workflows"
+    },
+    {
+      "name": "triggers",
+      "path": "ui/triggers",
+      "title": "Trigger Library",
+      "description": "Browse and configure triggers"
+    },
+    {
+      "name": "actions",
+      "path": "ui/actions",
+      "title": "Action Library",
+      "description": "Browse and configure actions"
+    },
+    {
+      "name": "integrations",
+      "path": "ui/integrations",
+      "title": "Integrations",
+      "description": "Manage external integrations"
+    },
+    {
+      "name": "executions",
+      "path": "ui/executions",
+      "title": "Execution History",
+      "description": "View workflow execution history and logs"
+    }
+  ],
+  "api_endpoints": [
+    "/api/v1/automation/workflows",
+    "/api/v1/automation/triggers",
+    "/api/v1/automation/actions",
+    "/api/v1/automation/integrations",
+    "/api/v1/automation/executions"
+  ],
+  "webhooks": [
+    "automation.workflow.started",
+    "automation.workflow.completed",
+    "automation.workflow.failed",
+    "automation.trigger.activated",
+    "automation.action.executed"
+  ],
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "enabled_features": {
+        "type": "array",
+        "items": {"type": "string", "enum": ["workflows", "triggers", "actions", "integrations", "scheduling"]},
+        "default": ["workflows", "triggers", "actions"],
+        "description": "Enabled automation features"
+      },
+      "max_workflows": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 1000,
+        "default": 100,
+        "description": "Maximum number of workflows per user"
+      },
+      "max_execution_time": {
+        "type": "integer",
+        "minimum": 30,
+        "maximum": 3600,
+        "default": 300,
+        "description": "Maximum workflow execution time in seconds"
+      },
+      "concurrent_executions": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 50,
+        "default": 10,
+        "description": "Maximum concurrent workflow executions"
+      },
+      "retention_days": {
+        "type": "integer",
+        "minimum": 7,
+        "maximum": 365,
+        "default": 30,
+        "description": "Execution history retention in days"
+      },
+      "enable_debugging": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable detailed execution debugging"
+      },
+      "default_timezone": {
+        "type": "string",
+        "default": "UTC",
+        "description": "Default timezone for scheduling"
+      },
+      "webhook_timeout": {
+        "type": "integer",
+        "minimum": 5,
+        "maximum": 300,
+        "default": 30,
+        "description": "Webhook timeout in seconds"
+      },
+      "enable_rate_limiting": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable rate limiting for external API calls"
+      },
+      "max_retries": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 3,
+        "description": "Maximum retry attempts for failed actions"
+      }
+    },
+    "required": ["enabled_features"]
+  },
+  "auto_start": true,
+  "background_tasks": [
+    "execute_scheduled_workflows",
+    "process_triggers",
+    "cleanup_execution_history",
+    "sync_integrations"
+  ]
+} 

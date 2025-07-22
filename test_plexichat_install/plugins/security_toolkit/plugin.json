@@ -1,0 +1,78 @@
+{
+  "name": "security_toolkit",
+  "version": "1.0.0",
+  "description": "Security toolkit with file encryption, password management, secure communication, and cryptographic utilities",
+  "author": "PlexiChat Team",
+  "type": "security",
+  "enabled": true,
+  "priority": 1,
+  "dependencies": [],
+  "permissions": [
+    "file_system_access",
+    "network_access",
+    "webui_access",
+    "gui_access",
+    "crypto_access"
+  ],
+  "capabilities": [
+    "file_encryption",
+    "password_management",
+    "secure_communication",
+    "key_generation",
+    "digital_signatures",
+    "hash_functions",
+    "secure_storage"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "encryption_algorithm": {
+      "type": "string",
+      "default": "AES-256-GCM",
+      "description": "Default encryption algorithm"
+    },
+    "key_derivation": {
+      "type": "string",
+      "default": "PBKDF2",
+      "description": "Key derivation function"
+    },
+    "password_policy": {
+      "type": "object",
+      "default": {
+        "min_length": 12,
+        "require_uppercase": true,
+        "require_lowercase": true,
+        "require_numbers": true,
+        "require_symbols": true
+      },
+      "description": "Password policy requirements"
+    },
+    "secure_delete": {
+      "type": "boolean",
+      "default": true,
+      "description": "Use secure deletion for sensitive files"
+    }
+  },
+  "webui": {
+    "enabled": true,
+    "routes": [
+      {
+        "path": "/security-toolkit",
+        "component": "SecurityToolkitPanel",
+        "title": "Security Toolkit",
+        "icon": "shield-alt"
+      }
+    ]
+  },
+  "self_tests": [
+    "test_encryption",
+    "test_password_management",
+    "test_key_generation",
+    "test_hashing",
+    "test_secure_storage"
+  ],
+  "requirements": [
+    "cryptography>=3.4.0",
+    "bcrypt>=3.2.0",
+    "keyring>=23.0.0"
+  ]
+}

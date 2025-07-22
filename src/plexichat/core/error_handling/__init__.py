@@ -17,80 +17,33 @@ import asyncio
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
-# Core imports - only import what actually exists
-try:
-    from .exceptions import (
-        ErrorSeverity,
-        ErrorCategory,
-        BaseAPIException,
-        AuthenticationError,
-        AuthorizationError,
-        DatabaseError,
-        NetworkError,
-        ValidationError,
-        FileError,
-        ExternalServiceError,
-        RateLimitError,
-    )
-except ImportError:
-    # Define basic exceptions if the module doesn't exist
-    class ErrorSeverity:
-        LOW = "low"
-        MEDIUM = "medium"
-        HIGH = "high"
-        CRITICAL = "critical"
+# Import from our core exceptions module
+from plexichat.core.exceptions import (
+    ErrorSeverity,
+    ErrorCategory,
+    BaseAPIException,
+    AuthenticationError,
+    AuthorizationError,
+    DatabaseError,
+    NetworkError,
+    ValidationError,
+    FileError,
+    ExternalServiceError,
+    RateLimitError,
+    ConfigurationError,
+    ProcessLockError,
+    StartupError,
+    handle_exception,
+    create_error_response
+)
 
-    class ErrorCategory:
-        SYSTEM = "system"
-        USER = "user"
-        NETWORK = "network"
-        DATABASE = "database"
-
-    class BaseAPIException(Exception):
-        pass
-
-    class AuthenticationError(BaseAPIException):
-        pass
-
-    class AuthorizationError(BaseAPIException):
-        pass
-
-    class DatabaseError(BaseAPIException):
-        pass
-
-    class NetworkError(BaseAPIException):
-        pass
-
-    class ValidationError(BaseAPIException):
-        pass
-
-    class FileError(BaseAPIException):
-        pass
-
-    class ExternalServiceError(BaseAPIException):
-        pass
-
-    class RateLimitError(BaseAPIException):
-        pass
-
-# Try to import enhanced components
-try:
-    from .enhanced_error_handler import EnhancedErrorHandler
-except ImportError:
-    EnhancedErrorHandler = None
-
-try:
-    from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
-except ImportError:
-    CircuitBreaker = None
-    CircuitBreakerConfig = None
-    CircuitState = None
-
-try:
-    from .crash_reporter import CrashContext, CrashReporter
-except ImportError:
-    CrashContext = None
-    CrashReporter = None
+# Enhanced components not available - using fallbacks
+EnhancedErrorHandler = None
+CircuitBreaker = None
+CircuitBreakerConfig = None
+CircuitState = None
+CrashContext = None
+CrashReporter = None
 
 # Logger for this module
 logger = logging.getLogger(__name__)

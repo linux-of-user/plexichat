@@ -78,7 +78,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
             report = await performance_optimizer.analyze_database_performance(database_name)
 
             if format == 'json':
-                click.echo(json.dumps({))
+                click.echo(json.dumps({
                     "database": report.database_name,
                     "performance_score": report.performance_score,
                     "optimization_priority": report.optimization_priority,
@@ -146,7 +146,7 @@ def analyze(ctx, database: str, format: str, detailed: bool):
                         click.echo("\n Index Recommendations:")
                         index_data = []
                         for idx in report.recommended_indexes[:5]:  # Show top 5
-                            index_data.append([)
+                            index_data.append([
                                 idx.index_definition.table,
                                 ", ".join(idx.index_definition.columns),
                                 f"{idx.estimated_improvement:.1f}%",
@@ -334,7 +334,7 @@ def indexes(ctx, database: str, format: str):
                     click.echo("\n Top Index Recommendations:")
                     rec_data = []
                     for rec in recommendations:
-                        rec_data.append([)
+                        rec_data.append([
                             rec['table'],
                             ", ".join(rec['columns']),
                             f"Priority {rec['priority']}",

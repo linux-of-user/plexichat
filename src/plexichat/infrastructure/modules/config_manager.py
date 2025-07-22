@@ -317,7 +317,7 @@ class PluginConfigurationManager:
                 with open(schema_file, 'r') as f:
                     schema_data = json.load(f)
 
-                schema = PluginConfigSchema()
+                schema = PluginConfigSchema(
                     name=plugin_name,
                     version=schema_data.get("version", "1.0.0"),
                     schema=schema_data.get("schema", {}),
@@ -493,14 +493,13 @@ class PluginConfigurationManager:
                         return
 
                     from pathlib import Path
-file_path = Path
-Path(event.src_path)
+                    file_path = Path(event.src_path)
                     if file_path.suffix.lower() in ['.yaml', '.yml', '.json']:
                         plugin_name = file_path.stem
                         logger.info(f"Configuration file changed: {file_path}")
 
                         # Schedule reload
-                        asyncio.create_task()
+                        asyncio.create_task(
                             self.config_manager.reload_plugin_config(plugin_name)
                         )
 

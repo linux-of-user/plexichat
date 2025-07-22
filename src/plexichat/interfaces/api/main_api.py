@@ -144,7 +144,7 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI app
 if FastAPI:
-    app = FastAPI()
+    app = FastAPI(
         title="PlexiChat API",
         description="PlexiChat messaging platform API with threading and performance optimization",
         version="1.0.0",
@@ -152,7 +152,7 @@ if FastAPI:
     )
 
     # Add middleware
-    app.add_middleware()
+    app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],  # Configure appropriately for production
         allow_credentials=True,
@@ -171,7 +171,7 @@ async def performance_middleware(request: Request, call_next):
 
     # Track request
     if analytics_manager:
-        await analytics_manager.track_event()
+        await analytics_manager.track_event(
             "api_request",
             properties={
                 "method": request.method,
@@ -201,7 +201,7 @@ if app:
 # Exception handlers
 async def validation_exception_handler(request: Request, exc: Exception):
     """Handle validation exceptions."""
-    return JSONResponse()
+    return JSONResponse(
         status_code=422,
         content={
             "error": "Validation Error",
@@ -217,7 +217,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     if performance_logger:
         performance_logger.record_metric("api_errors", 1, "count")
 
-    return JSONResponse()
+    return JSONResponse(
         status_code=500,
         content={
             "error": "Internal Server Error",
@@ -269,7 +269,7 @@ async def health_check():
 
     except Exception as e:
         logger.error(f"Health check error: {e}")
-        return JSONResponse()
+        return JSONResponse(
             status_code=503,
             content={
                 "status": "unhealthy",
@@ -425,7 +425,7 @@ async def websocket_endpoint(websocket, user_id: int):
 
                 # Track analytics
                 if analytics_manager:
-                    await analytics_manager.track_event()
+                    await analytics_manager.track_event(
                         "websocket_message",
                         user_id=user_id,
                         properties={"message_type": message_type}
@@ -455,7 +455,7 @@ def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
 
     logger.info(f"Starting PlexiChat API server on {host}:{port}")
 
-    uvicorn.run()
+    uvicorn.run(
         "plexichat.interfaces.api.main_api:app",
         host=host,
         port=port,

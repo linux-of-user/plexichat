@@ -146,7 +146,7 @@ class ModerationLog(SQLModel, table=True):
     metadata: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
 
     # Indexes
-    __table_args__ = ()
+    __table_args__ = (
         Index("idx_moderation_target_time", "target_user_id", "created_at"),
         Index("idx_moderation_moderator_time", "moderator_id", "created_at"),
         Index("idx_moderation_guild_time", "guild_id", "created_at"),

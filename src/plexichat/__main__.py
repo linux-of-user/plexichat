@@ -24,6 +24,9 @@ Usage:
     python -m plexichat --config config/custom.yaml
 """
 
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import argparse
 import asyncio
 import atexit
@@ -53,24 +56,20 @@ except ImportError:
 
 # Import shared components
 try:
-    from .shared.constants import (
-        DEFAULT_HOST, DEFAULT_PORT, DEFAULT_WORKERS,
-        PROCESS_LOCK_FILE, MAX_STARTUP_TIME
-    )
     from .shared.exceptions import ProcessLockError, StartupError
 except ImportError:
-    # Fallback constants
-    DEFAULT_HOST = "0.0.0.0"
-    DEFAULT_PORT = 8000
-    DEFAULT_WORKERS = 4
-    PROCESS_LOCK_FILE = "plexichat.lock"
-    MAX_STARTUP_TIME = 60
-
     class ProcessLockError(Exception):
         pass
 
     class StartupError(Exception):
         pass
+
+# Fallback constants
+DEFAULT_HOST = "0.0.0.0"
+DEFAULT_PORT = 8000
+DEFAULT_WORKERS = 4
+PROCESS_LOCK_FILE = "plexichat.lock"
+MAX_STARTUP_TIME = 60
 
 # Global variables for process management
 _lock_file: Optional[int] = None

@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlexiChat Plugin Marketplace</title>
+    <link rel="stylesheet" href="plugin-manager.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="plugin-manager">
+        <div class="plugin-header">
+            <h1 class="plugin-title">Plugin Marketplace</h1>
+            <div class="plugin-actions">
+                <button onclick="window.history.back()" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Manager
+                </button>
+            </div>
+        </div>
+        
+        <div class="marketplace-section">
+            <div class="marketplace-header">
+                <h2 class="marketplace-title">Featured Plugins</h2>
+            </div>
+            
+            <div class="plugin-search">
+                <input type="text" id="marketplace-search" class="search-input" placeholder="Search marketplace...">
+                <button class="search-btn">Search</button>
+            </div>
+            
+            <div id="marketplace-grid" class="plugin-grid">
+                <!-- Marketplace plugins will be rendered here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Marketplace functionality would be implemented here
+        console.log('Marketplace loaded');
+    </script>
+</body>
+</html>

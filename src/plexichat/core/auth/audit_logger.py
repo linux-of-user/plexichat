@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 from pathlib import Path
 
 from plexichat.core.logging.unified_logging_manager import get_logger
-from plexichat.shared.constants import LOGS_DIR
+from plexichat.core.config import get_config
 
 logger = get_logger(__name__)
 

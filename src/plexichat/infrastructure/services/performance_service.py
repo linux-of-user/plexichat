@@ -150,7 +150,7 @@ class PerformanceAggregator:
         with self.lock:
             self.ai_metrics.append(metrics)
 
-    def add_custom_metric():
+    def add_custom_metric(
         self, name: str, value: Any, timestamp: Optional[datetime] = None
     ):
         """Add custom metric."""
@@ -416,16 +416,16 @@ class PerformanceService(BaseService):
                 # Collect cluster metrics if clustering is enabled
                 cluster_data = await self.cluster_monitor.collect_cluster_metrics()
 
-                cluster_metrics = ClusterMetrics()
+                cluster_metrics = ClusterMetrics(
                     timestamp=datetime.now(timezone.utc),
                     total_nodes=cluster_data.get("total_nodes", 1),
                     active_nodes=cluster_data.get("active_nodes", 1),
                     cluster_cpu_avg=cluster_data.get("cluster_cpu_usage", 0.0),
                     cluster_memory_avg=cluster_data.get("cluster_memory_usage", 0.0),
-                    cluster_load_balance=cluster_data.get()
+                    cluster_load_balance=cluster_data.get(
                         "performance_gain_factor", 1.0
                     ),
-                    inter_node_latency=cluster_data.get()
+                    inter_node_latency=cluster_data.get(
                         "average_response_time_ms", 0.0
                     ),
                     failover_count=0,  # Would be tracked separately

@@ -1,0 +1,1251 @@
+{% extends "base.html" %}
+
+{% block title %}Security & HTTPS Setup - {{ app_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.security-card {
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.security-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.security-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.security-card-body {
+    padding: 25px;
+}
+
+.security-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.security-status.secure {
+    background: #d4edda;
+    color: #155724;
+}
+
+.security-status.warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.security-status.danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.tutorial-step {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.tutorial-step-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.tutorial-step-header:hover {
+    background: #e9ecef;
+}
+
+.tutorial-step-body {
+    padding: 20px;
+    display: none;
+}
+
+.tutorial-step.active .tutorial-step-body {
+    display: block;
+}
+
+.tutorial-step.completed .tutorial-step-header {
+    background: #d4edda;
+    color: #155724;
+}
+
+.code-block {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    position: relative;
+}
+
+.code-block .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.code-block .copy-btn:hover {
+    background: #5a6268;
+}
+
+.certificate-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px 0;
+}
+
+.certificate-field {
+    margin-bottom: 15px;
+}
+
+.certificate-field label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.certificate-field input,
+.certificate-field textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.certificate-field textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.wizard-progress {
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 8px;
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.wizard-progress-bar {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.security-check {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.security-check:last-child {
+    border-bottom: none;
+}
+
+.security-check-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.security-check-icon.pass {
+    background: #28a745;
+    color: white;
+}
+
+.security-check-icon.fail {
+    background: #dc3545;
+    color: white;
+}
+
+.security-check-icon.warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.ssl-generator {
+    background: #fff;
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.ssl-generator:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.domain-validator {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px 0;
+}
+
+.domain-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.domain-status.valid {
+    background: #d4edda;
+    color: #155724;
+}
+
+.domain-status.invalid {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.domain-status.checking {
+    background: #fff3cd;
+    color: #856404;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Security & HTTPS Setup
+                </h1>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="startSecurityWizard()">
+                        <i class="fas fa-magic me-2"></i>
+                        Security Wizard
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="runSecurityScan()">
+                        <i class="fas fa-search me-2"></i>
+                        Security Scan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Overview -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div>
+                        <h5 class="mb-0"><i class="fas fa-lock me-2"></i>HTTPS Status</h5>
+                    </div>
+                    <div class="security-status" id="httpsStatus">
+                        <i class="fas fa-times me-1"></i>
+                        Disabled
+                    </div>
+                </div>
+                <div class="security-card-body">
+                    <p class="mb-3">HTTPS encryption protects data in transit between clients and your server.</p>
+                    <button class="btn btn-primary btn-sm" onclick="showHttpsSetup()">
+                        <i class="fas fa-cog me-1"></i>
+                        Configure HTTPS
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div>
+                        <h5 class="mb-0"><i class="fas fa-key me-2"></i>Authentication</h5>
+                    </div>
+                    <div class="security-status secure">
+                        <i class="fas fa-check me-1"></i>
+                        Enabled
+                    </div>
+                </div>
+                <div class="security-card-body">
+                    <p class="mb-3">JWT-based authentication with session management is active.</p>
+                    <button class="btn btn-outline-primary btn-sm" onclick="showAuthSettings()">
+                        <i class="fas fa-cog me-1"></i>
+                        Auth Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div>
+                        <h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Rate Limiting</h5>
+                    </div>
+                    <div class="security-status" id="rateLimitStatus">
+                        <i class="fas fa-check me-1"></i>
+                        Active
+                    </div>
+                </div>
+                <div class="security-card-body">
+                    <p class="mb-3">API rate limiting prevents abuse and ensures fair usage.</p>
+                    <button class="btn btn-outline-primary btn-sm" onclick="showRateLimitSettings()">
+                        <i class="fas fa-cog me-1"></i>
+                        Rate Limits
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Checks -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="security-card">
+                <div class="security-card-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Security Checklist</h5>
+                    <button class="btn btn-light btn-sm" onclick="refreshSecurityChecks()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        Refresh
+                    </button>
+                </div>
+                <div class="security-card-body">
+                    <div id="securityChecks">
+                        <!-- Security checks will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HTTPS Setup Tutorial -->
+    <div class="row mb-4" id="httpsSetupSection" style="display: none;">
+        <div class="col-12">
+            <div class="security-card">
+                <div class="security-card-header">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>HTTPS Setup Tutorial</h5>
+                    <div class="wizard-progress">
+                        <div class="wizard-progress-bar" id="httpsProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="security-card-body">
+                    <!-- Step 1: Choose Certificate Type -->
+                    <div class="tutorial-step active" id="step1">
+                        <div class="tutorial-step-header" onclick="toggleStep('step1')">
+                            <div>
+                                <strong>Step 1: Choose Certificate Type</strong>
+                                <div class="text-muted small">Select how you want to obtain SSL certificates</div>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="tutorial-step-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="ssl-generator" onclick="selectCertType('letsencrypt')">
+                                        <i class="fas fa-certificate fa-3x text-primary mb-3"></i>
+                                        <h5>Let's Encrypt (Recommended)</h5>
+                                        <p class="text-muted">Free, automated SSL certificates</p>
+                                        <ul class="text-start">
+                                            <li>Completely free</li>
+                                            <li>Automatic renewal</li>
+                                            <li>Trusted by all browsers</li>
+                                            <li>Requires domain name</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="ssl-generator" onclick="selectCertType('selfsigned')">
+                                        <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                                        <h5>Self-Signed Certificate</h5>
+                                        <p class="text-muted">Generate your own certificate</p>
+                                        <ul class="text-start">
+                                            <li>Works without domain</li>
+                                            <li>Instant setup</li>
+                                            <li>Browser warnings</li>
+                                            <li>Good for testing</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Domain Configuration -->
+                    <div class="tutorial-step" id="step2">
+                        <div class="tutorial-step-header" onclick="toggleStep('step2')">
+                            <div>
+                                <strong>Step 2: Domain Configuration</strong>
+                                <div class="text-muted small">Configure your domain settings</div>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="tutorial-step-body">
+                            <div class="domain-validator">
+                                <div class="certificate-field">
+                                    <label for="domainName">Domain Name</label>
+                                    <input type="text" id="domainName" placeholder="example.com"
+                                           onchange="validateDomain(this.value)">
+                                    <div class="mt-2">
+                                        <span class="domain-status checking" id="domainStatus" style="display: none;">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            Checking domain...
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-info-circle me-2"></i>Domain Requirements</h6>
+                                    <ul class="mb-0">
+                                        <li>Domain must point to this server's IP address</li>
+                                        <li>Port 80 and 443 must be accessible from the internet</li>
+                                        <li>No other web server should be running on these ports</li>
+                                    </ul>
+                                </div>
+
+                                <button class="btn btn-outline-primary" onclick="checkDomainDNS()">
+                                    <i class="fas fa-search me-1"></i>
+                                    Check DNS Configuration
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Certificate Generation -->
+                    <div class="tutorial-step" id="step3">
+                        <div class="tutorial-step-header" onclick="toggleStep('step3')">
+                            <div>
+                                <strong>Step 3: Certificate Generation</strong>
+                                <div class="text-muted small">Generate or upload SSL certificates</div>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="tutorial-step-body">
+                            <div id="letsencryptSetup" style="display: none;">
+                                <h6>Let's Encrypt Setup</h6>
+                                <p>We'll use Certbot to automatically obtain and configure SSL certificates.</p>
+
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+# Install Certbot
+sudo apt update
+sudo apt install certbot
+
+# Stop PlexiChat temporarily
+python run.py --shutdown
+
+# Generate certificate
+sudo certbot certonly --standalone -d <span id="certDomain">your-domain.com</span>
+
+# Start PlexiChat with HTTPS
+python run.py --https
+                                </div>
+
+                                <button class="btn btn-success" onclick="generateLetsEncrypt()">
+                                    <i class="fas fa-magic me-1"></i>
+                                    Auto-Generate Certificate
+                                </button>
+                            </div>
+
+                            <div id="selfsignedSetup" style="display: none;">
+                                <h6>Self-Signed Certificate Setup</h6>
+                                <p>Generate a self-signed certificate for testing or internal use.</p>
+
+                                <div class="certificate-field">
+                                    <label for="certCountry">Country Code (2 letters)</label>
+                                    <input type="text" id="certCountry" value="US" maxlength="2">
+                                </div>
+
+                                <div class="certificate-field">
+                                    <label for="certOrganization">Organization</label>
+                                    <input type="text" id="certOrganization" value="PlexiChat">
+                                </div>
+
+                                <div class="certificate-field">
+                                    <label for="certCommonName">Common Name (domain)</label>
+                                    <input type="text" id="certCommonName" placeholder="localhost">
+                                </div>
+
+                                <button class="btn btn-warning" onclick="generateSelfSigned()">
+                                    <i class="fas fa-certificate me-1"></i>
+                                    Generate Self-Signed Certificate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Configuration -->
+                    <div class="tutorial-step" id="step4">
+                        <div class="tutorial-step-header" onclick="toggleStep('step4')">
+                            <div>
+                                <strong>Step 4: PlexiChat Configuration</strong>
+                                <div class="text-muted small">Configure PlexiChat to use HTTPS</div>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="tutorial-step-body">
+                            <div class="certificate-info">
+                                <div class="certificate-field">
+                                    <label for="certFilePath">Certificate File Path</label>
+                                    <input type="text" id="certFilePath" placeholder="/path/to/certificate.crt">
+                                </div>
+
+                                <div class="certificate-field">
+                                    <label for="keyFilePath">Private Key File Path</label>
+                                    <input type="text" id="keyFilePath" placeholder="/path/to/private.key">
+                                </div>
+
+                                <div class="certificate-field">
+                                    <label>
+                                        <input type="checkbox" id="forceHttps">
+                                        Force HTTPS (redirect HTTP to HTTPS)
+                                    </label>
+                                </div>
+
+                                <div class="certificate-field">
+                                    <label>
+                                        <input type="checkbox" id="hstsEnabled">
+                                        Enable HSTS (HTTP Strict Transport Security)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-success" onclick="applyHttpsConfig()">
+                                <i class="fas fa-save me-1"></i>
+                                Apply HTTPS Configuration
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Testing -->
+                    <div class="tutorial-step" id="step5">
+                        <div class="tutorial-step-header" onclick="toggleStep('step5')">
+                            <div>
+                                <strong>Step 5: Testing & Verification</strong>
+                                <div class="text-muted small">Verify HTTPS is working correctly</div>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="tutorial-step-body">
+                            <div class="alert alert-success" id="httpsTestResults" style="display: none;">
+                                <h6><i class="fas fa-check-circle me-2"></i>HTTPS Test Results</h6>
+                                <div id="testResultsContent"></div>
+                            </div>
+
+                            <button class="btn btn-primary" onclick="testHttpsConnection()">
+                                <i class="fas fa-vial me-1"></i>
+                                Test HTTPS Connection
+                            </button>
+
+                            <button class="btn btn-outline-primary ms-2" onclick="testSSLCertificate()">
+                                <i class="fas fa-certificate me-1"></i>
+                                Verify SSL Certificate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Wizard Modal -->
+<div class="modal fade" id="securityWizardModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    PlexiChat Security Wizard
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Wizard content will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="wizardNextBtn">Next</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+let selectedCertType = null;
+let securityConfig = {};
+
+// Initialize security interface
+document.addEventListener('DOMContentLoaded', function() {
+    loadSecurityStatus();
+    loadSecurityChecks();
+});
+
+// Load current security status
+async function loadSecurityStatus() {
+    try {
+        const response = await fetch('/api/v1/security/status');
+        const status = await response.json();
+
+        updateSecurityStatusDisplay(status);
+    } catch (error) {
+        console.error('Failed to load security status:', error);
+    }
+}
+
+// Update security status display
+function updateSecurityStatusDisplay(status) {
+    // HTTPS Status
+    const httpsStatus = document.getElementById('httpsStatus');
+    if (status.https_enabled) {
+        httpsStatus.className = 'security-status secure';
+        httpsStatus.innerHTML = '<i class="fas fa-check me-1"></i>Enabled';
+    } else {
+        httpsStatus.className = 'security-status danger';
+        httpsStatus.innerHTML = '<i class="fas fa-times me-1"></i>Disabled';
+    }
+
+    // Rate Limiting Status
+    const rateLimitStatus = document.getElementById('rateLimitStatus');
+    if (status.rate_limiting) {
+        rateLimitStatus.className = 'security-status secure';
+        rateLimitStatus.innerHTML = '<i class="fas fa-check me-1"></i>Active';
+    } else {
+        rateLimitStatus.className = 'security-status warning';
+        rateLimitStatus.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Disabled';
+    }
+}
+
+// Load security checks
+async function loadSecurityChecks() {
+    try {
+        const response = await fetch('/api/v1/security/checks');
+        const checks = await response.json();
+
+        displaySecurityChecks(checks);
+    } catch (error) {
+        console.error('Failed to load security checks:', error);
+    }
+}
+
+// Display security checks
+function displaySecurityChecks(checks) {
+    const checksContainer = document.getElementById('securityChecks');
+    checksContainer.innerHTML = '';
+
+    checks.forEach(check => {
+        const checkElement = document.createElement('div');
+        checkElement.className = 'security-check';
+
+        const iconClass = check.status === 'pass' ? 'pass' :
+                         check.status === 'fail' ? 'fail' : 'warning';
+        const iconSymbol = check.status === 'pass' ? '✓' :
+                          check.status === 'fail' ? '✗' : '!';
+
+        checkElement.innerHTML = `
+            <div class="security-check-icon ${iconClass}">${iconSymbol}</div>
+            <div class="flex-grow-1">
+                <strong>${check.name}</strong>
+                <div class="text-muted small">${check.description}</div>
+                ${check.recommendation ? `<div class="text-warning small mt-1">${check.recommendation}</div>` : ''}
+            </div>
+        `;
+
+        checksContainer.appendChild(checkElement);
+    });
+}
+
+// Refresh security checks
+async function refreshSecurityChecks() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Checking...';
+    button.disabled = true;
+
+    try {
+        await loadSecurityChecks();
+        showNotification('Security checks refreshed', 'success');
+    } catch (error) {
+        showNotification('Failed to refresh security checks', 'error');
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Show HTTPS setup tutorial
+function showHttpsSetup() {
+    document.getElementById('httpsSetupSection').style.display = 'block';
+    document.getElementById('httpsSetupSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Toggle tutorial step
+function toggleStep(stepId) {
+    const step = document.getElementById(stepId);
+    const body = step.querySelector('.tutorial-step-body');
+    const icon = step.querySelector('.tutorial-step-header i');
+
+    if (body.style.display === 'none' || !body.style.display) {
+        body.style.display = 'block';
+        icon.className = 'fas fa-chevron-up';
+        step.classList.add('active');
+    } else {
+        body.style.display = 'none';
+        icon.className = 'fas fa-chevron-down';
+        step.classList.remove('active');
+    }
+}
+
+// Select certificate type
+function selectCertType(type) {
+    selectedCertType = type;
+
+    // Hide all setup sections
+    document.getElementById('letsencryptSetup').style.display = 'none';
+    document.getElementById('selfsignedSetup').style.display = 'none';
+
+    // Show selected setup
+    if (type === 'letsencrypt') {
+        document.getElementById('letsencryptSetup').style.display = 'block';
+    } else if (type === 'selfsigned') {
+        document.getElementById('selfsignedSetup').style.display = 'block';
+    }
+
+    // Mark step as completed and move to next
+    completeStep('step1');
+    activateStep('step2');
+    updateProgress(40);
+
+    showNotification(`Selected ${type === 'letsencrypt' ? 'Let\'s Encrypt' : 'Self-Signed'} certificates`, 'info');
+}
+
+// Validate domain
+async function validateDomain(domain) {
+    if (!domain) return;
+
+    const statusElement = document.getElementById('domainStatus');
+    statusElement.style.display = 'inline-flex';
+    statusElement.className = 'domain-status checking';
+    statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking domain...';
+
+    try {
+        const response = await fetch('/api/v1/security/validate-domain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain: domain })
+        });
+
+        const result = await response.json();
+
+        if (result.valid) {
+            statusElement.className = 'domain-status valid';
+            statusElement.innerHTML = '<i class="fas fa-check"></i> Domain is valid';
+
+            // Update certificate domain placeholder
+            document.getElementById('certDomain').textContent = domain;
+
+            completeStep('step2');
+            activateStep('step3');
+            updateProgress(60);
+        } else {
+            statusElement.className = 'domain-status invalid';
+            statusElement.innerHTML = '<i class="fas fa-times"></i> ' + (result.error || 'Domain validation failed');
+        }
+    } catch (error) {
+        statusElement.className = 'domain-status invalid';
+        statusElement.innerHTML = '<i class="fas fa-times"></i> Validation error';
+        console.error('Domain validation error:', error);
+    }
+}
+
+// Check domain DNS configuration
+async function checkDomainDNS() {
+    const domain = document.getElementById('domainName').value;
+    if (!domain) {
+        showNotification('Please enter a domain name first', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/security/check-dns', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain: domain })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('DNS configuration looks good!', 'success');
+        } else {
+            showNotification('DNS issues detected: ' + result.message, 'warning');
+        }
+    } catch (error) {
+        showNotification('Failed to check DNS configuration', 'error');
+        console.error('DNS check error:', error);
+    }
+}
+
+// Generate Let's Encrypt certificate
+async function generateLetsEncrypt() {
+    const domain = document.getElementById('domainName').value;
+    if (!domain) {
+        showNotification('Please enter a domain name first', 'warning');
+        return;
+    }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Generating...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/v1/security/generate-letsencrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain: domain })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update certificate paths
+            document.getElementById('certFilePath').value = result.cert_path;
+            document.getElementById('keyFilePath').value = result.key_path;
+
+            completeStep('step3');
+            activateStep('step4');
+            updateProgress(80);
+
+            showNotification('Let\'s Encrypt certificate generated successfully!', 'success');
+        } else {
+            showNotification('Certificate generation failed: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showNotification('Certificate generation failed', 'error');
+        console.error('Let\'s Encrypt generation error:', error);
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Generate self-signed certificate
+async function generateSelfSigned() {
+    const country = document.getElementById('certCountry').value;
+    const organization = document.getElementById('certOrganization').value;
+    const commonName = document.getElementById('certCommonName').value;
+
+    if (!country || !organization || !commonName) {
+        showNotification('Please fill in all certificate fields', 'warning');
+        return;
+    }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Generating...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/v1/security/generate-selfsigned', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                country: country,
+                organization: organization,
+                common_name: commonName
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update certificate paths
+            document.getElementById('certFilePath').value = result.cert_path;
+            document.getElementById('keyFilePath').value = result.key_path;
+
+            completeStep('step3');
+            activateStep('step4');
+            updateProgress(80);
+
+            showNotification('Self-signed certificate generated successfully!', 'success');
+        } else {
+            showNotification('Certificate generation failed: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showNotification('Certificate generation failed', 'error');
+        console.error('Self-signed generation error:', error);
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Apply HTTPS configuration
+async function applyHttpsConfig() {
+    const certPath = document.getElementById('certFilePath').value;
+    const keyPath = document.getElementById('keyFilePath').value;
+    const forceHttps = document.getElementById('forceHttps').checked;
+    const hstsEnabled = document.getElementById('hstsEnabled').checked;
+
+    if (!certPath || !keyPath) {
+        showNotification('Please specify certificate and key file paths', 'warning');
+        return;
+    }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Applying...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/v1/security/configure-https', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cert_file: certPath,
+                key_file: keyPath,
+                force_https: forceHttps,
+                hsts_enabled: hstsEnabled
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            completeStep('step4');
+            activateStep('step5');
+            updateProgress(100);
+
+            showNotification('HTTPS configuration applied successfully!', 'success');
+
+            if (result.restart_required) {
+                showRestartDialog();
+            }
+        } else {
+            showNotification('HTTPS configuration failed: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showNotification('HTTPS configuration failed', 'error');
+        console.error('HTTPS configuration error:', error);
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Test HTTPS connection
+async function testHttpsConnection() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/v1/security/test-https');
+        const result = await response.json();
+
+        const resultsDiv = document.getElementById('httpsTestResults');
+        const contentDiv = document.getElementById('testResultsContent');
+
+        if (result.success) {
+            contentDiv.innerHTML = `
+                <ul class="mb-0">
+                    <li>✅ HTTPS connection successful</li>
+                    <li>✅ Certificate is valid</li>
+                    <li>✅ Encryption: ${result.encryption || 'TLS 1.2+'}</li>
+                    <li>✅ Certificate expires: ${result.expires || 'Unknown'}</li>
+                </ul>
+            `;
+            resultsDiv.className = 'alert alert-success';
+        } else {
+            contentDiv.innerHTML = `
+                <ul class="mb-0">
+                    <li>❌ HTTPS test failed</li>
+                    <li>Error: ${result.message}</li>
+                </ul>
+            `;
+            resultsDiv.className = 'alert alert-danger';
+        }
+
+        resultsDiv.style.display = 'block';
+
+    } catch (error) {
+        showNotification('HTTPS test failed', 'error');
+        console.error('HTTPS test error:', error);
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Test SSL certificate
+async function testSSLCertificate() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Verifying...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/v1/security/verify-certificate');
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('SSL certificate is valid and trusted', 'success');
+        } else {
+            showNotification('Certificate verification failed: ' + result.message, 'warning');
+        }
+    } catch (error) {
+        showNotification('Certificate verification failed', 'error');
+        console.error('Certificate verification error:', error);
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Complete tutorial step
+function completeStep(stepId) {
+    const step = document.getElementById(stepId);
+    step.classList.add('completed');
+}
+
+// Activate tutorial step
+function activateStep(stepId) {
+    // Deactivate all steps
+    document.querySelectorAll('.tutorial-step').forEach(step => {
+        step.classList.remove('active');
+    });
+
+    // Activate target step
+    const step = document.getElementById(stepId);
+    step.classList.add('active');
+
+    // Expand the step
+    const body = step.querySelector('.tutorial-step-body');
+    const icon = step.querySelector('.tutorial-step-header i');
+    body.style.display = 'block';
+    icon.className = 'fas fa-chevron-up';
+}
+
+// Update progress bar
+function updateProgress(percentage) {
+    document.getElementById('httpsProgress').style.width = percentage + '%';
+}
+
+// Copy code to clipboard
+function copyToClipboard(button) {
+    const codeBlock = button.parentElement;
+    const code = codeBlock.textContent.replace('Copy', '').trim();
+
+    navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.style.background = '#28a745';
+
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '#6c757d';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        showNotification('Failed to copy to clipboard', 'error');
+    });
+}
+
+// Show restart dialog
+function showRestartDialog() {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Server Restart Required</h5>
+                </div>
+                <div class="modal-body">
+                    <p>HTTPS configuration has been applied successfully. A server restart is required for the changes to take effect.</p>
+                    <p><strong>Note:</strong> The server will be temporarily unavailable during restart.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Restart Later</button>
+                    <button type="button" class="btn btn-primary" onclick="restartServerForHttps()">Restart Now</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+
+    modal.addEventListener('hidden.bs.modal', () => {
+        document.body.removeChild(modal);
+    });
+}
+
+// Restart server for HTTPS
+async function restartServerForHttps() {
+    try {
+        const response = await fetch('/api/v1/system/restart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ confirm: true, delay: 5 })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('Server restart initiated. Redirecting to HTTPS...', 'info');
+
+            // Wait for restart and redirect to HTTPS
+            setTimeout(() => {
+                const currentUrl = new URL(window.location);
+                currentUrl.protocol = 'https:';
+                window.location.href = currentUrl.toString();
+            }, 10000);
+        } else {
+            showNotification('Failed to restart server: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showNotification('Failed to restart server', 'error');
+        console.error('Restart error:', error);
+    }
+}
+
+// Start security wizard
+function startSecurityWizard() {
+    const modal = new bootstrap.Modal(document.getElementById('securityWizardModal'));
+    modal.show();
+
+    // Initialize wizard content
+    initializeSecurityWizard();
+}
+
+// Initialize security wizard
+function initializeSecurityWizard() {
+    // This would contain the full security wizard implementation
+    // For now, just show a placeholder
+    const modalBody = document.querySelector('#securityWizardModal .modal-body');
+    modalBody.innerHTML = `
+        <div class="text-center py-5">
+            <i class="fas fa-magic fa-3x text-primary mb-3"></i>
+            <h4>Security Wizard</h4>
+            <p class="text-muted">The security wizard will guide you through:</p>
+            <ul class="text-start">
+                <li>HTTPS/SSL certificate setup</li>
+                <li>Authentication configuration</li>
+                <li>Rate limiting setup</li>
+                <li>Security best practices</li>
+                <li>Firewall configuration</li>
+            </ul>
+            <p class="text-muted">This feature is coming soon!</p>
+        </div>
+    `;
+}
+
+// Run security scan
+async function runSecurityScan() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Scanning...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/v1/security/scan', { method: 'POST' });
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('Security scan completed', 'success');
+            loadSecurityChecks(); // Refresh checks
+        } else {
+            showNotification('Security scan failed: ' + result.message, 'error');
+        }
+    } catch (error) {
+        showNotification('Security scan failed', 'error');
+        console.error('Security scan error:', error);
+    } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// Show auth settings
+function showAuthSettings() {
+    // Redirect to configuration page with auth section
+    window.location.href = '/admin/configuration#security';
+}
+
+// Show rate limit settings
+function showRateLimitSettings() {
+    // Redirect to configuration page with limits section
+    window.location.href = '/admin/configuration#limits';
+}
+
+// Utility function for notifications
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 1060; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

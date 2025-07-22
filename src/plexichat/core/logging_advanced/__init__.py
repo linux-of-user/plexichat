@@ -28,7 +28,7 @@ try:
     from .performance_logger import get_performance_logger
 except ImportError:
     get_performance_logger = None
-from .security_logger import get_security_logger
+# from .security_logger import get_security_logger
 
 """
 PlexiChat Comprehensive Logging System
@@ -499,8 +499,9 @@ class LoggingManager:
     def _setup_security_logging(self, log_dir: Path):
         """Setup security logging."""
         try:
-            if get_security_logger is not None:
-                self.security_logger = get_security_logger()
+            # if get_security_logger is not None: # Original line commented out
+            #     self.security_logger = get_security_logger() # Original line commented out
+            pass # Original line commented out
         except ImportError:
             # Security logger not available
             pass

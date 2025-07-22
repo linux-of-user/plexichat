@@ -404,14 +404,14 @@ async def api_health_check() -> Dict[str, Any]:
 health_service = HealthCheckService()
 
 # Register default health checks
-health_service.register_check(HealthCheck())
+health_service.register_check(HealthCheck(
     name="database",
     check_function=database_health_check,
     critical=True,
     description="Database connectivity check"
 ))
 
-health_service.register_check(HealthCheck())
+health_service.register_check(HealthCheck(
     name="api",
     check_function=api_health_check,
     critical=True,

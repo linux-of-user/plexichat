@@ -331,7 +331,7 @@ async def admin_system(request: Request, admin: dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Failed to load system info")
 
 @router.get("/api/status")
-async def api_status(admin: dict = Depends(require_admin)):
+async def api_status(_admin: dict = Depends(require_admin)):
     """Get system status via API."""
     return JSONResponse({
         "status": "ok",
@@ -341,7 +341,7 @@ async def api_status(admin: dict = Depends(require_admin)):
     })
 
 @router.get("/api/admins")
-async def api_list_admins(admin: dict = Depends(require_admin)):
+async def api_list_admins(_admin: dict = Depends(require_admin)):
     """List admin users via API."""
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
@@ -359,7 +359,7 @@ async def api_list_admins(admin: dict = Depends(require_admin)):
     ])
 
 @router.get("/plugin-module-requests", response_class=JSONResponse)
-async def list_plugin_module_requests(admin: dict = Depends(require_admin)):
+async def list_plugin_module_requests(_admin: dict = Depends(require_admin)):
     """List all plugin module import requests from plugins."""
     isolation_manager = unified_plugin_manager.isolation_manager
     return {"requests": isolation_manager.get_plugin_module_requests()}
@@ -368,7 +368,7 @@ async def list_plugin_module_requests(admin: dict = Depends(require_admin)):
 async def grant_plugin_module(
     plugin_name: str = Form(...),
     module_name: str = Form(...),
-    admin: dict = Depends(require_admin)
+    _admin: dict = Depends(require_admin)
 ):
     """Grant a plugin permission to import a module."""
     isolation_manager = unified_plugin_manager.isolation_manager

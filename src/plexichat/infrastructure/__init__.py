@@ -174,26 +174,15 @@ def import_infrastructure_modules():
     """Import infrastructure modules with error handling."""
     try:
         # Utils modules
-        if auth_available():
-            try:
-                from .utils import auth
-                logger.info("Auth utils imported successfully")
-            except ImportError as e:
-                logger.warning(f"Could not import auth utils: {e}")
-
-        if security_available():
-            try:
-                from .utils import security
-                logger.info("Security utils imported successfully")
-            except ImportError as e:
-                logger.warning(f"Could not import security utils: {e}")
-
-        if performance_available():
-            try:
-                from .utils import performance
-                logger.info("Performance utils imported successfully")
-            except ImportError as e:
-                logger.warning(f"Could not import performance utils: {e}")
+        # Import consolidated utils
+        try:
+            from .utils import (
+                PerformanceMonitor, RateLimiter, SecurityUtils,
+                AsyncUtils, CacheManager, performance_monitor
+            )
+            logger.info("Infrastructure utils imported successfully")
+        except ImportError as e:
+            logger.warning(f"Could not import infrastructure utils: {e}")
 
         if validation_available():
             try:

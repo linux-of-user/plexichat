@@ -13,9 +13,8 @@ Enhanced configuration management with comprehensive settings and performance op
 Uses EXISTING database abstraction and optimization systems.
 """
 
-import os
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from pathlib import Path
 
 # Pydantic imports for settings validation
@@ -31,16 +30,7 @@ except ImportError:
         return default
     validator = lambda *args, **kwargs: lambda f: f
 
-# Use EXISTING performance optimization engine
-try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
-except ImportError:
-    PerformanceOptimizationEngine = None
-
-try:
-    from plexichat.infrastructure.utils.performance import async_track_performance
-except ImportError:
-    async_track_performance = None
+# Performance optimization imports removed as they're not used
 
 try:
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
@@ -176,6 +166,20 @@ class ConfigurationManager:
         self._config_cache: Dict[str, Any] = {}
         self._cache_timestamp = 0
         self.cache_ttl = 300  # 5 minutes
+
+    @property
+    def logging(self):
+        # Namespace object for logging config expected by unified_logging.py
+        class LoggingConfig:
+            buffer_size = 10000
+            directory = getattr(self.settings, 'LOG_DIRECTORY', 'logs')
+            console_enabled = getattr(self.settings, 'LOG_CONSOLE_ENABLED', True)
+            console_colors = True
+            file_enabled = getattr(self.settings, 'LOG_FILE_ENABLED', True)
+            structured_enabled = getattr(self.settings, 'LOG_STRUCTURED_ENABLED', True)
+            max_file_size = getattr(self.settings, 'LOG_MAX_SIZE', 10*1024*1024)
+            backup_count = getattr(self.settings, 'LOG_BACKUP_COUNT', 5)
+        return LoggingConfig()
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value with caching."""
@@ -350,10 +354,14 @@ class ConfigurationManager:
 settings = Settings()
 config_manager = ConfigurationManager()
 
+# Add get_config function for compatibility with logging_advanced
+
+def get_config() -> ConfigurationManager:
+    return config_manager
+
 __all__ = [
     'Settings',
     'ConfigurationManager',
     'config_manager',
     'get_config',
-    'set_config',
 ]

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Fields Manager - PlexiChat</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/modern-ui.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-fields-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .field-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .field-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .field-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .field-name {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1em;
+        }
+        
+        .field-type {
+            background: var(--accent-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+        
+        .field-value {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .add-field-form {
+            background: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--input-bg);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .field-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .json-editor {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 200px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-fields-container">
+        <header class="page-header">
+            <h1><i class="fas fa-cogs"></i> Custom Fields Manager</h1>
+            <p>Manage dynamic custom fields for users and messages</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('user-fields')">
+                <i class="fas fa-user"></i> User Fields
+            </div>
+            <div class="tab" onclick="switchTab('message-fields')">
+                <i class="fas fa-message"></i> Message Fields
+            </div>
+            <div class="tab" onclick="switchTab('global-settings')">
+                <i class="fas fa-globe"></i> Global Settings
+            </div>
+        </div>
+
+        <!-- Alert container -->
+        <div id="alert-container"></div>
+
+        <!-- User Fields Tab -->
+        <div id="user-fields" class="tab-content active">
+            <h2>User Custom Fields</h2>
+            
+            <!-- Add New Field Form -->
+            <div class="add-field-form">
+                <h3><i class="fas fa-plus"></i> Add New User Field</h3>
+                <form id="add-user-field-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="user-field-name">Field Name</label>
+                            <input type="text" id="user-field-name" name="name" required 
+                                   pattern="^[a-zA-Z][a-zA-Z0-9_]*$" 
+                                   title="Must start with letter, contain only letters, numbers, and underscores">
+                        </div>
+                        <div class="form-group">
+                            <label for="user-field-type">Field Type</label>
+                            <select id="user-field-type" name="type" required>
+                                <option value="string">String</option>
+                                <option value="int">Integer</option>
+                                <option value="float">Float</option>
+                                <option value="bool">Boolean</option>
+                                <option value="list">List</option>
+                                <option value="dict">Dictionary</option>
+                                <option value="datetime">DateTime</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="user-field-value">Initial Value</label>
+                            <input type="text" id="user-field-value" name="value" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Current User Fields -->
+            <div id="user-fields-list">
+                <h3>Current User Fields</h3>
+                <div id="user-fields-container">
+                    <!-- Fields will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Fields Tab -->
+        <div id="message-fields" class="tab-content">
+            <h2>Message Custom Fields</h2>
+            
+            <!-- Add New Field Form -->
+            <div class="add-field-form">
+                <h3><i class="fas fa-plus"></i> Add New Message Field</h3>
+                <form id="add-message-field-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="message-field-name">Field Name</label>
+                            <input type="text" id="message-field-name" name="name" required 
+                                   pattern="^[a-zA-Z][a-zA-Z0-9_]*$">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-field-type">Field Type</label>
+                            <select id="message-field-type" name="type" required>
+                                <option value="string">String</option>
+                                <option value="int">Integer</option>
+                                <option value="float">Float</option>
+                                <option value="bool">Boolean</option>
+                                <option value="list">List</option>
+                                <option value="dict">Dictionary</option>
+                                <option value="datetime">DateTime</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-field-value">Initial Value</label>
+                            <input type="text" id="message-field-value" name="value" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Current Message Fields -->
+            <div id="message-fields-list">
+                <h3>Current Message Fields</h3>
+                <div id="message-fields-container">
+                    <!-- Fields will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Settings Tab -->
+        <div id="global-settings" class="tab-content">
+            <h2>Global Custom Fields Settings</h2>
+            
+            <div class="field-card">
+                <h3><i class="fas fa-info-circle"></i> Supported Field Types</h3>
+                <div id="supported-types">
+                    <!-- Will be loaded from API -->
+                </div>
+            </div>
+            
+            <div class="field-card">
+                <h3><i class="fas fa-ban"></i> Reserved Field Names</h3>
+                <div id="reserved-names">
+                    <!-- Will be loaded from API -->
+                </div>
+            </div>
+            
+            <div class="field-card">
+                <h3><i class="fas fa-cog"></i> Field Limits</h3>
+                <p><strong>Maximum fields per user/message:</strong> 50</p>
+                <p><strong>Maximum total size:</strong> 10KB</p>
+                <p><strong>Field name pattern:</strong> Must start with letter, contain only letters, numbers, and underscores</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.closest('.tab').classList.add('active');
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+            `;
+            alertContainer.appendChild(alert);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Load supported types and reserved names
+        async function loadGlobalSettings() {
+            try {
+                const response = await fetch('/api/v1/custom-fields/types');
+                const data = await response.json();
+                
+                // Display supported types
+                const typesContainer = document.getElementById('supported-types');
+                typesContainer.innerHTML = data.supported_types.map(type => 
+                    `<span class="field-type">${type}</span>`
+                ).join(' ');
+                
+                // Display reserved names
+                const reservedContainer = document.getElementById('reserved-names');
+                reservedContainer.innerHTML = data.reserved_names.map(name => 
+                    `<code>${name}</code>`
+                ).join(', ');
+                
+            } catch (error) {
+                console.error('Failed to load global settings:', error);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGlobalSettings();
+            
+            // Add form event listeners
+            document.getElementById('add-user-field-form').addEventListener('submit', handleAddUserField);
+            document.getElementById('add-message-field-form').addEventListener('submit', handleAddMessageField);
+        });
+
+        // Handle adding user field
+        async function handleAddUserField(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                // This would integrate with the custom fields API
+                showAlert('User field added successfully!');
+                event.target.reset();
+            } catch (error) {
+                showAlert('Failed to add user field: ' + error.message, 'error');
+            }
+        }
+
+        // Handle adding message field
+        async function handleAddMessageField(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                // This would integrate with the custom fields API
+                showAlert('Message field added successfully!');
+                event.target.reset();
+            } catch (error) {
+                showAlert('Failed to add message field: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
