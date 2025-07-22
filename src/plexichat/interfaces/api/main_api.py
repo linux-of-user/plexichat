@@ -1,29 +1,20 @@
 """
-import json
-import socket
-import threading
 PlexiChat Main API
 
 Main API application with threading and performance optimization.
 """
-
-import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
-
 try:
-    from fastapi import FastAPI, Request, Response, HTTPException, Depends
+    from fastapi import FastAPI, Request, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.middleware.gzip import GZipMiddleware
     from fastapi.responses import JSONResponse
 except ImportError:
     FastAPI = None
     Request = None
-    Response = None
     HTTPException = Exception
-    Depends = None
     CORSMiddleware = None
     GZipMiddleware = None
     JSONResponse = None
@@ -70,10 +61,8 @@ except ImportError:
     security_manager = None
 
 try:
-    from plexichat.infrastructure.performance.optimization_engine import PerformanceOptimizationEngine
     from plexichat.core.logging_advanced.performance_logger import get_performance_logger
 except ImportError:
-    PerformanceOptimizationEngine = None
     get_performance_logger = None
 
 logger = logging.getLogger(__name__)
@@ -81,7 +70,7 @@ performance_logger = get_performance_logger() if get_performance_logger else Non
 
 # Lifespan manager
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Application lifespan manager."""
     try:
         # Startup
@@ -199,7 +188,7 @@ if app:
     app.middleware("http")(performance_middleware)
 
 # Exception handlers
-async def validation_exception_handler(request: Request, exc: Exception):
+async def validation_exception_handler(_request: Request, exc: Exception):
     """Handle validation exceptions."""
     return JSONResponse(
         status_code=422,
@@ -210,7 +199,7 @@ async def validation_exception_handler(request: Request, exc: Exception):
         }
     )
 
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(_request: Request, exc: Exception):
     """Handle general exceptions."""
     logger.error(f"Unhandled exception: {exc}")
 
