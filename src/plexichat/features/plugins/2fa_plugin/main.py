@@ -9,12 +9,11 @@
 import logging
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 
 from src.plexichat.infrastructure.modules.plugin_manager import PluginInterface
 from fastapi import APIRouter, HTTPException, Request
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +69,7 @@ async def send_2fa_code(request: Request):
     # Generate a code
     code = ''.join(random.choices(string.digits, k=6))
     user_2fa_codes[username]["code"] = code
-    user_2fa_codes[username]["last_sent"] = datetime.utcnow()
+    user_2fa_codes[username]["last_sent"] = datetime.now(timezone.utc)
     # In real system, send code via email/SMS
     logger.info(f"2FA code for {username}: {code}")
     return {"success": True, "message": "2FA code sent"}
