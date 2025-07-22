@@ -11,7 +11,7 @@ import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from pathlib import Path
+
 from typing import Any, Dict, List, Optional
 
 import aiosqlite
@@ -26,7 +26,6 @@ from .distributed_key_manager import DistributedKeyManager, KeyDomain
 
 
 """
-import time
 PlexiChat End-to-End Encryption System
 
 Implements E2E encryption for all API endpoints, ensuring that even if

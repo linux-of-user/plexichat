@@ -18,35 +18,47 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
-from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
-from plexichat.infrastructure.modules.interfaces import ModulePriority
+try:
+    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
+    from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
+    from plexichat.infrastructure.modules.interfaces import ModulePriority
+except ImportError:
+    # Fallback definitions
+    class PluginInterface:
+        def __init__(self, name: str, version: str):
+            self.name = name
+            self.version = version
 
-from .providers.bitnet_provider import BitNetProvider, BitNetConfig
-from .providers.llama_provider import LlamaProvider, LlamaConfig
-from .providers.hf_provider import HuggingFaceProvider, HuggingFaceConfig
-from .webui.ai_panel import AIProvidersWebUI
-from .tests.plugin_tests import AIProvidersTestSuite
+    class PluginMetadata:
+        pass
+
+    class PluginType:
+        AI_PROVIDER = "ai_provider"
+
+    class ModulePermissions:
+        pass
+
+    class ModuleCapability:
+        pass
+
+    class ModulePriority:
+        HIGH = "high"
 
 logger = logging.getLogger(__name__)
 
 
 class AIProvidersPlugin(PluginInterface):
-    """AI Providers Plugin with BitNet, Llama, and HuggingFace support."""
+    """AI Providers Plugin with local inference capabilities."""
 
     def __init__(self):
         super().__init__("ai_providers", "1.0.0")
 
-        # Providers
-        self.bitnet_provider: Optional[BitNetProvider] = None
-        self.llama_provider: Optional[LlamaProvider] = None
-        self.hf_provider: Optional[HuggingFaceProvider] = None
+        # Providers (to be implemented)
+        self.providers: Dict[str, Any] = {}
+        self.config: Dict[str, Any] = {}
 
-        # WebUI
-        self.webui: Optional[AIProvidersWebUI] = None
-
-        # Test suite
-        self.test_suite: Optional[AIProvidersTestSuite] = None
+        # Status
+        self.initialized = False
 
         # Plugin state
         self.providers_registered = False
