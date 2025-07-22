@@ -17,7 +17,6 @@ import aiosqlite
 
 
 """
-import time
 Backup Node Authentication and Authorization System
 Government-level security for backup node API access with restricted shard collection.
 """
