@@ -504,6 +504,7 @@ class TerminalUI:
         print(f"  {Colors.DIM}Press Ctrl+C to exit{Colors.RESET}")
         sys.stdout.flush()
 
+ 
 class ProcessLockManager:
     """Centralized process lock management."""
     
@@ -566,12 +567,20 @@ process_lock_manager = ProcessLockManager()
 
 class SetupWizard:
     """Interactive setup wizard with terminal UI and async support."""
+ 
+class SetupWizard:
+    """Interactive setup wizard with terminal UI."""
+ 
 
     def __init__(self):
         self.ui = TerminalUI()
         self.steps = [
             "Environment Check",
+ 
             "Dependency Installation", 
+ 
+            "Dependency Installation",
+ 
             "Configuration Setup",
             "Database Initialization",
             "Security Setup",
@@ -579,6 +588,7 @@ class SetupWizard:
         ]
         self.current_step = 0
         self.setup_data = {}
+ 
         self.cancelled = False
         self.cleanup_tasks = []
         self.thread_pool = None
@@ -636,10 +646,17 @@ class SetupWizard:
                 self.ui.add_log("Another PlexiChat setup is already running", "ERROR")
                 return False
                 
+ 
+
+    def run(self):
+        """Run the setup wizard."""
+        try:
+ 
             self.ui.clear_screen()
             self.ui.add_log("Starting PlexiChat Setup Wizard", "INFO")
 
             for i, step in enumerate(self.steps):
+<<<<<<< HEAD
                 if self.cancelled:
                     self.ui.add_log("Setup cancelled", "WARNING")
                     return False
@@ -662,6 +679,16 @@ class SetupWizard:
 
                 self.ui.add_log(f"Completed step {i+1}: {step}", "SUCCESS")
                 self.ui.refresh_display()
+=======
+                self.current_step = i
+                self.ui.add_log(f"Starting step {i+1}: {step}", "INFO")
+
+                if not self.execute_step(i):
+                    self.ui.add_log(f"Step {i+1} failed: {step}", "ERROR")
+                    return False
+
+                self.ui.add_log(f"Completed step {i+1}: {step}", "SUCCESS")
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
             self.ui.add_log("Setup completed successfully!", "SUCCESS")
             return True
@@ -673,6 +700,7 @@ class SetupWizard:
             self.ui.add_log(f"Setup failed: {str(e)}", "ERROR")
             return False
         finally:
+<<<<<<< HEAD
             self._cleanup()
 
     async def execute_step(self, step_index: int) -> bool:
@@ -680,6 +708,15 @@ class SetupWizard:
         step_methods = [
             self.check_environment,
             self.install_dependencies_async,
+=======
+            self.ui.show_cursor()
+
+    def execute_step(self, step_index: int) -> bool:
+        """Execute a specific setup step."""
+        step_methods = [
+            self.check_environment,
+            self.install_dependencies,
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
             self.setup_configuration,
             self.initialize_database,
             self.setup_security,
@@ -687,10 +724,14 @@ class SetupWizard:
         ]
 
         if step_index < len(step_methods):
+<<<<<<< HEAD
             if asyncio.iscoroutinefunction(step_methods[step_index]):
                 return await step_methods[step_index]()
             else:
                 return step_methods[step_index]()
+=======
+            return step_methods[step_index]()
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
         return False
 
     def check_environment(self) -> bool:
@@ -708,6 +749,7 @@ class SetupWizard:
 
         return True
 
+<<<<<<< HEAD
     async def install_dependencies_async(self) -> bool:
         """Install required dependencies asynchronously with proper logging and timeout."""
         self.ui.add_log("Installing dependencies...", "INFO")
@@ -790,6 +832,18 @@ class SetupWizard:
             # Remove cleanup task
             if cleanup_process in self.cleanup_tasks:
                 self.cleanup_tasks.remove(cleanup_process)
+=======
+    def install_dependencies(self) -> bool:
+        """Install required dependencies."""
+        self.ui.add_log("Installing dependencies...", "INFO")
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
+                         check=True, capture_output=True)
+            return True
+        except subprocess.CalledProcessError:
+            self.ui.add_log("Failed to install dependencies", "ERROR")
+            return False
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
     def setup_configuration(self) -> bool:
         """Setup configuration files."""
@@ -798,6 +852,7 @@ class SetupWizard:
         return True
 
     def initialize_database(self) -> bool:
+<<<<<<< HEAD
         """Initialize database with proper error handling."""
         self.ui.add_log("Initializing database...", "INFO")
         
@@ -866,6 +921,12 @@ class SetupWizard:
         except Exception as e:
             self.ui.add_log(f"Database initialization failed: {str(e)}", "ERROR")
             return False
+=======
+        """Initialize database."""
+        self.ui.add_log("Initializing database...", "INFO")
+        # Database initialization logic here
+        return True
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
     def setup_security(self) -> bool:
         """Setup security features."""
@@ -981,12 +1042,17 @@ class GitHubVersionManager:
             return False
 
 class DependencyManager:
+<<<<<<< HEAD
     """Manages Python dependencies and environment setup with cross-platform support."""
+=======
+    """Manages Python dependencies and environment setup."""
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
     def __init__(self, ui=None):
         self.requirements_file = Path("requirements.txt")
         self.venv_dir = Path("venv")
         self.ui = ui
+<<<<<<< HEAD
         self.cancelled = False
         self.cleanup_tasks = []
         
@@ -1012,6 +1078,8 @@ class DependencyManager:
         methods.append([sys.executable, "-m", "ensurepip", "--upgrade"])
         
         return methods
+=======
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
     def _parse_requirements(self) -> Dict[str, List[str]]:
         """Parse requirements.txt into sections."""
@@ -1068,6 +1136,7 @@ class DependencyManager:
 
         return results
 
+<<<<<<< HEAD
     async def install_dependencies_with_fallback(self, level: str = 'full', upgrade: bool = False) -> bool:
         """Install dependencies with multiple fallback methods and improved reliability."""
         import tempfile
@@ -1077,6 +1146,11 @@ class DependencyManager:
         log_dir.mkdir(exist_ok=True)
         log_file = log_dir / f"dependency_install_{level}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         
+=======
+    def install_dependencies(self, level: str = 'full', upgrade: bool = False) -> bool:
+        """Install dependencies for a specific level with progress. Now with timeout and hang protection."""
+        import threading
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
         try:
             logger.info(f"Installing '{level}' dependencies...")
             if self.ui and hasattr(self.ui, 'setup_logger'):
@@ -1543,6 +1617,7 @@ def load_configuration() -> Optional[Dict[str, Any]]:
 # INTERACTIVE SETUP AND MANAGEMENT FUNCTIONS
 # ============================================================================
 
+<<<<<<< HEAD
 async def run_interactive_setup():
     """Run the interactive setup wizard asynchronously."""
     try:
@@ -1555,6 +1630,16 @@ async def run_interactive_setup():
 def run_interactive_setup_sync():
     """Synchronous wrapper for interactive setup."""
     return asyncio.run(run_interactive_setup())
+=======
+def run_interactive_setup():
+    """Run the interactive setup wizard."""
+    try:
+        wizard = SetupWizard()
+        return wizard.run()
+    except Exception as e:
+        logger.error(f"Setup wizard failed: {e}")
+        return False
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
 def run_version_manager():
     """Run the version management interface."""
@@ -2283,6 +2368,7 @@ def run_update_system():
         logger.error(f"Update system error: {e}")
         print(f"{Colors.RED}Update system error: {e}{Colors.RESET}")
 
+<<<<<<< HEAD
 async def run_first_time_setup_async(level: Optional[str] = None):
     """Run comprehensive first-time setup with dynamic terminal UI asynchronously."""
     cancelled = False
@@ -2298,6 +2384,10 @@ async def run_first_time_setup_async(level: Optional[str] = None):
     if hasattr(signal, 'SIGTERM'):
         signal.signal(signal.SIGTERM, signal_handler)
     
+=======
+def run_first_time_setup(level: Optional[str] = None):
+    """Run comprehensive first-time setup with dynamic terminal UI."""
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
     try:
         print(f"\n{Colors.BOLD}{Colors.GREEN}Welcome to PlexiChat!{Colors.RESET}")
         print(f"{Colors.DIM}Starting first-time setup...{Colors.RESET}")
@@ -2336,6 +2426,7 @@ async def run_first_time_setup_async(level: Optional[str] = None):
         config_manager.setup_environment_variables(config)
         ui.add_log("Configuration setup completed", "SUCCESS")
 
+<<<<<<< HEAD
         # Step 4: Dependencies  
         ui.add_log("Preparing for dependency installation...", "INFO")
         ui.refresh_display()
@@ -2344,6 +2435,12 @@ async def run_first_time_setup_async(level: Optional[str] = None):
         if cancelled:
             ui.add_log("Setup cancelled", "WARNING")
             return False
+=======
+        # Step 4: Dependencies
+        ui.add_log("Preparing for dependency installation...", "INFO")
+        ui.refresh_display()
+        time.sleep(1)
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
         if level is None:
             if RICH_AVAILABLE:
@@ -2371,7 +2468,11 @@ async def run_first_time_setup_async(level: Optional[str] = None):
         ui.refresh_display()
 
         dep_manager = DependencyManager(ui)
+<<<<<<< HEAD
         if await dep_manager.install_dependencies_with_fallback(level=level):
+=======
+        if dep_manager.install_dependencies(level=level):
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
             ui.add_log("Dependencies installed successfully", "SUCCESS")
         else:
             ui.add_log("Dependency installation failed", "WARNING")
@@ -2383,8 +2484,12 @@ async def run_first_time_setup_async(level: Optional[str] = None):
         ui.add_log("PlexiChat setup completed successfully!", "SUCCESS")
         ui.add_log("You can now start PlexiChat with: python run.py", "INFO")
 
+<<<<<<< HEAD
         # Give user time to read final message
         ui.refresh_display()
+=======
+        time.sleep(2)  # Give user time to read
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
         return True
 
     except KeyboardInterrupt:
@@ -2393,10 +2498,13 @@ async def run_first_time_setup_async(level: Optional[str] = None):
     except Exception as e:
         logging.getLogger(__name__).error(f"First-time setup failed: {e}")
         return False
+<<<<<<< HEAD
         
 def run_first_time_setup(level: Optional[str] = None):
     """Synchronous wrapper for first-time setup."""
     return asyncio.run(run_first_time_setup_async(level))
+=======
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
 def run_api_server():
     """Start the PlexiChat API server."""
@@ -4306,6 +4414,7 @@ def main():
         show_help()
 
     elif args.command == 'setup':
+<<<<<<< HEAD
         if args.level:
             if not run_first_time_setup(level=args.level):
                 sys.exit(1)
@@ -4317,6 +4426,13 @@ def main():
         result = asyncio.run(run_interactive_setup())
         if not result:
             sys.exit(1)
+=======
+        if not run_first_time_setup(level=args.level):
+            sys.exit(1)
+
+    elif args.command == 'advanced-setup':
+        run_interactive_setup()
+>>>>>>> 8b5fba1c858fdacf595e48a58bf5a4269397451e
 
     elif args.command == 'config' or args.command == 'wizard':
         run_configuration_wizard()
