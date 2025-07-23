@@ -7,7 +7,7 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-from src.plexichat.infrastructure.modules.plugin_manager import PluginInterface
+from ..plugins_internal import PluginInterface
 from fastapi import APIRouter, Request
 from typing import Optional
 

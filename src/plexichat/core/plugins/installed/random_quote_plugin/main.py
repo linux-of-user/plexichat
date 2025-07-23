@@ -14,7 +14,7 @@
 # pyright: reportReturnType=false
 import logging
 import random
-from src.plexichat.infrastructure.modules.plugin_manager import PluginInterface
+from ..plugins_internal import PluginInterface
 from fastapi import APIRouter
 from typing import Optional
 

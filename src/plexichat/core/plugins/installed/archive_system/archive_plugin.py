@@ -17,17 +17,16 @@ from typing import Any, Dict, List, Optional, Set
 
 import aiosqlite
 
-from ...backup.core.encryption_manager import QuantumResistantEncryptionManager
-from ...backup.core.shard_location_database import EnhancedShardLocationDatabase
-from ...backup.core.shard_manager import ImmutableShardManager
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
+try:
+    from ..plugins_internal import PluginInterface
+    from plexichat.core.backup.encryption_manager import QuantumResistantEncryptionManager
+    from plexichat.core.backup.shard_location_database import EnhancedShardLocationDatabase
+    from plexichat.core.backup.shard_manager import ImmutableShardManager
+except ImportError:
+    PluginInterface = object
+    QuantumResistantEncryptionManager = None
+    EnhancedShardLocationDatabase = None
+    ImmutableShardManager = None
 
 """
 import time

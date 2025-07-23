@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 try:
-    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata, PluginType
+    from ..plugins_internal import PluginInterface, PluginMetadata, PluginType
     from plexichat.infrastructure.modules.base_module import ModulePermissions, ModuleCapability
     from plexichat.infrastructure.modules.interfaces import ModulePriority
 except ImportError:

@@ -12,7 +12,7 @@ import string
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 
-from src.plexichat.infrastructure.modules.plugin_manager import PluginInterface
+from ..plugins_internal import PluginInterface
 from fastapi import APIRouter, HTTPException, Request
 
 logger = logging.getLogger(__name__)
