@@ -14,7 +14,7 @@ try:
     from plugins.advanced_antivirus.core.antivirus_engine import AdvancedAntivirusEngine
     from plugins.advanced_antivirus.core import ScanType
     from plexichat.interfaces.api.v1.auth import get_current_user
-    from plexichat.app.logger_config import get_logger
+    from plexichat.core.logging import get_logger
 except ImportError:
     security_manager = None
     get_current_user = lambda: {}

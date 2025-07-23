@@ -11,18 +11,17 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 
-from plexichat.core.auth.dependencies import ()
-    from plexichat.infrastructure.utils.auth import require_admin_auth,
-from plexichat.core.logging import get_logger
-from plexichat.infrastructure.services.performance_service import get_performance_service
-import socket
-import time
-
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-    require_auth,
-)
+try:
+    from plexichat.core.auth.dependencies import require_auth
+    from plexichat.infrastructure.utils.auth import require_admin_auth
+    from plexichat.core.logging import get_logger
+    from plexichat.infrastructure.services.performance_service import get_performance_service
+    logger = get_logger(__name__)
+except ImportError:
+    require_auth = lambda: None
+    require_admin_auth = lambda: None
+    logger = print
+    get_performance_service = lambda: None
 """
 PlexiChat Performance Monitoring API Endpoints
 

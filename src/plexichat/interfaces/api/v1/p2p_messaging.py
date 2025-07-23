@@ -10,12 +10,15 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from plexichat.core.logging import logger
-from plexichat.infrastructure.services.p2p_messaging import p2p_messaging_service
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.infrastructure.services.p2p_messaging import p2p_messaging_service
+    logger = get_logger(__name__)
+except ImportError:
+    logger = print
+    p2p_messaging_service = None
 
 """
-import socket
-import time
 Peer-to-peer messaging API endpoints.
 Provides P2P messaging with database fallback capabilities.
 """

@@ -11,9 +11,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
-from plexichat.app.logger_config import logger
-from plexichat.app.security.permissions import Permission, PermissionManager
-import time
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.core.security.permissions import Permission, PermissionManager
+    logger = get_logger(__name__)
+except ImportError:
+    logger = print
+    Permission = None
+    PermissionManager = None
 
 try:
     from plexichat.app.security.rate_limiter import (

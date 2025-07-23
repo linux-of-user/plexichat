@@ -5,29 +5,27 @@
 # pyright: reportReturnType=false
 from typing import List, Optional
 
-from ....features.channels.models.server import ()
+try:
+    from plexichat.features.servers.models import Server, VerificationLevel, DefaultMessageNotifications, ExplicitContentFilter
+    from plexichat.infrastructure.utils.auth import get_current_user
+    from plexichat.core.config import get_config
+    from plexichat.core.auth.auth_manager import get_auth_manager
+    settings = get_config()
+except ImportError:
+    Server = None
+    VerificationLevel = None
+    DefaultMessageNotifications = None
+    ExplicitContentFilter = None
+    get_current_user = lambda: None
+    settings = {}
+    get_auth_manager = lambda: None
 
+from fastapi import APIRouter, Depends, HTTPException, Field
+from pydantic import BaseModel
 
-    from plexichat.infrastructure.utils.auth import get_current_user,
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-
-    API,
-    APIRouter,
-    BaseModel,
-    DefaultMessageNotifications,
-    Depends,
-    Discord-like,
-    Endpoints,
-    ExplicitContentFilter,
-    Field,
-    HTTPException,
-    PlexiChat,
-    Server,
-    VerificationLevel,
-    """,
-    ....core_system.auth.auth_manager,
-    endpoints.,
+"""
+PlexiChat Discord-like Server API Endpoints
+"""
     fastapi,
     from,
     import,

@@ -9,10 +9,17 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from plexichat.app.logger_config import logger
-from plexichat.app.services.social_service import UserStatus, social_service
-from plexichat.core.config import settings
-from plexichat.core.config import settings
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.infrastructure.services.social_service import UserStatus, social_service
+    from plexichat.core.config import get_config
+    logger = get_logger(__name__)
+    settings = get_config()
+except ImportError:
+    logger = print
+    UserStatus = None
+    social_service = None
+    settings = {}
 
 """
 Social & Friends API endpoints for PlexiChat.

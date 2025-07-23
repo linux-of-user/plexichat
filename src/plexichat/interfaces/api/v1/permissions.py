@@ -13,7 +13,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
-from plexichat.app.logger_config import logger
+try:
+    from plexichat.core.logging import get_logger
+    logger = get_logger(__name__)
+except ImportError:
+    logger = logging.getLogger(__name__)
 try:
     from plexichat.app.security.permissions import (
         Permission,
