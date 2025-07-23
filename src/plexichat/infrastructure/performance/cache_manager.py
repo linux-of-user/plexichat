@@ -21,7 +21,6 @@ from ..security.quantum_encryption import SecurityTier
 
 
 """
-import time
 PlexiChat Secure Caching System
 
 Quantum-encrypted caching with security-aware performance optimization.

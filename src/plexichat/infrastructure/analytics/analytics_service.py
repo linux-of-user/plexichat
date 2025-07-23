@@ -10,25 +10,37 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
-import time
+
 
 try:
-
     import redis.asyncio as redis
-
 except ImportError:
-
     redis = None
-from app.core.database.engines import db_cluster
-from plexichat.app.logger_config import logger
-from app.models.channel import Channel
-from app.models.file import FileRecord
-from app.models.guild import Guild, GuildMember
-from app.models.message import Message
-from app.models.user import User
-from sqlmodel import Session, and_, func, select
 
-from datetime import datetime
+try:
+    from plexichat.core.database.engines import db_cluster
+    from plexichat.core.logging import get_logger
+    from plexichat.features.channels.models import Channel
+    from plexichat.features.files.models import FileRecord
+    from plexichat.features.guilds.models import Guild, GuildMember
+    from plexichat.features.messaging.models import Message
+    from plexichat.features.users.models import User
+    from sqlmodel import Session, and_, func, select
+except ImportError:
+    db_cluster = None
+    get_logger = lambda name: print
+    Channel = None
+    FileRecord = None
+    Guild = None
+    GuildMember = None
+    Message = None
+    User = None
+    Session = None
+    and_ = None
+    func = None
+    select = None
+
+logger = get_logger(__name__) if get_logger else print
 
 
 """

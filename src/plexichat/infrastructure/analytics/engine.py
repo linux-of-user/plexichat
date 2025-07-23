@@ -11,14 +11,16 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from app.core.config.settings import settings
-from plexichat.app.logger_config import logger
-
-from datetime import datetime
-
+try:
+    from plexichat.core.config import get_config
+    from plexichat.core.logging import get_logger
+    settings = get_config()
+    logger = get_logger(__name__)
+except ImportError:
+    settings = None
+    logger = print
 
 """
-import time
 Advanced Analytics Engine
 Comprehensive analytics, reporting, and monitoring system.
 """
@@ -142,7 +144,7 @@ class AnalyticsCollector:
         self.metrics = RealTimeMetrics()
         self.session_data: Dict[str, Dict[str, Any]] = {}
         self.user_sessions: Dict[int, List[str]] = defaultdict(list)
-        self.endpoint_stats: Dict[str, Dict[str, Any]] = defaultdict(lambda: {)
+        self.endpoint_stats: Dict[str, Dict[str, Any]] = defaultdict(lambda: {
             "count": 0,
             "total_duration": 0,
             "error_count": 0,
@@ -174,7 +176,7 @@ class AnalyticsCollector:
     def _update_metrics(self, event: AnalyticsEvent):
         """Update real-time metrics."""
         # Increment event counter
-        self.metrics.increment_counter()
+        self.metrics.increment_counter(
             "events.total",
             tags={"type": event.event_type.value}
         )

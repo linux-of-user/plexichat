@@ -15,11 +15,8 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 try:
-
     import numpy as np  # type: ignore
-
 except ImportError:
-
     np = None
 
 from ...core.config import get_config
