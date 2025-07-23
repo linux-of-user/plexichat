@@ -22,18 +22,34 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Callable
 
+# DEPRECATED: This file has been moved to src/plexichat/core/plugins/sdk.py
+# This is a compatibility shim that will be removed in a future version.
+
+import warnings
+warnings.warn(
+    "plexichat.features.plugins.plugin_sdk is deprecated. "
+    "Use plexichat.core.plugins.sdk instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 try:
-    from plexichat.core.plugins.plugin_manager import PlexiChatPlugin, PluginInfo
-    from plexichat.infrastructure.modules.plugin_manager import PluginInterface, PluginMetadata
-    from plexichat.app.logger_config import get_logger
-    from plexichat.core.config import settings
+    from plexichat.core.plugins.sdk import *
 except ImportError:
-    PlexiChatPlugin = object
-    PluginInterface = object
-    PluginInfo = object
-    PluginMetadata = object
-    get_logger = logging.getLogger
-    settings = {}
+    # Fallback for backward compatibility
+    try:
+        from plexichat.core.plugins.unified_plugin_manager import (
+            PluginInterface, PluginMetadata, PluginInfo
+        )
+        from plexichat.core.logging import get_logger
+        from plexichat.core.config import get_config
+        settings = get_config()
+    except ImportError:
+        PluginInterface = object
+        PluginMetadata = object
+        PluginInfo = object
+        get_logger = logging.getLogger
+        settings = {}
 
 logger = get_logger(__name__)
 

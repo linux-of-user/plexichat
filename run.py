@@ -3109,16 +3109,25 @@ def compare_version_strings(version1, version2):
     except Exception:
         return 0
 
-def select_version_to_install(repo):
-    """Allow user to select which version to install, showing more info and more versions if desired."""
+def select_version_to_install(repo, show_all=False):
+    """
+    Enhanced version selector with cleaner interface.
+
+    By default shows only latest build for each version:
+    - Latest releases (r.x.x-build) if available
+    - Latest betas (b.x.x-build) if no releases
+    - Latest alphas (a.x.x-build) if no betas/releases
+
+    Supports fallbacks to git and cutting edge main version.
+    """
     try:
         print(f"\n{Colors.BOLD}Available Versions:{Colors.RESET}")
-        versions = get_github_versions(repo)
-        if not versions:
-            print(f"  {Colors.YELLOW}No versions found, using 'main' branch{Colors.RESET}")
-            return "main"
+        all_versions = get_github_versions(repo)
+        if not all_versions:
+            print(f"  {Colors.YELLOW}No GitHub releases found, checking git fallback...{Colors.RESET}")
+            return handle_git_fallback(repo)
 
-        # Fetch additional info for each version (date, prerelease, description)
+        # Fetch release metadata
         import urllib.request, json
         api_url = f"https://api.github.com/repos/{repo}/releases"
         try:
@@ -3128,40 +3137,133 @@ def select_version_to_install(repo):
             releases = []
         release_map = {r['tag_name']: r for r in releases}
 
-        def show_versions(start=0, count=10):
-            for i, version in enumerate(versions[start:start+count], start+1):
+        # Filter and organize versions by type
+        if show_all:
+            versions_to_show = all_versions[:20]  # Show up to 20 if all requested
+        else:
+            versions_to_show = get_latest_versions_by_type(all_versions)
+
+        def show_version_list(versions):
+            for i, version in enumerate(versions, 1):
                 rel = release_map.get(version)
                 date = rel['published_at'][:10] if rel and 'published_at' in rel else 'unknown'
-                prerelease = rel['prerelease'] if rel and 'prerelease' in rel else False
-                desc = rel['body'].split('\n')[0] if rel and 'body' in rel and rel['body'] else ''
+                version_type = get_version_type(version)
                 build_num = extract_build_number(version)
-                print(f"  {Colors.BRIGHT_CYAN}{i:2d}.{Colors.RESET} {version} (build {build_num})  {Colors.MUTED}[{date}{', prerelease' if prerelease else ''}]{Colors.RESET}")
-                if desc:
-                    print(f"      {Colors.DIM}{desc}{Colors.RESET}")
-            print(f"  {Colors.BRIGHT_CYAN}{start+count+1:2d}.{Colors.RESET} main (latest development)")
 
-        start = 0
-        count = 10
-        while True:
-            show_versions(start, count)
-            choice = input(f"\n{Colors.BOLD}Select version to install (1-{min(len(versions), start+count)+1}) or 'm' for more: {Colors.RESET}").strip()
-            if choice.lower() == 'm' and start+count < len(versions):
-                start += count
-                continue
-            try:
-                choice_num = int(choice)
-                if 1 <= choice_num <= min(len(versions), start+count):
-                    return versions[choice_num-1]
-                elif choice_num == min(len(versions), start+count)+1:
-                    return "main"
-                else:
-                    print(f"{Colors.RED}Invalid choice. Please select 1-{min(len(versions), start+count)+1}{Colors.RESET}")
-            except (ValueError, KeyboardInterrupt):
-                print(f"\n{Colors.YELLOW}Using latest version{Colors.RESET}")
-                return versions[0] if versions else "main"
+                # Color code by version type
+                if version_type == 'release':
+                    color = Colors.BRIGHT_GREEN
+                elif version_type == 'beta':
+                    color = Colors.BRIGHT_YELLOW
+                else:  # alpha
+                    color = Colors.BRIGHT_CYAN
+
+                print(f"  {color}{i:2d}.{Colors.RESET} {version} (build {build_num}) {Colors.MUTED}[{date}, {version_type}]{Colors.RESET}")
+
+                # Show description if available
+                if rel and 'body' in rel and rel['body']:
+                    desc = rel['body'].split('\n')[0][:80]
+                    if len(rel['body'].split('\n')[0]) > 80:
+                        desc += "..."
+                    print(f"      {Colors.DIM}{desc}{Colors.RESET}")
+
+            # Add special options
+            print(f"  {Colors.BRIGHT_MAGENTA}{len(versions)+1:2d}.{Colors.RESET} main (cutting edge development)")
+            if not show_all and len(all_versions) > len(versions):
+                print(f"  {Colors.BRIGHT_WHITE}{len(versions)+2:2d}.{Colors.RESET} Show all versions ({len(all_versions)} total)")
+
+        show_version_list(versions_to_show)
+
+        max_choice = len(versions_to_show) + (2 if not show_all and len(all_versions) > len(versions_to_show) else 1)
+        choice = input(f"\n{Colors.BOLD}Select version (1-{max_choice}): {Colors.RESET}").strip()
+
+        try:
+            choice_num = int(choice)
+            if 1 <= choice_num <= len(versions_to_show):
+                return versions_to_show[choice_num-1]
+            elif choice_num == len(versions_to_show)+1:
+                return "main"
+            elif choice_num == len(versions_to_show)+2 and not show_all:
+                return select_version_to_install(repo, show_all=True)
+            else:
+                print(f"{Colors.RED}Invalid choice. Using latest version.{Colors.RESET}")
+                return versions_to_show[0] if versions_to_show else "main"
+        except (ValueError, KeyboardInterrupt):
+            print(f"\n{Colors.YELLOW}Using latest available version{Colors.RESET}")
+            return versions_to_show[0] if versions_to_show else "main"
+
     except Exception as e:
         print(f"  {Colors.YELLOW}⚠ Version selection failed: {e}")
-        return "main"
+        return handle_git_fallback(repo)
+
+
+def get_latest_versions_by_type(all_versions):
+    """Get latest build for each version type (release > beta > alpha)."""
+    import re
+
+    releases = [v for v in all_versions if re.match(r'^r\.\d+\.\d+-\d+$', v)]
+    betas = [v for v in all_versions if re.match(r'^b\.\d+\.\d+-\d+$', v)]
+    alphas = [v for v in all_versions if re.match(r'^a\.\d+\.\d+-\d+$', v)]
+
+    # Group by version number and get latest build for each
+    def get_latest_by_version(versions):
+        version_groups = {}
+        for v in versions:
+            base_version = v.rsplit('-', 1)[0]  # Remove build number
+            if base_version not in version_groups:
+                version_groups[base_version] = []
+            version_groups[base_version].append(v)
+
+        # Get latest build for each version
+        latest_versions = []
+        for base_version, builds in version_groups.items():
+            latest_build = max(builds, key=lambda x: extract_build_number(x))
+            latest_versions.append(latest_build)
+
+        return sorted(latest_versions, key=lambda x: extract_build_number(x), reverse=True)
+
+    # Prioritize releases, then betas, then alphas
+    if releases:
+        return get_latest_by_version(releases)[:5]  # Show up to 5 latest release versions
+    elif betas:
+        return get_latest_by_version(betas)[:5]   # Show up to 5 latest beta versions
+    else:
+        return get_latest_by_version(alphas)[:5]  # Show up to 5 latest alpha versions
+
+
+def get_version_type(version):
+    """Determine version type from version string."""
+    if version.startswith('r.'):
+        return 'release'
+    elif version.startswith('b.'):
+        return 'beta'
+    elif version.startswith('a.'):
+        return 'alpha'
+    else:
+        return 'unknown'
+
+
+def handle_git_fallback(repo):
+    """Handle fallback to git when no releases are available."""
+    print(f"  {Colors.BRIGHT_CYAN}Checking git repository for available branches...{Colors.RESET}")
+    try:
+        # Try to get git branches as fallback
+        import subprocess
+        result = subprocess.run(['git', 'ls-remote', '--heads', f'https://github.com/{repo}.git'],
+                              capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            branches = [line.split('/')[-1] for line in result.stdout.strip().split('\n') if line]
+            if 'main' in branches:
+                print(f"  {Colors.GREEN}Found git repository, using 'main' branch{Colors.RESET}")
+                return "main"
+            elif branches:
+                print(f"  {Colors.GREEN}Found git repository, using '{branches[0]}' branch{Colors.RESET}")
+                return branches[0]
+    except Exception as e:
+        print(f"  {Colors.YELLOW}Git fallback failed: {e}{Colors.RESET}")
+
+    print(f"  {Colors.RED}No versions available, using 'main' as last resort{Colors.RESET}")
+    return "main"
 
 def setup_interactive_configuration(config_path):
     """Setup interactive configuration and write to config file. Now offers DB, AI, and plugin setup."""
