@@ -8,8 +8,12 @@ import logging
 from typing import Any, Dict, Optional
 
 
-from ....ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from ....core.logging import get_logger
+try:
+    from ....features.ai.ai_powered_features_service import AIPoweredFeaturesService
+    from ....core.logging import get_logger
+except ImportError:
+    AIPoweredFeaturesService = None
+    get_logger = lambda name: logging.getLogger(name)
 
 
 from fastapi import APIRouter, HTTPException, Request
