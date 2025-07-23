@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlexiChat - Enterprise Communication Platform</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="PlexiChat - Secure, enterprise-grade communication and collaboration platform">
+    <meta name="keywords" content="communication, collaboration, enterprise, secure, platform">
+    <meta name="author" content="PlexiChat Team">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    
+    <!-- CSS -->
+    <link href="/static/css/main.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .stats-section {
+            background: var(--bg-secondary);
+            padding: 80px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            display: block;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+        
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> PlexiChat
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs/">Documentation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/api/docs">API</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/">Admin</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section position-relative">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+        
+        <div class="container">
+            <h1 class="hero-title">
+                <i class="fas fa-network-wired"></i>
+                PlexiChat
+            </h1>
+            <p class="hero-subtitle">
+                Enterprise-grade communication and collaboration platform
+                <br>
+                Secure, scalable, and feature-rich
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="/auth/login" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Get Started
+                </a>
+                <a href="/docs/" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-book"></i> Documentation
+                </a>
+                <a href="/api/docs" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-code"></i> API Docs
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Navigation Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-4">
+                    <h2 class="h3 mb-3">Quick Access</h2>
+                    <p class="text-muted">Access all PlexiChat features and administration tools</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-tachometer-alt fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Admin Panel</h5>
+                            <p class="card-text text-muted">Complete system administration</p>
+                            <a href="/ui" class="btn btn-primary">
+                                <i class="fas fa-cog"></i> Access Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-book fa-3x text-success"></i>
+                            </div>
+                            <h5 class="card-title">Documentation</h5>
+                            <p class="card-text text-muted">API docs and file browser</p>
+                            <a href="/docs" class="btn btn-success">
+                                <i class="fas fa-book-open"></i> View Docs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-line fa-3x text-info"></i>
+                            </div>
+                            <h5 class="card-title">Management</h5>
+                            <p class="card-text text-muted">System monitoring and control</p>
+                            <a href="/management" class="btn btn-info">
+                                <i class="fas fa-chart-bar"></i> Open Console
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-code fa-3x text-warning"></i>
+                            </div>
+                            <h5 class="card-title">API Explorer</h5>
+                            <p class="card-text text-muted">Interactive API testing</p>
+                            <a href="/docs#swagger" class="btn btn-warning">
+                                <i class="fas fa-play"></i> Try APIs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Links Row -->
+            <div class="row g-3 mt-4">
+                <div class="col-md-2">
+                    <a href="/health" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-heartbeat"></i> Health
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="/auth/login" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="/api/v1/status" class="btn btn-outline-info w-100">
+                        <i class="fas fa-info-circle"></i> Status
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="/api/v1/testing/suites" class="btn btn-outline-success w-100">
+                        <i class="fas fa-vial"></i> Tests
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="/api/v1/backup/stats" class="btn btn-outline-warning w-100">
+                        <i class="fas fa-database"></i> Backup
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="/api/v1/cluster/status" class="btn btn-outline-dark w-100">
+                        <i class="fas fa-network-wired"></i> Cluster
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2>Powerful Features</h2>
+                <p class="text-muted">Everything you need for modern communication and collaboration</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="card-body">
+                            <div class="feature-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h5>Enterprise Security</h5>
+                            <p class="text-muted">
+                                Advanced encryption, multi-factor authentication, and comprehensive audit logging
+                                ensure your communications remain secure.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="card-body">
+                            <div class="feature-icon">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <h5>High Performance</h5>
+                            <p class="text-muted">
+                                Optimized for speed with intelligent caching, async processing, and real-time
+                                performance monitoring.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="card-body">
+                            <div class="feature-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h5>Easy Management</h5>
+                            <p class="text-muted">
+                                Intuitive admin interface, comprehensive API, and automated system management
+                                make administration effortless.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="card-body">
+                            <div class="feature-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <h5>Rich Communication</h5>
+                            <p class="text-muted">
+                                Text, voice, video, file sharing, and real-time collaboration tools
+                                for seamless team communication.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="card-body">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5>Analytics & Insights</h5>
+                            <p class="text-muted">
+                                Comprehensive analytics, usage statistics, and performance insights
+                                to optimize your communication workflows.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card">
+                        <div class="card-body">
+                            <div class="feature-icon">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <h5>API Integration</h5>
+                            <p class="text-muted">
+                                Comprehensive REST API with full documentation, webhooks, and SDKs
+                                for seamless integration with your existing tools.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2>Trusted by Organizations Worldwide</h2>
+                <p class="text-muted">Join thousands of teams already using PlexiChat</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="99.9">0</span>
+                        <div class="stat-label">% Uptime</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="10000">0</span>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="1000000">0</span>
+                        <div class="stat-label">Messages Sent</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="24">0</span>
+                        <div class="stat-label">7 Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="mb-4">Ready to Get Started?</h2>
+            <p class="mb-4 fs-5">
+                Join the PlexiChat community and experience the future of enterprise communication.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="/auth/login" class="btn btn-light btn-lg">
+                    <i class="fas fa-rocket"></i> Start Now
+                </a>
+                <a href="/docs/installation" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-download"></i> Install Guide
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <h5><i class="fas fa-shield-alt"></i> PlexiChat</h5>
+                    <p class="text-muted">
+                        Enterprise-grade communication platform built for modern teams.
+                        Secure, scalable, and feature-rich.
+                    </p>
+                </div>
+                <div class="col-lg-2">
+                    <h6>Product</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/docs/" class="text-muted">Documentation</a></li>
+                        <li><a href="/api/docs" class="text-muted">API</a></li>
+                        <li><a href="/admin/" class="text-muted">Admin Panel</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6>Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/docs/troubleshooting" class="text-muted">Help Center</a></li>
+                        <li><a href="/docs/installation" class="text-muted">Installation</a></li>
+                        <li><a href="/api/v1/testing/ui" class="text-muted">System Status</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6>Resources</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/docs/user-guide" class="text-muted">User Guide</a></li>
+                        <li><a href="/docs/api-guide" class="text-muted">Developer Guide</a></li>
+                        <li><a href="/docs/" class="text-muted">Tutorials</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6>System</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/health" class="text-muted">Health Check</a></li>
+                        <li><a href="/api/v1/admin/system/status" class="text-muted">System Status</a></li>
+                        <li><span class="text-success"><i class="fas fa-circle"></i> Online</span></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">
+                        &copy; 2025 PlexiChat. Enterprise Communication Platform.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <span class="text-muted">Version 2.0 - Enhanced Edition</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+    
+    <script>
+        // Animate counters
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            
+            counters.forEach(counter => {
+                const target = parseInt(counter.dataset.count);
+                const increment = target / 100;
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    
+                    if (target >= 1000000) {
+                        counter.textContent = (current / 1000000).toFixed(1) + 'M';
+                    } else if (target >= 1000) {
+                        counter.textContent = (current / 1000).toFixed(0) + 'K';
+                    } else {
+                        counter.textContent = current.toFixed(target % 1 === 0 ? 0 : 1);
+                    }
+                }, 20);
+            });
+        }
+        
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+        
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

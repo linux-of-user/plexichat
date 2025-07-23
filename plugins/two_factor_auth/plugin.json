@@ -1,0 +1,138 @@
+{
+  "name": "two_factor_auth",
+  "version": "1.0.0",
+  "description": "Advanced Two-Factor Authentication plugin with TOTP, SMS, and hardware token support",
+  "author": "PlexiChat Security Team",
+  "type": "security_node",
+  "entry_point": "main",
+  "dependencies": ["core_security", "database_manager"],
+  "permissions": ["auth:read", "auth:write", "user:read", "user:write", "sms:send"],
+  "api_version": "1.0",
+  "min_plexichat_version": "3.0.0",
+  "enabled": true,
+  "category": "security",
+  "tags": ["authentication", "security", "2fa", "totp", "sms", "hardware"],
+  "homepage": "https://github.com/plexichat/plugins/two-factor-auth",
+  "repository": "https://github.com/plexichat/plugins/two-factor-auth",
+  "license": "MIT",
+  "icon": "shield-lock",
+  "screenshots": [
+    "setup.png",
+    "qr_code.png",
+    "verification.png"
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": ["Initial release", "TOTP support", "SMS integration", "Hardware token support"]
+    }
+  ],
+  "download_count": 1250,
+  "rating": 4.8,
+  "last_updated": "2024-01-15T10:30:00Z",
+  "size_bytes": 2048576,
+  "checksum": "sha256:abc123def456...",
+  "ui_pages": [
+    {
+      "name": "setup",
+      "path": "ui/setup",
+      "title": "2FA Setup",
+      "description": "Configure two-factor authentication"
+    },
+    {
+      "name": "management",
+      "path": "ui/management",
+      "title": "2FA Management",
+      "description": "Manage 2FA settings and devices"
+    },
+    {
+      "name": "recovery",
+      "path": "ui/recovery",
+      "title": "Recovery Codes",
+      "description": "Generate and manage recovery codes"
+    }
+  ],
+  "api_endpoints": [
+    "/api/v1/2fa/setup",
+    "/api/v1/2fa/verify",
+    "/api/v1/2fa/disable",
+    "/api/v1/2fa/recovery",
+    "/api/v1/2fa/devices"
+  ],
+  "webhooks": [
+    "2fa.setup.completed",
+    "2fa.verification.failed",
+    "2fa.device.added",
+    "2fa.device.removed"
+  ],
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "enabled_methods": {
+        "type": "array",
+        "items": {"type": "string", "enum": ["totp", "sms", "hardware"]},
+        "default": ["totp"],
+        "description": "Enabled 2FA methods"
+      },
+      "totp_issuer": {
+        "type": "string",
+        "default": "PlexiChat",
+        "description": "TOTP issuer name"
+      },
+      "totp_digits": {
+        "type": "integer",
+        "minimum": 6,
+        "maximum": 8,
+        "default": 6,
+        "description": "Number of digits in TOTP codes"
+      },
+      "totp_period": {
+        "type": "integer",
+        "minimum": 30,
+        "maximum": 60,
+        "default": 30,
+        "description": "TOTP code validity period in seconds"
+      },
+      "sms_provider": {
+        "type": "string",
+        "enum": ["twilio", "aws_sns", "custom"],
+        "default": "twilio",
+        "description": "SMS provider"
+      },
+      "backup_codes_count": {
+        "type": "integer",
+        "minimum": 5,
+        "maximum": 20,
+        "default": 10,
+        "description": "Number of backup codes to generate"
+      },
+      "max_devices": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10,
+        "default": 5,
+        "description": "Maximum number of 2FA devices per user"
+      },
+      "require_2fa": {
+        "type": "boolean",
+        "default": false,
+        "description": "Require 2FA for all users"
+      },
+      "grace_period_days": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 30,
+        "default": 7,
+        "description": "Grace period for 2FA setup in days"
+      }
+    },
+    "required": ["enabled_methods"]
+  },
+  "auto_start": true,
+  "background_tasks": [
+    "cleanup_expired_codes",
+    "sync_device_status",
+    "send_reminder_notifications"
+  ]
+} 

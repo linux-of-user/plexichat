@@ -1,0 +1,81 @@
+{
+  "name": "api_tester",
+  "version": "1.0.0",
+  "description": "Comprehensive API testing with request building, response validation, and automated testing suites",
+  "author": "PlexiChat Team",
+  "type": "testing",
+  "enabled": true,
+  "priority": 7,
+  "dependencies": [],
+  "permissions": [
+    "network_access",
+    "file_system_access",
+    "webui_access",
+    "gui_access"
+  ],
+  "capabilities": [
+    "http_requests",
+    "response_validation",
+    "test_automation",
+    "load_testing",
+    "api_documentation",
+    "mock_server",
+    "test_reporting"
+  ],
+  "entry_point": "main.py",
+  "config_schema": {
+    "request_timeout": {
+      "type": "integer",
+      "default": 30,
+      "description": "Default request timeout in seconds"
+    },
+    "max_redirects": {
+      "type": "integer",
+      "default": 5,
+      "description": "Maximum number of redirects to follow"
+    },
+    "verify_ssl": {
+      "type": "boolean",
+      "default": true,
+      "description": "Verify SSL certificates"
+    },
+    "user_agent": {
+      "type": "string",
+      "default": "PlexiChat API Tester/1.0",
+      "description": "Default User-Agent header"
+    },
+    "test_environments": {
+      "type": "object",
+      "default": {
+        "development": "http://localhost:8000",
+        "staging": "https://staging.example.com",
+        "production": "https://api.example.com"
+      },
+      "description": "Test environment configurations"
+    }
+  },
+  "webui": {
+    "enabled": true,
+    "routes": [
+      {
+        "path": "/api-tester",
+        "component": "APITesterPanel",
+        "title": "API Tester",
+        "icon": "vial"
+      }
+    ]
+  },
+  "self_tests": [
+    "test_http_requests",
+    "test_validation",
+    "test_automation",
+    "test_load_testing",
+    "test_reporting"
+  ],
+  "requirements": [
+    "requests>=2.25.0",
+    "aiohttp>=3.8.0",
+    "jsonschema>=4.0.0",
+    "pydantic>=1.8.0"
+  ]
+}

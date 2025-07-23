@@ -1,0 +1,49 @@
+# PlexiChat Core Runtime Dependencies
+# These are the essential packages required for basic PlexiChat functionality
+
+# Web Framework & Server
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+starlette==0.47.2
+
+# Data Validation & Settings
+pydantic==2.11.7
+pydantic-settings==2.10.1
+
+# Database & ORM
+sqlalchemy==2.0.41
+sqlmodel==0.0.24
+aiosqlite==0.21.0
+
+# Authentication & Security
+python-jose[cryptography]==3.5.0
+PyJWT==2.10.1
+passlib[bcrypt]==1.7.4
+cryptography==45.0.5
+argon2-cffi==25.1.0
+
+# HTTP Client & File Handling
+requests==2.32.4
+aiofiles==24.1.0
+python-multipart==0.0.20
+httpx==0.28.1
+
+# Configuration & Templating
+python-dotenv==1.1.1
+pyyaml==6.0.2
+jinja2==3.1.6
+
+# CLI & Display
+typer==0.16.0
+rich==14.0.0
+colorama==0.4.6
+
+# Utilities
+qrcode[pil]==8.2
+watchdog==6.0.0
+pillow==11.3.0
+python-dateutil==2.9.0.post0
+psutil==7.0.0
+jsonschema==4.25.0
+numpy==2.3.1
+tqdm==4.67.1

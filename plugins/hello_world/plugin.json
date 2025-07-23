@@ -1,0 +1,62 @@
+{
+  "name": "hello_world",
+  "version": "1.0.0",
+  "description": "A simple Hello World plugin to demonstrate the plugin system",
+  "author": "PlexiChat Team",
+  "type": "feature",
+  "entry_point": "main",
+  "dependencies": [],
+  "permissions": [],
+  "api_version": "1.0",
+  "min_plexichat_version": "3.0.0",
+  "enabled": true,
+  "category": "demo",
+  "tags": ["demo", "hello", "world"],
+  "homepage": "https://github.com/plexichat/plugins/hello-world",
+  "repository": "https://github.com/plexichat/plugins/hello-world",
+  "license": "MIT",
+  "icon": "hand-wave",
+  "screenshots": [],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2024-01-15",
+      "changes": ["Initial release", "Basic Hello World functionality"]
+    }
+  ],
+  "download_count": 0,
+  "rating": 0.0,
+  "last_updated": "2024-01-15T10:30:00Z",
+  "size_bytes": 1024,
+  "checksum": "sha256:def456...",
+  "ui_pages": [
+    {
+      "name": "hello",
+      "path": "ui/hello",
+      "title": "Hello World",
+      "description": "Simple Hello World page"
+    }
+  ],
+  "api_endpoints": [
+    "/api/v1/hello",
+    "/api/v1/hello/{name}"
+  ],
+  "webhooks": [],
+  "settings_schema": {
+    "type": "object",
+    "properties": {
+      "greeting": {
+        "type": "string",
+        "default": "Hello",
+        "description": "Default greeting message"
+      },
+      "enable_logging": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable logging of greetings"
+      }
+    }
+  },
+  "auto_start": true,
+  "background_tasks": []
+} 

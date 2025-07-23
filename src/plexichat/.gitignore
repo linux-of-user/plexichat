@@ -1,0 +1,85 @@
+# NetLink Auto-Generated Directories
+config/
+data/
+backups/
+logs/
+databases/
+static/uploads/
+runtime/
+gui/data/
+gui/cache/
+backup_node/storage/
+backup_node/logs/
+tests/results/
+tests/coverage/
+installer/cache/
+installer/temp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Security
+*.key
+*.pem
+*.crt
+secrets.json
+.env
+
+# Keep important files
+!src/
+!gui/netlink_admin_gui.py
+!gui/launch_gui.py
+!gui/requirements.txt
+!backup_node/*.py
+!backup_node/README.md
+!backup_node/requirements.txt
+!docs/*.md
+!scripts/
+!tests/*.py
+!installer/
+!requirements.txt
+!run.py
+!start.sh
+!start.ps1
+!README.md
