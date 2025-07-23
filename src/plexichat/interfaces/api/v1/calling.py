@@ -10,13 +10,17 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from plexichat.app.logger_config import logger
-from plexichat.app.models.calling import CallType
-from plexichat.app.services.calling_service import calling_service
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.features.calling.models import CallType
+    from plexichat.features.calling.service import calling_service
+    logger = get_logger(__name__)
+except ImportError:
+    logger = print
+    CallType = None
+    calling_service = None
 
 """
-import socket
-import time
 Encrypted voice and video calling API endpoints.
 Provides WebRTC signaling, call management, and encryption.
 """

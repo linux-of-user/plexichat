@@ -6,21 +6,20 @@
 from typing import Optional
 
 
-from ....core_system.auth.auth_manager import ()
-from ....features.channels.models.channel import ChannelType
-
+try:
+    from ....core.auth.auth_manager import get_auth_manager
+    from ....features.channels.models import ChannelType
+    from plexichat.infrastructure.utils.auth import get_current_user
+    from plexichat.core.config import get_config
+    settings = get_config()
+except ImportError:
+    get_auth_manager = lambda: None
+    ChannelType = None
+    get_current_user = lambda: None
+    settings = {}
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-
-    from plexichat.infrastructure.utils.auth import get_current_user,
-from plexichat.core.config import settings
-from plexichat.core.config import settings
-
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
 """
 PlexiChat Channel API Endpoints
 

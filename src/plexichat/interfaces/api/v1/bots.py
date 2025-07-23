@@ -7,19 +7,30 @@ import secrets
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from app.db import get_session
-from plexichat.app.logger_config import logger
-from plexichat.features.users.user import User
-from plexichat.infrastructure.utils.auth import get_current_user
-from plexichat.infrastructure.services.user_management import UserManagementService, BotAccount, BotType, EnhancedUser
-from sqlmodel import Session, select
-
+try:
+    from plexichat.core.database import get_session
+    from plexichat.core.logging import get_logger
+    from plexichat.features.users.user import User
+    from plexichat.infrastructure.utils.auth import get_current_user
+    from plexichat.infrastructure.services.user_management import UserManagementService, BotAccount, BotType, EnhancedUser
+    from sqlmodel import Session, select
+    logger = get_logger(__name__)
+except ImportError:
+    get_session = lambda: None
+    logger = print
+    User = None
+    get_current_user = lambda: None
+    UserManagementService = None
+    BotAccount = None
+    BotType = None
+    EnhancedUser = None
+    Session = None
+    select = None
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 """
-import time
 Enhanced bot management API with comprehensive features and regulation.
 Handles bot creation, management, permissions, and monitoring.
 """
