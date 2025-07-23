@@ -15,7 +15,6 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
-import time
 Device management models for intelligent shard distribution.
 Handles device-based backup storage and smart shard placement.
 """

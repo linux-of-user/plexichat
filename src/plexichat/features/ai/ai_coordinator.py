@@ -10,25 +10,28 @@ from datetime import datetime
 from typing import Any, Dict, List
 import time
 
-# Import AI components (commented out due to syntax errors, Optional)
-# from .advanced_ai_system import ()
-#     AI,
-#     AICapability,
-#     ai_provider_manager,
-#     content_moderation_engine,
-#     intelligent_assistant,
-#     sentiment_analyzer,
-#     smart_summarizer,
-#     translation_engine,
-# )
-
-# Simplified imports for now
-ai_provider_manager = None
-content_moderation_engine = None
-intelligent_assistant = None
-sentiment_analyzer = None
-smart_summarizer = None
-translation_engine = None
+# Import AI components
+try:
+    from .advanced_ai_system import (
+        AI,
+        AICapability,
+        ai_provider_manager,
+        content_moderation_engine,
+        intelligent_assistant,
+        sentiment_analyzer,
+        smart_summarizer,
+        translation_engine,
+    )
+except ImportError:
+    # Fallback definitions
+    AI = None
+    AICapability = None
+    ai_provider_manager = None
+    content_moderation_engine = None
+    intelligent_assistant = None
+    sentiment_analyzer = None
+    smart_summarizer = None
+    translation_engine = None
 
 logger = logging.getLogger(__name__)
 
