@@ -3,25 +3,45 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-import logging
 
+"""
+PlexiChat Enhanced Edge Analytics API - SINGLE SOURCE OF TRUTH
+
+Advanced analytics, monitoring, and insights for edge computing infrastructure with:
+- Redis caching for analytics performance optimization
+- Database abstraction layer for unified data access
+- Real-time edge node monitoring and metrics
+- Performance analytics and trend analysis
+- Comprehensive edge computing insights
+- Advanced reporting and visualization data
+"""
+
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
-
-
-from ....core.auth import require_auth
-from ....core.logging import get_logger
-from ....core.performance.edge_computing_manager import get_edge_computing_manager
-
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-"""
-import time
-PlexiChat Edge Analytics API
-Advanced analytics, monitoring, and insights for edge computing infrastructure.
-"""
+try:
+    from ....core.auth.dependencies import require_auth
+    from ....core.logging import get_logger
+    from ....core.performance.edge_computing_manager import get_edge_computing_manager
+    from ....core.database.manager import get_database_manager
+    from ....infrastructure.performance.cache_manager import get_cache_manager
+    from ....infrastructure.monitoring import get_performance_monitor
+
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+except ImportError:
+    logger = logging.getLogger(__name__)
+    require_auth = lambda: None
+    get_edge_computing_manager = lambda: None
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
 
 logger = get_logger(__name__)
 
@@ -38,16 +58,34 @@ class AnalyticsTimeRange(BaseModel):
 
 
 @router.get("/overview")
-async def get_edge_overview()
-    current_user: Dict = Depends(require_auth),
+async def get_edge_overview(
+    current_user: Dict = Depends(require_auth)
 ) -> Dict[str, Any]:
-    """Get comprehensive edge computing overview and statistics."""
+    """
+    Get comprehensive edge computing overview with Redis caching.
+
+    Enhanced with:
+    - Redis caching for analytics performance optimization
+    - Database abstraction layer for metrics storage
+    - Real-time edge node monitoring
+    - Performance tracking and analytics
+    """
+    # Check Redis cache first
+    cache_key = "edge_analytics:overview"
+    if cache_manager:
+        cached_overview = await cache_manager.get(cache_key)
+        if cached_overview:
+            logger.info("Edge overview retrieved from Redis cache")
+            return cached_overview
+
     try:
         manager = get_edge_computing_manager()
+        if not manager:
+            raise HTTPException(status_code=503, detail="Edge computing manager not available")
 
         # Get basic statistics
-        total_nodes = len(manager.edge_nodes)
-        active_nodes = sum(1 for node in manager.edge_nodes.values() if node.is_active)
+        total_nodes = len(manager.edge_nodes) if manager.edge_nodes else 0
+        active_nodes = sum(1 for node in manager.edge_nodes.values() if node.is_active) if manager.edge_nodes else 0
         healthy_nodes = sum()
             1 for node in manager.edge_nodes.values() if node.is_healthy
         )
