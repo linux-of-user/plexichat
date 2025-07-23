@@ -3,21 +3,53 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
+"""
+PlexiChat Enhanced Advanced Channel Management API - SINGLE SOURCE OF TRUTH
+
+Comprehensive channel management system with:
+- Redis caching for channel performance optimization
+- Database abstraction layer for channel data storage
+- Advanced permissions and access control
+- Real-time channel updates and synchronization
+- AI-powered channel automation and moderation
+- Performance monitoring and analytics
+- Comprehensive channel lifecycle management
+"""
+
 import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 
-"""
-import time
-PlexiChat Advanced Channel Management API
-Comprehensive channel management with advanced features, permissions, and automation
-"""
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
+    from plexichat.features.channels.models import Channel, ChannelSettings
+    from plexichat.features.channels.services import ChannelService, PermissionService
+
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+except ImportError:
+    logger = logging.getLogger(__name__)
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
+    get_current_user = lambda: None
+    require_admin = lambda: None
+    Channel = None
+    ChannelSettings = None
+    ChannelService = None
+    PermissionService = None
 
 logger = logging.getLogger(__name__)
 

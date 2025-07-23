@@ -27,18 +27,17 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import and_, or_, desc, asc
 
 # Core PlexiChat imports
-from ....core.auth import require_auth
+from ....core.auth.dependencies import require_auth, require_admin, require_permission
 from ....core.logging import get_logger
-from ....core.database import get_database_manager
-from ....core.security.unified_audit_system import get_unified_audit_system
+from ....core.database.manager import get_database_manager
+from ....core.security.unified_audit_system import get_unified_audit_system, SecurityEventType
 from ....core.security.input_validation import get_input_validator, ValidationLevel
-from ....core.config import get_config
+from ....core.config.manager import get_config
 from ....shared.exceptions import ValidationError, SecurityError, DatabaseError
 from ....shared.models import BaseModel as PlexiChatBaseModel, Priority, Status
 
-# API authentication and authorization
+# API authentication and authorization (consolidated - removing duplicate imports)
 from plexichat.interfaces.api.v1.auth import get_current_user
-from plexichat.core.auth.dependencies import require_admin, require_permission
 
 # Enhanced edge computing imports with fallbacks
 try:
@@ -238,6 +237,7 @@ class EnhancedEdgeComputingManager:
     """Enhanced edge computing manager with database integration and advanced features."""
 
     def __init__(self):
+        """Initialize enhanced edge computing manager."""
         self.db_manager = db_manager
         self.audit_system = audit_system
         self.input_validator = input_validator
@@ -277,8 +277,8 @@ class EnhancedEdgeComputingManager:
 
         # Log audit event
         await self.audit_system.log_security_event(
-            event_type="EDGE_NODE_CREATED",
-            message=f"Edge node {node.node_id} created by user {user_id}",
+            event_type=SecurityEventType.EDGE_NODE_CREATED,
+            description=f"Edge node {node.node_id} created by user {user_id}",
             user_id=user_id,
             resource=f"edge_node:{node.node_id}",
             metadata={"node_type": node.node_type.value, "location": node.location}

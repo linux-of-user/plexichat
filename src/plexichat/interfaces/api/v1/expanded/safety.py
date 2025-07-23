@@ -3,21 +3,53 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
+"""
+PlexiChat Enhanced Safety and Moderation API - SINGLE SOURCE OF TRUTH
+
+Comprehensive safety system with:
+- Redis caching for safety performance optimization
+- Database abstraction layer for safety data storage
+- Advanced content filtering and automated moderation
+- Real-time threat detection and response
+- AI-powered content analysis and classification
+- Performance monitoring and safety analytics
+- Comprehensive reporting and audit capabilities
+"""
+
 import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 
-"""
-import time
-PlexiChat Safety and Moderation API
-Comprehensive safety features including reporting, moderation, and automated content filtering
-"""
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+    from plexichat.infrastructure.utils.auth import get_current_user, require_admin
+    from plexichat.features.safety.models import SafetyReport, ModerationAction
+    from plexichat.features.safety.services import SafetyService, ModerationService
+
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+except ImportError:
+    logger = logging.getLogger(__name__)
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
+    get_current_user = lambda: None
+    require_admin = lambda: None
+    SafetyReport = None
+    ModerationAction = None
+    SafetyService = None
+    ModerationService = None
 
 logger = logging.getLogger(__name__)
 

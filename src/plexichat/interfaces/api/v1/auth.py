@@ -3,30 +3,56 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-"""
-PlexiChat Authentication API Endpoints
 
-RESTful API endpoints for authentication, authorization, and user management.
+"""
+PlexiChat Enhanced Authentication API - SINGLE SOURCE OF TRUTH
+
+Advanced authentication system with:
+- Redis caching for session performance optimization
+- Database abstraction layer for user data storage
+- Multi-factor authentication and security features
+- Real-time session management and monitoring
+- Advanced token management and refresh capabilities
+- Performance monitoring and security analytics
+- Comprehensive audit logging and compliance
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Dict, List
+from datetime import datetime, timezone
 
 try:
-    from plexichat.core.auth.auth_manager import auth_manager
-    from plexichat.core.auth.admin_manager import admin_manager
-    from plexichat.core.auth.token_manager import token_manager
-    from plexichat.core.auth.mfa_manager import Advanced2FASystem
+    from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager
+    from plexichat.core.auth.admin_manager import get_admin_manager
+    from plexichat.core.auth.token_manager import get_token_manager
+    from plexichat.core.auth.mfa_manager import get_mfa_manager
     from plexichat.core.logging import get_logger
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+    from plexichat.core.security.unified_audit_system import get_unified_audit_system, SecurityEventType
+
+    logger = get_logger(__name__)
+    auth_manager = get_unified_auth_manager()
+    admin_manager = get_admin_manager()
+    token_manager = get_token_manager()
+    mfa_manager = get_mfa_manager()
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+    audit_system = get_unified_audit_system()
 except ImportError:
+    logger = print
     auth_manager = None
     admin_manager = None
     token_manager = None
-    Advanced2FASystem = None
-    import logging
-    get_logger = lambda name: logging.getLogger(name)
+    mfa_manager = None
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
+    audit_system = None
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
