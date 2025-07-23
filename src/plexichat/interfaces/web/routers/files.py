@@ -7,7 +7,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat Files Router
 
 Enhanced file handling with comprehensive validation, security scanning,

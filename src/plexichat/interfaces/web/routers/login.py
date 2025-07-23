@@ -3,12 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
 """
-import time
 PlexiChat Login Router
 
 Enhanced login interface with comprehensive authentication and performance optimization.
@@ -142,7 +137,7 @@ class LoginService:
 
         # Fallback for testing
         if username == "admin" and password == "password":
-            return User()
+            user = User()
             user.id = 1  # pyright: ignore
             user.username = "admin"  # pyright: ignore
             user.email = "admin@example.com"  # pyright: ignore
