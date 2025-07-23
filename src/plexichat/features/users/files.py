@@ -7,7 +7,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat File Model
 
 Enhanced file model with comprehensive functionality and performance optimization.
@@ -15,10 +14,9 @@ Uses EXISTING database abstraction and optimization systems.
 """
 
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from enum import Enum
 
 # SQLModel imports
@@ -30,9 +28,11 @@ except ImportError:
 
 # Pydantic imports
 try:
-    from pydantic import BaseModel, validator
+    from pydantic import BaseModel, field_validator
+    validator = field_validator  # Compatibility alias
 except ImportError:
     BaseModel = object
+    field_validator = lambda *args, **kwargs: lambda f: f
     validator = lambda *args, **kwargs: lambda f: f
 
 # Use EXISTING database abstraction layer

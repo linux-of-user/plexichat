@@ -14,7 +14,6 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
-import time
 Guild (Server) models for Discord-like functionality.
 Includes servers, channels, roles, and permissions.
 """

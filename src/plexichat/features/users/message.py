@@ -5,7 +5,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat Message Model
 
 Enhanced message model with comprehensive functionality and performance optimization.
