@@ -9,22 +9,26 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, and_, or_, select
-
-
-from datetime import datetime
-
-
 from sqlalchemy import desc
 
-from plexichat.app.db import engine
-from plexichat.app.logger_config import logger
-from plexichat.app.models.guild import Emoji
-from plexichat.app.models.message import Message, MessageReaction, MessageType
-import time
+try:
+    from plexichat.core.database import get_engine
+    from plexichat.core.logging import get_logger
+    from plexichat.features.guilds.models import Emoji
+    from plexichat.features.messaging.models import Message, MessageReaction, MessageType
+    engine = get_engine()
+    logger = get_logger(__name__)
+except ImportError:
+    engine = None
+    logger = print
+    Emoji = None
+    Message = None
+    MessageReaction = None
+    MessageType = None
 
 # Import unified cache integration
 try:
-    from plexichat.core.caching.unified_cache_integration import ()
+    from plexichat.core.caching.unified_cache_integration import (
         cache_get, cache_set, cache_delete, CacheKeyBuilder
     )
     CACHE_AVAILABLE = True
@@ -47,7 +51,7 @@ class EmojiService:
     """Service for handling emoji operations."""
 
     # Unicode emoji patterns and mappings
-    UNICODE_EMOJI_PATTERN = re.compile()
+    UNICODE_EMOJI_PATTERN = re.compile(
         r'[\U0001F600-\U0001F64F]|'  # emoticons
         r'[\U0001F300-\U0001F5FF]|'  # symbols & pictographs
         r'[\U0001F680-\U0001F6FF]|'  # transport & map symbols
@@ -210,12 +214,11 @@ class EmojiService:
             ]
 
     @classmethod
-    async def add_custom_emoji(cls, guild_id: int, name: str, image: str,)
-                             user_id: int, animated: bool = False) -> Optional[Emoji]:
+    async def add_custom_emoji(cls, guild_id: int, name: str, image: str, user_id: int, animated: bool = False) -> Optional[Emoji]:
         """Add a custom emoji to a guild."""
         try:
             with Session(engine) as session:
-                emoji = Emoji()
+                emoji = Emoji(
                     guild_id=guild_id,
                     name=name,
                     image=image,
@@ -236,13 +239,12 @@ class ReactionService:
     """Service for handling message reactions."""
 
     @classmethod
-    async def add_reaction(cls, message_id: int, user_id: int, emoji: str,)
-                          emoji_id: Optional[int] = None) -> bool:
+    async def add_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: Optional[int] = None) -> bool:
         """Add a reaction to a message."""
         try:
             with Session(engine) as session:
                 # Check if reaction already exists
-                existing = session.exec()
+                existing = session.exec(
                     select(MessageReaction).where()
                         and_()
                             MessageReaction.message_id == message_id,
@@ -259,7 +261,7 @@ class ReactionService:
                     return False  # Already reacted
 
                 # Add new reaction
-                reaction = MessageReaction()
+                reaction = MessageReaction(
                     message_id=message_id,
                     user_id=user_id,
                     emoji=emoji,
@@ -275,12 +277,11 @@ class ReactionService:
             return False
 
     @classmethod
-    async def remove_reaction(cls, message_id: int, user_id: int, emoji: str,)
-                            emoji_id: Optional[int] = None) -> bool:
+    async def remove_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: Optional[int] = None) -> bool:
         """Remove a reaction from a message."""
         try:
             with Session(engine) as session:
-                reaction = session.exec()
+                reaction = session.exec(
                     select(MessageReaction).where()
                         and_()
                             MessageReaction.message_id == message_id,
@@ -308,7 +309,7 @@ class ReactionService:
         """Get all reactions for a message."""
         try:
             with Session(engine) as session:
-                reactions = session.exec()
+                reactions = session.exec(
                     select(MessageReaction).where(MessageReaction.message_id == message_id)
                 ).all()
 
@@ -338,8 +339,7 @@ class ReplyService:
     """Service for handling message replies."""
 
     @classmethod
-    async def create_reply(cls, original_message_id: int, reply_content: str,)
-                          sender_id: int, **kwargs) -> Optional[Message]:
+    async def create_reply(cls, original_message_id: int, reply_content: str, sender_id: int, **kwargs) -> Optional[Message]:
         """Create a reply to a message."""
         try:
             with Session(engine) as session:
@@ -378,7 +378,7 @@ class ReplyService:
         """Get replies to a message."""
         try:
             with Session(engine) as session:
-                replies = session.exec()
+                replies = session.exec(
                     select(Message)
                     .where(Message.referenced_message_id == message_id)
                     .order_by(Message.timestamp)
@@ -437,8 +437,7 @@ class EnhancedMessagingService:
             logger.error(f"Failed to send message: {e}")
             return None
 
-    async def send_reply(self, sender_id: int, original_message_id: int,)
-                        content: str, **kwargs) -> Optional[Message]:
+    async def send_reply(self, sender_id: int, original_message_id: int, content: str, **kwargs) -> Optional[Message]:
         """Send a reply to a message."""
         try:
             # Process emoji shortcodes
@@ -448,7 +447,7 @@ class EnhancedMessagingService:
             if not await self._check_rate_limit(sender_id):
                 raise Exception("Rate limit exceeded")
 
-            reply = await self.reply_service.create_reply()
+            reply = await self.reply_service.create_reply(
                 original_message_id=original_message_id,
                 reply_content=processed_content,
                 sender_id=sender_id,
@@ -579,7 +578,7 @@ class EnhancedMessagingService:
         """Search messages with text search and emoji filtering."""
         try:
             with Session(engine) as session:
-                search_query = select(Message).where()
+                search_query = select(Message).where(
                     and_()
                         not Message.is_deleted,
                         Message.content.contains(query)
@@ -654,9 +653,7 @@ class EnhancedMessagingService:
 
                 # Update message
                 message.content = processed_content
-                message.from datetime import datetime
-edited_timestamp = datetime.now()
-datetime.utcnow()
+                message.edited_timestamp = datetime.now()
                 message.is_edited = True
 
                 session.commit()

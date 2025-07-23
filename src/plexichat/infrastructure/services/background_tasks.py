@@ -15,8 +15,9 @@ import uuid
 import json
 
 try:
-    from plexichat.app.logger_config import get_logger
-    from plexichat.core.config import settings
+    from plexichat.core.logging import get_logger
+    from plexichat.core.config import get_config
+    settings = get_config()
 except ImportError:
     get_logger = lambda name: logging.getLogger(name)
     settings = {}

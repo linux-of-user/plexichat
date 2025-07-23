@@ -7,16 +7,17 @@ import asyncio
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from ..ai.features.ai_powered_features_service import AIPoweredFeaturesService
-from ..core.config import get_config
-from ..core.logging import get_logger
-from ..core.service_manager import BaseService, ServiceManager
-
-from pathlib import Path
-from pathlib import Path
-
-from pathlib import Path
-from pathlib import Path
+try:
+    from plexichat.features.ai.ai_powered_features_service import AIPoweredFeaturesService
+    from plexichat.core.config import get_config
+    from plexichat.core.logging import get_logger
+    from plexichat.core.service_manager import BaseService, ServiceManager
+except ImportError:
+    AIPoweredFeaturesService = None
+    get_config = lambda: {}
+    get_logger = lambda name: print
+    BaseService = object
+    ServiceManager = None
 
 """
 PlexiChat AI-Powered Features Service Integration
