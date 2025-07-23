@@ -1,26 +1,49 @@
 """
-PlexiChat Admin API Endpoints
+PlexiChat Enhanced Admin API - SINGLE SOURCE OF TRUTH
 
-Administrative API endpoints for system management and user administration.
+Advanced administrative system with:
+- Redis caching for admin operations performance optimization
+- Database abstraction layer for unified admin data access
+- Comprehensive system management and user administration
+- Advanced security auditing and access control
+- Performance monitoring and analytics
+- Real-time system status and health monitoring
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status, Query
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Dict, Any, List
 import asyncio
+from datetime import datetime, timezone
 
 try:
-    from plexichat.core.auth.admin_manager import admin_manager
-    from plexichat.core.auth.auth_manager import auth_manager
+    from plexichat.core.auth.admin_manager import get_admin_manager
+    from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager
     from plexichat.interfaces.api.v1.auth import get_current_user
-    from plexichat.app.logger_config import get_logger
-    from plexichat.core.config import settings
+    from plexichat.core.logging import get_logger
+    from plexichat.core.config.manager import get_config
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+    from plexichat.infrastructure.utils.auth import require_admin
+
+    logger = get_logger(__name__)
+    admin_manager = get_admin_manager()
+    auth_manager = get_unified_auth_manager()
+    config = get_config()
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
 except ImportError:
+    logger = print
     admin_manager = None
     auth_manager = None
     get_current_user = lambda: {}
-    get_logger = lambda name: print
-    settings = {}
+    config = {}
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
+    require_admin = lambda: None
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])

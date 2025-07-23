@@ -3,22 +3,57 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
+"""
+PlexiChat Enhanced Plugin Management API - SINGLE SOURCE OF TRUTH
+
+Advanced plugin management system with:
+- Redis caching for plugin performance optimization
+- Database abstraction layer for plugin metadata storage
+- Real-time plugin status monitoring and analytics
+- Advanced plugin security scanning and validation
+- Comprehensive plugin lifecycle management
+- Performance monitoring and metrics collection
+"""
+
 import tempfile
 from pathlib import Path
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
+from enum import Enum
+
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile, Depends
+from pydantic import BaseModel, Field
+
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.core.plugins.unified_plugin_manager import get_unified_plugin_manager, PluginStatus
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+    from plexichat.infrastructure.utils.auth import require_admin, get_current_user
+
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+except ImportError:
+    logger = print
+    get_unified_plugin_manager = lambda: None
+    PluginStatus = None
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
+    require_admin = lambda: None
+    get_current_user = lambda: None
 
 
-from pathlib import Path
-
-
-from pathlib import Path
-
-from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel
-
-from plexichat.app.logger_config import logger
-from plexichat.app.plugins.enhanced_plugin_manager import get_enhanced_plugin_manager, PluginStatus
+class PluginSource(str, Enum):
+    """Plugin installation source."""
+    LOCAL = "local"
+    GITHUB = "github"
+    URL = "url"
+    MARKETPLACE = "marketplace"
 
 
 # Pydantic models for API

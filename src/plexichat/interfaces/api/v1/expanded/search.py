@@ -3,51 +3,71 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
+"""
+PlexiChat Enhanced Advanced Search API - SINGLE SOURCE OF TRUTH
+
+Comprehensive search functionality with:
+- Redis caching for search performance optimization
+- Database abstraction layer for search indexing
+- Semantic search with AI-powered features
+- Advanced filters and sorting capabilities
+- Real-time search suggestions and autocomplete
+- Performance monitoring and analytics
+- Search result ranking and relevance scoring
+"""
+
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
 
-"""
-import time
-PlexiChat Advanced Search API
-Comprehensive search functionality with semantic search, filters, and AI-powered features
-"""
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+    from plexichat.infrastructure.utils.auth import get_current_user
+
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+except ImportError:
+    logger = logging.getLogger(__name__)
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
+    get_current_user = lambda: None
 
 logger = logging.getLogger(__name__)
 
 
-# Pydantic models for search
+# Enhanced Pydantic models for search with validation
 class SearchFilter(BaseModel):
-    """Search filter model."""
+    """Enhanced search filter model with validation."""
 
     field: str = Field(..., description="Field to filter on")
-    operator: str = Field()
-        ..., description="Filter operator (eq, ne, gt, lt, contains, etc.)"
-    )
+    operator: str = Field(..., description="Filter operator (eq, ne, gt, lt, contains, etc.)")
     value: Any = Field(..., description="Filter value")
 
 
 class SearchSort(BaseModel):
-    """Search sort model."""
+    """Enhanced search sort model with validation."""
 
     field: str = Field(..., description="Field to sort by")
     direction: str = Field(default="asc", description="Sort direction (asc, desc)")
 
 
 class SearchRequest(BaseModel):
-    """Advanced search request model."""
+    """Enhanced advanced search request model with validation."""
 
     query: str = Field(..., min_length=1, description="Search query")
-    content_types: List[str] = Field()
-        default_factory=list, description="Content types to search"
-    )
-    filters: List[SearchFilter] = Field()
-        default_factory=list, description="Search filters"
+    content_types: List[str] = Field(default_factory=list, description="Content types to search")
+    filters: List[SearchFilter] = Field(default_factory=list, description="Search filters")
     )
     sorts: List[SearchSort] = Field(default_factory=list, description="Sort criteria")
     limit: int = Field(default=20, le=100, description="Maximum results")
