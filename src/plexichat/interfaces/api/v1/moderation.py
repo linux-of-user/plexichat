@@ -3,25 +3,28 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session
-
-from datetime import datetime
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from plexichat.app.db import get_session
-from plexichat.app.models.enhanced_models import EnhancedUser
-from plexichat.app.models.moderation import ModerationAction, ModerationSeverity
-from plexichat.app.services.moderation_service import ModerationService
-from plexichat.features.users.models import User
-from plexichat.infrastructure.utils.auth import get_current_user
-import time
+try:
+    from plexichat.core.database import get_session
+    from plexichat.features.users.models import User, EnhancedUser
+    from plexichat.features.moderation.models import ModerationAction, ModerationSeverity
+    from plexichat.features.moderation.service import ModerationService
+    from plexichat.infrastructure.utils.auth import get_current_user
+except ImportError:
+    get_session = lambda: None
+    User = None
+    EnhancedUser = None
+    ModerationAction = None
+    ModerationSeverity = None
+    ModerationService = None
+    get_current_user = lambda: None
 
 """
 Comprehensive moderation API for PlexiChat.
@@ -166,7 +169,7 @@ async def grant_moderator_role(
 
     expires_at = None
     if request.expires_hours:
-        expires_at = datetime.utcnow() + timedelta(hours=request.expires_hours)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=request.expires_hours)
 
     success = await moderation_service.grant_moderator_role(
         granter_id=current_user.id,

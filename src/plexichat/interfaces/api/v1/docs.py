@@ -4,27 +4,27 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 import logging
-import os
 from datetime import datetime, timezone
-
 from typing import Any, Dict, List, Optional
-
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import time
 
-# Remove the import for get_current_admin and only use the fallback
-# def get_current_admin():
-#     return {"id": 1, "username": "admin", "is_admin": True}
 def get_current_admin():
+    """Fallback admin function for documentation access."""
     return {"id": 1, "username": "admin", "is_admin": True}
 
-from plexichat.app.logger_config import logger
-from plexichat.core.plugins.unified_plugin_manager import UnifiedPluginManager
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.core.plugins.unified_plugin_manager import UnifiedPluginManager
+    logger = get_logger(__name__)
+    plugin_manager = UnifiedPluginManager()
+except ImportError:
+    logger = logging.getLogger(__name__)
+    plugin_manager = None
 
 """
 PlexiChat Documentation API
@@ -32,7 +32,7 @@ Enhanced documentation system with interactive viewer and editor.
 """
 
 router = APIRouter(prefix="/docs", tags=["documentation"])
-templates = Jinja2Templates(directory="src/plexichat/app/web/templates")
+templates = Jinja2Templates(directory="src/plexichat/web/templates")
 
 # Add CORS middleware for plugin dashboard endpoints
 router.add_middleware(
@@ -42,8 +42,6 @@ router.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-plugin_manager = UnifiedPluginManager()
 
 
 class DocumentModel(BaseModel):

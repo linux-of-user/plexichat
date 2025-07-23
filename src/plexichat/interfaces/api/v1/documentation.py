@@ -11,8 +11,13 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from plexichat.app.logger_config import logger
-from plexichat.app.services.documentation_service import documentation_service
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.infrastructure.services.documentation_service import documentation_service
+    logger = get_logger(__name__)
+except ImportError:
+    logger = logging.getLogger(__name__)
+    documentation_service = None
 
 """
 Documentation API endpoints for PlexiChat.

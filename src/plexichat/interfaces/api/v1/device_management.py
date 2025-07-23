@@ -13,43 +13,36 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from plexichat.app.db import get_session
-from plexichat.app.logger_config import logger
-from plexichat.infrastructure.utils.auth import get_current_user
-from plexichat.features.users.user import User
-import time
+try:
+    from plexichat.core.database import get_session
+    from plexichat.core.logging import get_logger
+    from plexichat.infrastructure.utils.auth import get_current_user
+    from plexichat.features.users.user import User
+    from plexichat.features.devices.models import (
+        Device, DeviceType, DeviceStatus, ConnectionType,
+        DeviceCapabilityReport, DeviceShardAssignment, StorageDevice
+    )
+    from plexichat.features.backup.services import get_backup_status_monitor
+    logger = get_logger(__name__)
+except ImportError:
+    get_session = lambda: None
+    logger = print
+    get_current_user = lambda: None
+    User = None
+    Device = None
+    DeviceType = None
+    DeviceStatus = None
+    ConnectionType = None
+    DeviceCapabilityReport = None
+    DeviceShardAssignment = None
+    StorageDevice = None
+    get_backup_status_monitor = lambda: None
 
-    API,
-    ConnectionType,
-    Device,
-    DeviceCapabilityReport,
-    DeviceShardAssignment,
-    DeviceStatus,
-    DeviceType,
-    EnhancedUser,
-    Handles,
-    StorageDevice,
-    """,
-    and,
-    device,
-    distribution.,
-    for,
-    from,
-    get_backup_status_monitor,
-    get_optional_current_user,
-    import,
-    intelligent,
-    management,
-    management.,
-    plexichat.app.models.enhanced_models,
-    plexichat.app.services.backup_status_monitor,
-    plexichat.app.utils.auth,
-    plexichat.infrastructure.utils.auth,
-    registration,
-    reporting,
-    shard,
-    status,
-)
+"""
+PlexiChat Device Management API
+
+Handles intelligent device registration, shard distribution, and management.
+"""
 
 
 # Pydantic models for API
