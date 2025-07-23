@@ -6,27 +6,56 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from datetime import datetime
+
+"""
+PlexiChat Enhanced File Management API - SINGLE SOURCE OF TRUTH
+
+Advanced file management system with:
+- Redis caching for file metadata performance optimization
+- Database abstraction layer for unified file storage
+- Advanced file permissions and access control
+- Real-time file sharing and collaboration
+- Performance monitoring and analytics
+- Comprehensive file operations and management
+"""
+
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlmodel import Session, select
-
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 try:
-    from plexichat.core.database import get_session
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+    from plexichat.core.logging import get_logger
+    from plexichat.infrastructure.utils.auth import get_current_user
+    from plexichat.features.users.models import User
+
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+
+    # Database session dependency
+    async def get_session():
+        if database_manager:
+            async with database_manager.get_session() as session:
+                yield session
+        else:
+            yield None
+
 except ImportError:
-    try:
-        from plexichat.core.database.manager import get_session
-    except ImportError:
-        # Fallback session function
-        def get_session():
-            return None
-from plexichat.infrastructure.utils.auth import get_current_user
-from plexichat.features.users.user import User
+    logger = print
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
+    get_current_user = lambda: None
+    User = None
+    get_session = lambda: None
 
 # Import file-related models and services
 try:

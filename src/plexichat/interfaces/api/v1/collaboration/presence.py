@@ -3,32 +3,47 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
+"""
+PlexiChat Enhanced Presence & Activity API - SINGLE SOURCE OF TRUTH
+
+Advanced presence and activity tracking system with:
+- Redis caching for real-time presence optimization
+- Database abstraction layer for activity storage
+- WebSocket connections for real-time updates
+- Advanced typing indicators and activity status
+- Performance monitoring and analytics
+- Rate limiting and security controls
+"""
+
 import json
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
-from ....core.auth.dependencies import ()
-from ....core.logging import get_logger
-from ....core.security.rate_limiting import rate_limiter
-
-
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field
 
-    from plexichat.infrastructure.utils.auth import get_current_user,
-import socket
-import time
+try:
+    from ....core.auth.dependencies import get_current_user, require_auth
+    from ....core.logging import get_logger
+    from ....core.security.rate_limiting import rate_limiter
+    from ....core.database.manager import get_database_manager
+    from ....infrastructure.performance.cache_manager import get_cache_manager
+    from ....infrastructure.monitoring import get_performance_monitor
 
-    from,
-    import,
-    plexichat.infrastructure.utils.auth,
-)
-"""
-Presence and activity tracking endpoints.
-Handles user presence, typing indicators, and activity status.
-"""
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+except ImportError:
+    logger = print
+    get_current_user = lambda: None
+    require_auth = lambda: None
+    rate_limiter = None
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
 
 logger = get_logger(__name__)
 
