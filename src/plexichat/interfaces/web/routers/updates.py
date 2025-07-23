@@ -4,7 +4,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat Updates Router
 
 Enhanced update management with comprehensive version control and performance optimization.

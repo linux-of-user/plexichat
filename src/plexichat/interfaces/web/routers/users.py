@@ -7,7 +7,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat Users Router
 
 Enhanced user management with comprehensive CRUD operations and performance optimization.
@@ -49,7 +48,7 @@ except ImportError:
 
 # Security imports
 try:
-    from plexichat.infrastructure.utils.security import hash_password, verify_password
+    from plexichat.infrastructure.utils.security import hash_password
 except ImportError:
     def hash_password(password: str):
         return f"hashed_{password}"
