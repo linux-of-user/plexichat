@@ -1,6 +1,5 @@
 
 """
-import time
 PlexiChat Messages Router
 
 Enhanced message handling with comprehensive validation, rate limiting,
@@ -11,7 +10,7 @@ Optimized for performance using EXISTING database abstraction and optimization s
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, List, Callable
 from concurrent.futures import ThreadPoolExecutor
 import importlib
 from colorama import Fore, Style
@@ -258,7 +257,7 @@ def _process_message_sync(message_id: int, sender_id: int, recipient_id: int) ->
     pass
 
 @router.get("/list", response_model=List[MessageRead], responses={400: {"model": ValidationErrorResponse}})
-async def list_messages(request: Request, limit: int = Query(50, ge=1, le=100, description="Number of messages to retrieve"), offset: int = Query(0, ge=0, description="Number of messages to skip"), sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order for messages"), current_user: Dict[str, Any] = Depends(get_current_user)) -> List[MessageRead]:
+async def list_messages(_request: Request, limit: int = Query(50, ge=1, le=100, description="Number of messages to retrieve"), offset: int = Query(0, ge=0, description="Number of messages to skip"), sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order for messages"), current_user: Dict[str, Any] = Depends(get_current_user)) -> List[MessageRead]:
     if not message_service.db_manager:
         return []
     try:

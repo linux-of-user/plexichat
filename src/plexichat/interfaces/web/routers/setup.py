@@ -16,13 +16,23 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Union, List
 
 # Import database abstraction layer
-from plexichat.core.database.manager import database_manager
-from plexichat.features.users.models import User, UserRole, UserStatus
-from plexichat.features.users.user import UserService, UserCreate
-from plexichat.features.users.models import UserModelService
-from plexichat.features.users.message import MessageUpdate
+try:
+    from plexichat.core.database.manager import database_manager
+    from plexichat.features.users.models import User, UserRole, UserStatus
+    from plexichat.features.users.user import UserService, UserCreate
+    from plexichat.features.users.models import UserModelService
+    from plexichat.features.users.message import MessageUpdate
+except ImportError:
+    database_manager = None
+    User = None
+    UserRole = None
+    UserStatus = None
+    UserService = None
+    UserCreate = None
+    UserModelService = None
+    MessageUpdate = None
 
-from fastapi import APIRouter, Request, Form, HTTPException, Depends, status, Body, Query
+from fastapi import APIRouter, Request, Form, HTTPException, Depends, Body, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -30,10 +40,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 import re
 
-from src.plexichat.infrastructure.utils.rate_limiting import rate_limiter
-from fastapi import HTTPException
+try:
+    from plexichat.infrastructure.utils.rate_limiting import rate_limiter
+except ImportError:
+    rate_limiter = None
 import base64
-import os
 import time
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import subprocess
