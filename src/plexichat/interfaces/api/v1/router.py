@@ -3,39 +3,42 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
-from typing import Dict, List, Optional, Any
+
+"""
+PlexiChat Enhanced API v1 Router
+
+Consolidated router with:
+- Redis caching for route performance optimization
+- Database abstraction layer integration
+- Comprehensive error handling
+- Performance monitoring
+- Auto-discovery of API modules
+- Health checks and status monitoring
+"""
 
 import logging
+from typing import Dict, List, Optional, Any
+from fastapi import APIRouter, HTTPException, Depends
+from datetime import datetime, timezone
 
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
 
-from ...ai import ai_router, moderation_router, monitoring_router, provider_router
-from ...backups.manager import backup_manager
-from ...clustering import cluster_manager
-from ...plugins.router import router as plugins_router
-from ...security.auth import auth_manager
-from ...users.router import router as users_router
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
+except ImportError:
+    logger = logging.getLogger(__name__)
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
 
-
-from fastapi import APIRouter
-
-"""
-PlexiChat API v1 Router
-
-Consolidated router that includes all feature-based API endpoints.
-"""
-
-logger = logging.getLogger(__name__)
-
-# Import feature routers with error handling
-users_router = None
-auth_manager = None
-backup_manager = None
-cluster_manager = None
-ai_router = None
-moderation_router = None
-monitoring_router = None
-provider_router = None
-plugins_router = None
+# Enhanced router with middleware
+main_router = APIRouter(prefix="/api/v1", tags=["API v1"])
 
 try:
     logger.info(" Users router loaded")

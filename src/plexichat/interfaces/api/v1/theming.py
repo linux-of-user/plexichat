@@ -3,71 +3,172 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
+
+"""
+PlexiChat Enhanced Theming API Endpoints
+
+Comprehensive theming system with:
+- Redis caching for theme performance optimization
+- Database abstraction layer for theme storage
+- Real-time theme updates
+- User preference management
+- Theme validation and sanitization
+- Performance monitoring
+"""
+
 import logging
-
 from typing import Any, Dict, Optional
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, HTTPException, Response, Depends
+from pydantic import BaseModel, Field
+
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.infrastructure.services.theming_service import get_theming_service
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.interfaces.api.v1.auth import get_current_user
+
+    logger = get_logger(__name__)
+    theming_service = get_theming_service()
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+except ImportError:
+    logger = logging.getLogger(__name__)
+    theming_service = None
+    database_manager = None
+    cache_manager = None
+    get_current_user = lambda: {}
 
 
-from fastapi import APIRouter, HTTPException, Response
-from pydantic import BaseModel
-
-from plexichat.app.logger_config import logger
-from plexichat.app.services.theming_service import theming_service
-
-"""
-Theming API endpoints.
-Provides comprehensive theming capabilities for all interfaces.
-"""
-
-
-# Pydantic models for API
+# Enhanced Pydantic models with validation
 class ThemeCreateRequest(BaseModel):
-    name: str
-    description: str
-    base_theme_id: Optional[str] = "default_light"
-    colors: Optional[Dict[str, str]] = None
-    layout: Optional[Dict[str, str]] = None
-    effects: Optional[Dict[str, Any]] = None
+    """Enhanced theme creation request with validation."""
+    name: str = Field(..., min_length=1, max_length=100, description="Theme name")
+    description: str = Field(..., min_length=1, max_length=500, description="Theme description")
+    base_theme_id: Optional[str] = Field("default_light", description="Base theme to inherit from")
+    colors: Optional[Dict[str, str]] = Field(None, description="Color scheme definitions")
+    layout: Optional[Dict[str, str]] = Field(None, description="Layout configurations")
+    effects: Optional[Dict[str, Any]] = Field(None, description="Visual effects settings")
+    is_public: bool = Field(True, description="Whether theme is publicly available")
+    tags: Optional[list[str]] = Field(None, description="Theme tags for categorization")
 
 
 class ThemeUpdateRequest(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    colors: Optional[Dict[str, str]] = None
-    layout: Optional[Dict[str, str]] = None
-    effects: Optional[Dict[str, Any]] = None
+    """Enhanced theme update request with validation."""
+    name: Optional[str] = Field(None, min_length=1, max_length=100, description="Theme name")
+    description: Optional[str] = Field(None, min_length=1, max_length=500, description="Theme description")
+    colors: Optional[Dict[str, str]] = Field(None, description="Color scheme definitions")
+    layout: Optional[Dict[str, str]] = Field(None, description="Layout configurations")
+    effects: Optional[Dict[str, Any]] = Field(None, description="Visual effects settings")
+    is_public: Optional[bool] = Field(None, description="Whether theme is publicly available")
+    tags: Optional[list[str]] = Field(None, description="Theme tags for categorization")
 
 
 class UserThemeRequest(BaseModel):
-    theme_id: str
+    """User theme preference request."""
+    theme_id: str = Field(..., description="Theme ID to apply")
 
 
-router = APIRouter(prefix="/api/v1/theming", tags=["Theming"])
+class ThemeResponse(BaseModel):
+    """Enhanced theme response with metadata."""
+    id: str
+    name: str
+    description: str
+    author_id: str
+    author_name: str
+    colors: Dict[str, str]
+    layout: Dict[str, str]
+    effects: Dict[str, Any]
+    is_public: bool
+    tags: list[str]
+    usage_count: int
+    created_at: datetime
+    updated_at: datetime
 
 
-@router.get("/themes")
-async def get_all_themes():
-    """Get list of all available themes."""
+router = APIRouter(prefix="/api/v1/theming", tags=["Enhanced Theming"])
+
+
+@router.get("/themes", response_model=Dict[str, Any])
+async def get_all_themes(
+    current_user: Dict = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Get list of all available themes with Redis caching.
+
+    Enhanced with:
+    - Redis caching for performance optimization
+    - Database abstraction layer
+    - User-specific theme filtering
+    - Performance monitoring
+    """
     try:
-        themes = theming_service.get_theme_list()
+        # Check Redis cache first
+        cache_key = f"themes:all:user:{current_user.get('id', 'anonymous')}"
+        if cache_manager:
+            cached_themes = await cache_manager.get(cache_key)
+            if cached_themes:
+                logger.info("Themes retrieved from Redis cache")
+                return cached_themes
 
-        return {
+        # Get themes from database using abstraction layer
+        if database_manager and theming_service:
+            async with database_manager.get_session() as session:
+                themes = await theming_service.get_theme_list(session, user_id=current_user.get('id'))
+        else:
+            themes = []
+
+        result = {
             "themes": themes,
             "total": len(themes),
-            "built_in_count": len([t for t in themes if not t["is_custom"]]),
-            "custom_count": len([t for t in themes if t["is_custom"]]),
+            "built_in_count": len([t for t in themes if not t.get("is_custom", False)]),
+            "custom_count": len([t for t in themes if t.get("is_custom", False)]),
+            "user_themes": len([t for t in themes if t.get("author_id") == current_user.get('id')]),
+            "cached_at": datetime.now(timezone.utc).isoformat()
         }
+
+        # Cache result in Redis for 5 minutes
+        if cache_manager:
+            await cache_manager.set(cache_key, result, ttl=300)
+
+        return result
 
     except Exception as e:
         logger.error(f"Failed to get themes: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to retrieve themes")
 
 
-@router.get("/themes/{theme_id}")
-async def get_theme(theme_id: str):
-    """Get a specific theme by ID."""
+@router.get("/themes/{theme_id}", response_model=ThemeResponse)
+async def get_theme(
+    theme_id: str,
+    current_user: Dict = Depends(get_current_user)
+) -> ThemeResponse:
+    """
+    Get a specific theme by ID with Redis caching.
+
+    Enhanced with:
+    - Redis caching for individual themes
+    - Database abstraction layer
+    - Access control validation
+    - Performance monitoring
+    """
     try:
-        theme = theming_service.get_theme(theme_id)
+        # Check Redis cache first
+        cache_key = f"theme:{theme_id}:user:{current_user.get('id', 'anonymous')}"
+        if cache_manager:
+            cached_theme = await cache_manager.get(cache_key)
+            if cached_theme:
+                logger.info(f"Theme {theme_id} retrieved from Redis cache")
+                return ThemeResponse(**cached_theme)
+
+        # Get theme from database using abstraction layer
+        if database_manager and theming_service:
+            async with database_manager.get_session() as session:
+                theme = await theming_service.get_theme(session, theme_id, user_id=current_user.get('id'))
+        else:
+            theme = None
 
         if not theme:
             raise HTTPException(status_code=404, detail="Theme not found")

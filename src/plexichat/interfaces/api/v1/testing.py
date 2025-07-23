@@ -1,7 +1,12 @@
 """
 PlexiChat Testing API Endpoints
 
-API endpoints for testing, debugging, and development purposes.
+Enhanced API endpoints for testing, debugging, and development purposes with:
+- Redis caching for performance optimization
+- Database abstraction layer integration
+- Comprehensive testing utilities
+- Load testing capabilities
+- Performance monitoring
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status, Query
@@ -10,17 +15,26 @@ from typing import Optional, Dict, Any, List
 import asyncio
 import time
 import random
+from datetime import datetime, timezone
 
 try:
     from plexichat.interfaces.api.v1.auth import get_current_user
-    from plexichat.app.logger_config import get_logger
-    from plexichat.app.database_manager import database_manager
+    from plexichat.core.logging import get_logger
+    from plexichat.core.database.manager import get_database_manager
+    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.infrastructure.monitoring import get_performance_monitor
+
+    logger = get_logger(__name__)
+    database_manager = get_database_manager()
+    cache_manager = get_cache_manager()
+    performance_monitor = get_performance_monitor()
 except ImportError:
     get_current_user = lambda: {}
-    get_logger = lambda name: print
-    settings = {}
+    logger = print
+    database_manager = None
+    cache_manager = None
+    performance_monitor = None
 
-logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/testing", tags=["testing"])
 
 # Request/Response Models
