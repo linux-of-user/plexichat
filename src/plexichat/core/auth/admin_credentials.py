@@ -35,9 +35,9 @@ class AdminCredentialsManager:
 
     def _initialize_admin_credentials(self):
         """Initialize admin credentials from default_creds.txt or create new ones."""
-        if not self.admin_creds_file.exists() if self.admin_creds_file else False:
+        if self.admin_creds_file and not self.admin_creds_file.exists():
             # Check if default_creds.txt exists
-            if self.default_creds_file.exists() if self.default_creds_file else False:
+            if self.default_creds_file and self.default_creds_file.exists():
                 self._migrate_from_default_creds()
             else:
                 self._create_default_admin()

@@ -1,5 +1,4 @@
 """
-import time
 PlexiChat Core Authentication System
 
 Enhanced authentication core with comprehensive security and performance optimization.

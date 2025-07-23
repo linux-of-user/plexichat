@@ -1,5 +1,4 @@
 """
-import stat
 PlexiChat Unified Logging System - SINGLE SOURCE OF TRUTH
 
 Consolidates ALL logging functionality from:
@@ -10,7 +9,7 @@ Consolidates ALL logging functionality from:
 Provides a single, unified interface for all logging operations.
 """
 
-import asyncio
+
 import gzip
 import json
 import logging
@@ -20,7 +19,7 @@ import sys
 import time
 import threading
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union, Callable
+from typing import Any, Dict, List, Optional, Callable
 from enum import Enum
 from dataclasses import dataclass, field, asdict
 from pathlib import Path

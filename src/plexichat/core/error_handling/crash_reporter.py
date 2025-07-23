@@ -9,33 +9,31 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
-from .exceptions import ErrorCategory, ErrorSeverity
+try:
+    from .exceptions import ErrorCategory, ErrorSeverity
+except ImportError:
+    class ErrorCategory:
+        SYSTEM = "system"
+    class ErrorSeverity:
+        CRITICAL = "critical"
 
-from pathlib import Path
-from pathlib import Path
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
-
-from pathlib import Path
-from pathlib import Path
-
-import psutil
-import psutil
-import psutil
-import psutil
-import psutil
 import logging
 
-
 """
-import time
 PlexiChat Crash Reporter
 
 Comprehensive crash reporting system with detailed context collection,
 automatic recovery suggestions, and integration with monitoring systems.
 """
 
-@dataclass
 logger = logging.getLogger(__name__)
+
+@dataclass
 class CrashContext:
     """Comprehensive crash context information."""
     error_id: str

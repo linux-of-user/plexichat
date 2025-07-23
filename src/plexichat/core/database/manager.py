@@ -14,22 +14,34 @@ from ...shared.types import ConfigDict, DatabaseRow, DatabaseRows, QueryResult
 from ...shared.constants import DEFAULT_DATABASE_URL, DATABASE_POOL_SIZE
 
 # Re-export everything from db_manager to maintain compatibility
-from .db_manager import (
-# Main database manager class
-ConsolidatedDatabaseManager,
-    database_manager,
+try:
+    from .db_manager import (
+        # Main database manager class
+        ConsolidatedDatabaseManager,
+        database_manager,
 
-# Configuration and types
-DatabaseConfig,
-    DatabaseType,
-    DatabaseRole,
-    DatabaseMetrics,
-    ConnectionStatus,
+        # Configuration and types
+        DatabaseConfig,
+        DatabaseType,
+        DatabaseRole,
+        DatabaseMetrics,
+        ConnectionStatus,
 
-# Initialization functions
-initialize_database_system,
-    get_database_manager,
-)
+        # Initialization functions
+        initialize_database_system,
+        get_database_manager,
+    )
+except ImportError:
+    # Fallback definitions
+    ConsolidatedDatabaseManager = None
+    database_manager = None
+    DatabaseConfig = None
+    DatabaseType = None
+    DatabaseRole = None
+    DatabaseMetrics = None
+    ConnectionStatus = None
+    initialize_database_system = lambda: None
+    get_database_manager = lambda: None
 
 # Create specific database exceptions using shared base
 class ConnectionError(DatabaseError):
