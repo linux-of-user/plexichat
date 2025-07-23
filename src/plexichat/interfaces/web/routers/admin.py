@@ -1,5 +1,4 @@
 """
-import time
 PlexiChat Web Admin Router
 
 Web interface for administrative operations.
@@ -379,7 +378,7 @@ async def grant_plugin_module(
 async def revoke_plugin_module(
     plugin_name: str = Form(...),
     module_name: str = Form(...),
-    admin: dict = Depends(require_admin)
+    _admin: dict = Depends(require_admin)
 ):
     """Revoke a plugin's permission to import a module."""
     isolation_manager = unified_plugin_manager.isolation_manager

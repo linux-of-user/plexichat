@@ -4,7 +4,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat Authentication Router
 
 Enhanced authentication with comprehensive security, validation, and performance optimization.

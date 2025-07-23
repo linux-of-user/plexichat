@@ -4,7 +4,6 @@
 # pyright: reportAssignmentType=false
 # pyright: reportReturnType=false
 """
-import time
 PlexiChat Cluster Router
 
 Enhanced cluster management with comprehensive monitoring and performance optimization.
@@ -13,12 +12,10 @@ Uses EXISTING database abstraction and optimization systems.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
-
-import typing
 from colorama import Fore, Style
 
 # Use EXISTING database abstraction layer
