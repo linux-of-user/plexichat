@@ -15,7 +15,6 @@ from sqlmodel import JSON, Column, Field, SQLModel
 from sqlalchemy import DateTime, Index, Text
 
 """
-import time
 Moderation system models for PlexiChat.
 Handles user moderation, message moderation, and server-specific moderation roles.
 """
