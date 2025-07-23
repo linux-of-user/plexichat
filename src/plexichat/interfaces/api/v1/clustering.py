@@ -9,13 +9,20 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
-from plexichat.app.logger_config import logger
-from plexichat.features.clustering.core.cluster_manager import AdvancedClusterManager
-from plexichat.features.clustering.core.task_manager import ClusterTask, TaskStatus
-from plexichat.features.clustering.core.node_manager import NodeStatus
-import time
-
-clustering_service = AdvancedClusterManager()
+try:
+    from plexichat.core.logging import get_logger
+    from plexichat.features.clustering.core.cluster_manager import AdvancedClusterManager
+    from plexichat.features.clustering.core.task_manager import ClusterTask, TaskStatus
+    from plexichat.features.clustering.core.node_manager import NodeStatus
+    logger = get_logger(__name__)
+    clustering_service = AdvancedClusterManager()
+except ImportError:
+    logger = print
+    AdvancedClusterManager = None
+    ClusterTask = None
+    TaskStatus = None
+    NodeStatus = None
+    clustering_service = None
 
 """
 Clustering API endpoints for PlexiChat.

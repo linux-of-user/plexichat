@@ -7,47 +7,29 @@ from datetime import datetime
 from typing import List, Optional
 
 from plexichat.core.logging import get_logger
-from ...services.communication_service import ()
 
+try:
+    from plexichat.infrastructure.services.communication_service import get_communication_service
+    from plexichat.infrastructure.utils.auth import require_admin_auth
+    from plexichat.core.auth.dependencies import get_current_user
+except ImportError:
+    get_communication_service = lambda: None
+    require_admin_auth = lambda: None
+    get_current_user = lambda: None
 
-    from plexichat.infrastructure.utils.auth import require_admin_auth,
+from fastapi import APIRouter, Depends, HTTPException, Query, File, Form, UploadFile
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
-    API,
-    REST,
-    Advanced,
-    APIRouter,
-    BaseModel,
-    Communication,
-    Depends,
-    Endpoints,
-    Field,
-    File,
-    FileResponse,
-    Form,
-    HTTPException,
-    NotificationPriority,
-    PlexiChat,
-    Query,
-    ReactionType,
-    ThreadStatus,
-    UploadFile,
-    """,
-    ...core.auth.dependencies,
-    advanced,
-    and,
-    communication,
-    endpoints,
-    fastapi,
-    fastapi.responses,
-    features,
-    for,
-    from,
-    get_communication_service,
-    import,
-    including,
-    messages,
-    notifications.,
-    plexichat.infrastructure.utils.auth,
+"""
+PlexiChat Advanced Communication API Endpoints
+
+Advanced communication endpoints for messages and notifications including:
+- Message management
+- File attachments
+- Notifications
+- Thread management
+"""
     pydantic,
     reactions,
     require_auth,

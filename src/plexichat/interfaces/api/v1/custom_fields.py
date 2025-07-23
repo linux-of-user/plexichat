@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from plexichat.core.auth import get_current_user
 from plexichat.core.database import database_manager
@@ -30,7 +30,8 @@ class CustomFieldValue(BaseModel):
     value: Any
     field_type: str = Field(..., regex="^(string|int|float|bool|list|dict|datetime)$")
     
-    @validator('name')
+    @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         if v.lower() in RESERVED_FIELD_NAMES:
             raise ValueError(f"Field name '{v}' is reserved")
@@ -40,9 +41,10 @@ class CustomFieldValue(BaseModel):
             raise ValueError("Field name must start with letter and contain only letters, numbers, and underscores")
         return v
     
-    @validator('value')
-    def validate_value_type(cls, v, values):
-        field_type = values.get('field_type')
+    @field_validator('value')
+    @classmethod
+    def validate_value_type(cls, v, info):
+        field_type = info.data.get('field_type') if info.data else None
         if not field_type:
             return v
             

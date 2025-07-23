@@ -9,45 +9,30 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from plexichat.core.logging import get_logger
-from ...services.collaboration_service import ()
 
+try:
+    from plexichat.infrastructure.services.collaboration_service import CollaborationService
+    from plexichat.infrastructure.utils.auth import require_admin_auth
+    from plexichat.core.auth.dependencies import get_current_user
+except ImportError:
+    CollaborationService = None
+    require_admin_auth = lambda: None
+    get_current_user = lambda: None
 
-    from plexichat.infrastructure.utils.auth import require_admin_auth,
-import socket
-import time
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 
-    API,
-    REST,
-    APIRouter,
-    BaseModel,
-    Collaboration,
-    CollaborationType,
-    Depends,
-    Document,
-    Endpoints,
-    Features:,
-    HTTPException,
-    Live,
-    Operation,
-    OperationType,
-    PlexiChat,
-    Presence,
-    Query,
-    Real-time,
-    Screen,
-    Session,
-    UserRole,
-    WebSocket,
-    WebSocketDisconnect,
-    Whiteboard,
-    """,
-    -,
-    ...core.auth.dependencies,
-    and,
-    awareness,
-    code,
-    collaboration,
-    conflict,
+"""
+PlexiChat Collaboration API Endpoints
+
+Real-time collaboration features including:
+- Live document editing
+- Screen sharing
+- Whiteboard collaboration
+- Code collaboration
+- Presence awareness
+- Conflict resolution
+"""
     coordination,
     cursors,
     document,
