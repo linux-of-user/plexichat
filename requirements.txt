@@ -1,278 +1,138 @@
-# PlexiChat Core Dependencies
+# PlexiChat Requirements
+# This file contains all dependencies organized by installation level
+# Use: python run.py setup --level <minimal|full|developer>
 
-# ===== MINIMAL INSTALLATION =====
-# Core dependencies required for basic PlexiChat functionality
-fastapi>=0.100.0
-uvicorn[standard]>=0.20.0
-starlette>=0.27.0
-pydantic>=2.0.0
-pydantic-settings>=2.0.0
-sqlalchemy>=2.0.0
-sqlmodel>=0.0.20
-aiosqlite>=0.19.0
-python-jose[cryptography]>=3.3.0
-PyJWT>=2.8.0
-passlib[bcrypt]>=1.7.4
-cryptography>=40.0.0
-argon2-cffi>=23.1.0
-requests>=2.30.0
-aiofiles>=23.0.0
+# === MINIMAL INSTALLATION ===
+# Core dependencies required for basic functionality
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
 python-multipart>=0.0.6
-httpx>=0.24.0
+websockets>=12.0
+aiofiles>=23.2.1
 python-dotenv>=1.0.0
-pyyaml>=6.0.0
-jinja2>=3.1.0
+cryptography>=41.0.7
+bcrypt>=4.1.2
+sqlite-utils>=3.35.2
+asyncio-mqtt>=0.13.0
+httpx>=0.25.2
+rich>=13.7.0
 typer>=0.9.0
-rich>=13.0.0
 colorama>=0.4.6
-qrcode[pil]>=7.4.0
-watchdog==4.0.1
-pillow>=10.0.0
-python-dateutil>=2.8.0
-psutil>=5.9.0
-jsonschema>=4.19.0
-numpy>=1.24.0
-tqdm>=4.65.0
+click>=8.1.7
+Pillow>=10.1.0
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+lxml>=4.9.3
+markdown>=3.5.1
+PyYAML>=6.0.1
+toml>=0.10.2
+python-dateutil>=2.8.2
+packaging>=23.2
+setuptools>=69.0.0
+wheel>=0.42.0
 
-# ===== FULL INSTALLATION =====
-# Additional dependencies for complete PlexiChat functionality
-# (Only installed with 'python run.py setup full')
+# === FULL INSTALLATION ===
+# Additional dependencies for full feature set
+# Includes all minimal dependencies plus:
 
-# Extended dependencies for advanced features
-scikit-learn>=1.3.0
-matplotlib>=3.7.0
+# Database connectors
+psycopg2-binary>=2.9.9
+aiomysql>=0.2.0
+aiosqlite>=0.19.0
+sqlalchemy[asyncio]>=2.0.23
+alembic>=1.13.1
 
-# Database analytics dependencies
-clickhouse-driver>=0.2.6
-asyncpg>=0.29.0
+# Big data and analytics (Windows users may need Visual Studio Build Tools)
+clickhouse-driver>=0.2.6; platform_system != "Windows"
+pyspark>=3.5.0; platform_system != "Windows"
 
-# Database engine dependencies
-redis>=4.5.0
-motor>=3.3.0
-pymongo>=4.6.0
+# Machine Learning and AI
+transformers>=4.36.0
+torch>=2.1.1
+scikit-learn>=1.3.2
+numpy>=1.24.4
+pandas>=2.1.4
+matplotlib>=3.8.2
+seaborn>=0.13.0
+plotly>=5.17.0
 
-# Lakehouse dependencies
-minio>=7.1.0
-pyspark>=3.4.0
+# Image and media processing
+opencv-python>=4.8.1.78
+imageio>=2.33.0
 
-# ===== DEVELOPMENT DEPENDENCIES =====
-# Development and testing dependencies
-# Install with: pip install -r requirements.txt -r requirements-dev.txt
+# Web scraping and parsing
+selenium>=4.16.0
+scrapy>=2.11.0
 
-# Linting and code quality
-pylint>=3.0.0
-flake8>=6.0.0
-black>=23.0.0
-mypy>=1.5.0
+# Caching and queuing
+redis>=5.0.1
+celery>=5.3.4
+
+# Additional utilities
+paramiko>=3.4.0
+fabric>=3.2.2
+jinja2>=3.1.2
+openpyxl>=3.1.2
+xlsxwriter>=3.1.9
+python-magic>=0.4.27
+schedule>=1.2.0
+watchdog>=3.0.0
+python-socketio>=5.10.0
+eventlet>=0.33.3
+
+# === DEVELOPMENT INSTALLATION ===
+# All dependencies above plus development tools
 
 # Testing framework
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
 pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+pytest-xdist>=3.5.0
+httpx[test]>=0.25.2
 
-# Additional external dependencies for full functionality
-pyotp>=2.8.0
-flask>=2.3.0
-clickhouse-driver>=0.2.6
-asyncpg>=0.28.0
-aiomysql>=0.2.0
-redis>=4.6.0
-motor>=3.3.0
-pymongo>=4.5.0
-minio>=7.1.0
-aioredis>=2.0.1
-psycopg2-binary>=2.9.7
-pymysql>=1.1.0
-pywin32>=306; sys_platform == "win32"
-semver>=3.0.0
-packaging>=23.0
-anthropic>=0.3.0
-openai>=0.28.0
-python-magic>=0.4.27
-pefile>=2023.2.7; sys_platform == "win32"
-aiohttp>=3.8.5
-pycryptodome>=3.18.0
-geoip2>=4.7.0
-apscheduler>=3.10.0
-bleach>=6.0.0
-markdown>=3.4.0
-keyboard>=0.13.5
-customtkinter>=5.2.0
-tabulate>=0.9.0
-aio-pika>=9.2.0
-aiokafka>=0.8.0
-python-memcached>=1.59
-bcrypt>=4.0.0
-Flask>=2.0.0
-abc
-aio_pika
-aiofiles
-aiohttp
-aiokafka
-aiomcache
-aiomysql
-aioredis
-aiosqlite
-alert_history
-anthropic
-app
-apscheduler
-archive_entries
-argparse
-ast
-asyncio
-asyncpg
-atexit
-backup_codes
-backup_operations
-bcrypt
-cachetools
-click==8.1.7
-colorama>=0.4.6
-concurrent
-contextlib
-copy
-core
-cProfile
-croniter
-Crypto
-cryptography
-csv
-ctypes
-customtkinter
-dataclasses
-datetime
-domain_reputation
-elasticsearch
-email
-enum
-fastapi
-fcntl
-feedback
-files
-flask
-functools
-gc
-geoip2
-glob
-gzip
-hashlib
-hmac
-html
-http
-httpx
-importlib
-information_schema
-inspect
-io
-ipaddress
-joblib
-jose
-json
-jsonschema
-jwt
-keyboard
-logging
-magic
-math
-matplotlib
-messages
-mimetypes
-moderation_results
-motor
-msvcrt
-netlink
-notifications
-numpy
-openai
-os
-pandas
-passlib
-pathlib
-pefile
-pickle
-PIL
-platform
-plugin_internal
-plugins
-pstats
-psutil
-pydantic
-pyotp
-PyQt5
-pytest
-qrcode
-queue
-random
-re
-redis
-requests
-rich
-scan_statistics
-seaborn
-secrets
-server_archive_configs
-services
-shard_locations
-shutil
-signal
-sklearn
-smtplib
-socket
-sqlalchemy
-sqlite3
-sqlmodel
-ssl
-starlette
-stat
-statistics
-string
-struct
-subprocess
-sys
-syslog
-tabulate
-tarfile
-tempfile
-tenacity
-termios
-the
-threading
-threat_signatures
-time
-tkinter
-toml
-traceback
-tracemalloc
-tty
-typer
-types
-typing
-unicodedata
-unittest
-update_history
-url_scans
-urllib
-usage_metrics
-user_2fa
-user_backup_preferences
-users
-uuid
-uvicorn
-verification_attempts
-warnings
-watchdog
-weakref
-webbrowser
-webhooks
-websocket
-websockets
-webview
-werkzeug
-yaml
-zipfile
-zlib
-argon2
-colorama
-colorlog
-setproctitle
+# Code quality and linting
+black>=23.11.0
+isort>=5.12.0
+flake8>=6.1.0
+mypy>=1.7.1
+pylint>=3.0.3
+bandit>=1.7.5
+safety>=2.3.5
+
+# Documentation
+sphinx>=7.2.6
+sphinx-rtd-theme>=1.3.0
+
+# Development utilities
+pre-commit>=3.6.0
+tox>=4.11.4
+cookiecutter>=2.5.0
+invoke>=2.2.0
+python-semantic-release>=8.5.1
+
+# Performance profiling
+memory-profiler>=0.61.0
+line-profiler>=4.1.1
+py-spy>=0.3.14
+
+# Database development
+pgcli>=4.0.1
+mycli>=1.27.0
+
+# API documentation
+flasgger>=0.9.7.1
+swagger-ui-bundle>=0.0.9
+
+# Environment management
+python-decouple>=3.8
+environs>=10.3.0
+
+# Debugging
+ipdb>=0.13.13
+pdbpp>=0.10.3
+
+# Jupyter for prototyping
+jupyter>=1.0.0
+ipykernel>=6.27.1
