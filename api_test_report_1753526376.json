@@ -1,0 +1,139 @@
+{
+  "timestamp": "2025-07-26T11:39:36.698575",
+  "summary": {
+    "total_tests": 28,
+    "successful": 13,
+    "failed": 15,
+    "errors": 0,
+    "success_rate": 46.42857142857143
+  },
+  "detailed_results": {
+    "/health": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/health": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/info": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/metrics": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/status": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/version": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/ping": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/time": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/capabilities": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/stats/summary": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "auth_register": {
+      "status": "SUCCESS",
+      "data": {
+        "success": true,
+        "message": "User registered successfully",
+        "user_id": "54fffb6c-4f32-4a45-9f96-cf515634050a",
+        "username": "testuser_1753526375"
+      }
+    },
+    "auth_login": {
+      "status": "SUCCESS",
+      "data": {
+        "access_token": "458ed870771544af7cd702845e4ef7907325597a8849a371d684b05845f7c6d2",
+        "refresh_token": "8758c2d7f24590eb586a88c1ea7249d86daed972f9675a835229c0f97577815a",
+        "token_type": "bearer",
+        "expires_in": 86400,
+        "user_id": "54fffb6c-4f32-4a45-9f96-cf515634050a",
+        "username": "testuser_1753526375",
+        "requires_mfa": false,
+        "session_id": "83a2becd-2020-4a1b-a19c-70cab21cb3f5",
+        "permissions": []
+      }
+    },
+    "/api/v1/auth/me": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/auth/status": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/users/me": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/users/search?query=test&limit=10": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/users/?limit=20&offset=0": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/users/stats/summary": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "users_update": {
+      "status": "FAILED",
+      "error": "{\"error\":{\"code\":500,\"message\":\"Authentication service error\",\"api_version\":\"v1\",\"timestamp\":\"2025-07-26T10:39:36.637027+00:00\",\"path\":\"/api/v1/users/me\"}}"
+    },
+    "messages_send": {
+      "status": "FAILED",
+      "error": "{\"error\":{\"code\":500,\"message\":\"Authentication service error\",\"api_version\":\"v1\",\"timestamp\":\"2025-07-26T10:39:36.681853+00:00\",\"path\":\"/api/v1/messages/send\"}}"
+    },
+    "/api/v1/messages/conversations": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/messages/stats": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "files_upload": {
+      "status": "FAILED",
+      "error": "{\"error\":{\"code\":500,\"message\":\"Authentication service error\",\"api_version\":\"v1\",\"timestamp\":\"2025-07-26T10:39:36.689531+00:00\",\"path\":\"/api/v1/files/upload\"}}"
+    },
+    "/api/v1/files/": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/files/stats": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/admin/stats": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/admin/users": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/admin/health": {
+      "status": "FAILED",
+      "code": 500
+    }
+  }
+}

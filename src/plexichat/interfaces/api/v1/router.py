@@ -1,180 +1,223 @@
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-
 """
-PlexiChat Enhanced API v1 Router
+PlexiChat API v1 - Main Router
 
-Consolidated router with:
-- Redis caching for route performance optimization
-- Database abstraction layer integration
-- Comprehensive error handling
-- Performance monitoring
-- Auto-discovery of API modules
-- Health checks and status monitoring
+This is the main router that combines all v1 API endpoints.
+It provides a single entry point for all v1 functionality.
 """
 
+from fastapi import APIRouter
+from datetime import datetime
 import logging
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, Depends
-from datetime import datetime, timezone
 
-try:
-    from plexichat.core.logging import get_logger
-    from plexichat.core.database.manager import get_database_manager
-    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
-    from plexichat.infrastructure.monitoring import get_performance_monitor
+logger = logging.getLogger(__name__)
 
-    logger = get_logger(__name__)
-    database_manager = get_database_manager()
-    cache_manager = get_cache_manager()
-    performance_monitor = get_performance_monitor()
-except ImportError:
-    logger = logging.getLogger(__name__)
-    database_manager = None
-    cache_manager = None
-    performance_monitor = None
+# Import all endpoint routers
+from .auth import router as auth_router
+from .users import router as users_router
+from .messages import router as messages_router
+from .files import router as files_router
+from .admin import router as admin_router
+from .system import router as system_router
+from .realtime import router as realtime_router
+from .groups import router as groups_router
+from .search import router as search_router
+from .notifications import router as notifications_router
 
-# Enhanced router with middleware
-main_router = APIRouter(prefix="/api/v1", tags=["API v1"])
+# Create main router
+router = APIRouter(prefix="/api/v1", tags=["PlexiChat API v1"])
 
-try:
-    logger.info(" Users router loaded")
-except ImportError as e:
-    logger.warning(f" Users router not available: {e}")
-    users_router = APIRouter()
+# Include all sub-routers
+router.include_router(auth_router)
+router.include_router(users_router)
+router.include_router(messages_router)
+router.include_router(files_router)
+router.include_router(admin_router)
+router.include_router(system_router)
+router.include_router(realtime_router)
+router.include_router(groups_router)
+router.include_router(search_router)
+router.include_router(notifications_router)
 
-try:
-    logger.info(" Auth manager loaded")
-except ImportError as e:
-    logger.warning(f" Auth manager not available: {e}")
-
-    class MockAuthManager:
-        initialized = False
-
-    auth_manager = MockAuthManager()
-
-try:
-    logger.info(" Backup manager loaded")
-except ImportError as e:
-    logger.warning(f" Backup manager not available: {e}")
-
-    class MockBackupManager:
-        initialized = False
-
-    backup_manager = MockBackupManager()
-
-try:
-    logger.info(" Cluster manager loaded")
-except ImportError as e:
-    logger.warning(f" Cluster manager not available: {e}")
-
-try:
-    logger.info(" AI routers loaded")
-except ImportError as e:
-    logger.warning(f" AI routers not available: {e}")
-    ai_router = APIRouter()
-    moderation_router = APIRouter()
-    monitoring_router = APIRouter()
-    provider_router = APIRouter()
-
-try:
-    logger.info(" Plugins router loaded")
-except ImportError as e:
-    logger.warning(f" Plugins router not available: {e}")
-    plugins_router = APIRouter()
-
-# Create main v1 router
-router = APIRouter(prefix="/api/v1", tags=["v1"])
-
-# Include feature routers with error handling
-if users_router:
-    try:
-        router.include_router(users_router, prefix="/users", tags=["users"])
-        logger.info(" Users router included")
-    except Exception as e:
-        logger.warning(f" Failed to include users router: {e}")
-
-if plugins_router:
-    try:
-        router.include_router(plugins_router, prefix="/plugins", tags=["plugins"])
-        logger.info(" Plugins router included")
-    except Exception as e:
-        logger.warning(f" Failed to include plugins router: {e}")
-
-# AI routers
-if ai_router:
-    try:
-        router.include_router(ai_router, prefix="/ai", tags=["ai"])
-        logger.info(" AI router included")
-    except Exception as e:
-        logger.warning(f" Failed to include AI router: {e}")
-
-if moderation_router:
-    try:
-        router.include_router(
-            moderation_router, prefix="/moderation", tags=["moderation"]
-        )
-        logger.info(" Moderation router included")
-    except Exception as e:
-        logger.warning(f" Failed to include moderation router: {e}")
-
-if monitoring_router:
-    try:
-        router.include_router(monitoring_router, prefix="/monitoring", tags=["monitoring"])
-        logger.info(" Monitoring router included")
-    except Exception as e:
-        logger.warning(f" Failed to include monitoring router: {e}")
-
-if provider_router:
-    try:
-        router.include_router(provider_router, prefix="/providers", tags=["providers"])
-        logger.info(" Provider router included")
-    except Exception as e:
-        logger.warning(f" Failed to include provider router: {e}")
-
-
-# Health check endpoint
-@router.get("/health")
-async def health_check():
-    """API health check."""
+# Root endpoint
+@router.get("/")
+async def api_root():
+    """API v1 root endpoint with information."""
     return {
-        "status": "healthy",
-        "version": "a.1.0-1",
-        "services": {
-            "auth": "initialized"
-                if auth_manager
-                and hasattr(auth_manager, "initialized")
-                and auth_manager.initialized
-                else "not_initialized",
-            "backup": "initialized"
-                if backup_manager
-                and hasattr(backup_manager, "initialized")
-                and backup_manager.initialized
-                else "not_initialized",
-            "clustering": "available" if cluster_manager else "not_available",
-            "ai": "available" if ai_router else "not_available",
-            "plugins": "available" if plugins_router else "not_available",
+        "name": "PlexiChat API",
+        "version": "v1",
+        "description": "Simple, secure messaging API",
+        "timestamp": datetime.now(),
+        "endpoints": {
+            "authentication": "/api/v1/auth",
+            "users": "/api/v1/users",
+            "messages": "/api/v1/messages",
+            "files": "/api/v1/files",
+            "admin": "/api/v1/admin",
+            "system": "/api/v1/system",
+            "realtime": "/api/v1/realtime",
+            "groups": "/api/v1/groups",
+            "search": "/api/v1/search",
+            "notifications": "/api/v1/notifications"
         },
+        "documentation": "/docs",
+        "status": "online"
     }
 
-
-# System info endpoint
+# API information endpoint
 @router.get("/info")
-async def system_info():
-    """Get system information."""
+async def api_info():
+    """Get detailed API information."""
     return {
-        "name": "PlexiChat",
-        "version": "a.1.0-1",
-        "api_version": "v1",
-        "features": {
-            "users": users_router is not None,
-            "security": auth_manager is not None,
-            "backups": backup_manager is not None,
-            "clustering": cluster_manager is not None,
-            "ai": ai_router is not None,
-            "plugins": plugins_router is not None,
+        "api": {
+            "name": "PlexiChat API",
+            "version": "v1",
+            "description": "Simple, secure messaging API with file sharing",
+            "build_date": "2024-07-26",
+            "environment": "development"
         },
+        "features": [
+            "User authentication and registration",
+            "Direct messaging with encryption",
+            "File upload and sharing",
+            "User management",
+            "Admin panel",
+            "System monitoring",
+            "Real-time messaging with WebSocket",
+            "Groups and channels management",
+            "Advanced search and analytics",
+            "Comprehensive notification system"
+        ],
+        "endpoints": {
+            "auth": {
+                "prefix": "/api/v1/auth",
+                "endpoints": [
+                    "POST /register - Register new user",
+                    "POST /login - Login user",
+                    "POST /logout - Logout user",
+                    "GET /me - Get current user info",
+                    "GET /status - Auth service status"
+                ]
+            },
+            "users": {
+                "prefix": "/api/v1/users",
+                "endpoints": [
+                    "GET /me - Get my profile",
+                    "PUT /me - Update my profile",
+                    "GET /search - Search users",
+                    "GET /{user_id} - Get user profile",
+                    "GET / - List users",
+                    "DELETE /me - Delete my account"
+                ]
+            },
+            "messages": {
+                "prefix": "/api/v1/messages",
+                "endpoints": [
+                    "POST /send - Send message",
+                    "GET /conversations - Get conversations",
+                    "GET /conversation/{user_id} - Get conversation",
+                    "DELETE /{message_id} - Delete message",
+                    "GET /stats - Message statistics"
+                ]
+            },
+            "files": {
+                "prefix": "/api/v1/files",
+                "endpoints": [
+                    "POST /upload - Upload file",
+                    "GET /{file_id}/download - Download file",
+                    "GET /{file_id}/info - Get file info",
+                    "GET / - List my files",
+                    "POST /{file_id}/share - Share file",
+                    "DELETE /{file_id} - Delete file"
+                ]
+            },
+            "admin": {
+                "prefix": "/api/v1/admin",
+                "endpoints": [
+                    "GET /stats - System statistics",
+                    "GET /users - List all users",
+                    "POST /users/{user_id}/deactivate - Deactivate user",
+                    "POST /users/{user_id}/activate - Activate user",
+                    "DELETE /users/{user_id} - Delete user",
+                    "GET /messages/recent - Recent messages",
+                    "DELETE /messages/{message_id} - Delete message"
+                ]
+            },
+            "system": {
+                "prefix": "/api/v1/system",
+                "endpoints": [
+                    "GET /health - Health check",
+                    "GET /info - System information",
+                    "GET /metrics - Performance metrics",
+                    "GET /status - Detailed status",
+                    "GET /version - Version info",
+                    "GET /ping - Simple ping"
+                ]
+            },
+            "realtime": {
+                "prefix": "/api/v1/realtime",
+                "endpoints": [
+                    "WS /ws/{user_id} - WebSocket connection",
+                    "GET /connections - Active connections info",
+                    "POST /broadcast - Broadcast message",
+                    "POST /send/{user_id} - Send direct message",
+                    "GET /status - Real-time system status"
+                ]
+            },
+            "groups": {
+                "prefix": "/api/v1/groups",
+                "endpoints": [
+                    "POST /create - Create group/channel",
+                    "GET / - List groups",
+                    "GET /{group_id} - Get group details",
+                    "PUT /{group_id} - Update group",
+                    "DELETE /{group_id} - Delete group",
+                    "POST /{group_id}/join - Join group",
+                    "POST /{group_id}/leave - Leave group",
+                    "POST /{group_id}/invite - Invite users",
+                    "GET /{group_id}/members - Get members",
+                    "GET /my/groups - My groups",
+                    "GET /stats - Groups statistics"
+                ]
+            },
+            "search": {
+                "prefix": "/api/v1/search",
+                "endpoints": [
+                    "POST / - Comprehensive search",
+                    "GET /suggestions - Search suggestions",
+                    "GET /analytics/overview - Analytics overview",
+                    "GET /analytics/trends - Search trends",
+                    "GET /status - Search system status"
+                ]
+            },
+            "notifications": {
+                "prefix": "/api/v1/notifications",
+                "endpoints": [
+                    "POST /send - Send notification",
+                    "POST /broadcast - Broadcast notification",
+                    "GET / - Get notifications",
+                    "GET /{notification_id} - Get specific notification",
+                    "PUT /{notification_id} - Update notification",
+                    "POST /mark-all-read - Mark all as read",
+                    "DELETE /{notification_id} - Delete notification",
+                    "GET /settings - Get notification settings",
+                    "PUT /settings - Update notification settings",
+                    "GET /stats - Notification statistics",
+                    "GET /unread/count - Unread count",
+                    "POST /test - Send test notification"
+                ]
+            }
+        },
+        "authentication": {
+            "type": "Bearer Token",
+            "header": "Authorization: Bearer <token>",
+            "expiry": "24 hours",
+            "note": "Get token from /api/v1/auth/login"
+        },
+        "limits": {
+            "max_file_size": "10MB",
+            "max_message_length": 10000,
+            "token_expiry": "24 hours"
+        }
     }
+
+logger.info("PlexiChat API v1 main router initialized")

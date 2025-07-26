@@ -1,441 +1,393 @@
 """
-PlexiChat Enhanced Admin API - SINGLE SOURCE OF TRUTH
+PlexiChat API v1 - Admin Endpoints
 
-Advanced administrative system with:
-- Redis caching for admin operations performance optimization
-- Database abstraction layer for unified admin data access
-- Comprehensive system management and user administration
-- Advanced security auditing and access control
-- Performance monitoring and analytics
-- Real-time system status and health monitoring
+Simple admin functionality with:
+- System statistics
+- User management
+- Message moderation
+- File management
+- System health
 """
 
-from fastapi import APIRouter, HTTPException, Depends, status, Query
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, Dict, Any, List
-import asyncio
-from datetime import datetime, timezone
+from datetime import datetime
+from typing import Dict, List, Optional
+from uuid import uuid4
 
+from fastapi import APIRouter, HTTPException, Depends, Query
+from pydantic import BaseModel
 import logging
 
-try:
-    from plexichat.core.auth.admin_manager import get_admin_manager
-    from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager
-    from plexichat.interfaces.api.v1.auth import get_current_user
-    from plexichat.core.config.manager import get_config
-    from plexichat.core.database.manager import get_database_manager
-    from plexichat.infrastructure.performance.cache_manager import get_cache_manager
-    from plexichat.infrastructure.monitoring import get_performance_monitor
-    from plexichat.infrastructure.utils.auth import require_admin
-except ImportError as e:
-    # Fallback imports
-    get_admin_manager = None
-    get_unified_auth_manager = None
-    get_current_user = None
-    get_config = None
-    get_database_manager = None
-    get_cache_manager = None
-    get_performance_monitor = None
-    require_admin = None
+from .auth import get_current_user, users_db, sessions_db
 
 logger = logging.getLogger(__name__)
-    admin_manager = get_admin_manager()
-    auth_manager = get_unified_auth_manager()
-    config = get_config()
-    database_manager = get_database_manager()
-    cache_manager = get_cache_manager()
-    performance_monitor = get_performance_monitor()
-except ImportError:
-    logger = print
-    admin_manager = None
-    auth_manager = None
-    get_current_user = lambda: {}
-    config = {}
-    database_manager = None
-    cache_manager = None
-    performance_monitor = None
-    require_admin = lambda: None
+router = APIRouter(prefix="/admin", tags=["Admin"])
 
-logger = get_logger(__name__)
-router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
+# Admin user IDs (in production, use proper role system)
+ADMIN_USERS = set()
 
-# Request/Response Models
-class CreateUserRequest(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    roles: List[str] = []
-    is_admin: bool = False
+# Models
+class SystemStats(BaseModel):
+    total_users: int
+    active_sessions: int
+    total_messages: int
+    total_files: int
+    system_uptime: str
+    timestamp: datetime
 
-class UpdateUserRequest(BaseModel):
-    email: Optional[EmailStr] = None
-    roles: Optional[List[str]] = None
-    is_active: Optional[bool] = None
-    is_admin: Optional[bool] = None
-
-class UserResponse(BaseModel):
-    user_id: str
+class UserAdmin(BaseModel):
+    id: str
     username: str
     email: str
-    roles: List[str]
+    display_name: str
+    created_at: datetime
     is_active: bool
-    is_admin: bool
-    created_at: str
-    last_login: Optional[str] = None
+    last_login: Optional[datetime] = None
 
-class SystemStatsResponse(BaseModel):
-    total_users: int
-    active_users: int
-    admin_users: int
-    total_messages: int
-    system_uptime: str
-    memory_usage: Dict[str, Any]
-    disk_usage: Dict[str, Any]
-
-class ConfigUpdateRequest(BaseModel):
-    key: str
-    value: Any
-
-# Admin permission check
-async def require_admin(current_user: Dict = Depends(get_current_user)):
-    """Require admin permissions."""
-    if not current_user.get("is_admin", False):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin privileges required"
-        )
+# Utility functions
+async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
+    """Require admin privileges."""
+    if current_user['id'] not in ADMIN_USERS and current_user['username'] != 'admin':
+        raise HTTPException(status_code=403, detail="Admin privileges required")
     return current_user
 
-@router.get("/users", response_model=List[UserResponse])
-async def list_users(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    search: Optional[str] = None,
-    admin_user: Dict = Depends(require_admin)
-):
-    """List all users with pagination and search."""
-    try:
-        if not auth_manager:
-            raise HTTPException(status_code=503, detail="User service unavailable")
+def make_user_admin(user_id: str):
+    """Make a user an admin."""
+    ADMIN_USERS.add(user_id)
 
-        users = await auth_manager.list_users(
-            skip=skip,
-            limit=limit,
-            search=search
-        )
-
-        return [
-            UserResponse(
-                user_id=user["user_id"],
-                username=user["username"],
-                email=user["email"],
-                roles=user.get("roles", []),
-                is_active=user.get("is_active", True),
-                is_admin=user.get("is_admin", False),
-                created_at=user.get("created_at", ""),
-                last_login=user.get("last_login")
-            )
-            for user in users
-        ]
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"List users error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.post("/users", response_model=UserResponse)
-async def create_user(
-    request: CreateUserRequest,
-    admin_user: Dict = Depends(require_admin)
-):
-    """Create a new user account."""
-    try:
-        if not auth_manager:
-            raise HTTPException(status_code=503, detail="User service unavailable")
-
-        result = await auth_manager.create_user(
-            username=request.username,
-            email=request.email,
-            password=request.password,
-            roles=request.roles,
-            is_admin=request.is_admin
-        )
-
-        if not result.success:
-            raise HTTPException(status_code=400, detail=result.message)
-
-        return UserResponse(
-            user_id=result.user_id,
-            username=request.username,
-            email=request.email,
-            roles=request.roles,
-            is_active=True,
-            is_admin=request.is_admin,
-            created_at=result.created_at or ""
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Create user error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(
-    user_id: str,
-    admin_user: Dict = Depends(require_admin)
-):
-    """Get user by ID."""
-    try:
-        if not auth_manager:
-            raise HTTPException(status_code=503, detail="User service unavailable")
-
-        user = await auth_manager.get_user_by_id(user_id)
-
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        return UserResponse(
-            user_id=user["user_id"],
-            username=user["username"],
-            email=user["email"],
-            roles=user.get("roles", []),
-            is_active=user.get("is_active", True),
-            is_admin=user.get("is_admin", False),
-            created_at=user.get("created_at", ""),
-            last_login=user.get("last_login")
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Get user error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(
-    user_id: str,
-    request: UpdateUserRequest,
-    admin_user: Dict = Depends(require_admin)
-):
-    """Update user information."""
-    try:
-        if not auth_manager:
-            raise HTTPException(status_code=503, detail="User service unavailable")
-
-        # Get current user data
-        user = await auth_manager.get_user_by_id(user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Update user
-        update_data = request.dict(exclude_unset=True)
-        result = await auth_manager.update_user(user_id, update_data)
-
-        if not result.success:
-            raise HTTPException(status_code=400, detail=result.message)
-
-        # Get updated user data
-        updated_user = await auth_manager.get_user_by_id(user_id)
-
-        return UserResponse(
-            user_id=updated_user["user_id"],
-            username=updated_user["username"],
-            email=updated_user["email"],
-            roles=updated_user.get("roles", []),
-            is_active=updated_user.get("is_active", True),
-            is_admin=updated_user.get("is_admin", False),
-            created_at=updated_user.get("created_at", ""),
-            last_login=updated_user.get("last_login")
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Update user error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.delete("/users/{user_id}")
-async def delete_user(
-    user_id: str,
-    admin_user: Dict = Depends(require_admin)
-):
-    """Delete user account."""
-    try:
-        if not auth_manager:
-            raise HTTPException(status_code=503, detail="User service unavailable")
-
-        # Prevent self-deletion
-        if user_id == admin_user.get("user_id"):
-            raise HTTPException(status_code=400, detail="Cannot delete your own account")
-
-        result = await auth_manager.delete_user(user_id)
-
-        if not result.success:
-            raise HTTPException(status_code=400, detail=result.message)
-
-        return {"message": "User deleted successfully"}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Delete user error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.post("/users/{user_id}/reset-password")
-async def admin_reset_password(
-    user_id: str,
-    admin_user: Dict = Depends(require_admin)
-):
-    """Reset user password (admin only)."""
-    try:
-        if not auth_manager:
-            raise HTTPException(status_code=503, detail="User service unavailable")
-
-        result = await auth_manager.admin_reset_password(user_id)
-
-        if not result.success:
-            raise HTTPException(status_code=400, detail=result.message)
-
-        return {
-            "message": "Password reset successfully",
-            "temporary_password": result.temporary_password
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Admin password reset error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.get("/stats", response_model=SystemStatsResponse)
-async def get_system_stats(admin_user: Dict = Depends(require_admin)):
+# Endpoints
+@router.get("/stats", response_model=SystemStats)
+async def get_system_stats(admin_user: dict = Depends(require_admin)):
     """Get system statistics."""
     try:
-        stats = {}
-
-        if auth_manager:
-            user_stats = await auth_manager.get_user_statistics()
-            stats.update(user_stats)
-
-        # Add system stats
-        import psutil
-        import time
-
-        stats.update({
-            "system_uptime": str(time.time()),
-            "memory_usage": {
-                "total": psutil.virtual_memory().total,
-                "available": psutil.virtual_memory().available,
-                "percent": psutil.virtual_memory().percent
-            },
-            "disk_usage": {
-                "total": psutil.disk_usage('/').total,
-                "free": psutil.disk_usage('/').free,
-                "percent": psutil.disk_usage('/').percent
-            }
-        })
-
-        return SystemStatsResponse(**stats)
-
+        from .messages import messages_db
+        from .files import files_db
+        
+        # Calculate stats
+        active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
+        
+        return SystemStats(
+            total_users=len(users_db),
+            active_sessions=len(sessions_db),
+            total_messages=active_messages,
+            total_files=len(files_db),
+            system_uptime="N/A",  # Would calculate actual uptime in production
+            timestamp=datetime.now()
+        )
+        
     except Exception as e:
         logger.error(f"Get system stats error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Failed to get system stats")
 
-@router.get("/config")
-async def get_config(admin_user: Dict = Depends(require_admin)):
-    """Get system configuration."""
-    try:
-        # Return sanitized config (remove sensitive data)
-        config = dict(settings)
-
-        # Remove sensitive keys
-        sensitive_keys = ["database_url", "secret_key", "api_keys", "passwords"]
-        for key in sensitive_keys:
-            config.pop(key, None)
-
-        return config
-
-    except Exception as e:
-        logger.error(f"Get config error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.put("/config")
-async def update_config(
-    request: ConfigUpdateRequest,
-    admin_user: Dict = Depends(require_admin)
+@router.get("/users")
+async def list_all_users(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    search: Optional[str] = None,
+    admin_user: dict = Depends(require_admin)
 ):
-    """Update system configuration."""
+    """List all users with admin details."""
     try:
-        # Validate that key is allowed to be updated
-        allowed_keys = ["max_file_size", "session_timeout", "rate_limits"]
+        all_users = list(users_db.values())
+        
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            all_users = [
+                user for user in all_users
+                if (search_lower in user['username'].lower() or
+                    search_lower in user['email'].lower() or
+                    search_lower in user.get('display_name', '').lower())
+            ]
+        
+        # Sort by creation date (newest first)
+        all_users.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        # Apply pagination
+        total = len(all_users)
+        paginated_users = all_users[offset:offset + limit]
+        
+        # Format response
+        users_list = []
+        for user in paginated_users:
+            # Find last login from sessions
+            last_login = None
+            for session in sessions_db.values():
+                if session['user_id'] == user['id']:
+                    session_time = datetime.fromtimestamp(session['created_at'])
+                    if last_login is None or session_time > last_login:
+                        last_login = session_time
+            
+            users_list.append(UserAdmin(
+                id=user['id'],
+                username=user['username'],
+                email=user['email'],
+                display_name=user['display_name'],
+                created_at=user['created_at'],
+                is_active=user['is_active'],
+                last_login=last_login
+            ))
+        
+        return {
+            "users": users_list,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "has_more": offset + limit < total
+        }
+        
+    except Exception as e:
+        logger.error(f"List all users error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list users")
 
-        if request.key not in allowed_keys:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Configuration key '{request.key}' cannot be updated via API"
-            )
-
-        # Update configuration
-        settings[request.key] = request.value
-
-        return {"message": f"Configuration '{request.key}' updated successfully"}
-
+@router.post("/users/{user_id}/deactivate")
+async def deactivate_user(
+    user_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    """Deactivate a user account."""
+    try:
+        if user_id not in users_db:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if user_id == admin_user['id']:
+            raise HTTPException(status_code=400, detail="Cannot deactivate your own account")
+        
+        user = users_db[user_id]
+        user['is_active'] = False
+        user['deactivated_at'] = datetime.now()
+        user['deactivated_by'] = admin_user['id']
+        
+        # Remove all sessions for this user
+        sessions_to_remove = [
+            sid for sid, session in sessions_db.items()
+            if session.get('user_id') == user_id
+        ]
+        
+        for session_id in sessions_to_remove:
+            del sessions_db[session_id]
+        
+        logger.info(f"User deactivated: {user['username']} by admin {admin_user['username']}")
+        
+        return {
+            "success": True,
+            "message": f"User {user['username']} deactivated successfully"
+        }
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Update config error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Deactivate user error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to deactivate user")
 
-@router.post("/maintenance/start")
-async def start_maintenance(admin_user: Dict = Depends(require_admin)):
-    """Start maintenance mode."""
-    try:
-        # This would integrate with the actual maintenance system
-        return {"message": "Maintenance mode started"}
-
-    except Exception as e:
-        logger.error(f"Start maintenance error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.post("/maintenance/stop")
-async def stop_maintenance(admin_user: Dict = Depends(require_admin)):
-    """Stop maintenance mode."""
-    try:
-        # This would integrate with the actual maintenance system
-        return {"message": "Maintenance mode stopped"}
-
-    except Exception as e:
-        logger.error(f"Stop maintenance error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.get("/logs")
-async def get_logs(
-    lines: int = Query(100, ge=1, le=10000),
-    level: Optional[str] = Query(None),
-    admin_user: Dict = Depends(require_admin)
+@router.post("/users/{user_id}/activate")
+async def activate_user(
+    user_id: str,
+    admin_user: dict = Depends(require_admin)
 ):
-    """Get system logs."""
+    """Activate a user account."""
     try:
-        # This would integrate with the actual logging system
-        logs = [
-            {"timestamp": "2024-01-01T00:00:00Z", "level": "INFO", "message": "System started"},
-            {"timestamp": "2024-01-01T00:01:00Z", "level": "DEBUG", "message": "Debug message"},
-        ]
-
-        return {"logs": logs[-lines:]}
-
+        if user_id not in users_db:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user = users_db[user_id]
+        user['is_active'] = True
+        user['reactivated_at'] = datetime.now()
+        user['reactivated_by'] = admin_user['id']
+        
+        logger.info(f"User activated: {user['username']} by admin {admin_user['username']}")
+        
+        return {
+            "success": True,
+            "message": f"User {user['username']} activated successfully"
+        }
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Get logs error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Activate user error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to activate user")
 
-@router.get("/status")
-async def admin_status():
-    """Get admin service status."""
-    return {
-        "service": "admin",
-        "status": "online",
-        "admin_manager": admin_manager is not None,
-        "auth_manager": auth_manager is not None
-    }
+@router.delete("/users/{user_id}")
+async def delete_user_admin(
+    user_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    """Delete a user account (admin only)."""
+    try:
+        if user_id not in users_db:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if user_id == admin_user['id']:
+            raise HTTPException(status_code=400, detail="Cannot delete your own account")
+        
+        user = users_db[user_id]
+        username = user['username']
+        
+        # Remove user
+        del users_db[user_id]
+        
+        # Remove all sessions
+        sessions_to_remove = [
+            sid for sid, session in sessions_db.items()
+            if session.get('user_id') == user_id
+        ]
+        
+        for session_id in sessions_to_remove:
+            del sessions_db[session_id]
+        
+        # Mark user's messages as deleted
+        from .messages import messages_db
+        for message in messages_db.values():
+            if message['sender_id'] == user_id or message['recipient_id'] == user_id:
+                message['deleted'] = True
+                message['deleted_by_admin'] = admin_user['id']
+                message['admin_deleted_at'] = datetime.now()
+        
+        logger.info(f"User deleted by admin: {username} by {admin_user['username']}")
+        
+        return {
+            "success": True,
+            "message": f"User {username} deleted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete user admin error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete user")
+
+@router.get("/messages/recent")
+async def get_recent_messages(
+    limit: int = Query(50, ge=1, le=200),
+    admin_user: dict = Depends(require_admin)
+):
+    """Get recent messages for moderation."""
+    try:
+        from .messages import messages_db
+        
+        # Get non-deleted messages
+        active_messages = [
+            m for m in messages_db.values()
+            if not m.get('deleted') and not m.get('deleted_by_admin')
+        ]
+        
+        # Sort by timestamp (newest first)
+        active_messages.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        # Apply limit
+        recent_messages = active_messages[:limit]
+        
+        # Format response with user info
+        messages_list = []
+        for message in recent_messages:
+            sender = users_db.get(message['sender_id'], {})
+            recipient = users_db.get(message['recipient_id'], {})
+            
+            messages_list.append({
+                "id": message['id'],
+                "content": message['original_content'][:200],  # Truncate for moderation view
+                "sender": {
+                    "id": message['sender_id'],
+                    "username": sender.get('username', 'Unknown')
+                },
+                "recipient": {
+                    "id": message['recipient_id'],
+                    "username": recipient.get('username', 'Unknown')
+                },
+                "timestamp": message['timestamp'],
+                "message_type": message['message_type'],
+                "encrypted": message['encrypted']
+            })
+        
+        return {
+            "messages": messages_list,
+            "count": len(messages_list),
+            "total_active_messages": len(active_messages)
+        }
+        
+    except Exception as e:
+        logger.error(f"Get recent messages error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get recent messages")
+
+@router.delete("/messages/{message_id}")
+async def delete_message_admin(
+    message_id: str,
+    reason: str = Query(..., min_length=1),
+    admin_user: dict = Depends(require_admin)
+):
+    """Delete a message (admin moderation)."""
+    try:
+        from .messages import messages_db
+        
+        if message_id not in messages_db:
+            raise HTTPException(status_code=404, detail="Message not found")
+        
+        message = messages_db[message_id]
+        message['deleted'] = True
+        message['deleted_by_admin'] = admin_user['id']
+        message['admin_deleted_at'] = datetime.now()
+        message['deletion_reason'] = reason
+        
+        logger.info(f"Message deleted by admin: {message_id} by {admin_user['username']} - {reason}")
+        
+        return {
+            "success": True,
+            "message": "Message deleted successfully",
+            "reason": reason
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete message admin error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete message")
+
+@router.post("/make-admin/{user_id}")
+async def make_admin(
+    user_id: str,
+    admin_user: dict = Depends(require_admin)
+):
+    """Make a user an admin."""
+    try:
+        if user_id not in users_db:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        make_user_admin(user_id)
+        user = users_db[user_id]
+        
+        logger.info(f"User made admin: {user['username']} by {admin_user['username']}")
+        
+        return {
+            "success": True,
+            "message": f"User {user['username']} is now an admin"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Make admin error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to make user admin")
+
+@router.get("/health")
+async def admin_health_check(admin_user: dict = Depends(require_admin)):
+    """Admin health check with detailed system info."""
+    try:
+        from .messages import messages_db
+        from .files import files_db
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(),
+            "system": {
+                "users": len(users_db),
+                "active_sessions": len(sessions_db),
+                "messages": len([m for m in messages_db.values() if not m.get('deleted')]),
+                "files": len(files_db),
+                "admins": len(ADMIN_USERS)
+            },
+            "admin_user": admin_user['username']
+        }
+        
+    except Exception as e:
+        logger.error(f"Admin health check error: {e}")
+        raise HTTPException(status_code=500, detail="Health check failed")

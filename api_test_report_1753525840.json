@@ -1,0 +1,120 @@
+{
+  "timestamp": "2025-07-26T11:30:40.078978",
+  "summary": {
+    "total_tests": 25,
+    "successful": 2,
+    "failed": 23,
+    "errors": 0,
+    "success_rate": 8.0
+  },
+  "detailed_results": {
+    "/health": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/health": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/info": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/metrics": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/status": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/version": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/ping": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/time": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/capabilities": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/system/stats/summary": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "auth_register": {
+      "status": "FAILED",
+      "error": "{\"detail\":\"Not Found\"}"
+    },
+    "/api/v1/users/me": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/users/search?query=test&limit=10": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/users/?limit=20&offset=0": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/users/stats/summary": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "users_update": {
+      "status": "FAILED",
+      "error": "{\"detail\":\"Not Found\"}"
+    },
+    "messages_send": {
+      "status": "FAILED",
+      "error": "Could not create second user"
+    },
+    "/api/v1/messages/conversations": {
+      "status": "FAILED",
+      "code": 422
+    },
+    "/api/v1/messages/stats": {
+      "status": "FAILED",
+      "code": 422
+    },
+    "files_upload": {
+      "status": "SUCCESS",
+      "data": {
+        "success": true,
+        "file_id": "86978bf6-c010-47b2-833f-9226f4b8126f",
+        "filename": "test.txt",
+        "size": 50,
+        "mime_type": "text/plain",
+        "uploaded_at": "2025-07-26T11:30:40.071464",
+        "download_url": "/api/v1/files/86978bf6-c010-47b2-833f-9226f4b8126f"
+      }
+    },
+    "/api/v1/files/": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/files/stats": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/admin/stats": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/admin/users": {
+      "status": "FAILED",
+      "code": 404
+    },
+    "/api/v1/admin/health": {
+      "status": "FAILED",
+      "code": 404
+    }
+  }
+}

@@ -230,7 +230,7 @@ async def create_role(
 
         success = perm_manager.create_role(role)
         if not success:
-            raise HTTPException()
+            raise HTTPException(
                 status_code=400, detail="Failed to create role (may already exist)"
             )
 

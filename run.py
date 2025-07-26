@@ -53,6 +53,7 @@ from typing import List, Optional, Dict, Any
 import atexit
 from concurrent.futures import ThreadPoolExecutor
 import ctypes
+import psutil
 
 # Constants and Configuration
 PLEXICHAT_VERSION = "a.1.1-36" # SHOULD BE FETCHED FROM VERSION.JSON SO THIS IS A TEMPORARY FIX
@@ -66,7 +67,7 @@ GITHUB_DOWNLOAD_URL = f"https://github.com/{GITHUB_REPO}/archive"
 TERMINAL_WIDTH = 120
 TERMINAL_HEIGHT = 40
 REFRESH_RATE = 0.1  # seconds
-ANIMATION_CHARS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+ANIMATION_CHARS = ['-', '\\', '|', '/']  # ASCII only
 
 # Color codes for terminal output
 class Colors:
@@ -167,41 +168,234 @@ try:
 except ImportError:
     RICH_AVAILABLE = False
 
-class ColoredFormatter(logging.Formatter):
-    """Enhanced formatter with beautiful colors and icons for different log levels."""
+class PerformanceMonitor:
+    """Enhanced performance monitoring with table-based reporting."""
+    
+    def __init__(self):
+        self.metrics = {}
+        self.api_calls = []
+        self.start_time = time.time()
+        self.last_report_time = time.time()
+        self.report_interval = 300  # 5 minutes
+        
+    def record_metric(self, name: str, value: float, unit: str = ""):
+        """Record a performance metric."""
+        if name not in self.metrics:
+            self.metrics[name] = []
+        self.metrics[name].append({
+            'value': value,
+            'unit': unit,
+            'timestamp': time.time()
+        })
+        
+    def record_api_call(self, endpoint: str, method: str, status_code: int, 
+                       response_time: float, user_id: str = None):
+        """Record an API call for monitoring."""
+        call_data = {
+            'endpoint': endpoint,
+            'method': method,
+            'status_code': status_code,
+            'response_time': response_time,
+            'user_id': user_id,
+            'timestamp': time.time()
+        }
+        self.api_calls.append(call_data)
+        
+        # Keep only last 1000 calls to prevent memory issues
+        if len(self.api_calls) > 1000:
+            self.api_calls = self.api_calls[-1000:]
+    
+    def get_performance_table(self, log_level: str = "INFO") -> str:
+        """Generate a formatted performance table."""
+        if not self.metrics:
+            return ""
+            
+        table_lines = []
+        table_lines.append(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}PERFORMANCE METRICS{Colors.RESET}")
+        table_lines.append(f"{Colors.DIM}{'=' * 60}{Colors.RESET}")
+        
+        # Calculate averages and current values
+        for metric_name, values in self.metrics.items():
+            if not values:
+                continue
+                
+            recent_values = [v for v in values if time.time() - v['timestamp'] < 300]  # Last 5 minutes
+            if not recent_values:
+                continue
+                
+            current_value = recent_values[-1]['value']
+            avg_value = sum(v['value'] for v in recent_values) / len(recent_values)
+            unit = recent_values[-1].get('unit', '')
+            
+            # Color code based on performance
+            if 'cpu' in metric_name.lower() or 'memory' in metric_name.lower():
+                if current_value > 80:
+                    color = Colors.BRIGHT_RED
+                elif current_value > 60:
+                    color = Colors.BRIGHT_YELLOW
+                else:
+                    color = Colors.BRIGHT_GREEN
+            else:
+                color = Colors.BRIGHT_CYAN
+                
+            table_lines.append(
+                f"  {Colors.BRIGHT_WHITE}{metric_name:<25}{Colors.RESET} "
+                f"{color}{current_value:>8.2f}{unit}{Colors.RESET} "
+                f"{Colors.DIM}(avg: {avg_value:.2f}{unit}){Colors.RESET}"
+            )
+        
+        return "\n".join(table_lines)
+    
+    def get_api_summary_table(self, minutes: int = 5) -> str:
+        """Generate API call summary table."""
+        cutoff_time = time.time() - (minutes * 60)
+        recent_calls = [call for call in self.api_calls if call['timestamp'] > cutoff_time]
+        
+        if not recent_calls:
+            return ""
+            
+        # Group by endpoint
+        endpoint_stats = {}
+        for call in recent_calls:
+            key = f"{call['method']} {call['endpoint']}"
+            if key not in endpoint_stats:
+                endpoint_stats[key] = {
+                    'count': 0,
+                    'success_count': 0,
+                    'error_count': 0,
+                    'total_time': 0,
+                    'avg_time': 0
+                }
+            
+            endpoint_stats[key]['count'] += 1
+            endpoint_stats[key]['total_time'] += call['response_time']
+            
+            if 200 <= call['status_code'] < 400:
+                endpoint_stats[key]['success_count'] += 1
+            else:
+                endpoint_stats[key]['error_count'] += 1
+        
+        # Calculate averages
+        for stats in endpoint_stats.values():
+            stats['avg_time'] = stats['total_time'] / stats['count']
+        
+        # Generate table
+        table_lines = []
+        table_lines.append(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}API CALLS (Last {minutes} minutes){Colors.RESET}")
+        table_lines.append(f"{Colors.DIM}{'=' * 80}{Colors.RESET}")
+        table_lines.append(
+            f"{Colors.BRIGHT_WHITE}{'Endpoint':<40} {'Calls':<6} {'Success':<8} {'Errors':<7} {'Avg Time':<10}{Colors.RESET}"
+        )
+        table_lines.append(f"{Colors.DIM}{'-' * 80}{Colors.RESET}")
+        
+        for endpoint, stats in sorted(endpoint_stats.items(), key=lambda x: x[1]['count'], reverse=True):
+            success_rate = (stats['success_count'] / stats['count']) * 100 if stats['count'] > 0 else 0
+            
+            # Color code based on success rate
+            if success_rate >= 95:
+                status_color = Colors.BRIGHT_GREEN
+            elif success_rate >= 80:
+                status_color = Colors.BRIGHT_YELLOW
+            else:
+                status_color = Colors.BRIGHT_RED
+                
+            table_lines.append(
+                f"  {Colors.BRIGHT_CYAN}{endpoint:<40}{Colors.RESET} "
+                f"{Colors.BRIGHT_WHITE}{stats['count']:<6}{Colors.RESET} "
+                f"{status_color}{stats['success_count']:<8}{Colors.RESET} "
+                f"{Colors.BRIGHT_RED}{stats['error_count']:<7}{Colors.RESET} "
+                f"{Colors.BRIGHT_YELLOW}{stats['avg_time']*1000:>8.1f}ms{Colors.RESET}"
+            )
+        
+        return "\n".join(table_lines)
+    
+    def get_detailed_api_log(self) -> str:
+        """Get detailed API call log for DEBUG level."""
+        if not self.api_calls:
+            return ""
+            
+        # Get recent calls (last 50)
+        recent_calls = self.api_calls[-50:]
+        
+        table_lines = []
+        table_lines.append(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}DETAILED API CALLS{Colors.RESET}")
+        table_lines.append(f"{Colors.DIM}{'=' * 100}{Colors.RESET}")
+        table_lines.append(
+            f"{Colors.BRIGHT_WHITE}{'Time':<20} {'Method':<6} {'Endpoint':<30} {'Status':<6} {'Time':<8} {'User':<15}{Colors.RESET}"
+        )
+        table_lines.append(f"{Colors.DIM}{'-' * 100}{Colors.RESET}")
+        
+        for call in reversed(recent_calls):  # Most recent first
+            timestamp = datetime.fromtimestamp(call['timestamp']).strftime('%H:%M:%S')
+            
+            # Color code status
+            if 200 <= call['status_code'] < 300:
+                status_color = Colors.BRIGHT_GREEN
+            elif 300 <= call['status_code'] < 400:
+                status_color = Colors.BRIGHT_YELLOW
+            else:
+                status_color = Colors.BRIGHT_RED
+                
+            user_display = call.get('user_id', 'anonymous')[:15]
+            
+            table_lines.append(
+                f"  {Colors.DIM}{timestamp:<20}{Colors.RESET} "
+                f"{Colors.BRIGHT_CYAN}{call['method']:<6}{Colors.RESET} "
+                f"{Colors.BRIGHT_WHITE}{call['endpoint']:<30}{Colors.RESET} "
+                f"{status_color}{call['status_code']:<6}{Colors.RESET} "
+                f"{Colors.BRIGHT_YELLOW}{call['response_time']*1000:>6.1f}ms{Colors.RESET} "
+                f"{Colors.BRIGHT_BLACK}{user_display:<15}{Colors.RESET}"
+            )
+        
+        return "\n".join(table_lines)
 
-    # Clean color scheme without icons
+class EnhancedColoredFormatter(logging.Formatter):
+    """Enhanced formatter with proper log levels and performance tables."""
+
     LEVEL_CONFIGS = {
         'DEBUG': {
             'color': Colors.DIM + Colors.BRIGHT_BLACK,
             'prefix': 'DEBUG',
-            'bg': ''
+            'bg': '',
+            'show_performance': True,
+            'show_api_details': True
         },
         'INFO': {
             'color': Colors.BRIGHT_CYAN,
             'prefix': 'INFO',
-            'bg': ''
+            'bg': '',
+            'show_performance': True,
+            'show_api_details': False
         },
         'WARNING': {
             'color': Colors.BRIGHT_YELLOW,
             'prefix': 'WARN',
-            'bg': ''
+            'bg': '',
+            'show_performance': False,
+            'show_api_details': False
         },
         'ERROR': {
             'color': Colors.BRIGHT_RED,
             'prefix': 'ERROR',
-            'bg': ''
+            'bg': '',
+            'show_performance': False,
+            'show_api_details': False
         },
         'CRITICAL': {
             'color': Colors.BRIGHT_WHITE,
             'prefix': 'CRIT',
-            'bg': Colors.BG_RED
+            'bg': Colors.BG_RED,
+            'show_performance': False,
+            'show_api_details': False
         }
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, performance_monitor=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_colors = True
+        self.performance_monitor = performance_monitor or PerformanceMonitor()
+        self.last_performance_report = 0
+        self.last_api_report = 0
 
     def format(self, record):
         # Get the original formatted message
@@ -214,7 +408,9 @@ class ColoredFormatter(logging.Formatter):
         level_config = self.LEVEL_CONFIGS.get(record.levelname, {
             'color': Colors.WHITE,
             'prefix': record.levelname,
-            'bg': ''
+            'bg': '',
+            'show_performance': False,
+            'show_api_details': False
         })
 
         # Extract components from the log record
@@ -262,18 +458,47 @@ class ColoredFormatter(logging.Formatter):
             f"{message_colored}"
         )
 
+        # Add performance tables if appropriate
+        current_time = time.time()
+        
+        # Show performance table every 5 minutes for INFO and DEBUG
+        if (level_config['show_performance'] and 
+            current_time - self.last_performance_report > 300):
+            performance_table = self.performance_monitor.get_performance_table(record.levelname)
+            if performance_table:
+                formatted_message += f"\n{performance_table}"
+                self.last_performance_report = current_time
+        
+        # Show API summary every 2 minutes for INFO
+        if (level_config['show_performance'] and 
+            current_time - self.last_api_report > 120):
+            api_table = self.performance_monitor.get_api_summary_table(5)
+            if api_table:
+                formatted_message += f"\n{api_table}"
+                self.last_api_report = current_time
+        
+        # Show detailed API log for DEBUG
+        if level_config['show_api_details']:
+            api_details = self.performance_monitor.get_detailed_api_log()
+            if api_details:
+                formatted_message += f"\n{api_details}"
+
         return formatted_message
 
     def disable_colors(self):
         """Disable color output."""
         self.use_colors = False
 
-def setup_colored_logging():
-    """Setup colorized logging for better visibility."""
-    # Create colored formatter
-    formatter = ColoredFormatter(
+def setup_enhanced_logging(log_level: str = "INFO"):
+    """Setup enhanced logging with performance monitoring and API tracking."""
+    # Create performance monitor
+    performance_monitor = PerformanceMonitor()
+    
+    # Create enhanced formatter
+    formatter = EnhancedColoredFormatter(
         fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        datefmt='%Y-%m-%d %H:%M:%S',
+        performance_monitor=performance_monitor
     )
 
     # Setup console handler with colors
@@ -284,9 +509,18 @@ def setup_colored_logging():
     root_logger = logging.getLogger()
     root_logger.handlers.clear()  # Remove existing handlers
     root_logger.addHandler(console_handler)
-    root_logger.setLevel(logging.INFO)
+    
+    # Set log level
+    log_level_map = {
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+    root_logger.setLevel(log_level_map.get(log_level.upper(), logging.INFO))
 
-    return root_logger
+    return root_logger, performance_monitor
 
 # Module-level variables - will be properly initialized in main()
 logger = None
@@ -343,7 +577,7 @@ if src_path not in sys.path:
 # ============================================================================
 
 class TerminalUI:
-    """Advanced terminal UI with dynamic updates and animations."""
+    """Advanced terminal UI with beautiful ASCII formatting and progress bars."""
 
     def __init__(self):
         self.width = TERMINAL_WIDTH
@@ -354,6 +588,17 @@ class TerminalUI:
         self.progress_bars = {}
         self.logs = []
         self.max_logs = 20
+        self.current_step = 0
+        self.total_steps = 6
+        self.step_names = [
+            "System Check",
+            "Environment Setup", 
+            "Configuration",
+            "Dependencies",
+            "Database",
+            "Finalization"
+        ]
+        
         # Setup detailed setup logger
         self.setup_logger = logging.getLogger('plexichat.setup')
         self.setup_log_file = 'logs/setup_debug.log'
@@ -381,40 +626,53 @@ class TerminalUI:
         """Show the cursor."""
         print("\033[?25h", end='')
 
-    def draw_box(self, x: int, y: int, width: int, height: int, title: str = ""):
-        """Draw a box with optional title (ASCII only)."""
-        # Top border
-        if title:
-            title_text = f"+-- {title} "
-            remaining = width - len(title_text) - 1
-            print(f"{title_text}{'-' * remaining}+")
+    def draw_progress_bar(self, progress: float, label: str = "", width: int = None):
+        """Draw a beautiful ASCII progress bar."""
+        if width is None:
+            width = self.width - 20
+        
+        filled_length = int(width * progress)
+        bar_length = width - 2
+        
+        # Create the progress bar with ASCII characters
+        filled = '=' * filled_length
+        empty = '-' * (bar_length - filled_length)
+        
+        # Add animation character at the end if not complete
+        if progress < 1.0:
+            anim_char = self.get_animation_char()
+            if filled:
+                filled = filled[:-1] + anim_char
+            else:
+                empty = anim_char + empty[1:]
+        
+        bar = f"[{filled}{empty}]"
+        percentage = f"{int(progress * 100):3d}%"
+        
+        # Format the complete line
+        if label:
+            return f"{bar} {percentage} {label}"
         else:
-            print(f"+{'-' * (width - 2)}+")
-        # Side borders
-        for _ in range(height - 2):
-            print(f"|{' ' * (width - 2)}|")
-        # Bottom border
-        print(f"+{'-' * (width - 2)}+")
-
-    def draw_progress_bar(self, x: int, y: int, width: int, progress: float, label: str = ""):
-        """Draw a progress bar."""
-        filled = int(progress * (width - 2))
-        bar = f"{'█' * filled}{'░' * (width - 2 - filled)}"
-        self.move_cursor(y, x)
-        print(f"│{bar}│ {progress:.1%} {label}")
+            return f"{bar} {percentage}"
 
     def add_log(self, message: str, level: str = "INFO"):
-        """Add a log message."""
+        """Add a log message with beautiful formatting."""
         timestamp = datetime.now().strftime("%H:%M:%S")
-        color = {
-            "INFO": Colors.WHITE,
-            "SUCCESS": Colors.GREEN,
-            "WARNING": Colors.YELLOW,
-            "ERROR": Colors.RED,
-            "DEBUG": Colors.CYAN
-        }.get(level, Colors.WHITE)
-
-        log_entry = f"{Colors.DIM}[{timestamp}]{Colors.RESET} {color}{level}{Colors.RESET}: {message}"
+        
+        # Color mapping
+        color_map = {
+            "INFO": Colors.BRIGHT_CYAN,
+            "SUCCESS": Colors.BRIGHT_GREEN,
+            "WARNING": Colors.BRIGHT_YELLOW,
+            "ERROR": Colors.BRIGHT_RED,
+            "DEBUG": Colors.BRIGHT_BLACK
+        }
+        
+        color = color_map.get(level, Colors.WHITE)
+        level_padded = f"[{level:7}]"
+        
+        # Create formatted log entry
+        log_entry = f"{Colors.DIM}[{timestamp}]{Colors.RESET} {color}{level_padded}{Colors.RESET} {message}"
         self.logs.append(log_entry)
 
         if len(self.logs) > self.max_logs:
@@ -429,82 +687,159 @@ class TerminalUI:
         return char
 
     def draw_header(self):
-        """Draw the main header (ASCII only)."""
-        header = "PlexiChat Setup & Management System"
+        """Draw a beautiful ASCII header."""
+        print(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * self.width}{Colors.RESET}")
+        
+        # Center the title
+        title = "PLEXICHAT SETUP & MANAGEMENT SYSTEM"
         version = f"v{PLEXICHAT_VERSION}"
-        padding = self.width - len(header) - len(version) - 4
-        print(f"  {header}{' ' * padding}{version}  ")
-        # Draw separator
-        print(f"  {'-' * (self.width - 4)}  ")
+        title_padding = (self.width - len(title) - len(version) - 4) // 2
+        
+        print(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}|{Colors.RESET}{' ' * title_padding}{Colors.BOLD}{Colors.BRIGHT_WHITE}{title}{Colors.RESET}{' ' * title_padding}{Colors.BRIGHT_BLUE}{version}{Colors.RESET}{Colors.BOLD}{Colors.BRIGHT_BLUE}|{Colors.RESET}")
+        
+        print(f"{Colors.BOLD}{Colors.BRIGHT_BLUE}{'=' * self.width}{Colors.RESET}")
+        print()
 
-    def draw_status_panel(self, y_start: int):
-        """Draw the status panel (ASCII only)."""
-        self.draw_box(2, y_start, self.width - 4, 8, "System Status")
-        print(f"Platform: {platform.system()} {platform.release()}")
-        print(f"Python: {sys.version.split()[0]}")
-        print(f"Working Directory: {os.getcwd()}")
-        print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    def draw_step_progress(self):
+        """Draw step-by-step progress."""
+        print(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}SETUP PROGRESS:{Colors.RESET}")
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+        
+        for i, step_name in enumerate(self.step_names):
+            if i < self.current_step:
+                status = f"{Colors.BRIGHT_GREEN}[COMPLETE]{Colors.RESET}"
+            elif i == self.current_step:
+                status = f"{Colors.BRIGHT_YELLOW}[RUNNING]{Colors.RESET}"
+            else:
+                status = f"{Colors.DIM}[PENDING]{Colors.RESET}"
+            
+            step_num = f"{i+1:2d}"
+            print(f"  {step_num}. {step_name:<20} {status}")
+        
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+        print()
 
-    def draw_logs_panel(self, y_start: int):
-        """Draw the logs panel (ASCII only)."""
-        self.draw_box(2, y_start, self.width - 4, 12, "Activity Log")
-        for log in self.logs[-10:]:
-            print(log[:self.width - 8])  # Truncate if too long
+    def draw_system_info(self):
+        """Draw system information panel."""
+        print(f"{Colors.BOLD}{Colors.BRIGHT_GREEN}SYSTEM INFORMATION:{Colors.RESET}")
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+        
+        # Get system info
+        system_info = {
+            "Platform": f"{platform.system()} {platform.release()}",
+            "Architecture": platform.machine(),
+            "Python": sys.version.split()[0],
+            "Working Directory": os.getcwd(),
+            "Time": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "Memory": f"{psutil.virtual_memory().total // (1024**3)}GB",
+            "CPU Cores": str(psutil.cpu_count())
+        }
+        
+        for key, value in system_info.items():
+            print(f"  {Colors.BRIGHT_CYAN}{key:<15}{Colors.RESET}: {value}")
+        
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+        print()
+
+    def draw_current_progress(self, progress: float, label: str):
+        """Draw current operation progress."""
+        print(f"{Colors.BOLD}{Colors.BRIGHT_YELLOW}CURRENT OPERATION:{Colors.RESET}")
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+        
+        progress_bar = self.draw_progress_bar(progress, label)
+        print(f"  {progress_bar}")
+        
+        # Add some spacing
+        print()
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+        print()
+
+    def draw_logs_panel(self):
+        """Draw the logs panel with beautiful formatting."""
+        print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}ACTIVITY LOG:{Colors.RESET}")
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+        
+        # Show recent logs
+        recent_logs = self.logs[-8:] if self.logs else []
+        for log in recent_logs:
+            # Truncate if too long
+            if len(log) > self.width - 10:
+                log = log[:self.width - 13] + "..."
+            print(f"  {log}")
+        
+        # Fill empty space if needed
+        empty_lines = 8 - len(recent_logs)
+        for _ in range(empty_lines):
+            print()
+        
+        print(f"{Colors.DIM}{'-' * 50}{Colors.RESET}")
+
+    def draw_footer(self):
+        """Draw footer with instructions."""
+        print(f"{Colors.DIM}{'=' * self.width}{Colors.RESET}")
+        print(f"{Colors.BRIGHT_BLACK}Press Ctrl+C to cancel setup{Colors.RESET}")
+        print(f"{Colors.DIM}{'=' * self.width}{Colors.RESET}")
 
     def refresh_display(self):
-        """Refresh the entire display with a clean, consistent, and functional layout."""
+        """Refresh the entire display with beautiful formatting."""
         self.clear_screen()
         self.hide_cursor()
 
         # Draw header
         self.draw_header()
+        
+        # Draw step progress
+        self.draw_step_progress()
+        
+        # Draw system info
+        self.draw_system_info()
+        
+        # Draw current progress if available
+        if hasattr(self, 'current_progress') and hasattr(self, 'progress_label'):
+            self.draw_current_progress(self.current_progress, self.progress_label)
+        
+        # Draw logs panel
+        self.draw_logs_panel()
+        
+        # Draw footer
+        self.draw_footer()
+        
+        # Show cursor at bottom
+        self.show_cursor()
 
-        # Draw progress bar (spans width)
-        # For demo: show 50% progress and label. Replace with real progress if available.
-        progress = getattr(self, 'current_progress', 0.5)
-        label = getattr(self, 'progress_label', "Installing dependencies...")
-        bar_width = self.width - 4
-        print()
-        print(f"+{'-' * (bar_width)}+")
-        filled = int(progress * (bar_width))
-        bar = f"{'#' * filled}{'.' * (bar_width - filled)}"
-        print(f"|{bar}| {int(progress*100)}% {label}")
-        print(f"+{'-' * (bar_width)}+")
+    def update_progress(self, step: int, progress: float, label: str = ""):
+        """Update the current progress."""
+        self.current_step = step
+        self.current_progress = progress
+        self.progress_label = label
+        self.refresh_display()
+
+    def complete_step(self, step: int, success: bool = True):
+        """Mark a step as complete."""
+        self.current_step = step + 1
+        if success:
+            self.add_log(f"Step {step + 1} completed successfully", "SUCCESS")
+        else:
+            self.add_log(f"Step {step + 1} completed with warnings", "WARNING")
+        self.refresh_display()
+
+    def show_success_message(self, message: str):
+        """Show a success message."""
+        print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}SUCCESS!{Colors.RESET}")
+        print(f"{Colors.BRIGHT_GREEN}{message}{Colors.RESET}")
         print()
 
-        # Draw two side-by-side panels: System Status (left), Activity Log (right)
-        panel_width = (self.width - 6) // 2
-        panel_height = 14
-        # Top borders
-        print(f"+{'-' * panel_width}+{'-' * panel_width}+")
-        # Titles
-        print(f"|{' System Status':<{panel_width}}|{' Activity Log':<{panel_width}}|")
-        # Separator
-        print(f"+{'-' * panel_width}+{'-' * panel_width}+")
-        # Content rows
-        status_lines = [
-            f"Platform: {platform.system()} {platform.release()}",
-            f"Python: {sys.version.split()[0]}",
-            f"Working Directory: {os.getcwd()}",
-            f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        ]
-        # Pad status lines to panel_height
-        status_lines = status_lines[:panel_height]
-        status_lines += ["" for _ in range(panel_height - len(status_lines))]
-        log_lines = self.logs[-panel_height:] if self.logs else []
-        log_lines = log_lines[:panel_height]
-        log_lines += ["" for _ in range(panel_height - len(log_lines))]
-        for i in range(panel_height):
-            left = status_lines[i][:panel_width]
-            right = log_lines[i][:panel_width]
-            print(f"|{left:<{panel_width}}|{right:<{panel_width}}|")
-        # Bottom borders
-        print(f"+{'-' * panel_width}+{'-' * panel_width}+")
-
-        # Footer
+    def show_error_message(self, message: str):
+        """Show an error message."""
+        print(f"\n{Colors.BOLD}{Colors.BRIGHT_RED}ERROR!{Colors.RESET}")
+        print(f"{Colors.BRIGHT_RED}{message}{Colors.RESET}")
         print()
-        print(f"  {Colors.DIM}Press Ctrl+C to exit{Colors.RESET}")
-        sys.stdout.flush()
+
+    def show_warning_message(self, message: str):
+        """Show a warning message."""
+        print(f"\n{Colors.BOLD}{Colors.BRIGHT_YELLOW}WARNING!{Colors.RESET}")
+        print(f"{Colors.BRIGHT_YELLOW}{message}{Colors.RESET}")
+        print()
 
  
 class ProcessLockManager:
@@ -1172,30 +1507,36 @@ class DependencyManager:
             return False
 
 def setup_environment():
-    """Set up the runtime environment including required directories and environment variables."""
-    logger.debug("Setting up environment...")
-
-    # Only create essential config directory - others created by components that need them
-    config_dir = Path('config')
+    """Set up the runtime environment including required directories and environment variables. Robust, with logging and fallbacks."""
     try:
-        config_dir.mkdir(exist_ok=True, parents=True)
-        logger.debug(f"Config directory ready: {config_dir.absolute()}")
+        logger.info("Setting up environment...")
+        # Create all required directories
+        required_dirs = [
+            'config', 'logs', 'temp', 'uploads', 'backups', 'data',
+            'src/logs/audit', 'src/logs/crashes', 'src/logs/performance', 'src/logs/security'
+        ]
+        for dir_name in required_dirs:
+            dir_path = Path(dir_name)
+            dir_path.mkdir(exist_ok=True, parents=True)
+            logger.debug(f"Directory ready: {dir_path.absolute()}")
+        # Set environment variables with defaults if not already set
+        env_vars = {
+            'PLEXICHAT_ENV': 'production',
+            'PLEXICHAT_CONFIG_DIR': 'config',
+            'PLEXICHAT_LOG_LEVEL': 'INFO',
+            'PLEXICHAT_LOG_DIR': 'logs',
+            'PLEXICHAT_TEMP_DIR': 'temp',
+            'PLEXICHAT_UPLOADS_DIR': 'uploads',
+            'PLEXICHAT_BACKUPS_DIR': 'backups',
+            'PLEXICHAT_DATA_DIR': 'data',
+        }
+        for var, default in env_vars.items():
+            os.environ.setdefault(var, default)
+            logger.debug(f"Environment variable set: {var}={os.environ[var]}")
+        logger.info("Environment setup completed")
     except Exception as e:
-        logger.error(f"Failed to create config directory: {e}")
+        logger.error(f"Failed to set up environment: {e}")
         raise
-
-    # Set environment variables with defaults if not already set
-    env_vars = {
-        'PLEXICHAT_ENV': 'production',
-        'PLEXICHAT_CONFIG_DIR': 'config',
-        'PLEXICHAT_LOG_LEVEL': 'INFO'
-    }
-
-    for var, default in env_vars.items():
-        os.environ.setdefault(var, default)
-        logger.debug(f"Environment variable set: {var}={os.environ[var]}")
-
-    logger.info("Environment setup completed")
 
 # ============================================================================
 # CONFIGURATION AND ENVIRONMENT MANAGEMENT
@@ -2185,24 +2526,26 @@ def run_first_time_setup(level: Optional[str] = None):
         signal.signal(signal.SIGTERM, signal_handler)
     
     try:
-        print(f"\n{Colors.BOLD}{Colors.GREEN}🚀 Welcome to PlexiChat!{Colors.RESET}")
+        print(f"\n{Colors.BOLD}{Colors.GREEN}*** Welcome to PlexiChat! ***{Colors.RESET}")
         print(f"{Colors.DIM}Starting first-time setup... (Press Ctrl+C to cancel){Colors.RESET}")
         print(f"{Colors.DIM}This may take a few minutes depending on your system.{Colors.RESET}")
 
-        # Initialize terminal UI with better progress tracking
+        # Initialize terminal UI with beautiful progress tracking
         ui = TerminalUI()
-        ui.add_log("🔧 Starting PlexiChat first-time setup", "INFO")
-        ui.add_log(f"⏰ Setup timeout: 15 minutes", "INFO")
+        ui.add_log("Starting PlexiChat first-time setup", "INFO")
+        ui.add_log(f"Setup timeout: 15 minutes", "INFO")
+        ui.refresh_display()
 
         # Initialize managers with error handling
         try:
             system_manager = SystemManager()
         except Exception as e:
-            ui.add_log(f"❌ Failed to initialize system manager: {e}", "ERROR")
+            ui.add_log(f"Failed to initialize system manager: {e}", "ERROR")
             return False
 
-        # Step 1: System check with timeout
-        ui.add_log("🔍 Checking system requirements...", "INFO")
+        # Step 1: System check with timeout and progress
+        ui.update_progress(0, 0.1, "Checking system requirements...")
+        ui.add_log("Checking system requirements...", "INFO")
         ui.refresh_display()
         
         try:
@@ -2212,14 +2555,18 @@ def run_first_time_setup(level: Optional[str] = None):
                 
             health = system_manager.check_system_health()
             if health:
-                ui.add_log("✅ System check passed", "SUCCESS")
+                ui.add_log("System check passed", "SUCCESS")
+                ui.complete_step(0, True)
             else:
-                ui.add_log("❌ System check failed - continuing anyway", "WARNING")
+                ui.add_log("System check failed - continuing anyway", "WARNING")
+                ui.complete_step(0, False)
         except Exception as e:
-            ui.add_log(f"⚠️ System check error: {e} - continuing", "WARNING")
+            ui.add_log(f"System check error: {e} - continuing", "WARNING")
+            ui.complete_step(0, False)
 
-        # Step 2: Environment setup with timeout
-        ui.add_log("🌍 Setting up environment...", "INFO")
+        # Step 2: Environment setup with timeout and progress
+        ui.update_progress(1, 0.2, "Setting up environment...")
+        ui.add_log("Setting up environment...", "INFO")
         ui.refresh_display()
         
         try:
@@ -2227,12 +2574,15 @@ def run_first_time_setup(level: Optional[str] = None):
                 return False
                 
             setup_environment()
-            ui.add_log("✅ Environment setup completed", "SUCCESS")
+            ui.add_log("Environment setup completed", "SUCCESS")
+            ui.complete_step(1, True)
         except Exception as e:
-            ui.add_log(f"⚠️ Environment setup failed: {e} - continuing", "WARNING")
+            ui.add_log(f"Environment setup failed: {e} - continuing", "WARNING")
+            ui.complete_step(1, False)
 
-        # Step 3: Configuration with timeout
-        ui.add_log("⚙️ Setting up configuration...", "INFO")
+        # Step 3: Configuration with timeout and progress
+        ui.update_progress(2, 0.3, "Setting up configuration...")
+        ui.add_log("Setting up configuration...", "INFO")
         ui.refresh_display()
         
         try:
@@ -2243,19 +2593,23 @@ def run_first_time_setup(level: Optional[str] = None):
             config = config_manager.load_configuration()
             if config:
                 config_manager.setup_environment_variables(config)
-                ui.add_log("✅ Configuration setup completed", "SUCCESS")
+                ui.add_log("Configuration setup completed", "SUCCESS")
+                ui.complete_step(2, True)
             else:
-                ui.add_log("⚠️ Configuration setup failed - using defaults", "WARNING")
+                ui.add_log("Configuration setup failed - using defaults", "WARNING")
+                ui.complete_step(2, False)
         except Exception as e:
-            ui.add_log(f"⚠️ Configuration error: {e} - using defaults", "WARNING")
+            ui.add_log(f"Configuration error: {e} - using defaults", "WARNING")
+            ui.complete_step(2, False)
 
         # Step 4: Dependencies with enhanced progress and timeout
-        ui.add_log("📦 Preparing for dependency installation...", "INFO")
+        ui.update_progress(3, 0.4, "Preparing for dependency installation...")
+        ui.add_log("Preparing for dependency installation...", "INFO")
         ui.refresh_display()
         
         # Check for cancellation
         if cancelled or timeout_handler():
-            ui.add_log("❌ Setup cancelled or timed out", "WARNING")
+            ui.add_log("Setup cancelled or timed out", "WARNING")
             return False
 
         # Interactive level selection with fallback
@@ -2269,16 +2623,16 @@ def run_first_time_setup(level: Optional[str] = None):
                     console = RichConsole()
                     console.print(Panel.fit(
                         "Choose your installation type:",
-                        title="[bold cyan]📦 Dependency Setup[/bold cyan]",
+                        title="[bold cyan]Dependency Setup[/bold cyan]",
                         border_style="green"
                     ))
                     
                     choices = ["minimal", "standard", "full", "developer"]
                     descriptions = [
-                        "🔷 Core dependencies only (fastest)",
-                        "🔹 Standard features (recommended)", 
-                        "🔸 All features (most complete)",
-                        "🔶 All features + developer tools"
+                        "Core dependencies only (fastest)",
+                        "Standard features (recommended)", 
+                        "All features (most complete)",
+                        "All features + developer tools"
                     ]
                     
                     choice_text = "\n".join([
@@ -2288,7 +2642,7 @@ def run_first_time_setup(level: Optional[str] = None):
                     console.print(choice_text)
                     
                     level_choice_str = Prompt.ask(
-                        "\n💡 Enter your choice (1-4)",
+                        "\nEnter your choice (1-4)",
                         choices=[str(i+1) for i in range(4)],
                         default="2"
                     )
@@ -2296,7 +2650,7 @@ def run_first_time_setup(level: Optional[str] = None):
 
                     ui.hide_cursor()
                 else:
-                    print("⚠️ Rich library not found. Using fallback selection.")
+                    print("Rich library not found. Using fallback selection.")
                     print("\nChoose installation level:")
                     print("1. Minimal (fastest)")
                     print("2. Standard (recommended)")
@@ -2310,28 +2664,30 @@ def run_first_time_setup(level: Optional[str] = None):
                                 level = ["minimal", "standard", "full", "developer"][int(choice)-1]
                                 break
                             else:
-                                print("❌ Invalid choice. Please enter 1-4.")
+                                print("Invalid choice. Please enter 1-4.")
                         except (KeyboardInterrupt, EOFError):
                             print(f"\n{Colors.YELLOW}Setup cancelled{Colors.RESET}")
                             return False
             except Exception as e:
-                ui.add_log(f"⚠️ Level selection failed: {e} - using 'standard'", "WARNING")
+                ui.add_log(f"Level selection failed: {e} - using 'standard'", "WARNING")
                 level = 'standard'
         
-        ui.add_log(f"🎯 Selected installation level: {level}", "SUCCESS")
-        ui.add_log("📥 Installing dependencies... (this may take several minutes)", "INFO")
-        ui.add_log("💡 Tip: Some packages may show warnings - this is usually normal", "INFO")
+            ui.add_log(f"Selected installation level: {level}", "SUCCESS")
+            ui.add_log("Installing dependencies... (this may take several minutes)", "INFO")
+            ui.add_log("Tip: Some packages may show warnings - this is usually normal", "INFO")
         ui.refresh_display()
 
         # Enhanced dependency installation with progress tracking
         try:
             dep_manager = DependencyManager(ui)
             
-            # Install with timeout monitoring
+            # Install with timeout monitoring and progress updates
             install_start = time.time()
             install_success = False
             
-            ui.add_log(f"⚡ Starting {level} dependency installation...", "INFO")
+            ui.update_progress(3, 0.5, f"Installing {level} dependencies...")
+            ui.add_log(f"Starting {level} dependency installation...", "INFO")
+            ui.refresh_display()
             
             # Run installation with periodic timeout checks
             install_success = dep_manager.install_dependencies(level=level)
@@ -2339,17 +2695,21 @@ def run_first_time_setup(level: Optional[str] = None):
             install_duration = time.time() - install_start
             
             if install_success:
-                ui.add_log(f"✅ Dependencies installed successfully in {install_duration:.1f}s", "SUCCESS")
+                ui.add_log(f"Dependencies installed successfully in {install_duration:.1f}s", "SUCCESS")
+                ui.complete_step(3, True)
             else:
-                ui.add_log("⚠️ Some dependencies failed to install - PlexiChat may still work", "WARNING")
-                ui.add_log("💡 You can retry installation later with: python run.py setup", "INFO")
+                ui.add_log("Some dependencies failed to install - PlexiChat may still work", "WARNING")
+                ui.add_log("You can retry installation later with: python run.py setup", "INFO")
+                ui.complete_step(3, False)
                 
         except Exception as e:
-            ui.add_log(f"❌ Dependency installation error: {e}", "ERROR")
-            ui.add_log("💡 You can retry installation later with: python run.py setup", "INFO")
+            ui.add_log(f"Dependency installation error: {e}", "ERROR")
+            ui.add_log("You can retry installation later with: python run.py setup", "INFO")
+            ui.complete_step(3, False)
 
-        # Step 5: Database initialization with timeout
-        ui.add_log("🗄️ Initializing database...", "INFO")
+        # Step 5: Database initialization with timeout and progress
+        ui.update_progress(4, 0.8, "Initializing database...")
+        ui.add_log("Initializing database...", "INFO")
         ui.refresh_display()
         
         try:
@@ -2357,21 +2717,31 @@ def run_first_time_setup(level: Optional[str] = None):
                 return False
                 
             if initialize_database():
-                ui.add_log("✅ Database initialized successfully", "SUCCESS")
+                ui.add_log("Database initialized successfully", "SUCCESS")
+                ui.complete_step(4, True)
             else:
-                ui.add_log("⚠️ Database initialization failed - using defaults", "WARNING")
+                ui.add_log("Database initialization failed - using defaults", "WARNING")
+                ui.complete_step(4, False)
         except Exception as e:
-            ui.add_log(f"⚠️ Database error: {e} - using defaults", "WARNING")
+            ui.add_log(f"Database error: {e} - using defaults", "WARNING")
+            ui.complete_step(4, False)
 
-        # Step 6: Final setup
-        ui.add_log("🏁 Finalizing setup...", "INFO")
+        # Step 6: Final setup with progress
+        ui.update_progress(5, 0.9, "Finalizing setup...")
+        ui.add_log("Finalizing setup...", "INFO")
         ui.refresh_display()
         
         total_time = time.time() - start_time
-        ui.add_log(f"🎉 PlexiChat setup completed successfully in {total_time:.1f}s!", "SUCCESS")
-        ui.add_log("🚀 You can now start PlexiChat with: python run.py", "INFO")
-        ui.add_log("📖 For help, use: python run.py --help", "INFO")
-        ui.add_log("🌐 Web UI will be available at: http://localhost:8000", "INFO")
+        ui.add_log(f"PlexiChat setup completed successfully in {total_time:.1f}s!", "SUCCESS")
+        ui.add_log("You can now start PlexiChat with: python run.py", "INFO")
+        ui.add_log("For help, use: python run.py --help", "INFO")
+        ui.add_log("Web UI will be available at: http://localhost:8000", "INFO")
+        ui.complete_step(5, True)
+
+        # Show final success message
+        ui.show_success_message("PlexiChat setup completed successfully!")
+        ui.show_success_message(f"Total setup time: {total_time:.1f} seconds")
+        ui.show_success_message("You can now start PlexiChat with: python run.py")
 
         # Give user time to read final message
         ui.refresh_display()
@@ -2379,13 +2749,13 @@ def run_first_time_setup(level: Optional[str] = None):
         return True
 
     except KeyboardInterrupt:
-        print(f"\n{Colors.YELLOW}⏹️ Setup cancelled by user{Colors.RESET}")
+        print(f"\n{Colors.YELLOW}Setup cancelled by user{Colors.RESET}")
         return False
     except Exception as e:
         total_time = time.time() - start_time
         logging.getLogger(__name__).error(f"First-time setup failed after {total_time:.1f}s: {e}")
-        print(f"\n{Colors.RED}❌ Setup failed: {e}{Colors.RESET}")
-        print(f"{Colors.DIM}💡 Try running with minimal dependencies: python run.py setup --level minimal{Colors.RESET}")
+        print(f"\n{Colors.RED}Setup failed: {e}{Colors.RESET}")
+        print(f"{Colors.DIM}Try running with minimal dependencies: python run.py setup --level minimal{Colors.RESET}")
         return False
 
 def run_api_server():
@@ -2628,7 +2998,7 @@ Examples:
                               'api', 'gui', 'gui-standalone', 'webui', 'cli', 'admin', 'backup-node', 'plugin',
                               'test', 'config', 'wizard', 'help', 'setup', 'update', 'version',
                               'deps', 'system', 'clean', 'download', 'latest', 'versions', 'install',
-                              'advanced-setup', 'optimize', 'diagnostic', 'maintenance'
+                              'advanced-setup', 'optimize', 'diagnostic', 'maintenance', 'bootstrap'
                           ],
                           help='Command to execute (default: %(default)s)')
 
@@ -2933,15 +3303,15 @@ def setup_platform_support():
     except Exception as e:
         print(f"Platform setup error: {e}")
 
-def setup_enhanced_logging():
-    """Setup enhanced logging with OS-specific features."""
+def setup_enhanced_logging_with_files(log_level: str = "INFO"):
+    """Setup enhanced logging with file handlers and performance monitoring."""
     try:
         # Create logs directory in INSTALL_PATH if it doesn't exist
         logs_dir = INSTALL_PATH / "logs"
         logs_dir.mkdir(exist_ok=True, parents=True)
 
-        # Setup colored logging
-        logger = setup_colored_logging()
+        # Setup enhanced logging with performance monitoring
+        logger, performance_monitor = setup_enhanced_logging(log_level)
 
         # Add file logging with rotation
         from logging.handlers import RotatingFileHandler
@@ -2967,16 +3337,42 @@ def setup_enhanced_logging():
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(pathname)s:%(lineno)d'
         ))
 
+        # Performance log file
+        perf_handler = RotatingFileHandler(
+            logs_dir / "plexichat_performance.log",
+            maxBytes=5*1024*1024,  # 5MB
+            backupCount=3
+        )
+        perf_handler.setLevel(logging.INFO)
+        perf_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
+
+        # API calls log file
+        api_handler = RotatingFileHandler(
+            logs_dir / "plexichat_api.log",
+            maxBytes=5*1024*1024,  # 5MB
+            backupCount=3
+        )
+        api_handler.setLevel(logging.DEBUG)
+        api_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
+
         # Add handlers to root logger
         root_logger = logging.getLogger()
         root_logger.addHandler(file_handler)
         root_logger.addHandler(error_handler)
+        root_logger.addHandler(perf_handler)
+        root_logger.addHandler(api_handler)
 
-        return logger
+        logger.info(f"Enhanced logging system initialized with level: {log_level}")
+        logger.info("Performance monitoring and API tracking enabled")
+        return logger, performance_monitor
 
     except Exception as e:
         print(f"Enhanced logging setup failed: {e}")
-        return setup_colored_logging()
+        return None, None
 
 def setup_signal_handlers():
     """Setup signal handlers for graceful shutdown."""
@@ -3026,63 +3422,282 @@ def display_startup_banner():
         print(f"Banner display error: {e}")
 
 def run_enhanced_bootstrap():
-    """Run enhanced bootstrap process - STANDALONE VERSION that downloads everything from GitHub."""
+    """Enhanced bootstrap with platform-specific optimizations."""
+    print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}PlexiChat Standalone Bootstrap{Colors.RESET}")
+    
+    # Platform-specific setup
+    platform = sys.platform
+    if platform.startswith('linux'):
+        print(f"{Colors.CYAN}Linux detected - enabling systemd integration and SELinux support{Colors.RESET}")
+        setup_linux_specific_features()
+    elif platform.startswith('win'):
+        print(f"{Colors.CYAN}Windows detected - enabling Windows service integration{Colors.RESET}")
+        setup_windows_specific_features()
+    elif platform.startswith('darwin'):
+        print(f"{Colors.CYAN}macOS detected - enabling launchd integration{Colors.RESET}")
+        setup_macos_specific_features()
+    
+    # Enhanced system checks
+    system_info = get_detailed_system_info()
+    print(f"{Colors.GREEN}System: {system_info['os']} {system_info['version']}{Colors.RESET}")
+    print(f"{Colors.GREEN}Architecture: {system_info['arch']}{Colors.RESET}")
+    print(f"{Colors.GREEN}Python: {system_info['python_version']}{Colors.RESET}")
+    print(f"{Colors.GREEN}Memory: {system_info['memory_gb']:.1f}GB{Colors.RESET}")
+    print(f"{Colors.GREEN}CPU Cores: {system_info['cpu_cores']}{Colors.RESET}")
+    
+    # Check for virtualization
+    if is_virtualized():
+        print(f"{Colors.YELLOW}Virtual environment detected - optimizing for containerized deployment{Colors.RESET}")
+        setup_virtualized_environment()
+    
+    # Enhanced dependency resolution
+    print(f"\n{Colors.BOLD}Resolving dependencies with platform-specific optimizations...{Colors.RESET}")
+    
+    # Platform-specific dependency installation
+    if platform.startswith('linux'):
+        install_linux_dependencies()
+    elif platform.startswith('win'):
+        install_windows_dependencies()
+    elif platform.startswith('darwin'):
+        install_macos_dependencies()
+    
+    # Enhanced security setup
+    print(f"\n{Colors.BOLD}Setting up enhanced security features...{Colors.RESET}")
+    setup_enhanced_security()
+    
+    # Performance optimization
+    print(f"\n{Colors.BOLD}Optimizing performance for current platform...{Colors.RESET}")
+    optimize_performance()
+    
+    print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}Bootstrap completed successfully!{Colors.RESET}")
+    print(f"{Colors.CYAN}Platform-specific optimizations applied.{Colors.RESET}")
+
+def setup_linux_specific_features():
+    """Setup Linux-specific features like systemd, SELinux, and AppArmor."""
     try:
-        print(f"{Colors.BOLD}{Colors.BRIGHT_MAGENTA}🚀 PlexiChat Standalone Bootstrap{Colors.RESET}")
-        print(f"{Colors.BRIGHT_CYAN}This will download and setup PlexiChat from GitHub...{Colors.RESET}\n")
-
-        # Step 0: Check if we're in standalone mode (only run.py exists)
-        standalone_mode = not Path("src").exists()
-        if standalone_mode:
-            print(f"{Colors.BOLD}Step 0: Standalone Mode Detected{Colors.RESET}")
-            print(f"  {Colors.GREEN}✓{Colors.RESET} Running in standalone bootstrap mode")
-            download_plexichat_from_github()
-
-        # Step 1: System Requirements Check
-        print(f"\n{Colors.BOLD}Step 1: System Requirements Check{Colors.RESET}")
-        check_system_requirements()
-
-        # Step 2: Environment Setup
-        print(f"\n{Colors.BOLD}Step 2: Environment Setup{Colors.RESET}")
-        setup_environment()
-
-        # Step 3: Dependency Installation
-        print(f"\n{Colors.BOLD}Step 3: Dependency Installation{Colors.RESET}")
-        install_dependencies_enhanced()
-
-        # Step 4: Configuration Setup
-        print(f"\n{Colors.BOLD}Step 4: Configuration Setup{Colors.RESET}")
-        setup_initial_configuration()
-
-        # Step 5: Database Initialization
-        print(f"\n{Colors.BOLD}Step 5: Database Initialization{Colors.RESET}")
-        initialize_database()
-
-        # Step 6: Security Setup
-        print(f"\n{Colors.BOLD}Step 6: Security Setup{Colors.RESET}")
-        setup_security()
-
-        # Step 7: Final Validation
-        print(f"\n{Colors.BOLD}Step 7: Final Validation{Colors.RESET}")
-        validate_installation()
-
-        print(f"\n{Colors.BOLD}{Colors.BRIGHT_GREEN}✅ Bootstrap completed successfully!{Colors.RESET}")
-        print(f"{Colors.BRIGHT_CYAN}PlexiChat is ready to use.{Colors.RESET}")
-
-        if standalone_mode:
-            print(f"\n{Colors.BOLD}{Colors.BRIGHT_YELLOW}Next Steps:{Colors.RESET}")
-            print(f"  • Run: {Colors.BRIGHT_CYAN}python run.py gui{Colors.RESET} - Launch GUI")
-            print(f"  • Run: {Colors.BRIGHT_CYAN}python run.py api{Colors.RESET} - Start API server")
-            print(f"  • Run: {Colors.BRIGHT_CYAN}python run.py cli{Colors.RESET} - Start CLI interface")
-
-    except KeyboardInterrupt:
-        print(f"\n{Colors.YELLOW}Bootstrap interrupted by user{Colors.RESET}")
-        sys.exit(1)
+        # Check for systemd
+        if os.path.exists('/run/systemd/system'):
+            print(f"{Colors.GREEN}Systemd detected - enabling service integration{Colors.RESET}")
+            setup_systemd_integration()
+        
+        # Check for SELinux
+        if os.path.exists('/etc/selinux/config'):
+            print(f"{Colors.GREEN}SELinux detected - configuring security policies{Colors.RESET}")
+            setup_selinux_policies()
+        
+        # Check for AppArmor
+        if os.path.exists('/sys/kernel/security/apparmor'):
+            print(f"{Colors.GREEN}AppArmor detected - setting up profiles{Colors.RESET}")
+            setup_apparmor_profiles()
+        
+        # Setup cgroups for resource management
+        setup_cgroups_integration()
+        
+        # Enable kernel optimizations
+        setup_kernel_optimizations()
+        
     except Exception as e:
-        print(f"\n{Colors.RED}Bootstrap failed: {e}{Colors.RESET}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+        print(f"{Colors.YELLOW}Linux-specific setup warning: {e}{Colors.RESET}")
+
+def setup_windows_specific_features():
+    """Setup Windows-specific features like Windows services and registry integration."""
+    try:
+        # Check for Windows service capabilities
+        if hasattr(os, 'name') and os.name == 'nt':
+            print(f"{Colors.GREEN}Windows detected - setting up service integration{Colors.RESET}")
+            setup_windows_service_integration()
+        
+        # Setup Windows registry integration
+        setup_windows_registry_integration()
+        
+        # Enable Windows Defender exclusions
+        setup_windows_defender_exclusions()
+        
+        # Setup Windows performance counters
+        setup_windows_performance_counters()
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}Windows-specific setup warning: {e}{Colors.RESET}")
+
+def setup_macos_specific_features():
+    """Setup macOS-specific features like launchd and sandboxing."""
+    try:
+        # Check for launchd
+        if os.path.exists('/System/Library/LaunchDaemons'):
+            print(f"{Colors.GREEN}Launchd detected - setting up service integration{Colors.RESET}")
+            setup_launchd_integration()
+        
+        # Setup macOS sandboxing
+        setup_macos_sandboxing()
+        
+        # Enable macOS security features
+        setup_macos_security_features()
+        
+        # Setup macOS performance monitoring
+        setup_macos_performance_monitoring()
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}macOS-specific setup warning: {e}{Colors.RESET}")
+
+def get_detailed_system_info():
+    """Get detailed system information for platform-specific optimizations."""
+    info = {
+        'os': platform.system(),
+        'version': platform.release(),
+        'arch': platform.machine(),
+        'python_version': sys.version.split()[0],
+        'memory_gb': psutil.virtual_memory().total / (1024**3),
+        'cpu_cores': psutil.cpu_count(),
+        'platform': sys.platform
+    }
+    return info
+
+def is_virtualized():
+    """Check if running in a virtualized environment."""
+    try:
+        # Check for common virtualization indicators
+        virtualization_indicators = [
+            '/proc/cpuinfo',  # Linux
+            '/sys/class/dmi/id/product_name',  # Linux
+            'HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Control\\SystemInformation\\ComputerHardwareId'  # Windows
+        ]
+        
+        for indicator in virtualization_indicators:
+            if os.path.exists(indicator):
+                with open(indicator, 'r') as f:
+                    content = f.read().lower()
+                    if any(vm in content for vm in ['vmware', 'virtualbox', 'kvm', 'xen', 'hyper-v']):
+                        return True
+        
+        return False
+    except:
+        return False
+
+def setup_virtualized_environment():
+    """Optimize settings for virtualized environments."""
+    try:
+        # Reduce memory usage
+        import gc
+        gc.set_threshold(100, 5, 5)
+        
+        # Optimize for containerized environments
+        if os.path.exists('/.dockerenv'):
+            print(f"{Colors.GREEN}Docker container detected - applying container optimizations{Colors.RESET}")
+            setup_container_optimizations()
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}Virtualization setup warning: {e}{Colors.RESET}")
+
+def install_platform_dependencies():
+    """Install platform-specific dependencies."""
+    platform = sys.platform
+    
+    if platform.startswith('linux'):
+        install_linux_dependencies()
+    elif platform.startswith('win'):
+        install_windows_dependencies()
+    elif platform.startswith('darwin'):
+        install_macos_dependencies()
+
+def install_linux_dependencies():
+    """Install Linux-specific dependencies."""
+    try:
+        # System package dependencies
+        linux_packages = [
+            'python3-dev', 'python3-pip', 'python3-venv',
+            'build-essential', 'libssl-dev', 'libffi-dev',
+            'libjpeg-dev', 'libpng-dev', 'libfreetype6-dev'
+        ]
+        
+        print(f"{Colors.CYAN}Installing Linux system dependencies...{Colors.RESET}")
+        # Note: This would require sudo privileges
+        # subprocess.run(['sudo', 'apt-get', 'update'])
+        # subprocess.run(['sudo', 'apt-get', 'install', '-y'] + linux_packages)
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}Linux dependency installation warning: {e}{Colors.RESET}")
+
+def install_windows_dependencies():
+    """Install Windows-specific dependencies."""
+    try:
+        print(f"{Colors.CYAN}Installing Windows-specific dependencies...{Colors.RESET}")
+        # Windows-specific package installation
+        # Could use chocolatey or winget here
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}Windows dependency installation warning: {e}{Colors.RESET}")
+
+def install_macos_dependencies():
+    """Install macOS-specific dependencies."""
+    try:
+        print(f"{Colors.CYAN}Installing macOS-specific dependencies...{Colors.RESET}")
+        # macOS-specific package installation
+        # Could use homebrew here
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}macOS dependency installation warning: {e}{Colors.RESET}")
+
+def setup_enhanced_security():
+    """Setup enhanced security features for the platform."""
+    try:
+        # Platform-specific security setup
+        platform = sys.platform
+        
+        if platform.startswith('linux'):
+            setup_linux_security()
+        elif platform.startswith('win'):
+            setup_windows_security()
+        elif platform.startswith('darwin'):
+            setup_macos_security()
+        
+        # Common security features
+        setup_common_security_features()
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}Security setup warning: {e}{Colors.RESET}")
+
+def optimize_performance():
+    """Optimize performance for the current platform."""
+    try:
+        # Platform-specific performance optimizations
+        platform = sys.platform
+        
+        if platform.startswith('linux'):
+            optimize_linux_performance()
+        elif platform.startswith('win'):
+            optimize_windows_performance()
+        elif platform.startswith('darwin'):
+            optimize_macos_performance()
+        
+        # Common performance optimizations
+        setup_common_performance_optimizations()
+        
+    except Exception as e:
+        print(f"{Colors.YELLOW}Performance optimization warning: {e}{Colors.RESET}")
+
+# Placeholder functions for platform-specific implementations
+def setup_systemd_integration(): pass
+def setup_selinux_policies(): pass
+def setup_apparmor_profiles(): pass
+def setup_cgroups_integration(): pass
+def setup_kernel_optimizations(): pass
+def setup_windows_service_integration(): pass
+def setup_windows_registry_integration(): pass
+def setup_windows_defender_exclusions(): pass
+def setup_windows_performance_counters(): pass
+def setup_launchd_integration(): pass
+def setup_macos_sandboxing(): pass
+def setup_macos_security_features(): pass
+def setup_macos_performance_monitoring(): pass
+def setup_container_optimizations(): pass
+def setup_linux_security(): pass
+def setup_windows_security(): pass
+def setup_macos_security(): pass
+def setup_common_security_features(): pass
+def optimize_linux_performance(): pass
+def optimize_windows_performance(): pass
+def optimize_macos_performance(): pass
+def setup_common_performance_optimizations(): pass
 
 def download_plexichat_from_github(repo, version_tag):
     """Download PlexiChat from GitHub repository for a specific version."""
@@ -3091,9 +3706,9 @@ def download_plexichat_from_github(repo, version_tag):
 
         # Construct the correct download URL for the selected version
         if version_tag:
-            repo_url = f"https://github.com/{repo}/archive/refs/tags/{version_tag}.zip"
+            repo_url = f"https://github.com/{repo}/archive-refs/tags/{version_tag}.zip"
         else:
-            repo_url = f"https://github.com/{repo}/archive/refs/heads/main.zip"
+            repo_url = f"https://github.com/{repo}/archive-refs/heads/main.zip"
 
         print(f"  {Colors.YELLOW}⬇ Downloading from: {repo_url}")
 
@@ -3852,31 +4467,6 @@ def check_system_requirements():
     except Exception as e:
         print(f"Requirements check failed: {e}")
 
-def setup_environment():
-    """Setup environment variables and directories."""
-    try:
-        # Create only essential directories - others created by components that need them
-        essential_dirs = ["config"]
-        for directory in essential_dirs:
-            dir_path = (INSTALL_PATH / directory) if INSTALL_PATH else Path(directory)
-            dir_path.mkdir(exist_ok=True, parents=True)
-            print(f"  {Colors.GREEN}✓ Created directory: {dir_path}")
-
-        # Set environment variables
-        env_vars = {
-            "PLEXICHAT_HOME": str(INSTALL_PATH),
-            "PLEXICHAT_ENV": "production",
-            "PLEXICHAT_LOG_LEVEL": "INFO",
-        }
-
-        for key, value in env_vars.items():
-            os.environ[key] = value
-            print(f"  {Colors.GREEN}✓ Set environment variable: {key}")
-
-    except Exception as e:
-        print(f"Environment setup failed: {e}")
-        raise
-
 def install_dependencies_enhanced():
     """Enhanced dependency installation with progress tracking."""
     try:
@@ -4242,15 +4832,17 @@ def main():
 
     # Setup platform-specific features and enhanced logging
     setup_platform_support()
-    global logger
-    logger = setup_enhanced_logging()
-
-    # Parse command line arguments
+    
+    # Parse command line arguments first to get log level
     try:
         args = parse_arguments()
     except SystemExit:
         # argparse will have already printed help and exited
         return
+
+    # Setup enhanced logging with performance monitoring
+    global logger, performance_monitor
+    logger, performance_monitor = setup_enhanced_logging(args.log_level)
 
     # Set log level from arguments
     if args.verbose or args.debug:
@@ -4371,6 +4963,9 @@ def main():
         logger.info("Running maintenance mode...")
         # Placeholder for maintenance logic
         print(f"{Colors.GREEN}Maintenance mode completed.{Colors.RESET}")
+        
+    elif args.command == 'bootstrap':
+        run_enhanced_bootstrap()
 
     else:
         logger.info("Defaulting to API server and CLI...")

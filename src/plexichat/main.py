@@ -677,27 +677,14 @@ def _load_api_routers(app: FastAPI):
     """Load API routers from the api directory."""
     logger.info("Loading API routers...")
 
-    # API v1 routers
+    # API v1 routers - Clean and simple structure
     api_v1_modules = [
         ("interfaces.api.v1.router", "router"),
-        ("interfaces.api.v1.auth", "router"),
-        ("interfaces.api.v1.users", "router"),
-        ("interfaces.api.v1.messages", "router"),
-        ("interfaces.api.v1.files", "router"),
-        ("interfaces.api.v1.admin", "router"),
-        ("interfaces.api.v1.moderation", "router"),
-        ("interfaces.api.v1.security", "router"),
-        ("interfaces.api.v1.plugins", "router"),
-        ("interfaces.api.v1.rate_limits", "router"),
-        ("interfaces.api.v1.permissions", "router"),
-        ("interfaces.api.v1.testing", "router"),
-        ("interfaces.api.v1.theming", "router"),
-        ("interfaces.api.v1.social", "router"),
     ]
 
     for module_path, router_name in api_v1_modules:
         try:
-            module = __import__(f"plexichat.{module_path}", fromlist=[router_name])
+            module = __import__(f"src.plexichat.{module_path}", fromlist=[router_name])
             router = getattr(module, router_name, None)
             if router:
                 app.include_router(router)
