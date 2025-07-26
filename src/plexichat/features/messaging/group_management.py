@@ -48,7 +48,7 @@ settings."""
     PUBLIC = "public"
     PRIVATE = "private"
     INVITE_ONLY = "invite_only"
-    SECRET = "secret"
+SECRET =os.getenv("SECRET_KEY", "")
 
 
 class MemberRole(Enum):

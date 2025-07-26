@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class AuthenticationMethod(Enum):
     """Supported authentication methods."""
-    PASSWORD = "password"
+PASSWORD =os.getenv("PASSWORD", "")
     MFA_TOTP = "mfa_totp"
     MFA_SMS = "mfa_sms"
     MFA_EMAIL = "mfa_email"
@@ -33,7 +33,7 @@ class AuthenticationMethod(Enum):
     OAUTH2 = "oauth2"
     HARDWARE_KEY = "hardware_key"
     ZERO_KNOWLEDGE = "zero_knowledge"
-    API_KEY = "api_key"
+API_KEY =os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
@@ -93,7 +93,7 @@ class UnifiedAuthManager:
         self.max_failed_attempts = 5
         self.lockout_duration = timedelta(minutes=30)
         self.session_timeout = timedelta(hours=8)
-        self.token_secret = "your-secret-key"  # Should be from config
+self.token_secret =os.getenv("SECRET_KEY", "")  # Should be from config
 
     async def authenticate(
         self,

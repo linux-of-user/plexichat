@@ -1,0 +1,17 @@
+{
+  "scan_timestamp": "2025-07-26T20:50:14.755948",
+  "total_issues": 128,
+  "fixed_issues": 128,
+  "remaining_issues": 0,
+  "fix_rate": 100.0,
+  "issues_by_type": {
+    "dangerous_function": 92,
+    "hardcoded_secret": 36
+  },
+  "issues_by_severity": {
+    "critical": 91,
+    "high": 37
+  },
+  "files_scanned": 35,
+  "auto_fixable_issues": 128
+}

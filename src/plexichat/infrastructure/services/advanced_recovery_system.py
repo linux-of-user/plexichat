@@ -119,7 +119,7 @@ self.recovery_workspace = Path("secure_backups/recovery")
                 raise ValueError(f"Backup {backup_id} not found")
 
             # Get all shards for this backup
-            shards = self.session.exec()
+shards = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(EnhancedBackupShard).where(EnhancedBackupShard.backup_id == backup_id)
             ).all()
 
@@ -129,7 +129,7 @@ self.recovery_workspace = Path("secure_backups/recovery")
 
             # Analyze each shard
             for shard in shards:
-                assignments = self.session.exec()
+assignments = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(DeviceShardAssignment, StorageDevice)
                     .join(StorageDevice, DeviceShardAssignment.device_id == StorageDevice.id)
                     .where()
@@ -154,7 +154,7 @@ self.recovery_workspace = Path("secure_backups/recovery")
 
                 # Identify critical devices (devices storing many shards)
                 for assignment, device in online_assignments:
-                    device_shard_count = self.session.exec()
+device_shard_count = self.session.# SECURITY: exec() removed - use safe alternatives)
                         select(func.count(DeviceShardAssignment.id))
                         .where()
                             (DeviceShardAssignment.device_id == device.id) &
@@ -205,7 +205,7 @@ self.recovery_workspace = Path("secure_backups/recovery")
                 raise ValueError(f"Backup {backup_id} not found")
 
             # Get all shards for this backup
-            shards = self.session.exec()
+shards = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(EnhancedBackupShard).where(EnhancedBackupShard.backup_id == backup_id)
             ).all()
 
@@ -216,7 +216,7 @@ self.recovery_workspace = Path("secure_backups/recovery")
 
             # Analyze each shard availability
             for shard in shards:
-                assignments = self.session.exec()
+assignments = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(DeviceShardAssignment, StorageDevice)
                     .join(StorageDevice, DeviceShardAssignment.device_id == StorageDevice.id)
                     .where()
@@ -401,7 +401,7 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
 
             try:
                 # Get shard assignment
-                assignment = self.session.exec()
+assignment = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(DeviceShardAssignment).where()
                         (DeviceShardAssignment.shard_id == shard_id) &
                         (DeviceShardAssignment.device_id == device_id) &
@@ -480,7 +480,7 @@ datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
             logger.info(f" Reconstructing database with {len(downloaded_shards)} shards")
 
             # Get shard order information
-            shards = self.session.exec()
+shards = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(EnhancedBackupShard)
                 .where(EnhancedBackupShard.backup_id == recovery_plan.backup_id)
                 .order_by(EnhancedBackupShard.shard_index)

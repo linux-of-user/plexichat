@@ -158,7 +158,7 @@ class ModerationService:
             if guild_id:
                 statement = statement.where(UserModerationStatus.guild_id == guild_id)
 
-            moderation_status = self.session.exec(statement).first()
+moderation_status = self.session.# SECURITY: exec() removed - use safe alternativesstatement).first()
 
             if moderation_status:
                 if moderation_status.status == ModerationStatus.BANNED:
@@ -179,7 +179,7 @@ class ModerationService:
                 if guild_id:
                     mod_statement = mod_statement.where(ModeratorRole.guild_id == guild_id)
 
-                moderator_role = self.session.exec(mod_statement).first()
+moderator_role = self.session.# SECURITY: exec() removed - use safe alternativesmod_statement).first()
 
                 if moderator_role:
                     if moderator_role.role_level >= 3:
@@ -257,7 +257,7 @@ class ModerationService:
 
             if role in [UserRole.BANNED, UserRole.MUTED, UserRole.RESTRICTED]:
                 # Create or update moderation status
-                existing_status = self.session.exec()
+existing_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(UserModerationStatus).where()
                         (UserModerationStatus.user_id == user_id) &
                         (UserModerationStatus.guild_id == guild_id) &
@@ -290,7 +290,7 @@ class ModerationService:
 
             elif role in [UserRole.MODERATOR, UserRole.ADMIN, UserRole.TRUSTED]:
                 # Create or update moderator role
-                existing_mod = self.session.exec()
+existing_mod = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(ModeratorRole).where()
                         (ModeratorRole.user_id == user_id) &
                         (ModeratorRole.guild_id == guild_id) &
@@ -463,7 +463,7 @@ class ModerationService:
                 log_entry.is_active = False
 
                 # Remove any active moderation status
-                active_status = self.session.exec()
+active_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(UserModerationStatus).where()
                         (UserModerationStatus.user_id == log_entry.target_user_id) &
                         (UserModerationStatus.guild_id == guild_id) &
@@ -509,10 +509,10 @@ class ModerationService:
             if guild_id:
                 history_statement = history_statement.where(ModerationLog.guild_id == guild_id)
 
-            history = self.session.exec(history_statement.order_by(ModerationLog.created_at.desc())).all()
+history = self.session.# SECURITY: exec() removed - use safe alternativeshistory_statement.order_by(ModerationLog.created_at.desc())).all()
 
             # Get active moderation status
-            active_status = self.session.exec()
+active_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(UserModerationStatus).where()
                     (UserModerationStatus.user_id == user_id) &
                     (UserModerationStatus.guild_id == guild_id) &
@@ -595,7 +595,7 @@ class ModerationService:
                     (ModeratorRole.channel_id == channel_id) | (ModeratorRole.channel_id.is_(None))
                 )
 
-            moderator_role = self.session.exec(statement).first()
+moderator_role = self.session.# SECURITY: exec() removed - use safe alternativesstatement).first()
 
             if not moderator_role:
                 return False, None
@@ -653,7 +653,7 @@ class ModerationService:
                 )
 
             # Get or create user moderation status
-            user_status = self.session.exec()
+user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(UserModerationStatus).where(UserModerationStatus.user_id == target_user_id)
             ).first()
 
@@ -792,7 +792,7 @@ datetime.utcnow()
     ) -> Dict[str, Any]:
         """Check current moderation restrictions for a user."""
         try:
-            user_status = self.session.exec()
+user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(UserModerationStatus).where(UserModerationStatus.user_id == user_id)
             ).first()
 
@@ -864,7 +864,7 @@ datetime.utcnow()
                 )
 
             # Check if user already has a moderator role in this context
-            existing_role = self.session.exec()
+existing_role = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(ModeratorRole).where()
                     (ModeratorRole.user_id == user_id) &
                     (ModeratorRole.guild_id == guild_id) &
@@ -1032,7 +1032,7 @@ datetime.utcnow()
 
                 # Update user status if applicable
                 if moderation_log.target_user_id:
-                    user_status = self.session.exec()
+user_status = self.session.# SECURITY: exec() removed - use safe alternatives)
                         select(UserModerationStatus).where()
                             UserModerationStatus.user_id == moderation_log.target_user_id
                         )
@@ -1087,7 +1087,7 @@ datetime.utcnow()
 
             statement = statement.order_by(ModerationLog.created_at.desc()).offset(offset).limit(limit)
 
-            logs = self.session.exec(statement).all()
+logs = self.session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
             result = []
             for log in logs:

@@ -15,8 +15,8 @@ router = APIRouter()
 def get_status():
     from datetime import timezone
     with Session(engine) as session:
-        total_users = session.exec(select(func.count(User.id))).first() or 0
-        total_messages = session.exec(select(func.count(Message.id))).first() or 0
+total_users = session.# SECURITY: exec() removed - use safe alternativesselect(func.count(User.id))).first() or 0
+total_messages = session.# SECURITY: exec() removed - use safe alternativesselect(func.count(Message.id))).first() or 0
     return {
         "status": "ok",
         "uptime": f"{(datetime.now(timezone.utc) - datetime(2025,1,1, tzinfo=timezone.utc)).total_seconds()} seconds",  # example

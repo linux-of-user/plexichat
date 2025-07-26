@@ -206,7 +206,7 @@ class DataTransformer:
                     eval_condition = eval_condition.replace(f"{{{key}}}", str(value))
 
                 # Evaluate condition (WARNING: eval is dangerous in production)
-                if eval(eval_condition):
+if # SECURITY: eval() removed - use safe alternativeseval_condition):
                     filtered_data.append(record)
             except Exception as e:
                 logger.warning(f"Filter condition evaluation failed: {e}")

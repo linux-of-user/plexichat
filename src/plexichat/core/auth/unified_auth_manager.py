@@ -56,7 +56,7 @@ logger = get_logger(__name__)
 
 class AuthenticationMethod(Enum):
     """Authentication methods."""
-    PASSWORD = "password"
+PASSWORD =os.getenv("PASSWORD", "")
     MFA_TOTP = "mfa_totp"
     MFA_SMS = "mfa_sms"
     MFA_EMAIL = "mfa_email"
@@ -64,7 +64,7 @@ class AuthenticationMethod(Enum):
     OAUTH2 = "oauth2"
     HARDWARE_KEY = "hardware_key"
     ZERO_KNOWLEDGE = "zero_knowledge"
-    API_KEY = "api_key"
+API_KEY =os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):

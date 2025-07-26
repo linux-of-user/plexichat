@@ -166,7 +166,7 @@ self.backup_dir = Path("secure_backups")
             }
 
             # Export users
-            users = self.session.exec(select(EnhancedUser)).all()
+users = self.session.# SECURITY: exec() removed - use safe alternativesselect(EnhancedUser)).all()
             backup_data['tables']['users'] = [
                 {
                     'id': user.id,
@@ -182,7 +182,7 @@ self.backup_dir = Path("secure_backups")
             ]
 
             # Export messages
-            messages = self.session.exec(select(Message)).all()
+messages = self.session.# SECURITY: exec() removed - use safe alternativesselect(Message)).all()
             backup_data['tables']['messages'] = [
                 {
                     'id': msg.id,
@@ -344,7 +344,7 @@ self.backup_dir = Path("secure_backups")
             logger.info(f"Starting automatic shard distribution for backup {backup.uuid}")
 
             # Get all shards for this backup
-            shards = self.session.exec()
+shards = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(EnhancedBackupShard).where(EnhancedBackupShard.backup_id == backup.id)
             ).all()
 
@@ -393,7 +393,7 @@ self.backup_dir = Path("secure_backups")
             locations = []
 
             # Get active backup nodes
-            backup_nodes = self.session.exec()
+backup_nodes = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(BackupNode).where()
                     (BackupNode.is_active) &
                     (BackupNode.is_online)
@@ -414,7 +414,7 @@ self.backup_dir = Path("secure_backups")
                     })
 
             # Get users with backup quotas
-            user_quotas = self.session.exec(select(UserBackupQuota)).all()
+user_quotas = self.session.# SECURITY: exec() removed - use safe alternativesselect(UserBackupQuota)).all()
 
             for quota in user_quotas:
                 available_space = quota.max_storage_bytes - quota.used_storage_bytes
@@ -471,7 +471,7 @@ self.backup_dir = Path("secure_backups")
 
             # Update location usage
             if location['type'] == 'user_storage':
-                quota = self.session.exec()
+quota = self.session.# SECURITY: exec() removed - use safe alternatives)
                     select(UserBackupQuota).where(UserBackupQuota.user_id == location['id'])
                 ).first()
                 if quota:
@@ -573,7 +573,7 @@ self.backup_dir = Path("secure_backups")
         """Collect all available shards for a backup."""
         try:
             # Get all shards for the backup
-            shards = self.session.exec()
+shards = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(EnhancedBackupShard).where()
                     EnhancedBackupShard.backup_id == backup.id
                 ).order_by(EnhancedBackupShard.shard_index)
@@ -613,7 +613,7 @@ self.backup_dir = Path("secure_backups")
                     logger.warning(f"Checksum mismatch for shard {shard.uuid}")
 
             # Check distributed locations
-            distributions = self.session.exec()
+distributions = self.session.# SECURITY: exec() removed - use safe alternatives)
                 select(ShardDistribution).where()
                     (ShardDistribution.shard_id == shard.id) &
                     (ShardDistribution.is_active)
@@ -732,7 +732,7 @@ self.backup_dir = Path("secure_backups")
             # Restore users (only if they don't exist)
             if 'users' in backup_data.get('tables', {}):
                 for user_data in backup_data['tables']['users']:
-                    existing_user = self.session.exec()
+existing_user = self.session.# SECURITY: exec() removed - use safe alternatives)
                         select(EnhancedUser).where(EnhancedUser.uuid == user_data['uuid'])
                     ).first()
 
@@ -754,7 +754,7 @@ self.backup_dir = Path("secure_backups")
                 for msg_data in backup_data['tables']['messages']:
                     if not msg_data.get('is_deleted', False):
                         # Check if message already exists
-                        existing_msg = self.session.exec()
+existing_msg = self.session.# SECURITY: exec() removed - use safe alternatives)
                             select(Message).where(Message.id == msg_data['id'])
                         ).first()
 

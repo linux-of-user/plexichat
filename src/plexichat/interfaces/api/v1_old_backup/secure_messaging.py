@@ -37,7 +37,7 @@ channels_db = {}
 files_db = {}
 
 # Security configuration
-SECRET_KEY = "plexichat_secure_messaging_key_2024"
+SECRET_KEY =os.getenv("SECRET_KEY", "")
 TOKEN_EXPIRY_HOURS = 24
 
 # Pydantic Models

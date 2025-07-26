@@ -60,7 +60,7 @@ mfa_codes_db = {}
 failed_attempts_db = {}
 
 # Configuration
-SECRET_KEY = "plexichat_secure_key_2024_v2"
+SECRET_KEY =os.getenv("SECRET_KEY", "")
 TOKEN_EXPIRY_HOURS = 24
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 30

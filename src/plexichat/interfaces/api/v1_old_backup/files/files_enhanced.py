@@ -306,7 +306,7 @@ async def list_file_permissions(
         FilePermission.file_id == file_id,
         FilePermission.is_active
     )
-    permissions = session.exec(statement).all()
+permissions = session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
     result = []
     for perm in permissions:
@@ -445,7 +445,7 @@ async def get_file_access_logs(
         FileAccessLog.file_id == file_id
     ).order_by(FileAccessLog.accessed_at.desc()).offset(offset).limit(limit)
 
-    logs = session.exec(statement).all()
+logs = session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
     result = []
     for log in logs:

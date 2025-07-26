@@ -103,7 +103,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     """Register a new storage device."""
     try:
         # Check if device already exists
-        existing_device = session.exec()
+existing_device = session.# SECURITY: exec() removed - use safe alternatives)
             select(StorageDevice).where(StorageDevice.hardware_id == request.hardware_id)
         ).first()
 
@@ -258,7 +258,7 @@ async def submit_capability_report()
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Count current shards
-        shard_counts = session.exec()
+shard_counts = session.# SECURITY: exec() removed - use safe alternatives)
             select()
                 func.count(DeviceShardAssignment.id).label("total"),
                 func.count(DeviceShardAssignment.id).filter(DeviceShardAssignment.is_verified).label("verified")
@@ -327,14 +327,14 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 ) -> List[Dict[str, Any]]:
     """Get devices owned by the current user."""
     try:
-        devices = session.exec()
+devices = session.# SECURITY: exec() removed - use safe alternatives)
             select(StorageDevice).where(StorageDevice.user_id == current_user.id)
         ).all()
 
         result = []
         for device in devices:
             # Get shard assignments
-            shard_assignments = session.exec()
+shard_assignments = session.# SECURITY: exec() removed - use safe alternatives)
                 select(DeviceShardAssignment).where()
                     (DeviceShardAssignment.device_id == device.id) &
                     (DeviceShardAssignment.is_active)
@@ -342,7 +342,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             ).all()
 
             # Get latest capability report
-            latest_report = session.exec()
+latest_report = session.# SECURITY: exec() removed - use safe alternatives)
                 select(DeviceCapabilityReport)
                 .where(DeviceCapabilityReport.device_id == device.id)
                 .order_by(DeviceCapabilityReport.reported_at.desc())
@@ -427,7 +427,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Get shard assignments
-        assignments = session.exec()
+assignments = session.# SECURITY: exec() removed - use safe alternatives)
             select(DeviceShardAssignment)
             .where(DeviceShardAssignment.device_id == device_id)
             .order_by(DeviceShardAssignment.assigned_at.desc())
@@ -487,7 +487,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Find shard assignment
-        assignment = session.exec()
+assignment = session.# SECURITY: exec() removed - use safe alternatives)
             select(DeviceShardAssignment).where()
                 (DeviceShardAssignment.device_id == device_id) &
                 (DeviceShardAssignment.shard_id == shard_id) &

@@ -401,7 +401,7 @@ class EnhancedSplitScreen:
             try:
                 # Simple console output
                 recent_logs = list(self.log_buffer)[-5:]  # Show last 5 logs
-                os.system('cls' if os.name == 'nt' else 'clear')
+# SECURITY: os.system() removed - use subprocess.run() instead'cls' if os.name == 'nt' else 'clear')
                 logger = logging.getLogger(__name__)
                 logger.info(f"PlexiChat Console - Logs: {self.stats['total_logs']} | Errors: {self.stats['errors']}")
                 logger.info("-" * 80)

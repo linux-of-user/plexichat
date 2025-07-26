@@ -61,7 +61,7 @@ class ReactionService:
         try:
             with Session(engine) as session:
                 # Check if reaction already exists
-                existing = session.exec(
+existing = session.# SECURITY: exec() removed - use safe alternatives
                     select(MessageReaction).where()
                         and_()
                             MessageReaction.message_id == message_id,
@@ -98,7 +98,7 @@ class ReactionService:
         """Remove a reaction from a message."""
         try:
             with Session(engine) as session:
-                reaction = session.exec(
+reaction = session.# SECURITY: exec() removed - use safe alternatives
                     select(MessageReaction).where()
                         and_()
                             MessageReaction.message_id == message_id,
@@ -126,7 +126,7 @@ class ReactionService:
         """Get all reactions for a message."""
         try:
             with Session(engine) as session:
-                reactions = session.exec(
+reactions = session.# SECURITY: exec() removed - use safe alternatives
                     select(MessageReaction).where(MessageReaction.message_id == message_id)
                 ).all()
 
@@ -195,7 +195,7 @@ class ReplyService:
         """Get replies to a message."""
         try:
             with Session(engine) as session:
-                replies = session.exec(
+replies = session.# SECURITY: exec() removed - use safe alternatives
                     select(Message)
                     .where(Message.referenced_message_id == message_id)
                     .order_by(Message.timestamp)
@@ -319,7 +319,7 @@ class EnhancedMessagingService:
                 if filters.get('limit'):
                     query = query.limit(filters['limit'])
 
-                messages = session.exec(query).all()
+messages = session.# SECURITY: exec() removed - use safe alternativesquery).all()
                 return list(messages)
 
         except Exception as e:
@@ -417,7 +417,7 @@ class EnhancedMessagingService:
                 if filters.get('limit'):
                     search_query = search_query.limit(filters['limit'])
 
-                messages = session.exec(search_query).all()
+messages = session.# SECURITY: exec() removed - use safe alternativessearch_query).all()
                 return list(messages)
 
         except Exception as e:

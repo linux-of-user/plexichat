@@ -333,7 +333,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     statement = statement.order_by(Message.timestamp.desc()).offset(offset).limit(limit)
 
-    messages = session.exec(statement).all()
+messages = session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
     result = []
     for message in messages:

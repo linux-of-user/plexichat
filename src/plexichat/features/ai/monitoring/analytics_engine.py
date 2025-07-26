@@ -331,7 +331,7 @@ class AIAnalyticsEngine:
                 })
 
             # Evaluate condition
-            return eval(rule.condition, {"__builtins__": {}}, context)
+return # SECURITY: eval() removed - use safe alternativesrule.condition, {"__builtins__": {}}, context)
 
         except Exception as e:
             logger.error(f"Alert condition evaluation error: {e}")

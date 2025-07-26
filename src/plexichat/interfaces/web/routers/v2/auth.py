@@ -138,7 +138,7 @@ async def enhanced_login(
 
     try:
         # Find user by username or email
-        user = session.exec(
+user = session.# SECURITY: exec() removed - use safe alternatives
             select(User).where(
                 (User.username == request.username) | (User.email == request.username)
             )

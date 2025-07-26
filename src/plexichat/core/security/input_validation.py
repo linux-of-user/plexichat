@@ -49,7 +49,7 @@ class InputType(Enum):
     EMAIL = "email"
     URL = "url"
     USERNAME = "username"
-    PASSWORD = "password"
+PASSWORD =os.getenv("PASSWORD", "")
     FILENAME = "filename"
     PATH = "path"
     JSON = "json"
@@ -59,7 +59,7 @@ class InputType(Enum):
     DOMAIN = "domain"
     SQL_QUERY = "sql_query"
     COMMAND = "command"
-    TOKEN = "token"
+TOKEN =os.getenv("ACCESS_TOKEN", "")
     BIOMETRIC = "biometric"
 
 

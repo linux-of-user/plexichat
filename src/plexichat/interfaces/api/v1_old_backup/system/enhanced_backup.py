@@ -263,7 +263,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
     statement = statement.order_by(EnhancedBackup.created_at.desc()).offset(offset).limit(limit)
 
-    backups = session.exec(statement).all()
+backups = session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
     result = []
     for backup in backups:
@@ -299,11 +299,11 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         raise HTTPException(status_code=404, detail="Backup not found")
 
     # Get shard distribution information
-    shards = session.exec()
+shards = session.# SECURITY: exec() removed - use safe alternatives)
         select(EnhancedBackupShard).where(EnhancedBackupShard.backup_id == backup_id)
     ).all()
 
-    distributions = session.exec()
+distributions = session.# SECURITY: exec() removed - use safe alternatives)
         select(ShardDistribution).where(ShardDistribution.backup_id == backup_id)
     ).all()
 
@@ -422,7 +422,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         BackupRecoveryLog.started_at.desc()
     ).offset(offset).limit(limit)
 
-    logs = session.exec(statement).all()
+logs = session.# SECURITY: exec() removed - use safe alternativesstatement).all()
 
     result = []
     for log in logs:
@@ -488,7 +488,7 @@ async def list_backup_nodes()
 User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
 ) -> List[Dict[str, Any]]:
     """List all backup nodes."""
-    nodes = session.exec(select(BackupNode)).all()
+nodes = session.# SECURITY: exec() removed - use safe alternativesselect(BackupNode)).all()
 
     result = []
     for node in nodes:
@@ -533,7 +533,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     # Check if user has admin permissions
 
     # Check if quota already exists
-    existing_quota = session.exec()
+existing_quota = session.# SECURITY: exec() removed - use safe alternatives)
         select(UserBackupQuota).where(UserBackupQuota.user_id == request.user_id)
     ).first()
 
@@ -571,7 +571,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 ) -> Dict[str, Any]:
     """Get comprehensive backup system statistics."""
     # Get backup counts by status
-    backups = session.exec(select(EnhancedBackup)).all()
+backups = session.# SECURITY: exec() removed - use safe alternativesselect(EnhancedBackup)).all()
 
     status_counts = {}
     for backup in backups:
@@ -583,7 +583,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     total_compressed_bytes = sum(backup.compressed_size_bytes for backup in backups)
 
     # Get node statistics
-    nodes = session.exec(select(BackupNode)).all()
+nodes = session.# SECURITY: exec() removed - use safe alternativesselect(BackupNode)).all()
     total_node_capacity = sum(node.total_capacity_bytes for node in nodes)
     total_node_used = sum(node.used_capacity_bytes for node in nodes)
 

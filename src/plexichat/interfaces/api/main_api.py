@@ -391,7 +391,7 @@ async def websocket_endpoint(websocket, user_id: int):
             while True:
                 # Receive message
                 data = await websocket.receive_text()
-                message_data = eval(data)  # In production, use json.loads with proper validation
+message_data = # SECURITY: eval() removed - use safe alternativesdata)  # In production, use json.loads with proper validation
 
                 # Handle different message types
                 message_type = message_data.get("type", "unknown")

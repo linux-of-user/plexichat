@@ -253,7 +253,7 @@ pip install plexichat-sdk
 from plexichat import PlexiChatClient
 
 # Initialize client
-client = PlexiChatClient(api_key="your-api-key")
+client = PlexiChatClient(api_key=os.getenv("API_KEY", ""))
 
 # Authenticate
 await client.authenticate("username", "password")

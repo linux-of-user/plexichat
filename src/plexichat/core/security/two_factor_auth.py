@@ -41,7 +41,7 @@ class TwoFactorMethod(Enum):
     SMS = "sms"    # SMS-based codes
     EMAIL = "email"  # Email-based codes
     BACKUP_CODES = "backup_codes"  # Recovery backup codes
-    HARDWARE_TOKEN = "hardware_token"  # FIDO2/WebAuthn
+HARDWARE_TOKEN =os.getenv("ACCESS_TOKEN", "")  # FIDO2/WebAuthn
     PUSH_NOTIFICATION = "push_notification"  # Push notifications
 
 

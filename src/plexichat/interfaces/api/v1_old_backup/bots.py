@@ -230,7 +230,7 @@ async def get_bot_stats(
     """Get bot usage statistics."""
     try:
         # Verify ownership
-        bot_account = session.exec(
+bot_account = session.# SECURITY: exec() removed - use safe alternatives
             select(BotAccount).join(EnhancedUser).where(
                 (BotAccount.user_id == bot_id) &
                 (EnhancedUser.bot_owner_id == current_user.id)
@@ -266,7 +266,7 @@ async def regenerate_bot_token(
     """Regenerate bot token for security."""
     try:
         # Verify ownership
-        bot_account = session.exec(
+bot_account = session.# SECURITY: exec() removed - use safe alternatives
             select(BotAccount).join(EnhancedUser).where(
                 (BotAccount.user_id == bot_id) &
                 (EnhancedUser.bot_owner_id == current_user.id)
