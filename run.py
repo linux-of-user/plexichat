@@ -2826,12 +2826,29 @@ def run_api_server(args=None):
         return False
 
 def run_cli():
-    """Run the main CLI interface."""
+    """Run the enhanced CLI interface with comprehensive command support."""
     try:
-        from plexichat.interfaces.cli.main_cli import main as cli_main
-        cli_main()
+        # Use the CLI launcher for seamless integration
+        import subprocess
+
+        # Prepare command arguments
+        cli_args = ["python", "cli_launcher.py"] + sys.argv[1:]  # Include 'cli' and any additional args
+
+        # Execute the CLI launcher
+        result = subprocess.run(cli_args, cwd=Path(__file__).parent)
+        sys.exit(result.returncode)
+
     except Exception as e:
         logger.error(f"Could not start CLI: {e}")
+        logger.debug(f"CLI error details: {e}", exc_info=True)
+
+        # Fallback to original CLI system
+        try:
+            from plexichat.interfaces.cli.main_cli import main as cli_main
+            cli_main()
+        except Exception as fallback_error:
+            logger.error(f"Fallback CLI also failed: {fallback_error}")
+            sys.exit(1)
 
 def run_admin_cli():
     """Run admin CLI commands."""
@@ -2905,7 +2922,17 @@ def show_help():
   {Colors.GREEN}api{Colors.RESET}              - Start API server with splitscreen CLI
   {Colors.GREEN}gui{Colors.RESET}              - Launch GUI (starts API server and splitscreen CLI)
   {Colors.GREEN}webui{Colors.RESET}            - Launch Web UI interface
-  {Colors.GREEN}cli{Colors.RESET}              - Run comprehensive CLI interface
+  {Colors.GREEN}cli{Colors.RESET}              - Run enhanced CLI interface (50+ commands)
+                             • System monitoring and management
+                             • Database operations and optimization
+                             • Security scanning and audit
+                             • Plugin management and installation
+                             • User administration and backup
+                             • Performance monitoring and analytics
+                             • Network diagnostics and testing
+                             • AI system management
+                             • Development tools and testing
+                             • Maintenance and cleanup utilities
   {Colors.GREEN}admin{Colors.RESET}            - Run admin CLI commands only
   {Colors.GREEN}backup-node{Colors.RESET}      - Start backup node server
   {Colors.GREEN}plugin{Colors.RESET}           - Plugin management CLI
@@ -4673,6 +4700,18 @@ def show_detailed_help():
                              • Clear pip cache
                              • Remove temporary files
                              • Clean log files
+
+    {Colors.BRIGHT_CYAN}cli{Colors.RESET}                      Enhanced CLI interface with 50+ commands
+                             • System: status, health, performance, monitor
+                             • Database: db-status, db-optimize, backup-create
+                             • Security: security-scan, audit, user-management
+                             • Plugins: plugin-list, plugin-install, plugin-update
+                             • Monitoring: logs, monitor, performance, analytics
+                             • Admin: user-list, user-create, permissions
+                             • Network: network-status, connectivity-test
+                             • AI: ai-status, model-management, performance
+                             • Testing: test-run, coverage, benchmarks
+                             • Maintenance: cleanup, optimize, diagnostics
 
     {Colors.BRIGHT_CYAN}admin{Colors.RESET}                    Run admin CLI commands
                              • User management

@@ -495,12 +495,37 @@ else:
 
 # Main entry point
 def main():
-    """Main CLI entry point."""
+    """Main CLI entry point with enhanced CLI integration."""
     try:
+        # Try enhanced CLI first if available
+        try:
+            from .enhanced_cli import enhanced_cli
+
+            # If no additional arguments, show enhanced help
+            if len(sys.argv) <= 1:
+                enhanced_cli.show_help()
+                return
+
+            # Get command and arguments
+            command = sys.argv[1] if len(sys.argv) > 1 else "help"
+            args = sys.argv[2:] if len(sys.argv) > 2 else []
+
+            # Run the enhanced CLI
+            success = asyncio.run(enhanced_cli.execute_command(command, args))
+            if not success:
+                sys.exit(1)
+            return
+
+        except ImportError:
+            # Fallback to original CLI system
+            print_message("Enhanced CLI not available, using standard CLI", "info")
+
+        # Original CLI system
         if click:
             cli()
         else:
-            cli()
+            cli_fallback()
+
     except KeyboardInterrupt:
         print_message("\nOperation cancelled by user", "warning")
         # Ensure proper shutdown
