@@ -332,14 +332,27 @@ class PluginIsolationManager:
         self.plugin_module_requests: Dict[str, Set[str]] = {} # New: track requested modules per plugin
 
     async def load_module_isolated(self, plugin_name: str, plugin_path: Path, config: Optional[Dict[str, Any]] = None) -> bool:
-        """Load a module in isolation."""
+        """Load a module in isolation with enhanced sandboxing."""
         try:
-            # For now, implement basic isolation
-            # In production, this would use proper sandboxing
+            # Set plugin name in thread context for sandboxing
+            threading.current_thread().plugin_name = plugin_name
 
             # Set resource limits
             if config and 'resource_limits' in config:
                 self.resource_limits[plugin_name] = config['resource_limits']
+
+            # Create plugin-specific directories
+            plugin_dirs = [
+                Path(f"logs/plugin/{plugin_name}"),
+                Path(f"logs/plugins/{plugin_name}"),
+                Path(f"plugins/{plugin_name}/logs"),
+                Path(f"plugins/{plugin_name}/data"),
+                Path(f"plugins/{plugin_name}/cache"),
+                Path(f"plugins/{plugin_name}/temp"),
+            ]
+
+            for plugin_dir in plugin_dirs:
+                plugin_dir.mkdir(parents=True, exist_ok=True)
 
             # Load module with restricted imports
             spec = importlib.util.spec_from_file_location(
@@ -356,7 +369,7 @@ class PluginIsolationManager:
             if not hasattr(module, '__builtins__'):
                 module.__builtins__ = {}
 
-            # Restrict module access (simplified)
+            # Restrict module access with enhanced sandboxing
             restricted_builtins = {
                 '__import__': self._restricted_import,
                 'open': self._restricted_open,
@@ -366,15 +379,28 @@ class PluginIsolationManager:
 
             module.__builtins__.update(restricted_builtins)
 
-            # Execute module
+            # Execute module in sandboxed environment
             spec.loader.exec_module(module)
 
             self.isolated_modules[plugin_name] = module
+
+            # Log successful sandboxed loading
+            try:
+                from src.plexichat.core.logging import get_logger
+                sandbox_logger = get_logger(f"plugin.{plugin_name}.sandbox")
+                sandbox_logger.info(f"Plugin '{plugin_name}' loaded in sandboxed environment")
+            except ImportError:
+                pass
+
             return True
 
         except Exception as e:
             logger.error(f"Failed to load isolated module {plugin_name}: {e}")
             return False
+        finally:
+            # Clean up thread context
+            if hasattr(threading.current_thread(), 'plugin_name'):
+                delattr(threading.current_thread(), 'plugin_name')
 
     def _restricted_import(self, name, *args, **kwargs):
         """Restricted import function with dynamic permission system."""
@@ -425,9 +451,58 @@ class PluginIsolationManager:
             self.plugin_module_requests.setdefault(plugin_name, set()).add(name)
         raise ImportError(f"Import of '{name}' not allowed in sandboxed plugin. Admin approval required.")
 
-    def _restricted_open(self, *args, **kwargs):
-        """Restricted file open function."""
-        raise PermissionError("File access not allowed in sandboxed plugin")
+    def _restricted_open(self, filename, mode='r', *args, **kwargs):
+        """Restricted file open function - only allows access to plugin's own directory."""
+        import os
+        from pathlib import Path
+
+        # Get current plugin name from thread context
+        plugin_name = getattr(threading.current_thread(), 'plugin_name', None)
+        if not plugin_name:
+            raise PermissionError("Plugin name not found in thread context")
+
+        # Convert filename to absolute path
+        file_path = Path(filename).resolve()
+
+        # Define allowed directories for this plugin
+        allowed_dirs = [
+            Path(f"logs/plugin/{plugin_name}").resolve(),
+            Path(f"logs/plugins/{plugin_name}").resolve(),
+            Path(f"plugins/{plugin_name}/logs").resolve(),
+            Path(f"plugins/{plugin_name}/data").resolve(),
+            Path(f"plugins/{plugin_name}/cache").resolve(),
+            Path(f"plugins/{plugin_name}/temp").resolve(),
+        ]
+
+        # Ensure plugin directories exist
+        for allowed_dir in allowed_dirs:
+            allowed_dir.mkdir(parents=True, exist_ok=True)
+
+        # Check if file path is within allowed directories
+        allowed = False
+        for allowed_dir in allowed_dirs:
+            try:
+                file_path.relative_to(allowed_dir)
+                allowed = True
+                break
+            except ValueError:
+                continue
+
+        if not allowed:
+            raise PermissionError(
+                f"Plugin '{plugin_name}' can only access files in: {[str(d) for d in allowed_dirs]}"
+            )
+
+        # Use existing logging system for plugin file operations
+        try:
+            from src.plexichat.core.logging import get_logger
+            logger = get_logger(f"plugin.{plugin_name}.filesystem")
+            logger.info(f"Plugin file access: {filename} (mode: {mode})")
+        except ImportError:
+            pass
+
+        # Allow the file operation
+        return open(filename, mode, *args, **kwargs)
 
     def _restricted_exec(self, *args, **kwargs):
         """Restricted exec function."""

@@ -182,6 +182,20 @@ default_creds.txt
 changelog.json
 CHANGELOG.md
 
+# Plugin sandboxing - each plugin gets its own log directory
+/logs/plugin/*/
+/logs/plugins/*/
+/plugins/logs/*/
+/plugins/*/logs/
+/plugins/*/data/
+/plugins/*/cache/
+/plugins/*/temp/
+
+# API test reports and temporary files
+api_test_report_*.json
+test_report_*.json
+*_test_report.json
+
 # Development and testing artifacts
 *_test.py
 *_standalone_test.py

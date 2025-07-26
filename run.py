@@ -491,9 +491,19 @@ class EnhancedColoredFormatter(logging.Formatter):
 
 def setup_enhanced_logging(log_level: str = "INFO"):
     """Setup enhanced logging with performance monitoring and API tracking."""
-    # Create performance monitor
+    # Try to use unified logging system first
+    if UNIFIED_LOGGING_AVAILABLE:
+        try:
+            from src.plexichat.core.logging import get_logger
+            logger = get_logger(__name__)
+            performance_monitor = PerformanceMonitor()
+            return logger, performance_monitor
+        except Exception as e:
+            print(f"Failed to use unified logging: {e}")
+
+    # Fallback to basic logging for install/setup modes
     performance_monitor = PerformanceMonitor()
-    
+
     # Create enhanced formatter
     formatter = EnhancedColoredFormatter(
         fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -509,7 +519,7 @@ def setup_enhanced_logging(log_level: str = "INFO"):
     root_logger = logging.getLogger()
     root_logger.handlers.clear()  # Remove existing handlers
     root_logger.addHandler(console_handler)
-    
+
     # Set log level
     log_level_map = {
         'DEBUG': logging.DEBUG,
@@ -534,8 +544,15 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# Get a basic logger for module level use
-logger = logging.getLogger(__name__)
+# Try to use the unified logging system from src, fallback to basic logging
+try:
+    from src.plexichat.core.logging import get_logger
+    logger = get_logger(__name__)
+    UNIFIED_LOGGING_AVAILABLE = True
+except ImportError:
+    # Fallback to basic logging for install/setup modes
+    logger = logging.getLogger(__name__)
+    UNIFIED_LOGGING_AVAILABLE = False
 
 # Add src to path for imports FIRST
 src_path = str(Path(__file__).parent / "src")
@@ -1021,7 +1038,7 @@ class SetupWizard:
 
         self.ui.add_log("Checking required directories...", "INFO")
         # Only create essential directories - others created by components that need them
-        required_dirs = ['config']
+        required_dirs = ['config', 'logs']
         for dir_name in required_dirs:
             Path(dir_name).mkdir(exist_ok=True)
 
@@ -1511,9 +1528,9 @@ def setup_environment():
     try:
         logger.info("Setting up environment...")
         # Create all required directories
+        # Only create essential directories - others created by components that need them
         required_dirs = [
-            'config', 'logs', 'temp', 'uploads', 'backups', 'data',
-            'src/logs/audit', 'src/logs/crashes', 'src/logs/performance', 'src/logs/security'
+            'config', 'logs', 'backups', 'data'
         ]
         for dir_name in required_dirs:
             dir_path = Path(dir_name)
@@ -2028,7 +2045,7 @@ def run_splitscreen_cli():
         logger.error(f"Could not start splitscreen CLI: {e}")
         logger.debug(f"CLI error details: {e}", exc_info=True)
 
-def run_api_and_cli():
+def run_api_and_cli(args=None):
     """Run both API server and CLI interface."""
     try:
         # Start the splitscreen CLI in a separate thread
@@ -2041,7 +2058,7 @@ def run_api_and_cli():
         logger.info("Continuing with API server only...")
 
     # Start the API server (blocking)
-    run_api_server()
+    run_api_server(args)
 
 def run_gui():
     """Launch the GUI interface (Tkinter)."""
@@ -2758,7 +2775,7 @@ def run_first_time_setup(level: Optional[str] = None):
         print(f"{Colors.DIM}Try running with minimal dependencies: python run.py setup --level minimal{Colors.RESET}")
         return False
 
-def run_api_server():
+def run_api_server(args=None):
     """Start the PlexiChat API server."""
     try:
         # Set process name for easier identification
@@ -2775,9 +2792,17 @@ def run_api_server():
         host = "0.0.0.0"
         port = 8000
 
+        # Load from config first
         if config:
             host = config.get('server', {}).get('host', '0.0.0.0')
             port = config.get('server', {}).get('port', 8000)
+
+        # Override with command line arguments if provided
+        if args:
+            if hasattr(args, 'host') and args.host:
+                host = args.host
+            if hasattr(args, 'port') and args.port:
+                port = args.port
 
         logger.info(f"Starting PlexiChat API server on {host}:{port}")
         logger.info("PlexiChat API server starting...")
@@ -4926,7 +4951,7 @@ def main():
         run_enhanced_tests()
 
     elif args.command == 'api':
-        run_api_and_cli()
+        run_api_and_cli(args)
 
     elif args.command == 'gui':
         run_gui()
@@ -4969,7 +4994,7 @@ def main():
 
     else:
         logger.info("Defaulting to API server and CLI...")
-        run_api_and_cli()
+        run_api_and_cli(args)
 
 
 if __name__ == "__main__":
