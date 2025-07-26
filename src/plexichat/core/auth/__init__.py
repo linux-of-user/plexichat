@@ -29,7 +29,7 @@ except ImportError:
     auth_manager = unified_auth_manager
 
     class AuthenticationMethod:
-PASSWORD =os.getenv("PASSWORD", "")
+        PASSWORD = "password"
         MFA_TOTP = "mfa_totp"
 
     class SecurityLevel:

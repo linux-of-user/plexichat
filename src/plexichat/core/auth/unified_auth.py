@@ -1,5 +1,4 @@
 """
-import time
 PlexiChat Unified Authentication System - SINGLE SOURCE OF TRUTH
 
 This module consolidates ALL authentication systems from:
@@ -9,6 +8,9 @@ This module consolidates ALL authentication systems from:
 
 Provides a single, unified interface for all authentication operations.
 """
+
+import os
+import time
 
 import logging
 from datetime import datetime, timedelta
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class AuthenticationMethod(Enum):
     """Supported authentication methods."""
-PASSWORD =os.getenv("PASSWORD", "")
+    PASSWORD = "password"
     MFA_TOTP = "mfa_totp"
     MFA_SMS = "mfa_sms"
     MFA_EMAIL = "mfa_email"
@@ -33,7 +35,9 @@ PASSWORD =os.getenv("PASSWORD", "")
     OAUTH2 = "oauth2"
     HARDWARE_KEY = "hardware_key"
     ZERO_KNOWLEDGE = "zero_knowledge"
-API_KEY =os.getenv("API_KEY", "")
+
+# Configuration constants
+API_KEY = os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
@@ -93,7 +97,7 @@ class UnifiedAuthManager:
         self.max_failed_attempts = 5
         self.lockout_duration = timedelta(minutes=30)
         self.session_timeout = timedelta(hours=8)
-self.token_secret =os.getenv("SECRET_KEY", "")  # Should be from config
+        self.token_secret = "default_secret"  # Should be from config
 
     async def authenticate(
         self,
@@ -333,8 +337,8 @@ AuthManager = UnifiedAuthManager
 __all__ = [
     'UnifiedAuthManager',
     'unified_auth_manager',
-    'auth_manager',  # Backward compatibility
-    'AuthManager',   # Backward compatibility
+    'auth_manager',
+    'AuthManager',
     'AuthenticationMethod',
     'SecurityLevel',
     'AuthSession',

@@ -206,7 +206,7 @@ class DatabasePerformanceMonitor:
             # Network I/O
             network_io = psutil.net_io_counters()
 
-            metrics = ResourceMetrics()
+            metrics = ResourceMetrics(
                 cpu_usage=cpu_percent,
                 memory_usage=memory.percent,
                 disk_io_read=disk_io.read_bytes if disk_io else 0,
@@ -231,13 +231,13 @@ class DatabasePerformanceMonitor:
                 latest = self.resource_history[-1]
 
                 if latest.cpu_usage > self.alert_thresholds.get('cpu_usage_percent', 80):
-                    await self._trigger_alert('high_cpu_usage', {)
+                    await self._trigger_alert('high_cpu_usage', {
                         'cpu_usage': latest.cpu_usage,
                         'threshold': self.alert_thresholds.get('cpu_usage_percent', 80)
                     })
 
                 if latest.memory_usage > self.alert_thresholds.get('memory_usage_percent', 85):
-                    await self._trigger_alert('high_memory_usage', {)
+                    await self._trigger_alert('high_memory_usage', {
                         'memory_usage': latest.memory_usage,
                         'threshold': self.alert_thresholds.get('memory_usage_percent', 85)
                     })
@@ -245,7 +245,7 @@ class DatabasePerformanceMonitor:
             # Check connection pool alerts
             pool_threshold = self.alert_thresholds.get('connection_pool_usage_percent', 90)
             if self.connection_metrics.pool_utilization > pool_threshold / 100:
-                await self._trigger_alert('high_connection_pool_usage', {)
+                await self._trigger_alert('high_connection_pool_usage', {
                     'pool_utilization': self.connection_metrics.pool_utilization * 100,
                     'threshold': pool_threshold
                 })

@@ -141,7 +141,7 @@ class LoginService:
             user.id = 1  # pyright: ignore
             user.username = "admin"  # pyright: ignore
             user.email = "admin@example.com"  # pyright: ignore
-user.hashed_password =os.getenv("PASSWORD", "")  # pyright: ignore
+            user.hashed_password = "admin"  # pyright: ignore
             user.is_active = True  # pyright: ignore
             return user
 

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import random
 import secrets
 import string
@@ -56,7 +57,7 @@ logger = get_logger(__name__)
 
 class AuthenticationMethod(Enum):
     """Authentication methods."""
-PASSWORD =os.getenv("PASSWORD", "")
+    PASSWORD = "password"
     MFA_TOTP = "mfa_totp"
     MFA_SMS = "mfa_sms"
     MFA_EMAIL = "mfa_email"
@@ -64,7 +65,10 @@ PASSWORD =os.getenv("PASSWORD", "")
     OAUTH2 = "oauth2"
     HARDWARE_KEY = "hardware_key"
     ZERO_KNOWLEDGE = "zero_knowledge"
-API_KEY =os.getenv("API_KEY", "")
+
+# Configuration constants
+PASSWORD = os.getenv("PASSWORD", "")
+API_KEY = os.getenv("API_KEY", "")
 
 
 class SecurityLevel(Enum):
