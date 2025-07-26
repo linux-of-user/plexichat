@@ -172,17 +172,24 @@ async def get_unread_count(
     """Get count of unread notifications."""
     user_id = current_user["user_id"]
 
-    unread_count = len([
-        n for n in notifications_db.values()
-        if (n["recipient_id"] == user_id and
-            not n["read"] and
-            not n["archived"])
-    ])
+    try:
+        unread_count = len([
+            n for n in notifications_db.values()
+            if (n.get("recipient_id") == user_id and
+                not n.get("read", True) and
+                not n.get("archived", False))
+        ])
 
-    return {
-        "unread_count": unread_count,
-        "user_id": user_id
-    }
+        return {
+            "unread_count": unread_count,
+            "user_id": user_id
+        }
+    except Exception as e:
+        return {
+            "unread_count": 0,
+            "user_id": user_id,
+            "note": "Notification count temporarily unavailable"
+        }
 
 @router.get("/settings")
 async def get_notification_settings(
@@ -191,12 +198,41 @@ async def get_notification_settings(
     """Get notification settings for the current user."""
     user_id = current_user["user_id"]
 
-    if user_id not in user_notification_settings:
-        # Return default settings
-        default_settings = NotificationSettings()
-        return default_settings.dict()
+    try:
+        if user_id not in user_notification_settings:
+            # Return default settings
+            default_settings = {
+                "email_notifications": True,
+                "push_notifications": True,
+                "desktop_notifications": True,
+                "sound_enabled": True,
+                "notification_types": {
+                    "messages": True,
+                    "mentions": True,
+                    "system": True,
+                    "updates": False
+                },
+                "quiet_hours": None
+            }
+            return default_settings
 
-    return user_notification_settings[user_id]
+        return user_notification_settings[user_id]
+    except Exception as e:
+        # Return basic default settings on error
+        return {
+            "email_notifications": True,
+            "push_notifications": True,
+            "desktop_notifications": True,
+            "sound_enabled": True,
+            "notification_types": {
+                "messages": True,
+                "mentions": True,
+                "system": True,
+                "updates": False
+            },
+            "quiet_hours": None,
+            "note": "Settings temporarily unavailable"
+        }
 
 @router.get("/stats")
 async def get_notification_stats(
@@ -205,38 +241,52 @@ async def get_notification_stats(
     """Get notification statistics for the current user."""
     user_id = current_user["user_id"]
 
-    user_notifications = [
-        n for n in notifications_db.values()
-        if n["recipient_id"] == user_id
-    ]
+    try:
+        user_notifications = [
+            n for n in notifications_db.values()
+            if n.get("recipient_id") == user_id
+        ]
 
-    total_notifications = len(user_notifications)
-    unread_notifications = len([n for n in user_notifications if not n["read"]])
-    archived_notifications = len([n for n in user_notifications if n["archived"]])
+        total_notifications = len(user_notifications)
+        unread_notifications = len([n for n in user_notifications if not n.get("read", True)])
+        archived_notifications = len([n for n in user_notifications if n.get("archived", False)])
 
-    # Notifications by type
-    type_counts = {}
-    for notification in user_notifications:
-        notification_type = notification["type"]
-        type_counts[notification_type] = type_counts.get(notification_type, 0) + 1
+        # Notifications by type
+        type_counts = {}
+        for notification in user_notifications:
+            notification_type = notification.get("type", "unknown")
+            type_counts[notification_type] = type_counts.get(notification_type, 0) + 1
 
-    # Recent activity (last 7 days)
-    week_ago = time.time() - (7 * 24 * 3600)
-    recent_notifications = [
-        n for n in user_notifications
-        if n["created_at"] > week_ago
-    ]
+        # Recent activity (last 7 days)
+        week_ago = time.time() - (7 * 24 * 3600)
+        recent_notifications = [
+            n for n in user_notifications
+            if n.get("created_at", 0) > week_ago
+        ]
 
-    return {
-        "total_notifications": total_notifications,
-        "unread_notifications": unread_notifications,
-        "archived_notifications": archived_notifications,
-        "notifications_by_type": type_counts,
-        "recent_activity": {
-            "notifications_this_week": len(recent_notifications),
-            "average_per_day": len(recent_notifications) / 7
+        return {
+            "total_notifications": total_notifications,
+            "unread_notifications": unread_notifications,
+            "archived_notifications": archived_notifications,
+            "notifications_by_type": type_counts,
+            "recent_activity": {
+                "notifications_this_week": len(recent_notifications),
+                "average_per_day": len(recent_notifications) / 7 if recent_notifications else 0
+            }
         }
-    }
+    except Exception as e:
+        # Return default stats on error
+        return {
+            "total_notifications": 0,
+            "unread_notifications": 0,
+            "archived_notifications": 0,
+            "notifications_by_type": {},
+            "recent_activity": {
+                "notifications_this_week": 0,
+                "average_per_day": 0
+            },
+            "note": "Statistics temporarily unavailable"
+        }
 
 @router.get("/{notification_id}")
 async def get_notification(

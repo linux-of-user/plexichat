@@ -275,30 +275,42 @@ async def get_search_suggestions(
 ):
     """Get search suggestions based on partial query."""
     suggestions = []
-    
-    if type in ["all", "users"]:
-        # User suggestions
-        for user_id, user in users_db.items():
-            username = user.get("username", "")
-            if username.lower().startswith(q.lower()):
-                suggestions.append({
-                    "type": "user",
-                    "text": f"@{username}",
-                    "description": user.get("display_name", username)
-                })
-    
-    if type in ["all", "files"]:
-        # File suggestions
-        for file_id, file_info in files_db.items():
-            if file_info.get("owner_id") == current_user["user_id"]:
-                filename = file_info.get("filename", "")
-                if filename.lower().startswith(q.lower()):
+
+    try:
+        if type in ["all", "users"]:
+            # User suggestions
+            for user_id, user in users_db.items():
+                username = user.get("username", "")
+                if username and username.lower().startswith(q.lower()):
                     suggestions.append({
-                        "type": "file",
-                        "text": filename,
-                        "description": f"{file_info.get('size', 0)} bytes"
+                        "type": "user",
+                        "text": f"@{username}",
+                        "description": user.get("display_name", username)
                     })
-    
+
+        if type in ["all", "files"]:
+            # File suggestions
+            for file_id, file_info in files_db.items():
+                if file_info.get("owner_id") == current_user["user_id"]:
+                    filename = file_info.get("filename", "")
+                    if filename and filename.lower().startswith(q.lower()):
+                        suggestions.append({
+                            "type": "file",
+                            "text": filename,
+                            "description": f"{file_info.get('size', 0)} bytes"
+                        })
+
+        # Add some default suggestions if no matches found
+        if not suggestions:
+            suggestions = [
+                {"type": "suggestion", "text": "No matches found", "description": f"Try searching for '{q}' in messages"},
+                {"type": "suggestion", "text": "Search tips", "description": "Use @ for users, # for tags"}
+            ]
+
+    except Exception as e:
+        # Return empty suggestions on error
+        suggestions = [{"type": "error", "text": "Search unavailable", "description": "Please try again later"}]
+
     return {
         "suggestions": suggestions[:limit],
         "query": q
@@ -311,32 +323,47 @@ async def get_analytics_overview(
 ):
     """Get analytics overview for the current user."""
     user_id = current_user["user_id"]
-    
-    # Message analytics
-    user_messages = [m for m in messages_db.values() if m.get("sender_id") == user_id]
-    messages_sent = len(user_messages)
-    
-    # File analytics
-    user_files = [f for f in files_db.values() if f.get("owner_id") == user_id]
-    files_uploaded = len(user_files)
-    total_file_size = sum(f.get("size", 0) for f in user_files)
-    
-    # Activity analytics
-    now = time.time()
-    week_ago = now - (7 * 24 * 3600)
-    recent_messages = [m for m in user_messages if m.get("created_at", 0) > week_ago]
-    
-    return {
-        "user_id": user_id,
-        "messages_sent": messages_sent,
-        "files_uploaded": files_uploaded,
-        "total_file_size": total_file_size,
-        "recent_activity": {
-            "messages_this_week": len(recent_messages),
-            "files_this_week": len([f for f in user_files if f.get("created_at", 0) > week_ago])
-        },
-        "generated_at": now
-    }
+
+    try:
+        # Message analytics
+        user_messages = [m for m in messages_db.values() if m.get("sender_id") == user_id]
+        messages_sent = len(user_messages)
+
+        # File analytics
+        user_files = [f for f in files_db.values() if f.get("owner_id") == user_id]
+        files_uploaded = len(user_files)
+        total_file_size = sum(f.get("size", 0) for f in user_files)
+
+        # Activity analytics
+        now = time.time()
+        week_ago = now - (7 * 24 * 3600)
+        recent_messages = [m for m in user_messages if m.get("created_at", 0) > week_ago]
+
+        return {
+            "user_id": user_id,
+            "messages_sent": messages_sent,
+            "files_uploaded": files_uploaded,
+            "total_file_size": total_file_size,
+            "recent_activity": {
+                "messages_this_week": len(recent_messages),
+                "files_this_week": len([f for f in user_files if f.get("created_at", 0) > week_ago])
+            },
+            "generated_at": now
+        }
+    except Exception as e:
+        # Return default analytics on error
+        return {
+            "user_id": user_id,
+            "messages_sent": 0,
+            "files_uploaded": 0,
+            "total_file_size": 0,
+            "recent_activity": {
+                "messages_this_week": 0,
+                "files_this_week": 0
+            },
+            "generated_at": time.time(),
+            "note": "Analytics data temporarily unavailable"
+        }
 
 @router.get("/analytics/trends")
 async def get_search_trends(

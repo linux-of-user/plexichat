@@ -1,0 +1,225 @@
+{
+  "timestamp": "2025-07-26T11:54:39.822841",
+  "summary": {
+    "total_tests": 42,
+    "successful": 38,
+    "failed": 4,
+    "errors": 0,
+    "success_rate": 90.47619047619048
+  },
+  "detailed_results": {
+    "/health": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/health": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/info": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/metrics": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/status": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/version": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/ping": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/time": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/capabilities": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/system/stats/summary": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "auth_register": {
+      "status": "SUCCESS",
+      "data": {
+        "success": true,
+        "message": "User registered successfully",
+        "user_id": "e0de97a6-4157-41f4-83a4-195522ac5419",
+        "username": "testuser_1753527278"
+      }
+    },
+    "auth_login": {
+      "status": "SUCCESS",
+      "data": {
+        "access_token": "8ff08b70556467648f2bd906936afa89d04669d3e2d092743ff9671c296d76dd",
+        "refresh_token": "b2ce4483adb787de99b3ea52051381e452fb5c8ef409d395736d889c317fed26",
+        "token_type": "bearer",
+        "expires_in": 86400,
+        "user_id": "e0de97a6-4157-41f4-83a4-195522ac5419",
+        "username": "testuser_1753527278",
+        "requires_mfa": false,
+        "session_id": "aec46786-7a78-4c30-a8c9-f259aa7ac13b",
+        "permissions": []
+      }
+    },
+    "/api/v1/auth/me": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/auth/status": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/users/me": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/users/search?query=test&limit=10": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/users/?limit=20&offset=0": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/users/stats/summary": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "users_update": {
+      "status": "SUCCESS",
+      "data": {
+        "success": true,
+        "message": "Profile updated successfully",
+        "user": {
+          "id": "e0de97a6-4157-41f4-83a4-195522ac5419",
+          "username": "testuser_1753527278",
+          "email": "updated_1753527279@example.com",
+          "display_name": "Updated Test User"
+        }
+      }
+    },
+    "messages_send": {
+      "status": "SUCCESS",
+      "data": {
+        "id": "e1fd3577-657e-4973-a4d0-b748beebe675",
+        "sender_id": "e0de97a6-4157-41f4-83a4-195522ac5419",
+        "recipient_id": "5be8a2c7-ce51-4262-bde3-90beda698c15",
+        "content": "Hello from comprehensive API test!",
+        "message_type": "text",
+        "encrypted": true,
+        "timestamp": "2025-07-26T11:54:39.773349",
+        "read": false
+      }
+    },
+    "/api/v1/messages/conversations": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/messages/stats": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "files_upload": {
+      "status": "SUCCESS",
+      "data": {
+        "id": "f88d6c03-9d2f-44db-b9e5-c3c952778e82",
+        "filename": "test.txt",
+        "content_type": "text/plain",
+        "size": 50,
+        "uploaded_by": "e0de97a6-4157-41f4-83a4-195522ac5419",
+        "uploaded_at": "2025-07-26T11:54:39.780545",
+        "description": "Test file upload",
+        "is_public": false
+      }
+    },
+    "/api/v1/files/": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/files/stats": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/admin/stats": {
+      "status": "SUCCESS",
+      "code": 403,
+      "note": "Expected 403"
+    },
+    "/api/v1/admin/users": {
+      "status": "SUCCESS",
+      "code": 403,
+      "note": "Expected 403"
+    },
+    "/api/v1/admin/health": {
+      "status": "SUCCESS",
+      "code": 403,
+      "note": "Expected 403"
+    },
+    "/api/v1/realtime/status": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/realtime/connections": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/groups/": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/groups/stats": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/groups/my/groups": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/search/status": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/search/suggestions?q=test": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/search/analytics/overview": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/search/analytics/trends": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/notifications/system/status": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/notifications/": {
+      "status": "SUCCESS",
+      "code": 200
+    },
+    "/api/v1/notifications/unread/count": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/notifications/settings": {
+      "status": "FAILED",
+      "code": 500
+    },
+    "/api/v1/notifications/stats": {
+      "status": "FAILED",
+      "code": 500
+    }
+  }
+}
