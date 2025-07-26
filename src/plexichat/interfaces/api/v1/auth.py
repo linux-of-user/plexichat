@@ -33,6 +33,7 @@ try:
     from plexichat.core.caching.unified_cache_integration import cache_get, cache_set, cache_delete, cached
     from plexichat.core.security.unified_security_system import unified_security_manager, SecurityRequest, SecurityLevel
     from plexichat.core.auth.unified_auth_manager import unified_auth_manager
+    from plexichat.core.security.two_factor_auth import two_factor_authenticator, TwoFactorMethod
     from plexichat.infrastructure.performance.performance_logger import performance_logger
 except ImportError as e:
     # Fallback implementations
@@ -137,6 +138,37 @@ class SessionInfo(BaseModel):
     ip_address: str
     user_agent: str
     is_active: bool
+
+# Two-Factor Authentication Models
+class TwoFactorSetupRequest(BaseModel):
+    device_name: Optional[str] = "Default Device"
+
+class TwoFactorSetupResponse(BaseModel):
+    secret_key: str
+    qr_code: str  # Base64 encoded QR code image
+    backup_codes: List[str]
+    formatted_backup_codes: str
+    setup_uri: str
+
+class TwoFactorVerificationRequest(BaseModel):
+    code: str = Field(..., min_length=6, max_length=8)
+    method: Optional[str] = None  # totp, backup_codes, etc.
+
+class TwoFactorStatusResponse(BaseModel):
+    user_id: str
+    has_2fa_enabled: bool
+    enabled_methods: List[str]
+    methods_status: Dict[str, Any]
+    total_attempts: int
+    recent_success: bool
+
+class LoginWith2FARequest(BaseModel):
+    username: str
+    password: str
+    two_factor_code: str = Field(..., min_length=6, max_length=8)
+    method: Optional[str] = None
+    remember_me: bool = False
+    device_info: Optional[Dict[str, str]] = None
 
 # Enhanced Utility Functions
 def hash_password(password: str) -> str:
@@ -536,3 +568,247 @@ async def auth_status():
         "active_sessions": len(sessions_db),
         "timestamp": datetime.now()
     }
+
+# Two-Factor Authentication Endpoints
+
+@router.post("/2fa/setup", response_model=TwoFactorSetupResponse)
+async def setup_two_factor_auth(
+    request: TwoFactorSetupRequest,
+    http_request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Setup two-factor authentication for the current user."""
+    try:
+        user_id = current_user['id']
+        user_email = current_user['email']
+        client_ip = http_request.client.host if http_request.client else "unknown"
+
+        # Setup TOTP-based 2FA
+        setup_result = await two_factor_authenticator.setup_totp(
+            user_id=user_id,
+            user_email=user_email,
+            device_name=request.device_name,
+            ip_address=client_ip
+        )
+
+        logger.info(f"2FA setup initiated for user {current_user['username']}")
+
+        return TwoFactorSetupResponse(**setup_result)
+
+    except Exception as e:
+        logger.error(f"2FA setup error for user {current_user['username']}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to setup two-factor authentication")
+
+@router.post("/2fa/verify-setup")
+async def verify_two_factor_setup(
+    request: TwoFactorVerificationRequest,
+    http_request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Verify two-factor authentication setup with user-provided code."""
+    try:
+        user_id = current_user['id']
+        client_ip = http_request.client.host if http_request.client else "unknown"
+
+        # Verify setup code
+        success = await two_factor_authenticator.verify_totp_setup(
+            user_id=user_id,
+            verification_code=request.code,
+            ip_address=client_ip
+        )
+
+        if success:
+            logger.info(f"2FA setup completed for user {current_user['username']}")
+            return {"success": True, "message": "Two-factor authentication enabled successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid verification code")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"2FA setup verification error for user {current_user['username']}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to verify two-factor authentication setup")
+
+@router.post("/2fa/verify")
+async def verify_two_factor_code(
+    request: TwoFactorVerificationRequest,
+    http_request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Verify two-factor authentication code."""
+    try:
+        user_id = current_user['id']
+        client_ip = http_request.client.host if http_request.client else "unknown"
+        user_agent = http_request.headers.get("user-agent", "unknown")
+
+        # Parse method if provided
+        method = None
+        if request.method:
+            try:
+                method = TwoFactorMethod(request.method)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid 2FA method")
+
+        # Verify code
+        result = await two_factor_authenticator.verify_two_factor(
+            user_id=user_id,
+            code=request.code,
+            method=method,
+            ip_address=client_ip,
+            user_agent=user_agent
+        )
+
+        if result['success']:
+            return {
+                "success": True,
+                "method": result['method'],
+                "message": result['message']
+            }
+        else:
+            status_code = 429 if result.get('error') == 'rate_limit_exceeded' else 400
+            raise HTTPException(status_code=status_code, detail=result['message'])
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"2FA verification error for user {current_user['username']}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to verify two-factor authentication code")
+
+@router.get("/2fa/status", response_model=TwoFactorStatusResponse)
+async def get_two_factor_status(current_user: dict = Depends(get_current_user)):
+    """Get user's two-factor authentication status."""
+    try:
+        user_id = current_user['id']
+
+        status = await two_factor_authenticator.get_user_2fa_status(user_id)
+
+        return TwoFactorStatusResponse(**status)
+
+    except Exception as e:
+        logger.error(f"2FA status error for user {current_user['username']}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get two-factor authentication status")
+
+@router.post("/2fa/disable")
+async def disable_two_factor_auth(
+    current_user: dict = Depends(get_current_user)
+):
+    """Disable two-factor authentication for the current user."""
+    try:
+        user_id = current_user['id']
+
+        success = await two_factor_authenticator.disable_two_factor(user_id)
+
+        if success:
+            logger.info(f"2FA disabled for user {current_user['username']}")
+            return {"success": True, "message": "Two-factor authentication disabled successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Failed to disable two-factor authentication")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"2FA disable error for user {current_user['username']}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to disable two-factor authentication")
+
+@router.post("/2fa/backup-codes")
+async def generate_new_backup_codes(current_user: dict = Depends(get_current_user)):
+    """Generate new backup codes for two-factor authentication."""
+    try:
+        user_id = current_user['id']
+
+        new_codes = await two_factor_authenticator.generate_new_backup_codes(user_id)
+
+        if new_codes:
+            logger.info(f"New backup codes generated for user {current_user['username']}")
+            return {
+                "success": True,
+                "backup_codes": new_codes,
+                "message": "New backup codes generated successfully"
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Failed to generate new backup codes")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Backup codes generation error for user {current_user['username']}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate new backup codes")
+
+@router.post("/login-2fa", response_model=TokenResponse)
+async def login_with_two_factor(
+    request: LoginWith2FARequest,
+    http_request: Request
+):
+    """Login with username, password, and two-factor authentication code."""
+    try:
+        client_ip = http_request.client.host if http_request.client else "unknown"
+        user_agent = http_request.headers.get("user-agent", "unknown")
+
+        # First verify username and password
+        user = None
+        for u in users_db.values():
+            if u['username'] == request.username:
+                user = u
+                break
+
+        if not user or not verify_password(request.password, user['hashed_password']):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        # Verify 2FA code
+        method = None
+        if request.method:
+            try:
+                method = TwoFactorMethod(request.method)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid 2FA method")
+
+        verification_result = await two_factor_authenticator.verify_two_factor(
+            user_id=user['id'],
+            code=request.two_factor_code,
+            method=method,
+            ip_address=client_ip,
+            user_agent=user_agent
+        )
+
+        if not verification_result['success']:
+            status_code = 429 if verification_result.get('error') == 'rate_limit_exceeded' else 401
+            raise HTTPException(status_code=status_code, detail=verification_result['message'])
+
+        # Create session and tokens
+        session_id = str(uuid4())
+        access_token = create_access_token(user['id'], user['username'])
+        refresh_token = create_refresh_token(user['id'])
+
+        # Store session
+        sessions_db[session_id] = {
+            'user_id': user['id'],
+            'username': user['username'],
+            'created_at': datetime.now(),
+            'last_activity': datetime.now(),
+            'ip_address': client_ip,
+            'user_agent': user_agent,
+            'is_active': True,
+            'two_factor_verified': True,
+            'two_factor_method': verification_result['method']
+        }
+
+        # Update user last login
+        user['last_login'] = datetime.now()
+
+        logger.info(f"User logged in with 2FA: {user['username']} using {verification_result['method']}")
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            user_id=user['id'],
+            username=user['username'],
+            session_id=session_id,
+            requires_mfa=False  # Already verified
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"2FA login error: {e}")
+        raise HTTPException(status_code=500, detail="Login failed")
