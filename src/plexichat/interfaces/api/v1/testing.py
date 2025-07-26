@@ -382,6 +382,8 @@ async def testing_status():
     return {
         "service": "testing",
         "status": "online",
-        "environment": settings.get("environment", "unknown"),
-        "debug_mode": settings.get("debug", False)
+        "environment": "development",
+        "debug_mode": True,
+        "timestamp": datetime.now().isoformat(),
+        "version": "1.0.0"
     }

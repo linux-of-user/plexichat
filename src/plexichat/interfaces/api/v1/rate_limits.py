@@ -144,7 +144,7 @@ async def get_rate_limit_rules(admin_user: str = Depends(verify_admin_permission
         rules = []
 
         for rule in limiter.rules.values():
-            rules.append({)
+            rules.append({
                 "name": rule.name,
                 "limit_type": rule.limit_type.value,
                 "max_requests": rule.max_requests,
@@ -165,7 +165,7 @@ async def get_rate_limit_rules(admin_user: str = Depends(verify_admin_permission
         raise HTTPException(status_code=500, detail="Failed to retrieve rules")
 
 @router.post("/rules")
-async def create_rate_limit_rule()
+async def create_rate_limit_rule(
     rule_data: RateLimitRuleCreate,
     admin_user: str = Depends(verify_admin_permission)
 ):
@@ -180,7 +180,7 @@ async def create_rate_limit_rule()
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid enum value: {e}")
 
-        rule = RateLimitRule()
+        rule = RateLimitRule(
             name=rule_data.name,
             limit_type=limit_type,
             max_requests=rule_data.max_requests,
@@ -211,7 +211,7 @@ async def create_rate_limit_rule()
         raise HTTPException(status_code=500, detail="Failed to create rule")
 
 @router.put("/rules/{rule_name}")
-async def update_rate_limit_rule()
+async def update_rate_limit_rule(
     rule_name: str,
     rule_updates: RateLimitRuleUpdate,
     admin_user: str = Depends(verify_admin_permission)
@@ -248,7 +248,7 @@ async def update_rate_limit_rule()
         raise HTTPException(status_code=500, detail="Failed to update rule")
 
 @router.delete("/rules/{rule_name}")
-async def delete_rate_limit_rule()
+async def delete_rate_limit_rule(
     rule_name: str,
     admin_user: str = Depends(verify_admin_permission)
 ):

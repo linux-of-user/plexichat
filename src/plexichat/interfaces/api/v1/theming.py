@@ -218,7 +218,7 @@ async def get_theme_css(theme_id: str):
 async def create_custom_theme(request: ThemeCreateRequest):
     """Create a new custom theme."""
     try:
-        theme = theming_service.create_custom_theme()
+        theme = theming_service.create_custom_theme(
             name=request.name,
             description=request.description,
             base_theme_id=request.base_theme_id,
@@ -329,7 +329,7 @@ async def export_theme(theme_id: str):
 
         return {
             "theme_data": theme_data,
-            "export_timestamp": theming_service.user_preferences.get()
+            "export_timestamp": theming_service.user_preferences.get(
                 "export_timestamp"
             ),
         }

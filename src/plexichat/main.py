@@ -806,7 +806,7 @@ def create_app() -> FastAPI:
     # Add v1 API middleware for enhanced headers
     @app.middleware("http")
     async def v1_api_middleware(request, call_next):
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
         response = await call_next(request)
         # Only add headers for /api/v1 endpoints
         if request.url.path.startswith("/api/v1"):

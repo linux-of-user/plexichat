@@ -115,7 +115,7 @@ class LogEntry:
         return {
             "timestamp": self.timestamp.isoformat(),
             "level": self.level.name,
-            "category": self.category.value,
+            "category": self.category.value if hasattr(self.category, 'value') else str(self.category),
             "message": self.message,
             "module": self.module,
             "function": self.function,

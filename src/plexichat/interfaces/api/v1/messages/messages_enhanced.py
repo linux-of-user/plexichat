@@ -28,6 +28,8 @@ from pydantic import BaseModel, Field
 try:
     from plexichat.core.database.manager import get_database_manager
     from plexichat.infrastructure.performance.cache_manager import get_cache_manager
+    from plexichat.features.users.user import User
+    from plexichat.infrastructure.utils.auth import get_current_user
     from plexichat.infrastructure.monitoring import get_performance_monitor
     from plexichat.core.logging import get_logger
     from plexichat.features.messaging.models import Message, MessageType
@@ -101,12 +103,11 @@ router = APIRouter(prefix="/api/v1/messages", tags=["Enhanced Messages"])
 
 
 @router.post("/create", response_model=MessageResponse)
-async def create_message()
+async def create_message(
     request: MessageCreateRequest,
     http_request: Request,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> MessageResponse:
     """Create a new message with optional file attachments."""
     message_service = MessageService(session)
@@ -114,7 +115,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
     ip_address = http_request.client.host
     user_agent = http_request.headers.get("user-agent")
 
-    message = await message_service.create_message_with_files()
+    message = await message_service.create_message_with_files(
         sender_id=current_user.id,
         recipient_id=request.recipient_id,
         channel_id=request.channel_id,
@@ -128,7 +129,7 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
         user_agent=user_agent
     )
 
-    return MessageResponse()
+    return MessageResponse(
         id=message.id,
         sender_id=message.sender_id,
         recipient_id=message.recipient_id,
@@ -147,12 +148,11 @@ User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.in
 
 
 @router.get("/{message_id}", response_model=MessageResponse)
-async def get_message()
+async def get_message(
     message_id: int,
     http_request: Request,
     session: Session = Depends(get_session),
-    current_user: from plexichat.features.users.user import User
-User = Depends(from plexichat.infrastructure.utils.auth import from plexichat.infrastructure.utils.auth import get_current_user)
+    current_user: dict = Depends(get_current_user)
 ) -> MessageResponse:
     """Get a message with file access validation."""
     message = session.get(Message, message_id)

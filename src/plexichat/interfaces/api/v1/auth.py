@@ -24,6 +24,7 @@ from typing import Optional, Dict, List
 from datetime import datetime, timezone
 
 try:
+    from plexichat.core.logging import get_logger
     from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager
     from plexichat.core.auth.admin_manager import get_admin_manager
     from plexichat.core.auth.token_manager import get_token_manager

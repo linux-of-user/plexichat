@@ -5,6 +5,8 @@
   "author": "PlexiChat Team",
   "type": "testing",
   "enabled": true,
+  "auto_load": true,
+  "security_level": "trusted",
   "priority": 7,
   "dependencies": [],
   "permissions": [

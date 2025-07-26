@@ -336,6 +336,8 @@ if src_path not in sys.path:
             print(f"{failed}/{total_tests} tests failed.")
             return 1
 
+
+
 # ============================================================================
 # TERMINAL UI CLASSES AND FUNCTIONS
 # ============================================================================
@@ -2396,7 +2398,9 @@ def run_api_server():
         except ImportError:
             pass
         import uvicorn
-        from plexichat.main import app
+        logger.info("About to import FastAPI app from src.plexichat.main...")
+        from src.plexichat.main import app
+        logger.info("FastAPI app imported successfully!")
         config = load_configuration()
         host = "0.0.0.0"
         port = 8000
@@ -2838,9 +2842,9 @@ def acquire_process_lock():
 
 def _is_process_running(pid):
     """Check if a process with given PID is running."""
+    import subprocess  # Import at function level to ensure it's available
     try:
         if sys.platform == "win32":
-            import subprocess
             result = subprocess.run(['tasklist', '/FI', f'PID eq {pid}'],
                                   capture_output=True, text=True, timeout=5)
             return str(pid) in result.stdout
@@ -4267,20 +4271,22 @@ def main():
     try:
         from src.plexichat.core.logging_advanced import get_logger, setup_module_logging
         from src.plexichat.core.config import get_config
-        from src.plexichat.main import app as web_app
+        # Only import the heavy FastAPI app when actually needed for API commands
+        # from src.plexichat.main import app as web_app  # Moved to run_api_server
         from src.plexichat.core.plugins.unified_plugin_manager import unified_plugin_manager
         from src.plexichat.core.events.event_manager import event_manager
         # Initialize core components that are always needed
         config = get_config()
-        if unified_plugin_manager:
-            asyncio.run(unified_plugin_manager.discover_plugins())
-            asyncio.run(unified_plugin_manager.load_plugins())
-        if event_manager:
-            try:
-                asyncio.run(event_manager.emit_event('system.startup', 'run.py', vars(args)))
-            except Exception as e:
-                if logger:
-                    logger.debug(f"Failed to emit startup event: {e}")
+        # Temporarily skip plugin loading to get server working
+        # TODO: Fix plugin loading hanging issue
+        print(f"DEBUG: Skipping plugin loading to prevent hanging")
+        if logger:
+            logger.debug(f"Skipping plugin loading to prevent hanging")
+        # Temporarily disable event emission to prevent hanging
+        # TODO: Fix event system hanging issue
+        print(f"DEBUG: Skipping startup event emission to prevent hanging")
+        if logger:
+            logger.debug(f"Skipping startup event emission to prevent hanging")
     except ImportError as e:
         logger.error(f"Failed to import core modules: {e}")
         logger.error("Please run 'python run.py setup' to install dependencies.")
@@ -4288,6 +4294,8 @@ def main():
     except Exception as e:
         logger.error(f"Core component initialization failed: {e}")
         sys.exit(1)
+
+    print(f"DEBUG: Core component initialization completed, about to dispatch command: {args.command}")
 
     # --- Command Dispatch ---
     if args.command == 'help':

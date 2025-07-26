@@ -16,18 +16,29 @@ from typing import Optional, Dict, Any, List
 import asyncio
 from datetime import datetime, timezone
 
+import logging
+
 try:
     from plexichat.core.auth.admin_manager import get_admin_manager
     from plexichat.core.auth.unified_auth_manager import get_unified_auth_manager
     from plexichat.interfaces.api.v1.auth import get_current_user
-    from plexichat.core.logging import get_logger
     from plexichat.core.config.manager import get_config
     from plexichat.core.database.manager import get_database_manager
     from plexichat.infrastructure.performance.cache_manager import get_cache_manager
     from plexichat.infrastructure.monitoring import get_performance_monitor
     from plexichat.infrastructure.utils.auth import require_admin
+except ImportError as e:
+    # Fallback imports
+    get_admin_manager = None
+    get_unified_auth_manager = None
+    get_current_user = None
+    get_config = None
+    get_database_manager = None
+    get_cache_manager = None
+    get_performance_monitor = None
+    require_admin = None
 
-    logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
     admin_manager = get_admin_manager()
     auth_manager = get_unified_auth_manager()
     config = get_config()

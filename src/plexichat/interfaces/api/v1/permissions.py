@@ -75,12 +75,12 @@ class RoleCreate(BaseModel):
     name: str = Field(..., description="Role name (unique identifier)")
     display_name: str = Field(..., description="Human-readable role name")
     description: str = Field(..., description="Role description")
-    permissions: List[str] = Field()
+    permissions: List[str] = Field(
         default_factory=list, description="List of permission names"
     )
     priority: int = Field(100, description="Role priority (higher = more important)")
     color: str = Field("#ffffff", description="Role color in hex format")
-    is_default: bool = Field()
+    is_default: bool = Field(
         False, description="Whether this is the default role for new users"
     )
 
@@ -183,8 +183,8 @@ async def get_roles(admin_user: str = Depends(verify_admin_permission)):
         roles = []
 
         for role in perm_manager.roles.values():
-            roles.append()
-                RoleResponse()
+            roles.append(
+                RoleResponse(
                     name=role.name,
                     display_name=role.display_name,
                     description=role.description,
@@ -205,7 +205,7 @@ async def get_roles(admin_user: str = Depends(verify_admin_permission)):
 
 
 @router.post("/roles")
-async def create_role()
+async def create_role(
     role_data: RoleCreate, admin_user: str = Depends(verify_admin_permission)
 ):
     """Create a new role."""
@@ -218,7 +218,7 @@ async def create_role()
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid permission: {e}")
 
-        role = Role()
+        role = Role(
             name=role_data.name,
             display_name=role_data.display_name,
             description=role_data.description,
