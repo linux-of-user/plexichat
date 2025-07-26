@@ -19,63 +19,131 @@ from src.plexichat.core.logging import get_logger
 
 from .auth import get_current_user, users_db
 
+# Use existing logging system
+logger = get_logger(__name__)
+router = APIRouter(prefix="/users", tags=["Enhanced Users"])
+
 # Import global rate limiting system
 try:
     from src.plexichat.infrastructure.utils.rate_limiting import rate_limiter
     RATE_LIMITING_AVAILABLE = True
 except ImportError:
-    RATE_LIMITING_AVAILABLE = False
-    logger.warning("Rate limiting system not available")
-
-# Rate limiting dependency
-async def apply_rate_limit(request: Request):
-    """Apply global rate limiting to all endpoints."""
-    if not RATE_LIMITING_AVAILABLE:
-        return
-
     try:
-        client_ip = request.client.host if request.client else "unknown"
-        endpoint = f"{request.method}:{request.url.path}"
+        from plexichat.infrastructure.utils.rate_limiting import rate_limiter
+        RATE_LIMITING_AVAILABLE = True
+    except ImportError:
+        RATE_LIMITING_AVAILABLE = False
+        logger.warning("Rate limiting system not available")
 
-        # Get system load for dynamic scaling
-        import psutil
-        cpu_usage = psutil.cpu_percent(interval=0.1)
-        memory_usage = psutil.virtual_memory().percent
+# Import security utilities
+try:
+    from src.plexichat.infrastructure.utils.security_utils import (
+        sanitize_input, validate_input, check_sql_injection, check_xss
+    )
+    SECURITY_UTILS_AVAILABLE = True
+except ImportError:
+    SECURITY_UTILS_AVAILABLE = False
+    logger.warning("Security utilities not available")
 
-        # Calculate dynamic rate limit based on system load
-        base_limit = 100  # requests per minute
-        if cpu_usage > 80 or memory_usage > 80:
-            rate_limit = int(base_limit * 0.5)  # Reduce by 50% under high load
-        elif cpu_usage > 60 or memory_usage > 60:
-            rate_limit = int(base_limit * 0.75)  # Reduce by 25% under medium load
-        else:
-            rate_limit = base_limit
+# Comprehensive security and rate limiting dependency
+async def apply_security_and_rate_limit(request: Request):
+    """Apply comprehensive security checks and rate limiting to all endpoints."""
+    client_ip = request.client.host if request.client else "unknown"
+    endpoint = f"{request.method}:{request.url.path}"
 
-        # Check rate limit
-        if not rate_limiter.check_rate_limit(
-            key=f"user_endpoint:{client_ip}",
-            max_attempts=rate_limit,
-            window_minutes=1,
-            algorithm="sliding_window"
-        ):
-            raise HTTPException(
-                status_code=429,
-                detail=f"Rate limit exceeded. Current limit: {rate_limit}/min based on system load",
-                headers={"Retry-After": "60"}
-            )
+    # 1. Security Headers Check
+    security_headers = {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "Content-Security-Policy": "default-src 'self'",
+        "Referrer-Policy": "strict-origin-when-cross-origin"
+    }
 
-        # Record the attempt
-        rate_limiter.record_attempt(f"user_endpoint:{client_ip}")
+    # 2. Input Validation and Sanitization
+    if SECURITY_UTILS_AVAILABLE:
+        try:
+            # Check for common attack patterns in URL
+            if check_sql_injection(str(request.url)) or check_xss(str(request.url)):
+                logger.warning(f"Potential attack detected from {client_ip}: {request.url}")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid request format",
+                    headers=security_headers
+                )
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Rate limiting error: {e}")
-        # Don't block requests if rate limiting fails
+            # Check request headers for suspicious patterns
+            for header_name, header_value in request.headers.items():
+                if check_sql_injection(header_value) or check_xss(header_value):
+                    logger.warning(f"Suspicious header from {client_ip}: {header_name}={header_value}")
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid request headers",
+                        headers=security_headers
+                    )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Security validation error: {e}")
 
-# Use existing logging system
-logger = get_logger(__name__)
-router = APIRouter(prefix="/users", tags=["Enhanced Users"])
+    # 3. Rate Limiting with Dynamic Scaling
+    if RATE_LIMITING_AVAILABLE:
+        try:
+            # Get system load for dynamic scaling
+            import psutil
+            cpu_usage = psutil.cpu_percent(interval=0.1)
+            memory_usage = psutil.virtual_memory().percent
+
+            # Calculate dynamic rate limit based on system load
+            base_limit = 100  # requests per minute
+            if cpu_usage > 80 or memory_usage > 80:
+                rate_limit = int(base_limit * 0.3)  # Reduce by 70% under high load
+            elif cpu_usage > 60 or memory_usage > 60:
+                rate_limit = int(base_limit * 0.6)  # Reduce by 40% under medium load
+            else:
+                rate_limit = base_limit
+
+            # Check rate limit
+            if not rate_limiter.check_rate_limit(
+                key=f"user_endpoint:{client_ip}",
+                max_attempts=rate_limit,
+                window_minutes=1,
+                algorithm="sliding_window"
+            ):
+                logger.warning(f"Rate limit exceeded for {client_ip}: {rate_limit}/min")
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Rate limit exceeded. Current limit: {rate_limit}/min based on system load",
+                    headers={**security_headers, "Retry-After": "60"}
+                )
+
+            # Record the attempt
+            rate_limiter.record_attempt(f"user_endpoint:{client_ip}")
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Rate limiting error: {e}")
+
+    # 4. Request Size Validation
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            size = int(content_length)
+            max_size = 10 * 1024 * 1024  # 10MB limit
+            if size > max_size:
+                logger.warning(f"Request too large from {client_ip}: {size} bytes")
+                raise HTTPException(
+                    status_code=413,
+                    detail="Request entity too large",
+                    headers=security_headers
+                )
+        except ValueError:
+            pass
+
+    # 5. Log security event
+    logger.info(f"Security check passed for {client_ip} accessing {endpoint}")
 
 # Enhanced Models with Custom Fields Support
 class CustomField(BaseModel):
@@ -141,8 +209,9 @@ class UserSearch(BaseModel):
 # Enhanced Endpoints with Custom Fields and Rate Limiting
 @router.get("/me", response_model=UserProfile)
 async def get_my_profile(
+    request: Request,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(apply_rate_limit)
+    _: None = Depends(apply_security_and_rate_limit)
 ):
     """Get current user's complete profile including custom fields."""
     try:
@@ -186,28 +255,66 @@ async def get_my_profile(
 @router.put("/me")
 async def update_my_profile(
     update_data: UserUpdate,
+    request: Request,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(apply_rate_limit)
+    _: None = Depends(apply_security_and_rate_limit)
 ):
-    """Update current user's profile with enhanced fields."""
+    """Update current user's profile with enhanced fields and security validation."""
     try:
         user_id = current_user['id']
         user = users_db[user_id]
 
-        # Update all provided fields
+        # Security validation for all input fields
+        if SECURITY_UTILS_AVAILABLE:
+            fields_to_check = {
+                'display_name': update_data.display_name,
+                'first_name': update_data.first_name,
+                'last_name': update_data.last_name,
+                'bio': update_data.bio,
+                'location': update_data.location,
+                'website': update_data.website,
+                'avatar_url': update_data.avatar_url
+            }
+
+            for field_name, field_value in fields_to_check.items():
+                if field_value is not None:
+                    # Check for XSS and SQL injection
+                    if check_xss(str(field_value)) or check_sql_injection(str(field_value)):
+                        logger.warning(f"Malicious input detected in {field_name} from user {user_id}")
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Invalid characters in {field_name}"
+                        )
+
+                    # Sanitize input
+                    sanitized_value = sanitize_input(str(field_value))
+                    if sanitized_value != str(field_value):
+                        logger.info(f"Input sanitized for {field_name} from user {user_id}")
+
+        # Update all provided fields with sanitized values
         if update_data.display_name is not None:
-            user['display_name'] = update_data.display_name
+            user['display_name'] = sanitize_input(update_data.display_name) if SECURITY_UTILS_AVAILABLE else update_data.display_name
         if update_data.first_name is not None:
-            user['first_name'] = update_data.first_name
+            user['first_name'] = sanitize_input(update_data.first_name) if SECURITY_UTILS_AVAILABLE else update_data.first_name
         if update_data.last_name is not None:
-            user['last_name'] = update_data.last_name
+            user['last_name'] = sanitize_input(update_data.last_name) if SECURITY_UTILS_AVAILABLE else update_data.last_name
         if update_data.bio is not None:
-            user['bio'] = update_data.bio
+            user['bio'] = sanitize_input(update_data.bio) if SECURITY_UTILS_AVAILABLE else update_data.bio
         if update_data.location is not None:
-            user['location'] = update_data.location
+            user['location'] = sanitize_input(update_data.location) if SECURITY_UTILS_AVAILABLE else update_data.location
         if update_data.website is not None:
+            # Additional URL validation for website
+            import re
+            url_pattern = re.compile(r'^https?://[^\s/$.?#].[^\s]*$')
+            if not url_pattern.match(update_data.website):
+                raise HTTPException(status_code=400, detail="Invalid website URL format")
             user['website'] = update_data.website
         if update_data.avatar_url is not None:
+            # Additional URL validation for avatar
+            import re
+            url_pattern = re.compile(r'^https?://[^\s/$.?#].[^\s]*$')
+            if not url_pattern.match(update_data.avatar_url):
+                raise HTTPException(status_code=400, detail="Invalid avatar URL format")
             user['avatar_url'] = update_data.avatar_url
 
         user['updated_at'] = datetime.now()
@@ -446,15 +553,26 @@ async def delete_custom_field(
         logger.error(f"Custom field deletion error: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete custom field")
 
-# Public endpoint - no authentication required but still rate limited
+# Public endpoint - no authentication required but still secured and rate limited
 @router.get("/{user_id}/public", response_model=PublicUserProfile)
 async def get_public_user_profile(
     user_id: str,
     request: Request,
-    _: None = Depends(apply_rate_limit)
+    _: None = Depends(apply_security_and_rate_limit)
 ):
-    """Get public user profile information (no authentication required)."""
+    """Get public user profile information (no authentication required but secured)."""
     try:
+        # Validate user_id format for security
+        if SECURITY_UTILS_AVAILABLE:
+            if check_sql_injection(user_id) or check_xss(user_id):
+                logger.warning(f"Malicious user_id parameter: {user_id}")
+                raise HTTPException(status_code=400, detail="Invalid user ID format")
+
+        # Additional user_id format validation
+        import re
+        if not re.match(r'^[a-zA-Z0-9_-]+$', user_id):
+            raise HTTPException(status_code=400, detail="Invalid user ID format")
+
         user = None
         for u in users_db.values():
             if u['id'] == user_id:

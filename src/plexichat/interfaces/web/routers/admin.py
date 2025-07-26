@@ -109,7 +109,7 @@ async def get_current_admin(request: Request) -> Optional[Dict[str, Any]]:
         logger.error(f"Error getting current admin: {e}")
         return None
 
-async def require_admin(request: Request = Depends()) -> Dict[str, Any]:
+async def require_admin(request: Request) -> Dict[str, Any]:
     """Require admin authentication."""
     admin = await get_current_admin(request)
     if not admin:
@@ -125,7 +125,8 @@ def get_client_ip(request: Request) -> str:
     return 'unknown'
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_dashboard(request: Request, admin: dict = Depends(require_admin)):
+async def admin_dashboard(request: Request):
+    admin = await require_admin(request)
     """Admin dashboard page."""
     if not admin:
         return RedirectResponse(url="/admin/login", status_code=302)
@@ -186,7 +187,8 @@ async def admin_login(
 
 @router.post("/logout")
 @rate_limit(max_attempts=30, window_minutes=1, key_func=lambda request, **kwargs: f"admin_logout:{get_client_ip(request)}")
-async def admin_logout(request: Request, admin: dict = Depends(require_admin)):
+async def admin_logout(request: Request):
+    admin = await require_admin(request)
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
     try:
@@ -202,7 +204,8 @@ async def admin_logout(request: Request, admin: dict = Depends(require_admin)):
 
 @router.get("/users")
 @rate_limit(max_attempts=30, window_minutes=1, key_func=lambda request, **kwargs: f"admin_users:{get_client_ip(request)}")
-async def admin_users(request: Request, admin: dict = Depends(require_admin)):
+async def admin_users(request: Request):
+    admin = await require_admin(request)
     if not admin_manager:
         raise HTTPException(status_code=500, detail="Admin manager not available")
     try:
@@ -310,7 +313,8 @@ async def self_reset_password(
         raise HTTPException(status_code=400, detail="Failed to reset password")
 
 @router.get("/system")
-async def admin_system(request: Request, admin: dict = Depends(require_admin)):
+async def admin_system(request: Request):
+    admin = await require_admin(request)
     """Admin system status page."""
     try:
         system_info = {
@@ -358,7 +362,8 @@ async def api_list_admins(_admin: dict = Depends(require_admin)):
     ])
 
 @router.get("/plugin-module-requests", response_class=JSONResponse)
-async def list_plugin_module_requests(_admin: dict = Depends(require_admin)):
+async def list_plugin_module_requests(request: Request):
+    _admin = await require_admin(request)
     """List all plugin module import requests from plugins."""
     isolation_manager = unified_plugin_manager.isolation_manager
     return {"requests": isolation_manager.get_plugin_module_requests()}
