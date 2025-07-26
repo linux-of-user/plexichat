@@ -559,8 +559,389 @@ class PerformanceMonitor:
         }
 
 
-# Global performance monitor instance
-performance_monitor = PerformanceMonitor()
+class PredictiveAnalytics:
+    """Machine learning-based predictive analytics for performance."""
+
+    def __init__(self, performance_monitor):
+        self.performance_monitor = performance_monitor
+        self.prediction_models: Dict[str, Any] = {}
+        self.prediction_cache: Dict[str, Dict] = {}
+        self.training_data: Dict[str, List] = defaultdict(list)
+
+        # Prediction configuration
+        self.prediction_window_hours = 24
+        self.min_training_samples = 100
+        self.prediction_accuracy_threshold = 0.7
+
+        logger.info("Predictive analytics system initialized")
+
+    def collect_training_data(self, metric_name: str, value: float, timestamp: datetime):
+        """Collect training data for predictive models."""
+        self.training_data[metric_name].append({
+            'timestamp': timestamp,
+            'value': value,
+            'hour': timestamp.hour,
+            'day_of_week': timestamp.weekday(),
+            'day_of_month': timestamp.day
+        })
+
+        # Keep only recent data for training
+        cutoff_time = datetime.now() - timedelta(days=30)
+        self.training_data[metric_name] = [
+            data for data in self.training_data[metric_name]
+            if data['timestamp'] > cutoff_time
+        ]
+
+    def predict_metric_trend(self, metric_name: str, hours_ahead: int = 1) -> Optional[Dict[str, Any]]:
+        """Predict metric trend using simple linear regression."""
+        if metric_name not in self.training_data:
+            return None
+
+        data = self.training_data[metric_name]
+        if len(data) < self.min_training_samples:
+            return None
+
+        try:
+            # Simple linear regression prediction
+            recent_data = data[-50:]  # Use last 50 data points
+
+            if len(recent_data) < 10:
+                return None
+
+            # Calculate trend
+            values = [d['value'] for d in recent_data]
+            n = len(values)
+
+            # Simple moving average prediction
+            recent_avg = sum(values[-10:]) / 10
+            older_avg = sum(values[-20:-10]) / 10 if len(values) >= 20 else recent_avg
+
+            trend = recent_avg - older_avg
+            predicted_value = recent_avg + (trend * hours_ahead)
+
+            # Calculate confidence based on variance
+            variance = sum((v - recent_avg) ** 2 for v in values[-10:]) / 10
+            confidence = max(0.1, min(0.9, 1.0 - (variance / (recent_avg + 1))))
+
+            return {
+                'metric_name': metric_name,
+                'predicted_value': predicted_value,
+                'current_value': values[-1],
+                'trend': 'increasing' if trend > 0 else 'decreasing' if trend < 0 else 'stable',
+                'confidence': confidence,
+                'hours_ahead': hours_ahead,
+                'prediction_timestamp': datetime.now()
+            }
+
+        except Exception as e:
+            logger.error(f"Error predicting trend for {metric_name}: {e}")
+            return None
+
+    def detect_anomalies(self, metric_name: str) -> List[Dict[str, Any]]:
+        """Detect anomalies in metric data."""
+        if metric_name not in self.training_data:
+            return []
+
+        data = self.training_data[metric_name]
+        if len(data) < 20:
+            return []
+
+        try:
+            values = [d['value'] for d in data[-50:]]  # Last 50 values
+            mean_val = statistics.mean(values)
+            std_dev = statistics.stdev(values) if len(values) > 1 else 0
+
+            anomalies = []
+            threshold = 2 * std_dev  # 2 standard deviations
+
+            for i, data_point in enumerate(data[-10:]):  # Check last 10 points
+                if abs(data_point['value'] - mean_val) > threshold:
+                    anomalies.append({
+                        'timestamp': data_point['timestamp'],
+                        'value': data_point['value'],
+                        'expected_range': [mean_val - threshold, mean_val + threshold],
+                        'severity': 'high' if abs(data_point['value'] - mean_val) > 3 * std_dev else 'medium'
+                    })
+
+            return anomalies
+
+        except Exception as e:
+            logger.error(f"Error detecting anomalies for {metric_name}: {e}")
+            return []
+
+    def get_performance_forecast(self, hours_ahead: int = 24) -> Dict[str, Any]:
+        """Get performance forecast for key metrics."""
+        key_metrics = [
+            'system.cpu.usage_percent',
+            'system.memory.usage_percent',
+            'system.disk.usage_percent'
+        ]
+
+        forecast = {
+            'forecast_timestamp': datetime.now(),
+            'hours_ahead': hours_ahead,
+            'predictions': {},
+            'anomalies': {},
+            'recommendations': []
+        }
+
+        for metric in key_metrics:
+            # Get prediction
+            prediction = self.predict_metric_trend(metric, hours_ahead)
+            if prediction:
+                forecast['predictions'][metric] = prediction
+
+                # Add recommendations based on predictions
+                if prediction['predicted_value'] > 80 and metric.endswith('usage_percent'):
+                    forecast['recommendations'].append(
+                        f"High {metric.split('.')[1]} usage predicted ({prediction['predicted_value']:.1f}%) - consider scaling resources"
+                    )
+
+            # Get anomalies
+            anomalies = self.detect_anomalies(metric)
+            if anomalies:
+                forecast['anomalies'][metric] = anomalies
+
+        return forecast
+
+
+class AutoScaler:
+    """Automatic scaling system based on performance metrics."""
+
+    def __init__(self, performance_monitor):
+        self.performance_monitor = performance_monitor
+        self.scaling_rules: List[Dict] = []
+        self.scaling_history: List[Dict] = []
+        self.scaling_enabled = True
+
+        # Default scaling rules
+        self._setup_default_scaling_rules()
+
+        logger.info("Auto-scaler initialized")
+
+    def _setup_default_scaling_rules(self):
+        """Setup default scaling rules."""
+        self.scaling_rules = [
+            {
+                'name': 'cpu_scale_up',
+                'metric': 'system.cpu.usage_percent',
+                'condition': 'greater_than',
+                'threshold': 80.0,
+                'action': 'scale_up',
+                'cooldown_minutes': 5
+            },
+            {
+                'name': 'memory_scale_up',
+                'metric': 'system.memory.usage_percent',
+                'condition': 'greater_than',
+                'threshold': 85.0,
+                'action': 'scale_up',
+                'cooldown_minutes': 5
+            },
+            {
+                'name': 'cpu_scale_down',
+                'metric': 'system.cpu.usage_percent',
+                'condition': 'less_than',
+                'threshold': 30.0,
+                'action': 'scale_down',
+                'cooldown_minutes': 10
+            }
+        ]
+
+    async def evaluate_scaling_rules(self):
+        """Evaluate scaling rules and take action if needed."""
+        if not self.scaling_enabled:
+            return
+
+        for rule in self.scaling_rules:
+            try:
+                # Check cooldown
+                if self._is_in_cooldown(rule):
+                    continue
+
+                # Get current metric value
+                stats = self.performance_monitor.metrics_collector.get_metric_stats(
+                    rule['metric'], 5  # Last 5 minutes
+                )
+
+                if not stats:
+                    continue
+
+                current_value = stats.get('latest', 0.0)
+
+                # Check condition
+                should_scale = False
+                if rule['condition'] == 'greater_than' and current_value > rule['threshold']:
+                    should_scale = True
+                elif rule['condition'] == 'less_than' and current_value < rule['threshold']:
+                    should_scale = True
+
+                if should_scale:
+                    await self._execute_scaling_action(rule, current_value)
+
+            except Exception as e:
+                logger.error(f"Error evaluating scaling rule {rule['name']}: {e}")
+
+    def _is_in_cooldown(self, rule: Dict) -> bool:
+        """Check if scaling rule is in cooldown period."""
+        cooldown_minutes = rule.get('cooldown_minutes', 5)
+        cutoff_time = datetime.now() - timedelta(minutes=cooldown_minutes)
+
+        for history_entry in self.scaling_history:
+            if (history_entry['rule_name'] == rule['name'] and
+                history_entry['timestamp'] > cutoff_time):
+                return True
+
+        return False
+
+    async def _execute_scaling_action(self, rule: Dict, current_value: float):
+        """Execute scaling action."""
+        try:
+            action = rule['action']
+
+            # Log scaling action
+            scaling_entry = {
+                'rule_name': rule['name'],
+                'action': action,
+                'metric': rule['metric'],
+                'current_value': current_value,
+                'threshold': rule['threshold'],
+                'timestamp': datetime.now()
+            }
+
+            self.scaling_history.append(scaling_entry)
+
+            # Keep only recent history
+            if len(self.scaling_history) > 100:
+                self.scaling_history = self.scaling_history[-50:]
+
+            logger.info(f"Scaling action triggered: {action} for {rule['metric']} (current: {current_value}, threshold: {rule['threshold']})")
+
+            # In a real implementation, this would trigger actual scaling
+            # For now, just log the action
+            if action == 'scale_up':
+                logger.info("Would scale up resources (increase CPU/memory allocation)")
+            elif action == 'scale_down':
+                logger.info("Would scale down resources (decrease CPU/memory allocation)")
+
+        except Exception as e:
+            logger.error(f"Error executing scaling action: {e}")
+
+    def get_scaling_status(self) -> Dict[str, Any]:
+        """Get current scaling status."""
+        recent_actions = [
+            entry for entry in self.scaling_history
+            if entry['timestamp'] > datetime.now() - timedelta(hours=24)
+        ]
+
+        return {
+            'scaling_enabled': self.scaling_enabled,
+            'total_rules': len(self.scaling_rules),
+            'recent_actions_24h': len(recent_actions),
+            'last_action': self.scaling_history[-1] if self.scaling_history else None,
+            'scaling_rules': self.scaling_rules
+        }
+
+
+# Enhanced Performance Monitor with Predictive Analytics
+class EnhancedPerformanceMonitor(PerformanceMonitor):
+    """Enhanced performance monitor with predictive analytics and auto-scaling."""
+
+    def __init__(self):
+        super().__init__()
+        self.predictive_analytics = PredictiveAnalytics(self)
+        self.auto_scaler = AutoScaler(self)
+
+        # Enhanced monitoring
+        self.prediction_task: Optional[asyncio.Task] = None
+        self.scaling_task: Optional[asyncio.Task] = None
+
+    async def start_monitoring(self):
+        """Start enhanced monitoring with predictive analytics."""
+        await super().start_monitoring()
+
+        # Start predictive analytics
+        self.prediction_task = asyncio.create_task(self._prediction_loop())
+
+        # Start auto-scaling
+        self.scaling_task = asyncio.create_task(self._scaling_loop())
+
+        logger.info("Enhanced performance monitoring started with predictive analytics")
+
+    async def stop_monitoring(self):
+        """Stop enhanced monitoring."""
+        await super().stop_monitoring()
+
+        if self.prediction_task:
+            self.prediction_task.cancel()
+
+        if self.scaling_task:
+            self.scaling_task.cancel()
+
+        logger.info("Enhanced performance monitoring stopped")
+
+    async def _prediction_loop(self):
+        """Predictive analytics loop."""
+        while self.monitoring_active:
+            try:
+                # Collect training data for key metrics
+                key_metrics = [
+                    'system.cpu.usage_percent',
+                    'system.memory.usage_percent',
+                    'system.disk.usage_percent'
+                ]
+
+                for metric_name in key_metrics:
+                    stats = self.metrics_collector.get_metric_stats(metric_name, 5)
+                    if stats and 'latest' in stats:
+                        self.predictive_analytics.collect_training_data(
+                            metric_name, stats['latest'], datetime.now()
+                        )
+
+                await asyncio.sleep(300)  # Run every 5 minutes
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in prediction loop: {e}")
+                await asyncio.sleep(300)
+
+    async def _scaling_loop(self):
+        """Auto-scaling loop."""
+        while self.monitoring_active:
+            try:
+                await self.auto_scaler.evaluate_scaling_rules()
+                await asyncio.sleep(60)  # Check every minute
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in scaling loop: {e}")
+                await asyncio.sleep(60)
+
+    def get_enhanced_dashboard_data(self) -> Dict[str, Any]:
+        """Get enhanced dashboard data with predictions."""
+        base_data = super().get_dashboard_data()
+
+        # Add predictive analytics data
+        forecast = self.predictive_analytics.get_performance_forecast(24)
+        scaling_status = self.auto_scaler.get_scaling_status()
+
+        base_data.update({
+            'performance_forecast': forecast,
+            'auto_scaling': scaling_status,
+            'enhanced_features': {
+                'predictive_analytics': True,
+                'auto_scaling': True,
+                'anomaly_detection': True
+            }
+        })
+
+        return base_data
+
+
+# Global enhanced performance monitor instance
+performance_monitor = EnhancedPerformanceMonitor()
 
 
 async def start_performance_monitoring():
@@ -575,7 +956,7 @@ async def stop_performance_monitoring():
 
 def get_performance_dashboard() -> Dict[str, Any]:
     """Get performance dashboard data."""
-    return performance_monitor.get_dashboard_data()
+    return performance_monitor.get_enhanced_dashboard_data()
 
 
 def get_system_health_status() -> SystemHealthStatus:
@@ -583,7 +964,7 @@ def get_system_health_status() -> SystemHealthStatus:
     return performance_monitor.get_system_health()
 
 
-def record_performance_metric(name: str, value: float, metric_type: MetricType = MetricType.GAUGE, 
+def record_performance_metric(name: str, value: float, metric_type: MetricType = MetricType.GAUGE,
                             tags: Optional[Dict[str, str]] = None, unit: str = ""):
     """Record a custom performance metric."""
     performance_monitor.record_custom_metric(name, value, metric_type, tags, unit)

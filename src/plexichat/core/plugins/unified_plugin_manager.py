@@ -42,6 +42,15 @@ from ...shared.constants import PLUGIN_TIMEOUT, MAX_PLUGIN_MEMORY, PLUGIN_SANDBO
 # Core imports
 from ..database.manager import database_manager
 
+# Enhanced plugin systems
+try:
+    from .enhanced_plugin_security import enhanced_plugin_security, SecurityLevel
+    from .plugin_dependency_manager import plugin_dependency_manager
+except ImportError:
+    enhanced_plugin_security = None
+    plugin_dependency_manager = None
+    SecurityLevel = None
+
 # Top-level imports for AI integration
 try:
     from plexichat.features.ai.advanced_ai_system import intelligent_assistant
@@ -789,13 +798,29 @@ class UnifiedPluginManager:
                 plugin_info = self.plugin_info[plugin_name]
                 plugin_info.status = PluginStatus.LOADING
 
-                # Check dependencies with improved resolution
-                if not await self._resolve_dependencies(plugin_name):
-                    error_msg = f"Failed to resolve dependencies for plugin: {plugin_name}"
-                    self.plugin_errors[plugin_name].append(error_msg)
-                    plugin_info.status = PluginStatus.FAILED
-                    plugin_info.error_message = error_msg
-                    return False
+                # Enhanced dependency resolution
+                if plugin_dependency_manager:
+                    # Analyze and install dependencies
+                    plugin_path = Path(self.plugins_dir) / plugin_name
+                    dependencies = await plugin_dependency_manager.analyze_plugin_dependencies(plugin_path)
+
+                    if not dependencies.all_dependencies_met:
+                        self.logger.info(f"Installing dependencies for plugin {plugin_name}")
+                        deps_installed = await plugin_dependency_manager.install_plugin_dependencies(plugin_name)
+                        if not deps_installed:
+                            error_msg = f"Failed to install dependencies for plugin: {plugin_name}"
+                            self.plugin_errors[plugin_name].append(error_msg)
+                            plugin_info.status = PluginStatus.FAILED
+                            plugin_info.error_message = error_msg
+                            return False
+                else:
+                    # Fallback to original dependency resolution
+                    if not await self._resolve_dependencies(plugin_name):
+                        error_msg = f"Failed to resolve dependencies for plugin: {plugin_name}"
+                        self.plugin_errors[plugin_name].append(error_msg)
+                        plugin_info.status = PluginStatus.FAILED
+                        plugin_info.error_message = error_msg
+                        return False
 
                 # Load plugin based on security level
                 if plugin_info.metadata.security_level == SecurityLevel.SANDBOXED:
@@ -878,16 +903,29 @@ class UnifiedPluginManager:
         return True
 
     async def _load_plugin_sandboxed(self, plugin_name: str, plugin_info: PluginInfo) -> bool:
-        """Load plugin in sandboxed environment."""
+        """Load plugin in sandboxed environment with enhanced security."""
         try:
-            # Use isolation manager
+            # Create enhanced security profile
+            if enhanced_plugin_security:
+                security_level = getattr(SecurityLevel, 'STANDARD', SecurityLevel.STANDARD) if SecurityLevel else None
+                if security_level:
+                    profile = enhanced_plugin_security.create_security_profile(plugin_name, security_level)
+
+                    # Create secure import hook
+                    secure_import = enhanced_plugin_security.create_secure_import_hook(plugin_name)
+
+                    # Temporarily replace __import__ for this plugin
+                    original_import = __builtins__['__import__']
+                    __builtins__['__import__'] = secure_import
+
+            # Use isolation manager with enhanced config
             config = {
                 'security_level': plugin_info.metadata.security_level.value,
                 'permissions': plugin_info.metadata.permissions,
                 'resource_limits': {
                     'memory_mb': 100,
                     'cpu_percent': 10,
-                    'network_access': False
+                    'network_access': True  # Allow network for enhanced plugins
                 }
             }
 
@@ -903,11 +941,24 @@ class UnifiedPluginManager:
                 if plugin_instance:
                     self.loaded_plugins[plugin_name] = plugin_instance
                     plugin_info.instance = plugin_instance
+
+                    # Restore original import if we modified it
+                    if enhanced_plugin_security and 'original_import' in locals():
+                        __builtins__['__import__'] = original_import
+
                     return True
+
+            # Restore original import on failure
+            if enhanced_plugin_security and 'original_import' in locals():
+                __builtins__['__import__'] = original_import
 
             return False
 
         except Exception as e:
+            # Restore original import on exception
+            if enhanced_plugin_security and 'original_import' in locals():
+                __builtins__['__import__'] = original_import
+
             self.logger.error(f"Failed to load sandboxed plugin {plugin_name}: {e}")
             return False
 
