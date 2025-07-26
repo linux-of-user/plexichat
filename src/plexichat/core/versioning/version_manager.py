@@ -218,8 +218,8 @@ class VersionManager:
     """Manages version information and auto-generates version files."""
 
     def __init__(self):
-        # Get current build number from git commit count
-        self.build_number = self._get_git_commit_count()
+        # Get current build number from GitHub releases
+        self.build_number = self._get_github_release_count()
         self.current_version = f"a.1.1-{self.build_number}"
         self.version_type = "alpha"
         self.major_version = 1
@@ -233,22 +233,67 @@ class VersionManager:
         # Auto-generate version files if they don't exist
         self._ensure_version_files_exist()
 
-    def _get_git_commit_count(self) -> int:
-        """Get current git commit count as build number."""
+    def _get_github_release_count(self) -> int:
+        """Get current build number from GitHub releases."""
+        try:
+            import requests
+
+            # Try to get GitHub repo info from git remote
+            repo_url = self._get_github_repo_url()
+            if repo_url:
+                api_url = f"https://api.github.com/repos/{repo_url}/releases"
+                response = requests.get(api_url, timeout=10)
+                if response.status_code == 200:
+                    releases = response.json()
+                    if releases:
+                        # Get the latest release build number
+                        latest_release = releases[0]
+                        tag_name = latest_release.get('tag_name', '')
+                        if '-' in tag_name:
+                            try:
+                                build_num = int(tag_name.split('-')[-1])
+                                logger.info(f"Found latest GitHub release build: {build_num}")
+                                return build_num
+                            except ValueError:
+                                pass
+
+                        # If no build number in tag, count releases
+                        build_num = len(releases) + 81  # Start from 82
+                        logger.info(f"Calculated build number from release count: {build_num}")
+                        return build_num
+
+        except Exception as e:
+            logger.warning(f"Could not get GitHub release count: {e}")
+
+        # Fallback to current build number
+        return 82
+
+    def _get_github_repo_url(self) -> str:
+        """Get GitHub repository URL from git remote."""
         try:
             import subprocess
             result = subprocess.run(
-                ['git', 'rev-list', '--count', 'HEAD'],
+                ['git', 'remote', 'get-url', 'origin'],
                 capture_output=True,
                 text=True,
                 cwd=os.path.dirname(__file__)
             )
             if result.returncode == 0:
-                return int(result.stdout.strip())
-        except Exception:
-            pass
-        # Fallback to a reasonable default
-        return 82
+                url = result.stdout.strip()
+                # Convert git URL to repo path
+                if 'github.com' in url:
+                    if url.startswith('git@'):
+                        # git@github.com:user/repo.git -> user/repo
+                        repo_path = url.split(':')[1].replace('.git', '')
+                    elif url.startswith('https://'):
+                        # https://github.com/user/repo.git -> user/repo
+                        repo_path = '/'.join(url.split('/')[-2:]).replace('.git', '')
+                    else:
+                        return ""
+                    return repo_path
+        except Exception as e:
+            logger.warning(f"Could not get GitHub repo URL: {e}")
+        return ""
 
     def _ensure_version_files_exist(self):
         """Ensure version.json and changelog.json exist, create if missing."""
