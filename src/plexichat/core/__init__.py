@@ -160,12 +160,34 @@ except ImportError:
     current_timestamp = None
     core_manager.register_component("utils", False)
 
+# Load from config files instead of constants
 try:
-    from .constants import APP_NAME, APP_VERSION, DEFAULT_CONFIG
+    import json
+    from pathlib import Path
+
+    # Load version from version.json
+    version_file = Path(__file__).parent.parent.parent / "version.json"
+    if version_file.exists():
+        with open(version_file, 'r') as f:
+            version_data = json.load(f)
+            APP_NAME = "PlexiChat"
+            APP_VERSION = version_data.get('current_version', 'a.1.1-144')
+    else:
+        APP_NAME = "PlexiChat"
+        APP_VERSION = "a.1.1-144"
+
+    # Load config from config file
+    config_file = Path(__file__).parent.parent.parent / "config" / "plexichat.json"
+    if config_file.exists():
+        with open(config_file, 'r') as f:
+            DEFAULT_CONFIG = json.load(f)
+    else:
+        DEFAULT_CONFIG = {}
+
     core_manager.register_component("constants", True)
-except ImportError:
+except Exception:
     APP_NAME = "PlexiChat"
-    APP_VERSION = "1.0.0"
+    APP_VERSION = "a.1.1-144"
     DEFAULT_CONFIG = {}
     core_manager.register_component("constants", False)
 

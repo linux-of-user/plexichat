@@ -218,16 +218,57 @@ class VersionManager:
     """Manages version information and auto-generates version files."""
 
     def __init__(self):
-        self.current_version = "a.1.1-16"
+        # Get current build number from git commit count
+        self.build_number = self._get_git_commit_count()
+        self.current_version = f"a.1.1-{self.build_number}"
         self.version_type = "alpha"
         self.major_version = 1
         self.minor_version = 1
-        self.build_number = 16
         self.api_version = "v1"
         self.release_date = datetime.now().strftime("%Y-%m-%d")
 
         # Parse version components
         self._parse_version()
+
+        # Auto-generate version files if they don't exist
+        self._ensure_version_files_exist()
+
+    def _get_git_commit_count(self) -> int:
+        """Get current git commit count as build number."""
+        try:
+            import subprocess
+            result = subprocess.run(
+                ['git', 'rev-list', '--count', 'HEAD'],
+                capture_output=True,
+                text=True,
+                cwd=os.path.dirname(__file__)
+            )
+            if result.returncode == 0:
+                return int(result.stdout.strip())
+        except Exception:
+            pass
+        # Fallback to a reasonable default
+        return 82
+
+    def _ensure_version_files_exist(self):
+        """Ensure version.json and changelog.json exist, create if missing."""
+        try:
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+            version_file = os.path.join(root_dir, "version.json")
+            changelog_file = os.path.join(root_dir, "changelog.json")
+
+            # Create version.json if it doesn't exist
+            if not os.path.exists(version_file):
+                logger.info("Creating missing version.json file")
+                self.auto_generate_files()
+
+            # Create changelog.json if it doesn't exist
+            if not os.path.exists(changelog_file):
+                logger.info("Creating missing changelog.json file")
+                self.auto_generate_files()
+
+        except Exception as e:
+            logger.error(f"Error ensuring version files exist: {e}")
 
     def _parse_version(self):
         """Parse version string into components."""
@@ -458,21 +499,25 @@ class VersionManager:
     def auto_generate_files(self):
         """Auto-generate version.json and changelog.json files atomically."""
         try:
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+
             # Generate version.json
             version_data = self.generate_version_json()
+            version_file = os.path.join(root_dir, "version.json")
             with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json", prefix="version-") as tf:
                 json.dump(version_data, tf, indent=2)
                 temp_version_path = tf.name
-            shutil.move(temp_version_path, "version.json")
-            logger.info("Auto-generated version.json")
+            shutil.move(temp_version_path, version_file)
+            logger.info(f"Auto-generated version.json at {version_file}")
 
             # Generate changelog.json
             changelog_data = self.generate_changelog_json()
+            changelog_file = os.path.join(root_dir, "changelog.json")
             with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json", prefix="changelog-") as tf:
                 json.dump(changelog_data, tf, indent=2)
                 temp_changelog_path = tf.name
-            shutil.move(temp_changelog_path, "changelog.json")
-            logger.info("Auto-generated changelog.json")
+            shutil.move(temp_changelog_path, changelog_file)
+            logger.info(f"Auto-generated changelog.json at {changelog_file}")
 
         except Exception as e:
             logger.error(f"Failed to auto-generate version files: {e}")

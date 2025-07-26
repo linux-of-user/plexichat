@@ -56,7 +56,17 @@ import ctypes
 import psutil
 
 # Constants and Configuration
-PLEXICHAT_VERSION = "a.1.1-36" # SHOULD BE FETCHED FROM VERSION.JSON SO THIS IS A TEMPORARY FIX
+def get_version_from_json():
+    """Get version from version.json file."""
+    try:
+        import json
+        with open('version.json', 'r') as f:
+            version_data = json.load(f)
+            return version_data.get('current_version', 'a.1.1-144')
+    except Exception:
+        return 'a.1.1-144'
+
+PLEXICHAT_VERSION = get_version_from_json()
 GITHUB_REPO = "linux-of-user/plexichat"
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}"
 GITHUB_RELEASES_URL = f"{GITHUB_API_URL}/releases"
@@ -2211,15 +2221,9 @@ def run_refresh_current_version():
     try:
         logger.info("Starting refresh of current version...")
 
-        # Get current version
-        try:
-            from src.plexichat.core.versioning.version_manager import VersionManager
-            version_manager = VersionManager()
-            current_version = version_manager.current_version
-            logger.info(f"Current version: {current_version}")
-        except ImportError:
-            logger.error("Version manager not available")
-            return False
+        # Get current version from version.json
+        current_version = get_version_from_json()
+        logger.info(f"Current version: {current_version}")
 
         # Create backup before refresh
         backup_dir = Path("backups") / f"pre_refresh_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -2295,6 +2299,15 @@ def run_refresh_current_version():
             # Update requirements.txt if it exists
             if (source_dir / "requirements.txt").exists():
                 shutil.copy2(source_dir / "requirements.txt", "requirements.txt")
+
+            # Update version.json and changelog.json
+            if (source_dir / "version.json").exists():
+                shutil.copy2(source_dir / "version.json", "version.json")
+                print(f"{Colors.GREEN}✓ Updated version.json{Colors.RESET}")
+
+            if (source_dir / "changelog.json").exists():
+                shutil.copy2(source_dir / "changelog.json", "changelog.json")
+                print(f"{Colors.GREEN}✓ Updated changelog.json{Colors.RESET}")
 
             print(f"{Colors.GREEN}✓ Files refreshed successfully{Colors.RESET}")
             print(f"{Colors.GREEN}✓ File integrity verified{Colors.RESET}")
@@ -2826,29 +2839,13 @@ def run_api_server(args=None):
         return False
 
 def run_cli():
-    """Run the enhanced CLI interface with comprehensive command support."""
+    """Run the CLI interface."""
     try:
-        # Use the CLI launcher for seamless integration
-        import subprocess
-
-        # Prepare command arguments
-        cli_args = ["python", "cli_launcher.py"] + sys.argv[1:]  # Include 'cli' and any additional args
-
-        # Execute the CLI launcher
-        result = subprocess.run(cli_args, cwd=Path(__file__).parent)
-        sys.exit(result.returncode)
-
+        from plexichat.interfaces.cli.main_cli import main as cli_main
+        cli_main()
     except Exception as e:
         logger.error(f"Could not start CLI: {e}")
         logger.debug(f"CLI error details: {e}", exc_info=True)
-
-        # Fallback to original CLI system
-        try:
-            from plexichat.interfaces.cli.main_cli import main as cli_main
-            cli_main()
-        except Exception as fallback_error:
-            logger.error(f"Fallback CLI also failed: {fallback_error}")
-            sys.exit(1)
 
 def run_admin_cli():
     """Run admin CLI commands."""
@@ -3960,6 +3957,17 @@ def download_and_install_to_path(repo, version_tag, install_path):
         try:
             # Download PlexiChat
             download_plexichat_from_github(repo, version_tag)
+
+            # Generate version files after installation
+            try:
+                print(f"  {Colors.BRIGHT_CYAN}Generating version files...{Colors.RESET}")
+                from src.plexichat.core.versioning.version_manager import VersionManager
+                version_manager = VersionManager()
+                version_manager.auto_generate_files()
+                print(f"  {Colors.GREEN}✓ Version files generated{Colors.RESET}")
+            except Exception as e:
+                print(f"  {Colors.YELLOW}⚠ Version file generation failed: {e}{Colors.RESET}")
+
             print(f"  {Colors.GREEN}✓ Installation completed to {install_path}")
         finally:
             # Return to original directory

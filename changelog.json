@@ -1,0 +1,104 @@
+{
+  "project": "PlexiChat",
+  "description": "Government-Level Secure Communication Platform",
+  "versions": [
+    {
+      "version": "a.1.1-144",
+      "date": "2025-07-26",
+      "type": "alpha",
+      "status": "current",
+      "changes": {
+        "added": [
+          "New versioning system (letter.majorversion.minorversion-buildnumber)",
+          "Comprehensive file attachment support for messages",
+          "Enhanced file upload endpoints with validation",
+          "Security scanning for uploaded files",
+          "Auto-generated version.json and changelog.json",
+          "Improved API error handling and validation",
+          "Enhanced backup system integration",
+          "Real-time messaging capabilities",
+          "Plugin system architecture improvements",
+          "File permission management system",
+          "Message threading and replies",
+          "Voice message support",
+          "Advanced search functionality",
+          "User profile management",
+          "Admin dashboard improvements"
+        ],
+        "changed": [
+          "Updated version format throughout codebase",
+          "Improved error handling in main application",
+          "Enhanced router loading system",
+          "Better import error handling",
+          "Updated configuration management",
+          "Improved logging system"
+        ],
+        "fixed": [
+          "Import errors in main.py",
+          "Broken router loading",
+          "Missing file upload endpoints",
+          "Incomplete message attachment functionality",
+          "Version inconsistency across files"
+        ],
+        "deprecated": [],
+        "removed": [],
+        "security": [
+          "File upload validation",
+          "Security scanning for uploaded files",
+          "Enhanced authentication middleware",
+          "Improved permission system"
+        ]
+      },
+      "api_changes": {
+        "added": [
+          "POST /api/v1/files/upload - File upload endpoint",
+          "GET /api/v1/files/{file_id} - File download endpoint",
+          "POST /api/v1/messages/create - Enhanced message creation with attachments",
+          "PUT /api/v1/messages/{message_id} - Message editing with file management",
+          "GET /api/v1/messages/{message_id}/attachments - Get message attachments",
+          "POST /api/v1/security/scan/file - File security scanning",
+          "GET /api/v1/version - Version information endpoint"
+        ],
+        "changed": [
+          "Updated message endpoints to support file attachments",
+          "Enhanced file management endpoints",
+          "Improved error responses"
+        ]
+      },
+      "breaking_changes": [],
+      "migration_notes": "This version introduces a new versioning format. Update any version parsing code to handle the new format."
+    },
+    {
+      "version": "a.1.0-15",
+      "date": "2024-12-18",
+      "type": "alpha",
+      "status": "previous",
+      "changes": {
+        "added": [
+          "Basic messaging system",
+          "User authentication",
+          "File management",
+          "Backup system foundation"
+        ],
+        "changed": [],
+        "fixed": [],
+        "deprecated": [],
+        "removed": []
+      }
+    }
+  ],
+  "version_format": {
+    "description": "letter.majorversion.minorversion-buildnumber",
+    "examples": [
+      "a.1.1-144 (alpha version 1.1 build 144)",
+      "b.2.1-5 (beta version 2.1 build 5)",
+      "r.1.0-10 (release version 1.0 build 10)"
+    ],
+    "letters": {
+      "a": "alpha",
+      "b": "beta",
+      "r": "release",
+      "c": "candidate"
+    }
+  }
+}

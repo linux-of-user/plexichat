@@ -177,10 +177,7 @@ docker-compose.override.yml
 /monitoring/
 /metrics/
 /exports/
-version.json
 default_creds.txt
-changelog.json
-CHANGELOG.md
 
 # Plugin sandboxing - each plugin gets its own log directory
 /logs/plugin/*/

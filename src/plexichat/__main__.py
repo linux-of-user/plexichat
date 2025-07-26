@@ -260,7 +260,7 @@ def setup_thread_pool(workers: int) -> ThreadPoolExecutor:
     """Setup thread pool for multithreading support."""
     global _thread_pool
 
-    _thread_pool = ThreadPoolExecutor()
+    _thread_pool = ThreadPoolExecutor(
         max_workers=workers,
         thread_name_prefix="PlexiChat-Worker"
     )

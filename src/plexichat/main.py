@@ -56,7 +56,12 @@ try:
     from plexichat.core.middleware import middleware_manager
     from plexichat.core.validation import validator
     from plexichat.core.utils import generate_id, current_timestamp
-    from plexichat.core.constants import APP_NAME, APP_VERSION, DEFAULT_CONFIG
+    # Load configuration from config file instead of constants
+    version_info = load_version_from_json()
+    APP_NAME = "PlexiChat"
+    APP_VERSION = version_info.get('current_version', 'a.1.1-144')
+    config_data = load_config()
+    DEFAULT_CONFIG = config_data
 except ImportError as e:
     logging.warning(f"Some core modules not available: {e}")
     config_manager = None

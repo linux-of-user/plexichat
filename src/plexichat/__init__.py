@@ -242,8 +242,29 @@ async def initialize_plexichat():
     except Exception as e:
         logger.error(f"Error during PlexiChat initialization: {e}")
 
-# Auto-initialize on import
-initialize_plexichat()
+# Auto-initialize on import (sync version)
+def sync_initialize_plexichat():
+    """Synchronous initialization wrapper."""
+    try:
+        import asyncio
+        # Try to get existing event loop
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is running, schedule the initialization
+                asyncio.create_task(initialize_plexichat())
+            else:
+                # If loop is not running, run it
+                loop.run_until_complete(initialize_plexichat())
+        except RuntimeError:
+            # No event loop, create one
+            asyncio.run(initialize_plexichat())
+    except Exception as e:
+        logger.error(f"Error during sync initialization: {e}")
+        # Continue without async initialization
+        import_plexichat_modules()
+
+sync_initialize_plexichat()
 
 # Export commonly used items
 __all__ = [

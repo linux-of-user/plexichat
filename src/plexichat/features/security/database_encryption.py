@@ -291,7 +291,8 @@ class DataClassification:
     INTERNAL = "internal"
     CONFIDENTIAL = "confidential"
     RESTRICTED = "restricted"
-TOP_SECRET =os.getenv("SECRET_KEY", "")
+import os
+TOP_SECRET = os.getenv("SECRET_KEY", "")
 
 
 # Global encryption manager instance
