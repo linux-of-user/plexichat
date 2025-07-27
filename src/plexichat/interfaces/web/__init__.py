@@ -94,7 +94,13 @@ def create_app() -> Optional[Any]:
         # Add static files
         if StaticFiles:
             try:
-                app.mount("/static", StaticFiles(directory="static"), name="static")
+                from pathlib import Path
+                static_path = Path(__file__).parent / "static"
+                if static_path.exists():
+                    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+                    logger.info(f"Static files mounted from {static_path}")
+                else:
+                    logger.warning(f"Static directory not found at {static_path}")
             except Exception as e:
                 logger.warning(f"Could not mount static files: {e}")
 

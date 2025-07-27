@@ -27,7 +27,7 @@ except ImportError:
 
 # Pydantic imports
 try:
-    from pydantic import BaseModel, validator
+    from pydantic import BaseModel, field_validator
 except ImportError:
     BaseModel = object
     validator = lambda *args, **kwargs: lambda f: f
@@ -126,7 +126,8 @@ class MessageCreate(BaseModel):
     attachments: Optional[List[Dict[str, Any]]] = Field(None, description="Message attachments")
     mentions: Optional[List[int]] = Field(None, description="User mentions")
 
-    @validator('content')
+    @field_validator('content')
+    @classmethod
     def validate_content(cls, v):
         if not v.strip():
             raise ValueError('Message content cannot be empty')
@@ -137,7 +138,8 @@ class MessageUpdate(BaseModel):
     content: Optional[str] = Field(None, min_length=1, max_length=2000, description="Updated content")
     is_pinned: Optional[bool] = Field(None, description="Pin status")
 
-    @validator('content')
+    @field_validator('content')
+    @classmethod
     def validate_content(cls, v):
         if v is not None and not v.strip():
             raise ValueError('Message content cannot be empty')

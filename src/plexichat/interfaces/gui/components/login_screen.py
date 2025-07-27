@@ -77,7 +77,7 @@ class LoginScreen(ttk.Frame):
         # Form variables
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
-        self.remember_me_var = tk.BooleanVar()
+        self.remember_var = tk.BooleanVar()  # Fixed variable name
         self.show_password_var = tk.BooleanVar()
         
         # Animation variables
@@ -131,40 +131,76 @@ class LoginScreen(ttk.Frame):
             messagebox.showerror("Error", f"Failed to create login interface: {e}")
 
     def create_dark_mode_toggle(self):
-        """Create dark mode toggle in top-right corner."""
+        """Create modern dark mode toggle switch in top-right corner."""
         try:
-            # Dark mode toggle frame
-            toggle_frame = tk.Frame(self, bg='transparent')
-            toggle_frame.place(relx=0.95, rely=0.05, anchor="ne")
-
-            # Dark mode label
-            mode_label = tk.Label(
-                toggle_frame,
-                text="🌙",
-                font=('Inter', 16),
-                bg='transparent',
-                fg='white',
-                cursor='hand2'
+            # Create modern toggle switch using Canvas
+            canvas_bg = '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
+            self.toggle_canvas = tk.Canvas(
+                self,
+                width=80, height=40,
+                highlightthickness=0,
+                bg=canvas_bg
             )
-            mode_label.pack(side=tk.LEFT, padx=(0, 5))
+            self.toggle_canvas.place(relx=0.95, rely=0.05, anchor="ne")
 
-            # Dark mode toggle
-            self.dark_toggle = tk.Checkbutton(
-                toggle_frame,
-                variable=self.dark_mode,
-                command=self.toggle_dark_mode,
-                bg='transparent',
-                fg='white',
-                selectcolor='#3b82f6',
-                activebackground='transparent',
-                activeforeground='white',
-                cursor='hand2',
-                font=('Inter', 10)
-            )
-            self.dark_toggle.pack(side=tk.LEFT)
+            # Draw the toggle switch
+            self.draw_toggle_switch()
+
+            # Bind click event
+            self.toggle_canvas.bind("<Button-1>", lambda e: self.toggle_dark_mode())
+            self.toggle_canvas.configure(cursor='hand2')
 
         except Exception as e:
             logger.error(f"Failed to create dark mode toggle: {e}")
+
+    def draw_toggle_switch(self):
+        """Draw the modern toggle switch."""
+        try:
+            self.toggle_canvas.delete("all")
+
+            # Toggle switch dimensions
+            switch_width = 50
+            switch_height = 25
+            switch_x = 15
+            switch_y = 7
+
+            # Colors based on mode
+            if self.dark_mode.get():
+                # Dark mode - switch is ON
+                track_color = '#3b82f6'  # Blue when on
+                thumb_color = '#ffffff'  # White thumb
+                icon = '🌙'
+                thumb_x = switch_x + switch_width - 15  # Right position
+            else:
+                # Light mode - switch is OFF
+                track_color = '#d1d5db'  # Gray when off
+                thumb_color = '#ffffff'  # White thumb
+                icon = '☀️'
+                thumb_x = switch_x + 5  # Left position
+
+            # Draw track (rounded rectangle)
+            self.draw_rounded_rect(
+                self.toggle_canvas,
+                switch_x, switch_y,
+                switch_x + switch_width, switch_y + switch_height,
+                12, track_color
+            )
+
+            # Draw thumb (circle)
+            thumb_radius = 10
+            self.toggle_canvas.create_oval(
+                thumb_x - thumb_radius, switch_y + 2,
+                thumb_x + thumb_radius, switch_y + switch_height - 2,
+                fill=thumb_color, outline='#e5e7eb', width=1
+            )
+
+            # Add icon
+            self.toggle_canvas.create_text(
+                5, 20, text=icon, font=('Inter', 12), anchor='w'
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to draw toggle switch: {e}")
 
     def create_glassmorphism_container(self):
         """Create glassmorphism effect behind login card."""
@@ -188,20 +224,42 @@ class LoginScreen(ttk.Frame):
     def toggle_dark_mode(self):
         """Toggle between dark and light mode."""
         try:
+            # Toggle the mode
+            self.dark_mode.set(not self.dark_mode.get())
+
+            # Redraw toggle switch with updated background
+            if hasattr(self, 'toggle_canvas'):
+                canvas_bg = '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
+                self.toggle_canvas.configure(bg=canvas_bg)
+                self.draw_toggle_switch()
+
             # Reconfigure styles based on mode
             self.configure_custom_styles()
 
-            # Update background colors
-            if self.dark_mode.get():
-                # Dark mode colors
-                self.configure(bg='#1a1a2e')
-                if hasattr(self, 'bg_canvas'):
+            # Update background gradient
+            if hasattr(self, 'bg_canvas'):
+                if self.dark_mode.get():
                     self.create_gradient_background()
-            else:
-                # Light mode colors
-                self.configure(bg='#f8fafc')
-                if hasattr(self, 'bg_canvas'):
+                else:
                     self.create_light_gradient_background()
+
+            # Store current form values before recreating
+            current_username = self.username_var.get() if hasattr(self, 'username_var') else ""
+            current_password = self.password_var.get() if hasattr(self, 'password_var') else ""
+            current_remember = self.remember_var.get() if hasattr(self, 'remember_var') else False
+
+            # Recreate the login form with new colors
+            if hasattr(self, 'card_canvas'):
+                self.card_canvas.destroy()
+                self.create_glassmorphic_login_card()
+
+            # Restore form values
+            if current_username and hasattr(self, 'username_var'):
+                self.username_var.set(current_username)
+            if current_password and hasattr(self, 'password_var'):
+                self.password_var.set(current_password)
+            if hasattr(self, 'remember_var'):
+                self.remember_var.set(current_remember)
 
             # Update system status
             self.update_system_status()
@@ -358,29 +416,738 @@ class LoginScreen(ttk.Frame):
             logger.error(f"Animation error: {e}")
 
     def create_login_form(self):
-        """Create the main login form."""
+        """Create the main login form with proper rounded corners and glassmorphism."""
         try:
-            # Main login container
-            self.login_frame = ttk.Frame(self.main_frame, style="LoginCard.TFrame", padding=40)
-            self.login_frame.grid(row=0, column=0, sticky="nsew")
-            
-            # PlexiChat logo and title
-            self.create_header()
-            
-            # Login form fields
-            self.create_form_fields()
-            
-            # Login options
-            self.create_login_options()
-            
-            # Action buttons
-            self.create_action_buttons()
-            
-            # Footer links
-            self.create_footer_links()
+            # Create the glassmorphic login card using Canvas
+            self.create_glassmorphic_login_card()
+
+        except Exception as e:
+            logger.error(f"Failed to create login form: {e}")
+
+    def create_glassmorphic_login_card(self):
+        """Create a beautiful glassmorphic login card with rounded corners."""
+        try:
+            # Card dimensions
+            card_width = 420
+            card_height = 580
+            corner_radius = 25
+
+            # Create main canvas for the entire card
+            canvas_bg = '#1a1a2e' if self.dark_mode.get() else '#f8fafc'
+            self.card_canvas = tk.Canvas(
+                self.main_frame,
+                width=card_width,
+                height=card_height,
+                highlightthickness=0,
+                bg=canvas_bg,
+                bd=0
+            )
+            self.card_canvas.grid(row=0, column=0, padx=20, pady=20)
+
+            # Draw glassmorphic background with blur effect
+            self.draw_glassmorphic_card(card_width, card_height, corner_radius)
+
+            # Create TRANSPARENT content frame - match the glass background
+            if self.dark_mode.get():
+                content_bg = '#8a8aaa'  # Match the EXTREME glass color exactly
+            else:
+                content_bg = '#9090b0'  # Match the EXTREME light glass exactly
+
+            self.content_frame = tk.Frame(
+                self.card_canvas,
+                bg=content_bg,  # Transparent background
+                bd=0,
+                highlightthickness=0,
+                relief='flat'
+            )
+
+            # Fill the entire card - no borders, no margins
+            self.card_canvas.create_window(
+                card_width // 2, card_height // 2,
+                window=self.content_frame,
+                anchor='center',
+                width=card_width - 10,  # Just enough padding to not touch edges
+                height=card_height - 10
+            )
+
+            # Add all the login elements
+            self.create_card_content()
+
+        except Exception as e:
+            logger.error(f"Failed to create glassmorphic login card: {e}")
+
+    def draw_glassmorphic_card(self, width, height, radius):
+        """Draw REAL glassmorphic card - transparent, frosted glass effect."""
+        try:
+            # Clear the canvas first
+            self.card_canvas.delete("all")
+
+            # STEP 1: Draw shadow FIRST (behind everything)
+            if self.dark_mode.get():
+                shadow_color = '#0a0a15'  # Very dark shadow
+            else:
+                shadow_color = '#cbd5e1'  # Light shadow
+
+            self.draw_rounded_rect(
+                self.card_canvas,
+                4, 4, width + 4, height + 4,
+                radius, shadow_color
+            )
+
+            # STEP 2: Draw the ACTUAL glassmorphic card
+            if self.dark_mode.get():
+                # EXTREME GLASSMORPHISM: Make it SUPER visible
+                # Background is #1a1a2e (very dark), make glass EXTREMELY light
+                glass_bg = '#8a8aaa'  # EXTREMELY visible - almost white
+                glass_border = '#aaaacc'  # Very bright border
+                glass_highlight = '#ffffff'  # Pure white highlights
+                glass_shadow = '#000000'  # Deep shadow
+
+            else:
+                # Light mode: EXTREME glass effect
+                # Background is #f8fafc (very light), make glass much darker
+                glass_bg = '#9090b0'  # Much darker glass - very visible
+                glass_border = '#7070a0'  # Dark prominent border
+                glass_highlight = '#ffffff'  # White highlights
+                glass_shadow = '#00000080'  # Very visible shadow
+
+            # Draw main glass card
+            self.draw_rounded_rect(
+                self.card_canvas, 0, 0, width, height, radius, glass_bg
+            )
+
+            # STEP 3: Add MORE VISIBLE glass effects
+            if self.dark_mode.get():
+                # BRIGHTER glass highlight on top edge (like light reflection)
+                self.card_canvas.create_line(
+                    radius//2, 2, width - radius//2, 2,
+                    fill=glass_highlight, width=2
+                )
+
+                # BRIGHTER glass highlight on left edge
+                self.card_canvas.create_line(
+                    2, radius//2, 2, height - radius//2,
+                    fill=glass_highlight, width=2
+                )
+
+                # Add inner glow effect
+                self.card_canvas.create_rectangle(
+                    3, 3, width-3, height-3,
+                    outline='#6a6a80', width=1
+                )
+
+                # DRAMATIC frosted glass texture
+                import random
+                random.seed(42)  # Consistent pattern
+                for i in range(8, width-8, 10):
+                    for j in range(8, height-8, 10):
+                        if random.random() < 0.5:  # 50% chance for texture dot
+                            self.card_canvas.create_oval(
+                                i, j, i+3, j+3,  # Even bigger dots
+                                fill='#6a6a8a', outline=''  # Much more visible
+                            )
+
+            else:
+                # Light mode glass effects
+                # Glass highlight on top edge
+                self.card_canvas.create_line(
+                    radius//2, 2, width - radius//2, 2,
+                    fill=glass_highlight, width=2
+                )
+
+                # Glass highlight on left edge
+                self.card_canvas.create_line(
+                    2, radius//2, 2, height - radius//2,
+                    fill=glass_highlight, width=2
+                )
+
+                # Light mode DRAMATIC frosted texture
+                import random
+                random.seed(42)
+                for i in range(8, width-8, 10):
+                    for j in range(8, height-8, 10):
+                        if random.random() < 0.4:
+                            self.card_canvas.create_oval(
+                                i, j, i+2, j+2,  # Bigger dots
+                                fill='#b8c8d8', outline=''  # More visible
+                            )
+
+            # STEP 4: Glass border (very subtle)
+            self.draw_rounded_rect_outline(
+                self.card_canvas, 0, 0, width, height, radius, glass_border
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to draw glassmorphic card: {e}")
+
+    def draw_rounded_rect(self, canvas, x1, y1, x2, y2, radius, color, alpha=100):
+        """Draw a rounded rectangle (Tkinter compatible - no alpha)."""
+        try:
+            # Use solid colors only - Tkinter doesn't support alpha transparency
+            fill_color = color
+
+            # Draw rounded rectangle using arcs and rectangles
+            # Main rectangles
+            canvas.create_rectangle(x1 + radius, y1, x2 - radius, y2, fill=fill_color, outline='')
+            canvas.create_rectangle(x1, y1 + radius, x2, y2 - radius, fill=fill_color, outline='')
+
+            # Corner arcs
+            canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
+                            start=90, extent=90, fill=fill_color, outline='')
+            canvas.create_arc(x2 - 2*radius, y1, x2, y1 + 2*radius,
+                            start=0, extent=90, fill=fill_color, outline='')
+            canvas.create_arc(x2 - 2*radius, y2 - 2*radius, x2, y2,
+                            start=270, extent=90, fill=fill_color, outline='')
+            canvas.create_arc(x1, y2 - 2*radius, x1 + 2*radius, y2,
+                            start=180, extent=90, fill=fill_color, outline='')
+
+        except Exception as e:
+            logger.error(f"Failed to draw rounded rectangle: {e}")
+
+    def draw_rounded_rect_outline(self, canvas, x1, y1, x2, y2, radius, color, alpha=100):
+        """Draw a rounded rectangle outline (Tkinter compatible)."""
+        try:
+            outline_color = color
+
+            # Draw rounded outline using arcs and lines
+            # Top line
+            canvas.create_line(x1 + radius, y1, x2 - radius, y1, fill=outline_color, width=2)
+            # Right line
+            canvas.create_line(x2, y1 + radius, x2, y2 - radius, fill=outline_color, width=2)
+            # Bottom line
+            canvas.create_line(x2 - radius, y2, x1 + radius, y2, fill=outline_color, width=2)
+            # Left line
+            canvas.create_line(x1, y2 - radius, x1, y1 + radius, fill=outline_color, width=2)
+
+            # Corner arcs
+            canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
+                            start=90, extent=90, outline=outline_color, width=2, style='arc')
+            canvas.create_arc(x2 - 2*radius, y1, x2, y1 + 2*radius,
+                            start=0, extent=90, outline=outline_color, width=2, style='arc')
+            canvas.create_arc(x2 - 2*radius, y2 - 2*radius, x2, y2,
+                            start=270, extent=90, outline=outline_color, width=2, style='arc')
+            canvas.create_arc(x1, y2 - 2*radius, x1 + 2*radius, y2,
+                            start=180, extent=90, outline=outline_color, width=2, style='arc')
+
+        except Exception as e:
+            logger.error(f"Failed to draw rounded rectangle outline: {e}")
             
         except Exception as e:
             logger.error(f"Failed to create login form: {e}")
+
+    def create_card_content(self):
+        """Create the content inside the glassmorphic card."""
+        try:
+            # Modern logo and title
+            self.create_modern_header()
+
+            # Stylish form fields with rounded inputs
+            self.create_modern_form_fields()
+
+            # Clean login options
+            self.create_modern_login_options()
+
+            # Beautiful rounded buttons
+            self.create_modern_action_buttons()
+
+            # System status indicator
+            self.create_modern_system_status()
+
+        except Exception as e:
+            logger.error(f"Failed to create card content: {e}")
+
+    def create_modern_header(self):
+        """Create modern header with beautiful logo."""
+        try:
+            # Logo frame with frosted glass background
+            content_bg = '#9090b0' if not self.dark_mode.get() else '#8a8aaa'
+            logo_frame = tk.Frame(self.content_frame, bg=content_bg, bd=0, highlightthickness=0)
+            logo_frame.pack(pady=(30, 20))
+
+            # Create modern logo with glassmorphic effect
+            logo_canvas = tk.Canvas(logo_frame, width=100, height=100, highlightthickness=0, bg=content_bg, bd=0)
+            logo_canvas.pack()
+
+            # Draw modern glassmorphic logo
+            self.draw_modern_logo(logo_canvas)
+
+            # Modern title
+            title_color = '#ffffff' if self.dark_mode.get() else '#1f2937'
+            title_label = tk.Label(
+                self.content_frame,
+                text="PlexiChat",
+                font=('Inter', 28, 'bold'),
+                fg=title_color,
+                bg=content_bg,
+                bd=0
+            )
+            title_label.pack(pady=(10, 5))
+
+            # Subtitle
+            subtitle_color = '#d1d5db' if self.dark_mode.get() else '#6b7280'
+            subtitle_label = tk.Label(
+                self.content_frame,
+                text="Management Interface",
+                font=('Inter', 14),
+                fg=subtitle_color,
+                bg=content_bg,
+                bd=0
+            )
+            subtitle_label.pack(pady=(0, 30))
+
+        except Exception as e:
+            logger.error(f"Failed to create modern header: {e}")
+
+    def draw_modern_logo(self, canvas):
+        """Draw a modern logo with proper Tkinter colors."""
+        try:
+            if self.dark_mode.get():
+                # Dark mode: simple clean design
+                # Main logo circle
+                canvas.create_oval(15, 15, 85, 85, fill='#3b82f6', outline='#60a5fa', width=2)
+                # Inner highlight
+                canvas.create_oval(25, 25, 45, 45, fill='#60a5fa', outline='')
+            else:
+                # Light mode: clean with shadow
+                # Shadow
+                canvas.create_oval(17, 17, 87, 87, fill='#d1d5db', outline='')
+                # Main circle
+                canvas.create_oval(15, 15, 85, 85, fill='#3b82f6', outline='#2563eb', width=2)
+                # Inner highlight
+                canvas.create_oval(25, 25, 45, 45, fill='#60a5fa', outline='')
+
+            # Modern "P" letter
+            canvas.create_text(50, 50, text="P", fill="white", font=("Inter", 32, "bold"))
+
+        except Exception as e:
+            logger.error(f"Failed to draw modern logo: {e}")
+
+    def create_modern_form_fields(self):
+        """Create modern form fields with rounded inputs."""
+        try:
+            # Username field
+            self.create_modern_input_field(
+                self.content_frame,
+                "👤 Username",
+                self.username_var,
+                "admin"
+            )
+
+            # Password field
+            self.create_modern_password_field(
+                self.content_frame,
+                "🔒 Password",
+                self.password_var
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to create modern form fields: {e}")
+
+    def create_modern_input_field(self, parent, label_text, text_var, placeholder=""):
+        """Create a modern rounded input field."""
+        try:
+            # Field container with frosted glass background
+            content_bg = '#9090b0' if not self.dark_mode.get() else '#8a8aaa'
+            field_frame = tk.Frame(parent, bg=content_bg, bd=0, highlightthickness=0)
+            field_frame.pack(fill='x', padx=40, pady=(0, 20))
+
+            # Label
+            label_color = '#ffffff' if self.dark_mode.get() else '#374151'
+            label = tk.Label(
+                field_frame,
+                text=label_text,
+                font=('Inter', 12, 'bold'),
+                fg=label_color,
+                bg=content_bg,
+                anchor='w'
+            )
+            label.pack(fill='x', pady=(0, 8))
+
+            # Create rounded input using Canvas
+            input_canvas = tk.Canvas(field_frame, height=50, highlightthickness=0, bg=content_bg, bd=0)
+            input_canvas.pack(fill='x')
+
+            # Draw rounded input background
+            def draw_input_bg():
+                input_canvas.delete("input_bg")
+                width = input_canvas.winfo_width()
+                if width > 1:  # Only draw if canvas is properly sized
+                    if self.dark_mode.get():
+                        # Glass input fields - subtle and transparent
+                        bg_color = '#3a3a4e'  # Slightly darker glass
+                        border_color = '#5a5a6e'  # Subtle border
+                    else:
+                        # Light glass inputs
+                        bg_color = '#f8fafc'  # Very light glass
+                        border_color = '#e2e8f0'  # Subtle border
+
+                    self.draw_rounded_rect(input_canvas, 2, 2, width-2, 48, 12, bg_color)
+                    self.draw_rounded_rect_outline(input_canvas, 1, 1, width-1, 49, 12, border_color)
+
+            # Bind canvas resize to redraw background
+            input_canvas.bind('<Configure>', lambda e: draw_input_bg())
+
+            # Create actual entry widget
+            entry_color = '#ffffff' if self.dark_mode.get() else '#111827'
+            entry_bg = '#374151' if self.dark_mode.get() else '#f9fafb'
+
+            entry = tk.Entry(
+                input_canvas,
+                textvariable=text_var,
+                font=('Inter', 13),
+                fg=entry_color,
+                bg=entry_bg,
+                bd=0,
+                highlightthickness=0,
+                insertbackground=entry_color
+            )
+
+            # Bind Enter key to login (for username field)
+            entry.bind('<Return>', lambda e: self.perform_login())
+
+            # Place entry in canvas
+            input_canvas.create_window(20, 25, window=entry, anchor='w', width=300)
+
+            # Set placeholder only if field is empty
+            if placeholder and not entry.get():
+                entry.insert(0, placeholder)
+
+            return entry
+
+        except Exception as e:
+            logger.error(f"Failed to create modern input field: {e}")
+            return None
+
+    def create_modern_password_field(self, parent, label_text, text_var):
+        """Create a modern password field with eye toggle."""
+        try:
+            # Field container with frosted glass background
+            content_bg = '#9090b0' if not self.dark_mode.get() else '#8a8aaa'
+            field_frame = tk.Frame(parent, bg=content_bg, bd=0, highlightthickness=0)
+            field_frame.pack(fill='x', padx=40, pady=(0, 20))
+
+            # Label
+            label_color = '#ffffff' if self.dark_mode.get() else '#374151'
+            label = tk.Label(
+                field_frame,
+                text=label_text,
+                font=('Inter', 12, 'bold'),
+                fg=label_color,
+                bg=content_bg,
+                anchor='w'
+            )
+            label.pack(fill='x', pady=(0, 8))
+
+            # Create rounded input using Canvas
+            input_canvas = tk.Canvas(field_frame, height=50, highlightthickness=0, bg=content_bg, bd=0)
+            input_canvas.pack(fill='x')
+
+            # Draw rounded input background
+            def draw_password_bg():
+                input_canvas.delete("password_bg")
+                width = input_canvas.winfo_width()
+                if width > 1:
+                    if self.dark_mode.get():
+                        # Glass password field
+                        bg_color = '#3a3a4e'  # Slightly darker glass
+                        border_color = '#5a5a6e'  # Subtle border
+                    else:
+                        # Light glass password field
+                        bg_color = '#f8fafc'  # Very light glass
+                        border_color = '#e2e8f0'  # Subtle border
+
+                    self.draw_rounded_rect(input_canvas, 2, 2, width-2, 48, 12, bg_color)
+                    self.draw_rounded_rect_outline(input_canvas, 1, 1, width-1, 49, 12, border_color)
+
+            input_canvas.bind('<Configure>', lambda e: draw_password_bg())
+
+            # Create password entry
+            entry_color = '#ffffff' if self.dark_mode.get() else '#111827'
+            entry_bg = '#374151' if self.dark_mode.get() else '#f9fafb'
+
+            self.password_entry = tk.Entry(
+                input_canvas,
+                textvariable=text_var,
+                font=('Inter', 13),
+                fg=entry_color,
+                bg=entry_bg,
+                bd=0,
+                highlightthickness=0,
+                show='*',
+                insertbackground=entry_color
+            )
+
+            # Bind Enter key to login
+            self.password_entry.bind('<Return>', lambda e: self.perform_login())
+
+            # Place password entry in canvas
+            input_canvas.create_window(20, 25, window=self.password_entry, anchor='w', width=260)
+
+            # Eye toggle button
+            eye_btn = tk.Button(
+                input_canvas,
+                text="👁",
+                font=('Inter', 14),
+                fg=entry_color,
+                bg=entry_bg,
+                bd=0,
+                highlightthickness=0,
+                command=self.toggle_password_visibility,
+                cursor='hand2'
+            )
+            input_canvas.create_window(320, 25, window=eye_btn, anchor='center')
+
+        except Exception as e:
+            logger.error(f"Failed to create modern password field: {e}")
+
+    def create_modern_login_options(self):
+        """Create modern login options with proper spacing."""
+        try:
+            # Options container with frosted glass background
+            content_bg = '#9090b0' if not self.dark_mode.get() else '#8a8aaa'
+            options_frame = tk.Frame(self.content_frame, bg=content_bg, bd=0, highlightthickness=0)
+            options_frame.pack(fill='x', padx=40, pady=(0, 25))
+
+            # Remember me (left side)
+            remember_frame = tk.Frame(options_frame, bg=content_bg, bd=0, highlightthickness=0)
+            remember_frame.pack(side='left')
+
+            text_color = '#ffffff' if self.dark_mode.get() else '#374151'
+            remember_check = tk.Checkbutton(
+                remember_frame,
+                text="☑ Remember me",
+                variable=self.remember_var,
+                font=('Inter', 11),
+                fg=text_color,
+                bg=content_bg,
+                selectcolor='#3b82f6',
+                activebackground=content_bg,
+                activeforeground=text_color,
+                bd=0,
+                highlightthickness=0
+            )
+            remember_check.pack()
+
+            # Reset password (right side)
+            reset_frame = tk.Frame(options_frame, bg=content_bg, bd=0, highlightthickness=0)
+            reset_frame.pack(side='right')
+
+            link_color = '#3b82f6' if self.dark_mode.get() else '#2563eb'
+            reset_link = tk.Label(
+                reset_frame,
+                text="🔁 Reset password?",
+                font=('Inter', 11),
+                fg=link_color,
+                bg=content_bg,
+                cursor='hand2'
+            )
+            reset_link.pack()
+            reset_link.bind("<Button-1>", self.show_password_reset_info)
+
+        except Exception as e:
+            logger.error(f"Failed to create modern login options: {e}")
+
+    def create_modern_action_buttons(self):
+        """Create beautiful rounded action buttons."""
+        try:
+            # Button container with frosted glass background
+            content_bg = '#9090b0' if not self.dark_mode.get() else '#8a8aaa'
+            button_frame = tk.Frame(self.content_frame, bg=content_bg, bd=0, highlightthickness=0)
+            button_frame.pack(fill='x', padx=40, pady=(0, 20))
+
+            # Create rounded sign in button
+            self.create_rounded_button(
+                button_frame,
+                "Sign In",
+                self.perform_login,
+                width=320,
+                height=50,
+                bg_color='#3b82f6',
+                hover_color='#2563eb',
+                text_color='#ffffff'
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to create modern action buttons: {e}")
+
+    def create_rounded_button(self, parent, text, command, width=200, height=40,
+                            bg_color='#3b82f6', hover_color='#2563eb', text_color='#ffffff'):
+        """Create a beautiful rounded button with hover effects."""
+        try:
+            # Button canvas with frosted glass background
+            content_bg = '#9090b0' if not self.dark_mode.get() else '#8a8aaa'
+            btn_canvas = tk.Canvas(parent, width=width, height=height,
+                                 highlightthickness=0, bg=content_bg, bd=0)
+            btn_canvas.pack(pady=10)
+
+            # Draw button background - FIXED VERSION
+            def draw_button(color=bg_color):
+                btn_canvas.delete("all")  # Clear everything
+                # Draw shadow first
+                shadow_color = '#d1d5db' if not self.dark_mode.get() else '#1f2937'
+                btn_canvas.create_rectangle(3, 3, width-1, height-1, fill=shadow_color, outline='')
+                # Draw main button
+                btn_canvas.create_rectangle(0, 0, width-3, height-3, fill=color, outline='')
+                # Redraw text on top
+                btn_canvas.create_text(
+                    width//2, height//2,
+                    text=text,
+                    fill=text_color,
+                    font=('Inter', 14, 'bold')
+                )
+
+            # Initial draw
+            draw_button()
+
+            # Hover effects
+            def on_enter(event):
+                draw_button(hover_color)
+                btn_canvas.configure(cursor='hand2')
+
+            def on_leave(event):
+                draw_button(bg_color)
+                btn_canvas.configure(cursor='')
+
+            def on_click(event):
+                # Button press animation
+                btn_canvas.delete("all")
+                btn_canvas.create_rectangle(1, 1, width-2, height-2, fill='#1d4ed8', outline='')
+                btn_canvas.create_text(width//2, height//2, text=text, fill=text_color, font=('Inter', 14, 'bold'))
+                btn_canvas.after(100, lambda: draw_button(hover_color))
+                # Execute command
+                if command:
+                    command()
+
+            # Bind events
+            btn_canvas.bind("<Enter>", on_enter)
+            btn_canvas.bind("<Leave>", on_leave)
+            btn_canvas.bind("<Button-1>", on_click)
+
+            return btn_canvas
+
+        except Exception as e:
+            logger.error(f"Failed to create rounded button: {e}")
+            return None
+
+    def create_modern_system_status(self):
+        """Create modern system status indicator."""
+        try:
+            # Status container with frosted glass background
+            content_bg = '#9090b0' if not self.dark_mode.get() else '#8a8aaa'
+            status_frame = tk.Frame(self.content_frame, bg=content_bg, bd=0, highlightthickness=0)
+            status_frame.pack(fill='x', padx=40, pady=(10, 20))
+
+            # System status label
+            status_color = '#9ca3af' if self.dark_mode.get() else '#6b7280'
+            self.status_label = tk.Label(
+                status_frame,
+                textvariable=self.system_status_text,
+                font=('Inter', 9),
+                fg=status_color,
+                bg=content_bg,
+                justify='center'
+            )
+            self.status_label.pack()
+
+            # Start updating system status
+            self.update_system_status()
+            self.schedule_status_update()
+
+        except Exception as e:
+            logger.error(f"Failed to create modern system status: {e}")
+
+    def create_rounded_login_card(self):
+        """Create rounded login card with drop shadow and glassmorphism effect."""
+        try:
+            # Card dimensions
+            card_width = 450
+            card_height = 600
+            corner_radius = 20
+
+            # Create canvas for the card
+            self.login_card_canvas = tk.Canvas(
+                self.main_frame,
+                width=card_width,
+                height=card_height,
+                highlightthickness=0,
+                bg='transparent'
+            )
+            self.login_card_canvas.grid(row=0, column=0, sticky="nsew")
+
+            # Draw drop shadow (offset rounded rectangle)
+            shadow_offset = 5
+            shadow_color = '#00000020' if self.dark_mode.get() else '#00000015'
+            self.draw_rounded_rectangle(
+                self.login_card_canvas,
+                shadow_offset, shadow_offset,
+                card_width + shadow_offset, card_height + shadow_offset,
+                corner_radius, shadow_color
+            )
+
+            # Draw main card (glassmorphism effect)
+            card_color = '#ffffff' if not self.dark_mode.get() else '#ffffff10'
+            self.draw_rounded_rectangle(
+                self.login_card_canvas,
+                0, 0,
+                card_width, card_height,
+                corner_radius, card_color
+            )
+
+            # Add subtle border for glassmorphism
+            border_color = '#e5e7eb' if not self.dark_mode.get() else '#ffffff20'
+            self.draw_rounded_rectangle_border(
+                self.login_card_canvas,
+                1, 1,
+                card_width - 1, card_height - 1,
+                corner_radius, border_color
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to create rounded login card: {e}")
+
+    def draw_rounded_rectangle(self, canvas, x1, y1, x2, y2, radius, fill_color):
+        """Draw a rounded rectangle on canvas."""
+        try:
+            # Create rounded rectangle using arcs and rectangles
+            canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
+                            start=90, extent=90, fill=fill_color, outline="")
+            canvas.create_arc(x2 - 2*radius, y1, x2, y1 + 2*radius,
+                            start=0, extent=90, fill=fill_color, outline="")
+            canvas.create_arc(x2 - 2*radius, y2 - 2*radius, x2, y2,
+                            start=270, extent=90, fill=fill_color, outline="")
+            canvas.create_arc(x1, y2 - 2*radius, x1 + 2*radius, y2,
+                            start=180, extent=90, fill=fill_color, outline="")
+
+            # Fill the middle areas
+            canvas.create_rectangle(x1 + radius, y1, x2 - radius, y2,
+                                  fill=fill_color, outline="")
+            canvas.create_rectangle(x1, y1 + radius, x2, y2 - radius,
+                                  fill=fill_color, outline="")
+
+        except Exception as e:
+            logger.error(f"Failed to draw rounded rectangle: {e}")
+
+    def draw_rounded_rectangle_border(self, canvas, x1, y1, x2, y2, radius, border_color):
+        """Draw a rounded rectangle border on canvas."""
+        try:
+            # Draw border arcs
+            canvas.create_arc(x1, y1, x1 + 2*radius, y1 + 2*radius,
+                            start=90, extent=90, outline=border_color, width=1, style='arc')
+            canvas.create_arc(x2 - 2*radius, y1, x2, y1 + 2*radius,
+                            start=0, extent=90, outline=border_color, width=1, style='arc')
+            canvas.create_arc(x2 - 2*radius, y2 - 2*radius, x2, y2,
+                            start=270, extent=90, outline=border_color, width=1, style='arc')
+            canvas.create_arc(x1, y2 - 2*radius, x1 + 2*radius, y2,
+                            start=180, extent=90, outline=border_color, width=1, style='arc')
+
+            # Draw border lines
+            canvas.create_line(x1 + radius, y1, x2 - radius, y1, fill=border_color, width=1)
+            canvas.create_line(x1 + radius, y2, x2 - radius, y2, fill=border_color, width=1)
+            canvas.create_line(x1, y1 + radius, x1, y2 - radius, fill=border_color, width=1)
+            canvas.create_line(x2, y1 + radius, x2, y2 - radius, fill=border_color, width=1)
+
+        except Exception as e:
+            logger.error(f"Failed to draw rounded rectangle border: {e}")
 
     def add_tooltip(self, widget, text):
         """Add tooltip to a widget."""
@@ -1304,17 +2071,29 @@ Note: You must have access to the command line to reset your password."""
         try:
             style = ttk.Style()
 
-            # Modern gradient color scheme (deep indigo to violet/cyan)
-            primary_color = '#1a1a2e'      # Deep indigo background
-            secondary_color = '#16213e'    # Darker indigo
+            # Dynamic color scheme based on dark mode
+            if self.dark_mode.get():
+                # Dark mode colors
+                primary_color = '#1a1a2e'      # Deep indigo background
+                card_bg = '#ffffff15'          # Semi-transparent white for glassmorphism
+                text_primary = '#ffffff'       # White text
+                text_secondary = '#d1d5db'     # Light gray text
+                text_muted = '#9ca3af'         # Medium gray text
+                border_color = '#374151'       # Dark border
+                input_bg = '#374151'           # Dark input background
+            else:
+                # Light mode colors
+                primary_color = '#f8fafc'      # Light background
+                card_bg = '#ffffff'            # Pure white card
+                text_primary = '#1f2937'       # Dark gray text
+                text_secondary = '#6b7280'     # Medium gray text
+                text_muted = '#9ca3af'         # Light gray text
+                border_color = '#e5e7eb'       # Light border
+                input_bg = '#f9fafb'           # Light input background
+
+            # Universal colors
             accent_color = '#3b82f6'       # Modern blue
             accent_hover = '#2563eb'       # Darker blue on hover
-            success_color = '#10b981'      # Modern green
-            card_bg = '#ffffff'            # Pure white card
-            text_primary = '#1f2937'       # Dark gray text
-            text_secondary = '#6b7280'     # Medium gray text
-            text_muted = '#9ca3af'         # Light gray text
-            border_color = '#e5e7eb'       # Light border
             focus_color = '#3b82f6'        # Focus blue
 
             # Main background with gradient effect
@@ -1347,31 +2126,35 @@ Note: You must have access to the command line to reset your password."""
 
             # Modern rounded input fields with focus animations
             style.configure("LoginEntry.TEntry",
-                          fieldbackground='#f9fafb',
+                          fieldbackground=input_bg,
                           borderwidth=2,
                           relief='solid',
                           bordercolor=border_color,
-                          font=('Inter', 12),
-                          padding=(15, 12))  # More padding for modern look
+                          font=('Inter', 13),
+                          padding=(18, 14),  # Extra padding for modern look
+                          foreground=text_primary)
 
             style.map("LoginEntry.TEntry",
                      bordercolor=[('focus', focus_color),
-                                ('active', focus_color)])
+                                ('active', focus_color)],
+                     fieldbackground=[('focus', card_bg)])
 
-            # Stunning curved primary button with gradient effect
+            # Stunning curved primary button with gradient effect and hover animations
             style.configure("LoginButton.TButton",
                           background=accent_color,
                           foreground='white',
-                          font=('Inter', 14, 'bold'),
+                          font=('Inter', 16, 'bold'),
                           borderwidth=0,
                           focuscolor='none',
                           relief='flat',
-                          padding=(30, 16))  # Generous padding
+                          padding=(35, 18))  # Extra generous padding for modern look
 
             style.map("LoginButton.TButton",
                      background=[('active', accent_hover),
                                ('pressed', '#1d4ed8'),
-                               ('hover', accent_hover)])
+                               ('hover', accent_hover)],
+                     relief=[('pressed', 'sunken'),
+                           ('hover', 'raised')])
 
             # Modern eye button for password visibility
             style.configure("EyeButton.TButton",

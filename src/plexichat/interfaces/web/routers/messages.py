@@ -53,30 +53,48 @@ except ImportError:
     def get_current_user():
         return {"id": 1, "username": "admin"}
 
-# Model imports
+# Model imports - Updated for Pydantic v2 compatibility
 class Message(BaseModel):
-    id: int
-    content: str
-    sender_id: int
-    recipient_id: int
-    timestamp: datetime
+    """Message model with Pydantic v2 compatibility."""
+    id: int = Field(..., description="Message ID")
+    content: str = Field(..., description="Message content")
+    sender_id: int = Field(..., description="Sender user ID")
+    recipient_id: int = Field(..., description="Recipient user ID")
+    timestamp: datetime = Field(..., description="Message timestamp")
+
+    class Config:
+        from_attributes = True
 
 class User(BaseModel):
-    id: int
-    username: str
+    """User model with Pydantic v2 compatibility."""
+    id: int = Field(..., description="User ID")
+    username: str = Field(..., description="Username")
+
+    class Config:
+        from_attributes = True
 
 # Schema imports
 class ValidationErrorResponse(BaseModel):
-    detail: str
+    """Validation error response model."""
+    detail: str = Field(..., description="Error detail")
 class MessageCreate(BaseModel):
-    content: str = Field(..., min_length=1, max_length=2000)
-    recipient_id: int
+    """Message creation model with Pydantic v2 compatibility."""
+    content: str = Field(..., min_length=1, max_length=2000, description="Message content")
+    recipient_id: int = Field(..., description="Recipient user ID")
+
+    class Config:
+        from_attributes = True
+
 class MessageRead(BaseModel):
-    id: int
-    content: str
-    sender_id: int
-    recipient_id: int
-    timestamp: datetime
+    """Message read model with Pydantic v2 compatibility."""
+    id: int = Field(..., description="Message ID")
+    content: str = Field(..., description="Message content")
+    sender_id: int = Field(..., description="Sender user ID")
+    recipient_id: int = Field(..., description="Recipient user ID")
+    timestamp: datetime = Field(..., description="Message timestamp")
+
+    class Config:
+        from_attributes = True
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/messages", tags=["messages"])

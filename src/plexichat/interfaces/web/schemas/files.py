@@ -6,7 +6,7 @@ Enhanced with comprehensive validation and security.
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
 
@@ -34,7 +34,8 @@ class FileBase(BaseModel):
     filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
     content_type: str = Field(..., description="MIME content type")
 
-    @validator('filename')
+    @field_validator('filename')
+    @classmethod
     def validate_filename(cls, v):
         if not v.strip():
             raise ValueError('Filename cannot be empty')
@@ -53,7 +54,8 @@ class FileUpload(BaseModel):
     tags: Optional[List[str]] = Field(None, description="File tags")
     is_public: bool = Field(default=False, description="Public access flag")
 
-    @validator('filename')
+    @field_validator('filename')
+    @classmethod
     def validate_filename(cls, v):
         if not v.strip():
             raise ValueError('Filename cannot be empty')

@@ -205,7 +205,8 @@ class Message(SQLModel, table=True):
         """SQLModel configuration."""
 
         arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat() if v else None}
+        # Note: json_encoders is deprecated in Pydantic v2
+        # Use model_serializer or field serializers instead if needed
 
     def __repr__(self) -> str:
         content_preview = (

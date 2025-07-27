@@ -6,7 +6,7 @@ Enhanced with comprehensive validation and security.
 
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field, validator, EmailStr
+from pydantic import BaseModel, Field, field_validator, EmailStr
 
 
 class UserBase(BaseModel):
@@ -14,7 +14,8 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     email: EmailStr = Field(..., description="Email address")
 
-    @validator('username')
+    @field_validator('username')
+    @classmethod
     def validate_username(cls, v):
         if not v.strip():
             raise ValueError('Username cannot be empty')
