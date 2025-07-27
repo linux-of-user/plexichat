@@ -511,7 +511,7 @@ class ConsolidatedDatabaseManager:
 
             if monitor_config.get('enabled', True):
                 await self._performance_monitor.start_monitoring()
-                logger.info("📊 Database performance monitoring enabled")
+                logger.info("Database performance monitoring enabled")
 
         except Exception as e:
             logger.warning(f"Performance monitoring initialization failed: {e}")

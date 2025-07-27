@@ -174,10 +174,38 @@ docker-compose.override.yml
 # PlexiChat specific
 /plugins/installed/
 /plugins/cache/
+/plugins/*.py
 /monitoring/
 /metrics/
 /exports/
+/temp/
+/uploads/
+/updates/
+/backups/temp*/
+/certs/
+/data/admin/
 default_creds.txt
+
+# Junk directories and files
+temp/
+uploads/
+updates/
+backups/temp*/
+certs/
+data/admin/
+logs/crashes/
+logs/performance/
+logs/audit/
+logs/security/
+logs/plugin/
+logs/plugins/
+
+# Random scripts and markdown files
+*_SUMMARY.md
+*_IMPROVEMENTS_SUMMARY.md
+*_SYSTEM_SUMMARY.md
+comprehensive_*.json
+test_report_*.json
 
 # Plugin sandboxing - each plugin gets its own log directory
 /logs/plugin/*/

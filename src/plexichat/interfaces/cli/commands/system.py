@@ -50,34 +50,34 @@ def status():
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
 
-            click.echo(f"💻 CPU Usage: {cpu_percent}%")
+            click.echo(f"[SYSTEM] CPU Usage: {cpu_percent}%")
             click.echo(f"🧠 Memory: {memory.percent}% ({memory.used // 1024**3}GB / {memory.total // 1024**3}GB)")
             click.echo(f"💾 Disk: {disk.percent}% ({disk.used // 1024**3}GB / {disk.total // 1024**3}GB)")
         except ImportError:
-            click.echo("📊 System metrics: psutil not available")
+            click.echo("[METRICS] System metrics: psutil not available")
 
         # Database status
         if database_manager:
             try:
                 db_status = asyncio.run(database_manager.health_check())
                 if db_status.get('healthy', False):
-                    click.echo("🗄️  Database: ✅ Online")
+                    click.echo("🗄️  Database: [SUCCESS] Online")
                 else:
-                    click.echo("🗄️  Database: ❌ Offline")
+                    click.echo("🗄️  Database: [ERROR] Offline")
             except Exception:
-                click.echo("🗄️  Database: ❌ Error")
+                click.echo("🗄️  Database: [ERROR] Error")
         else:
-            click.echo("🗄️  Database: ❌ Not available")
+            click.echo("🗄️  Database: [ERROR] Not available")
 
         # System monitor
         if system_monitor:
             try:
                 monitor_status = asyncio.run(system_monitor.get_status())
-                click.echo(f"📊 Monitoring: ✅ Active ({monitor_status.get('uptime', 'Unknown')})")
+                click.echo(f"[METRICS] Monitoring: [SUCCESS] Active ({monitor_status.get('uptime', 'Unknown')})")
             except Exception:
-                click.echo("📊 Monitoring: ❌ Error")
+                click.echo("[METRICS] Monitoring: [ERROR] Error")
         else:
-            click.echo("📊 Monitoring: ❌ Not available")
+            click.echo("[METRICS] Monitoring: [ERROR] Not available")
 
         # Uptime
         try:
@@ -89,7 +89,7 @@ def status():
             click.echo("⏱️  Uptime: Unknown")
 
     except Exception as e:
-        click.echo(f"❌ Error getting system status: {e}")
+        click.echo(f"[ERROR] Error getting system status: {e}")
 
 @system.command()
 @click.option('--service', '-s', help='Specific service to restart')
@@ -105,7 +105,7 @@ def restart(service: Optional[str], force: bool):
 
             click.echo(f"🔄 Restarting service: {service}")
             # This would integrate with actual service management
-            click.echo(f"✅ Service '{service}' restarted successfully")
+            click.echo(f"[SUCCESS] Service '{service}' restarted successfully")
         else:
             if not force:
                 if not click.confirm("Restart all services? This will cause downtime."):
@@ -114,10 +114,10 @@ def restart(service: Optional[str], force: bool):
 
             click.echo("🔄 Restarting all services...")
             # This would restart all services
-            click.echo("✅ All services restarted successfully")
+            click.echo("[SUCCESS] All services restarted successfully")
 
     except Exception as e:
-        click.echo(f"❌ Error restarting services: {e}")
+        click.echo(f"[ERROR] Error restarting services: {e}")
 
 @system.command()
 def health():
@@ -133,17 +133,17 @@ def health():
             try:
                 db_health = asyncio.run(database_manager.health_check())
                 if db_health.get('healthy', False):
-                    click.echo("✅ Database: Healthy")
+                    click.echo("[SUCCESS] Database: Healthy")
                 else:
-                    click.echo("❌ Database: Unhealthy")
+                    click.echo("[ERROR] Database: Unhealthy")
                     health_status["issues"].append("Database connection issues")
                     health_status["overall"] = "degraded"
             except Exception as e:
-                click.echo(f"❌ Database: Error - {e}")
+                click.echo(f"[ERROR] Database: Error - {e}")
                 health_status["issues"].append(f"Database error: {e}")
                 health_status["overall"] = "unhealthy"
         else:
-            click.echo("⚠️  Database: Not configured")
+            click.echo("[WARNING]  Database: Not configured")
 
         # Check system resources
         try:
@@ -152,61 +152,61 @@ def health():
             # CPU check
             cpu_percent = psutil.cpu_percent(interval=1)
             if cpu_percent > 90:
-                click.echo(f"⚠️  CPU: High usage ({cpu_percent}%)")
+                click.echo(f"[WARNING]  CPU: High usage ({cpu_percent}%)")
                 health_status["issues"].append(f"High CPU usage: {cpu_percent}%")
                 health_status["overall"] = "degraded"
             else:
-                click.echo(f"✅ CPU: Normal ({cpu_percent}%)")
+                click.echo(f"[SUCCESS] CPU: Normal ({cpu_percent}%)")
 
             # Memory check
             memory = psutil.virtual_memory()
             if memory.percent > 90:
-                click.echo(f"⚠️  Memory: High usage ({memory.percent}%)")
+                click.echo(f"[WARNING]  Memory: High usage ({memory.percent}%)")
                 health_status["issues"].append(f"High memory usage: {memory.percent}%")
                 health_status["overall"] = "degraded"
             else:
-                click.echo(f"✅ Memory: Normal ({memory.percent}%)")
+                click.echo(f"[SUCCESS] Memory: Normal ({memory.percent}%)")
 
             # Disk check
             disk = psutil.disk_usage('/')
             if disk.percent > 90:
-                click.echo(f"⚠️  Disk: High usage ({disk.percent}%)")
+                click.echo(f"[WARNING]  Disk: High usage ({disk.percent}%)")
                 health_status["issues"].append(f"High disk usage: {disk.percent}%")
                 health_status["overall"] = "degraded"
             else:
-                click.echo(f"✅ Disk: Normal ({disk.percent}%)")
+                click.echo(f"[SUCCESS] Disk: Normal ({disk.percent}%)")
 
         except ImportError:
-            click.echo("⚠️  System metrics: psutil not available")
+            click.echo("[WARNING]  System metrics: psutil not available")
 
         # Check log files
         log_dir = Path("logs")
         if log_dir.exists():
             log_files = list(log_dir.glob("*.log"))
             if log_files:
-                click.echo(f"✅ Logs: {len(log_files)} log files found")
+                click.echo(f"[SUCCESS] Logs: {len(log_files)} log files found")
             else:
-                click.echo("⚠️  Logs: No log files found")
+                click.echo("[WARNING]  Logs: No log files found")
         else:
-            click.echo("⚠️  Logs: Log directory not found")
+            click.echo("[WARNING]  Logs: Log directory not found")
 
         # Overall status
         click.echo()
         if health_status["overall"] == "healthy":
-            click.echo("🎉 Overall Status: ✅ HEALTHY")
+            click.echo("[COMPLETE] Overall Status: [SUCCESS] HEALTHY")
         elif health_status["overall"] == "degraded":
-            click.echo("⚠️  Overall Status: ⚠️  DEGRADED")
+            click.echo("[WARNING]  Overall Status: [WARNING]  DEGRADED")
             click.echo("Issues found:")
             for issue in health_status["issues"]:
                 click.echo(f"   • {issue}")
         else:
-            click.echo("🚨 Overall Status: ❌ UNHEALTHY")
+            click.echo("🚨 Overall Status: [ERROR] UNHEALTHY")
             click.echo("Critical issues found:")
             for issue in health_status["issues"]:
                 click.echo(f"   • {issue}")
 
     except Exception as e:
-        click.echo(f"❌ Error performing health check: {e}")
+        click.echo(f"[ERROR] Error performing health check: {e}")
 
 @system.command()
 @click.option('--output', '-o', help='Output file for system info')
@@ -255,7 +255,7 @@ def info(output: Optional[str]):
             click.echo(json.dumps(system_info, indent=2))
 
     except Exception as e:
-        click.echo(f"❌ Error getting system info: {e}")
+        click.echo(f"[ERROR] Error getting system info: {e}")
 
 @system.command()
 @click.option('--days', '-d', default=7, help='Number of days to keep logs')
@@ -303,16 +303,16 @@ def cleanup(days: int, dry_run: bool):
                             file_path.unlink()
                             deleted_count += 1
                         except Exception as e:
-                            click.echo(f"⚠️  Could not delete {file_path}: {e}")
+                            click.echo(f"[WARNING]  Could not delete {file_path}: {e}")
 
-                    click.echo(f"✅ Cleaned up {deleted_count} files")
+                    click.echo(f"[SUCCESS] Cleaned up {deleted_count} files")
                 else:
                     click.echo("Cleanup cancelled")
         else:
             click.echo("No files found for cleanup")
 
     except Exception as e:
-        click.echo(f"❌ Error during cleanup: {e}")
+        click.echo(f"[ERROR] Error during cleanup: {e}")
 
 @system.command()
 @click.option('--key', '-k', help='Configuration key to get/set')
@@ -324,7 +324,7 @@ def config(key: Optional[str], value: Optional[str]):
             if value is not None:
                 # Set configuration
                 settings[key] = value
-                click.echo(f"✅ Set {key} = {value}")
+                click.echo(f"[SUCCESS] Set {key} = {value}")
             else:
                 # Get configuration
                 current_value = settings.get(key, "Not set")
@@ -347,7 +347,7 @@ def config(key: Optional[str], value: Optional[str]):
             click.echo(json.dumps(safe_config, indent=2))
 
     except Exception as e:
-        click.echo(f"❌ Error with configuration: {e}")
+        click.echo(f"[ERROR] Error with configuration: {e}")
 
 @system.command()
 @click.option('--enable/--disable', default=True, help='Enable or disable maintenance mode')
@@ -360,11 +360,11 @@ def maintenance(enable: bool):
             click.echo("   System is now in maintenance mode")
         else:
             settings['maintenance_mode'] = False
-            click.echo("✅ Maintenance mode disabled")
+            click.echo("[SUCCESS] Maintenance mode disabled")
             click.echo("   System is now operational")
 
     except Exception as e:
-        click.echo(f"❌ Error setting maintenance mode: {e}")
+        click.echo(f"[ERROR] Error setting maintenance mode: {e}")
 
 @system.command()
 @click.option('--lines', '-n', default=50, help='Number of log lines to show')
@@ -375,7 +375,7 @@ def logs(lines: int, follow: bool):
         log_file = Path("logs/plexichat.log")
 
         if not log_file.exists():
-            click.echo("❌ Log file not found")
+            click.echo("[ERROR] Log file not found")
             return
 
         if follow:
@@ -391,7 +391,7 @@ def logs(lines: int, follow: bool):
                 click.echo(line.rstrip())
 
     except Exception as e:
-        click.echo(f"❌ Error reading logs: {e}")
+        click.echo(f"[ERROR] Error reading logs: {e}")
 
 if __name__ == '__main__':
     system()

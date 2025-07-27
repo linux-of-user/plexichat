@@ -253,7 +253,7 @@ class WebUIRenderer:
                     self.refresh_btn.clicked.connect(self.refresh_dashboard)
                     header_layout.addWidget(self.refresh_btn)
 
-                    self.discover_btn = QPushButton("🔍 Discover Tests")
+                    self.discover_btn = QPushButton("[DEBUG] Discover Tests")
                     self.discover_btn.clicked.connect(self.discover_tests)
                     header_layout.addWidget(self.discover_btn)
 

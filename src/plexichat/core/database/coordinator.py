@@ -109,7 +109,7 @@ class DatabaseAbstractionCoordinator:
     async def initialize(self) -> bool:
         """Initialize all database abstraction components with security compliance."""
         try:
-            logger.info("🔧 Initializing Database Abstraction System")
+            logger.info("Initializing Database Abstraction System")
 
             # Initialize database manager with security
             if self.database_manager and hasattr(self.database_manager, "initialize"):
@@ -145,7 +145,7 @@ class DatabaseAbstractionCoordinator:
             self.running = True
             self.start_time = datetime.now(timezone.utc)
 
-            logger.info("🔧 Database Abstraction System initialization complete")
+            logger.info("Database Abstraction System initialization complete")
             return True
 
         except Exception as e:
@@ -350,7 +350,7 @@ class DatabaseAbstractionCoordinator:
     async def shutdown(self):
         """Shutdown all database abstraction components."""
         try:
-            logger.info("🔧 Shutting down Database Abstraction System")
+            logger.info("Shutting down Database Abstraction System")
             self.running = False
 
             # Shutdown active repositories
@@ -386,7 +386,7 @@ class DatabaseAbstractionCoordinator:
                 await self.database_manager.shutdown()
                 logger.info("✓ Database Manager shutdown")
 
-            logger.info("🔧 Database Abstraction System shutdown complete")
+            logger.info("Database Abstraction System shutdown complete")
 
         except Exception as e:
             logger.error(f"Error during database abstraction shutdown: {e}")

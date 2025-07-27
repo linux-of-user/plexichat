@@ -114,6 +114,11 @@ MAX_LOGIN_ATTEMPTS = 5
 PASSWORD_MIN_LENGTH = 8
 TOKEN_EXPIRY = 86400  # 24 hours
 
+# AI System Constants
+AI_REQUEST_TIMEOUT = 30  # seconds
+MAX_AI_CONTEXT_LENGTH = 4000  # characters
+AI_RATE_LIMIT = 10  # requests per minute
+
 # File System Constants
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 ALLOWED_FILE_EXTENSIONS = [

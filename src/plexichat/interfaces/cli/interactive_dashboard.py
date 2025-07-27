@@ -173,13 +173,13 @@ class InteractiveDashboard:
     
     def _update_sidebar(self):
         """Update sidebar navigation."""
-        tree = Tree("🚀 [bold blue]Navigation[/bold blue]")
+        tree = Tree("[START] [bold blue]Navigation[/bold blue]")
         
         for i, mode in enumerate(self.modes):
-            icon = "📊" if mode == DashboardMode.OVERVIEW else \
+            icon = "[METRICS]" if mode == DashboardMode.OVERVIEW else \
                    "🔌" if mode == DashboardMode.PLUGINS else \
                    "⚡" if mode == DashboardMode.PERFORMANCE else \
-                   "🔒" if mode == DashboardMode.SECURITY else \
+                   "[SECURE]" if mode == DashboardMode.SECURITY else \
                    "🗄️" if mode == DashboardMode.DATABASE else \
                    "🌐" if mode == DashboardMode.CLUSTER else \
                    "📝"  # LOGS
@@ -189,7 +189,7 @@ class InteractiveDashboard:
         
         # Add system info
         tree.add("")
-        system_tree = tree.add("💻 [bold cyan]System Info[/bold cyan]")
+        system_tree = tree.add("[SYSTEM] [bold cyan]System Info[/bold cyan]")
         system_tree.add(f"Uptime: {self._get_uptime()}")
         system_tree.add(f"CPU: {self._get_cpu_usage():.1f}%")
         system_tree.add(f"Memory: {self._get_memory_usage():.1f}%")
@@ -250,11 +250,11 @@ class InteractiveDashboard:
         metrics_table.add_column("Trend")
         
         metrics = [
-            ("Requests/min", "127", "98", "📈"),
-            ("Response Time", "45ms", "52ms", "📉"),
-            ("Error Rate", "0.2%", "0.3%", "📉"),
-            ("Active Users", "1,234", "987", "📈"),
-            ("Memory Usage", "67%", "71%", "📉")
+            ("Requests/min", "127", "98", "[UP]"),
+            ("Response Time", "45ms", "52ms", "[DOWN]"),
+            ("Error Rate", "0.2%", "0.3%", "[DOWN]"),
+            ("Active Users", "1,234", "987", "[UP]"),
+            ("Memory Usage", "67%", "71%", "[DOWN]")
         ]
         
         for metric, current, avg, trend in metrics:

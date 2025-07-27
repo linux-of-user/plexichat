@@ -316,7 +316,7 @@ class AutoScaler:
         elif event_type == 'scale_down':
             self.last_scale_down = datetime.now()
 
-        logger.info(f"📈 Scaling event: {event_type} - {details}")
+        logger.info(f"[UP] Scaling event: {event_type} - {details}")
 
 
 class CapacityPlanner:
@@ -452,7 +452,7 @@ class ScalabilityManager:
         self._scaling_task = None
         self._running = False
 
-        logger.info("📊 Scalability Manager initialized")
+        logger.info("[METRICS] Scalability Manager initialized")
 
     async def initialize(self) -> bool:
         """Initialize scalability management."""
@@ -460,7 +460,7 @@ class ScalabilityManager:
             # Start monitoring and scaling
             await self.start_monitoring()
 
-            logger.info("🚀 Scalability management initialized")
+            logger.info("[START] Scalability management initialized")
             return True
 
         except Exception as e:
@@ -491,7 +491,7 @@ class ScalabilityManager:
         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
         self._scaling_task = asyncio.create_task(self._scaling_loop())
 
-        logger.info("📊 Scalability monitoring started")
+        logger.info("[METRICS] Scalability monitoring started")
 
     async def _monitoring_loop(self):
         """Background monitoring loop."""
@@ -568,7 +568,7 @@ class ScalabilityManager:
                 'total_nodes': len(self.load_balancer.nodes)
             })
 
-            logger.info(f"📈 Scaled up: Added node {new_node_id}")
+            logger.info(f"[UP] Scaled up: Added node {new_node_id}")
 
         except Exception as e:
             logger.error(f"Error scaling up: {e}")
@@ -590,7 +590,7 @@ class ScalabilityManager:
                     'total_nodes': len(self.load_balancer.nodes)
                 })
 
-                logger.info(f"📉 Scaled down: Removed node {node_to_remove}")
+                logger.info(f"[DOWN] Scaled down: Removed node {node_to_remove}")
 
         except Exception as e:
             logger.error(f"Error scaling down: {e}")

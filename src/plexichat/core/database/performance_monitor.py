@@ -87,7 +87,7 @@ class DatabasePerformanceMonitor:
         self._cleanup_task = None
         self._running = False
 
-        logger.info("🔍 Database Performance Monitor initialized")
+        logger.info("Database Performance Monitor initialized")
 
     async def start_monitoring(self):
         """Start background monitoring tasks."""
@@ -98,7 +98,7 @@ class DatabasePerformanceMonitor:
         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
         self._cleanup_task = asyncio.create_task(self._cleanup_loop())
 
-        logger.info("📊 Database performance monitoring started")
+        logger.info("Database performance monitoring started")
 
     async def stop_monitoring(self):
         """Stop background monitoring tasks."""

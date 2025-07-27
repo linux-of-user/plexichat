@@ -130,7 +130,7 @@ class MemoryLeakDetector:
         self.running = True
         tracemalloc.start()
         self._task = asyncio.create_task(self._monitoring_loop())
-        logger.info("🔍 Memory leak detection started")
+        logger.info("[DEBUG] Memory leak detection started")
 
     def stop_monitoring(self):
         """Stop leak detection monitoring."""
@@ -230,7 +230,7 @@ class MemoryManager:
             # Configure garbage collection
             self._configure_gc()
 
-            logger.info("🚀 Memory management system initialized")
+            logger.info("[START] Memory management system initialized")
             return True
 
         except Exception as e:
@@ -282,7 +282,7 @@ class MemoryManager:
         if self.auto_gc_enabled:
             self._gc_task = asyncio.create_task(self._gc_loop())
 
-        logger.info("📊 Memory monitoring started")
+        logger.info("[METRICS] Memory monitoring started")
 
     async def _monitoring_loop(self):
         """Background monitoring loop."""
@@ -448,7 +448,7 @@ class MemoryManager:
 
             results['suggestions'] = suggestions
 
-            logger.info(f"🔧 Memory optimization completed: {len(suggestions)} suggestions")
+            logger.info(f"[CONFIG] Memory optimization completed: {len(suggestions)} suggestions")
             return results
 
         except Exception as e:

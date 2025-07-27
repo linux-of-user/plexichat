@@ -396,7 +396,7 @@ class LoginScreen(ttk.Frame):
 
                 setup_btn = ttk.Button(
                     setup_frame,
-                    text="🔧 Run Setup",
+                    text="[CONFIG] Run Setup",
                     command=self.show_database_setup,
                     style="SetupButton.TButton",
                     width=20
@@ -430,7 +430,7 @@ class LoginScreen(ttk.Frame):
             # System status button
             status_btn = ttk.Button(
                 quick_frame,
-                text="📊 Status",
+                text="[METRICS] Status",
                 command=self.show_system_status,
                 style="QuickButton.TButton",
                 width=8
@@ -1101,7 +1101,7 @@ class LoginScreen(ttk.Frame):
             main_frame.pack(fill='both', expand=True, padx=20, pady=20)
 
             # Title
-            title_label = tk.Label(main_frame, text="📊 System Status",
+            title_label = tk.Label(main_frame, text="[METRICS] System Status",
                                  font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
             title_label.pack(pady=20)
 

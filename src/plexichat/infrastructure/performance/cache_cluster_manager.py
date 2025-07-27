@@ -87,7 +87,7 @@ class CacheClusterManager:
             # Start background tasks
             await self.start_monitoring()
 
-            logger.info(f"🚀 Cache cluster initialized with {len(self.nodes)} nodes")
+            logger.info(f"[START] Cache cluster initialized with {len(self.nodes)} nodes")
             return True
 
         except Exception as e:
@@ -110,10 +110,10 @@ class CacheClusterManager:
                 self.healthy_nodes.add(node_id)
                 self._rebuild_hash_ring()
 
-                logger.info(f"✅ Added cache node: {node_id} ({host}:{port})")
+                logger.info(f"[SUCCESS] Added cache node: {node_id} ({host}:{port})")
                 return True
             else:
-                logger.warning(f"❌ Failed to add unhealthy node: {node_id}")
+                logger.warning(f"[ERROR] Failed to add unhealthy node: {node_id}")
                 return False
 
         except Exception as e:
@@ -206,7 +206,7 @@ class CacheClusterManager:
         self._health_check_task = asyncio.create_task(self._health_check_loop())
         self._metrics_task = asyncio.create_task(self._metrics_collection_loop())
 
-        logger.info("📊 Cache cluster monitoring started")
+        logger.info("[METRICS] Cache cluster monitoring started")
 
     async def stop_monitoring(self):
         """Stop background monitoring tasks."""
@@ -254,7 +254,7 @@ class CacheClusterManager:
 
             if is_healthy:
                 if not node.is_healthy:
-                    logger.info(f"✅ Node {node_id} is back online")
+                    logger.info(f"[SUCCESS] Node {node_id} is back online")
                     node.error_count = 0
 
                 node.is_healthy = True
@@ -263,7 +263,7 @@ class CacheClusterManager:
                 node.error_count += 1
 
                 if node.is_healthy:
-                    logger.warning(f"❌ Node {node_id} is unhealthy")
+                    logger.warning(f"[ERROR] Node {node_id} is unhealthy")
 
                 node.is_healthy = False
                 self.healthy_nodes.discard(node_id)

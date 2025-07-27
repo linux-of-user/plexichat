@@ -131,7 +131,7 @@ class NetworkOptimizer:
             if self.config.enable_monitoring:
                 await self.start_monitoring()
 
-            logger.info("🚀 Network optimization initialized")
+            logger.info("[START] Network optimization initialized")
             return True
 
         except Exception as e:
@@ -291,7 +291,7 @@ class NetworkOptimizer:
         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
         self._cleanup_task = asyncio.create_task(self._cleanup_loop())
 
-        logger.info("📊 Network monitoring started")
+        logger.info("[METRICS] Network monitoring started")
 
     async def _monitoring_loop(self):
         """Background monitoring loop."""

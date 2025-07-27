@@ -267,7 +267,7 @@ project_root = Path(__file__).parent.parent.parent  # Go up from src/plexichat/m
 # Initialize all core services
 async def initialize_core_services():
     """Initialize all PlexiChat core services."""
-    logger.info("🚀 Initializing PlexiChat core services...")
+    logger.info("[START] Initializing PlexiChat core services...")
 
     try:
         # Initialize configuration manager

@@ -4894,23 +4894,29 @@ def setup_thread_pool(workers: int = 4):
 def main():
     """Main application entry point."""
 
+    # Parse command line arguments FIRST (before any initialization)
+    try:
+        args = parse_arguments()
+    except SystemExit:
+        # argparse will have already printed help and exited
+        return
+
+    # Kill old processes before starting a new one
+    kill_old_plexichat_processes()
+
+    # Setup thread pool
+    setup_thread_pool()
+
     # Acquire process lock to prevent multiple instances
     if not acquire_process_lock():
         sys.exit(1)
-    
+
     # Register signal handlers for graceful shutdown
     setup_signal_handlers()
     atexit.register(release_process_lock)
 
     # Setup platform-specific features and enhanced logging
     setup_platform_support()
-    
-    # Parse command line arguments first to get log level
-    try:
-        args = parse_arguments()
-    except SystemExit:
-        # argparse will have already printed help and exited
-        return
 
     # Setup enhanced logging with performance monitoring
     global logger, performance_monitor
@@ -5051,13 +5057,7 @@ if __name__ == "__main__":
         sys.path.insert(0, src_path)
 
     try:
-        # Kill old processes before starting a new one
-        kill_old_plexichat_processes()
-        
-        # Setup thread pool
-        setup_thread_pool()
-
-        # Run main function
+        # Run main function (which will handle argument parsing first)
         main()
 
     except KeyboardInterrupt:

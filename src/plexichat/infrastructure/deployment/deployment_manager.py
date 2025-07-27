@@ -77,7 +77,7 @@ class DocumentationGenerator:
             # Generate SDK documentation
             await self._generate_sdk_docs()
 
-            logger.info("✅ API documentation generated successfully")
+            logger.info("[SUCCESS] API documentation generated successfully")
             return True
 
         except Exception as e:
@@ -419,7 +419,7 @@ kubectl cp app-pod:/app/uploads ./uploads-backup
             with open(deployment_path, "w") as f:
                 f.write(deployment_docs)
 
-            logger.info("✅ Deployment documentation generated successfully")
+            logger.info("[SUCCESS] Deployment documentation generated successfully")
             return True
 
         except Exception as e:
@@ -461,7 +461,7 @@ class ContainerManager:
             result = subprocess.run(build_cmd, capture_output=True, text=True)
 
             if result.returncode == 0:
-                logger.info(f"✅ Docker image built successfully: {image_name}:{tag}")
+                logger.info(f"[SUCCESS] Docker image built successfully: {image_name}:{tag}")
                 return True
             else:
                 logger.error(f"Docker build failed: {result.stderr}")
@@ -495,7 +495,7 @@ class ContainerManager:
             push_result = subprocess.run(push_cmd, capture_output=True, text=True)
 
             if push_result.returncode == 0:
-                logger.info(f"✅ Docker image pushed successfully: {full_image_name}")
+                logger.info(f"[SUCCESS] Docker image pushed successfully: {full_image_name}")
                 return True
             else:
                 logger.error(f"Docker push failed: {push_result.stderr}")
@@ -538,7 +538,7 @@ class KubernetesDeployer:
             return result
 
         try:
-            logger.info(f"🚀 Starting deployment: {deployment_id}")
+            logger.info(f"[START] Starting deployment: {deployment_id}")
 
             # Generate Kubernetes manifests
             manifests = await self._generate_k8s_manifests(config)
@@ -566,7 +566,7 @@ class KubernetesDeployer:
             result.end_time = datetime.now()
             result.duration = (result.end_time - result.start_time).total_seconds()
 
-            logger.info(f"✅ Deployment {deployment_id} completed: {result.status}")
+            logger.info(f"[SUCCESS] Deployment {deployment_id} completed: {result.status}")
             return result
 
         except Exception as e:
@@ -742,7 +742,7 @@ class DeploymentManager:
 
     async def full_deployment_pipeline(self, config: DeploymentConfig) -> DeploymentResult:
         """Run complete deployment pipeline."""
-        logger.info(f"🚀 Starting full deployment pipeline for {config.environment}")
+        logger.info(f"[START] Starting full deployment pipeline for {config.environment}")
 
         try:
             # Step 1: Generate documentation
@@ -770,7 +770,7 @@ class DeploymentManager:
             # Step 4: Record deployment
             self.deployment_history.append(deployment_result)
 
-            logger.info(f"✅ Full deployment pipeline completed: {deployment_result.status}")
+            logger.info(f"[SUCCESS] Full deployment pipeline completed: {deployment_result.status}")
             return deployment_result
 
         except Exception as e:

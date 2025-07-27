@@ -250,7 +250,7 @@ class ResourceManager:
         self._cleanup_task = None
         self._running = False
 
-        logger.info("🔧 Resource Manager initialized")
+        logger.info("[CONFIG] Resource Manager initialized")
 
     async def initialize(self) -> bool:
         """Initialize resource management system."""
@@ -263,7 +263,7 @@ class ResourceManager:
             self.create_resource_pool('http_sessions', 'session', 20)
             self.create_resource_pool('file_handles', 'file', 100)
 
-            logger.info("🚀 Resource management system initialized")
+            logger.info("[START] Resource management system initialized")
             return True
 
         except Exception as e:
@@ -309,7 +309,7 @@ class ResourceManager:
         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
         self._cleanup_task = asyncio.create_task(self._cleanup_loop())
 
-        logger.info("📊 Resource monitoring started")
+        logger.info("[METRICS] Resource monitoring started")
 
     async def _monitoring_loop(self):
         """Background monitoring loop."""
@@ -526,7 +526,7 @@ class ResourceManager:
 
             results['suggestions'] = suggestions
 
-            logger.info(f"🔧 Resource optimization completed: {len(suggestions)} suggestions")
+            logger.info(f"[CONFIG] Resource optimization completed: {len(suggestions)} suggestions")
             return results
 
         except Exception as e:
