@@ -114,13 +114,13 @@ class DatabaseAbstractionCoordinator:
             # Initialize database manager with security
             if self.database_manager and hasattr(self.database_manager, "initialize"):
                 await self.database_manager.initialize()
-                logger.info("✓ Database Manager initialized with security")
+                logger.info("[OK] Database Manager initialized with security")
 
             # Initialize database cluster
             if self.config["enable_clustering"]:
                 if self.db_cluster and hasattr(self.db_cluster, "initialize"):
                     await self.db_cluster.initialize()
-                    logger.info("✓ Database Cluster initialized")
+                    logger.info("[OK] Database Cluster initialized")
 
             # Initialize ORM with security settings
             if self.config["enable_orm_layer"]:
@@ -131,7 +131,7 @@ class DatabaseAbstractionCoordinator:
                     query_timeout=self.config["query_timeout"],
                 )
                 await self.orm.initialize(orm_config)
-                logger.info("✓ Advanced ORM initialized with security")
+                logger.info("[OK] Advanced ORM initialized with security")
 
             # Register default DAOs and Repositories
             await self._register_default_components()
@@ -139,7 +139,7 @@ class DatabaseAbstractionCoordinator:
             # Start monitoring
             if self.config["enable_monitoring"]:
                 asyncio.create_task(self._monitoring_task())
-                logger.info("✓ Database monitoring started")
+                logger.info("[OK] Database monitoring started")
 
             self.initialized = True
             self.running = True
@@ -358,7 +358,7 @@ class DatabaseAbstractionCoordinator:
                 try:
                     if hasattr(repository, "shutdown"):
                         await repository.shutdown()
-                    logger.info(f"✓ Repository '{name}' shutdown")
+                    logger.info(f"[OK] Repository '{name}' shutdown")
                 except Exception as e:
                     logger.error(f"Error shutting down repository '{name}': {e}")
 
@@ -367,24 +367,24 @@ class DatabaseAbstractionCoordinator:
                 try:
                     if hasattr(dao, "shutdown"):
                         await dao.shutdown()
-                    logger.info(f"✓ DAO '{name}' shutdown")
+                    logger.info(f"[OK] DAO '{name}' shutdown")
                 except Exception as e:
                     logger.error(f"Error shutting down DAO '{name}': {e}")
 
             # Shutdown ORM
             if self.orm and hasattr(self.orm, "shutdown"):
                 await self.orm.shutdown()
-                logger.info("✓ Advanced ORM shutdown")
+                logger.info("[OK] Advanced ORM shutdown")
 
             # Shutdown database cluster
             if self.db_cluster and hasattr(self.db_cluster, "shutdown"):
                 await self.db_cluster.shutdown()
-                logger.info("✓ Database Cluster shutdown")
+                logger.info("[OK] Database Cluster shutdown")
 
             # Shutdown database manager
             if self.database_manager and hasattr(self.database_manager, "shutdown"):
                 await self.database_manager.shutdown()
-                logger.info("✓ Database Manager shutdown")
+                logger.info("[OK] Database Manager shutdown")
 
             logger.info("Database Abstraction System shutdown complete")
 

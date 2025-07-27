@@ -67,7 +67,7 @@ class CacheClusterManager:
         self._metrics_task = None
         self._running = False
 
-        logger.info("🔗 Cache Cluster Manager initialized")
+        logger.info("[LINK] Cache Cluster Manager initialized")
 
     async def initialize(self, nodes: List[Dict[str, Any]]) -> bool:
         """Initialize cluster with node configurations."""
@@ -128,7 +128,7 @@ class CacheClusterManager:
                 self.healthy_nodes.discard(node_id)
                 self._rebuild_hash_ring()
 
-                logger.info(f"🗑️ Removed cache node: {node_id}")
+                logger.info(f"[DELETE] Removed cache node: {node_id}")
                 return True
             else:
                 logger.warning(f"Node {node_id} not found in cluster")
@@ -217,7 +217,7 @@ class CacheClusterManager:
         if self._metrics_task:
             self._metrics_task.cancel()
 
-        logger.info("🛑 Cache cluster monitoring stopped")
+        logger.info("[STOP] Cache cluster monitoring stopped")
 
     async def _health_check_loop(self):
         """Background health check loop."""

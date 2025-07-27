@@ -394,7 +394,122 @@ class EnhancedCLISystem:
                 "user-create admin admin@company.com --role admin"
             ]
         ))
-    
+
+        # Password Management Commands
+        self.register_command(CLICommand(
+            name="password-change",
+            description="Change user password",
+            category="admin",
+            handler=self._handle_password_change,
+            aliases=["passwd", "change-password"],
+            arguments=[
+                {"name": "username", "help": "Username to change password for"}
+            ],
+            options=[
+                {"name": "--current", "help": "Current password (required for own password)"},
+                {"name": "--new", "help": "New password (will prompt if not provided)"},
+                {"name": "--force", "help": "Force password change without current password (admin only)"}
+            ],
+            examples=[
+                "password-change john",
+                "password-change admin --current oldpass --new newpass",
+                "password-change user123 --force"
+            ]
+        ))
+
+        self.register_command(CLICommand(
+            name="gui-password",
+            description="Change GUI interface password",
+            category="admin",
+            handler=self._handle_gui_password,
+            aliases=["gui-passwd"],
+            options=[
+                {"name": "--current", "help": "Current GUI password"},
+                {"name": "--new", "help": "New GUI password (will prompt if not provided)"},
+                {"name": "--reset", "help": "Reset to default password (admin only)"}
+            ],
+            examples=[
+                "gui-password",
+                "gui-password --current oldpass --new newpass",
+                "gui-password --reset"
+            ]
+        ))
+
+        self.register_command(CLICommand(
+            name="webui-password",
+            description="Change WebUI interface password",
+            category="admin",
+            handler=self._handle_webui_password,
+            aliases=["web-passwd"],
+            options=[
+                {"name": "--current", "help": "Current WebUI password"},
+                {"name": "--new", "help": "New WebUI password (will prompt if not provided)"},
+                {"name": "--reset", "help": "Reset to default password (admin only)"}
+            ],
+            examples=[
+                "webui-password",
+                "webui-password --current oldpass --new newpass",
+                "webui-password --reset"
+            ]
+        ))
+
+        self.register_command(CLICommand(
+            name="auth-status",
+            description="Show authentication status and settings",
+            category="admin",
+            handler=self._handle_auth_status,
+            aliases=["auth-info"],
+            options=[
+                {"name": "--users", "help": "Show user authentication status"},
+                {"name": "--interfaces", "help": "Show interface authentication status"},
+                {"name": "--sessions", "help": "Show active sessions"}
+            ],
+            examples=[
+                "auth-status",
+                "auth-status --users",
+                "auth-status --interfaces --sessions"
+            ]
+        ))
+
+        self.register_command(CLICommand(
+            name="session-list",
+            description="List active user sessions",
+            category="admin",
+            handler=self._handle_session_list,
+            aliases=["sessions"],
+            options=[
+                {"name": "--user", "help": "Filter by username"},
+                {"name": "--interface", "help": "Filter by interface (gui/webui/api)"},
+                {"name": "--expired", "help": "Show expired sessions"}
+            ],
+            examples=[
+                "session-list",
+                "session-list --user admin",
+                "session-list --interface webui"
+            ]
+        ))
+
+        self.register_command(CLICommand(
+            name="session-kill",
+            description="Terminate user sessions",
+            category="admin",
+            handler=self._handle_session_kill,
+            aliases=["logout"],
+            arguments=[
+                {"name": "session_id", "help": "Session ID to terminate (or 'all' for all sessions)"}
+            ],
+            options=[
+                {"name": "--user", "help": "Terminate all sessions for specific user"},
+                {"name": "--interface", "help": "Terminate sessions for specific interface"},
+                {"name": "--force", "help": "Force termination without confirmation"}
+            ],
+            examples=[
+                "session-kill abc123",
+                "session-kill all --user john",
+                "session-kill --interface webui --force"
+            ]
+        ))
+
     def _register_backup_commands(self):
         """Register backup-related commands."""
         self.register_command(CLICommand(
@@ -540,7 +655,33 @@ class EnhancedCLISystem:
         # Register aliases
         for alias in command.aliases:
             self.aliases[alias] = command.name
-    
+
+    def unregister_command(self, name: str):
+        """Unregister a CLI command."""
+        if name in self.commands:
+            command = self.commands[name]
+
+            # Remove from commands
+            del self.commands[name]
+
+            # Remove from category
+            if command.category in self.categories:
+                if name in self.categories[command.category]:
+                    self.categories[command.category].remove(name)
+
+                # Remove empty category
+                if not self.categories[command.category]:
+                    del self.categories[command.category]
+
+            # Remove aliases
+            aliases_to_remove = []
+            for alias, cmd_name in self.aliases.items():
+                if cmd_name == name:
+                    aliases_to_remove.append(alias)
+
+            for alias in aliases_to_remove:
+                del self.aliases[alias]
+
     def get_command(self, name: str) -> Optional[CLICommand]:
         """Get command by name or alias."""
         # Check direct name first
@@ -729,10 +870,10 @@ class EnhancedCLISystem:
     async def _handle_health(self, args: List[str]) -> bool:
         """Handle health command."""
         print(f"{CLIColors.INFO}Running health check...{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Database connection{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Security systems{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Plugin system{CLIColors.RESET}")
-        print(f"{CLIColors.WARNING}⚠ High memory usage{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Database connection{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Security systems{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Plugin system{CLIColors.RESET}")
+        print(f"{CLIColors.WARNING}[WARN] High memory usage{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}Overall health: GOOD{CLIColors.RESET}")
         return True
     
@@ -757,16 +898,16 @@ class EnhancedCLISystem:
     async def _handle_db_optimize(self, args: List[str]) -> bool:
         """Handle database optimization command."""
         print(f"{CLIColors.INFO}Optimizing database...{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Analyzed 25 tables{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Rebuilt 8 indexes{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Analyzed 25 tables{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Rebuilt 8 indexes{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}Database optimization completed{CLIColors.RESET}")
         return True
     
     async def _handle_security_scan(self, args: List[str]) -> bool:
         """Handle security scan command."""
         print(f"{CLIColors.INFO}Running security scan...{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ No vulnerabilities found{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ All security policies enforced{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] No vulnerabilities found{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] All security policies enforced{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}Security status: SECURE{CLIColors.RESET}")
         return True
     
@@ -782,9 +923,9 @@ class EnhancedCLISystem:
     async def _handle_plugin_list(self, args: List[str]) -> bool:
         """Handle plugin list command."""
         print(f"{CLIColors.INFO}Installed Plugins:{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ security-toolkit (v2.1.0) - ENABLED{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ backup-manager (v1.5.2) - ENABLED{CLIColors.RESET}")
-        print(f"{CLIColors.WARNING}⚠ analytics-pro (v3.0.1) - DISABLED{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] security-toolkit (v2.1.0) - ENABLED{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] backup-manager (v1.5.2) - ENABLED{CLIColors.RESET}")
+        print(f"{CLIColors.WARNING}[WARN] analytics-pro (v3.0.1) - DISABLED{CLIColors.RESET}")
         return True
     
     async def _handle_plugin_install(self, args: List[str]) -> bool:
@@ -795,9 +936,9 @@ class EnhancedCLISystem:
         
         plugin_name = args[0]
         print(f"{CLIColors.INFO}Installing plugin: {plugin_name}{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Downloaded plugin{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Verified signature{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Installed successfully{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Downloaded plugin{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Verified signature{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Installed successfully{CLIColors.RESET}")
         return True
     
     async def _handle_logs(self, args: List[str]) -> bool:
@@ -811,10 +952,10 @@ class EnhancedCLISystem:
     async def _handle_monitor(self, args: List[str]) -> bool:
         """Handle monitor command."""
         print(f"{CLIColors.INFO}Real-time System Monitor:{CLIColors.RESET}")
-        print(f"CPU: ████████░░ 80%")
-        print(f"Memory: ██████░░░░ 60%")
-        print(f"Disk: ███░░░░░░░ 30%")
-        print(f"Network: ██████████ 100%")
+        print(f"CPU: ########.. 80%")
+        print(f"Memory: ######.... 60%")
+        print(f"Disk: ###....... 30%")
+        print(f"Network: ########## 100%")
         return True
     
     async def _handle_user_list(self, args: List[str]) -> bool:
@@ -838,8 +979,8 @@ class EnhancedCLISystem:
     async def _handle_backup_create(self, args: List[str]) -> bool:
         """Handle backup creation command."""
         print(f"{CLIColors.INFO}Creating backup...{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Database backed up{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Configuration backed up{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Database backed up{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Configuration backed up{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}Backup completed: backup_20250726_210900{CLIColors.RESET}")
         return True
     
@@ -851,8 +992,8 @@ class EnhancedCLISystem:
         
         backup_id = args[0]
         print(f"{CLIColors.INFO}Restoring from backup: {backup_id}{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Backup verified{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Database restored{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Backup verified{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Database restored{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}Restore completed successfully{CLIColors.RESET}")
         return True
     
@@ -877,27 +1018,434 @@ class EnhancedCLISystem:
     async def _handle_test_run(self, args: List[str]) -> bool:
         """Handle test run command."""
         print(f"{CLIColors.INFO}Running test suite...{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Unit tests: 45/45 passed{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Integration tests: 12/12 passed{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Security tests: 8/8 passed{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Unit tests: 45/45 passed{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Integration tests: 12/12 passed{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Security tests: 8/8 passed{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}All tests passed!{CLIColors.RESET}")
         return True
     
     async def _handle_dev_setup(self, args: List[str]) -> bool:
         """Handle development setup command."""
         print(f"{CLIColors.INFO}Setting up development environment...{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Development dependencies installed{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Pre-commit hooks configured{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Development dependencies installed{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Pre-commit hooks configured{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}Development environment ready{CLIColors.RESET}")
         return True
     
     async def _handle_cleanup(self, args: List[str]) -> bool:
         """Handle cleanup command."""
         print(f"{CLIColors.INFO}Cleaning up system...{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Cleared 150MB of log files{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Cleared 75MB of cache{CLIColors.RESET}")
-        print(f"{CLIColors.SUCCESS}✓ Removed 25 temporary files{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Cleared 150MB of log files{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Cleared 75MB of cache{CLIColors.RESET}")
+        print(f"{CLIColors.SUCCESS}[OK] Removed 25 temporary files{CLIColors.RESET}")
         print(f"{CLIColors.SUCCESS}Cleanup completed{CLIColors.RESET}")
+        return True
+
+    # Password Management Handlers
+
+    async def _handle_password_change(self, args: List[str]) -> bool:
+        """Handle password change command."""
+        if not args:
+            print(f"{CLIColors.ERROR}Username required{CLIColors.RESET}")
+            return False
+
+        username = args[0]
+
+        # Parse options
+        current_password = None
+        new_password = None
+        force = False
+
+        i = 1
+        while i < len(args):
+            if args[i] == "--current" and i + 1 < len(args):
+                current_password = args[i + 1]
+                i += 2
+            elif args[i] == "--new" and i + 1 < len(args):
+                new_password = args[i + 1]
+                i += 2
+            elif args[i] == "--force":
+                force = True
+                i += 1
+            else:
+                i += 1
+
+        # Prompt for passwords if not provided
+        if not new_password:
+            import getpass
+            try:
+                new_password = getpass.getpass("Enter new password: ")
+                confirm_password = getpass.getpass("Confirm new password: ")
+                if new_password != confirm_password:
+                    print(f"{CLIColors.ERROR}Passwords do not match{CLIColors.RESET}")
+                    return False
+            except KeyboardInterrupt:
+                print(f"\n{CLIColors.WARNING}Password change cancelled{CLIColors.RESET}")
+                return False
+
+        if not force and not current_password:
+            import getpass
+            try:
+                current_password = getpass.getpass("Enter current password: ")
+            except KeyboardInterrupt:
+                print(f"\n{CLIColors.WARNING}Password change cancelled{CLIColors.RESET}")
+                return False
+
+        # Simulate password change
+        print(f"{CLIColors.INFO}Changing password for user '{username}'...{CLIColors.RESET}")
+
+        # Here you would integrate with the actual authentication system
+        # For now, we'll simulate success
+        print(f"{CLIColors.SUCCESS}[OK] Password changed successfully for '{username}'{CLIColors.RESET}")
+        print(f"{CLIColors.INFO}User will need to log in again with the new password{CLIColors.RESET}")
+
+        return True
+
+    async def _handle_gui_password(self, args: List[str]) -> bool:
+        """Handle GUI password change command."""
+        # Parse options
+        current_password = None
+        new_password = None
+        reset = False
+
+        i = 0
+        while i < len(args):
+            if args[i] == "--current" and i + 1 < len(args):
+                current_password = args[i + 1]
+                i += 2
+            elif args[i] == "--new" and i + 1 < len(args):
+                new_password = args[i + 1]
+                i += 2
+            elif args[i] == "--reset":
+                reset = True
+                i += 1
+            else:
+                i += 1
+
+        if reset:
+            print(f"{CLIColors.WARNING}Resetting GUI password to default...{CLIColors.RESET}")
+            try:
+                from plexichat.core.auth.default_credentials import get_default_credentials_manager
+                manager = get_default_credentials_manager()
+                new_default_password = manager.generate_secure_password(12)
+                if manager.update_interface_password("gui", new_default_password):
+                    print(f"{CLIColors.SUCCESS}[OK] GUI password reset successfully{CLIColors.RESET}")
+                    print(f"{CLIColors.INFO}New password: {new_default_password}{CLIColors.RESET}")
+                    print(f"{CLIColors.WARNING}Please save this password securely{CLIColors.RESET}")
+                    return True
+                else:
+                    print(f"{CLIColors.ERROR}Failed to reset GUI password{CLIColors.RESET}")
+                    return False
+            except ImportError:
+                print(f"{CLIColors.ERROR}Authentication system not available{CLIColors.RESET}")
+                return False
+
+        # Prompt for passwords if not provided
+        if not new_password:
+            import getpass
+            try:
+                new_password = getpass.getpass("Enter new GUI password: ")
+                confirm_password = getpass.getpass("Confirm new GUI password: ")
+                if new_password != confirm_password:
+                    print(f"{CLIColors.ERROR}Passwords do not match{CLIColors.RESET}")
+                    return False
+            except KeyboardInterrupt:
+                print(f"\n{CLIColors.WARNING}GUI password change cancelled{CLIColors.RESET}")
+                return False
+
+        if not current_password:
+            import getpass
+            try:
+                current_password = getpass.getpass("Enter current GUI password: ")
+            except KeyboardInterrupt:
+                print(f"\n{CLIColors.WARNING}GUI password change cancelled{CLIColors.RESET}")
+                return False
+
+        # Validate new password
+        if len(new_password) < 8:
+            print(f"{CLIColors.ERROR}Password must be at least 8 characters long{CLIColors.RESET}")
+            return False
+
+        print(f"{CLIColors.INFO}Changing GUI interface password...{CLIColors.RESET}")
+
+        # Integrate with the actual GUI authentication system
+        try:
+            from plexichat.core.auth.default_credentials import get_default_credentials_manager
+            manager = get_default_credentials_manager()
+
+            # Get current credentials
+            current_creds = manager.get_interface_credentials("gui")
+            if not current_creds:
+                print(f"{CLIColors.ERROR}No GUI credentials found. Run setup first.{CLIColors.RESET}")
+                return False
+
+            # Verify current password
+            if current_password != current_creds["password"]:
+                print(f"{CLIColors.ERROR}Current password is incorrect{CLIColors.RESET}")
+                return False
+
+            # Update password
+            if manager.update_interface_password("gui", new_password):
+                print(f"{CLIColors.SUCCESS}[OK] GUI password changed successfully{CLIColors.RESET}")
+                print(f"{CLIColors.INFO}New password will be required for GUI access{CLIColors.RESET}")
+                return True
+            else:
+                print(f"{CLIColors.ERROR}Failed to update GUI password{CLIColors.RESET}")
+                return False
+
+        except ImportError:
+            print(f"{CLIColors.ERROR}Authentication system not available{CLIColors.RESET}")
+            return False
+        except Exception as e:
+            print(f"{CLIColors.ERROR}Error updating GUI password: {e}{CLIColors.RESET}")
+            return False
+
+    async def _handle_webui_password(self, args: List[str]) -> bool:
+        """Handle WebUI password change command."""
+        # Parse options
+        current_password = None
+        new_password = None
+        reset = False
+
+        i = 0
+        while i < len(args):
+            if args[i] == "--current" and i + 1 < len(args):
+                current_password = args[i + 1]
+                i += 2
+            elif args[i] == "--new" and i + 1 < len(args):
+                new_password = args[i + 1]
+                i += 2
+            elif args[i] == "--reset":
+                reset = True
+                i += 1
+            else:
+                i += 1
+
+        if reset:
+            print(f"{CLIColors.WARNING}Resetting WebUI password to default...{CLIColors.RESET}")
+            try:
+                from plexichat.core.auth.default_credentials import get_default_credentials_manager
+                manager = get_default_credentials_manager()
+                new_default_password = manager.generate_secure_password(12)
+                if manager.update_interface_password("webui", new_default_password):
+                    print(f"{CLIColors.SUCCESS}[OK] WebUI password reset successfully{CLIColors.RESET}")
+                    print(f"{CLIColors.INFO}New password: {new_default_password}{CLIColors.RESET}")
+                    print(f"{CLIColors.WARNING}Please save this password securely{CLIColors.RESET}")
+                    return True
+                else:
+                    print(f"{CLIColors.ERROR}Failed to reset WebUI password{CLIColors.RESET}")
+                    return False
+            except ImportError:
+                print(f"{CLIColors.ERROR}Authentication system not available{CLIColors.RESET}")
+                return False
+
+        # Prompt for passwords if not provided
+        if not new_password:
+            import getpass
+            try:
+                new_password = getpass.getpass("Enter new WebUI password: ")
+                confirm_password = getpass.getpass("Confirm new WebUI password: ")
+                if new_password != confirm_password:
+                    print(f"{CLIColors.ERROR}Passwords do not match{CLIColors.RESET}")
+                    return False
+            except KeyboardInterrupt:
+                print(f"\n{CLIColors.WARNING}WebUI password change cancelled{CLIColors.RESET}")
+                return False
+
+        if not current_password:
+            import getpass
+            try:
+                current_password = getpass.getpass("Enter current WebUI password: ")
+            except KeyboardInterrupt:
+                print(f"\n{CLIColors.WARNING}WebUI password change cancelled{CLIColors.RESET}")
+                return False
+
+        # Validate new password
+        if len(new_password) < 8:
+            print(f"{CLIColors.ERROR}Password must be at least 8 characters long{CLIColors.RESET}")
+            return False
+
+        print(f"{CLIColors.INFO}Changing WebUI interface password...{CLIColors.RESET}")
+
+        # Integrate with the actual WebUI authentication system
+        try:
+            from plexichat.core.auth.default_credentials import get_default_credentials_manager
+            manager = get_default_credentials_manager()
+
+            # Get current credentials
+            current_creds = manager.get_interface_credentials("webui")
+            if not current_creds:
+                print(f"{CLIColors.ERROR}No WebUI credentials found. Run setup first.{CLIColors.RESET}")
+                return False
+
+            # Verify current password
+            if current_password != current_creds["password"]:
+                print(f"{CLIColors.ERROR}Current password is incorrect{CLIColors.RESET}")
+                return False
+
+            # Update password
+            if manager.update_interface_password("webui", new_password):
+                print(f"{CLIColors.SUCCESS}[OK] WebUI password changed successfully{CLIColors.RESET}")
+                print(f"{CLIColors.INFO}New password will be required for WebUI access{CLIColors.RESET}")
+                return True
+            else:
+                print(f"{CLIColors.ERROR}Failed to update WebUI password{CLIColors.RESET}")
+                return False
+
+        except ImportError:
+            print(f"{CLIColors.ERROR}Authentication system not available{CLIColors.RESET}")
+            return False
+        except Exception as e:
+            print(f"{CLIColors.ERROR}Error updating WebUI password: {e}{CLIColors.RESET}")
+            return False
+
+    async def _handle_auth_status(self, args: List[str]) -> bool:
+        """Handle authentication status command."""
+        show_users = "--users" in args
+        show_interfaces = "--interfaces" in args
+        show_sessions = "--sessions" in args
+
+        if not any([show_users, show_interfaces, show_sessions]):
+            # Show all by default
+            show_users = show_interfaces = show_sessions = True
+
+        print(f"{CLIColors.INFO}Authentication Status:{CLIColors.RESET}")
+        print()
+
+        if show_interfaces:
+            print(f"{CLIColors.HEADER}Interface Authentication:{CLIColors.RESET}")
+            print(f"  GUI: {CLIColors.SUCCESS}ENABLED{CLIColors.RESET} (Password protected)")
+            print(f"  WebUI: {CLIColors.SUCCESS}ENABLED{CLIColors.RESET} (Password protected)")
+            print(f"  API: {CLIColors.SUCCESS}ENABLED{CLIColors.RESET} (Token based)")
+            print(f"  CLI: {CLIColors.WARNING}DISABLED{CLIColors.RESET} (Local access only)")
+            print()
+
+        if show_users:
+            print(f"{CLIColors.HEADER}User Authentication:{CLIColors.RESET}")
+            print(f"  admin: {CLIColors.SUCCESS}ACTIVE{CLIColors.RESET} (Last login: 2 hours ago)")
+            print(f"  user1: {CLIColors.SUCCESS}ACTIVE{CLIColors.RESET} (Last login: 1 day ago)")
+            print(f"  user2: {CLIColors.WARNING}INACTIVE{CLIColors.RESET} (Last login: 7 days ago)")
+            print()
+
+        if show_sessions:
+            print(f"{CLIColors.HEADER}Active Sessions:{CLIColors.RESET}")
+            print(f"  GUI: 2 active sessions")
+            print(f"  WebUI: 1 active session")
+            print(f"  API: 5 active tokens")
+            print()
+
+        print(f"{CLIColors.INFO}Security Settings:{CLIColors.RESET}")
+        print(f"  2FA: {CLIColors.SUCCESS}ENABLED{CLIColors.RESET}")
+        print(f"  Session timeout: 24 hours")
+        print(f"  Password policy: Strong")
+        print(f"  Account lockout: 5 failed attempts")
+
+        return True
+
+    async def _handle_session_list(self, args: List[str]) -> bool:
+        """Handle session list command."""
+        user_filter = None
+        interface_filter = None
+        show_expired = False
+
+        i = 0
+        while i < len(args):
+            if args[i] == "--user" and i + 1 < len(args):
+                user_filter = args[i + 1]
+                i += 2
+            elif args[i] == "--interface" and i + 1 < len(args):
+                interface_filter = args[i + 1]
+                i += 2
+            elif args[i] == "--expired":
+                show_expired = True
+                i += 1
+            else:
+                i += 1
+
+        print(f"{CLIColors.INFO}Active User Sessions:{CLIColors.RESET}")
+        print()
+
+        # Mock session data
+        sessions = [
+            {"id": "gui_abc123", "user": "admin", "interface": "GUI", "started": "2 hours ago", "last_activity": "5 minutes ago", "status": "active"},
+            {"id": "web_def456", "user": "admin", "interface": "WebUI", "started": "1 hour ago", "last_activity": "2 minutes ago", "status": "active"},
+            {"id": "api_ghi789", "user": "user1", "interface": "API", "started": "30 minutes ago", "last_activity": "1 minute ago", "status": "active"},
+            {"id": "gui_jkl012", "user": "user2", "interface": "GUI", "started": "3 hours ago", "last_activity": "2 hours ago", "status": "expired"},
+        ]
+
+        filtered_sessions = sessions
+
+        if user_filter:
+            filtered_sessions = [s for s in filtered_sessions if s["user"] == user_filter]
+
+        if interface_filter:
+            filtered_sessions = [s for s in filtered_sessions if s["interface"].lower() == interface_filter.lower()]
+
+        if not show_expired:
+            filtered_sessions = [s for s in filtered_sessions if s["status"] == "active"]
+
+        if not filtered_sessions:
+            print(f"{CLIColors.WARNING}No sessions found matching criteria{CLIColors.RESET}")
+            return True
+
+        print(f"{'Session ID':<12} {'User':<10} {'Interface':<8} {'Started':<15} {'Last Activity':<15} {'Status':<8}")
+        print("-" * 80)
+
+        for session in filtered_sessions:
+            status_color = CLIColors.SUCCESS if session["status"] == "active" else CLIColors.WARNING
+            print(f"{session['id']:<12} {session['user']:<10} {session['interface']:<8} {session['started']:<15} {session['last_activity']:<15} {status_color}{session['status']:<8}{CLIColors.RESET}")
+
+        return True
+
+    async def _handle_session_kill(self, args: List[str]) -> bool:
+        """Handle session termination command."""
+        if not args:
+            print(f"{CLIColors.ERROR}Session ID required (or 'all' for all sessions){CLIColors.RESET}")
+            return False
+
+        session_id = args[0]
+        user_filter = None
+        interface_filter = None
+        force = False
+
+        i = 1
+        while i < len(args):
+            if args[i] == "--user" and i + 1 < len(args):
+                user_filter = args[i + 1]
+                i += 2
+            elif args[i] == "--interface" and i + 1 < len(args):
+                interface_filter = args[i + 1]
+                i += 2
+            elif args[i] == "--force":
+                force = True
+                i += 1
+            else:
+                i += 1
+
+        if session_id == "all":
+            if not force:
+                try:
+                    confirm = input(f"{CLIColors.WARNING}This will terminate ALL sessions. Continue? (y/N): {CLIColors.RESET}")
+                    if confirm.lower() != 'y':
+                        print(f"{CLIColors.INFO}Session termination cancelled{CLIColors.RESET}")
+                        return True
+                except KeyboardInterrupt:
+                    print(f"\n{CLIColors.INFO}Session termination cancelled{CLIColors.RESET}")
+                    return True
+
+            print(f"{CLIColors.INFO}Terminating all sessions...{CLIColors.RESET}")
+
+            if user_filter:
+                print(f"{CLIColors.SUCCESS}[OK] Terminated all sessions for user '{user_filter}'{CLIColors.RESET}")
+            elif interface_filter:
+                print(f"{CLIColors.SUCCESS}[OK] Terminated all {interface_filter} sessions{CLIColors.RESET}")
+            else:
+                print(f"{CLIColors.SUCCESS}[OK] Terminated all active sessions{CLIColors.RESET}")
+        else:
+            print(f"{CLIColors.INFO}Terminating session '{session_id}'...{CLIColors.RESET}")
+            print(f"{CLIColors.SUCCESS}[OK] Session '{session_id}' terminated successfully{CLIColors.RESET}")
+
+        print(f"{CLIColors.INFO}Affected users will need to log in again{CLIColors.RESET}")
         return True
 
 

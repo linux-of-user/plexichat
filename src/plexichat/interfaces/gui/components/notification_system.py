@@ -258,7 +258,7 @@ class NotificationSystem:
             # Close button
             close_btn = tk.Label(
                 header_frame,
-                text="✕",
+                text="X",
                 font=("Segoe UI", 12),
                 fg='#bdc3c7',
                 bg='#34495e',
@@ -476,14 +476,14 @@ class NotificationSystem:
     def get_notification_icon(self, notification_type: NotificationType) -> str:
         """Get icon for notification type."""
         icons = {
-            NotificationType.INFO: "ℹ",
-            NotificationType.SUCCESS: "✓",
-            NotificationType.WARNING: "⚠",
-            NotificationType.ERROR: "✕",
-            NotificationType.CHAT: "💬",
-            NotificationType.SYSTEM: "⚙"
+            NotificationType.INFO: "[INFO]",
+            NotificationType.SUCCESS: "[OK]",
+            NotificationType.WARNING: "[WARN]",
+            NotificationType.ERROR: "X",
+            NotificationType.CHAT: "[CHAT]",
+            NotificationType.SYSTEM: "[SETTINGS]"
         }
-        return icons.get(notification_type, "ℹ")
+        return icons.get(notification_type, "[INFO]")
 
     def get_notification_color(self, notification_type: NotificationType) -> str:
         """Get color for notification type."""

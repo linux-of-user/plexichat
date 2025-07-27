@@ -75,11 +75,11 @@ def list_admins():
             click.echo("No admin users found")
             return
 
-        click.echo("\n📋 Admin Users:")
+        click.echo("\n[CLIPBOARD] Admin Users:")
         click.echo("-" * 80)
 
         for admin in admins:
-            status = "🟢 Active" if admin.is_active else "🔴 Inactive"
+            status = "[GREEN] Active" if admin.is_active else "[RED] Inactive"
             last_login = admin.last_login.strftime("%Y-%m-%d %H:%M:%S") if admin.last_login else "Never"
 
             click.echo(f"Username: {admin.username}")
@@ -133,7 +133,7 @@ def list_sessions():
             click.echo("No active admin sessions")
             return
 
-        click.echo("\n🔐 Active Admin Sessions:")
+        click.echo("\n[SECURE] Active Admin Sessions:")
         click.echo("-" * 80)
 
         for token, session in sessions.items():
@@ -240,7 +240,7 @@ def revoke_plugin_module(plugin_name, module_name):
 def system_status():
     """Show system status information."""
     try:
-        click.echo("\n🖥️  PlexiChat System Status")
+        click.echo("\n[DESKTOP]  PlexiChat System Status")
         click.echo("=" * 50)
 
         # Basic system info

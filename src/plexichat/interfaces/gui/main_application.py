@@ -495,9 +495,9 @@ class PlexiChatGUI:
                 result = messagebox.askyesnocancel(
                     "PlexiChat Server Manager",
                     "What would you like to do?\n\n"
-                    "• Yes: Minimize to system tray (keep server running)\n"
-                    "• No: Close GUI only (keep server running)\n"
-                    "• Cancel: Stay open\n\n"
+                    "* Yes: Minimize to system tray (keep server running)\n"
+                    "* No: Close GUI only (keep server running)\n"
+                    "* Cancel: Stay open\n\n"
                     "Note: The PlexiChat server will continue running."
                 )
 

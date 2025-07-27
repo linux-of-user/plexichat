@@ -63,7 +63,7 @@ class DocumentationGenerator:
     async def generate_api_documentation(self) -> bool:
         """Generate API documentation."""
         try:
-            logger.info("📚 Generating API documentation...")
+            logger.info("[BOOKS] Generating API documentation...")
 
             # Create docs directory
             os.makedirs(self.output_dir, exist_ok=True)
@@ -295,7 +295,7 @@ except PlexiChatError as e:
     async def generate_deployment_docs(self) -> bool:
         """Generate deployment documentation."""
         try:
-            logger.info("📖 Generating deployment documentation...")
+            logger.info("[BOOK] Generating deployment documentation...")
 
             deployment_docs = """# PlexiChat Deployment Guide
 
@@ -449,7 +449,7 @@ class ContainerManager:
             return False
 
         try:
-            logger.info(f"🐳 Building Docker image: {image_name}:{tag}")
+            logger.info(f"[DOCKER] Building Docker image: {image_name}:{tag}")
 
             build_cmd = [
                 "docker", "build",
@@ -480,7 +480,7 @@ class ContainerManager:
 
         try:
             full_image_name = f"{registry}/{image_name}:{tag}"
-            logger.info(f"📤 Pushing Docker image: {full_image_name}")
+            logger.info(f"[SEND] Pushing Docker image: {full_image_name}")
 
             # Tag image for registry
             tag_cmd = ["docker", "tag", f"{image_name}:{tag}", full_image_name]
@@ -721,7 +721,7 @@ class KubernetesDeployer:
             ]
 
             # This is simplified - in reality you'd test the actual health endpoint
-            logger.info("🏥 Running health checks...")
+            logger.info("[HOSPITAL] Running health checks...")
             await asyncio.sleep(5)  # Simulate health check
 
             return True

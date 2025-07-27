@@ -109,7 +109,7 @@ class DatabasePerformanceMonitor:
         if self._cleanup_task:
             self._cleanup_task.cancel()
 
-        logger.info("🛑 Database performance monitoring stopped")
+        logger.info("[STOP] Database performance monitoring stopped")
 
     def record_query_execution(self, query: str, execution_time: float,
                              rows_affected: int = 0, error: Optional[str] = None,
@@ -263,7 +263,7 @@ class DatabasePerformanceMonitor:
         }
 
         self.performance_alerts.append(alert)
-        logger.warning(f"🚨 Performance Alert: {alert_type} - {data}")
+        logger.warning(f"[ALERT] Performance Alert: {alert_type} - {data}")
 
     async def _cleanup_loop(self):
         """Background cleanup loop."""

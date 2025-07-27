@@ -16,6 +16,7 @@ Comprehensive authentication with full system integration:
 
 import asyncio
 import hashlib
+import os
 import secrets
 import time
 from datetime import datetime, timedelta
@@ -60,7 +61,7 @@ mfa_codes_db = {}
 failed_attempts_db = {}
 
 # Configuration
-SECRET_KEY =os.getenv("SECRET_KEY", "")
+SECRET_KEY = os.getenv("SECRET_KEY", "")
 TOKEN_EXPIRY_HOURS = 24
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 30

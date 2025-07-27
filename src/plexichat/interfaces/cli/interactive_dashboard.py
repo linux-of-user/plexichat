@@ -177,12 +177,12 @@ class InteractiveDashboard:
         
         for i, mode in enumerate(self.modes):
             icon = "[METRICS]" if mode == DashboardMode.OVERVIEW else \
-                   "🔌" if mode == DashboardMode.PLUGINS else \
-                   "⚡" if mode == DashboardMode.PERFORMANCE else \
+                   "[PLUGIN]" if mode == DashboardMode.PLUGINS else \
+                   "[FAST]" if mode == DashboardMode.PERFORMANCE else \
                    "[SECURE]" if mode == DashboardMode.SECURITY else \
-                   "🗄️" if mode == DashboardMode.DATABASE else \
-                   "🌐" if mode == DashboardMode.CLUSTER else \
-                   "📝"  # LOGS
+                   "[DATABASE]" if mode == DashboardMode.DATABASE else \
+                   "[WEB]" if mode == DashboardMode.CLUSTER else \
+                   "[NOTE]"  # LOGS
             
             style = "bold green" if mode == self.current_mode else "white"
             tree.add(f"{icon} {mode.title()}", style=style)
@@ -196,8 +196,8 @@ class InteractiveDashboard:
         
         # Add shortcuts
         tree.add("")
-        shortcuts_tree = tree.add("⌨️ [bold yellow]Shortcuts[/bold yellow]")
-        shortcuts_tree.add("↑/↓ - Navigate")
+        shortcuts_tree = tree.add("[KEYBOARD] [bold yellow]Shortcuts[/bold yellow]")
+        shortcuts_tree.add("^/v - Navigate")
         shortcuts_tree.add("Enter - Select")
         shortcuts_tree.add("R - Refresh")
         shortcuts_tree.add("Q - Quit")
@@ -214,11 +214,11 @@ class InteractiveDashboard:
         
         # Get system status (mock data for now)
         components = [
-            ("API Server", "🟢 Running", "Port 8000"),
-            ("Database", "🟢 Connected", "PostgreSQL"),
-            ("Plugin System", "🟢 Active", "26 discovered, 2 loaded"),
-            ("Security", "🟢 Monitoring", "2FA enabled"),
-            ("Clustering", "🟡 Degraded", "1/3 nodes healthy")
+            ("API Server", "[GREEN] Running", "Port 8000"),
+            ("Database", "[GREEN] Connected", "PostgreSQL"),
+            ("Plugin System", "[GREEN] Active", "26 discovered, 2 loaded"),
+            ("Security", "[GREEN] Monitoring", "2FA enabled"),
+            ("Clustering", "[YELLOW] Degraded", "1/3 nodes healthy")
         ]
         
         for component, status, details in components:
@@ -286,11 +286,11 @@ class InteractiveDashboard:
         
         # Mock plugin data
         plugins = [
-            ("api_tester", "🟢 Loaded", "1.0.0", "0.07s", "2.1MB"),
-            ("test_plugin", "🟢 Loaded", "1.0.0", "0.00s", "0.8MB"),
-            ("hello_world", "🔴 Failed", "1.0.0", "-", "-"),
-            ("file_manager", "🔴 Failed", "1.0.0", "-", "-"),
-            ("database_manager", "🟡 Loading", "1.0.0", "-", "-")
+            ("api_tester", "[GREEN] Loaded", "1.0.0", "0.07s", "2.1MB"),
+            ("test_plugin", "[GREEN] Loaded", "1.0.0", "0.00s", "0.8MB"),
+            ("hello_world", "[RED] Failed", "1.0.0", "-", "-"),
+            ("file_manager", "[RED] Failed", "1.0.0", "-", "-"),
+            ("database_manager", "[YELLOW] Loading", "1.0.0", "-", "-")
         ]
         
         for plugin, status, version, load_time, memory in plugins:
@@ -316,12 +316,12 @@ class InteractiveDashboard:
         # Plugin actions
         actions_panel = Panel(
             "[bold cyan]Available Actions:[/bold cyan]\n\n"
-            "• [green]L[/green] - Load Plugin\n"
-            "• [red]U[/red] - Unload Plugin\n"
-            "• [yellow]R[/yellow] - Reload Plugin\n"
-            "• [blue]I[/blue] - Install Dependencies\n"
-            "• [magenta]S[/magenta] - Security Settings\n"
-            "• [cyan]D[/cyan] - Plugin Details",
+            "* [green]L[/green] - Load Plugin\n"
+            "* [red]U[/red] - Unload Plugin\n"
+            "* [yellow]R[/yellow] - Reload Plugin\n"
+            "* [blue]I[/blue] - Install Dependencies\n"
+            "* [magenta]S[/magenta] - Security Settings\n"
+            "* [cyan]D[/cyan] - Plugin Details",
             title="Actions",
             border_style="yellow"
         )
@@ -369,12 +369,12 @@ class InteractiveDashboard:
         db_table.add_column("Status")
         
         db_metrics = [
-            ("Active Connections", "23", "🟢 Normal"),
-            ("Queries/sec", "145", "🟢 Normal"),
-            ("Avg Query Time", "12ms", "🟢 Fast"),
-            ("Cache Hit Rate", "94.2%", "🟢 Excellent"),
-            ("Index Usage", "87.3%", "🟡 Good"),
-            ("Lock Waits", "2", "🟢 Low")
+            ("Active Connections", "23", "[GREEN] Normal"),
+            ("Queries/sec", "145", "[GREEN] Normal"),
+            ("Avg Query Time", "12ms", "[GREEN] Fast"),
+            ("Cache Hit Rate", "94.2%", "[GREEN] Excellent"),
+            ("Index Usage", "87.3%", "[YELLOW] Good"),
+            ("Lock Waits", "2", "[GREEN] Low")
         ]
         
         for metric, value, status in db_metrics:
@@ -420,11 +420,11 @@ class InteractiveDashboard:
         events_table.add_column("Details")
         
         events = [
-            ("14:32:15", "🔴 HIGH", "Brute Force", "192.168.1.100", "5 failed login attempts"),
-            ("14:31:42", "🟡 MED", "Suspicious", "10.0.0.50", "Unusual user agent detected"),
-            ("14:30:18", "🟢 LOW", "2FA Success", "192.168.1.25", "User john@example.com"),
-            ("14:29:33", "🟡 MED", "Rate Limit", "203.0.113.45", "API rate limit exceeded"),
-            ("14:28:07", "🔴 HIGH", "SQL Injection", "198.51.100.10", "Blocked malicious query")
+            ("14:32:15", "[RED] HIGH", "Brute Force", "192.168.1.100", "5 failed login attempts"),
+            ("14:31:42", "[YELLOW] MED", "Suspicious", "10.0.0.50", "Unusual user agent detected"),
+            ("14:30:18", "[GREEN] LOW", "2FA Success", "192.168.1.25", "User john@example.com"),
+            ("14:29:33", "[YELLOW] MED", "Rate Limit", "203.0.113.45", "API rate limit exceeded"),
+            ("14:28:07", "[RED] HIGH", "SQL Injection", "198.51.100.10", "Blocked malicious query")
         ]
         
         for time_str, severity, event_type, source_ip, details in events:
@@ -437,12 +437,12 @@ class InteractiveDashboard:
         status_table.add_column("Details")
         
         security_status = [
-            ("2FA System", "🟢 Active", "98.5% adoption rate"),
-            ("Intrusion Detection", "🟢 Monitoring", "24 rules active"),
-            ("Rate Limiting", "🟢 Active", "15 IPs blocked"),
-            ("SSL/TLS", "🟢 Secure", "TLS 1.3 enforced"),
-            ("Audit Logging", "🟢 Recording", "All events logged"),
-            ("Vulnerability Scan", "🟡 Scheduled", "Next scan in 2 days")
+            ("2FA System", "[GREEN] Active", "98.5% adoption rate"),
+            ("Intrusion Detection", "[GREEN] Monitoring", "24 rules active"),
+            ("Rate Limiting", "[GREEN] Active", "15 IPs blocked"),
+            ("SSL/TLS", "[GREEN] Secure", "TLS 1.3 enforced"),
+            ("Audit Logging", "[GREEN] Recording", "All events logged"),
+            ("Vulnerability Scan", "[YELLOW] Scheduled", "Next scan in 2 days")
         ]
         
         for component, status, details in security_status:
@@ -482,12 +482,12 @@ class InteractiveDashboard:
         """Update database content."""
         content = Panel(
             "[bold cyan]Database Dashboard[/bold cyan]\n\n"
-            "🚧 Under Construction 🚧\n\n"
+            "[CONSTRUCTION] Under Construction [CONSTRUCTION]\n\n"
             "Coming soon:\n"
-            "• Query performance analysis\n"
-            "• Index recommendations\n"
-            "• Connection pool status\n"
-            "• Optimization suggestions",
+            "* Query performance analysis\n"
+            "* Index recommendations\n"
+            "* Connection pool status\n"
+            "* Optimization suggestions",
             title="Database",
             border_style="cyan"
         )
@@ -497,12 +497,12 @@ class InteractiveDashboard:
         """Update cluster content."""
         content = Panel(
             "[bold cyan]Cluster Dashboard[/bold cyan]\n\n"
-            "🚧 Under Construction 🚧\n\n"
+            "[CONSTRUCTION] Under Construction [CONSTRUCTION]\n\n"
             "Coming soon:\n"
-            "• Node status and health\n"
-            "• Load balancing metrics\n"
-            "• Failover history\n"
-            "• Auto-scaling status",
+            "* Node status and health\n"
+            "* Load balancing metrics\n"
+            "* Failover history\n"
+            "* Auto-scaling status",
             title="Cluster",
             border_style="cyan"
         )
@@ -512,12 +512,12 @@ class InteractiveDashboard:
         """Update logs content."""
         content = Panel(
             "[bold cyan]Logs Dashboard[/bold cyan]\n\n"
-            "🚧 Under Construction 🚧\n\n"
+            "[CONSTRUCTION] Under Construction [CONSTRUCTION]\n\n"
             "Coming soon:\n"
-            "• Real-time log streaming\n"
-            "• Log filtering and search\n"
-            "• Error analysis\n"
-            "• Log aggregation",
+            "* Real-time log streaming\n"
+            "* Log filtering and search\n"
+            "* Error analysis\n"
+            "* Log aggregation",
             title="Logs",
             border_style="cyan"
         )
@@ -528,7 +528,7 @@ class InteractiveDashboard:
         footer_text = (
             "[bold blue]PlexiChat Enterprise Dashboard[/bold blue] | "
             f"[dim]Refresh: {self.refresh_interval}s | "
-            "Press 'q' to quit, 'r' to refresh, ↑/↓ to navigate[/dim]"
+            "Press 'q' to quit, 'r' to refresh, ^/v to navigate[/dim]"
         )
         
         footer_content = Align.center(

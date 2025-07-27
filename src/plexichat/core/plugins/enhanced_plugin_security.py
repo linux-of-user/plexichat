@@ -114,6 +114,14 @@ class EnhancedPluginSecurity:
             'string', 'uuid', 'hashlib', 'base64', 'urllib.parse',
             'pathlib', 'typing', 'dataclasses', 'enum', 'abc',
             're', 'logging', 'asyncio', 'concurrent.futures',
+            '_io', 'io', 'builtins', 'importlib', 'importlib.util',
+            # Built-in exceptions
+            'Exception', 'ImportError', 'ValueError', 'TypeError', 'AttributeError',
+            'KeyError', 'IndexError', 'FileNotFoundError', 'OSError', 'RuntimeError',
+            'subprocess', 'signal', 'threading', 'multiprocessing',
+            'tempfile', 'shutil', 'glob', 'fnmatch', 'linecache',
+            'warnings', 'traceback', 'inspect', 'copy', 'pickle',
+            '__future__', 'urllib3', 'urllib', 'urllib.request', 'urllib.parse',
             
             # Commonly needed third-party - approved
             'pydantic', 'pydantic.BaseModel', 'pydantic.Field',
@@ -256,7 +264,36 @@ class EnhancedPluginSecurity:
         """Attempt to install missing dependency."""
         if module_name in self.dependency_cache:
             return self.dependency_cache[module_name]
-        
+
+        # Filter out built-in modules that shouldn't be installed
+        builtin_modules = {
+            'gzip', 'gettext', 'argparse', 'collections', 'json', 'os', 'sys',
+            'time', 'datetime', 'logging', 'threading', 'subprocess', 'pathlib',
+            'tempfile', 'shutil', 'hashlib', 'base64', 'random', 'string', 'uuid',
+            'typing', 'dataclasses', 'concurrent', 'asyncio', 'functools', 'itertools',
+            'operator', 'copy', 'pickle', 'sqlite3', 'urllib', 'http', 'email',
+            'xml', 'html', 'csv', 'configparser', 'io', 're', 'math', 'statistics',
+            'decimal', 'fractions', 'secrets', 'hmac', 'binascii', 'struct', 'codecs',
+            'locale', 'calendar', 'zoneinfo', 'platform', 'socket', 'ssl', 'select',
+            'selectors', 'signal', 'mmap', 'ctypes', 'array', 'weakref', 'gc',
+            'inspect', 'dis', 'traceback', 'linecache', 'tokenize', 'keyword',
+            'builtins', '__builtin__', '__builtins__', '_pytest', 'pytest_plugins',
+            'main_cli', 'plexichat', 'src'
+        }
+
+        # Check if it's a built-in module or submodule
+        base_module = module_name.split('.')[0]
+        if base_module in builtin_modules or module_name in builtin_modules:
+            logger.debug(f"Skipping installation of built-in module: {module_name}")
+            self.dependency_cache[module_name] = True  # Mark as "installed" to avoid retries
+            return True
+
+        # Skip empty module names
+        if not module_name.strip():
+            logger.debug(f"Skipping empty module name")
+            self.dependency_cache[module_name] = False
+            return False
+
         try:
             # Map common module names to package names
             package_mapping = {

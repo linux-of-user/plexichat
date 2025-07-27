@@ -656,14 +656,14 @@ class IntelligentAssistant:
             language_patterns = {
                 'english': ['the', 'and', 'is', 'in', 'to', 'of', 'a', 'that'],
                 'spanish': ['el', 'la', 'de', 'que', 'y', 'en', 'un', 'es'],
-                'french': ['le', 'de', 'et', 'à', 'un', 'il', 'être', 'et'],
+                'french': ['le', 'de', 'et', 'a', 'un', 'il', 'etre', 'et'],
                 'german': ['der', 'die', 'und', 'in', 'den', 'von', 'zu', 'das'],
                 'italian': ['il', 'di', 'che', 'e', 'la', 'per', 'un', 'in'],
                 'portuguese': ['o', 'de', 'que', 'e', 'do', 'da', 'em', 'um'],
-                'russian': ['и', 'в', 'не', 'на', 'я', 'быть', 'он', 'с'],
-                'chinese': ['的', '一', '是', '在', '不', '了', '有', '和'],
-                'japanese': ['の', 'に', 'は', 'を', 'た', 'が', 'で', 'て'],
-                'arabic': ['في', 'من', 'إلى', 'على', 'أن', 'هذا', 'كان', 'قد']
+                'russian': ['i', 'v', 'ne', 'na', 'ya', 'byt', 'on', 's'],
+                'chinese': ['de', 'yi', 'shi', 'zai', 'bu', 'le', 'you', 'he'],
+                'japanese': ['no', 'ni', 'ha', 'wo', 'ta', 'ga', 'de', 'te'],
+                'arabic': ['fy', 'mn', 'ila', 'ala', 'an', 'hdha', 'kan', 'qd']
             }
 
             text_lower = text.lower()

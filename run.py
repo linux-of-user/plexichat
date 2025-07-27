@@ -1472,15 +1472,51 @@ class DependencyManager:
                         self.ui.setup_logger.error(f"Failed to install dependencies:\n{stderr}")
                         self.ui.setup_logger.error(f"Pip stdout:\n{stdout}")
                     if self.ui and hasattr(self.ui, 'add_log'):
-                        self.ui.add_log("Failed to install dependencies. See logs for details.", "ERROR")
+                        self.ui.add_log("Some pip packages failed. Trying system packages as fallback...", "WARNING")
                         if hasattr(self.ui, 'setup_log_file'):
-                            self.ui.add_log(f"See {self.ui.setup_log_file} for full pip output.", "ERROR")
-                    return False
+                            self.ui.add_log(f"See {self.ui.setup_log_file} for full pip output.", "INFO")
+
+                    # Try platform-specific installation as fallback
+                    logger.info("Attempting platform-specific package installation as fallback...")
+                    if self.ui and hasattr(self.ui, 'add_log'):
+                        self.ui.add_log("Installing system packages (including tkinter)...", "INFO")
+
+                    platform_success = install_platform_dependencies()
+                    if platform_success:
+                        logger.info("Platform-specific packages installed successfully")
+                        if self.ui and hasattr(self.ui, 'add_log'):
+                            self.ui.add_log("System packages installed successfully", "INFO")
+                        # Continue with partial success
+                    else:
+                        logger.warning("Platform-specific package installation also failed")
+                        if self.ui and hasattr(self.ui, 'add_log'):
+                            self.ui.add_log("System package installation failed", "WARNING")
+
+                    # Don't return False immediately - some packages may have installed
+                    logger.warning("Some dependencies may not be available, but continuing...")
+                    if self.ui and hasattr(self.ui, 'add_log'):
+                        self.ui.add_log("Continuing with partial installation...", "WARNING")
                 logger.info("Dependencies installed successfully.")
                 if self.ui and hasattr(self.ui, 'setup_logger'):
                     self.ui.setup_logger.info("Dependencies installed successfully.")
                 if self.ui and hasattr(self.ui, 'add_log'):
                     self.ui.add_log("Dependencies installed successfully.", "INFO")
+
+                # Always try to install system packages (especially tkinter) for full functionality
+                logger.info("Installing system packages for full functionality...")
+                if self.ui and hasattr(self.ui, 'add_log'):
+                    self.ui.add_log("Installing system packages (including tkinter)...", "INFO")
+
+                platform_success = install_platform_dependencies()
+                if platform_success:
+                    logger.info("System packages installed successfully")
+                    if self.ui and hasattr(self.ui, 'add_log'):
+                        self.ui.add_log("System packages installed successfully", "INFO")
+                else:
+                    logger.warning("System package installation failed - some features may not work")
+                    if self.ui and hasattr(self.ui, 'add_log'):
+                        self.ui.add_log("System package installation failed - GUI may not work", "WARNING")
+
                 return True
             finally:
                 os.remove(temp_reqs_path)
@@ -1537,21 +1573,20 @@ def setup_environment():
     """Set up the runtime environment including required directories and environment variables. Robust, with logging and fallbacks."""
     try:
         logger.info("Setting up environment...")
-        # Create all required directories
-        # Only create essential directories - others created by components that need them
-        required_dirs = [
-            'config', 'logs', 'backups', 'data'
-        ]
-        for dir_name in required_dirs:
+        # Create only essential directories that are immediately needed
+        # Other directories will be created by components that actually use them
+        essential_dirs = ['config', 'logs']
+        for dir_name in essential_dirs:
             dir_path = Path(dir_name)
             dir_path.mkdir(exist_ok=True, parents=True)
-            logger.debug(f"Directory ready: {dir_path.absolute()}")
+            logger.debug(f"Essential directory ready: {dir_path.absolute()}")
         # Set environment variables with defaults if not already set
         env_vars = {
             'PLEXICHAT_ENV': 'production',
             'PLEXICHAT_CONFIG_DIR': 'config',
             'PLEXICHAT_LOG_LEVEL': 'INFO',
             'PLEXICHAT_LOG_DIR': 'logs',
+            # Other directories will be created by components that need them
             'PLEXICHAT_TEMP_DIR': 'temp',
             'PLEXICHAT_UPLOADS_DIR': 'uploads',
             'PLEXICHAT_BACKUPS_DIR': 'backups',
@@ -2070,9 +2105,42 @@ def run_api_and_cli(args=None):
     # Start the API server (blocking)
     run_api_server(args)
 
-def run_gui():
-    """Launch the GUI interface (Tkinter)."""
+def run_gui(args=None):
+    """Launch the GUI interface (Tkinter) with optional API server integration."""
+    # Check for --noserver flag
+    start_server = True
+    if args and hasattr(args, 'noserver') and args.noserver:
+        start_server = False
+    elif args and isinstance(args, list) and '--noserver' in args:
+        start_server = False
+
     logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (Tkinter)...{Colors.RESET}")
+
+    # Start API server in background if requested
+    server_process = None
+    if start_server:
+        logger.info(f"{Colors.CYAN}Starting API server for GUI integration...{Colors.RESET}")
+        try:
+            import threading
+            import time
+
+            def start_api_server():
+                try:
+                    run_api_server(args)
+                except Exception as e:
+                    logger.error(f"API server error: {e}")
+
+            server_thread = threading.Thread(target=start_api_server, daemon=False)
+            server_thread.start()
+
+            # Give server time to start
+            time.sleep(2)
+            logger.info(f"{Colors.GREEN}API server started in background{Colors.RESET}")
+
+        except Exception as e:
+            logger.warning(f"Failed to start API server: {e}")
+            start_server = False
+
     try:
         logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
         from plexichat.interfaces.gui.main_application import main as gui_main
@@ -2083,6 +2151,19 @@ def run_gui():
         # Start GUI
         gui_main()  # This will run the GUI
         logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
+
+        # If server was started and GUI closes, keep server running unless --noserver
+        if start_server:
+            logger.info(f"{Colors.CYAN}GUI closed but API server continues running...{Colors.RESET}")
+            logger.info(f"{Colors.INFO}Access web interface at: http://localhost:8000{Colors.RESET}")
+            logger.info(f"{Colors.INFO}Press Ctrl+C to stop the server{Colors.RESET}")
+
+            # Keep the main thread alive so server continues
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                logger.info(f"{Colors.YELLOW}Shutting down API server...{Colors.RESET}")
 
     except ImportError as e:
         logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
@@ -2129,13 +2210,25 @@ def run_gui_standalone():
 
     return True
 
-def run_webui():
-    """Launch the web UI interface."""
-    logger.info("Launching PlexiChat Web UI...")
-    logger.info("Starting web server with enhanced UI...")
-    logger.info("Web interface available at: http://localhost:8000")
-    logger.info("API documentation at: http://localhost:8000/docs")
-    run_api_and_cli()  # Use same CLI system as GUI
+def run_webui(args=None):
+    """Launch the web UI interface with API server by default."""
+    # Check for --noserver flag
+    start_server = True
+    if args and hasattr(args, 'noserver') and args.noserver:
+        start_server = False
+    elif args and isinstance(args, list) and '--noserver' in args:
+        start_server = False
+
+    if start_server:
+        logger.info("Launching PlexiChat Web UI with API server...")
+        logger.info("Starting web server with enhanced UI...")
+        logger.info("Web interface available at: http://localhost:8000")
+        logger.info("API documentation at: http://localhost:8000/docs")
+        run_api_and_cli(args)  # Start with API server and CLI
+    else:
+        logger.info("Launching PlexiChat Web UI without API server...")
+        logger.info("Note: WebUI requires API server to function properly")
+        logger.info("Consider running 'python run.py api' in another terminal")
 
 def run_configuration_wizard():
     """Run the configuration wizard."""
@@ -2560,6 +2653,12 @@ def run_first_time_setup(level: Optional[str] = None):
         print(f"{Colors.DIM}Starting first-time setup... (Press Ctrl+C to cancel){Colors.RESET}")
         print(f"{Colors.DIM}This may take a few minutes depending on your system.{Colors.RESET}")
 
+        # If no level specified, show interactive setup options
+        if level is None:
+            level = show_setup_interface_choice()
+            if level in ['gui', 'webui']:
+                return launch_setup_interface(level)
+
         # Initialize terminal UI with beautiful progress tracking
         ui = TerminalUI()
         ui.add_log("Starting PlexiChat first-time setup", "INFO")
@@ -2788,6 +2887,111 @@ def run_first_time_setup(level: Optional[str] = None):
         print(f"{Colors.DIM}Try running with minimal dependencies: python run.py setup --level minimal{Colors.RESET}")
         return False
 
+
+def show_setup_interface_choice():
+    """Show interactive setup interface choice."""
+    print(f"\n{Colors.BOLD}Setup Interface Selection{Colors.RESET}")
+    print(f"{Colors.DIM}Choose how you'd like to complete the setup:{Colors.RESET}")
+    print()
+    print(f"1. {Colors.GREEN}Terminal{Colors.RESET} - Complete setup in this terminal (recommended)")
+    print(f"2. {Colors.BLUE}GUI{Colors.RESET} - Open graphical setup interface")
+    print(f"3. {Colors.CYAN}Web UI{Colors.RESET} - Open web-based setup interface")
+    print()
+    print(f"{Colors.BOLD}Installation Levels:{Colors.RESET}")
+    print(f"  {Colors.WHITE}minimal{Colors.RESET}   - Core dependencies only (fastest)")
+    print(f"  {Colors.WHITE}standard{Colors.RESET}  - Standard features (recommended)")
+    print(f"  {Colors.WHITE}full{Colors.RESET}      - All features (most complete)")
+    print(f"  {Colors.WHITE}developer{Colors.RESET} - All features + developer tools")
+    print()
+
+    while True:
+        try:
+            choice = input(f"{Colors.BOLD}Enter your choice (1-3) or installation level: {Colors.RESET}").strip().lower()
+
+            # Check if user directly entered an installation level
+            if choice in ['minimal', 'standard', 'full', 'developer']:
+                return choice
+            elif choice in ['1', 'terminal', 't']:
+                level = input(f"{Colors.DIM}Installation level (minimal/standard/full/developer) [standard]: {Colors.RESET}").strip().lower()
+                return level if level in ['minimal', 'standard', 'full', 'developer'] else 'standard'
+            elif choice in ['2', 'gui', 'g']:
+                return 'gui'
+            elif choice in ['3', 'webui', 'web', 'w']:
+                return 'webui'
+            else:
+                print(f"{Colors.RED}Invalid choice. Please enter 1-3 or an installation level.{Colors.RESET}")
+        except (KeyboardInterrupt, EOFError):
+            print(f"\n{Colors.YELLOW}Setup cancelled{Colors.RESET}")
+            sys.exit(0)
+
+
+def launch_setup_interface(interface_type):
+    """Launch GUI or WebUI setup interface."""
+    try:
+        if interface_type == 'gui':
+            print(f"\n{Colors.CYAN}Launching GUI setup interface...{Colors.RESET}")
+
+            # Check if tkinter is available
+            try:
+                import tkinter as tk
+                print(f"{Colors.GREEN}GUI support available{Colors.RESET}")
+
+                # Import and launch GUI setup
+                sys.path.insert(0, 'src')
+                from plexichat.interfaces.gui.main_application import PlexiChatGUI
+
+                gui = PlexiChatGUI()
+                gui.show_setup_page()  # This method needs to be implemented
+                gui.run()
+                return True
+
+            except ImportError:
+                print(f"{Colors.RED}GUI not available - tkinter not installed{Colors.RESET}")
+                print(f"{Colors.YELLOW}Install with: sudo apt-get install python3-tk{Colors.RESET}")
+                print(f"{Colors.CYAN}Falling back to terminal setup...{Colors.RESET}")
+                return run_first_time_setup(level='standard')
+
+        elif interface_type == 'webui':
+            print(f"\n{Colors.CYAN}Launching Web UI setup interface...{Colors.RESET}")
+
+            # Start web server with setup page
+            import threading
+            import webbrowser
+            import time
+
+            def start_web_server():
+                try:
+                    sys.path.insert(0, 'src')
+                    from plexichat.main import app
+                    import uvicorn
+
+                    # Start server in setup mode
+                    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+                except Exception as e:
+                    print(f"{Colors.RED}Failed to start web server: {e}{Colors.RESET}")
+
+            # Start server in background
+            server_thread = threading.Thread(target=start_web_server, daemon=True)
+            server_thread.start()
+
+            # Wait a moment for server to start
+            time.sleep(2)
+
+            # Open browser to setup page
+            setup_url = "http://localhost:8000/setup"
+            print(f"{Colors.GREEN}Opening setup page: {setup_url}{Colors.RESET}")
+            webbrowser.open(setup_url)
+
+            print(f"{Colors.CYAN}Complete setup in your web browser, then press Enter to continue...{Colors.RESET}")
+            input()
+            return True
+
+    except Exception as e:
+        print(f"{Colors.RED}Failed to launch {interface_type} interface: {e}{Colors.RESET}")
+        print(f"{Colors.CYAN}Falling back to terminal setup...{Colors.RESET}")
+        return run_first_time_setup(level='standard')
+
+
 def run_api_server(args=None):
     """Start the PlexiChat API server."""
     try:
@@ -2829,7 +3033,7 @@ def run_api_server(args=None):
             app,
             host=host,
             port=port,
-            reload=True,
+            reload=False,  # Disable reload to avoid import issues
             log_level="info"
         )
         return True
@@ -2839,13 +3043,35 @@ def run_api_server(args=None):
         return False
 
 def run_cli():
-    """Run the CLI interface."""
+    """Run the enhanced CLI interface."""
     try:
-        from plexichat.interfaces.cli.main_cli import main as cli_main
-        cli_main()
+        # Import the enhanced CLI system
+        from plexichat.interfaces.cli.enhanced_cli import enhanced_cli
+
+        # If no additional arguments, show help
+        if len(sys.argv) <= 2:
+            enhanced_cli.show_help()
+            return
+
+        # Extract command and arguments
+        command = sys.argv[2] if len(sys.argv) > 2 else None
+        args = sys.argv[3:] if len(sys.argv) > 3 else []
+
+        if command:
+            # Run the command
+            import asyncio
+            success = asyncio.run(enhanced_cli.execute_command(command, args))
+            if not success:
+                print(f"{Colors.RED}Command failed: {command}{Colors.RESET}")
+                sys.exit(1)
+        else:
+            enhanced_cli.show_help()
+
     except Exception as e:
         logger.error(f"Could not start CLI: {e}")
         logger.debug(f"CLI error details: {e}", exc_info=True)
+        print(f"{Colors.RED}CLI Error: {e}{Colors.RESET}")
+        sys.exit(1)
 
 def run_admin_cli():
     """Run admin CLI commands."""
@@ -3027,7 +3253,10 @@ def parse_arguments():
 Examples:
   run.py                    # Start API server with splitscreen CLI (default)
   run.py setup              # Run first-time setup wizard
-  run.py gui                # Launch GUI interface
+  run.py gui                # Launch GUI interface with API server
+  run.py gui --noserver     # Launch GUI without API server
+  run.py webui              # Launch WebUI with API server
+  run.py webui --noserver   # Launch WebUI without API server
   run.py version            # Manage versions and downloads
   run.py update             # Check for and install updates
   run.py deps               # Manage dependencies
@@ -3099,6 +3328,9 @@ Examples:
         parser.add_argument('--config-file',
                           type=str,
                           help='Install from configuration file')
+        parser.add_argument('--noserver',
+                          action='store_true',
+                          help='Start GUI without API server (GUI and WebUI commands only)')
 
         # Parse and return arguments
         args = parser.parse_args()
@@ -3638,53 +3870,359 @@ def setup_virtualized_environment():
         print(f"{Colors.YELLOW}Virtualization setup warning: {e}{Colors.RESET}")
 
 def install_platform_dependencies():
-    """Install platform-specific dependencies."""
+    """Install platform-specific dependencies as fallbacks when pip fails."""
     platform = sys.platform
-    
+
+    print(f"{Colors.CYAN}Installing platform-specific system dependencies...{Colors.RESET}")
+    print(f"{Colors.DIM}These are fallback installations for packages that failed via pip{Colors.RESET}")
+
     if platform.startswith('linux'):
-        install_linux_dependencies()
+        return install_linux_dependencies()
     elif platform.startswith('win'):
-        install_windows_dependencies()
+        return install_windows_dependencies()
     elif platform.startswith('darwin'):
-        install_macos_dependencies()
+        return install_macos_dependencies()
+    else:
+        print(f"{Colors.YELLOW}Unknown platform: {platform}{Colors.RESET}")
+        return False
 
 def install_linux_dependencies():
     """Install Linux-specific dependencies."""
     try:
-        # System package dependencies
-        linux_packages = [
-            'python3-dev', 'python3-pip', 'python3-venv',
-            'build-essential', 'libssl-dev', 'libffi-dev',
-            'libjpeg-dev', 'libpng-dev', 'libfreetype6-dev'
-        ]
-        
         print(f"{Colors.CYAN}Installing Linux system dependencies...{Colors.RESET}")
-        # Note: This would require sudo privileges
-        # subprocess.run(['sudo', 'apt-get', 'update'])
-        # subprocess.run(['sudo', 'apt-get', 'install', '-y'] + linux_packages)
-        
+
+        # Detect Linux distribution
+        distro_info = detect_linux_distro()
+        distro = distro_info.get('id', 'unknown').lower()
+
+        if distro in ['ubuntu', 'debian', 'linuxmint']:
+            install_debian_packages()
+        elif distro in ['fedora', 'rhel', 'centos', 'rocky', 'almalinux']:
+            install_fedora_packages()
+        elif distro in ['arch', 'manjaro']:
+            install_arch_packages()
+        else:
+            print(f"{Colors.YELLOW}Unknown Linux distribution: {distro}{Colors.RESET}")
+            print(f"{Colors.CYAN}Attempting Debian/Ubuntu package installation...{Colors.RESET}")
+            install_debian_packages()
+
     except Exception as e:
         print(f"{Colors.YELLOW}Linux dependency installation warning: {e}{Colors.RESET}")
+
+
+def detect_linux_distro():
+    """Detect Linux distribution."""
+    try:
+        # Try to read /etc/os-release
+        if os.path.exists('/etc/os-release'):
+            with open('/etc/os-release', 'r') as f:
+                lines = f.readlines()
+                info = {}
+                for line in lines:
+                    if '=' in line:
+                        key, value = line.strip().split('=', 1)
+                        info[key.lower()] = value.strip('"')
+                return info
+
+        # Fallback methods
+        if os.path.exists('/etc/debian_version'):
+            return {'id': 'debian'}
+        elif os.path.exists('/etc/fedora-release'):
+            return {'id': 'fedora'}
+        elif os.path.exists('/etc/arch-release'):
+            return {'id': 'arch'}
+
+        return {'id': 'unknown'}
+    except Exception:
+        return {'id': 'unknown'}
+
+
+def check_admin_privileges():
+    """Check if running with admin/root privileges."""
+    try:
+        if sys.platform.startswith('win'):
+            import ctypes
+            return ctypes.windll.shell32.IsUserAnAdmin() != 0
+        else:
+            return os.geteuid() == 0
+    except Exception:
+        return False
+
+
+def request_elevation():
+    """Request elevation of privileges."""
+    if sys.platform.startswith('win'):
+        print(f"{Colors.YELLOW}Administrator privileges required{Colors.RESET}")
+        print(f"{Colors.CYAN}Please run the following command in an elevated Command Prompt:{Colors.RESET}")
+        print(f"python {' '.join(sys.argv)}")
+        return False
+    else:
+        print(f"{Colors.YELLOW}Root privileges required for system package installation{Colors.RESET}")
+        print(f"{Colors.CYAN}Commands will be run with sudo{Colors.RESET}")
+        return True
+
+
+def install_debian_packages():
+    """Install packages on Debian/Ubuntu systems."""
+    debian_packages = [
+        'python3-tk', 'python3-dev', 'python3-pip', 'python3-venv',
+        'build-essential', 'libssl-dev', 'libffi-dev', 'libjpeg-dev',
+        'libpng-dev', 'libfreetype6-dev', 'libsqlite3-dev', 'libreadline-dev',
+        'libbz2-dev', 'libncurses5-dev', 'libncursesw5-dev', 'xz-utils',
+        'tk-dev', 'liblzma-dev', 'git', 'curl', 'wget'
+    ]
+
+    try:
+        if check_admin_privileges():
+            print(f"{Colors.GREEN}Running with admin privileges - installing Debian/Ubuntu packages{Colors.RESET}")
+            subprocess.run(['apt-get', 'update'], check=True)
+            subprocess.run(['apt-get', 'install', '-y'] + debian_packages, check=True)
+            print(f"{Colors.GREEN}Debian/Ubuntu packages installed successfully{Colors.RESET}")
+            return True
+        else:
+            print(f"{Colors.YELLOW}Attempting to install packages with sudo...{Colors.RESET}")
+            try:
+                subprocess.run(['sudo', 'apt-get', 'update'], check=True)
+                subprocess.run(['sudo', 'apt-get', 'install', '-y'] + debian_packages, check=True)
+                print(f"{Colors.GREEN}Debian/Ubuntu packages installed successfully{Colors.RESET}")
+                return True
+            except subprocess.CalledProcessError:
+                print(f"{Colors.RED}Failed to install with sudo{Colors.RESET}")
+                print_debian_manual_instructions(debian_packages)
+                return False
+    except subprocess.CalledProcessError:
+        print(f"{Colors.RED}Package installation failed{Colors.RESET}")
+        print_debian_manual_instructions(debian_packages)
+        return False
+
+
+def print_debian_manual_instructions(packages):
+    """Print manual installation instructions for Debian/Ubuntu."""
+    print(f"{Colors.YELLOW}Manual installation required{Colors.RESET}")
+    print(f"{Colors.CYAN}Please run the following commands:{Colors.RESET}")
+    print(f"sudo apt-get update")
+    print(f"sudo apt-get install -y {' '.join(packages)}")
+    print(f"")
+    print(f"{Colors.DIM}Then run setup again: python run.py setup{Colors.RESET}")
+
+
+def install_fedora_packages():
+    """Install packages on Fedora/RHEL/CentOS systems."""
+    fedora_packages = [
+        'python3-tkinter', 'python3-devel', 'python3-pip', 'gcc', 'gcc-c++',
+        'make', 'openssl-devel', 'libffi-devel', 'libjpeg-turbo-devel',
+        'libpng-devel', 'freetype-devel', 'sqlite-devel', 'readline-devel',
+        'bzip2-devel', 'ncurses-devel', 'xz-devel', 'tk-devel',
+        'git', 'curl', 'wget'
+    ]
+
+    try:
+        # Try dnf first (newer systems), then yum (older systems)
+        package_manager = 'dnf' if subprocess.run(['which', 'dnf'], capture_output=True).returncode == 0 else 'yum'
+
+        if os.geteuid() == 0:  # Running as root
+            print(f"{Colors.GREEN}Running as root - installing Fedora/RHEL packages with {package_manager}{Colors.RESET}")
+            subprocess.run([package_manager, 'install', '-y'] + fedora_packages, check=True)
+            print(f"{Colors.GREEN}Fedora/RHEL packages installed successfully{Colors.RESET}")
+        else:
+            print(f"{Colors.YELLOW}Attempting to install packages with sudo {package_manager}...{Colors.RESET}")
+            subprocess.run(['sudo', package_manager, 'install', '-y'] + fedora_packages, check=True)
+            print(f"{Colors.GREEN}Fedora/RHEL packages installed successfully{Colors.RESET}")
+    except subprocess.CalledProcessError:
+        print(f"{Colors.YELLOW}Could not install system packages automatically{Colors.RESET}")
+        print(f"{Colors.CYAN}Please run manually:{Colors.RESET}")
+        print(f"sudo {package_manager} install -y {' '.join(fedora_packages)}")
+
+
+def install_arch_packages():
+    """Install packages on Arch Linux systems."""
+    arch_packages = [
+        'python-tkinter', 'python', 'python-pip', 'base-devel', 'openssl',
+        'libffi', 'libjpeg-turbo', 'libpng', 'freetype2', 'sqlite',
+        'readline', 'bzip2', 'ncurses', 'xz', 'tk', 'git', 'curl', 'wget'
+    ]
+
+    try:
+        if os.geteuid() == 0:  # Running as root
+            print(f"{Colors.GREEN}Running as root - installing Arch Linux packages{Colors.RESET}")
+            subprocess.run(['pacman', '-S', '--noconfirm'] + arch_packages, check=True)
+            print(f"{Colors.GREEN}Arch Linux packages installed successfully{Colors.RESET}")
+        else:
+            print(f"{Colors.YELLOW}Attempting to install packages with sudo pacman...{Colors.RESET}")
+            subprocess.run(['sudo', 'pacman', '-S', '--noconfirm'] + arch_packages, check=True)
+            print(f"{Colors.GREEN}Arch Linux packages installed successfully{Colors.RESET}")
+    except subprocess.CalledProcessError:
+        print(f"{Colors.YELLOW}Could not install system packages automatically{Colors.RESET}")
+        print(f"{Colors.CYAN}Please run manually:{Colors.RESET}")
+        print(f"sudo pacman -S --noconfirm {' '.join(arch_packages)}")
 
 def install_windows_dependencies():
     """Install Windows-specific dependencies."""
     try:
         print(f"{Colors.CYAN}Installing Windows-specific dependencies...{Colors.RESET}")
-        # Windows-specific package installation
-        # Could use chocolatey or winget here
-        
+
+        # Check if tkinter is available (usually comes with Python on Windows)
+        try:
+            import tkinter
+            print(f"{Colors.GREEN}tkinter is available{Colors.RESET}")
+        except ImportError:
+            print(f"{Colors.RED}tkinter is not available{Colors.RESET}")
+            print(f"{Colors.YELLOW}Please reinstall Python with tkinter support{Colors.RESET}")
+            print(f"{Colors.CYAN}Download from: https://www.python.org/downloads/{Colors.RESET}")
+
+        # Check for admin privileges
+        if not check_admin_privileges():
+            print(f"{Colors.YELLOW}Package installation may require administrator privileges{Colors.RESET}")
+            if not request_elevation():
+                print_windows_manual_instructions()
+                return False
+
+        # Try chocolatey first, then winget
+        if install_with_chocolatey():
+            print(f"{Colors.GREEN}Packages installed via Chocolatey{Colors.RESET}")
+            return True
+        elif install_with_winget():
+            print(f"{Colors.GREEN}Packages installed via winget{Colors.RESET}")
+            return True
+        else:
+            print(f"{Colors.YELLOW}No package manager available - manual installation required{Colors.RESET}")
+            print_windows_manual_instructions()
+            return False
+
     except Exception as e:
         print(f"{Colors.YELLOW}Windows dependency installation warning: {e}{Colors.RESET}")
+        return False
+
+
+def install_with_chocolatey():
+    """Try to install packages with Chocolatey."""
+    try:
+        subprocess.run(['choco', '--version'], check=True, capture_output=True)
+        print(f"{Colors.GREEN}Chocolatey detected - installing packages{Colors.RESET}")
+
+        choco_packages = ['python', 'git', 'nodejs', 'sqlite']
+        success = True
+
+        for package in choco_packages:
+            try:
+                subprocess.run(['choco', 'install', package, '-y'], check=True, capture_output=True)
+                print(f"{Colors.GREEN}Installed {package}{Colors.RESET}")
+            except subprocess.CalledProcessError:
+                print(f"{Colors.YELLOW}Could not install {package}{Colors.RESET}")
+                success = False
+
+        return success
+
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def install_with_winget():
+    """Try to install packages with winget."""
+    try:
+        subprocess.run(['winget', '--version'], check=True, capture_output=True)
+        print(f"{Colors.GREEN}winget detected - installing packages{Colors.RESET}")
+
+        winget_packages = [
+            'Python.Python.3.11',
+            'Git.Git',
+            'OpenJS.NodeJS',
+            'SQLite.SQLite'
+        ]
+        success = True
+
+        for package in winget_packages:
+            try:
+                subprocess.run(['winget', 'install', package, '--accept-package-agreements', '--accept-source-agreements'],
+                             check=True, capture_output=True)
+                print(f"{Colors.GREEN}Installed {package}{Colors.RESET}")
+            except subprocess.CalledProcessError:
+                print(f"{Colors.YELLOW}Could not install {package}{Colors.RESET}")
+                success = False
+
+        return success
+
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def print_windows_manual_instructions():
+    """Print manual installation instructions for Windows."""
+    print(f"{Colors.CYAN}Manual installation required:{Colors.RESET}")
+    print(f"1. Install Chocolatey: https://chocolatey.org/install")
+    print(f"2. Or install winget: https://github.com/microsoft/winget-cli")
+    print(f"3. Then run setup again")
+    print(f"")
+    print(f"{Colors.CYAN}Alternative - Manual downloads:{Colors.RESET}")
+    print(f"- Python: https://www.python.org/downloads/")
+    print(f"- Git: https://git-scm.com/download/win")
+    print(f"- Node.js: https://nodejs.org/en/download/")
+    print(f"- SQLite: https://www.sqlite.org/download.html")
 
 def install_macos_dependencies():
     """Install macOS-specific dependencies."""
     try:
         print(f"{Colors.CYAN}Installing macOS-specific dependencies...{Colors.RESET}")
-        # macOS-specific package installation
-        # Could use homebrew here
-        
+
+        # Check if tkinter is available
+        try:
+            import tkinter
+            print(f"{Colors.GREEN}tkinter is available{Colors.RESET}")
+        except ImportError:
+            print(f"{Colors.RED}tkinter is not available{Colors.RESET}")
+            print(f"{Colors.YELLOW}Install with: brew install python-tk{Colors.RESET}")
+
+        # macOS-specific package installation using homebrew
+        if install_with_homebrew():
+            print(f"{Colors.GREEN}Packages installed via Homebrew{Colors.RESET}")
+        else:
+            print_macos_manual_instructions()
+
     except Exception as e:
         print(f"{Colors.YELLOW}macOS dependency installation warning: {e}{Colors.RESET}")
+
+
+def install_with_homebrew():
+    """Try to install packages with Homebrew."""
+    try:
+        subprocess.run(['brew', '--version'], check=True, capture_output=True)
+        print(f"{Colors.GREEN}Homebrew detected - installing packages{Colors.RESET}")
+
+        brew_packages = [
+            'python-tk', 'python@3.11', 'openssl', 'libffi', 'jpeg',
+            'libpng', 'freetype', 'sqlite3', 'readline', 'xz',
+            'git', 'curl', 'wget'
+        ]
+        success = True
+
+        for package in brew_packages:
+            try:
+                subprocess.run(['brew', 'install', package], check=True, capture_output=True)
+                print(f"{Colors.GREEN}Installed {package}{Colors.RESET}")
+            except subprocess.CalledProcessError:
+                print(f"{Colors.YELLOW}Could not install {package} (may already be installed){Colors.RESET}")
+
+        return success
+
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def print_macos_manual_instructions():
+    """Print manual installation instructions for macOS."""
+    print(f"{Colors.YELLOW}Homebrew not available{Colors.RESET}")
+    print(f"{Colors.CYAN}Install Homebrew first:{Colors.RESET}")
+    print(f'/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+    print(f"")
+    print(f"{Colors.CYAN}Then install packages:{Colors.RESET}")
+    print(f"brew install python-tk python@3.11 openssl libffi jpeg libpng freetype sqlite3 readline xz git")
+    print(f"")
+    print(f"{Colors.CYAN}Alternative - MacPorts:{Colors.RESET}")
+    print(f"sudo port install python311 +tkinter")
+    print(f"")
+    print(f"{Colors.CYAN}Or download manually:{Colors.RESET}")
+    print(f"- Python: https://www.python.org/downloads/macos/")
+    print(f"- Git: https://git-scm.com/download/mac")
 
 def setup_enhanced_security():
     """Setup enhanced security features for the platform."""
@@ -4814,7 +5352,7 @@ def execute_simple_command(command, args=None):
     elif command == 'clean':
         SystemManager().cleanup_system()
     elif command == 'setup':
-        run_first_time_setup()
+        run_first_time_setup(level=getattr(args, 'level', None))
     elif command == 'bootstrap':
         run_enhanced_bootstrap()
     elif command == 'wizard' or command == 'config':
@@ -4907,6 +5445,16 @@ def main():
     # Setup thread pool
     setup_thread_pool()
 
+    # Ensure default credentials exist on first run
+    try:
+        from plexichat.core.auth.default_credentials import ensure_default_credentials
+        ensure_default_credentials()
+        print("✅ Default credentials initialized successfully")
+    except Exception as e:
+        print(f"⚠️  Warning: Failed to initialize default credentials: {e}")
+        import traceback
+        print(traceback.format_exc())
+
     # Acquire process lock to prevent multiple instances
     if not acquire_process_lock():
         sys.exit(1)
@@ -4947,16 +5495,57 @@ def main():
         from src.plexichat.core.events.event_manager import event_manager
         # Initialize core components that are always needed
         config = get_config()
-        # Temporarily skip plugin loading to get server working
-        # TODO: Fix plugin loading hanging issue
-        print(f"DEBUG: Skipping plugin loading to prevent hanging")
+        # Enable plugin loading for comprehensive testing
+        print(f"DEBUG: Loading plugins...")
         if logger:
-            logger.debug(f"Skipping plugin loading to prevent hanging")
-        # Temporarily disable event emission to prevent hanging
-        # TODO: Fix event system hanging issue
-        print(f"DEBUG: Skipping startup event emission to prevent hanging")
+            logger.debug(f"Loading plugins...")
+
+        try:
+            # Load plugins with timeout to prevent hanging
+            import signal
+
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Plugin loading timed out")
+
+            # Set timeout for plugin loading (30 seconds)
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(30)
+
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(unified_plugin_manager.load_plugins())
+                loop.close()
+                print(f"DEBUG: Plugins loaded successfully")
+                if logger:
+                    logger.info(f"Plugins loaded successfully")
+            except TimeoutError:
+                print(f"DEBUG: Plugin loading timed out, continuing without plugins")
+                if logger:
+                    logger.warning(f"Plugin loading timed out, continuing without plugins")
+            finally:
+                signal.alarm(0)  # Cancel the alarm
+
+        except Exception as e:
+            print(f"DEBUG: Plugin loading failed: {e}")
+            if logger:
+                logger.error(f"Plugin loading failed: {e}")
+
+        # Enable event emission
+        print(f"DEBUG: Emitting startup events...")
         if logger:
-            logger.debug(f"Skipping startup event emission to prevent hanging")
+            logger.debug(f"Emitting startup events...")
+
+        try:
+            event_manager.emit('system_startup', {'timestamp': time.time()})
+            print(f"DEBUG: Startup events emitted successfully")
+            if logger:
+                logger.info(f"Startup events emitted successfully")
+        except Exception as e:
+            print(f"DEBUG: Event emission failed: {e}")
+            if logger:
+                logger.error(f"Event emission failed: {e}")
     except ImportError as e:
         logger.error(f"Failed to import core modules: {e}")
         logger.error("Please run 'python run.py setup' to install dependencies.")
@@ -5007,13 +5596,13 @@ def main():
         run_api_and_cli(args)
 
     elif args.command == 'gui':
-        run_gui()
+        run_gui(args)
 
     elif args.command == 'gui-standalone':
         run_gui_standalone()
 
     elif args.command == 'webui':
-        run_webui()
+        run_webui(args)
 
     elif args.command == 'cli':
         run_cli()

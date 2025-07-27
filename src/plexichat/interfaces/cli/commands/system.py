@@ -39,9 +39,9 @@ def status():
         click.echo("=" * 40)
 
         # Basic system info
-        click.echo(f"🏷️  Version: {settings.get('system', {}).get('version', 'Unknown')}")
-        click.echo(f"🌍 Environment: {settings.get('environment', 'Unknown')}")
-        click.echo(f"🐍 Python: {sys.version.split()[0]}")
+        click.echo(f"[TAG]  Version: {settings.get('system', {}).get('version', 'Unknown')}")
+        click.echo(f"[WORLD] Environment: {settings.get('environment', 'Unknown')}")
+        click.echo(f"[PYTHON] Python: {sys.version.split()[0]}")
 
         # System resources
         try:
@@ -51,8 +51,8 @@ def status():
             disk = psutil.disk_usage('/')
 
             click.echo(f"[SYSTEM] CPU Usage: {cpu_percent}%")
-            click.echo(f"🧠 Memory: {memory.percent}% ({memory.used // 1024**3}GB / {memory.total // 1024**3}GB)")
-            click.echo(f"💾 Disk: {disk.percent}% ({disk.used // 1024**3}GB / {disk.total // 1024**3}GB)")
+            click.echo(f"[BRAIN] Memory: {memory.percent}% ({memory.used // 1024**3}GB / {memory.total // 1024**3}GB)")
+            click.echo(f"[SAVE] Disk: {disk.percent}% ({disk.used // 1024**3}GB / {disk.total // 1024**3}GB)")
         except ImportError:
             click.echo("[METRICS] System metrics: psutil not available")
 
@@ -61,13 +61,13 @@ def status():
             try:
                 db_status = asyncio.run(database_manager.health_check())
                 if db_status.get('healthy', False):
-                    click.echo("🗄️  Database: [SUCCESS] Online")
+                    click.echo("[DATABASE]  Database: [SUCCESS] Online")
                 else:
-                    click.echo("🗄️  Database: [ERROR] Offline")
+                    click.echo("[DATABASE]  Database: [ERROR] Offline")
             except Exception:
-                click.echo("🗄️  Database: [ERROR] Error")
+                click.echo("[DATABASE]  Database: [ERROR] Error")
         else:
-            click.echo("🗄️  Database: [ERROR] Not available")
+            click.echo("[DATABASE]  Database: [ERROR] Not available")
 
         # System monitor
         if system_monitor:
@@ -84,9 +84,9 @@ def status():
             uptime = time.time() - settings.get('start_time', time.time())
             hours = int(uptime // 3600)
             minutes = int((uptime % 3600) // 60)
-            click.echo(f"⏱️  Uptime: {hours}h {minutes}m")
+            click.echo(f"[TIMER]  Uptime: {hours}h {minutes}m")
         except Exception:
-            click.echo("⏱️  Uptime: Unknown")
+            click.echo("[TIMER]  Uptime: Unknown")
 
     except Exception as e:
         click.echo(f"[ERROR] Error getting system status: {e}")
@@ -103,7 +103,7 @@ def restart(service: Optional[str], force: bool):
                     click.echo("Operation cancelled")
                     return
 
-            click.echo(f"🔄 Restarting service: {service}")
+            click.echo(f"[REFRESH] Restarting service: {service}")
             # This would integrate with actual service management
             click.echo(f"[SUCCESS] Service '{service}' restarted successfully")
         else:
@@ -112,7 +112,7 @@ def restart(service: Optional[str], force: bool):
                     click.echo("Operation cancelled")
                     return
 
-            click.echo("🔄 Restarting all services...")
+            click.echo("[REFRESH] Restarting all services...")
             # This would restart all services
             click.echo("[SUCCESS] All services restarted successfully")
 
@@ -123,7 +123,7 @@ def restart(service: Optional[str], force: bool):
 def health():
     """Perform comprehensive health check."""
     try:
-        click.echo("🏥 Performing system health check...")
+        click.echo("[HOSPITAL] Performing system health check...")
         click.echo()
 
         health_status = {"overall": "healthy", "issues": []}
@@ -198,12 +198,12 @@ def health():
             click.echo("[WARNING]  Overall Status: [WARNING]  DEGRADED")
             click.echo("Issues found:")
             for issue in health_status["issues"]:
-                click.echo(f"   • {issue}")
+                click.echo(f"   * {issue}")
         else:
-            click.echo("🚨 Overall Status: [ERROR] UNHEALTHY")
+            click.echo("[ALERT] Overall Status: [ERROR] UNHEALTHY")
             click.echo("Critical issues found:")
             for issue in health_status["issues"]:
-                click.echo(f"   • {issue}")
+                click.echo(f"   * {issue}")
 
     except Exception as e:
         click.echo(f"[ERROR] Error performing health check: {e}")
@@ -248,7 +248,7 @@ def info(output: Optional[str]):
             output_file = Path(output)
             with open(output_file, 'w') as f:
                 json.dump(system_info, f, indent=2)
-            click.echo(f"📄 System info saved to: {output_file}")
+            click.echo(f"[DOCUMENT] System info saved to: {output_file}")
         else:
             click.echo("System Information")
             click.echo("=" * 30)
@@ -294,7 +294,7 @@ def cleanup(days: int, dry_run: bool):
             if dry_run:
                 click.echo("\nFiles that would be deleted:")
                 for file_path in files_to_delete:
-                    click.echo(f"  • {file_path}")
+                    click.echo(f"  * {file_path}")
             else:
                 if click.confirm("Proceed with cleanup?"):
                     deleted_count = 0
@@ -356,7 +356,7 @@ def maintenance(enable: bool):
     try:
         if enable:
             settings['maintenance_mode'] = True
-            click.echo("🚧 Maintenance mode enabled")
+            click.echo("[CONSTRUCTION] Maintenance mode enabled")
             click.echo("   System is now in maintenance mode")
         else:
             settings['maintenance_mode'] = False
@@ -379,7 +379,7 @@ def logs(lines: int, follow: bool):
             return
 
         if follow:
-            click.echo("📄 Following log output (Ctrl+C to stop)...")
+            click.echo("[DOCUMENT] Following log output (Ctrl+C to stop)...")
             # This would implement log following
             click.echo("Log following not implemented yet")
         else:

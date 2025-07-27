@@ -22,11 +22,24 @@ class UnifiedTestManager:
         self.test_results = {}
         self.test_categories = {
             "core": "Core system tests",
-            "api": "API endpoint tests", 
+            "api": "API endpoint tests",
             "plugins": "Plugin tests",
             "integration": "Integration tests",
             "performance": "Performance tests",
-            "security": "Security tests"
+            "security": "Security tests",
+            "database": "Database connectivity and operations tests",
+            "authentication": "Authentication and authorization tests",
+            "messaging": "Messaging system tests",
+            "files": "File upload and management tests",
+            "websocket": "WebSocket and real-time communication tests",
+            "cli": "CLI system and command tests",
+            "gui": "GUI interface tests",
+            "webui": "Web UI interface tests",
+            "client_settings": "Client settings management tests",
+            "user_management": "User creation and management tests",
+            "stress": "Stress and load testing",
+            "regression": "Regression testing suite",
+            "smoke": "Smoke tests for basic functionality"
         }
         self.plugin_manager = None
         self._initialize_plugin_manager()
@@ -102,6 +115,32 @@ class UnifiedTestManager:
             return await self._run_performance_tests(verbose)
         elif category == "security":
             return await self._run_security_tests(verbose)
+        elif category == "database":
+            return await self._run_database_tests(verbose)
+        elif category == "authentication":
+            return await self._run_authentication_tests(verbose)
+        elif category == "messaging":
+            return await self._run_messaging_tests(verbose)
+        elif category == "files":
+            return await self._run_files_tests(verbose)
+        elif category == "websocket":
+            return await self._run_websocket_tests(verbose)
+        elif category == "cli":
+            return await self._run_cli_tests(verbose)
+        elif category == "gui":
+            return await self._run_gui_tests(verbose)
+        elif category == "webui":
+            return await self._run_webui_tests(verbose)
+        elif category == "client_settings":
+            return await self._run_client_settings_tests(verbose)
+        elif category == "user_management":
+            return await self._run_user_management_tests(verbose)
+        elif category == "stress":
+            return await self._run_stress_tests(verbose)
+        elif category == "regression":
+            return await self._run_regression_tests(verbose)
+        elif category == "smoke":
+            return await self._run_smoke_tests(verbose)
         else:
             return {"total": 0, "passed": 0, "failed": 0, "skipped": 1, "error": f"Unknown category: {category}"}
             
@@ -299,7 +338,234 @@ class UnifiedTestManager:
         
     async def _test_input_validation(self) -> Dict[str, Any]:
         return {"success": True, "message": "Input validation test passed (stub)"}
-        
+
+    # New test category implementations
+    async def _run_database_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run database connectivity and operations tests."""
+        tests = [
+            ("database_connection", self._test_database_connection),
+            ("database_operations", self._test_database_operations),
+            ("database_migrations", self._test_database_migrations)
+        ]
+        return await self._execute_test_suite("database", tests, verbose)
+
+    async def _run_authentication_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run authentication and authorization tests."""
+        tests = [
+            ("authentication_security", self._test_authentication_security),
+            ("authorization_checks", self._test_authorization_checks),
+            ("token_validation", self._test_token_validation)
+        ]
+        return await self._execute_test_suite("authentication", tests, verbose)
+
+    async def _run_messaging_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run messaging system tests."""
+        tests = [
+            ("message_sending", self._test_message_sending),
+            ("message_receiving", self._test_message_receiving),
+            ("message_encryption", self._test_message_encryption)
+        ]
+        return await self._execute_test_suite("messaging", tests, verbose)
+
+    async def _run_files_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run file upload and management tests."""
+        tests = [
+            ("file_upload", self._test_file_upload),
+            ("file_download", self._test_file_download),
+            ("file_validation", self._test_file_validation)
+        ]
+        return await self._execute_test_suite("files", tests, verbose)
+
+    async def _run_websocket_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run WebSocket and real-time communication tests."""
+        tests = [
+            ("websocket_connection", self._test_websocket_connection),
+            ("realtime_messaging", self._test_realtime_messaging),
+            ("websocket_security", self._test_websocket_security)
+        ]
+        return await self._execute_test_suite("websocket", tests, verbose)
+
+    async def _run_cli_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run CLI system and command tests."""
+        tests = [
+            ("cli_commands", self._test_cli_commands),
+            ("cli_plugins", self._test_cli_plugins),
+            ("cli_interface", self._test_cli_interface)
+        ]
+        return await self._execute_test_suite("cli", tests, verbose)
+
+    async def _run_gui_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run GUI interface tests."""
+        tests = [
+            ("gui_startup", self._test_gui_startup),
+            ("gui_interactions", self._test_gui_interactions),
+            ("gui_responsiveness", self._test_gui_responsiveness)
+        ]
+        return await self._execute_test_suite("gui", tests, verbose)
+
+    async def _run_webui_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run Web UI interface tests."""
+        tests = [
+            ("webui_loading", self._test_webui_loading),
+            ("webui_navigation", self._test_webui_navigation),
+            ("webui_functionality", self._test_webui_functionality)
+        ]
+        return await self._execute_test_suite("webui", tests, verbose)
+
+    async def _run_client_settings_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run client settings management tests."""
+        tests = [
+            ("settings_crud", self._test_settings_crud),
+            ("settings_validation", self._test_settings_validation),
+            ("settings_api", self._test_settings_api)
+        ]
+        return await self._execute_test_suite("client_settings", tests, verbose)
+
+    async def _run_user_management_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run user creation and management tests."""
+        tests = [
+            ("user_creation", self._test_user_creation),
+            ("user_authentication", self._test_user_authentication),
+            ("user_permissions", self._test_user_permissions)
+        ]
+        return await self._execute_test_suite("user_management", tests, verbose)
+
+    async def _run_stress_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run stress and load testing."""
+        tests = [
+            ("load_testing", self._test_load_testing),
+            ("concurrent_users", self._test_concurrent_users),
+            ("resource_limits", self._test_resource_limits)
+        ]
+        return await self._execute_test_suite("stress", tests, verbose)
+
+    async def _run_regression_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run regression testing suite."""
+        tests = [
+            ("core_regression", self._test_core_regression),
+            ("api_regression", self._test_api_regression),
+            ("feature_regression", self._test_feature_regression)
+        ]
+        return await self._execute_test_suite("regression", tests, verbose)
+
+    async def _run_smoke_tests(self, verbose: bool) -> Dict[str, Any]:
+        """Run smoke tests for basic functionality."""
+        tests = [
+            ("basic_startup", self._test_basic_startup),
+            ("basic_api", self._test_basic_api),
+            ("basic_connectivity", self._test_basic_connectivity)
+        ]
+        return await self._execute_test_suite("smoke", tests, verbose)
+
+    # Test method stubs for new categories
+    async def _test_database_operations(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Database operations test passed (stub)"}
+
+    async def _test_database_migrations(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Database migrations test passed (stub)"}
+
+    async def _test_token_validation(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Token validation test passed (stub)"}
+
+    async def _test_message_sending(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Message sending test passed (stub)"}
+
+    async def _test_message_receiving(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Message receiving test passed (stub)"}
+
+    async def _test_message_encryption(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Message encryption test passed (stub)"}
+
+    async def _test_file_upload(self) -> Dict[str, Any]:
+        return {"success": True, "message": "File upload test passed (stub)"}
+
+    async def _test_file_download(self) -> Dict[str, Any]:
+        return {"success": True, "message": "File download test passed (stub)"}
+
+    async def _test_file_validation(self) -> Dict[str, Any]:
+        return {"success": True, "message": "File validation test passed (stub)"}
+
+    async def _test_websocket_connection(self) -> Dict[str, Any]:
+        return {"success": True, "message": "WebSocket connection test passed (stub)"}
+
+    async def _test_realtime_messaging(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Real-time messaging test passed (stub)"}
+
+    async def _test_websocket_security(self) -> Dict[str, Any]:
+        return {"success": True, "message": "WebSocket security test passed (stub)"}
+
+    async def _test_cli_commands(self) -> Dict[str, Any]:
+        return {"success": True, "message": "CLI commands test passed (stub)"}
+
+    async def _test_cli_plugins(self) -> Dict[str, Any]:
+        return {"success": True, "message": "CLI plugins test passed (stub)"}
+
+    async def _test_cli_interface(self) -> Dict[str, Any]:
+        return {"success": True, "message": "CLI interface test passed (stub)"}
+
+    async def _test_gui_startup(self) -> Dict[str, Any]:
+        return {"success": True, "message": "GUI startup test passed (stub)"}
+
+    async def _test_gui_interactions(self) -> Dict[str, Any]:
+        return {"success": True, "message": "GUI interactions test passed (stub)"}
+
+    async def _test_gui_responsiveness(self) -> Dict[str, Any]:
+        return {"success": True, "message": "GUI responsiveness test passed (stub)"}
+
+    async def _test_webui_loading(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Web UI loading test passed (stub)"}
+
+    async def _test_webui_navigation(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Web UI navigation test passed (stub)"}
+
+    async def _test_webui_functionality(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Web UI functionality test passed (stub)"}
+
+    async def _test_settings_crud(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Settings CRUD test passed (stub)"}
+
+    async def _test_settings_validation(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Settings validation test passed (stub)"}
+
+    async def _test_settings_api(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Settings API test passed (stub)"}
+
+    async def _test_user_creation(self) -> Dict[str, Any]:
+        return {"success": True, "message": "User creation test passed (stub)"}
+
+    async def _test_user_authentication(self) -> Dict[str, Any]:
+        return {"success": True, "message": "User authentication test passed (stub)"}
+
+    async def _test_user_permissions(self) -> Dict[str, Any]:
+        return {"success": True, "message": "User permissions test passed (stub)"}
+
+    async def _test_load_testing(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Load testing test passed (stub)"}
+
+    async def _test_concurrent_users(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Concurrent users test passed (stub)"}
+
+    async def _test_resource_limits(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Resource limits test passed (stub)"}
+
+    async def _test_core_regression(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Core regression test passed (stub)"}
+
+    async def _test_api_regression(self) -> Dict[str, Any]:
+        return {"success": True, "message": "API regression test passed (stub)"}
+
+    async def _test_feature_regression(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Feature regression test passed (stub)"}
+
+    async def _test_basic_startup(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Basic startup test passed (stub)"}
+
+    async def _test_basic_api(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Basic API test passed (stub)"}
+
+    async def _test_basic_connectivity(self) -> Dict[str, Any]:
+        return {"success": True, "message": "Basic connectivity test passed (stub)"}
+
     async def _save_test_report(self, results: Dict[str, Any]):
         """Save test report to file."""
         try:

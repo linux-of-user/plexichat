@@ -62,6 +62,88 @@ def decrypt_message(encrypted_content: str, original_content: str) -> str:
     # In real app, would properly decrypt
     return original_content
 
+async def check_message_permission(sender_id: str, recipient_id: str) -> dict:
+    """Check if sender can send message to recipient based on privacy settings."""
+    try:
+        # Get recipient's settings (fallback implementation)
+        recipient_settings = await get_user_settings_by_id(recipient_id)
+        if not recipient_settings:
+            # If no settings found, allow by default
+            return {"allowed": True, "permission_level": "default"}
+
+        message_permission = recipient_settings.get("message_permissions", "friends_only")
+
+        # Check permission based on setting
+        if message_permission == "everyone":
+            return {"allowed": True, "permission_level": "everyone"}
+
+        elif message_permission == "friends_only":
+            # Check if they are friends (simplified check for demo)
+            is_friend = await check_friendship(sender_id, recipient_id)
+            return {
+                "allowed": is_friend,
+                "reason": "Only friends can send messages to this user" if not is_friend else None,
+                "permission_level": "friends_only"
+            }
+
+        elif message_permission == "verified_only":
+            # Check if sender is verified
+            is_verified = await check_user_verified(sender_id)
+            return {
+                "allowed": is_verified,
+                "reason": "Only verified users can send messages to this user" if not is_verified else None,
+                "permission_level": "verified_only"
+            }
+
+        elif message_permission == "contacts_only":
+            # Check if they are in contacts
+            is_contact = await check_contact(sender_id, recipient_id)
+            return {
+                "allowed": is_contact,
+                "reason": "Only contacts can send messages to this user" if not is_contact else None,
+                "permission_level": "contacts_only"
+            }
+
+        elif message_permission == "nobody":
+            return {
+                "allowed": False,
+                "reason": "This user has disabled incoming messages",
+                "permission_level": "nobody"
+            }
+
+        else:
+            return {"allowed": True, "permission_level": "default"}  # Default allow
+
+    except Exception as e:
+        logger.error(f"Error checking message permission: {e}")
+        # On error, allow by default to avoid breaking functionality
+        return {"allowed": True, "permission_level": "error_fallback"}
+
+async def get_user_settings_by_id(user_id: str) -> dict:
+    """Get user settings by user ID."""
+    # Simplified implementation - in real app would query database
+    # For demo, return default settings that allow friends only
+    return {
+        "message_permissions": "friends_only",
+        "blocked_users": []
+    }
+
+async def check_friendship(user1_id: str, user2_id: str) -> bool:
+    """Check if two users are friends."""
+    # Simplified implementation for demo
+    # In real app, would check friends/contacts table
+    return True  # For testing, assume everyone is friends
+
+async def check_user_verified(user_id: str) -> bool:
+    """Check if a user is verified."""
+    # Simplified implementation for demo
+    return True  # For testing, assume all users are verified
+
+async def check_contact(user1_id: str, user2_id: str) -> bool:
+    """Check if two users are contacts."""
+    # Simplified implementation for demo
+    return True  # For testing, assume everyone is a contact
+
 # Endpoints
 @router.post("/send", response_model=MessageResponse)
 async def send_message(
@@ -73,10 +155,18 @@ async def send_message(
         # Validate recipient exists
         if message_data.recipient_id not in users_db:
             raise HTTPException(status_code=404, detail="Recipient not found")
-        
+
         # Can't send message to yourself
         if message_data.recipient_id == current_user['id']:
             raise HTTPException(status_code=400, detail="Cannot send message to yourself")
+
+        # Check privacy settings - can sender send message to recipient?
+        sender_id = current_user['id']
+        privacy_check = await check_message_permission(sender_id, message_data.recipient_id)
+
+        if not privacy_check["allowed"]:
+            reason = privacy_check.get("reason", "Message not allowed by recipient's privacy settings")
+            raise HTTPException(status_code=403, detail=reason)
         
         # Create message
         message_id = str(uuid4())

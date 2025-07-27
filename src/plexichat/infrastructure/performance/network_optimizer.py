@@ -89,7 +89,7 @@ class NetworkOptimizer:
         self._cleanup_task = None
         self._running = False
 
-        logger.info("🌐 Network Optimizer initialized")
+        logger.info("[WEB] Network Optimizer initialized")
 
     async def initialize(self) -> bool:
         """Initialize network optimization components."""
@@ -160,7 +160,7 @@ class NetworkOptimizer:
             for pool in self.connection_pools.values():
                 await pool.close()
 
-            logger.info("🛑 Network optimizer shutdown complete")
+            logger.info("[STOP] Network optimizer shutdown complete")
 
         except Exception as e:
             logger.error(f"Error during network optimizer shutdown: {e}")
@@ -277,7 +277,7 @@ class NetworkOptimizer:
                 headers={'User-Agent': 'PlexiChat-CDN/1.0'}
             )
 
-            logger.info("🌍 CDN integration initialized")
+            logger.info("[WORLD] CDN integration initialized")
 
         except Exception as e:
             logger.error(f"CDN initialization failed: {e}")

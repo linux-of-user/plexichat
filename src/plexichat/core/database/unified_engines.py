@@ -337,6 +337,148 @@ class MongoDBEngine(DatabaseEngine):
             return False
 
 
+class MySQLEngine(DatabaseEngine):
+    """MySQL database engine."""
+
+    async def connect(self) -> bool:
+        """Connect to MySQL database."""
+        try:
+            if not create_async_engine:
+                logger.error("SQLAlchemy async engine not available")
+                return False
+
+            connection_string = f"mysql+aiomysql://{self.config.username}:{self.config.password}@{self.config.host}:{self.config.port}/{self.config.database}"
+            self.connection = create_async_engine(
+                connection_string,
+                pool_size=self.config.pool_size,
+                max_overflow=self.config.max_overflow,
+                pool_timeout=self.config.pool_timeout,
+                pool_recycle=self.config.pool_recycle
+            )
+
+            # Test connection
+            async with self.connection.begin() as conn:
+                await conn.execute(text("SELECT 1"))
+
+            self.is_connected = True
+            logger.info(f"Connected to MySQL: {self.config.host}:{self.config.port}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to connect to MySQL: {e}")
+            return False
+
+    async def disconnect(self) -> bool:
+        """Disconnect from MySQL."""
+        try:
+            if self.connection:
+                await self.connection.dispose()
+                self.connection = None
+            self.is_connected = False
+            return True
+        except Exception as e:
+            logger.error(f"Error disconnecting from MySQL: {e}")
+            return False
+
+    async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        """Execute MySQL query."""
+        try:
+            if not self.is_connected:
+                await self.connect()
+
+            async with self.connection.begin() as conn:
+                result = await conn.execute(text(query), params or {})
+                return result
+
+        except Exception as e:
+            logger.error(f"MySQL query execution failed: {e}")
+            raise
+
+    async def health_check(self) -> bool:
+        """Check MySQL health."""
+        try:
+            if not self.is_connected or not self.connection:
+                return False
+            async with self.connection.begin() as conn:
+                await conn.execute(text("SELECT 1"))
+            return True
+        except Exception:
+            return False
+
+
+class RedisEngine(DatabaseEngine):
+    """Redis database engine."""
+
+    async def connect(self) -> bool:
+        """Connect to Redis database."""
+        try:
+            import redis.asyncio as redis_async
+
+            self.connection = redis_async.Redis(
+                host=self.config.host,
+                port=self.config.port,
+                password=self.config.password,
+                decode_responses=True
+            )
+
+            # Test connection
+            await self.connection.ping()
+
+            self.is_connected = True
+            logger.info(f"Connected to Redis: {self.config.host}:{self.config.port}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            return False
+
+    async def disconnect(self) -> bool:
+        """Disconnect from Redis."""
+        try:
+            if self.connection:
+                await self.connection.close()
+                self.connection = None
+            self.is_connected = False
+            return True
+        except Exception as e:
+            logger.error(f"Error disconnecting from Redis: {e}")
+            return False
+
+    async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        """Execute Redis command."""
+        try:
+            if not self.is_connected:
+                await self.connect()
+
+            # Parse Redis command
+            parts = query.split()
+            command = parts[0].upper()
+
+            if command == "GET":
+                return await self.connection.get(parts[1])
+            elif command == "SET":
+                return await self.connection.set(parts[1], parts[2])
+            elif command == "DEL":
+                return await self.connection.delete(*parts[1:])
+            else:
+                # Execute raw command
+                return await self.connection.execute_command(*parts)
+
+        except Exception as e:
+            logger.error(f"Redis command execution failed: {e}")
+            raise
+
+    async def health_check(self) -> bool:
+        """Check Redis health."""
+        try:
+            if not self.is_connected or not self.connection:
+                return False
+            await self.connection.ping()
+            return True
+        except Exception:
+            return False
+
+
 class UnifiedEngineManager:
     """
     Unified Database Engine Manager - SINGLE SOURCE OF TRUTH
@@ -347,10 +489,20 @@ class UnifiedEngineManager:
     def __init__(self):
         self.engines: Dict[str, DatabaseEngine] = {}
         self.engine_classes = {
+            # SQL Databases
             DatabaseType.SQLITE: SQLiteEngine,
             DatabaseType.POSTGRESQL: PostgreSQLEngine,
+            DatabaseType.MYSQL: MySQLEngine,
+            DatabaseType.MARIADB: MySQLEngine,  # MariaDB uses MySQL driver
+            DatabaseType.TIMESCALEDB: PostgreSQLEngine,  # TimescaleDB uses PostgreSQL driver
+
+            # NoSQL Databases
             DatabaseType.MONGODB: MongoDBEngine,
-            # Add more engines as needed
+
+            # Cache Databases
+            DatabaseType.REDIS: RedisEngine,
+
+            # Add more engines as they are implemented
         }
 
     async def create_engine(self, name: str, config: EngineConfig) -> bool:

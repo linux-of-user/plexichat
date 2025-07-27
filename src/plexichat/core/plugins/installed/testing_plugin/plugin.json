@@ -1,0 +1,155 @@
+{
+  "name": "comprehensive_testing_plugin",
+  "version": "2.0.0",
+  "description": "MASSIVE COMPREHENSIVE TESTING PLUGIN - 400+ tests covering EVERY PlexiChat feature including authentication, messaging, files, security, performance, and integration testing",
+  "author": "PlexiChat Core Team",
+  "license": "MIT",
+  "category": "testing",
+  "enabled": true,
+  "tags": ["testing", "comprehensive", "security", "performance", "integration", "automation", "cli", "quality-assurance", "endpoints", "load-testing", "vulnerability-scanning"],
+  "main": "main.py",
+  "dependencies": {
+    "requests": ">=2.31.0",
+    "pytest": ">=7.4.0",
+    "pytest-asyncio": ">=0.21.0",
+    "httpx": ">=0.25.0"
+  },
+  "permissions": [
+    "network.http",
+    "filesystem.read",
+    "filesystem.write",
+    "system.execute",
+    "database.read",
+    "cli.register_commands"
+  ],
+  "cli_commands": [
+    {
+      "name": "test-endpoint",
+      "description": "Test API endpoints with comprehensive validation",
+      "aliases": ["test-api", "endpoint-test"],
+      "category": "testing",
+      "examples": [
+        "test-endpoint /api/status",
+        "test-endpoint /api/users --method POST --data '{\"name\":\"test\"}'",
+        "test-endpoint --all --format json"
+      ]
+    },
+    {
+      "name": "test-suite",
+      "description": "Run comprehensive test suites",
+      "aliases": ["test-all", "suite"],
+      "category": "testing",
+      "examples": [
+        "test-suite --category unit",
+        "test-suite --category integration --verbose",
+        "test-suite --parallel --coverage"
+      ]
+    },
+    {
+      "name": "test-load",
+      "description": "Perform load testing on endpoints",
+      "aliases": ["load-test", "stress-test"],
+      "category": "testing",
+      "examples": [
+        "test-load /api/status --users 100 --duration 60s",
+        "test-load --config load_test.json"
+      ]
+    },
+    {
+      "name": "test-security",
+      "description": "Run security tests and vulnerability scans",
+      "aliases": ["security-test", "vuln-scan"],
+      "category": "testing",
+      "examples": [
+        "test-security --endpoints /api/auth",
+        "test-security --full-scan --report"
+      ]
+    },
+    {
+      "name": "test-report",
+      "description": "Generate and view test reports",
+      "aliases": ["report", "test-results"],
+      "category": "testing",
+      "examples": [
+        "test-report --latest",
+        "test-report --format html --output reports/",
+        "test-report --compare last-week"
+      ]
+    },
+    {
+      "name": "test-comprehensive",
+      "description": "Run MASSIVE comprehensive testing suite (400+ tests covering EVERY feature)",
+      "aliases": ["test-full", "comprehensive-test", "e2e-test", "test-everything"],
+      "category": "testing",
+      "examples": [
+        "test-comprehensive",
+        "test-comprehensive --suite authentication",
+        "test-comprehensive --suite messaging --verbose",
+        "test-comprehensive --parallel --no-cleanup",
+        "test-comprehensive --all --report-format html"
+      ]
+    },
+    {
+      "name": "test-auth",
+      "description": "Run comprehensive authentication tests (25+ tests)",
+      "aliases": ["test-authentication"],
+      "category": "testing",
+      "examples": [
+        "test-auth",
+        "test-auth --verbose"
+      ]
+    },
+    {
+      "name": "test-messaging",
+      "description": "Run comprehensive messaging tests (35+ tests)",
+      "aliases": ["test-messages"],
+      "category": "testing",
+      "examples": [
+        "test-messaging",
+        "test-messaging --verbose"
+      ]
+    },
+    {
+      "name": "test-files",
+      "description": "Run comprehensive file management tests (30+ tests)",
+      "aliases": ["test-file-management"],
+      "category": "testing",
+      "examples": [
+        "test-files",
+        "test-files --verbose"
+      ]
+    },
+    {
+      "name": "test-security-full",
+      "description": "Run comprehensive security tests (50+ tests)",
+      "aliases": ["test-sec", "security-audit"],
+      "category": "testing",
+      "examples": [
+        "test-security-full",
+        "test-security-full --verbose"
+      ]
+    }
+  ],
+  "config": {
+    "default_timeout": 30,
+    "max_concurrent_tests": 10,
+    "report_format": "json",
+    "auto_retry": true,
+    "retry_count": 3,
+    "base_url": "http://localhost:8000",
+    "test_data_dir": "tests/data",
+    "report_dir": "tests/reports"
+  },
+  "hooks": {
+    "on_install": "setup_test_environment",
+    "on_enable": "register_cli_commands",
+    "on_disable": "unregister_cli_commands",
+    "on_uninstall": "cleanup_test_environment"
+  },
+  "metadata": {
+    "min_plexichat_version": "1.0.0",
+    "supported_platforms": ["linux", "windows", "macos"],
+    "documentation_url": "https://docs.plexichat.com/plugins/testing",
+    "repository_url": "https://github.com/plexichat/testing-plugin"
+  }
+}

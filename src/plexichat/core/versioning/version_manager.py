@@ -230,6 +230,9 @@ class VersionManager:
         # Parse version components
         self._parse_version()
 
+        # Load additional version info
+        self._load_version_info()
+
         # Auto-generate version files if they don't exist
         self._ensure_version_files_exist()
 
@@ -294,6 +297,21 @@ class VersionManager:
         except Exception as e:
             logger.warning(f"Could not get GitHub repo URL: {e}")
         return ""
+
+    def _load_version_info(self):
+        """Load additional version information."""
+        try:
+            # Load from version.json if it exists
+            version_file = os.path.join(os.path.dirname(__file__), "..", "..", "..", "version.json")
+            if os.path.exists(version_file):
+                with open(version_file, 'r') as f:
+                    import json
+                    version_data = json.load(f)
+                    self.release_date = version_data.get('release_date', self.release_date)
+                    self.api_version = version_data.get('api_version', self.api_version)
+                    logger.info(f"Loaded version info from {version_file}")
+        except Exception as e:
+            logger.warning(f"Could not load version info: {e}")
 
     def _ensure_version_files_exist(self):
         """Ensure version.json and changelog.json exist, create if missing."""

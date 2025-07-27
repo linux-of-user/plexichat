@@ -119,7 +119,7 @@ class FileResourceManager:
                 except Exception as e:
                     logger.warning(f"Failed to remove temp file {filepath}: {e}")
 
-        logger.info(f"🧹 Cleaned {cleaned_files} temp files, freed {freed_space_mb:.1f}MB")
+        logger.info(f"[CLEAN] Cleaned {cleaned_files} temp files, freed {freed_space_mb:.1f}MB")
         return {'files_cleaned': cleaned_files, 'space_freed_mb': freed_space_mb}
 
     def get_temp_usage(self) -> Dict[str, Any]:
@@ -197,7 +197,7 @@ class ConnectionResourceManager:
                     logger.warning(f"Failed to cleanup connection {conn_id}: {e}")
 
         if cleaned_count > 0:
-            logger.info(f"🔌 Cleaned up {cleaned_count} stale connections")
+            logger.info(f"[PLUGIN] Cleaned up {cleaned_count} stale connections")
 
         return cleaned_count
 
@@ -284,7 +284,7 @@ class ResourceManager:
             # Cleanup all resources
             await self.cleanup_all_resources()
 
-            logger.info("🛑 Resource management shutdown complete")
+            logger.info("[STOP] Resource management shutdown complete")
 
         except Exception as e:
             logger.error(f"Error during resource management shutdown: {e}")
@@ -297,7 +297,7 @@ class ResourceManager:
             max_size=max_size
         )
         self.resource_pools[name] = pool
-        logger.info(f"📦 Created resource pool: {name} (type: {resource_type}, max: {max_size})")
+        logger.info(f"[PACKAGE] Created resource pool: {name} (type: {resource_type}, max: {max_size})")
         return pool
 
     async def start_monitoring(self):
@@ -366,19 +366,19 @@ class ResourceManager:
         try:
             # Check CPU usage
             if self.metrics.cpu_usage > self.resource_thresholds['cpu_percent']:
-                logger.warning(f"🚨 High CPU usage: {self.metrics.cpu_usage:.1f}%")
+                logger.warning(f"[ALERT] High CPU usage: {self.metrics.cpu_usage:.1f}%")
                 await self._trigger_resource_optimization('cpu')
 
             # Check memory usage
             memory_percent = (self.metrics.memory_usage_mb / (psutil.virtual_memory().total / (1024 * 1024))) * 100
             if memory_percent > self.resource_thresholds['memory_percent']:
-                logger.warning(f"🚨 High memory usage: {memory_percent:.1f}%")
+                logger.warning(f"[ALERT] High memory usage: {memory_percent:.1f}%")
                 await self._trigger_resource_optimization('memory')
 
             # Check connection usage
             conn_stats = self.connection_manager.get_connection_stats()
             if conn_stats['usage_percent'] > self.resource_thresholds['connections_percent']:
-                logger.warning(f"🚨 High connection usage: {conn_stats['usage_percent']:.1f}%")
+                logger.warning(f"[ALERT] High connection usage: {conn_stats['usage_percent']:.1f}%")
                 await self._trigger_resource_optimization('connections')
 
         except Exception as e:
@@ -390,16 +390,16 @@ class ResourceManager:
             if resource_type == 'memory':
                 # Force garbage collection
                 gc.collect()
-                logger.info("🗑️ Triggered garbage collection for memory optimization")
+                logger.info("[DELETE] Triggered garbage collection for memory optimization")
 
             elif resource_type == 'connections':
                 # Cleanup stale connections
                 cleaned = self.connection_manager.cleanup_stale_connections(max_idle_minutes=15)
-                logger.info(f"🔌 Cleaned {cleaned} stale connections")
+                logger.info(f"[PLUGIN] Cleaned {cleaned} stale connections")
 
             elif resource_type == 'cpu':
                 # Reduce background task frequency temporarily
-                logger.info("⏱️ Reducing background task frequency for CPU optimization")
+                logger.info("[TIMER] Reducing background task frequency for CPU optimization")
 
         except Exception as e:
             logger.error(f"Error during resource optimization: {e}")
@@ -438,7 +438,7 @@ class ResourceManager:
             pool_cleanup = await self._cleanup_resource_pools()
             results['resource_pools'] = pool_cleanup
 
-            logger.info(f"🧹 Resource cleanup completed: {results}")
+            logger.info(f"[CLEAN] Resource cleanup completed: {results}")
             return results
 
         except Exception as e:

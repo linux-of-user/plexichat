@@ -136,7 +136,7 @@ class DatabaseSetupGUI:
 
         self.back_button = ttk.Button(
             nav_frame,
-            text="← Back",
+            text="<- Back",
             command=self.go_back,
             state='disabled'
         )
@@ -144,7 +144,7 @@ class DatabaseSetupGUI:
 
         self.next_button = ttk.Button(
             nav_frame,
-            text="Next →",
+            text="Next ->",
             command=self.go_next
         )
         self.next_button.grid(row=0, column=2, sticky=tk.E)
@@ -193,12 +193,12 @@ class DatabaseSetupGUI:
         desc_text = """This wizard will guide you through setting up your database for PlexiChat.
 
 Features:
-• Support for 20+ database types
-• Guided configuration with best practices
-• Connection testing and validation
-• Performance optimization recommendations
-• Security configuration assistance
-• Migration and backup setup
+* Support for 20+ database types
+* Guided configuration with best practices
+* Connection testing and validation
+* Performance optimization recommendations
+* Security configuration assistance
+* Migration and backup setup
 
 Estimated time: 10-30 minutes depending on complexity."""
 
@@ -483,7 +483,7 @@ Estimated time: 10-30 minutes depending on complexity."""
             troubleshooting = result.get("troubleshooting", [])
 
             full_msg = f"Connection failed: {error_msg}\n\nTroubleshooting tips:\n"
-            full_msg += "\n".join(f"• {tip}" for tip in troubleshooting)
+            full_msg += "\n".join(f"* {tip}" for tip in troubleshooting)
 
             messagebox.showerror("Connection Failed", full_msg)
 

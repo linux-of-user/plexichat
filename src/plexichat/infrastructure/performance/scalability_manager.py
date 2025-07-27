@@ -77,7 +77,7 @@ class LoadBalancer:
             self.nodes[node_id] = NodeMetrics(node_id=node_id)
 
         self.healthy_nodes.add(node_id)
-        logger.info(f"⚖️ Added node to load balancer: {node_id}")
+        logger.info(f"[SCALE] Added node to load balancer: {node_id}")
 
     def remove_node(self, node_id: str):
         """Remove a node from the load balancer."""
@@ -92,7 +92,7 @@ class LoadBalancer:
         for session_id in sessions_to_remove:
             del self.session_affinity[session_id]
 
-        logger.info(f"⚖️ Removed node from load balancer: {node_id}")
+        logger.info(f"[SCALE] Removed node from load balancer: {node_id}")
 
     def update_node_metrics(self, node_id: str, metrics: NodeMetrics):
         """Update metrics for a node."""
@@ -477,7 +477,7 @@ class ScalabilityManager:
             if self._scaling_task:
                 self._scaling_task.cancel()
 
-            logger.info("🛑 Scalability manager shutdown complete")
+            logger.info("[STOP] Scalability manager shutdown complete")
 
         except Exception as e:
             logger.error(f"Error during scalability manager shutdown: {e}")

@@ -23,6 +23,24 @@ from .groups import router as groups_router
 from .search import router as search_router
 from .notifications import router as notifications_router
 
+# Try to import user_settings router with fallback
+try:
+    from .user_settings import router as user_settings_router
+    user_settings_available = True
+except ImportError as e:
+    logger.warning(f"User settings router not available: {e}")
+    user_settings_router = None
+    user_settings_available = False
+
+# Try to import client_settings router with fallback
+try:
+    from .client_settings import router as client_settings_router
+    client_settings_available = True
+except ImportError as e:
+    logger.warning(f"Client settings router not available: {e}")
+    client_settings_router = None
+    client_settings_available = False
+
 # Create main router
 router = APIRouter(prefix="/api/v1", tags=["PlexiChat API v1"])
 
@@ -37,6 +55,14 @@ router.include_router(realtime_router)
 router.include_router(groups_router)
 router.include_router(search_router)
 router.include_router(notifications_router)
+
+# Include user settings router if available
+if user_settings_available and user_settings_router:
+    router.include_router(user_settings_router)
+
+# Include client settings router if available
+if client_settings_available and client_settings_router:
+    router.include_router(client_settings_router)
 
 # Root endpoint
 @router.get("/")

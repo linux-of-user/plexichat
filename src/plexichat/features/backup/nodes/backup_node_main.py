@@ -136,7 +136,7 @@ class BackupNodeMain:
     async def stop(self) -> bool:
         """Stop the backup node."""
         try:
-            logger.info("🛑 Stopping PlexiChat Backup Node")
+            logger.info("[STOP] Stopping PlexiChat Backup Node")
 
             self.running = False
 

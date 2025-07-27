@@ -155,11 +155,11 @@ class WebUIRenderer:
                     # Toolbar
                     toolbar_layout = QHBoxLayout()
 
-                    refresh_btn = QPushButton("🔄 Refresh")
+                    refresh_btn = QPushButton("[REFRESH] Refresh")
                     refresh_btn.clicked.connect(self.refresh_page)
                     toolbar_layout.addWidget(refresh_btn)
 
-                    home_btn = QPushButton("🏠 Home")
+                    home_btn = QPushButton("[HOME] Home")
                     home_btn.clicked.connect(self.go_home)
                     toolbar_layout.addWidget(home_btn)
 
@@ -249,7 +249,7 @@ class WebUIRenderer:
                     header_layout.addStretch()
 
                     # Control buttons
-                    self.refresh_btn = QPushButton("🔄 Refresh")
+                    self.refresh_btn = QPushButton("[REFRESH] Refresh")
                     self.refresh_btn.clicked.connect(self.refresh_dashboard)
                     header_layout.addWidget(self.refresh_btn)
 
@@ -257,7 +257,7 @@ class WebUIRenderer:
                     self.discover_btn.clicked.connect(self.discover_tests)
                     header_layout.addWidget(self.discover_btn)
 
-                    self.run_all_btn = QPushButton("▶️ Run All Tests")
+                    self.run_all_btn = QPushButton("[PLAY] Run All Tests")
                     self.run_all_btn.clicked.connect(self.run_all_tests)
                     header_layout.addWidget(self.run_all_btn)
 

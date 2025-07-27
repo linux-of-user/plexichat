@@ -24,16 +24,15 @@ logger = logging.getLogger(__name__)
 class LoginScreen(ttk.Frame):
     """
     Advanced login screen with modern design and security features.
-    
+
     Features:
-    - Modern, animated UI
-    - Multiple authentication methods (password, 2FA, biometric)
+    - Modern, animated UI with tooltips
+    - Multiple authentication methods (password, 2FA)
     - Remember me functionality
     - Password strength indicator
-    - Forgot password recovery
-    - User registration
-    - Social login integration
-    - Security monitoring
+    - CLI-based password recovery
+    - Enhanced security monitoring
+    - Improved user experience
     """
 
     def __init__(self, parent, app_instance):
@@ -42,16 +41,18 @@ class LoginScreen(ttk.Frame):
         self.parent = parent
         
         # Authentication state
-        self.auth_method = "password"  # password, 2fa, biometric
+        self.auth_method = "password"  # password, 2fa
         self.login_attempts = 0
         self.max_attempts = 5
         self.is_authenticating = False
-        
+
         # UI components
         self.main_frame = None
         self.login_frame = None
         self.register_frame = None
-        self.forgot_password_frame = None
+
+        # Tooltip system
+        self.tooltips = {}
         
         # Form variables
         self.username_var = tk.StringVar()
@@ -226,6 +227,40 @@ class LoginScreen(ttk.Frame):
         except Exception as e:
             logger.error(f"Failed to create login form: {e}")
 
+    def add_tooltip(self, widget, text):
+        """Add tooltip to a widget."""
+        def on_enter(event):
+            tooltip = tk.Toplevel()
+            tooltip.wm_overrideredirect(True)
+            tooltip.configure(bg='#2c3e50')
+
+            label = tk.Label(
+                tooltip,
+                text=text,
+                background='#2c3e50',
+                foreground='white',
+                font=('Arial', 9),
+                relief='solid',
+                borderwidth=1,
+                wraplength=300
+            )
+            label.pack()
+
+            # Position tooltip
+            x = widget.winfo_rootx() + 25
+            y = widget.winfo_rooty() + 25
+            tooltip.geometry(f"+{x}+{y}")
+
+            self.tooltips[widget] = tooltip
+
+        def on_leave(event):
+            if widget in self.tooltips:
+                self.tooltips[widget].destroy()
+                del self.tooltips[widget]
+
+        widget.bind("<Enter>", on_enter)
+        widget.bind("<Leave>", on_leave)
+
     def create_header(self):
         """Create header with logo and title."""
         try:
@@ -277,6 +312,7 @@ class LoginScreen(ttk.Frame):
                 width=25
             )
             self.username_entry.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+            self.add_tooltip(self.username_entry, "Enter your username (default: admin)")
             
             # Password field
             password_label = ttk.Label(self.login_frame, text="Password:", style="LoginLabel.TLabel")
@@ -294,16 +330,18 @@ class LoginScreen(ttk.Frame):
                 show="*"
             )
             self.password_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+            self.add_tooltip(self.password_entry, "Enter your password (check default_creds.txt for initial password)")
             
             # Show/hide password button
             self.show_password_btn = ttk.Button(
                 password_frame,
-                text="👁",
+                text="[EYE]",
                 width=3,
                 command=self.toggle_password_visibility,
                 style="ShowPassword.TButton"
             )
             self.show_password_btn.grid(row=0, column=1)
+            self.add_tooltip(self.show_password_btn, "Click to show/hide password")
             
             # Password strength indicator
             self.password_strength = ttk.Progressbar(
@@ -336,15 +374,16 @@ class LoginScreen(ttk.Frame):
             )
             remember_check.grid(row=0, column=0, sticky="w")
             
-            # Forgot password link
-            forgot_link = ttk.Label(
+            # Password reset info link
+            reset_link = ttk.Label(
                 options_frame,
-                text="Forgot password?",
+                text="Reset password?",
                 style="LoginLink.TLabel",
                 cursor="hand2"
             )
-            forgot_link.grid(row=0, column=1, sticky="e")
-            forgot_link.bind("<Button-1>", self.show_forgot_password)
+            reset_link.grid(row=0, column=1, sticky="e")
+            reset_link.bind("<Button-1>", self.show_password_reset_info)
+            self.add_tooltip(reset_link, "Use CLI command 'gui-password --reset' to reset your password")
             
         except Exception as e:
             logger.error(f"Failed to create login options: {e}")
@@ -364,6 +403,7 @@ class LoginScreen(ttk.Frame):
                 width=20
             )
             self.login_btn.pack(pady=(0, 10))
+            self.add_tooltip(self.login_btn, "Click to sign in with your username and password")
             
             # Alternative login methods
             alt_frame = ttk.Frame(button_frame)
@@ -378,30 +418,7 @@ class LoginScreen(ttk.Frame):
                 width=12
             )
             twofa_btn.pack(side=tk.LEFT, padx=(0, 5))
-            
-            # Biometric button (if available)
-            bio_btn = ttk.Button(
-                alt_frame,
-                text="Biometric",
-                command=self.show_biometric_login,
-                style="AltLogin.TButton",
-                width=12
-            )
-            bio_btn.pack(side=tk.LEFT, padx=5)
-
-            # Setup button (only show if setup is needed)
-            if not self.is_setup_completed():
-                setup_frame = ttk.Frame(button_frame)
-                setup_frame.pack(pady=(10, 0))
-
-                setup_btn = ttk.Button(
-                    setup_frame,
-                    text="[CONFIG] Run Setup",
-                    command=self.show_database_setup,
-                    style="SetupButton.TButton",
-                    width=20
-                )
-                setup_btn.pack()
+            self.add_tooltip(twofa_btn, "Login using Two-Factor Authentication for enhanced security")
 
             # Quick access frame
             quick_frame = ttk.Frame(button_frame)
@@ -410,7 +427,7 @@ class LoginScreen(ttk.Frame):
             # Documentation button
             docs_btn = ttk.Button(
                 quick_frame,
-                text="📚 Docs",
+                text="[BOOKS] Docs",
                 command=self.open_documentation,
                 style="QuickButton.TButton",
                 width=8
@@ -420,7 +437,7 @@ class LoginScreen(ttk.Frame):
             # Plugin marketplace button
             plugins_btn = ttk.Button(
                 quick_frame,
-                text="🔌 Plugins",
+                text="[PLUGIN] Plugins",
                 command=self.open_plugin_marketplace,
                 style="QuickButton.TButton",
                 width=8
@@ -471,11 +488,11 @@ class LoginScreen(ttk.Frame):
         try:
             if self.show_password_var.get():
                 self.password_entry.configure(show="")
-                self.show_password_btn.configure(text="🙈")
+                self.show_password_btn.configure(text="[HIDE]")
                 self.show_password_var.set(False)
             else:
                 self.password_entry.configure(show="*")
-                self.show_password_btn.configure(text="👁")
+                self.show_password_btn.configure(text="[EYE]")
                 self.show_password_var.set(True)
         except Exception as e:
             logger.error(f"Failed to toggle password visibility: {e}")
@@ -584,13 +601,23 @@ class LoginScreen(ttk.Frame):
     def call_auth_api(self, username: str, password_hash: str) -> Dict[str, Any]:
         """Call authentication API - Ultra-secure server manager authentication."""
         try:
-            # Read default credentials from file
-            default_creds = self.load_default_credentials()
+            # Use the new default credentials system
+            from plexichat.core.auth.default_credentials import get_default_credentials_manager
+            manager = get_default_credentials_manager()
 
-            # Check against default admin credentials
-            if username == default_creds.get("username", "admin"):
-                # Verify password against default or stored hash
-                if self.verify_admin_password(username, password_hash, default_creds):
+            # Get GUI credentials
+            gui_creds = manager.get_interface_credentials("gui")
+            if not gui_creds:
+                return {
+                    "success": False,
+                    "error": "No GUI credentials found. Please check default_creds.txt file."
+                }
+
+            # Check against GUI credentials
+            if username == gui_creds.get("username", "admin"):
+                # Verify password (compare plain text since we're hashing on client side)
+                stored_password_hash = hashlib.sha256(gui_creds["password"].encode()).hexdigest()
+                if password_hash == stored_password_hash:
                     return {
                         "success": True,
                         "user": {
@@ -610,13 +637,11 @@ class LoginScreen(ttk.Frame):
                         "expires": (datetime.now() + timedelta(hours=8)).isoformat()
                     }
 
-            # Check against WebUI authentication system
-            webui_result = self.authenticate_with_webui(username, password_hash)
-            if webui_result.get("success"):
-                return webui_result
+            return {"success": False, "error": "Invalid username or password"}
 
-            return {"success": False, "error": "Invalid server administrator credentials"}
-
+        except ImportError:
+            # Fallback to old system if new system not available
+            return {"success": False, "error": "Authentication system not available"}
         except Exception as e:
             logger.error(f"Auth API call failed: {e}")
             return {"success": False, "error": str(e)}
@@ -783,34 +808,69 @@ class LoginScreen(ttk.Frame):
         except Exception as e:
             logger.error(f"Failed to save remember me data: {e}")
 
-    def show_forgot_password(self, event=None):
-        """Show forgot password dialog."""
-        # This will be implemented in the next part
-        messagebox.showinfo("Forgot Password", "Forgot password functionality will be implemented.")
+    def show_password_reset_info(self, event=None):
+        """Show password reset information dialog."""
+        reset_info = """Password Reset Instructions:
+
+To reset your GUI password, use the CLI command:
+
+    python run.py cli gui-password --reset
+
+This will generate a new secure password that will be displayed in the terminal.
+
+For more help with CLI commands:
+    python run.py cli --help
+
+Note: You must have access to the command line to reset your password."""
+
+        messagebox.showinfo("Password Reset", reset_info)
 
     def show_register_form(self, event=None):
         """Show user registration form."""
-        # This will be implemented in the next part
-        messagebox.showinfo("Register", "User registration functionality will be implemented.")
+        messagebox.showinfo("Register", "User registration is handled through the admin interface after login.")
 
     def show_2fa_login(self):
         """Show 2FA login dialog."""
-        # This will be implemented in the next part
-        messagebox.showinfo("2FA Login", "Two-factor authentication will be implemented.")
+        # Create 2FA dialog
+        twofa_dialog = tk.Toplevel(self)
+        twofa_dialog.title("Two-Factor Authentication")
+        twofa_dialog.geometry("400x300")
+        twofa_dialog.configure(bg='#2c3e50')
+        twofa_dialog.transient(self.winfo_toplevel())
+        twofa_dialog.grab_set()
 
-    def show_biometric_login(self):
-        """Show biometric login dialog."""
-        # This will be implemented in the next part
-        messagebox.showinfo("Biometric Login", "Biometric authentication will be implemented.")
+        # Center the dialog
+        twofa_dialog.update_idletasks()
+        x = (twofa_dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (twofa_dialog.winfo_screenheight() // 2) - (300 // 2)
+        twofa_dialog.geometry(f"400x300+{x}+{y}")
+
+        # Main frame
+        main_frame = tk.Frame(twofa_dialog, bg='#34495e', relief='raised', bd=2)
+        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+
+        # Title
+        title_label = tk.Label(main_frame, text="Two-Factor Authentication",
+                             font=("Arial", 16, "bold"), bg='#34495e', fg='#3498db')
+        title_label.pack(pady=20)
+
+        # Info
+        info_label = tk.Label(main_frame,
+                            text="2FA authentication will be implemented in a future update.\nFor now, please use standard password authentication.",
+                            font=("Arial", 10), bg='#34495e', fg='white', justify='center')
+        info_label.pack(pady=20)
+
+        # Close button
+        close_btn = tk.Button(main_frame, text="Close", font=("Arial", 12),
+                            bg='#3498db', fg='white', relief='flat', bd=0,
+                            command=twofa_dialog.destroy, cursor='hand2')
+        close_btn.pack(pady=20, ipadx=20, ipady=8)
 
     def is_setup_completed(self):
         """Check if PlexiChat setup is completed."""
-        try:
-            config_path = Path.home() / ".plexichat"
-            setup_file = config_path / "setup_completed"
-            return setup_file.exists()
-        except Exception:
-            return False
+        # Always return True to hide setup from login screen
+        # Setup is now accessible from the main application after login
+        return True
 
     def get_default_credentials_info(self):
         """Get default credentials information."""
@@ -853,7 +913,7 @@ class LoginScreen(ttk.Frame):
             main_frame.pack(fill='both', expand=True, padx=20, pady=20)
 
             # Title
-            title_label = tk.Label(main_frame, text="🗄️ Database Setup",
+            title_label = tk.Label(main_frame, text="[DATABASE] Database Setup",
                                  font=("Arial", 20, "bold"), bg='#34495e', fg='#3498db')
             title_label.pack(pady=20)
 

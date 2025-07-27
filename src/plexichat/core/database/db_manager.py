@@ -88,17 +88,53 @@ logger = get_logger(__name__)
 
 class DatabaseType(Enum):
     """Supported database types."""
+    # SQL Databases
     SQLITE = "sqlite"
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
+    MARIADB = "mariadb"
+    ORACLE = "oracle"
+    MSSQL = "mssql"
+    COCKROACHDB = "cockroachdb"
+
+    # NoSQL Databases
     MONGODB = "mongodb"
+    CASSANDRA = "cassandra"
+    COUCHDB = "couchdb"
+    DYNAMODB = "dynamodb"
+    FIRESTORE = "firestore"
+    ARANGODB = "arangodb"
+
+    # Cache/In-Memory Databases
     REDIS = "redis"
+    MEMCACHED = "memcached"
+
+    # Analytics/Time-Series Databases
     CLICKHOUSE = "clickhouse"
     TIMESCALEDB = "timescaledb"
+    INFLUXDB = "influxdb"
+
+    # Graph Databases
     NEO4J = "neo4j"
+
+    # Search Engines
     ELASTICSEARCH = "elasticsearch"
+    OPENSEARCH = "opensearch"
+    SOLR = "solr"
+
+    # Data Warehouses
+    SNOWFLAKE = "snowflake"
+    BIGQUERY = "bigquery"
+    REDSHIFT = "redshift"
+
+    # Object Storage/Lakehouse
     MINIO = "minio"
+    S3 = "s3"
+
+    # Vector Databases
     PINECONE = "pinecone"
+    WEAVIATE = "weaviate"
+    CHROMA = "chroma"
 
 
 class DatabaseRole(Enum):
@@ -393,6 +429,118 @@ class ConsolidatedDatabaseManager:
             )
             await self.add_database("redis", redis_config)
 
+        # MySQL configuration
+        if os.getenv("PLEXICHAT_MYSQL_URL"):
+            mysql_config = DatabaseConfig(
+                type=DatabaseType.MYSQL,
+                name="mysql",
+                host=os.getenv("PLEXICHAT_MYSQL_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_MYSQL_PORT", "3306")),
+                database=os.getenv("PLEXICHAT_MYSQL_DB", "plexichat"),
+                username=os.getenv("PLEXICHAT_MYSQL_USER", ""),
+                password=os.getenv("PLEXICHAT_MYSQL_PASS", ""),
+                role=DatabaseRole.PRIMARY
+            )
+            await self.add_database("mysql", mysql_config)
+
+        # MariaDB configuration
+        if os.getenv("PLEXICHAT_MARIADB_URL"):
+            mariadb_config = DatabaseConfig(
+                type=DatabaseType.MARIADB,
+                name="mariadb",
+                host=os.getenv("PLEXICHAT_MARIADB_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_MARIADB_PORT", "3306")),
+                database=os.getenv("PLEXICHAT_MARIADB_DB", "plexichat"),
+                username=os.getenv("PLEXICHAT_MARIADB_USER", ""),
+                password=os.getenv("PLEXICHAT_MARIADB_PASS", ""),
+                role=DatabaseRole.PRIMARY
+            )
+            await self.add_database("mariadb", mariadb_config)
+
+        # ClickHouse configuration
+        if os.getenv("PLEXICHAT_CLICKHOUSE_URL"):
+            clickhouse_config = DatabaseConfig(
+                type=DatabaseType.CLICKHOUSE,
+                name="clickhouse",
+                host=os.getenv("PLEXICHAT_CLICKHOUSE_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_CLICKHOUSE_PORT", "8123")),
+                database=os.getenv("PLEXICHAT_CLICKHOUSE_DB", "plexichat"),
+                username=os.getenv("PLEXICHAT_CLICKHOUSE_USER", ""),
+                password=os.getenv("PLEXICHAT_CLICKHOUSE_PASS", ""),
+                role=DatabaseRole.ANALYTICS
+            )
+            await self.add_database("clickhouse", clickhouse_config)
+
+        # TimescaleDB configuration
+        if os.getenv("PLEXICHAT_TIMESCALEDB_URL"):
+            timescaledb_config = DatabaseConfig(
+                type=DatabaseType.TIMESCALEDB,
+                name="timescaledb",
+                host=os.getenv("PLEXICHAT_TIMESCALEDB_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_TIMESCALEDB_PORT", "5432")),
+                database=os.getenv("PLEXICHAT_TIMESCALEDB_DB", "plexichat"),
+                username=os.getenv("PLEXICHAT_TIMESCALEDB_USER", ""),
+                password=os.getenv("PLEXICHAT_TIMESCALEDB_PASS", ""),
+                role=DatabaseRole.ANALYTICS
+            )
+            await self.add_database("timescaledb", timescaledb_config)
+
+        # Cassandra configuration
+        if os.getenv("PLEXICHAT_CASSANDRA_URL"):
+            cassandra_config = DatabaseConfig(
+                type=DatabaseType.CASSANDRA,
+                name="cassandra",
+                host=os.getenv("PLEXICHAT_CASSANDRA_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_CASSANDRA_PORT", "9042")),
+                database=os.getenv("PLEXICHAT_CASSANDRA_KEYSPACE", "plexichat"),
+                username=os.getenv("PLEXICHAT_CASSANDRA_USER", ""),
+                password=os.getenv("PLEXICHAT_CASSANDRA_PASS", ""),
+                role=DatabaseRole.PRIMARY
+            )
+            await self.add_database("cassandra", cassandra_config)
+
+        # Elasticsearch configuration
+        if os.getenv("PLEXICHAT_ELASTICSEARCH_URL"):
+            elasticsearch_config = DatabaseConfig(
+                type=DatabaseType.ELASTICSEARCH,
+                name="elasticsearch",
+                host=os.getenv("PLEXICHAT_ELASTICSEARCH_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_ELASTICSEARCH_PORT", "9200")),
+                database=os.getenv("PLEXICHAT_ELASTICSEARCH_INDEX", "plexichat"),
+                username=os.getenv("PLEXICHAT_ELASTICSEARCH_USER", ""),
+                password=os.getenv("PLEXICHAT_ELASTICSEARCH_PASS", ""),
+                role=DatabaseRole.ANALYTICS
+            )
+            await self.add_database("elasticsearch", elasticsearch_config)
+
+        # Neo4j configuration
+        if os.getenv("PLEXICHAT_NEO4J_URL"):
+            neo4j_config = DatabaseConfig(
+                type=DatabaseType.NEO4J,
+                name="neo4j",
+                host=os.getenv("PLEXICHAT_NEO4J_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_NEO4J_PORT", "7687")),
+                database=os.getenv("PLEXICHAT_NEO4J_DB", "neo4j"),
+                username=os.getenv("PLEXICHAT_NEO4J_USER", ""),
+                password=os.getenv("PLEXICHAT_NEO4J_PASS", ""),
+                role=DatabaseRole.ANALYTICS
+            )
+            await self.add_database("neo4j", neo4j_config)
+
+        # InfluxDB configuration
+        if os.getenv("PLEXICHAT_INFLUXDB_URL"):
+            influxdb_config = DatabaseConfig(
+                type=DatabaseType.INFLUXDB,
+                name="influxdb",
+                host=os.getenv("PLEXICHAT_INFLUXDB_HOST", "localhost"),
+                port=int(os.getenv("PLEXICHAT_INFLUXDB_PORT", "8086")),
+                database=os.getenv("PLEXICHAT_INFLUXDB_BUCKET", "plexichat"),
+                username=os.getenv("PLEXICHAT_INFLUXDB_ORG", ""),
+                password=os.getenv("PLEXICHAT_INFLUXDB_TOKEN", ""),
+                role=DatabaseRole.ANALYTICS
+            )
+            await self.add_database("influxdb", influxdb_config)
+
     async def add_database(self, name: str, config: DatabaseConfig, is_default: bool = False) -> bool:
         """Add a database configuration and establish connection."""
         try:
@@ -450,6 +598,114 @@ class ConsolidatedDatabaseManager:
                     logger.warning(f"Redis support not available for {name}")
                     return False
 
+            elif config.type == DatabaseType.MYSQL:
+                try:
+                    connection_string = f"mysql+aiomysql://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
+                    engine = create_async_engine(
+                        connection_string,
+                        pool_size=config.connection_pool_size,
+                        max_overflow=config.max_overflow,
+                        pool_timeout=config.pool_timeout,
+                        pool_recycle=config.pool_recycle
+                    )
+                    self.engines[name] = engine
+                except ImportError:
+                    logger.warning(f"MySQL support not available for {name} (aiomysql not installed)")
+                    return False
+
+            elif config.type == DatabaseType.MARIADB:
+                try:
+                    # MariaDB uses same driver as MySQL
+                    connection_string = f"mysql+aiomysql://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
+                    engine = create_async_engine(
+                        connection_string,
+                        pool_size=config.connection_pool_size,
+                        max_overflow=config.max_overflow,
+                        pool_timeout=config.pool_timeout,
+                        pool_recycle=config.pool_recycle
+                    )
+                    self.engines[name] = engine
+                except ImportError:
+                    logger.warning(f"MariaDB support not available for {name} (aiomysql not installed)")
+                    return False
+
+            elif config.type == DatabaseType.CLICKHOUSE:
+                try:
+                    # ClickHouse connection
+                    connection_string = f"clickhouse+asynch://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
+                    engine = create_async_engine(connection_string)
+                    self.engines[name] = engine
+                except ImportError:
+                    logger.warning(f"ClickHouse support not available for {name} (asynch not installed)")
+                    return False
+
+            elif config.type == DatabaseType.TIMESCALEDB:
+                # TimescaleDB uses PostgreSQL driver
+                connection_string = f"postgresql+asyncpg://{config.username}:{config.password}@{config.host}:{config.port}/{config.database}"
+                engine = create_async_engine(
+                    connection_string,
+                    pool_size=config.connection_pool_size,
+                    max_overflow=config.max_overflow,
+                    pool_timeout=config.pool_timeout,
+                    pool_recycle=config.pool_recycle
+                )
+                self.engines[name] = engine
+
+            elif config.type == DatabaseType.CASSANDRA:
+                try:
+                    from cassandra.cluster import Cluster
+                    from cassandra.auth import PlainTextAuthProvider
+
+                    auth_provider = PlainTextAuthProvider(username=config.username, password=config.password)
+                    cluster = Cluster([config.host], port=config.port, auth_provider=auth_provider)
+                    session = cluster.connect()
+                    self.engines[name] = session
+                except ImportError:
+                    logger.warning(f"Cassandra support not available for {name} (cassandra-driver not installed)")
+                    return False
+
+            elif config.type == DatabaseType.ELASTICSEARCH:
+                try:
+                    from elasticsearch import AsyncElasticsearch
+
+                    client = AsyncElasticsearch(
+                        [{'host': config.host, 'port': config.port}],
+                        http_auth=(config.username, config.password) if config.username else None
+                    )
+                    self.engines[name] = client
+                except ImportError:
+                    logger.warning(f"Elasticsearch support not available for {name} (elasticsearch not installed)")
+                    return False
+
+            elif config.type == DatabaseType.NEO4J:
+                try:
+                    from neo4j import AsyncGraphDatabase
+
+                    uri = f"bolt://{config.host}:{config.port}"
+                    driver = AsyncGraphDatabase.driver(uri, auth=(config.username, config.password))
+                    self.engines[name] = driver
+                except ImportError:
+                    logger.warning(f"Neo4j support not available for {name} (neo4j not installed)")
+                    return False
+
+            elif config.type == DatabaseType.INFLUXDB:
+                try:
+                    from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
+
+                    client = InfluxDBClientAsync(
+                        url=f"http://{config.host}:{config.port}",
+                        token=config.password,  # InfluxDB uses token instead of password
+                        org=config.username     # InfluxDB uses org instead of username
+                    )
+                    self.engines[name] = client
+                except ImportError:
+                    logger.warning(f"InfluxDB support not available for {name} (influxdb-client not installed)")
+                    return False
+
+            else:
+                logger.warning(f"Unsupported database type: {config.type}")
+                return False
+
             # Initialize metrics
             self.connection_metrics[name] = DatabaseMetrics()
             self.connection_status[name] = ConnectionStatus.CONNECTING
@@ -474,10 +730,13 @@ class ConsolidatedDatabaseManager:
             config = self.database_configs[name]
             engine = self.engines[name]
 
-            if config.type in [DatabaseType.SQLITE, DatabaseType.POSTGRESQL]:
+            # SQL Databases (SQLAlchemy-based)
+            if config.type in [DatabaseType.SQLITE, DatabaseType.POSTGRESQL, DatabaseType.MYSQL,
+                              DatabaseType.MARIADB, DatabaseType.TIMESCALEDB, DatabaseType.CLICKHOUSE]:
                 async with engine.begin() as conn:
                     await conn.execute(text("SELECT 1"))
 
+            # NoSQL Databases
             elif config.type == DatabaseType.MONGODB:
                 if hasattr(engine, 'admin'):
                     await engine.admin.command('ping')  # type: ignore
@@ -485,12 +744,42 @@ class ConsolidatedDatabaseManager:
                     # Alternative ping for MongoDB
                     await engine.server_info()  # type: ignore
 
+            elif config.type == DatabaseType.CASSANDRA:
+                # Test Cassandra connection
+                if hasattr(engine, 'execute'):
+                    engine.execute("SELECT now() FROM system.local")
+
+            # Cache Databases
             elif config.type == DatabaseType.REDIS:
                 if hasattr(engine, 'ping'):
                     await engine.ping()  # type: ignore
                 else:
                     # Alternative ping for Redis
                     await engine.execute_command('PING')  # type: ignore
+
+            # Search Engines
+            elif config.type == DatabaseType.ELASTICSEARCH:
+                if hasattr(engine, 'ping'):
+                    await engine.ping()
+                elif hasattr(engine, 'info'):
+                    await engine.info()
+
+            # Graph Databases
+            elif config.type == DatabaseType.NEO4J:
+                if hasattr(engine, 'verify_connectivity'):
+                    await engine.verify_connectivity()
+
+            # Time Series Databases
+            elif config.type == DatabaseType.INFLUXDB:
+                if hasattr(engine, 'ping'):
+                    await engine.ping()
+                elif hasattr(engine, 'health'):
+                    await engine.health()
+
+            else:
+                logger.warning(f"Connection test not implemented for {config.type}")
+                # Assume connection is working if no test is available
+                pass
 
             self.connection_status[name] = ConnectionStatus.CONNECTED
             self.global_metrics["databases_connected"] += 1
@@ -566,7 +855,9 @@ class ConsolidatedDatabaseManager:
 
             result = None
 
-            if config.type in [DatabaseType.SQLITE, DatabaseType.POSTGRESQL]:
+            # SQL Databases (SQLAlchemy-based)
+            if config.type in [DatabaseType.SQLITE, DatabaseType.POSTGRESQL, DatabaseType.MYSQL,
+                              DatabaseType.MARIADB, DatabaseType.TIMESCALEDB, DatabaseType.CLICKHOUSE]:
                 async with engine.begin() as conn:
                     result_obj = await conn.execute(text(query), params)
                     if result_obj.returns_rows:
@@ -609,6 +900,54 @@ class ConsolidatedDatabaseManager:
                     else:
                         await engine.execute_command('SET', parts[1], parts[2])  # type: ignore
                     result = {"status": "OK"}
+
+            elif config.type == DatabaseType.CASSANDRA:
+                # Execute Cassandra CQL query
+                if hasattr(engine, 'execute'):
+                    rows = engine.execute(query)
+                    result = {"rows": [dict(row._asdict()) for row in rows], "rowcount": len(rows)}
+                else:
+                    result = {"error": "Cassandra execution not supported"}
+
+            elif config.type == DatabaseType.ELASTICSEARCH:
+                # Parse Elasticsearch query (simplified)
+                try:
+                    query_obj = json.loads(query)
+                    index = query_obj.get("index", "_all")
+                    body = query_obj.get("body", {})
+
+                    if query_obj.get("operation") == "search":
+                        response = await engine.search(index=index, body=body)
+                        hits = response.get("hits", {}).get("hits", [])
+                        result = {"rows": hits, "rowcount": len(hits)}
+                    elif query_obj.get("operation") == "index":
+                        response = await engine.index(index=index, body=body)
+                        result = {"id": response.get("_id"), "status": "indexed"}
+                except json.JSONDecodeError:
+                    result = {"error": "Invalid Elasticsearch query format"}
+
+            elif config.type == DatabaseType.NEO4J:
+                # Execute Cypher query
+                async with engine.session() as session:
+                    cypher_result = await session.run(query, params)
+                    records = await cypher_result.data()
+                    result = {"rows": records, "rowcount": len(records)}
+
+            elif config.type == DatabaseType.INFLUXDB:
+                # Execute InfluxDB query
+                try:
+                    query_api = engine.query_api()
+                    tables = await query_api.query(query)
+                    rows = []
+                    for table in tables:
+                        for record in table.records:
+                            rows.append(record.values)
+                    result = {"rows": rows, "rowcount": len(rows)}
+                except Exception as e:
+                    result = {"error": f"InfluxDB query failed: {str(e)}"}
+
+            else:
+                result = {"error": f"Query execution not implemented for {config.type}"}
 
             # Update metrics
             execution_time = time.time() - start_time

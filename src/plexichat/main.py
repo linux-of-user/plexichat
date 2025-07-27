@@ -252,17 +252,16 @@ Unified main application that consolidates all PlexiChat functionality
 into a single, cohesive FastAPI application with comprehensive features.
 """
 
-# Create necessary directories OUTSIDE src directory
-# These directories should be created in the project root, not in src/
+# Create only essential directories OUTSIDE src directory
+# Only create directories that are actually needed, not empty ones
 project_root = Path(__file__).parent.parent.parent  # Go up from src/plexichat/main.py to project root
-(project_root / "logs").mkdir(exist_ok=True)
-(project_root / "data").mkdir(exist_ok=True)
-(project_root / "config").mkdir(exist_ok=True)
-(project_root / "certs").mkdir(exist_ok=True)
-(project_root / "uploads").mkdir(exist_ok=True)
-(project_root / "temp").mkdir(exist_ok=True)
-(project_root / "backups").mkdir(exist_ok=True)
-(project_root / "plugins").mkdir(exist_ok=True)
+
+# Only create directories that will actually be used
+essential_dirs = ["logs", "config"]
+for dir_name in essential_dirs:
+    (project_root / dir_name).mkdir(exist_ok=True)
+
+# Other directories will be created by components that actually need them
 
 # Initialize all core services
 async def initialize_core_services():
