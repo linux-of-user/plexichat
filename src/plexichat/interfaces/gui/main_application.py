@@ -88,7 +88,7 @@ class PlexiChatGUI:
             
             # Create main window
             self.root = tk.Tk()
-            self.root.title("PlexiChat - Advanced Communication Platform")
+            self.root.title("PlexiChat Management Interface")
             self.root.geometry("1400x900")
             self.root.minsize(1200, 800)
             

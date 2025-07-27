@@ -414,10 +414,15 @@ class PerformanceLogger:
                 metrics_batch.append(("thread_count", self.system_monitor.get_thread_count(), "count"))
                 metrics_batch.append(("open_files_count", self.system_monitor.get_open_files_count(), "count"))
 
-                # Log all metrics in a single compact line if enabled
+                # Log all metrics in a much more compact format
                 if self.config.get("batch_logging", True):
-                    metric_strings = [f"{name}={value:.2f}{unit}" for name, value, unit in metrics_batch]
-                    self.logger.info(f"Metrics: {' | '.join(metric_strings)}")
+                    # Only log the most important metrics in a very compact format
+                    cpu = f"CPU:{cpu_usage:.1f}%"
+                    mem_rss = f"MEM:{memory_info.get('rss_mb', 0):.0f}MB"
+                    mem_sys = f"SYS:{memory_info.get('system_percent', 0):.0f}%"
+                    threads = f"THR:{self.system_monitor.get_thread_count()}"
+
+                    self.logger.info(f"[PERF] {cpu} {mem_rss} {mem_sys} {threads}")
                 else:
                     # Log individually
                     for name, value, unit in metrics_batch:
@@ -427,7 +432,7 @@ class PerformanceLogger:
                 cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
                 self.metric_buffer.clear_old_metrics(cutoff_time)
 
-                time.sleep(30)  # Monitor every 30 seconds
+                time.sleep(120)  # Monitor every 2 minutes (much less frequent)
 
             except Exception as e:
                 self.logger.error(f"Background monitoring error: {e}")

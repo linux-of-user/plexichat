@@ -17,6 +17,26 @@ from pathlib import Path
 import json
 import requests
 import base64
+import psutil
+import os
+import time
+import random
+import math
+try:
+    from PIL import Image, ImageTk, ImageFilter, ImageDraw
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+import psutil
+import os
+import time
+import random
+import math
+try:
+    from PIL import Image, ImageTk, ImageFilter, ImageDraw
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +69,7 @@ class LoginScreen(ttk.Frame):
         # UI components
         self.main_frame = None
         self.login_frame = None
-        self.register_frame = None
+        # No registration frame - this is an admin interface
 
         # Tooltip system
         self.tooltips = {}
@@ -62,6 +82,17 @@ class LoginScreen(ttk.Frame):
         
         # Animation variables
         self.animation_running = False
+        self.particles = []
+
+        # Modern UI enhancements
+        self.dark_mode = tk.BooleanVar(value=True)  # Default to dark mode
+        self.system_status_text = tk.StringVar()
+        self.start_time = datetime.now()
+
+        # Glassmorphism and rounded corners
+        self.login_card_canvas = None
+        self.blur_image = None
+        self.password_visible = False
 
         # Configure custom styles
         self.configure_custom_styles()
@@ -76,7 +107,13 @@ class LoginScreen(ttk.Frame):
             
             # Create background
             self.create_background()
-            
+
+            # Create dark mode toggle in top-right corner
+            self.create_dark_mode_toggle()
+
+            # Create main container with glassmorphism
+            self.create_glassmorphism_container()
+
             # Create main container
             self.main_frame = ttk.Frame(self, style="LoginMain.TFrame")
             self.main_frame.place(relx=0.5, rely=0.5, anchor="center")
@@ -92,6 +129,85 @@ class LoginScreen(ttk.Frame):
         except Exception as e:
             logger.error(f"Failed to create login interface: {e}")
             messagebox.showerror("Error", f"Failed to create login interface: {e}")
+
+    def create_dark_mode_toggle(self):
+        """Create dark mode toggle in top-right corner."""
+        try:
+            # Dark mode toggle frame
+            toggle_frame = tk.Frame(self, bg='transparent')
+            toggle_frame.place(relx=0.95, rely=0.05, anchor="ne")
+
+            # Dark mode label
+            mode_label = tk.Label(
+                toggle_frame,
+                text="🌙",
+                font=('Inter', 16),
+                bg='transparent',
+                fg='white',
+                cursor='hand2'
+            )
+            mode_label.pack(side=tk.LEFT, padx=(0, 5))
+
+            # Dark mode toggle
+            self.dark_toggle = tk.Checkbutton(
+                toggle_frame,
+                variable=self.dark_mode,
+                command=self.toggle_dark_mode,
+                bg='transparent',
+                fg='white',
+                selectcolor='#3b82f6',
+                activebackground='transparent',
+                activeforeground='white',
+                cursor='hand2',
+                font=('Inter', 10)
+            )
+            self.dark_toggle.pack(side=tk.LEFT)
+
+        except Exception as e:
+            logger.error(f"Failed to create dark mode toggle: {e}")
+
+    def create_glassmorphism_container(self):
+        """Create glassmorphism effect behind login card."""
+        try:
+            if not PIL_AVAILABLE:
+                return
+
+            # Create canvas for glassmorphism effect
+            self.glass_canvas = tk.Canvas(
+                self,
+                highlightthickness=0,
+                bg='transparent'
+            )
+            self.glass_canvas.place(relx=0.5, rely=0.5, anchor="center")
+
+            # We'll update this when the login form is created
+
+        except Exception as e:
+            logger.error(f"Failed to create glassmorphism container: {e}")
+
+    def toggle_dark_mode(self):
+        """Toggle between dark and light mode."""
+        try:
+            # Reconfigure styles based on mode
+            self.configure_custom_styles()
+
+            # Update background colors
+            if self.dark_mode.get():
+                # Dark mode colors
+                self.configure(bg='#1a1a2e')
+                if hasattr(self, 'bg_canvas'):
+                    self.create_gradient_background()
+            else:
+                # Light mode colors
+                self.configure(bg='#f8fafc')
+                if hasattr(self, 'bg_canvas'):
+                    self.create_light_gradient_background()
+
+            # Update system status
+            self.update_system_status()
+
+        except Exception as e:
+            logger.error(f"Failed to toggle dark mode: {e}")
 
     def create_background(self):
         """Create animated background."""
@@ -110,23 +226,62 @@ class LoginScreen(ttk.Frame):
             logger.error(f"Failed to create background: {e}")
 
     def create_gradient_background(self):
-        """Create gradient background effect."""
+        """Create stunning gradient background from deep indigo to violet/cyan."""
         try:
             width = self.winfo_screenwidth()
             height = self.winfo_screenheight()
-            
-            # Create gradient from dark blue to dark purple
+
+            # Create beautiful gradient: deep indigo (#1a1a2e) to violet (#16213e) to cyan hints
             for i in range(height):
                 ratio = i / height
-                r = int(44 + (75 - 44) * ratio)  # 44 to 75
-                g = int(62 + (0 - 62) * ratio)   # 62 to 0
-                b = int(80 + (130 - 80) * ratio) # 80 to 130
-                
+
+                # Deep indigo to violet gradient with cyan hints
+                if ratio < 0.6:
+                    # Deep indigo to darker indigo
+                    r = int(26 + (22 - 26) * (ratio / 0.6))     # 26 to 22
+                    g = int(26 + (33 - 26) * (ratio / 0.6))     # 26 to 33
+                    b = int(46 + (62 - 46) * (ratio / 0.6))     # 46 to 62
+                else:
+                    # Add subtle cyan hints at bottom
+                    sub_ratio = (ratio - 0.6) / 0.4
+                    r = int(22 + (30 - 22) * sub_ratio)         # 22 to 30 (cyan hint)
+                    g = int(33 + (45 - 33) * sub_ratio)         # 33 to 45 (cyan hint)
+                    b = int(62 + (80 - 62) * sub_ratio)         # 62 to 80 (deeper)
+
                 color = f"#{r:02x}{g:02x}{b:02x}"
                 self.bg_canvas.create_line(0, i, width, i, fill=color, width=1)
-                
+
         except Exception as e:
             logger.error(f"Failed to create gradient background: {e}")
+
+    def create_light_gradient_background(self):
+        """Create light mode gradient background."""
+        try:
+            width = self.winfo_screenwidth()
+            height = self.winfo_screenheight()
+
+            # Create beautiful light gradient: light blue to white to light cyan
+            for i in range(height):
+                ratio = i / height
+
+                # Light blue to white to light cyan gradient
+                if ratio < 0.5:
+                    # Light blue to white
+                    r = int(248 + (255 - 248) * (ratio / 0.5))     # 248 to 255
+                    g = int(250 + (255 - 250) * (ratio / 0.5))     # 250 to 255
+                    b = int(252 + (255 - 252) * (ratio / 0.5))     # 252 to 255
+                else:
+                    # White to light cyan
+                    sub_ratio = (ratio - 0.5) / 0.5
+                    r = int(255 + (240 - 255) * sub_ratio)         # 255 to 240
+                    g = int(255 + (253 - 255) * sub_ratio)         # 255 to 253
+                    b = int(255 + (255 - 255) * sub_ratio)         # 255 to 255
+
+                color = f"#{r:02x}{g:02x}{b:02x}"
+                self.bg_canvas.create_line(0, i, width, i, fill=color, width=1)
+
+        except Exception as e:
+            logger.error(f"Failed to create light gradient background: {e}")
 
     def create_floating_particles(self):
         """Create floating particle effects."""
@@ -262,99 +417,93 @@ class LoginScreen(ttk.Frame):
         widget.bind("<Leave>", on_leave)
 
     def create_header(self):
-        """Create header with logo and title."""
+        """Create modern header with beautiful logo and title."""
         try:
-            # Logo placeholder (you can replace with actual logo)
+            # Logo frame
             logo_frame = ttk.Frame(self.login_frame)
-            logo_frame.grid(row=0, column=0, columnspan=2, pady=(0, 20))
-            
-            # Create logo canvas
-            logo_canvas = tk.Canvas(logo_frame, width=80, height=80, highlightthickness=0)
+            logo_frame.grid(row=0, column=0, columnspan=2, pady=(0, 25))
+
+            # Create modern logo canvas with gradient effect
+            logo_canvas = tk.Canvas(logo_frame, width=90, height=90, highlightthickness=0, bg='white')
             logo_canvas.pack()
-            
-            # Draw PlexiChat logo
-            logo_canvas.create_oval(10, 10, 70, 70, fill="#3498db", outline="#2c3e50", width=3)
-            logo_canvas.create_text(40, 40, text="P", fill="white", font=("Arial", 24, "bold"))
-            
-            # Title
+
+            # Draw modern PlexiChat logo with gradient and shadow
+            # Shadow effect
+            logo_canvas.create_oval(8, 8, 82, 82, fill="#e5e7eb", outline="", width=0)
+
+            # Main logo circle with modern gradient (simulated)
+            logo_canvas.create_oval(5, 5, 80, 80, fill="#3b82f6", outline="#2563eb", width=2)
+
+            # Inner highlight for depth
+            logo_canvas.create_oval(15, 15, 35, 35, fill="#60a5fa", outline="", width=0)
+
+            # Modern "P" with better typography
+            logo_canvas.create_text(42.5, 42.5, text="P", fill="white", font=("Inter", 28, "bold"))
+
+            # Main title with modern typography
             title_label = ttk.Label(
                 self.login_frame,
                 text="PlexiChat",
-                font=("Segoe UI", 24, "bold"),
                 style="LoginTitle.TLabel"
             )
-            title_label.grid(row=1, column=0, columnspan=2, pady=(0, 10))
-            
-            # Subtitle
+            title_label.grid(row=1, column=0, columnspan=2, pady=(0, 8))
+
+            # Professional subtitle
             subtitle_label = ttk.Label(
                 self.login_frame,
-                text="Advanced Communication Platform",
-                font=("Segoe UI", 12),
+                text="Management Interface",
                 style="LoginSubtitle.TLabel"
             )
-            subtitle_label.grid(row=2, column=0, columnspan=2, pady=(0, 30))
-            
+            subtitle_label.grid(row=2, column=0, columnspan=2, pady=(0, 35))
+
         except Exception as e:
             logger.error(f"Failed to create header: {e}")
 
     def create_form_fields(self):
-        """Create form input fields."""
+        """Create modern form input fields with icons."""
         try:
-            # Username field
-            username_label = ttk.Label(self.login_frame, text="Username:", style="LoginLabel.TLabel")
-            username_label.grid(row=3, column=0, sticky="w", pady=(0, 5))
-            
+            # Username field with icon
+            username_label = ttk.Label(self.login_frame, text="👤 Username", style="LoginLabel.TLabel")
+            username_label.grid(row=3, column=0, sticky="w", pady=(0, 8))
+
             self.username_entry = ttk.Entry(
                 self.login_frame,
                 textvariable=self.username_var,
-                font=("Segoe UI", 12),
                 style="LoginEntry.TEntry",
-                width=25
+                width=30
             )
-            self.username_entry.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+            self.username_entry.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(0, 20))
+            self.username_entry.insert(0, "admin")  # Pre-fill with default
             self.add_tooltip(self.username_entry, "Enter your username (default: admin)")
-            
-            # Password field
-            password_label = ttk.Label(self.login_frame, text="Password:", style="LoginLabel.TLabel")
-            password_label.grid(row=5, column=0, sticky="w", pady=(0, 5))
-            
+
+            # Password field with icon
+            password_label = ttk.Label(self.login_frame, text="🔒 Password", style="LoginLabel.TLabel")
+            password_label.grid(row=5, column=0, sticky="w", pady=(0, 8))
+
             password_frame = ttk.Frame(self.login_frame)
-            password_frame.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+            password_frame.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(0, 20))
             password_frame.columnconfigure(0, weight=1)
-            
+
             self.password_entry = ttk.Entry(
                 password_frame,
                 textvariable=self.password_var,
-                font=("Segoe UI", 12),
                 style="LoginEntry.TEntry",
                 show="*"
             )
-            self.password_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+            self.password_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
             self.add_tooltip(self.password_entry, "Enter your password (check default_creds.txt for initial password)")
-            
-            # Show/hide password button
+
+            # Modern eye button for password visibility
             self.show_password_btn = ttk.Button(
                 password_frame,
-                text="[EYE]",
-                width=3,
+                text="👁",
+                width=4,
                 command=self.toggle_password_visibility,
-                style="ShowPassword.TButton"
+                style="EyeButton.TButton"
             )
             self.show_password_btn.grid(row=0, column=1)
-            self.add_tooltip(self.show_password_btn, "Click to show/hide password")
-            
-            # Password strength indicator
-            self.password_strength = ttk.Progressbar(
-                self.login_frame,
-                length=200,
-                mode='determinate',
-                style="PasswordStrength.Horizontal.TProgressbar"
-            )
-            self.password_strength.grid(row=7, column=0, columnspan=2, sticky="ew", pady=(0, 15))
-            
-            # Bind password change event
-            self.password_var.trace("w", self.update_password_strength)
-            
+            self.add_tooltip(self.show_password_btn, "Show/hide password")
+
         except Exception as e:
             logger.error(f"Failed to create form fields: {e}")
 
@@ -405,81 +554,84 @@ class LoginScreen(ttk.Frame):
             self.login_btn.pack(pady=(0, 10))
             self.add_tooltip(self.login_btn, "Click to sign in with your username and password")
             
-            # Alternative login methods
-            alt_frame = ttk.Frame(button_frame)
-            alt_frame.pack()
-            
-            # 2FA button
-            twofa_btn = ttk.Button(
-                alt_frame,
-                text="2FA Login",
-                command=self.show_2fa_login,
-                style="AltLogin.TButton",
-                width=12
-            )
-            twofa_btn.pack(side=tk.LEFT, padx=(0, 5))
-            self.add_tooltip(twofa_btn, "Login using Two-Factor Authentication for enhanced security")
-
-            # Quick access frame
-            quick_frame = ttk.Frame(button_frame)
-            quick_frame.pack(pady=(15, 0))
-
-            # Documentation button
-            docs_btn = ttk.Button(
-                quick_frame,
-                text="[BOOKS] Docs",
-                command=self.open_documentation,
-                style="QuickButton.TButton",
-                width=8
-            )
-            docs_btn.pack(side=tk.LEFT, padx=(0, 5))
-
-            # Plugin marketplace button
-            plugins_btn = ttk.Button(
-                quick_frame,
-                text="[PLUGIN] Plugins",
-                command=self.open_plugin_marketplace,
-                style="QuickButton.TButton",
-                width=8
-            )
-            plugins_btn.pack(side=tk.LEFT, padx=(0, 5))
-
-            # System status button
-            status_btn = ttk.Button(
-                quick_frame,
-                text="[METRICS] Status",
-                command=self.show_system_status,
-                style="QuickButton.TButton",
-                width=8
-            )
-            status_btn.pack(side=tk.LEFT)
+            # System status indicator (modern and informative)
+            self.create_system_status_indicator(button_frame)
 
         except Exception as e:
             logger.error(f"Failed to create action buttons: {e}")
 
-    def create_footer_links(self):
-        """Create footer with additional links."""
+    def create_system_status_indicator(self, parent):
+        """Create system status indicator below sign in button."""
         try:
-            footer_frame = ttk.Frame(self.login_frame)
-            footer_frame.grid(row=10, column=0, columnspan=2)
-            
-            # Register link
-            register_label = ttk.Label(
-                footer_frame,
-                text="Don't have an account? ",
-                style="LoginFooter.TLabel"
+            # System status frame
+            status_frame = ttk.Frame(parent)
+            status_frame.pack(pady=(15, 0))
+
+            # System status label
+            self.status_label = tk.Label(
+                status_frame,
+                textvariable=self.system_status_text,
+                font=('Inter', 9),
+                fg='#6b7280' if self.dark_mode.get() else '#9ca3af',
+                bg='white',
+                justify='center'
             )
-            register_label.pack(side=tk.LEFT)
-            
-            register_link = ttk.Label(
-                footer_frame,
-                text="Sign up",
-                style="LoginLink.TLabel",
-                cursor="hand2"
-            )
-            register_link.pack(side=tk.LEFT)
-            register_link.bind("<Button-1>", self.show_register_form)
-            
+            self.status_label.pack()
+
+            # Start updating system status
+            self.update_system_status()
+            self.schedule_status_update()
+
+        except Exception as e:
+            logger.error(f"Failed to create system status indicator: {e}")
+
+    def update_system_status(self):
+        """Update system status information."""
+        try:
+            # Calculate uptime
+            uptime = datetime.now() - self.start_time
+            uptime_str = f"{uptime.days}d {uptime.seconds//3600}h"
+
+            # Get CPU and memory usage
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            memory = psutil.virtual_memory()
+
+            # Network status (simplified)
+            network_status = "🌐" if self.check_network_status() else "🔴"
+
+            # Format status string
+            status_text = f"🟢 Uptime: {uptime_str} | {network_status} Network | 📊 CPU: {cpu_percent:.0f}% | 💾 RAM: {memory.percent:.0f}%"
+
+            self.system_status_text.set(status_text)
+
+        except Exception as e:
+            logger.error(f"Failed to update system status: {e}")
+            self.system_status_text.set("🟡 System status unavailable")
+
+    def check_network_status(self):
+        """Check basic network connectivity."""
+        try:
+            # Simple check - try to resolve a DNS name
+            import socket
+            socket.gethostbyname('google.com')
+            return True
+        except:
+            return False
+
+    def schedule_status_update(self):
+        """Schedule periodic status updates."""
+        try:
+            # Update every 30 seconds
+            self.after(30000, lambda: (self.update_system_status(), self.schedule_status_update()))
+        except Exception as e:
+            logger.error(f"Failed to schedule status update: {e}")
+
+    def create_footer_links(self):
+        """Create footer - no signup nonsense, this is an admin interface."""
+        try:
+            # No footer needed - this is an admin interface, not a public service
+            pass
+
         except Exception as e:
             logger.error(f"Failed to create footer links: {e}")
 
@@ -497,57 +649,7 @@ class LoginScreen(ttk.Frame):
         except Exception as e:
             logger.error(f"Failed to toggle password visibility: {e}")
 
-    def update_password_strength(self, *args):
-        """Update password strength indicator."""
-        try:
-            password = self.password_var.get()
-            strength = self.calculate_password_strength(password)
-            
-            self.password_strength['value'] = strength
-            
-            # Update color based on strength
-            if strength < 30:
-                self.password_strength.configure(style="WeakPassword.Horizontal.TProgressbar")
-            elif strength < 70:
-                self.password_strength.configure(style="MediumPassword.Horizontal.TProgressbar")
-            else:
-                self.password_strength.configure(style="StrongPassword.Horizontal.TProgressbar")
-                
-        except Exception as e:
-            logger.error(f"Failed to update password strength: {e}")
-
-    def calculate_password_strength(self, password: str) -> int:
-        """Calculate password strength (0-100)."""
-        try:
-            if not password:
-                return 0
-            
-            score = 0
-            
-            # Length bonus
-            score += min(password.__len__() * 4, 25)
-            
-            # Character variety bonus
-            if any(c.islower() for c in password):
-                score += 5
-            if any(c.isupper() for c in password):
-                score += 5
-            if any(c.isdigit() for c in password):
-                score += 10
-            if any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
-                score += 15
-            
-            # Length penalties for short passwords
-            if len(password) < 6:
-                score -= 20
-            elif len(password) < 8:
-                score -= 10
-            
-            return max(0, min(100, score))
-            
-        except Exception as e:
-            logger.error(f"Failed to calculate password strength: {e}")
-            return 0
+    # Password strength methods removed - they were annoying and unnecessary
 
     def perform_login(self):
         """Perform login authentication."""
@@ -825,46 +927,9 @@ Note: You must have access to the command line to reset your password."""
 
         messagebox.showinfo("Password Reset", reset_info)
 
-    def show_register_form(self, event=None):
-        """Show user registration form."""
-        messagebox.showinfo("Register", "User registration is handled through the admin interface after login.")
+    # Registration removed - this is an admin interface, not a public service
 
-    def show_2fa_login(self):
-        """Show 2FA login dialog."""
-        # Create 2FA dialog
-        twofa_dialog = tk.Toplevel(self)
-        twofa_dialog.title("Two-Factor Authentication")
-        twofa_dialog.geometry("400x300")
-        twofa_dialog.configure(bg='#2c3e50')
-        twofa_dialog.transient(self.winfo_toplevel())
-        twofa_dialog.grab_set()
-
-        # Center the dialog
-        twofa_dialog.update_idletasks()
-        x = (twofa_dialog.winfo_screenwidth() // 2) - (400 // 2)
-        y = (twofa_dialog.winfo_screenheight() // 2) - (300 // 2)
-        twofa_dialog.geometry(f"400x300+{x}+{y}")
-
-        # Main frame
-        main_frame = tk.Frame(twofa_dialog, bg='#34495e', relief='raised', bd=2)
-        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
-
-        # Title
-        title_label = tk.Label(main_frame, text="Two-Factor Authentication",
-                             font=("Arial", 16, "bold"), bg='#34495e', fg='#3498db')
-        title_label.pack(pady=20)
-
-        # Info
-        info_label = tk.Label(main_frame,
-                            text="2FA authentication will be implemented in a future update.\nFor now, please use standard password authentication.",
-                            font=("Arial", 10), bg='#34495e', fg='white', justify='center')
-        info_label.pack(pady=20)
-
-        # Close button
-        close_btn = tk.Button(main_frame, text="Close", font=("Arial", 12),
-                            bg='#3498db', fg='white', relief='flat', bd=0,
-                            command=twofa_dialog.destroy, cursor='hand2')
-        close_btn.pack(pady=20, ipadx=20, ipady=8)
+    # 2FA removed - this is a simple admin interface
 
     def is_setup_completed(self):
         """Check if PlexiChat setup is completed."""
@@ -1109,35 +1174,12 @@ Note: You must have access to the command line to reset your password."""
         """Open PlexiChat documentation."""
         try:
             import webbrowser
-            webbrowser.open("https://docs.plexichat.com")
+            webbrowser.open("http://localhost:8000/docs")
         except Exception as e:
             logger.error(f"Failed to open documentation: {e}")
-            messagebox.showerror("Error", "Failed to open documentation")
+            messagebox.showerror("Error", "Failed to open documentation. Make sure the API server is running.")
 
-    def open_plugin_marketplace(self):
-        """Open plugin marketplace."""
-        try:
-            # Create marketplace window
-            marketplace_window = tk.Toplevel(self)
-            marketplace_window.title("Plugin Marketplace")
-            marketplace_window.geometry("1000x700")
-            marketplace_window.configure(bg='#2c3e50')
-            marketplace_window.transient(self.winfo_toplevel())
 
-            # Center the window
-            marketplace_window.update_idletasks()
-            x = (marketplace_window.winfo_screenwidth() // 2) - (1000 // 2)
-            y = (marketplace_window.winfo_screenheight() // 2) - (700 // 2)
-            marketplace_window.geometry(f"1000x700+{x}+{y}")
-
-            # Create marketplace instance
-            from .plugin_marketplace import PluginMarketplace
-            marketplace = PluginMarketplace(marketplace_window, self.app)
-            marketplace.pack(fill=tk.BOTH, expand=True)
-
-        except Exception as e:
-            logger.error(f"Failed to open plugin marketplace: {e}")
-            messagebox.showerror("Error", "Failed to open plugin marketplace")
 
     def show_system_status(self):
         """Show system status dialog."""
@@ -1258,29 +1300,112 @@ Note: You must have access to the command line to reset your password."""
             return f"Error getting system status: {e}"
 
     def configure_custom_styles(self):
-        """Configure custom button styles for enhanced login screen."""
+        """Configure stunning modern styles with glassmorphism and curved elements."""
         try:
             style = ttk.Style()
 
-            # Setup button style
-            style.configure("SetupButton.TButton",
-                          background='#e74c3c',
-                          foreground='white',
-                          font=('Arial', 10, 'bold'),
-                          borderwidth=0,
-                          focuscolor='none')
-            style.map("SetupButton.TButton",
-                     background=[('active', '#c0392b')])
+            # Modern gradient color scheme (deep indigo to violet/cyan)
+            primary_color = '#1a1a2e'      # Deep indigo background
+            secondary_color = '#16213e'    # Darker indigo
+            accent_color = '#3b82f6'       # Modern blue
+            accent_hover = '#2563eb'       # Darker blue on hover
+            success_color = '#10b981'      # Modern green
+            card_bg = '#ffffff'            # Pure white card
+            text_primary = '#1f2937'       # Dark gray text
+            text_secondary = '#6b7280'     # Medium gray text
+            text_muted = '#9ca3af'         # Light gray text
+            border_color = '#e5e7eb'       # Light border
+            focus_color = '#3b82f6'        # Focus blue
 
-            # Quick access button style
-            style.configure("QuickButton.TButton",
-                          background='#3498db',
+            # Main background with gradient effect
+            style.configure("Login.TFrame",
+                          background=primary_color,
+                          relief='flat')
+
+            # Login card with glassmorphism effect (simulated with white + subtle border)
+            style.configure("LoginCard.TFrame",
+                          background=card_bg,
+                          relief='flat',
+                          borderwidth=1,
+                          bordercolor='#f3f4f6')
+
+            # Modern typography hierarchy
+            style.configure("LoginTitle.TLabel",
+                          background=card_bg,
+                          foreground=text_primary,
+                          font=('Inter', 32, 'bold'))  # Large, bold title
+
+            style.configure("LoginSubtitle.TLabel",
+                          background=card_bg,
+                          foreground=text_secondary,
+                          font=('Inter', 14))  # Subtitle
+
+            style.configure("LoginLabel.TLabel",
+                          background=card_bg,
+                          foreground=text_primary,
+                          font=('Inter', 12, 'bold'))  # Field labels
+
+            # Modern rounded input fields with focus animations
+            style.configure("LoginEntry.TEntry",
+                          fieldbackground='#f9fafb',
+                          borderwidth=2,
+                          relief='solid',
+                          bordercolor=border_color,
+                          font=('Inter', 12),
+                          padding=(15, 12))  # More padding for modern look
+
+            style.map("LoginEntry.TEntry",
+                     bordercolor=[('focus', focus_color),
+                                ('active', focus_color)])
+
+            # Stunning curved primary button with gradient effect
+            style.configure("LoginButton.TButton",
+                          background=accent_color,
                           foreground='white',
-                          font=('Arial', 9),
+                          font=('Inter', 14, 'bold'),
                           borderwidth=0,
+                          focuscolor='none',
+                          relief='flat',
+                          padding=(30, 16))  # Generous padding
+
+            style.map("LoginButton.TButton",
+                     background=[('active', accent_hover),
+                               ('pressed', '#1d4ed8'),
+                               ('hover', accent_hover)])
+
+            # Modern eye button for password visibility
+            style.configure("EyeButton.TButton",
+                          background='#f3f4f6',
+                          foreground=text_secondary,
+                          font=('Inter', 12),
+                          borderwidth=0,
+                          focuscolor='none',
+                          relief='flat',
+                          padding=(8, 8))
+
+            style.map("EyeButton.TButton",
+                     background=[('active', '#e5e7eb'),
+                               ('hover', '#e5e7eb')])
+
+            # Modern checkbox styling
+            style.configure("LoginCheck.TCheckbutton",
+                          background=card_bg,
+                          foreground=text_secondary,
+                          font=('Inter', 11),
                           focuscolor='none')
-            style.map("QuickButton.TButton",
-                     background=[('active', '#2980b9')])
+
+            # Subtle link styling
+            style.configure("LoginLink.TLabel",
+                          background=card_bg,
+                          foreground=accent_color,
+                          font=('Inter', 11),
+                          cursor='hand2')
+
+            # Footer text styling
+            style.configure("LoginFooter.TLabel",
+                          background=card_bg,
+                          foreground=text_muted,
+                          font=('Inter', 10))
 
         except Exception as e:
             logger.error(f"Failed to configure custom styles: {e}")

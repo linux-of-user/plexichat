@@ -305,3 +305,5 @@ src/config/
 
 plexichat.lock
 test-install-config.json
+version.json
+src/plexichat/core/auth/default_credentials.py

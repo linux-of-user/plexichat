@@ -375,11 +375,11 @@ class ConsolidatedDatabaseManager:
 
     async def _load_default_configurations(self) -> None:
         """Load default database configurations."""
-        # Default SQLite configuration
+        # Default SQLite configuration - store in data folder
         sqlite_config = DatabaseConfig(
             type=DatabaseType.SQLITE,
             name="default",
-            database="plexichat.db",
+            database="data/plexichat.db",
             role=DatabaseRole.PRIMARY
         )
         await self.add_database("default", sqlite_config, is_default=True)
@@ -548,6 +548,11 @@ class ConsolidatedDatabaseManager:
 
             # Create database engine/connection based on type
             if config.type == DatabaseType.SQLITE:
+                # Ensure data directory exists
+                from pathlib import Path
+                db_path = Path(config.database)
+                db_path.parent.mkdir(parents=True, exist_ok=True)
+
                 engine = create_async_engine(
                     f"sqlite+aiosqlite:///{config.database}",
                     poolclass=StaticPool,

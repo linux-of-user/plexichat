@@ -47,6 +47,8 @@ class MenuSystem:
             # Admin menu
             self.admin_menu = tk.Menu(self.menubar, tearoff=0)
             self.menubar.add_cascade(label="Admin", menu=self.admin_menu)
+            self.admin_menu.add_command(label="Setup Wizard", command=self.open_setup_wizard)
+            self.admin_menu.add_separator()
             self.admin_menu.add_command(label="User Management", command=self.open_user_management)
             self.admin_menu.add_command(label="Server Status", command=self.show_server_status)
             self.admin_menu.add_command(label="Database Tools", command=self.open_database_tools)
@@ -186,6 +188,16 @@ class MenuSystem:
                               "Built with Python and Tkinter")
         except Exception as e:
             logger.error(f"Failed to show about: {e}")
+
+    def open_setup_wizard(self):
+        """Open the enhanced setup wizard."""
+        try:
+            from .enhanced_setup_wizard import show_enhanced_setup_wizard
+            show_enhanced_setup_wizard(self.root)
+            logger.info("Setup wizard opened")
+        except Exception as e:
+            logger.error(f"Failed to open setup wizard: {e}")
+            tk.messagebox.showerror("Error", f"Failed to open setup wizard: {e}")
 
     def exit_app(self):
         """Exit the application."""

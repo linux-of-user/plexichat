@@ -35,34 +35,20 @@ class DefaultCredentialsManager:
     
     def create_default_credentials(self, force: bool = False) -> Dict[str, Any]:
         """Create default credentials if they don't exist."""
-        if self.creds_file.exists() and not force:
+        if (self.creds_file.exists() or self.creds_json_file.exists()) and not force:
             logger.info("Default credentials already exist")
             return self.load_credentials()
         
-        # Generate credentials
-        gui_password = self.generate_secure_password(12)
-        webui_password = self.generate_secure_password(12)
-        admin_password = self.generate_secure_password(16)
-        
+        # Generate shared credentials (GUI and WebUI use the same login system)
+        shared_password = self.generate_secure_password(12)
+
         credentials = {
             "created_at": datetime.now(timezone.utc).isoformat(),
             "version": "1.0",
-            "interfaces": {
-                "gui": {
-                    "username": "admin",
-                    "password": gui_password,
-                    "description": "GUI interface credentials"
-                },
-                "webui": {
-                    "username": "admin", 
-                    "password": webui_password,
-                    "description": "Web interface credentials"
-                },
-                "admin": {
-                    "username": "admin",
-                    "password": admin_password,
-                    "description": "Administrative access credentials"
-                }
+            "shared_login": {
+                "username": "admin",
+                "password": shared_password,
+                "description": "Shared credentials for GUI and WebUI interfaces"
             },
             "security": {
                 "password_policy": {
@@ -77,9 +63,10 @@ class DefaultCredentialsManager:
             },
             "notes": [
                 "These are the default credentials for first-time setup.",
-                "Please change these passwords after initial login.",
+                "GUI and WebUI share the same login system - use these credentials for both.",
+                "Please change the password after initial login.",
                 "Store this file securely and delete after setup.",
-                "Use the CLI command 'gui-password' or 'webui-password' to change passwords."
+                "Use the CLI command 'python run.py cli password-change' to change password."
             ]
         }
         
@@ -97,28 +84,22 @@ PlexiChat Default Credentials
 ============================
 Created: {credentials['created_at']}
 
-IMPORTANT: Change these passwords after first login!
+IMPORTANT: Change the password after first login!
 
-GUI Interface:
-  Username: {credentials['interfaces']['gui']['username']}
-  Password: {credentials['interfaces']['gui']['password']}
+Shared Login (GUI & WebUI):
+  Username: {credentials['shared_login']['username']}
+  Password: {credentials['shared_login']['password']}
 
-Web Interface:
-  Username: {credentials['interfaces']['webui']['username']}
-  Password: {credentials['interfaces']['webui']['password']}
+Note: GUI and WebUI share the same login system.
+Use these credentials for both interfaces.
 
-Admin Access:
-  Username: {credentials['interfaces']['admin']['username']}
-  Password: {credentials['interfaces']['admin']['password']}
-
-Password Change Commands:
-  GUI:   python run.py cli gui-password
-  WebUI: python run.py cli webui-password
-  Admin: python run.py cli password-change admin
+Password Change Command:
+  python run.py cli password-change
 
 Security Notes:
 - These are temporary default credentials
-- Change them immediately after first login
+- GUI and WebUI use the same authentication system
+- Change the password immediately after first login
 - Store this file securely
 - Delete this file after setup is complete
 
@@ -164,7 +145,7 @@ For help: python run.py --help
     
     def credentials_exist(self) -> bool:
         """Check if default credentials exist."""
-        return self.creds_file.exists() or self.creds_json_file.exists()
+        return self.creds_file.exists() or self.creds_json_file.exists() or self.creds_json_file.exists()
     
     def remove_credentials(self) -> bool:
         """Remove default credentials files."""

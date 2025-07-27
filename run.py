@@ -2091,16 +2091,26 @@ def run_splitscreen_cli():
         logger.debug(f"CLI error details: {e}", exc_info=True)
 
 def run_api_and_cli(args=None):
-    """Run both API server and CLI interface."""
-    try:
-        # Start the splitscreen CLI in a separate thread
-        cli_thread = threading.Thread(target=run_splitscreen_cli, daemon=True)
-        if cli_thread and hasattr(cli_thread, "start"):
-            cli_thread.start()
-            logger.info("CLI thread started successfully")
-    except Exception as e:
-        logger.warning(f"Failed to start CLI interface: {e}")
-        logger.info("Continuing with API server only...")
+    """Run API server with optional CLI interface."""
+    # Check for --nocli flag
+    start_cli = True
+    if args and hasattr(args, 'nocli') and args.nocli:
+        start_cli = False
+    elif args and isinstance(args, list) and '--nocli' in args:
+        start_cli = False
+
+    if start_cli:
+        try:
+            # Start the splitscreen CLI in a separate thread
+            cli_thread = threading.Thread(target=run_splitscreen_cli, daemon=True)
+            if cli_thread and hasattr(cli_thread, "start"):
+                cli_thread.start()
+                logger.info("CLI thread started successfully")
+        except Exception as e:
+            logger.warning(f"Failed to start CLI interface: {e}")
+            logger.info("Continuing with API server only...")
+    else:
+        logger.info("CLI interface disabled (--nocli flag)")
 
     # Start the API server (blocking)
     run_api_server(args)
@@ -3331,6 +3341,9 @@ Examples:
         parser.add_argument('--noserver',
                           action='store_true',
                           help='Start GUI without API server (GUI and WebUI commands only)')
+        parser.add_argument('--nocli',
+                          action='store_true',
+                          help='Disable CLI interface (API server only mode)')
 
         # Parse and return arguments
         args = parser.parse_args()
@@ -5373,46 +5386,85 @@ def execute_simple_command(command, args=None):
 # ============================================================================
 
 def kill_old_plexichat_processes():
-    """Kill old PlexiChat processes with improved error handling."""
+    """Kill old PlexiChat processes with user confirmation."""
     try:
         import psutil
         current_pid = os.getpid()
-        
+        plexichat_processes = []
+
+        # First, find all PlexiChat processes
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
                 proc_info = proc.info
                 cmdline = proc_info.get('cmdline', [])
-                
+
                 # Skip if no cmdline (system process) or if it's our process
                 if not cmdline or proc_info['pid'] == current_pid:
                     continue
-                
+
                 # Check if it's a PlexiChat process
                 is_plexichat = (
                     "plexichat" in proc_info['name'].lower() or
                     any("run.py" in str(cmd).lower() for cmd in cmdline)
                 )
-                
+
                 if is_plexichat:
-                    if logger:
-                        logger.info(f"Terminating old PlexiChat process: {proc_info['pid']}")
-                    try:
-                        proc.terminate()
-                        # Wait for process to terminate
-                        try:
-                            proc.wait(timeout=5)
-                        except psutil.TimeoutExpired:
-                            # Force kill if it doesn't terminate
-                            proc.kill()
-                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired):
-                        if logger:
-                            logger.warning(f"Could not terminate process {proc_info['pid']}")
+                    plexichat_processes.append((proc, proc_info))
 
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
             except Exception as e:
                 if logger:
                     logger.warning(f"Error processing PID {proc_info['pid']}: {e}")
+
+        # If we found processes, ask user what to do
+        if plexichat_processes:
+            print(f"\n{Colors.YELLOW}Found {len(plexichat_processes)} existing PlexiChat process(es):")
+            for proc, proc_info in plexichat_processes:
+                print(f"  - PID {proc_info['pid']}: {proc_info['name']}")
+
+            print(f"\nWhat would you like to do?")
+            print(f"  1. Kill existing processes and continue")
+            print(f"  2. Exit and let existing processes run")
+            print(f"  3. Continue anyway (may cause conflicts)")
+
+            try:
+                choice = input(f"\nEnter your choice (1-3): ").strip()
+
+                if choice == "1":
+                    print(f"{Colors.GREEN}Terminating existing processes...")
+                    for proc, proc_info in plexichat_processes:
+                        try:
+                            if logger:
+                                logger.info(f"Terminating old PlexiChat process: {proc_info['pid']}")
+                            proc.terminate()
+                            # Wait for process to terminate
+                            try:
+                                proc.wait(timeout=5)
+                            except psutil.TimeoutExpired:
+                                # Force kill if it doesn't terminate
+                                proc.kill()
+                        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired):
+                            if logger:
+                                logger.warning(f"Could not terminate process {proc_info['pid']}")
+                    print(f"{Colors.GREEN}Existing processes terminated.{Colors.RESET}")
+
+                elif choice == "2":
+                    print(f"{Colors.YELLOW}Exiting to avoid conflicts.{Colors.RESET}")
+                    sys.exit(0)
+
+                elif choice == "3":
+                    print(f"{Colors.YELLOW}Continuing with existing processes running...{Colors.RESET}")
+                    if logger:
+                        logger.warning("User chose to continue with existing PlexiChat processes running")
+
+                else:
+                    print(f"{Colors.RED}Invalid choice. Exiting.{Colors.RESET}")
+                    sys.exit(1)
+
+            except KeyboardInterrupt:
+                print(f"\n{Colors.YELLOW}Operation cancelled by user.{Colors.RESET}")
+                sys.exit(0)
 
     except ImportError:
         if logger:
@@ -5445,15 +5497,17 @@ def main():
     # Setup thread pool
     setup_thread_pool()
 
-    # Ensure default credentials exist on first run
-    try:
-        from plexichat.core.auth.default_credentials import ensure_default_credentials
-        ensure_default_credentials()
-        print("✅ Default credentials initialized successfully")
-    except Exception as e:
-        print(f"⚠️  Warning: Failed to initialize default credentials: {e}")
-        import traceback
-        print(traceback.format_exc())
+    # Only create credentials for commands that actually need them
+    commands_needing_credentials = ['api', 'gui', 'webui', 'setup', 'wizard']
+    if args.command in commands_needing_credentials:
+        try:
+            from plexichat.core.auth.default_credentials import ensure_default_credentials
+            ensure_default_credentials()
+            print("✅ Default credentials initialized successfully")
+        except Exception as e:
+            print(f"⚠️  Warning: Failed to initialize default credentials: {e}")
+            import traceback
+            print(traceback.format_exc())
 
     # Acquire process lock to prevent multiple instances
     if not acquire_process_lock():
