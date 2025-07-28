@@ -22,6 +22,7 @@ colorama>=0.4.6
 click>=8.1.7
 Pillow>=10.1.0
 requests>=2.31.0
+PyQt6>=6.6.0
 beautifulsoup4>=4.12.2
 lxml>=4.9.3
 markdown>=3.5.1

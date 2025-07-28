@@ -2124,7 +2124,7 @@ def run_gui(args=None):
     elif args and isinstance(args, list) and '--noserver' in args:
         start_server = False
 
-    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (Tkinter)...{Colors.RESET}")
+    logger.info(f"{Colors.BOLD}{Colors.BLUE}Launching PlexiChat GUI (PyQt6/Tkinter)...{Colors.RESET}")
 
     # Start API server in background if requested
     server_process = None
@@ -2153,14 +2153,29 @@ def run_gui(args=None):
 
     try:
         logger.debug(f"{Colors.CYAN}Importing GUI modules...{Colors.RESET}")
-        from plexichat.interfaces.gui.main_application import main as gui_main
 
-        logger.info(f"{Colors.GREEN}GUI modules imported successfully{Colors.RESET}")
-        logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat Server Manager GUI...{Colors.RESET}")
+        # Try PyQt6 first (preferred)
+        try:
+            from plexichat.interfaces.gui import run_gui as gui_runner
+            logger.info(f"{Colors.GREEN}PyQt6 GUI modules imported successfully{Colors.RESET}")
+            logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat GUI (PyQt6)...{Colors.RESET}")
 
-        # Start GUI
-        gui_main()  # This will run the GUI
-        logger.info(f"{Colors.BLUE}GUI closed successfully{Colors.RESET}")
+            # Start PyQt6 GUI
+            exit_code = gui_runner(use_pyqt=True)
+            logger.info(f"{Colors.BLUE}PyQt6 GUI closed successfully{Colors.RESET}")
+
+        except ImportError as e:
+            logger.warning(f"PyQt6 not available: {e}")
+            logger.info(f"{Colors.YELLOW}Falling back to Tkinter GUI...{Colors.RESET}")
+
+            # Fallback to Tkinter
+            from plexichat.interfaces.gui.main_application import main as gui_main
+            logger.info(f"{Colors.GREEN}Tkinter GUI modules imported successfully{Colors.RESET}")
+            logger.info(f"{Colors.BOLD}{Colors.GREEN}Opening PlexiChat GUI (Tkinter)...{Colors.RESET}")
+
+            # Start Tkinter GUI
+            gui_main()
+            logger.info(f"{Colors.BLUE}Tkinter GUI closed successfully{Colors.RESET}")
 
         # If server was started and GUI closes, keep server running unless --noserver
         if start_server:
@@ -2177,7 +2192,8 @@ def run_gui(args=None):
 
     except ImportError as e:
         logger.error(f"{Colors.RED}Failed to import GUI modules: {e}{Colors.RESET}")
-        logger.error(f"{Colors.YELLOW}Make sure tkinter is installed{Colors.RESET}")
+        logger.error(f"{Colors.YELLOW}Make sure PyQt6 or tkinter is installed{Colors.RESET}")
+        logger.error(f"{Colors.CYAN}Install PyQt6 with: pip install PyQt6{Colors.RESET}")
         import traceback
         logger.debug(traceback.format_exc())
         return False
