@@ -50,16 +50,22 @@ STARTUP_TIME = datetime.now()
 async def health_check():
     """Basic health check endpoint."""
     try:
+        from plexichat.shared.version_utils import get_version
+        version = get_version()
+    except ImportError:
+        version = "b.1.1-86"
+
+    try:
         uptime = datetime.now() - STARTUP_TIME
         uptime_str = str(uptime).split('.')[0]  # Remove microseconds
-        
+
         return HealthStatus(
             status="healthy",
             timestamp=datetime.now(),
             uptime=uptime_str,
-            version="1.0.0"
+            version=version
         )
-        
+
     except Exception as e:
         logger.error(f"Health check error: {e}")
         raise HTTPException(status_code=500, detail="Health check failed")
@@ -164,19 +170,35 @@ async def detailed_status():
 @router.get("/version")
 async def version_info():
     """Get version information."""
-    return {
-        "version": "1.0.0",
-        "api_version": "v1",
-        "build_date": "2024-07-26",
-        "environment": "development",
-        "features": [
-            "authentication",
-            "messaging",
-            "file_storage",
-            "admin_panel",
-            "system_monitoring"
-        ]
-    }
+    try:
+        from plexichat.shared.version_utils import get_version_info
+        version_data = get_version_info()
+        # Add additional system info
+        version_data.update({
+            "environment": "development",
+            "features": [
+                "authentication",
+                "messaging",
+                "file_storage",
+                "admin_panel",
+                "system_monitoring"
+            ]
+        })
+        return version_data
+    except ImportError:
+        return {
+            "version": "b.1.1-86",
+            "api_version": "v1",
+            "build_date": "2024-07-26",
+            "environment": "development",
+            "features": [
+                "authentication",
+                "messaging",
+                "file_storage",
+                "admin_panel",
+                "system_monitoring"
+            ]
+        }
 
 @router.get("/ping")
 async def ping():

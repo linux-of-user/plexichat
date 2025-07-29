@@ -22,7 +22,13 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from plexichat.infrastructure.debugging.debug_manager import get_debug_manager, DebugLevel
-from plexichat.infrastructure.debugging.debug_utils import create_debug_dump, analyze_performance_bottlenecks
+try:
+    from plexichat.infrastructure.debugging.debug_utils import create_debug_dump, analyze_performance_bottlenecks
+except ImportError:
+    def create_debug_dump():
+        return None
+    def analyze_performance_bottlenecks():
+        return []
 
 logger = logging.getLogger(__name__)
 

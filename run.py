@@ -2091,13 +2091,20 @@ def run_splitscreen_cli():
         logger.debug(f"CLI error details: {e}", exc_info=True)
 
 def run_api_and_cli(args=None):
-    """Run API server with optional CLI interface."""
+    """Run API server with optional CLI interface and WebUI."""
     # Check for --nocli flag
     start_cli = True
     if args and hasattr(args, 'nocli') and args.nocli:
         start_cli = False
     elif args and isinstance(args, list) and '--nocli' in args:
         start_cli = False
+
+    # Check for --noui flag
+    start_webui = True
+    if args and hasattr(args, 'noui') and args.noui:
+        start_webui = False
+    elif args and isinstance(args, list) and '--noui' in args:
+        start_webui = False
 
     if start_cli:
         try:
@@ -2111,6 +2118,18 @@ def run_api_and_cli(args=None):
             logger.info("Continuing with API server only...")
     else:
         logger.info("CLI interface disabled (--nocli flag)")
+
+    if start_webui:
+        try:
+            # Start the WebUI in a separate thread
+            webui_thread = threading.Thread(target=lambda: run_webui_server(args), daemon=True)
+            webui_thread.start()
+            logger.info("WebUI thread started successfully")
+        except Exception as e:
+            logger.warning(f"Failed to start WebUI interface: {e}")
+            logger.info("Continuing with API server only...")
+    else:
+        logger.info("WebUI interface disabled (--noui flag)")
 
     # Start the API server (blocking)
     run_api_server(args)
@@ -2306,6 +2325,31 @@ def run_gui_standalone():
 
     return True
 
+def run_webui_server(args=None):
+    """Start just the WebUI server component."""
+    try:
+        logger.info("Starting PlexiChat WebUI server...")
+
+        # Get port from args or environment, but use a different port for WebUI
+        base_port = 8003  # Default base port
+        if args and hasattr(args, 'port') and args.port:
+            base_port = args.port
+        elif os.getenv('PLEXICHAT_PORT'):
+            base_port = int(os.getenv('PLEXICHAT_PORT'))
+
+        # Use base_port + 1 for WebUI to avoid conflicts
+        webui_port = base_port + 1
+
+        # Import and start WebUI
+        from plexichat.interfaces.web import app
+        import uvicorn
+
+        logger.info(f"WebUI server starting on port {webui_port}")
+        uvicorn.run(app, host="0.0.0.0", port=webui_port, log_level="info")
+
+    except Exception as e:
+        logger.error(f"Failed to start WebUI server: {e}")
+
 def run_webui(args=None):
     """Launch the web UI interface with API server by default."""
     # Check for --noserver flag
@@ -2323,8 +2367,7 @@ def run_webui(args=None):
         run_api_and_cli(args)  # Start with API server and CLI
     else:
         logger.info("Launching PlexiChat Web UI without API server...")
-        logger.info("Note: WebUI requires API server to function properly")
-        logger.info("Consider running 'python run.py api' in another terminal")
+        run_webui_server(args)
 
 def run_configuration_wizard():
     """Run the configuration wizard."""
@@ -3447,6 +3490,9 @@ Examples:
         parser.add_argument('--noserver',
                           action='store_true',
                           help='Start GUI without API server (GUI and WebUI commands only)')
+        parser.add_argument('--noui',
+                          action='store_true',
+                          help='Disable WebUI interface (API server only mode)')
         parser.add_argument('--nocli',
                           action='store_true',
                           help='Disable CLI interface (API server only mode)')
@@ -4690,4 +4736,164 @@ def get_current_version():
         # Try to get from version file
         version_file = Path("VERSION")
         if version_file.exists():
-            with open(version_
+            with open(version_file, 'r') as f:
+                return f.read().strip()
+
+        # Fallback to version from version.json
+        return get_version_from_json()
+    except Exception:
+        return get_version_from_json()
+
+# ============================================================================
+# MAIN EXECUTION LOGIC
+# ============================================================================
+
+def main():
+    """Main execution function."""
+    try:
+        # Acquire process lock
+        if not process_lock_manager.acquire_lock():
+            print(f"{Colors.RED}PlexiChat is already running. Use --force-kill to terminate existing processes.{Colors.RESET}")
+            return 1
+
+        # Parse command line arguments
+        args = parse_arguments()
+
+        # Setup enhanced logging
+        log_level = "DEBUG" if (args.verbose or args.debug) else args.log_level
+        logger, performance_monitor = setup_enhanced_logging(log_level)
+
+        # Handle port override
+        if args.port:
+            os.environ['PLEXICHAT_PORT'] = str(args.port)
+
+        # Handle host override
+        if args.host:
+            os.environ['PLEXICHAT_HOST'] = args.host
+
+        # Execute command based on args.command
+        if args.command == 'api':
+            logger.info("Starting API server with CLI interface")
+            return run_api_and_cli(args)
+
+        elif args.command == 'gui':
+            logger.info("Starting GUI interface")
+            return run_gui(args)
+
+        elif args.command == 'gui-standalone':
+            logger.info("Starting GUI in standalone mode")
+            return run_gui_standalone()
+
+        elif args.command == 'webui':
+            logger.info("Starting WebUI interface")
+            return run_webui(args)
+
+        elif args.command == 'cli':
+            logger.info("Starting CLI interface")
+            return run_cli()
+
+        elif args.command == 'admin':
+            logger.info("Starting admin CLI")
+            return run_admin_cli()
+
+        elif args.command == 'backup-node':
+            logger.info("Starting backup node")
+            return run_backup_node()
+
+        elif args.command == 'plugin':
+            logger.info("Starting plugin manager")
+            return run_plugin_manager()
+
+        elif args.command == 'test':
+            logger.info("Running test suite")
+            return asyncio.run(handle_test_command(args))
+
+        elif args.command == 'setup':
+            logger.info("Running setup wizard")
+            return run_setup_command(args.level, args.no_ui)
+
+        elif args.command == 'config':
+            logger.info("Running configuration wizard")
+            return run_config_wizard()
+
+        elif args.command == 'wizard':
+            logger.info("Running configuration wizard")
+            return run_config_wizard()
+
+        elif args.command == 'update':
+            logger.info("Running update manager")
+            return run_update_manager()
+
+        elif args.command == 'version':
+            logger.info("Running version manager")
+            return run_version_manager()
+
+        elif args.command == 'deps':
+            logger.info("Running dependency manager")
+            return run_dependency_manager(args.level or 'full')
+
+        elif args.command == 'system':
+            logger.info("Running system diagnostics")
+            return run_system_diagnostics()
+
+        elif args.command == 'clean':
+            logger.info("Running system cleanup")
+            return run_system_cleanup()
+
+        elif args.command == 'download':
+            logger.info("Running download manager")
+            return run_download_manager(args.target_dir)
+
+        elif args.command == 'latest':
+            logger.info("Downloading latest version")
+            handle_github_commands('latest', args.args, args.target_dir)
+            return 0
+
+        elif args.command == 'versions':
+            logger.info("Showing available versions")
+            handle_github_commands('versions', args.args, args.target_dir)
+            return 0
+
+        elif args.command == 'install':
+            logger.info("Running installer")
+            return run_install_command(args)
+
+        elif args.command == 'advanced-setup':
+            logger.info("Running advanced setup")
+            return run_advanced_setup()
+
+        elif args.command == 'optimize':
+            logger.info("Running system optimization")
+            return run_system_optimization()
+
+        elif args.command == 'diagnostic':
+            logger.info("Running system diagnostics")
+            return run_system_diagnostics()
+
+        elif args.command == 'maintenance':
+            logger.info("Running system maintenance")
+            return run_system_maintenance()
+
+        elif args.command == 'bootstrap':
+            logger.info("Running bootstrap mode")
+            return run_bootstrap_mode()
+
+        else:
+            logger.error(f"Unknown command: {args.command}")
+            show_help()
+            return 1
+
+    except KeyboardInterrupt:
+        logger.info("Operation cancelled by user")
+        return 0
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(traceback.format_exc())
+        return 1
+    finally:
+        # Always release the process lock
+        process_lock_manager.release_lock()
+
+if __name__ == "__main__":
+    sys.exit(main())

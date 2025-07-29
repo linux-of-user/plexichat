@@ -12,7 +12,11 @@ from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from typing import Optional
 
-from plexichat.shared.constants import PLEXICHAT_VERSION
+try:
+    from plexichat.shared.constants import get_version
+    PLEXICHAT_VERSION = get_version()
+except ImportError:
+    PLEXICHAT_VERSION = "b.1.1-86"
 from plexichat.core.security.security_decorators import require_auth, rate_limit, audit_access
 from plexichat.core.logging_advanced.enhanced_logging_system import get_logger
 
@@ -197,7 +201,7 @@ async def webui_login(request: Request):
     return HTMLResponse(content=html_content)
 
 @router.get("/dashboard", response_class=HTMLResponse)
-@require_auth
+@require_auth()
 @rate_limit(requests_per_minute=60)
 async def webui_dashboard(request: Request):
     """Authenticated user dashboard."""

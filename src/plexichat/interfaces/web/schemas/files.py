@@ -115,7 +115,8 @@ class FileUpdate(BaseModel):
     tags: Optional[List[str]] = Field(None, description="Updated tags")
     is_public: Optional[bool] = Field(None, description="Updated public access flag")
 
-    @validator('filename')
+    @field_validator('filename')
+    @classmethod
     def validate_filename(cls, v):
         if v is not None:
             if not v.strip():
@@ -126,7 +127,8 @@ class FileUpdate(BaseModel):
             return v.strip()
         return v
 
-    @validator('tags')
+    @field_validator('tags')
+    @classmethod
     def validate_tags(cls, v):
         if v is not None:
             if len(v) > 10:
@@ -149,7 +151,8 @@ class FileSearch(BaseModel):
     end_date: Optional[datetime] = Field(None, description="End date filter")
     is_public: Optional[bool] = Field(None, description="Filter by public status")
 
-    @validator('query')
+    @field_validator('query')
+    @classmethod
     def validate_query(cls, v):
         if v is not None and not v.strip():
             raise ValueError('Search query cannot be empty')

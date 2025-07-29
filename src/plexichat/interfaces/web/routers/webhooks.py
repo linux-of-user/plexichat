@@ -122,6 +122,12 @@ except ImportError as e:
         WRITE = "write"
         DELETE = "delete"
     
+    class LogCategory:
+        API = "api"
+        AUDIT = "audit"
+        PERFORMANCE = "performance"
+        SECURITY = "security"
+    
     class PerformanceTracker:
         def __init__(self, name, logger):
             self.name = name

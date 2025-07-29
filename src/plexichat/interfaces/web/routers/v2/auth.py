@@ -8,18 +8,19 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from jose import JWTError
-from sqlmodel import Session, select
-
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError
 from pydantic import BaseModel, Field, field_validator
+from sqlmodel import Session, select
 
 from plexichat.core.auth import SecurityManager
 from plexichat.core.database import get_session
 from plexichat.core.security import InputSanitizer
 from plexichat.features.users.user import User
 from plexichat.infrastructure.utils.rate_limiting import RateLimiter
-from plexichat.infrastructure.utils.security import InputSanitizer, SecurityManager
+from plexichat.shared.error_handling import error_handler
+from plexichat.shared.monitoring import monitor_performance
 
 # app/routers/v2/auth.py
 """

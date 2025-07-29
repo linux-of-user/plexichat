@@ -4,7 +4,32 @@ PlexiChat Shared Constants
 This module contains TRUE constants that should NOT be configurable,
 such as plugin system constants, status enums, and fixed system values.
 All configurable values should be loaded from config files.
+
+Version information is loaded from version.json, not stored as constants.
 """
+
+import json
+from pathlib import Path
+
+def get_version() -> str:
+    """Get current version from version.json file."""
+    try:
+        # Look for version.json in the project root
+        current_file = Path(__file__)
+        version_file = current_file.parent.parent.parent.parent / "version.json"
+
+        if version_file.exists():
+            with open(version_file, 'r', encoding='utf-8') as f:
+                version_data = json.load(f)
+                return version_data.get('version', 'b.1.1-86')
+        else:
+            # Fallback version
+            return 'b.1.1-86'
+    except Exception:
+        return 'b.1.1-86'
+
+# For backward compatibility, provide PLEXICHAT_VERSION
+PLEXICHAT_VERSION = get_version()
 
 # Plugin Discovery Constants (these are fixed file names, not configurable)
 PLUGIN_MANIFEST_FILES = [
@@ -70,5 +95,19 @@ SUCCESS_PLUGIN_LOADED = "Plugin loaded successfully"
 SUCCESS_PLUGIN_UNLOADED = "Plugin unloaded successfully"
 SUCCESS_CONFIG_UPDATED = "Configuration updated successfully"
 SUCCESS_OPERATION_COMPLETED = "Operation completed successfully"
+
+# User validation constants (these are validation rules, not configurable)
+MAX_USERNAME_LENGTH = 50
+MIN_USERNAME_LENGTH = 3
+MAX_EMAIL_LENGTH = 255
+MAX_DISPLAY_NAME_LENGTH = 100
+MIN_DISPLAY_NAME_LENGTH = 1
+
+# Backup constants (these are system limits, not configurable)
+BACKUP_RETENTION_DAYS = 30
+BACKUP_COMPRESSION_ENABLED = True
+SHARD_SIZE = 1024 * 1024  # 1MB shard size for backup files
+MIN_BACKUP_SHARDS = 3  # Minimum number of backup shards
+PARITY_SHARD_RATIO = 0.2  # 20% parity shards for redundancy
 
 

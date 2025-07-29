@@ -11,7 +11,7 @@ Web interface for plugin testing with scheduling and management features.
 
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse

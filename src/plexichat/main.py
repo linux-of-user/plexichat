@@ -59,12 +59,23 @@ except ImportError as e:
 # Configuration loading
 def load_configuration() -> Dict[str, Any]:
     """Load configuration from various sources."""
-    # Import version from constants
+    # Load version from centralized version manager
     try:
-        from plexichat.shared.constants import PLEXICHAT_VERSION
-        current_version = PLEXICHAT_VERSION
+        from plexichat.shared.version_utils import get_version
+        current_version = get_version()
     except ImportError:
-        current_version = "b.1.1-85"
+        # Fallback if version utils not available
+        try:
+            import json
+            version_file = Path("version.json")
+            if version_file.exists():
+                with open(version_file, 'r', encoding='utf-8') as f:
+                    version_data = json.load(f)
+                    current_version = version_data.get('version', 'b.1.1-86')
+            else:
+                current_version = "b.1.1-86"
+        except Exception:
+            current_version = "b.1.1-86"
     
     try:
         # Try to load from config file
@@ -162,9 +173,15 @@ app.add_middleware(
 @app.get("/")
 async def root():
     """Root endpoint."""
+    try:
+        from plexichat.shared.version_utils import get_version
+        version = get_version()
+    except ImportError:
+        version = config.get("system", {}).get("version", "b.1.1-86")
+
     return {
         "message": "PlexiChat API",
-        "version": config.get("system", {}).get("version", "b.1.1-85"),
+        "version": version,
         "status": "running",
         "timestamp": datetime.now().isoformat()
     }
@@ -172,11 +189,15 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "version": config.get("system", {}).get("version", "b.1.1-85")
-    }
+    try:
+        from plexichat.shared.version_utils import get_health_info
+        return get_health_info()
+    except ImportError:
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": config.get("system", {}).get("version", "b.1.1-86")
+        }
 
 # Import and include routers with error handling
 def setup_routers():
