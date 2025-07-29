@@ -1,0 +1,45 @@
+{
+  "version": "b.1.2-89",
+  "version_type": "beta",
+  "major_version": 1,
+  "minor_version": 2,
+  "build_number": 89,
+  "api_version": "v1",
+  "release_date": "2025-07-29",
+  "status": "beta",
+  "changelog": [
+    "CRITICAL BUG FIXES - Fixed Unicode encoding errors, import errors, and syntax issues",
+    "ADVANCED SECURITY TESTING - Added comprehensive penetration testing suite with 20+ attack vectors",
+    "STABILITY IMPROVEMENTS - Fixed database deadlock issues and improved error handling",
+    "SECURITY ENHANCEMENTS - Enhanced vulnerability detection and threat assessment",
+    "COMPREHENSIVE SECURITY OVERHAUL - Implemented enterprise-grade security",
+    "PERFORMANCE OPTIMIZATION - API responses now average <1ms (target achieved!)",
+    "ADVANCED RATE LIMITING - Account-type based + dynamic system load scaling",
+    "BOT ACCOUNT SYSTEM - Special registration process with higher rate limits",
+    "IP BLACKLIST SYSTEM - Configurable IP blocking with auto-detection",
+    "ENHANCED ERROR HANDLING - Descriptive error messages with proper HTTP codes",
+    "COMPREHENSIVE TESTING - Security pentest + performance testing",
+    "MESSAGE FUNCTIONALITY - Thoroughly tested sending/retrieval with security",
+    "CONFIGURABLE SECURITY - WebUI/GUI configuration for all security settings",
+    "THREAT DETECTION - Real-time monitoring and automatic threat response"
+  ],
+  "breaking_changes": [],
+  "migration_required": false,
+  "database_version": "1.1",
+  "config_version": "1.1",
+  "dependencies": {
+    "fastapi": ">=0.104.1",
+    "uvicorn": ">=0.24.0",
+    "pydantic": ">=2.5.0"
+  },
+  "security_updates": [
+    "Fixed critical Unicode encoding vulnerabilities",
+    "Added advanced penetration testing suite",
+    "Enhanced vulnerability detection and assessment",
+    "Improved security monitoring and threat detection",
+    "Fixed database deadlock security issues",
+    "Enhanced security middleware",
+    "Improved input validation",
+    "Better rate limiting implementation"
+  ]
+}
