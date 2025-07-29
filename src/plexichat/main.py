@@ -59,13 +59,25 @@ except ImportError as e:
 # Configuration loading
 def load_configuration() -> Dict[str, Any]:
     """Load configuration from various sources."""
+    # Import version from constants
+    try:
+        from plexichat.shared.constants import PLEXICHAT_VERSION
+        current_version = PLEXICHAT_VERSION
+    except ImportError:
+        current_version = "b.1.1-85"
+    
     try:
         # Try to load from config file
         config_file = Path("config/plexichat.json")
         if config_file.exists():
             import json
             with open(config_file, 'r') as f:
-                return json.load(f)
+                config_data = json.load(f)
+                # Override version with the correct one
+                if "system" not in config_data:
+                    config_data["system"] = {}
+                config_data["system"]["version"] = current_version
+                return config_data
     except Exception as e:
         logger.warning(f"Could not load config file: {e}")
     
@@ -73,7 +85,7 @@ def load_configuration() -> Dict[str, Any]:
     return {
         "system": {
             "name": "PlexiChat",
-            "version": "a.1.1-144",
+            "version": current_version,
             "environment": "production",
             "debug": False
         },
@@ -131,7 +143,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="PlexiChat API",
     description="Government-Level Secure Communication Platform",
-    version=config.get("system", {}).get("version", "1.0.0"),
+    version=config.get("system", {}).get("version", "b.1.1-85"),
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
@@ -152,7 +164,7 @@ async def root():
     """Root endpoint."""
     return {
         "message": "PlexiChat API",
-        "version": config.get("system", {}).get("version", "1.0.0"),
+        "version": config.get("system", {}).get("version", "b.1.1-85"),
         "status": "running",
         "timestamp": datetime.now().isoformat()
     }
@@ -163,7 +175,7 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "version": config.get("system", {}).get("version", "1.0.0")
+        "version": config.get("system", {}).get("version", "b.1.1-85")
     }
 
 # Import and include routers with error handling
@@ -187,8 +199,8 @@ def setup_routers():
     
     try:
         # API v1 routes
-        from plexichat.interfaces.api.v1 import router as api_v1_router
-        app.include_router(api_v1_router, prefix="/api/v1", tags=["api-v1"])
+        from plexichat.interfaces.api.v1 import v1_router as api_v1_router
+        app.include_router(api_v1_router, tags=["api-v1"])
         logger.info("[CHECK] API v1 router loaded")
     except ImportError as e:
         logger.warning(f"API v1 router not available: {e}")
@@ -231,6 +243,56 @@ templates = setup_static_files()
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc: HTTPException):
     """Handle 404 errors."""
+    # Check if request is from a browser (Accept header contains text/html)
+    accept_header = request.headers.get("accept", "")
+    if "text/html" in accept_header and templates:
+        # Return HTML 404 page for browsers
+        try:
+            return templates.TemplateResponse(
+                "404.html", 
+                {
+                    "request": request, 
+                    "path": str(request.url.path),
+                    "version": config.get("system", {}).get("version", "b.1.1-85")
+                },
+                status_code=404
+            )
+        except Exception:
+            # Fallback to inline HTML if template not found
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>404 - Page Not Found | PlexiChat</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }}
+                    .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+                    h1 {{ color: #e74c3c; }}
+                    .path {{ background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; }}
+                    .links {{ margin-top: 30px; }}
+                    .links a {{ color: #3498db; text-decoration: none; margin-right: 20px; }}
+                    .links a:hover {{ text-decoration: underline; }}
+                    .version {{ color: #7f8c8d; font-size: 0.9em; margin-top: 20px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>404 - Page Not Found</h1>
+                    <p>The requested resource was not found on this server.</p>
+                    <div class="path">Path: {request.url.path}</div>
+                    <div class="links">
+                        <a href="/">Home</a>
+                        <a href="/docs">API Documentation</a>
+                        <a href="/health">Health Check</a>
+                    </div>
+                    <div class="version">PlexiChat {config.get("system", {}).get("version", "b.1.1-85")}</div>
+                </div>
+            </body>
+            </html>
+            """
+            return HTMLResponse(content=html_content, status_code=404)
+    
+    # Return JSON for API clients
     return JSONResponse(
         status_code=404,
         content={

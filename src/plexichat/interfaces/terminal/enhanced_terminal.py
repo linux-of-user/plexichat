@@ -226,7 +226,7 @@ class EnhancedTerminal:
             try:
                 cpu_percent = psutil.cpu_percent()
                 memory = psutil.virtual_memory()
-                status_info.extend([)
+                status_info.extend([
                     f"CPU: {cpu_percent:.1f}%",
                     f"RAM: {memory.percent:.1f}%"
                 ])

@@ -46,7 +46,7 @@ class LogCLI:
 
     def create_parser(self) -> argparse.ArgumentParser:
         """Create argument parser for log commands."""
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(
             description="PlexiChat Advanced Log Management CLI",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
@@ -191,7 +191,7 @@ Examples:
             type_str = "Archive" if log_file.is_archived else "Active"
 
             color = self.colors['CYAN'] if log_file.is_archived else self.colors['GREEN']
-            logger.info(f"{color}{log_file.filename:<30}{self.colors['RESET']} ")
+            logger.info(f"{color}{log_file.filename:<30}{self.colors['RESET']} "
                   f"{size_str:<10} {log_file.entry_count:<8} {modified_str:<20} {type_str:<8}")
 
         logger.info(f"\nTotal: {len(log_files)} files")
@@ -202,7 +202,7 @@ Examples:
             start_time = self.parse_datetime(args.start) if args.start else None
             end_time = self.parse_datetime(args.end) if args.end else None
 
-            entries, total_lines = self.log_manager.read_log_entries()
+            entries, total_lines = self.log_manager.read_log_entries(
                 filename=args.filename,
                 max_lines=args.lines,
                 level_filter=args.level,
@@ -245,7 +245,7 @@ Examples:
     def cmd_search(self, args):
         """Search logs command."""
         try:
-            results = self.log_manager.search_logs()
+            results = self.log_manager.search_logs(
                 search_term=args.term,
                 filenames=args.files,
                 level_filter=args.level,
@@ -276,7 +276,7 @@ Examples:
         """Tail log file command."""
         try:
             # Show initial lines
-            entries, _ = self.log_manager.read_log_entries()
+            entries, _ = self.log_manager.read_log_entries(
                 filename=args.filename,
                 max_lines=args.lines,
                 level_filter=args.level
@@ -327,7 +327,7 @@ Examples:
             # Module distribution
             if 'module_distribution' in stats:
                 logger.info(f"\n{self.colors['BOLD']}Top Modules:{self.colors['RESET']}")
-                sorted_modules = sorted()
+                sorted_modules = sorted(
                     stats['module_distribution'].items(),
                     key=lambda x: x[1],
                     reverse=True
@@ -371,7 +371,7 @@ Examples:
                 'end_time': self.parse_datetime(args.end) if args.end else None
             }
 
-            exported_data = self.log_manager.export_logs()
+            exported_data = self.log_manager.export_logs(
                 filenames=[args.filename],
                 export_format=args.format,
                 filters=filters
@@ -434,12 +434,12 @@ Examples:
 
         message = entry.message
         if highlight_term and use_color:
-            message = message.replace()
+            message = message.replace(
                 highlight_term,
                 f"{self.colors['BOLD']}{self.colors['YELLOW']}{highlight_term}{reset}"
             )
 
-        logger.info(f"{timestamp_color}{timestamp}{reset} ")
+        logger.info(f"{timestamp_color}{timestamp}{reset} "
               f"{level_color}[{entry.level:<7}]{reset} "
               f"{module_color}{entry.module:<20}{reset} "
               f"{message}")

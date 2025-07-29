@@ -95,11 +95,39 @@ fabric>=3.2.2
 jinja2>=3.1.2
 openpyxl>=3.1.2
 xlsxwriter>=3.1.9
-python-magic>=0.4.27
+python-magic>=0.4.27; platform_system != "Windows"
 schedule>=1.2.0
 watchdog>=3.0.0
 python-socketio>=5.10.0
 eventlet>=0.33.3
+
+# Optional GUI dependencies
+customtkinter>=5.2.0
+tkinter-tooltip>=2.1.0
+
+# Optional phone number validation
+phonenumbers>=8.13.0
+
+# Optional 2FA/MFA support
+pyotp>=2.9.0
+qrcode[pil]>=7.4.2
+
+# Optional web view support
+webview>=4.4.1; platform_system != "Linux"
+
+# Optional rich console support (already in minimal but ensuring it's here)
+rich>=13.7.0
+
+# Windows-specific optional dependencies
+pywin32>=306; platform_system == "Windows"
+wmi>=1.5.1; platform_system == "Windows"
+
+# Linux-specific optional dependencies
+psutil>=5.9.6; platform_system == "Linux"
+
+# macOS-specific optional dependencies
+psutil>=5.9.6; platform_system == "Darwin"
+pyobjc-framework-Cocoa>=10.0; platform_system == "Darwin"
 
 # === DEVELOPMENT INSTALLATION ===
 # All dependencies above plus development tools
@@ -165,6 +193,7 @@ ipykernel>=6.27.1
 # python3-tk
 # python3-dev
 # python3-pip
+# python3-venv
 # build-essential
 # libssl-dev
 # libffi-dev
@@ -177,16 +206,23 @@ ipykernel>=6.27.1
 # pkg-config
 # libcairo2-dev
 # libgirepository1.0-dev
+# libmagic1
+# libmagic-dev
 # redis-server
 # postgresql
 # postgresql-contrib
 # nginx
 # supervisor
+# git
+# curl
+# wget
+# unzip
 
 # [dnf] - Fedora/RHEL packages
 # python3-tkinter
 # python3-devel
 # python3-pip
+# python3-venv
 # gcc
 # gcc-c++
 # openssl-devel
@@ -200,16 +236,22 @@ ipykernel>=6.27.1
 # pkgconfig
 # cairo-devel
 # gobject-introspection-devel
+# file-devel
 # redis
 # postgresql
 # postgresql-server
 # nginx
 # supervisor
+# git
+# curl
+# wget
+# unzip
 
 # [pacman] - Arch Linux packages
 # tk
 # python
 # python-pip
+# python-venv
 # base-devel
 # openssl
 # libffi
@@ -222,10 +264,15 @@ ipykernel>=6.27.1
 # pkg-config
 # cairo
 # gobject-introspection
+# file
 # redis
 # postgresql
 # nginx
 # supervisor
+# git
+# curl
+# wget
+# unzip
 
 # [brew] - macOS packages
 # python-tk
@@ -242,7 +289,53 @@ ipykernel>=6.27.1
 # pkg-config
 # cairo
 # gobject-introspection
+# libmagic
 # redis
 # postgresql
 # nginx
 # supervisor
+# git
+# curl
+# wget
+# unzip
+
+# [choco] - Windows Chocolatey packages
+# python3
+# git
+# nodejs
+# redis-64
+# postgresql
+# nginx
+# curl
+# wget
+# 7zip
+# visualstudio2022buildtools
+# visualstudio2022-workload-vctools
+# microsoft-windows-terminal
+# powershell-core
+
+# [winget] - Windows Package Manager packages
+# Python.Python.3.11
+# Git.Git
+# OpenJS.NodeJS
+# Microsoft.VisualStudio.2022.BuildTools
+# PostgreSQL.PostgreSQL
+# Nginx.Nginx
+# cURL.cURL
+# GNU.Wget2
+# 7zip.7zip
+# Microsoft.WindowsTerminal
+# Microsoft.PowerShell
+
+# [scoop] - Windows Scoop packages (alternative package manager)
+# python
+# git
+# nodejs
+# redis
+# postgresql
+# nginx
+# curl
+# wget
+# 7zip
+# windows-terminal
+# pwsh

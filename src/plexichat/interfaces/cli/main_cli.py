@@ -60,10 +60,8 @@ except ImportError:
 analytics_manager = None
 track_event = None
 
-try:
-    from plexichat.interfaces.cli.commands.tests import handle_test_command
-except ImportError:
-    handle_test_command = None
+# Test command handler is not available yet
+handle_test_command = None
 
 # Import CLI command groups
 # Import CLI commands with fallbacks

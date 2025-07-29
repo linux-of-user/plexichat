@@ -166,11 +166,41 @@ DEBUG_MODE = False
 DEVELOPMENT_MODE = False
 TESTING_MODE = False
 
-# Version Constants
-PLEXICHAT_VERSION = "1.0.0"
-API_VERSION_MAJOR = 1
-API_VERSION_MINOR = 0
-API_VERSION_PATCH = 0
+# Version Constants - Load from version.json
+import json
+import os
+from pathlib import Path
+
+def _load_version():
+    """Load version from version.json file."""
+    try:
+        # Look for version.json in the project root
+        current_dir = Path(__file__).parent
+        version_file = None
+        
+        # Search up the directory tree for version.json
+        for parent in [current_dir] + list(current_dir.parents):
+            potential_file = parent / "version.json"
+            if potential_file.exists():
+                version_file = potential_file
+                break
+        
+        if version_file:
+            with open(version_file, 'r') as f:
+                version_data = json.load(f)
+                return (
+                    version_data.get('version', 'b.1.1-85'),
+                    version_data.get('major_version', 1),
+                    version_data.get('minor_version', 1),
+                    version_data.get('build_number', 85)
+                )
+    except Exception:
+        pass
+    
+    # Fallback values
+    return "b.1.1-85", 1, 1, 85
+
+PLEXICHAT_VERSION, API_VERSION_MAJOR, API_VERSION_MINOR, API_VERSION_PATCH = _load_version()
 
 # Feature Flags
 ENABLE_PLUGIN_SYSTEM = True

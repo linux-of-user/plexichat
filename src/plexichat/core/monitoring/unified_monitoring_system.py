@@ -179,6 +179,24 @@ class UnifiedMonitoringSystem:
         }
         
         return status
+    
+    def track_event(self, event_type: str, data: Dict[str, Any], user_id: Optional[str] = None, session_id: Optional[str] = None):
+        """Track an analytics event."""
+        event = AnalyticsEvent(
+            event_type=event_type,
+            data=data,
+            user_id=user_id,
+            session_id=session_id
+        )
+        
+        # Store event as a metric for now
+        self.record_metric(f"event_{event_type}", 1, "count", {
+            "user_id": user_id or "anonymous",
+            "session_id": session_id or "unknown",
+            **data
+        })
+        
+        logger.info(f"Tracked event: {event_type} for user {user_id}")
 
 
 # Global instance
@@ -204,6 +222,11 @@ def get_latest_metric(name: str) -> Optional[MetricData]:
 def get_system_status() -> Dict[str, Any]:
     """Get overall system status."""
     return unified_monitoring_system.get_system_status()
+
+
+def track_event(event_type: str, data: Dict[str, Any], user_id: Optional[str] = None, session_id: Optional[str] = None):
+    """Track an analytics event."""
+    unified_monitoring_system.track_event(event_type, data, user_id, session_id)
 
 
 # Alias for backward compatibility
@@ -236,4 +259,5 @@ __all__ = [
     "get_metrics",
     "get_latest_metric",
     "get_system_status",
+    "track_event",
 ]

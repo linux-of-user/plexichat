@@ -57,7 +57,7 @@ def create_app() -> Optional[Any]:
         # Create FastAPI app
         app = FastAPI(
             title=getattr(settings, 'APP_NAME', 'PlexiChat'),
-            version=getattr(settings, 'APP_VERSION', '1.0.0'),
+            version=getattr(settings, 'APP_VERSION', 'b.1.1-85'),
             description="Enhanced PlexiChat API with comprehensive functionality",
             debug=getattr(settings, 'DEBUG', False)
         )
@@ -123,7 +123,7 @@ def create_app() -> Optional[Any]:
             return {
                 "status": "healthy",
                 "timestamp": "2024-01-01T00:00:00Z",
-                "version": getattr(settings, 'APP_VERSION', '1.0.0')
+                "version": getattr(settings, 'APP_VERSION', 'b.1.1-85')
             }
 
         return app
@@ -145,6 +145,7 @@ def _include_routers(app):
             ("system", "/system"),
             ("status", "/status"),
             ("webhooks", "/webhooks"),
+            ("webui", "/ui"),
             ("login", "/login"),
             ("updates", "/updates"),
             ("cluster", "/cluster"),
@@ -177,4 +178,4 @@ __all__ = [
 ]
 
 # Version info
-__version__ = "1.0.0"
+__version__ = "b.1.1-85"
