@@ -1,5 +1,6 @@
 import os
 import yaml
+import json
 import logging
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union, Callable
@@ -112,10 +113,13 @@ class ConfigurationManager:
 
     def set_defaults(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Set default values for missing configuration sections."""
+        # Load version from version.json
+        version = self._load_version_from_json()
+        
         defaults = {
             "system": {
                 "name": "PlexiChat",
-                "version": "1.0.0",
+                "version": version,
                 "environment": "production",
                 "debug": False,
                 "timezone": "UTC"
@@ -207,6 +211,30 @@ class ConfigurationManager:
                         config[section][key] = value
 
         return config
+
+    def _load_version_from_json(self) -> str:
+        """Load version from version.json file."""
+        try:
+            # Look for version.json in the project root
+            current_dir = Path(__file__).parent
+            version_file = None
+            
+            # Search up the directory tree for version.json
+            for parent in [current_dir] + list(current_dir.parents):
+                potential_file = parent / "version.json"
+                if potential_file.exists():
+                    version_file = potential_file
+                    break
+            
+            if version_file:
+                with open(version_file, 'r') as f:
+                    version_data = json.load(f)
+                    return version_data.get('version', 'b.1.1-86')
+        except Exception as e:
+            logger.warning(f"Could not load version from version.json: {e}")
+        
+        # Fallback version
+        return "b.1.1-86"
 
     def save_configuration(self, config: Optional[Dict[str, Any]] = None) -> bool:
         """Save configuration to YAML files."""

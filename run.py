@@ -62,9 +62,9 @@ def get_version_from_json():
         import json
         with open('version.json', 'r') as f:
             version_data = json.load(f)
-            return version_data.get('version', 'b.1.1-85')
+            return version_data.get('version', 'b.1.1-86')
     except Exception:
-        return 'b.1.1-85'
+        return 'b.1.1-86'
 
 PLEXICHAT_VERSION = get_version_from_json()
 GITHUB_REPO = "linux-of-user/plexichat"
@@ -4690,10 +4690,4 @@ def get_current_version():
         # Try to get from version file
         version_file = Path("VERSION")
         if version_file.exists():
-            with open(version_file, 'r') as f:
-                return f.read().strip()
-        
-        # Fallback to version from version.json
-        return get_version_from_json()
-    except Exception:
-        return get_version_from_json()
+            with open(version_

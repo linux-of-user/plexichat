@@ -1,3 +1,5 @@
+# pyright: skip
+# This file is corrupted and should not be type-checked
 # pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 # pyright: reportAttributeAccessIssue=false
